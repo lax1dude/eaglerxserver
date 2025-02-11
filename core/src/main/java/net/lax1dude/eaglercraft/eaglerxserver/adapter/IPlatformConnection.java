@@ -1,4 +1,4 @@
-package net.lax1dude.eaglerxserver.adapter;
+package net.lax1dude.eaglercraft.eaglerxserver.adapter;
 
 public interface IPlatformConnection {
 

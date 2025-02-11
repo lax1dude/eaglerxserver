@@ -1,12 +1,12 @@
-package net.lax1dude.eaglerxserver.base;
+package net.lax1dude.eaglercraft.eaglerxserver.base;
 
-import net.lax1dude.eaglerxserver.adapter.IEaglerXServerImpl;
-import net.lax1dude.eaglerxserver.adapter.IEaglerXServerListener;
-import net.lax1dude.eaglerxserver.adapter.IPlatform;
-import net.lax1dude.eaglerxserver.adapter.IPlatformConnection;
-import net.lax1dude.eaglerxserver.adapter.IPlatformConnectionInitializer;
-import net.lax1dude.eaglerxserver.adapter.IPlatformPlayer;
-import net.lax1dude.eaglerxserver.adapter.IPlatformPlayerInitializer;
+import net.lax1dude.eaglercraft.eaglerxserver.adapter.IEaglerXServerImpl;
+import net.lax1dude.eaglercraft.eaglerxserver.adapter.IEaglerXServerListener;
+import net.lax1dude.eaglercraft.eaglerxserver.adapter.IPlatform;
+import net.lax1dude.eaglercraft.eaglerxserver.adapter.IPlatformConnection;
+import net.lax1dude.eaglercraft.eaglerxserver.adapter.IPlatformConnectionInitializer;
+import net.lax1dude.eaglercraft.eaglerxserver.adapter.IPlatformPlayer;
+import net.lax1dude.eaglercraft.eaglerxserver.adapter.IPlatformPlayerInitializer;
 
 public class EaglerXServer implements IEaglerXServerImpl {
 
