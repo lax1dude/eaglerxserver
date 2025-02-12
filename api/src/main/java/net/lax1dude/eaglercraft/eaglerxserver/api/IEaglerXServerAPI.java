@@ -8,6 +8,7 @@ import net.lax1dude.eaglercraft.eaglerxserver.api.notifications.INotificationSer
 import net.lax1dude.eaglercraft.eaglerxserver.api.pause_menu.IPauseMenuService;
 import net.lax1dude.eaglercraft.eaglerxserver.api.players.IBasePlayer;
 import net.lax1dude.eaglercraft.eaglerxserver.api.players.IEaglerPlayer;
+import net.lax1dude.eaglercraft.eaglerxserver.api.query.IWebSocketQueryService;
 import net.lax1dude.eaglercraft.eaglerxserver.api.skins.ISkinImageLoader;
 import net.lax1dude.eaglercraft.eaglerxserver.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.eaglerxserver.api.voice.IVoiceService;
@@ -56,5 +57,7 @@ public interface IEaglerXServerAPI<PlayerObject> extends IPacketImageLoader, ISk
 	IPauseMenuService<PlayerObject> getPauseMenuService();
 
 	IWebViewService<PlayerObject> getWebViewService();
+
+	IWebSocketQueryService<PlayerObject> getWebSocketQueryService();
 
 }
