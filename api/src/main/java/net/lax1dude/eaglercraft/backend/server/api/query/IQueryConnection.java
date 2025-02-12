@@ -6,15 +6,18 @@ import java.util.function.Consumer;
 import com.google.gson.JsonObject;
 
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
+import net.lax1dude.eaglercraft.backend.server.api.IAttributeHolder;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 
-public interface IQueryConnection {
+public interface IQueryConnection extends IAttributeHolder {
 
 	boolean isClosed();
 
 	void close();
 
 	SocketAddress getRemoteAddress();
+
+	String getRealAddress();
 
 	IEaglerListenerInfo getListenerInfo();
 

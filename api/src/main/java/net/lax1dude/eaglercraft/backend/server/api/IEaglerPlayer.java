@@ -1,6 +1,5 @@
 package net.lax1dude.eaglercraft.backend.server.api;
 
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationManager;
@@ -10,38 +9,15 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerEagler;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewManager;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 
-public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject> {
-
-	IEaglerListenerInfo getListenerInfo();
-
-	String getEaglerVersionName();
-
-	String getEaglerBrandName();
-
-	UUID getEaglerBrandUUID();
-
-	int getHandshakeEaglerProtocol();
-
-	GamePluginMessageProtocol getEaglerProtocol();
+public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject>, IEaglerPendingConnection {
 
 	void sendEaglerMessage(GameMessagePacket packet);
-
-	default boolean isProtocolV4() {
-		return getEaglerProtocol().ver >= 4;
-	}
-
-	default boolean isProtocolV5() {
-		return getEaglerProtocol().ver >= 5;
-	}
 
 	boolean isRedirectPlayerSupported();
 
 	void redirectPlayerToWebSocket(String webSocketURI);
-
-	String getWebSocketHeader(EnumWebSocketHeader header);
 
 	ISkinManagerEagler<PlayerObject> getSkinManager();
 

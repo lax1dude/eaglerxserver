@@ -1,32 +1,25 @@
 package net.lax1dude.eaglercraft.backend.server.api;
 
-import java.net.SocketAddress;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
 
-public interface IBasePlayer<PlayerObject> {
+public interface IBasePlayer<PlayerObject> extends IBasePendingConnection {
 
 	IEaglerXServerAPI<PlayerObject> getServerAPI();
 
 	PlayerObject getPlayerObject();
 
-	String getUsername();
-
-	UUID getUniqueId();
-
-	SocketAddress getRemoteAddress();
-
-	boolean isEaglerPlayer();
-
-	int getMinecraftProtocol();
-
 	String getMinecraftBrand();
+
+	UUID getEaglerBrandUUID();
 
 	boolean isConnected();
 
 	boolean isOnlineMode();
 
 	ISkinManagerBase<PlayerObject> getSkinManager();
+
+	<ComponentObject> void disconnect(ComponentObject kickMessage);
 
 }

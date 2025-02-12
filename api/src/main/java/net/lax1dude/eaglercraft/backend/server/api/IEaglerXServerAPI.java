@@ -12,7 +12,7 @@ import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
 
-public interface IEaglerXServerAPI<PlayerObject> extends IBrandResolver {
+public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder, IBrandResolver {
 
 	public static <PlayerObject> IEaglerXServerAPI<PlayerObject> instance(Class<PlayerObject> playerObj) {
 		return EaglerXServerAPIFactory.INSTANCE.createAPI(playerObj);
@@ -74,5 +74,7 @@ public interface IEaglerXServerAPI<PlayerObject> extends IBrandResolver {
 	IQueryService<PlayerObject> getQueryService();
 
 	ISupervisorService<PlayerObject> getSupervisorService();
+
+	IAttributeManager<PlayerObject> getAttributeManager();
 
 }

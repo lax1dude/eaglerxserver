@@ -17,18 +17,22 @@ public interface IWebViewManager<PlayerObject> {
 
 	boolean isWebViewAllowed();
 
-	boolean isWebViewChannelOpen();
+	boolean isChannelOpen();
 
-	boolean isWebViewChannelOpen(String channelName);
+	boolean isChannelOpen(String channelName);
 
-	String getWebViewChannelName();
+	String getChannelName();
 
-	void sendWebViewMessage(String contents);
+	void sendMessageString(String contents);
 
-	void sendWebViewMessage(byte[] contents);
+	void sendMessageString(byte[] contents);
 
-	void sendWebViewMessage(String channelName, String contents);
+	void sendMessageBinary(byte[] contents);
 
-	void sendWebViewMessage(String channelName, byte[] contents);
+	void sendMessageString(String channelName, String contents);
+
+	void sendMessageString(String channelName, byte[] contents);
+
+	void sendMessageBinary(String channelName, byte[] contents);
 
 }
