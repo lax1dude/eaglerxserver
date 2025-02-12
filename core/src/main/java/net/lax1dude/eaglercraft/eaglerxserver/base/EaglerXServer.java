@@ -8,7 +8,7 @@ import net.lax1dude.eaglercraft.eaglerxserver.adapter.IPlatformConnectionInitial
 import net.lax1dude.eaglercraft.eaglerxserver.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.eaglerxserver.adapter.IPlatformPlayerInitializer;
 
-public class EaglerXServer implements IEaglerXServerImpl {
+public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl {
 
 	private IPlatform platform;
 
