@@ -4,8 +4,8 @@ import java.net.SocketAddress;
 
 public interface IEaglerListenerInfo {
 
-	String getListenerName();
-
 	SocketAddress getListenerAddress();
+
+	boolean isDualStack();
 
 }

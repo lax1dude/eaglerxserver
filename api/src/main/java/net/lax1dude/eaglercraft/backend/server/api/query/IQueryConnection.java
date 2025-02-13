@@ -6,8 +6,8 @@ import java.util.function.Consumer;
 import com.google.gson.JsonObject;
 
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
-import net.lax1dude.eaglercraft.backend.server.api.IAttributeHolder;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
+import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeHolder;
 
 public interface IQueryConnection extends IAttributeHolder {
 

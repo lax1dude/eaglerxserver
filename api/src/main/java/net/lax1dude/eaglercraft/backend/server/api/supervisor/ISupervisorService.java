@@ -1,10 +1,9 @@
 package net.lax1dude.eaglercraft.backend.server.api.supervisor;
 
-import java.net.SocketAddress;
 import java.util.UUID;
 
-import net.lax1dude.eaglercraft.backend.server.api.IBrandResolver;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandResolver;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinResolver;
 
 public interface ISupervisorService<PlayerObject> extends IBrandResolver, ISkinResolver {
@@ -15,15 +14,13 @@ public interface ISupervisorService<PlayerObject> extends IBrandResolver, ISkinR
 
 	boolean isSupervisorConnected();
 
-	SocketAddress getSupervisorAddress();
+	ISupervisorConnection<PlayerObject> getConnection();
 
 	int getNodeId();
 
 	int getPlayerTotal();
 
 	int getPlayerMax();
-
-	long getPingMS();
 
 	ISupervisorRPCHandler<PlayerObject> getRPCHandler();
 

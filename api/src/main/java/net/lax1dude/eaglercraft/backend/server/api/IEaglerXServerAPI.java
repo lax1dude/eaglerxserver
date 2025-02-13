@@ -1,7 +1,11 @@
 package net.lax1dude.eaglercraft.backend.server.api;
 
+import java.util.Collection;
 import java.util.UUID;
 
+import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeHolder;
+import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
+import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistry;
 import net.lax1dude.eaglercraft.backend.server.api.internal.factory.EaglerXServerAPIFactory;
 import net.lax1dude.eaglercraft.backend.server.api.internal.factory.IEaglerAPIFactory;
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationService;
@@ -12,7 +16,7 @@ import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
 
-public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder, IBrandResolver {
+public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	public static <PlayerObject> IEaglerXServerAPI<PlayerObject> instance(Class<PlayerObject> playerObj) {
 		return EaglerXServerAPIFactory.INSTANCE.createAPI(playerObj);
@@ -43,6 +47,16 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder, IBran
 
 	<PluginImpl> PluginImpl getPlatformPluginInstance(Class<PluginImpl> clazz);
 
+	String getServerBrand();
+
+	String getServerVersion();
+
+	boolean isEaglerAuthEnabled();
+
+	boolean isEaglerProtocolSupported(int vers);
+
+	IBrandRegistry getBrandRegistry();
+
 	IBasePlayer<PlayerObject> getPlayer(PlayerObject player);
 
 	IBasePlayer<PlayerObject> getPlayerByName(String playerName);
@@ -61,6 +75,10 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder, IBran
 
 	boolean isEaglerPlayerByUUID(UUID playerUUID);
 
+	Collection<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers();
+
+	Collection<IEaglerListenerInfo> getAllEaglerListeners();
+
 	ISkinService<PlayerObject> getSkinService();
 
 	IVoiceService<PlayerObject> getVoiceService();
@@ -75,6 +93,6 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder, IBran
 
 	ISupervisorService<PlayerObject> getSupervisorService();
 
-	IAttributeManager<PlayerObject> getAttributeManager();
+	IAttributeManager getAttributeManager();
 
 }

@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.api;
+package net.lax1dude.eaglercraft.backend.server.api.attribute;
 
 public interface IAttributeHolder {
 

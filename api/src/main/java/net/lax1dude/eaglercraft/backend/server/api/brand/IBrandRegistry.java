@@ -1,0 +1,30 @@
+package net.lax1dude.eaglercraft.backend.server.api.brand;
+
+import java.util.UUID;
+
+public interface IBrandRegistry {
+
+	static final UUID BRAND_NULL = new UUID(0l, 0l);
+	static final UUID BRAND_VANILLA = new UUID(0x1DCE015CD384374El, 0x85030A4DE95E5736l);
+	static final UUID BRAND_EAGLERCRAFTX_V4 = new UUID(0x4448369E4E873621l, 0x94F5E28EEB160524l);
+	static final UUID BRAND_EAGLERCRAFTX_LEGACY =  new UUID(0x71D0C81201C2366Al, 0xA0D23D9AA10846EBl);
+
+	UUID getBrandUUIDClient(String brandString);
+
+	UUID getBrandUUIDClientLegacy(String brandString);
+
+	default void registerBrand(UUID brandUUID, String brandDesc) {
+		registerBrand(brandUUID, brandDesc, false, false);
+	}
+
+	default void registerBrand(UUID brandUUID, String brandDesc, boolean hacked) {
+		registerBrand(brandUUID, brandDesc, hacked, false);
+	}
+
+	void registerBrand(UUID brandUUID, String brandDesc, boolean hacked, boolean legacy);
+
+	void unregisterBrand(UUID brandUUID);
+
+	IBrandRegistration lookupRegisteredBrand(UUID brandUUID);
+
+}

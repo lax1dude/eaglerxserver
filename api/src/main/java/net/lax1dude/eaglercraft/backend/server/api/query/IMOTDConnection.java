@@ -2,8 +2,8 @@ package net.lax1dude.eaglercraft.backend.server.api.query;
 
 import java.util.List;
 
-import net.lax1dude.eaglercraft.backend.server.api.IAttributeHolder;
-import net.lax1dude.eaglercraft.backend.server.api.IAttributeKey;
+import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeHolder;
+import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 
 public interface IMOTDConnection extends IAttributeHolder {
 

@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 
 public interface ISkinResolver {
 
-	boolean isDownloadEnabled();
+	boolean isSkinDownloadEnabled();
 
 	void resolveEaglerPlayerSkin(UUID playerUUID, Consumer<IEaglerPlayerSkin> callback);
 
