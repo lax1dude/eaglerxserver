@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.api;
 
 import java.util.UUID;
 
+import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistration;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
 
 public interface IBasePlayer<PlayerObject> extends IBasePendingConnection {
@@ -13,6 +14,10 @@ public interface IBasePlayer<PlayerObject> extends IBasePendingConnection {
 	String getMinecraftBrand();
 
 	UUID getEaglerBrandUUID();
+
+	default IBrandRegistration getEaglerBrandDesc() {
+		return getServerAPI().getBrandRegistry().lookupRegisteredBrand(getEaglerBrandUUID());
+	}
 
 	boolean isConnected();
 

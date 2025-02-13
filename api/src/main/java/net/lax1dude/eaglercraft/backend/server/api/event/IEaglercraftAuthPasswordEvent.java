@@ -32,7 +32,7 @@ public interface IEaglercraftAuthPasswordEvent<PlayerObject, ComponentObject> ex
 
 	void setProfileUUID(UUID uuid);
 
-	IEaglercraftAuthIsRequiredEvent.EnumAuthType getAuthType();
+	IEaglercraftAuthCheckRequiredEvent.EnumAuthType getAuthType();
 
 	String getAuthMessage();
 

@@ -1,6 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.api.event;
 
-public interface IEaglercraftAuthIsRequiredEvent<PlayerObject, ComponentObject> extends IEaglerXHandshakeEvent<PlayerObject> {
+public interface IEaglercraftAuthCheckRequiredEvent<PlayerObject, ComponentObject> extends IEaglerXHandshakeEvent<PlayerObject> {
 
 	public static enum EnumAuthResponse {
 		SKIP, REQUIRE, DENY
@@ -10,7 +10,7 @@ public interface IEaglercraftAuthIsRequiredEvent<PlayerObject, ComponentObject> 
 		PLAINTEXT, EAGLER_SHA256, AUTHME_SHA256
 	}
 
-	boolean isClientSolicitingPasscode();
+	boolean isClientSolicitingPassword();
 
 	byte[] getAuthUsername();
 

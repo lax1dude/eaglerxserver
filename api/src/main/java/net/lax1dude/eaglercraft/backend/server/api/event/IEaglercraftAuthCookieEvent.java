@@ -28,7 +28,7 @@ public interface IEaglercraftAuthCookieEvent<PlayerObject, ComponentObject> exte
 
 	void setProfileUUID(UUID uuid);
 
-	IEaglercraftAuthIsRequiredEvent.EnumAuthType getAuthType();
+	IEaglercraftAuthCheckRequiredEvent.EnumAuthType getAuthType();
 
 	String getAuthMessage();
 

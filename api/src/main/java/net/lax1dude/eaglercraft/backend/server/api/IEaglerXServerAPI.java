@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.api;
 
+import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -78,6 +79,10 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 	Collection<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers();
 
 	Collection<IEaglerListenerInfo> getAllEaglerListeners();
+
+	IEaglerListenerInfo getListenerByName(String name);
+
+	IEaglerListenerInfo getListenerByAddress(SocketAddress address);
 
 	ISkinService<PlayerObject> getSkinService();
 
