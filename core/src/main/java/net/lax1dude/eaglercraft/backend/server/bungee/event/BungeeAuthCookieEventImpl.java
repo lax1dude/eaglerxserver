@@ -1,17 +1,20 @@
-package net.lax1dude.eaglercraft.backend.server.api.velocity.event;
+package net.lax1dude.eaglercraft.backend.server.bungee.event;
 
 import java.util.UUID;
 
-import com.velocitypowered.api.proxy.Player;
-
-import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftAuthCookieEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCookieEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent.EnumAuthType;
+import net.md_5.bungee.api.Callback;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 
-public class VEaglercraftAuthCookieEvent extends VEaglercraftBaseEvent implements IEaglercraftAuthCookieEvent<Player, Component> {
+class BungeeAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 
+	private final IEaglerXServerAPI<ProxiedPlayer> api;
 	private final IEaglerPendingConnection pendingConnection;
 	private final byte[] authUsername;
 	private final boolean cookiesEnabled;
@@ -22,15 +25,17 @@ public class VEaglercraftAuthCookieEvent extends VEaglercraftBaseEvent implement
 	private final String authMessage;
 	private String authRequestedServer;
 	private EnumAuthResponse authResponse;
-	private Component kickMessage;
+	private BaseComponent kickMessage;
 	private String texturesPropertyValue;
 	private String texturesPropertySignature;
 	private boolean forceVanillaSkin;
 
-	public VEaglercraftAuthCookieEvent(IEaglerXServerAPI<Player> api, IEaglerPendingConnection pendingConnection,
+	BungeeAuthCookieEventImpl(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerPendingConnection pendingConnection,
 			byte[] authUsername, boolean cookiesEnabled, byte[] cookieData, String profileUsername, UUID profileUUID,
-			EnumAuthType authType, String authMessage, String authRequestedServer) {
-		super(api);
+			EnumAuthType authType, String authMessage, String authRequestedServer,
+			Callback<IEaglercraftAuthCookieEvent<?, ?>> cb) {
+		super(cb);
+		this.api = api;
 		this.pendingConnection = pendingConnection;
 		this.authUsername = authUsername;
 		this.cookiesEnabled = cookiesEnabled;
@@ -40,6 +45,11 @@ public class VEaglercraftAuthCookieEvent extends VEaglercraftBaseEvent implement
 		this.authType = authType;
 		this.authMessage = authMessage;
 		this.authRequestedServer = authRequestedServer;
+	}
+
+	@Override
+	public IEaglerXServerAPI<ProxiedPlayer> getServerAPI() {
+		return api;
 	}
 
 	@Override
@@ -113,18 +123,18 @@ public class VEaglercraftAuthCookieEvent extends VEaglercraftBaseEvent implement
 	}
 
 	@Override
-	public Component getKickMessage() {
+	public BaseComponent getKickMessage() {
 		return kickMessage;
 	}
 
 	@Override
-	public void setKickMessage(Component kickMessage) {
+	public void setKickMessage(BaseComponent kickMessage) {
 		this.kickMessage = kickMessage;
 	}
 
 	@Override
 	public void setKickMessage(String kickMessage) {
-		this.kickMessage = Component.text(kickMessage);
+		this.kickMessage = new TextComponent(kickMessage);
 	}
 
 	@Override

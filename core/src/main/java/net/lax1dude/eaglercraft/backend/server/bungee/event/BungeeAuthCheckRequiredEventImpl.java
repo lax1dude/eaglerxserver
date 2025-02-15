@@ -1,14 +1,17 @@
-package net.lax1dude.eaglercraft.backend.server.api.velocity.event;
+package net.lax1dude.eaglercraft.backend.server.bungee.event;
 
-import com.velocitypowered.api.proxy.Player;
-
-import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
+import net.md_5.bungee.api.Callback;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 
-public class VEaglercraftAuthCheckRequiredEvent extends VEaglercraftBaseEvent implements IEaglercraftAuthCheckRequiredEvent<Player, Component> {
+class BungeeAuthCheckRequiredEventImpl extends EaglercraftAuthCheckRequiredEvent {
 
+	private final IEaglerXServerAPI<ProxiedPlayer> api;
 	private final IEaglerPendingConnection pendingConnection;
 	private final boolean clientSolicitingPassword;
 	private final byte[] authUsername;
@@ -16,15 +19,22 @@ public class VEaglercraftAuthCheckRequiredEvent extends VEaglercraftBaseEvent im
 	private EnumAuthType authType;
 	private EnumAuthResponse authRequired;
 	private String authMessage = "enter the code:";
-	private Component kickMessage;
+	private BaseComponent kickMessage;
 	private boolean cookieAuth;
 
-	public VEaglercraftAuthCheckRequiredEvent(IEaglerXServerAPI<Player> api, IEaglerPendingConnection pendingConnection,
-			boolean clientSolicitingPassword, byte[] authUsername) {
-		super(api);
+	BungeeAuthCheckRequiredEventImpl(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerPendingConnection pendingConnection,
+			boolean clientSolicitingPassword, byte[] authUsername,
+			Callback<IEaglercraftAuthCheckRequiredEvent<?, ?>> cb) {
+		super(cb);
+		this.api = api;
 		this.pendingConnection = pendingConnection;
 		this.clientSolicitingPassword = clientSolicitingPassword;
 		this.authUsername = authUsername;
+	}
+
+	@Override
+	public IEaglerXServerAPI<ProxiedPlayer> getServerAPI() {
+		return api;
 	}
 
 	@Override
@@ -93,18 +103,18 @@ public class VEaglercraftAuthCheckRequiredEvent extends VEaglercraftBaseEvent im
 	}
 
 	@Override
-	public Component getKickMessage() {
+	public BaseComponent getKickMessage() {
 		return kickMessage;
 	}
 
 	@Override
-	public void setKickMessage(Component kickMessage) {
+	public void setKickMessage(BaseComponent kickMessage) {
 		this.kickMessage = kickMessage;
 	}
 
 	@Override
 	public void setKickMessage(String kickMessage) {
-		this.kickMessage = Component.text(kickMessage);
+		this.kickMessage = new TextComponent(kickMessage);
 	}
 
 }

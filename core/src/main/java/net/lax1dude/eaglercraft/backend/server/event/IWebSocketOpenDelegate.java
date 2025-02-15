@@ -1,10 +1,10 @@
-package net.lax1dude.eaglercraft.backend.server.api.event;
+package net.lax1dude.eaglercraft.backend.server.event;
 
 import java.net.SocketAddress;
 
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 
-public interface IEaglercraftWebSocketOpenEvent<PlayerObject> extends IEaglerXServerEvent<PlayerObject>, ICancellableEvent {
+public interface IWebSocketOpenDelegate {
 
 	String getHeader(EnumWebSocketHeader header);
 

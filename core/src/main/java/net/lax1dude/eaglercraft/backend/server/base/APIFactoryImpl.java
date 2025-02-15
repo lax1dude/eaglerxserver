@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
 import net.lax1dude.eaglercraft.backend.server.api.internal.factory.EaglerXServerAPIFactory;
 
 class APIFactoryImpl extends EaglerXServerAPIFactory {
@@ -8,6 +9,7 @@ class APIFactoryImpl extends EaglerXServerAPIFactory {
 	static final APIFactoryImpl INSTANCE = new APIFactoryImpl();
 
 	private Class<?> playerClass;
+	private final EaglerAttributeManager attributeManager = new EaglerAttributeManager();
 	private IEaglerXServerAPI<?> handle;
 
 	private APIFactoryImpl() {
@@ -20,6 +22,11 @@ class APIFactoryImpl extends EaglerXServerAPIFactory {
 			throw new IllegalStateException("EaglerXServer has not been initialized yet!");
 		}
 		return clazz;
+	}
+
+	@Override
+	public IAttributeManager getGlobalAttributeManager() {
+		return attributeManager;
 	}
 
 	@Override

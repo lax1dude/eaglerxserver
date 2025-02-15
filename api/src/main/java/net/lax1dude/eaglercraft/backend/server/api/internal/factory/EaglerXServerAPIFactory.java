@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
 
 public abstract class EaglerXServerAPIFactory implements IEaglerAPIFactory {
 
@@ -25,6 +26,8 @@ public abstract class EaglerXServerAPIFactory implements IEaglerAPIFactory {
 	}
 
 	public abstract Class<?> getPlayerClass();
+
+	public abstract IAttributeManager getGlobalAttributeManager();
 
 	public abstract <T> IEaglerXServerAPI<T> createAPI(Class<T> playerClass);
 
