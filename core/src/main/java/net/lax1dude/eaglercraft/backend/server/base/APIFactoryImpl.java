@@ -24,6 +24,10 @@ class APIFactoryImpl extends EaglerXServerAPIFactory {
 		return clazz;
 	}
 
+	EaglerAttributeManager getEaglerAttribManager() {
+		return attributeManager;
+	}
+
 	@Override
 	public IAttributeManager getGlobalAttributeManager() {
 		return attributeManager;

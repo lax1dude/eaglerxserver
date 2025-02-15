@@ -6,10 +6,12 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.AsyncEvent;
 
-public abstract class EaglercraftAuthCheckRequiredEvent extends AsyncEvent<IEaglercraftAuthCheckRequiredEvent<?, ?>>
+public abstract class EaglercraftAuthCheckRequiredEvent
+		extends AsyncEvent<IEaglercraftAuthCheckRequiredEvent<ProxiedPlayer, BaseComponent>>
 		implements IEaglercraftAuthCheckRequiredEvent<ProxiedPlayer, BaseComponent> {
 
-	protected EaglercraftAuthCheckRequiredEvent(Callback<IEaglercraftAuthCheckRequiredEvent<?, ?>> done) {
+	protected EaglercraftAuthCheckRequiredEvent(
+			Callback<IEaglercraftAuthCheckRequiredEvent<ProxiedPlayer, BaseComponent>> done) {
 		super(done);
 	}
 

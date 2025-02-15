@@ -17,7 +17,7 @@ class BungeeClientBrandEventImpl extends EaglercraftClientBrandEvent {
 	private BaseComponent message;
 
 	BungeeClientBrandEventImpl(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerPendingConnection pendingConnection,
-			Callback<IEaglercraftClientBrandEvent<?, ?>> cb) {
+			Callback<IEaglercraftClientBrandEvent<ProxiedPlayer, BaseComponent>> cb) {
 		super(cb);
 		this.api = api;
 		this.pendingConnection = pendingConnection;

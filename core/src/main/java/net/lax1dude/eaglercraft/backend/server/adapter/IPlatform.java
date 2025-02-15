@@ -2,10 +2,14 @@ package net.lax1dude.eaglercraft.backend.server.adapter;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.UUID;
+import java.util.function.Consumer;
 
-public interface IPlatform {
+import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 
-	public interface Init {
+public interface IPlatform<PlayerObject> {
+
+	public interface Init<PlayerObject> {
 
 		void setOnServerEnable(Runnable enable);
 
@@ -19,11 +23,11 @@ public interface IPlatform {
 
 		void setCommandRegistry(Collection<IEaglerXServerCommandType> commands);
 
-		IPlatform getPlatform();
+		IPlatform<PlayerObject> getPlatform();
 
 	}
 
-	public interface InitProxying extends Init {
+	public interface InitProxying<PlayerObject> extends Init<PlayerObject> {
 
 		void setEaglerListeners(Collection<IEaglerXServerListener> listeners);
 
@@ -31,7 +35,7 @@ public interface IPlatform {
 
 	}
 
-	public interface InitNonProxying extends Init {
+	public interface InitNonProxying<PlayerObject> extends Init<PlayerObject> {
 
 		void setEaglerListener(IEaglerXServerListener listener);
 
@@ -39,12 +43,22 @@ public interface IPlatform {
 
 	EnumAdapterPlatformType getType();
 
-	String getPluginName();
+	Class<PlayerObject> getPlayerClass();
+
+	String getPluginId();
 
 	File getDataFolder();
 
-	IPlatformLogger getLogger();
+	IPlatformLogger logger();
 
-	Collection<IPlatformPlayer> getPlayers();
+	void forEachPlayer(Consumer<IPlatformPlayer<PlayerObject>> playerCallback);
+
+	IPlatformPlayer<PlayerObject> getPlayer(PlayerObject playerObj);
+
+	IPlatformPlayer<PlayerObject> getPlayer(String username);
+
+	IPlatformPlayer<PlayerObject> getPlayer(UUID uuid);
+
+	IEventDispatchAdapter<PlayerObject, ?> eventDispatcher();
 
 }

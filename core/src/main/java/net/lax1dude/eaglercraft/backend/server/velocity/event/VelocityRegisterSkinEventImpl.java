@@ -2,11 +2,11 @@ package net.lax1dude.eaglercraft.backend.server.velocity.event;
 
 import com.velocitypowered.api.proxy.Player;
 
+import net.lax1dude.eaglercraft.backend.server.adapter.event.IRegisterSkinDelegate;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.server.api.velocity.event.EaglercraftRegisterSkinEvent;
-import net.lax1dude.eaglercraft.backend.server.event.IRegisterSkinDelegate;
 
 class VelocityRegisterSkinEventImpl extends EaglercraftRegisterSkinEvent {
 

@@ -112,19 +112,19 @@ public class EaglerAttributeManager implements IAttributeManager {
 		return new AttributeKeyPrivate<>(type, "unnamed");
 	}
 
-	private class EaglerAttributeHolder implements IAttributeHolder {
+	public class EaglerAttributeHolder implements IAttributeHolder {
 
 		private final ConcurrentMap<AttributeKeyBase<?>, Object> attribMap = new ConcurrentHashMap<>();
 
 		@Override
-		public <T> T get(IAttributeKey<T> key) {
+		public final <T> T get(IAttributeKey<T> key) {
 			AttributeKeyBase<?> checkCast = (AttributeKeyBase<?>) key;
 			checkCast.validate(EaglerAttributeManager.this);
 			return (T) attribMap.get(checkCast);
 		}
 
 		@Override
-		public <T> void set(IAttributeKey<T> key, T value) {
+		public final <T> void set(IAttributeKey<T> key, T value) {
 			AttributeKeyBase<?> checkCast = (AttributeKeyBase<?>) key;
 			checkCast.validate(EaglerAttributeManager.this);
 			if(value != null) {
@@ -137,6 +137,10 @@ public class EaglerAttributeManager implements IAttributeManager {
 	}
 
 	public IAttributeHolder createHolder() {
+		return new EaglerAttributeHolder();
+	}
+
+	public EaglerAttributeHolder createEaglerHolder() {
 		return new EaglerAttributeHolder();
 	}
 

@@ -1,9 +1,10 @@
-package net.lax1dude.eaglercraft.backend.server.event;
+package net.lax1dude.eaglercraft.backend.server.adapter.event;
 
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent.EnumAuthType;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChannelEvent.EnumEventType;
@@ -24,46 +25,51 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftVoiceChange
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebSocketOpenEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChannelEvent;
 
-public interface IEventDispatchAdapter {
+public interface IEventDispatchAdapter<PlayerObject, ComponentObject> {
+
+	void setAPI(IEaglerXServerAPI<PlayerObject> api);
 
 	void dispatchAuthCheckRequired(IEaglerPendingConnection pendingConnection, boolean clientSolicitingPassword,
-			byte[] authUsername, IEventDispatchCallback<IEaglercraftAuthCheckRequiredEvent<?, ?>> onComplete);
+			byte[] authUsername,
+			IEventDispatchCallback<IEaglercraftAuthCheckRequiredEvent<PlayerObject, ComponentObject>> onComplete);
 
 	void dispatchAuthCookieEvent(IEaglerPendingConnection pendingConnection, byte[] authUsername,
 			boolean cookiesEnabled, byte[] cookieData, String profileUsername, UUID profileUUID, EnumAuthType authType,
 			String authMessage, String authRequestedServer,
-			IEventDispatchCallback<IEaglercraftAuthCookieEvent<?, ?>> onComplete);
+			IEventDispatchCallback<IEaglercraftAuthCookieEvent<PlayerObject, ComponentObject>> onComplete);
 
 	void dispatchAuthPasswordEvent(IEaglerPendingConnection pendingConnection, byte[] authUsername,
 			byte[] authSaltingData, byte[] authPasswordData, boolean cookiesEnabled, byte[] cookieData,
 			String profileUsername, UUID profileUUID, EnumAuthType authType, String authMessage,
-			String authRequestedServer, IEventDispatchCallback<IEaglercraftAuthPasswordEvent<?, ?>> onComplete);
+			String authRequestedServer,
+			IEventDispatchCallback<IEaglercraftAuthPasswordEvent<PlayerObject, ComponentObject>> onComplete);
 
 	void dispatchClientBrandEvent(IEaglerPendingConnection pendingConnection,
-			IEventDispatchCallback<IEaglercraftClientBrandEvent<?, ?>> onComplete);
+			IEventDispatchCallback<IEaglercraftClientBrandEvent<PlayerObject, ComponentObject>> onComplete);
 
-	void dispatchMOTDEvent(IMOTDConnection connection, IEventDispatchCallback<IEaglercraftMOTDEvent<?>> onComplete);
+	void dispatchMOTDEvent(IMOTDConnection connection,
+			IEventDispatchCallback<IEaglercraftMOTDEvent<PlayerObject>> onComplete);
 
 	void dispatchRegisterSkinEvent(IEaglerPendingConnection pendingConnection, IRegisterSkinDelegate delegate,
-			IEventDispatchCallback<IEaglercraftRegisterSkinEvent<?>> onComplete);
+			IEventDispatchCallback<IEaglercraftRegisterSkinEvent<PlayerObject>> onComplete);
 
 	void dispatchRegisterCapeEvent(IEaglerPendingConnection pendingConnection, IRegisterCapeDelegate delegate,
-			IEventDispatchCallback<IEaglercraftRegisterCapeEvent<?>> onComplete);
+			IEventDispatchCallback<IEaglercraftRegisterCapeEvent<PlayerObject>> onComplete);
 
 	void dispatchRevokeSessionQueryEvent(IQueryConnection query, byte[] cookieData,
-			IEventDispatchCallback<IEaglercraftRevokeSessionQueryEvent<?>> onComplete);
+			IEventDispatchCallback<IEaglercraftRevokeSessionQueryEvent<PlayerObject>> onComplete);
 
-	void dispatchVoiceChangeEvent(IEaglerPlayer<?> player, EnumVoiceState voiceStateOld, IVoiceChannel voiceChannelOld,
-			EnumVoiceState voiceStateNew, IVoiceChannel voiceChannelNew,
-			IEventDispatchCallback<IEaglercraftVoiceChangeEvent<?>> onComplete);
+	void dispatchVoiceChangeEvent(IEaglerPlayer<PlayerObject> player, EnumVoiceState voiceStateOld,
+			IVoiceChannel voiceChannelOld, EnumVoiceState voiceStateNew, IVoiceChannel voiceChannelNew,
+			IEventDispatchCallback<IEaglercraftVoiceChangeEvent<PlayerObject>> onComplete);
 
 	void dispatchWebSocketOpenEvent(IWebSocketOpenDelegate delegate,
-			IEventDispatchCallback<IEaglercraftWebSocketOpenEvent<?>> onComplete);
+			IEventDispatchCallback<IEaglercraftWebSocketOpenEvent<PlayerObject>> onComplete);
 
-	void dispatchWebViewChannelEvent(IEaglerPlayer<?> player, EnumEventType type, String channel,
-			IEventDispatchCallback<IEaglercraftWebViewChannelEvent<?>> onComplete);
+	void dispatchWebViewChannelEvent(IEaglerPlayer<PlayerObject> player, EnumEventType type, String channel,
+			IEventDispatchCallback<IEaglercraftWebViewChannelEvent<PlayerObject>> onComplete);
 
-	void dispatchWebViewMessageEvent(IEaglerPlayer<?> player, EnumMessageType type, byte[] data,
-			IEventDispatchCallback<IEaglercraftWebViewMessageEvent<?>> onComplete);
+	void dispatchWebViewMessageEvent(IEaglerPlayer<PlayerObject> player, EnumMessageType type, byte[] data,
+			IEventDispatchCallback<IEaglercraftWebViewMessageEvent<PlayerObject>> onComplete);
 
 }

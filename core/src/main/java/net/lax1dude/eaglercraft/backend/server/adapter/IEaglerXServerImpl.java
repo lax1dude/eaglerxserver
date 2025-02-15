@@ -1,7 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.adapter;
 
-public interface IEaglerXServerImpl {
+public interface IEaglerXServerImpl<PlayerObject> {
 
-	void load(IPlatform.Init platf);
+	void load(IPlatform.Init<PlayerObject> platf);
 
 }

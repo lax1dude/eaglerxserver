@@ -4,10 +4,10 @@ import java.net.SocketAddress;
 
 import com.velocitypowered.api.proxy.Player;
 
+import net.lax1dude.eaglercraft.backend.server.adapter.event.IWebSocketOpenDelegate;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.velocity.event.EaglercraftWebSocketOpenEvent;
-import net.lax1dude.eaglercraft.backend.server.event.IWebSocketOpenDelegate;
 
 class VelocityWebSocketOpenEventImpl extends EaglercraftWebSocketOpenEvent {
 

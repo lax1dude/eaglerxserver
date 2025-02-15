@@ -24,7 +24,7 @@ class BungeeAuthCheckRequiredEventImpl extends EaglercraftAuthCheckRequiredEvent
 
 	BungeeAuthCheckRequiredEventImpl(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerPendingConnection pendingConnection,
 			boolean clientSolicitingPassword, byte[] authUsername,
-			Callback<IEaglercraftAuthCheckRequiredEvent<?, ?>> cb) {
+			Callback<IEaglercraftAuthCheckRequiredEvent<ProxiedPlayer, BaseComponent>> cb) {
 		super(cb);
 		this.api = api;
 		this.pendingConnection = pendingConnection;

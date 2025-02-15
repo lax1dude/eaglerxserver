@@ -35,7 +35,7 @@ class BungeeAuthPasswordEventImpl extends EaglercraftAuthPasswordEvent {
 	BungeeAuthPasswordEventImpl(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerPendingConnection pendingConnection,
 			byte[] authUsername, byte[] authSaltingData, byte[] authPasswordData, boolean cookiesEnabled,
 			byte[] cookieData, String profileUsername, UUID profileUUID, EnumAuthType authType, String authMessage,
-			String authRequestedServer, Callback<IEaglercraftAuthPasswordEvent<?, ?>> cb) {
+			String authRequestedServer, Callback<IEaglercraftAuthPasswordEvent<ProxiedPlayer, BaseComponent>> cb) {
 		super(cb);
 		this.api = api;
 		this.pendingConnection = pendingConnection;

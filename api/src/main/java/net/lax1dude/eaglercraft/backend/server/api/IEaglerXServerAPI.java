@@ -38,7 +38,7 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	IEaglerAPIFactory getFactory();
 
-	EnumPlatformType getPlatform();
+	EnumPlatformType getPlatformType();
 
 	Class<?> getEaglerXServerClass();
 

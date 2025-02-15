@@ -33,7 +33,7 @@ class BungeeAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 	BungeeAuthCookieEventImpl(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerPendingConnection pendingConnection,
 			byte[] authUsername, boolean cookiesEnabled, byte[] cookieData, String profileUsername, UUID profileUUID,
 			EnumAuthType authType, String authMessage, String authRequestedServer,
-			Callback<IEaglercraftAuthCookieEvent<?, ?>> cb) {
+			Callback<IEaglercraftAuthCookieEvent<ProxiedPlayer, BaseComponent>> cb) {
 		super(cb);
 		this.api = api;
 		this.pendingConnection = pendingConnection;

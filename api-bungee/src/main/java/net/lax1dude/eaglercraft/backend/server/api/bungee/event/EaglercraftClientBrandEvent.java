@@ -7,10 +7,11 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.AsyncEvent;
 import net.md_5.bungee.api.plugin.Cancellable;
 
-public abstract class EaglercraftClientBrandEvent extends AsyncEvent<IEaglercraftClientBrandEvent<?, ?>>
+public abstract class EaglercraftClientBrandEvent
+		extends AsyncEvent<IEaglercraftClientBrandEvent<ProxiedPlayer, BaseComponent>>
 		implements IEaglercraftClientBrandEvent<ProxiedPlayer, BaseComponent>, Cancellable {
 
-	protected EaglercraftClientBrandEvent(Callback<IEaglercraftClientBrandEvent<?, ?>> done) {
+	protected EaglercraftClientBrandEvent(Callback<IEaglercraftClientBrandEvent<ProxiedPlayer, BaseComponent>> done) {
 		super(done);
 	}
 

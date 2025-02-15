@@ -7,6 +7,12 @@ import java.util.function.Function;
 import com.velocitypowered.api.event.EventManager;
 import com.velocitypowered.api.proxy.Player;
 
+import net.kyori.adventure.text.Component;
+import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
+import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchCallback;
+import net.lax1dude.eaglercraft.backend.server.adapter.event.IRegisterCapeDelegate;
+import net.lax1dude.eaglercraft.backend.server.adapter.event.IRegisterSkinDelegate;
+import net.lax1dude.eaglercraft.backend.server.adapter.event.IWebSocketOpenDelegate;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
@@ -29,19 +35,13 @@ import net.lax1dude.eaglercraft.backend.server.api.query.IMOTDConnection;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryConnection;
 import net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel;
-import net.lax1dude.eaglercraft.backend.server.event.IEventDispatchAdapter;
-import net.lax1dude.eaglercraft.backend.server.event.IEventDispatchCallback;
-import net.lax1dude.eaglercraft.backend.server.event.IRegisterCapeDelegate;
-import net.lax1dude.eaglercraft.backend.server.event.IRegisterSkinDelegate;
-import net.lax1dude.eaglercraft.backend.server.event.IWebSocketOpenDelegate;
 
-public class VelocityEventDispatchAdapter implements IEventDispatchAdapter {
+public class VelocityEventDispatchAdapter implements IEventDispatchAdapter<Player, Component> {
 
-	private final IEaglerXServerAPI<Player> api;
+	private IEaglerXServerAPI<Player> api;
 	private final EventManager eventMgr;
 
-	public VelocityEventDispatchAdapter(IEaglerXServerAPI<Player> api, EventManager eventMgr) {
-		this.api = api;
+	public VelocityEventDispatchAdapter(EventManager eventMgr) {
 		this.eventMgr = eventMgr;
 	}
 
@@ -67,17 +67,23 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter {
 	}
 
 	private <I, T extends I> void fire(T event, IEventDispatchCallback<I> cont) {
-		if(cont != null) {
+		if (cont != null) {
 			DispatchCallbackWrapper<I, T> cb = new DispatchCallbackWrapper<>(cont);
 			eventMgr.fire(event).thenAccept(cb).exceptionally(cb);
-		}else {
+		} else {
 			eventMgr.fireAndForget(event);
 		}
 	}
 
 	@Override
+	public void setAPI(IEaglerXServerAPI<Player> api) {
+		this.api = api;
+	}
+
+	@Override
 	public void dispatchAuthCheckRequired(IEaglerPendingConnection pendingConnection, boolean clientSolicitingPassword,
-			byte[] authUsername, IEventDispatchCallback<IEaglercraftAuthCheckRequiredEvent<?, ?>> onComplete) {
+			byte[] authUsername,
+			IEventDispatchCallback<IEaglercraftAuthCheckRequiredEvent<Player, Component>> onComplete) {
 		fire(new VelocityAuthCheckRequiredEventImpl(api, pendingConnection, clientSolicitingPassword, authUsername),
 				onComplete);
 	}
@@ -85,7 +91,8 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter {
 	@Override
 	public void dispatchAuthCookieEvent(IEaglerPendingConnection pendingConnection, byte[] authUsername,
 			boolean cookiesEnabled, byte[] cookieData, String profileUsername, UUID profileUUID, EnumAuthType authType,
-			String authMessage, String authRequestedServer, IEventDispatchCallback<IEaglercraftAuthCookieEvent<?, ?>> onComplete) {
+			String authMessage, String authRequestedServer,
+			IEventDispatchCallback<IEaglercraftAuthCookieEvent<Player, Component>> onComplete) {
 		fire(new VelocityAuthCookieEventImpl(api, pendingConnection, authUsername, cookiesEnabled, cookieData,
 				profileUsername, profileUUID, authType, authMessage, authRequestedServer), onComplete);
 	}
@@ -94,7 +101,8 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter {
 	public void dispatchAuthPasswordEvent(IEaglerPendingConnection pendingConnection, byte[] authUsername,
 			byte[] authSaltingData, byte[] authPasswordData, boolean cookiesEnabled, byte[] cookieData,
 			String profileUsername, UUID profileUUID, EnumAuthType authType, String authMessage,
-			String authRequestedServer, IEventDispatchCallback<IEaglercraftAuthPasswordEvent<?, ?>> onComplete) {
+			String authRequestedServer,
+			IEventDispatchCallback<IEaglercraftAuthPasswordEvent<Player, Component>> onComplete) {
 		fire(new VelocityAuthPasswordEventImpl(api, pendingConnection, authUsername, authSaltingData, authPasswordData,
 				cookiesEnabled, cookieData, profileUsername, profileUUID, authType, authMessage, authRequestedServer),
 				onComplete);
@@ -102,57 +110,58 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter {
 
 	@Override
 	public void dispatchClientBrandEvent(IEaglerPendingConnection pendingConnection,
-			IEventDispatchCallback<IEaglercraftClientBrandEvent<?, ?>> onComplete) {
+			IEventDispatchCallback<IEaglercraftClientBrandEvent<Player, Component>> onComplete) {
 		fire(new VelocityClientBrandEventImpl(api, pendingConnection), onComplete);
 	}
 
 	@Override
-	public void dispatchMOTDEvent(IMOTDConnection connection, IEventDispatchCallback<IEaglercraftMOTDEvent<?>> onComplete) {
+	public void dispatchMOTDEvent(IMOTDConnection connection,
+			IEventDispatchCallback<IEaglercraftMOTDEvent<Player>> onComplete) {
 		fire(new VelocityMOTDEventImpl(api, connection), onComplete);
 	}
 
 	@Override
 	public void dispatchRegisterSkinEvent(IEaglerPendingConnection pendingConnection, IRegisterSkinDelegate delegate,
-			IEventDispatchCallback<IEaglercraftRegisterSkinEvent<?>> onComplete) {
+			IEventDispatchCallback<IEaglercraftRegisterSkinEvent<Player>> onComplete) {
 		fire(new VelocityRegisterSkinEventImpl(api, pendingConnection, delegate), onComplete);
 	}
 
 	@Override
 	public void dispatchRegisterCapeEvent(IEaglerPendingConnection pendingConnection, IRegisterCapeDelegate delegate,
-			IEventDispatchCallback<IEaglercraftRegisterCapeEvent<?>> onComplete) {
+			IEventDispatchCallback<IEaglercraftRegisterCapeEvent<Player>> onComplete) {
 		fire(new VelocityRegisterCapeEventImpl(api, pendingConnection, delegate), onComplete);
 	}
 
 	@Override
 	public void dispatchRevokeSessionQueryEvent(IQueryConnection query, byte[] cookieData,
-			IEventDispatchCallback<IEaglercraftRevokeSessionQueryEvent<?>> onComplete) {
+			IEventDispatchCallback<IEaglercraftRevokeSessionQueryEvent<Player>> onComplete) {
 		fire(new VelocityRevokeSessionQueryEventImpl(api, query, cookieData), onComplete);
 	}
 
 	@Override
-	public void dispatchVoiceChangeEvent(IEaglerPlayer<?> player, EnumVoiceState voiceStateOld,
+	public void dispatchVoiceChangeEvent(IEaglerPlayer<Player> player, EnumVoiceState voiceStateOld,
 			IVoiceChannel voiceChannelOld, EnumVoiceState voiceStateNew, IVoiceChannel voiceChannelNew,
-			IEventDispatchCallback<IEaglercraftVoiceChangeEvent<?>> onComplete) {
-		fire(new VelocityVoiceChangeEventImpl(api, (IEaglerPlayer<Player>) player, voiceStateOld, voiceChannelOld,
-				voiceStateNew, voiceChannelNew), onComplete);
+			IEventDispatchCallback<IEaglercraftVoiceChangeEvent<Player>> onComplete) {
+		fire(new VelocityVoiceChangeEventImpl(api, player, voiceStateOld, voiceChannelOld, voiceStateNew,
+				voiceChannelNew), onComplete);
 	}
 
 	@Override
 	public void dispatchWebSocketOpenEvent(IWebSocketOpenDelegate delegate,
-			IEventDispatchCallback<IEaglercraftWebSocketOpenEvent<?>> onComplete) {
+			IEventDispatchCallback<IEaglercraftWebSocketOpenEvent<Player>> onComplete) {
 		fire(new VelocityWebSocketOpenEventImpl(api, delegate), onComplete);
 	}
 
 	@Override
-	public void dispatchWebViewChannelEvent(IEaglerPlayer<?> player, EnumEventType type, String channel,
-			IEventDispatchCallback<IEaglercraftWebViewChannelEvent<?>> onComplete) {
-		fire(new VelocityWebViewChannelEventImpl(api, (IEaglerPlayer<Player>) player, type, channel), onComplete);
+	public void dispatchWebViewChannelEvent(IEaglerPlayer<Player> player, EnumEventType type, String channel,
+			IEventDispatchCallback<IEaglercraftWebViewChannelEvent<Player>> onComplete) {
+		fire(new VelocityWebViewChannelEventImpl(api, player, type, channel), onComplete);
 	}
 
 	@Override
-	public void dispatchWebViewMessageEvent(IEaglerPlayer<?> player, EnumMessageType type, byte[] data,
-			IEventDispatchCallback<IEaglercraftWebViewMessageEvent<?>> onComplete) {
-		fire(new VelocityWebViewMessageEventImpl(api, (IEaglerPlayer<Player>) player, type, data), onComplete);
+	public void dispatchWebViewMessageEvent(IEaglerPlayer<Player> player, EnumMessageType type, byte[] data,
+			IEventDispatchCallback<IEaglercraftWebViewMessageEvent<Player>> onComplete) {
+		fire(new VelocityWebViewMessageEventImpl(api, player, type, data), onComplete);
 	}
 
 }

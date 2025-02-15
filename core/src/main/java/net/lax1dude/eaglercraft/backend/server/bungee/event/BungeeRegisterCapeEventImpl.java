@@ -1,11 +1,11 @@
 package net.lax1dude.eaglercraft.backend.server.bungee.event;
 
+import net.lax1dude.eaglercraft.backend.server.adapter.event.IRegisterCapeDelegate;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftRegisterCapeEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterCapeEvent;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
-import net.lax1dude.eaglercraft.backend.server.event.IRegisterCapeDelegate;
 import net.md_5.bungee.api.Callback;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
@@ -16,7 +16,7 @@ class BungeeRegisterCapeEventImpl extends EaglercraftRegisterCapeEvent {
 	private final IRegisterCapeDelegate delegate;
 
 	BungeeRegisterCapeEventImpl(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerPendingConnection pendingConnection,
-			IRegisterCapeDelegate delegate, Callback<IEaglercraftRegisterCapeEvent<?>> cb) {
+			IRegisterCapeDelegate delegate, Callback<IEaglercraftRegisterCapeEvent<ProxiedPlayer>> cb) {
 		super(cb);
 		this.api = api;
 		this.pendingConnection = pendingConnection;

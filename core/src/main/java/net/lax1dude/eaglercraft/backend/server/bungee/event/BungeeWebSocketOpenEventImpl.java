@@ -2,10 +2,10 @@ package net.lax1dude.eaglercraft.backend.server.bungee.event;
 
 import java.net.SocketAddress;
 
+import net.lax1dude.eaglercraft.backend.server.adapter.event.IWebSocketOpenDelegate;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftWebSocketOpenEvent;
-import net.lax1dude.eaglercraft.backend.server.event.IWebSocketOpenDelegate;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 class BungeeWebSocketOpenEventImpl extends EaglercraftWebSocketOpenEvent {

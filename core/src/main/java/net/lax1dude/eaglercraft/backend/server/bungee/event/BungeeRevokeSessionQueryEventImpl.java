@@ -16,7 +16,7 @@ class BungeeRevokeSessionQueryEventImpl extends EaglercraftRevokeSessionQueryEve
 	private boolean shouldDelete;
 
 	BungeeRevokeSessionQueryEventImpl(IEaglerXServerAPI<ProxiedPlayer> api, IQueryConnection query,
-			byte[] cookieData, Callback<IEaglercraftRevokeSessionQueryEvent<?>> cb) {
+			byte[] cookieData, Callback<IEaglercraftRevokeSessionQueryEvent<ProxiedPlayer>> cb) {
 		super(cb);
 		this.api = api;
 		this.query = query;

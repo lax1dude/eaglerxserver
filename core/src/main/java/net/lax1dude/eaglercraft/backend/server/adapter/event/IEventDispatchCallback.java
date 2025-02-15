@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.event;
+package net.lax1dude.eaglercraft.backend.server.adapter.event;
 
 public interface IEventDispatchCallback<T> {
 

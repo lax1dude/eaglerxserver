@@ -5,10 +5,10 @@ import net.md_5.bungee.api.Callback;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.AsyncEvent;
 
-public abstract class EaglercraftRegisterCapeEvent extends AsyncEvent<IEaglercraftRegisterCapeEvent<?>>
+public abstract class EaglercraftRegisterCapeEvent extends AsyncEvent<IEaglercraftRegisterCapeEvent<ProxiedPlayer>>
 		implements IEaglercraftRegisterCapeEvent<ProxiedPlayer> {
 
-	protected EaglercraftRegisterCapeEvent(Callback<IEaglercraftRegisterCapeEvent<?>> done) {
+	protected EaglercraftRegisterCapeEvent(Callback<IEaglercraftRegisterCapeEvent<ProxiedPlayer>> done) {
 		super(done);
 	}
 
