@@ -4,28 +4,28 @@ import java.net.SocketAddress;
 import java.util.UUID;
 
 import com.velocitypowered.api.proxy.InboundConnection;
+import com.velocitypowered.api.proxy.Player;
 
 import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 
 class VelocityConnection implements IPlatformConnection {
 
+	static final Component DEFAULT_KICK_MESSAGE = Component.translatable("disconnect.closed");
+
 	private final PlatformPluginVelocity plugin;
-	private final boolean eagler;
 	private final InboundConnection connection;
 	private final String username;
 	private final UUID uuid;
-	private final boolean online;
+	volatile Player playerInstance;
 	Object attachment;
 
-	VelocityConnection(PlatformPluginVelocity plugin, boolean eagler, InboundConnection connection,
-			String username, UUID uuid, boolean online) {
+	VelocityConnection(PlatformPluginVelocity plugin, InboundConnection connection,
+			String username, UUID uuid) {
 		this.plugin = plugin;
-		this.eagler = eagler;
 		this.connection = connection;
 		this.username = username;
 		this.uuid = uuid;
-		this.online = online;
 	}
 
 	@Override
@@ -54,23 +54,34 @@ class VelocityConnection implements IPlatformConnection {
 	}
 
 	@Override
-	public boolean isEaglerConnection() {
-		return eagler;
-	}
-
-	@Override
 	public boolean isOnlineMode() {
-		return online;
+		Player player = playerInstance;
+		if(player != null) {
+			return player.isOnlineMode();
+		}else {
+			//TODO: online mode?
+			return false;
+		}
 	}
 
 	@Override
 	public void disconnect() {
-		VelocityUnsafe.disconnectInbound(connection);
+		Player player = playerInstance;
+		if(player != null) {
+			player.disconnect(DEFAULT_KICK_MESSAGE);
+		}else {
+			VelocityUnsafe.disconnectInbound(connection);
+		}
 	}
 
 	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
-		VelocityUnsafe.disconnectInbound(connection, (Component)kickMessage);
+		Player player = playerInstance;
+		if(player != null) {
+			player.disconnect((Component)kickMessage);
+		}else {
+			VelocityUnsafe.disconnectInbound(connection, (Component)kickMessage);
+		}
 	}
 
 }

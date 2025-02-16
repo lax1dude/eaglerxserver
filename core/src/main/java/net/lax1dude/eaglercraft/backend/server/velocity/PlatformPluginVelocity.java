@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
@@ -17,8 +18,10 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
+import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.api.scheduler.ScheduledTask;
 
 import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
@@ -30,6 +33,8 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageChan
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipelineInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnectionInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitializer;
@@ -62,7 +67,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	protected Collection<IEaglerXServerMessageChannel> playerChannelsList;
 	protected Collection<IEaglerXServerMessageChannel> backendChannelsList;
 
-	private final ConcurrentMap<Player, IPlatformPlayer<Player>> playerInstanceMap = new ConcurrentHashMap<>(1024);
+	private final ConcurrentMap<Player, VelocityPlayer> playerInstanceMap = new ConcurrentHashMap<>(1024);
 
 	@Inject
 	public PlatformPluginVelocity(ProxyServer proxyIn, Logger loggerIn, @DataDirectory Path dataDirIn) {
@@ -208,6 +213,26 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		return Player.class;
 	}
 
+	public void initializeConnection(InboundConnection conn, String username, UUID uuid, Object pipelineData,
+			Consumer<VelocityConnection> setAttr) {
+		VelocityConnection c = new VelocityConnection(this, conn, username, uuid);
+		setAttr.accept(c);
+		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<Object, Object>() {
+			@Override
+			public void setConnectionAttachment(Object attachment) {
+				c.attachment = attachment;
+			}
+			@Override
+			public Object getPipelineAttachment() {
+				return pipelineData;
+			}
+			@Override
+			public IPlatformConnection getConnection() {
+				return c;
+			}
+		});
+	}
+
 	public void initializePlayer(Player player, VelocityConnection connection) {
 		VelocityPlayer p = new VelocityPlayer(player, connection);
 		playerInitializer.initializePlayer(new IPlatformPlayerInitializer<Object, Object, Player>() {
@@ -225,10 +250,33 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			}
 		});
 		playerInstanceMap.put(player, p);
+		p.confirmTask = proxy.getScheduler().buildTask(this, () -> {
+			p.confirmTask = null;
+			proxyLogger.warn("Player {} was initialized, but never fired PostLoginEvent, dropping...", p.getUsername());
+			dropPlayer(player);
+		}).delay(5l, TimeUnit.SECONDS).schedule();
+	}
+
+	public void confirmPlayer(Player player) {
+		VelocityPlayer p = playerInstanceMap.get(player);
+		if(p != null) {
+			ScheduledTask conf = p.confirmTask;
+			if(conf != null) {
+				p.confirmTask = null;
+				conf.cancel();
+			}
+		}
 	}
 
 	public void dropPlayer(Player player) {
-		playerInstanceMap.remove(player);
+		VelocityPlayer p = playerInstanceMap.remove(player);
+		if(p != null) {
+			playerInitializer.destroyPlayer(p);
+		}
+	}
+
+	public ProxyServer proxy() {
+		return proxy;
 	}
 
 }

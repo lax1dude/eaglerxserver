@@ -5,29 +5,27 @@ import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TranslatableComponent;
 import net.md_5.bungee.api.connection.PendingConnection;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 class BungeeConnection implements IPlatformConnection {
 
+	static final BaseComponent DEFAULT_KICK_MESSAGE = new TranslatableComponent("disconnect.closed");
+
 	private final PlatformPluginBungee platformPlugin;
-	private final boolean eagler;
 	private final PendingConnection pendingConnection;
+	volatile ProxiedPlayer playerInstance;
 	Object attachment;
 
-	BungeeConnection(PlatformPluginBungee platformPlugin, boolean eagler, PendingConnection pendingConnection) {
+	BungeeConnection(PlatformPluginBungee platformPlugin, PendingConnection pendingConnection) {
 		this.platformPlugin = platformPlugin;
-		this.eagler = eagler;
 		this.pendingConnection = pendingConnection;
 	}
 
 	@Override
 	public <T> T getAttachment() {
 		return (T) attachment;
-	}
-
-	@Override
-	public boolean isEaglerConnection() {
-		return eagler;
 	}
 
 	@Override
@@ -57,12 +55,22 @@ class BungeeConnection implements IPlatformConnection {
 
 	@Override
 	public void disconnect() {
-		pendingConnection.disconnect();
+		ProxiedPlayer player = playerInstance;
+		if(player != null) {
+			player.disconnect(DEFAULT_KICK_MESSAGE);
+		}else {
+			pendingConnection.disconnect(DEFAULT_KICK_MESSAGE);
+		}
 	}
 
 	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
-		pendingConnection.disconnect((BaseComponent)kickMessage);
+		ProxiedPlayer player = playerInstance;
+		if(player != null) {
+			player.disconnect((BaseComponent)kickMessage);
+		}else {
+			pendingConnection.disconnect((BaseComponent)kickMessage);
+		}
 	}
 
 }

@@ -9,12 +9,15 @@ import java.util.function.Consumer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.google.common.collect.ImmutableList;
+
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerCommandType;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageChannel;
-import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPipelineInitializer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipelineInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
@@ -31,6 +34,12 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	protected Runnable onServerEnable;
 	protected Runnable onServerDisable;
+	protected IEaglerXServerNettyPipelineInitializer<Object> pipelineInitializer;
+	protected IEaglerXServerConnectionInitializer<Object, Object> connectionInitializer;
+	protected IEaglerXServerPlayerInitializer<Object, Object, Player> playerInitializer;
+	protected Collection<IEaglerXServerCommandType> commandsList;
+	protected IEaglerXServerListener listenerConf;
+	protected Collection<IEaglerXServerMessageChannel> playerChannelsList;
 
 	private final ConcurrentMap<Player, IPlatformPlayer<Player>> playerInstanceMap = new ConcurrentHashMap<>(1024);
 
@@ -55,23 +64,23 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 
 			@Override
+			public void setPipelineInitializer(IEaglerXServerNettyPipelineInitializer<?> initializer) {
+				pipelineInitializer = (IEaglerXServerNettyPipelineInitializer<Object>) initializer;
+			}
+
+			@Override
+			public void setConnectionInitializer(IEaglerXServerConnectionInitializer<?, ?> initializer) {
+				connectionInitializer = (IEaglerXServerConnectionInitializer<Object, Object>) initializer;
+			}
+
+			@Override
+			public void setPlayerInitializer(IEaglerXServerPlayerInitializer<?, ?, Player> initializer) {
+				playerInitializer = (IEaglerXServerPlayerInitializer<Object, Object, Player>) initializer;
+			}
+
+			@Override
 			public void setEaglerPlayerChannels(Collection<IEaglerXServerMessageChannel> channels) {
-				
-			}
-
-			@Override
-			public void setPipelineInitializer(IEaglerXServerPipelineInitializer<?> initializer) {
-				
-			}
-
-			@Override
-			public void setPlayerInitializer(IEaglerXServerPlayerInitializer<Player, ?> initializer) {
-				
-			}
-
-			@Override
-			public void setCommandRegistry(Collection<IEaglerXServerCommandType> commands) {
-				
+				playerChannelsList = channels;
 			}
 
 			@Override
@@ -80,8 +89,13 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 
 			@Override
+			public void setCommandRegistry(Collection<IEaglerXServerCommandType> commands) {
+				commandsList = commands;
+			}
+
+			@Override
 			public void setEaglerListener(IEaglerXServerListener listener) {
-				
+				listenerConf = listener;
 			}
 
 		});
@@ -89,6 +103,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	@Override
 	public void onEnable() {
+		getServer().getPluginManager().registerEvents(new BukkitListener(this), this);
 		if(onServerEnable != null) {
 			onServerEnable.run();
 		}
@@ -119,6 +134,11 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public void forEachPlayer(Consumer<IPlatformPlayer<Player>> playerCallback) {
 		playerInstanceMap.values().forEach(playerCallback);
+	}
+
+	@Override
+	public Collection<IPlatformPlayer<Player>> getAllPlayers() {
+		return ImmutableList.copyOf(playerInstanceMap.values());
 	}
 
 	@Override

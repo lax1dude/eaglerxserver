@@ -15,8 +15,6 @@ public interface IPlatformConnection {
 
 	int getMinecraftProtocol();
 
-	boolean isEaglerConnection();
-
 	boolean isOnlineMode();
 
 	void disconnect();

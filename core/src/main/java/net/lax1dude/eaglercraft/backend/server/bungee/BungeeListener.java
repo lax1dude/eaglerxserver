@@ -1,9 +1,12 @@
 package net.lax1dude.eaglercraft.backend.server.bungee;
 
+import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
+import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
+import net.md_5.bungee.api.event.PreLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
@@ -16,7 +19,16 @@ class BungeeListener implements Listener {
 	}
 
 	@EventHandler(priority = 127)
-	public void onPlayerLogin(PostLoginEvent event) {
+	public void onPreLogin(PreLoginEvent event) {
+		PendingConnection conn = event.getConnection();
+		Channel channel = BungeeUnsafe.getInitialHandlerChannel(conn);
+		Object pipelineData = channel.attr(PipelineAttributes.<Object>pipelineData()).getAndSet(null);
+		plugin.initializeConnection(conn, pipelineData,
+				channel.attr(PipelineAttributes.<BungeeConnection>connectionData())::set);
+	}
+
+	@EventHandler(priority = 127)
+	public void onPostLogin(PostLoginEvent event) {
 		ProxiedPlayer player = event.getPlayer();
 		BungeeConnection conn = BungeeUnsafe.getInitialHandlerChannel(player.getPendingConnection())
 				.attr(PipelineAttributes.<BungeeConnection>connectionData()).get();

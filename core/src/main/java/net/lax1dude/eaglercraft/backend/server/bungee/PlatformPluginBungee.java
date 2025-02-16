@@ -17,6 +17,8 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageChan
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipelineInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnectionInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitializer;
@@ -24,6 +26,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapt
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.bungee.event.BungeeEventDispatchAdapter;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 
@@ -182,6 +185,25 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 		return ProxiedPlayer.class;
 	}
 
+	public void initializeConnection(PendingConnection conn, Object pipelineData, Consumer<BungeeConnection> setAttr) {
+		BungeeConnection c = new BungeeConnection(this, conn);
+		setAttr.accept(c);
+		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<Object, Object>() {
+			@Override
+			public void setConnectionAttachment(Object attachment) {
+				c.attachment = attachment;
+			}
+			@Override
+			public Object getPipelineAttachment() {
+				return pipelineData;
+			}
+			@Override
+			public IPlatformConnection getConnection() {
+				return c;
+			}
+		});
+	}
+
 	public void initializePlayer(ProxiedPlayer player, BungeeConnection connection) {
 		BungeePlayer p = new BungeePlayer(player, connection);
 		playerInitializer.initializePlayer(new IPlatformPlayerInitializer<Object, Object, ProxiedPlayer>() {
@@ -202,7 +224,10 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	}
 
 	public void dropPlayer(ProxiedPlayer player) {
-		playerInstanceMap.remove(player);
+		BungeePlayer p = playerInstanceMap.remove(player);
+		if(p != null) {
+			playerInitializer.destroyPlayer(p);
+		}
 	}
 
 }

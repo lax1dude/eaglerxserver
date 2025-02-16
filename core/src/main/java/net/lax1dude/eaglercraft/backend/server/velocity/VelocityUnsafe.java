@@ -17,6 +17,8 @@ public class VelocityUnsafe {
 	private static final Method method_ConnectedPlayer_getConnection;
 	private static final Class<?> class_InitialInboundConnection;
 	private static final Method method_InitialInboundConnection_getConnection;
+	private static final Class<?> class_LoginInboundConnection;
+	private static final Method method_LoginInboundConnection_delegatedConnection;
 	private static final Class<?> class_MinecraftConnection;
 	private static final Method method_MinecraftConnection_getChannel;
 	private static final Method method_MinecraftConnection_getProtocolVersion;
@@ -33,6 +35,8 @@ public class VelocityUnsafe {
 			method_ConnectedPlayer_getConnection = class_ConnectedPlayer.getMethod("getConnection");
 			class_InitialInboundConnection = Class.forName("com.velocitypowered.proxy.connection.client.InitialInboundConnection");
 			method_InitialInboundConnection_getConnection = class_InitialInboundConnection.getMethod("getConnection");
+			class_LoginInboundConnection = Class.forName("com.velocitypowered.proxy.connection.client.LoginInboundConnection");
+			method_LoginInboundConnection_delegatedConnection = class_LoginInboundConnection.getMethod("delegatedConnection");
 			class_MinecraftConnection = Class.forName("com.velocitypowered.proxy.connection.MinecraftConnection");
 			method_MinecraftConnection_getChannel = class_MinecraftConnection.getMethod("getChannel");
 			method_MinecraftConnection_getProtocolVersion = class_MinecraftConnection.getMethod("getProtocolVersion");
@@ -50,20 +54,18 @@ public class VelocityUnsafe {
 	private static Object getMinecraftConnection(InboundConnection connection) {
 		Class<?> clz = connection.getClass();
 		Object ret;
-		if(class_InitialInboundConnection.isAssignableFrom(clz)) {
-			try {
+		try {
+			if(class_InitialInboundConnection.isAssignableFrom(clz)) {
 				ret = method_InitialInboundConnection_getConnection.invoke(connection);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-				throw Util.propagateReflectThrowable(ex);
-			}
-		}else if(class_ConnectedPlayer.isAssignableFrom(clz)) {
-			try {
+			}else if(class_LoginInboundConnection.isAssignableFrom(clz)) {
+				ret = method_LoginInboundConnection_delegatedConnection.invoke(connection);
+			}else if(class_ConnectedPlayer.isAssignableFrom(clz)) {
 				ret = method_ConnectedPlayer_getConnection.invoke(connection);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-				throw Util.propagateReflectThrowable(ex);
+			}else {
+				throw new RuntimeException("Unknown InboundConnection type: " + clz.getName());
 			}
-		}else {
-			throw new RuntimeException("Unknown InboundConnection type: " + clz.getName());
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+			throw Util.propagateReflectThrowable(ex);
 		}
 		if(ret == null) {
 			throw new NullPointerException();

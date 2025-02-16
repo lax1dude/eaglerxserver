@@ -6,7 +6,10 @@ import java.lang.reflect.Method;
 
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.PendingConnection;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.connection.Server;
 
 public class BungeeUnsafe {
 
@@ -15,6 +18,7 @@ public class BungeeUnsafe {
 	private static final Field field_InitialHandler_ch;
 	private static final Class<?> class_ChannelWrapper;
 	private static final Method method_ChannelWrapper_getHandle;
+	private static final Method method_ChannelWrapper_close;
 	private static final Class<?> class_PluginMessage;
 	private static final Method class_PluginMessage_getData;
 
@@ -26,6 +30,7 @@ public class BungeeUnsafe {
 			field_InitialHandler_ch.setAccessible(true);
 			class_ChannelWrapper = Class.forName("net.md_5.bungee.netty.ChannelWrapper");
 			method_ChannelWrapper_getHandle = class_ChannelWrapper.getMethod("getHandle");
+			method_ChannelWrapper_close = class_ChannelWrapper.getMethod("close");
 			class_PluginMessage = Class.forName("net.md_5.bungee.connection.PluginMessage");
 			class_PluginMessage_getData = class_PluginMessage.getMethod("getData");
 		}catch(Exception ex) {
@@ -58,6 +63,23 @@ public class BungeeUnsafe {
 			}
 		}else {
 			throw new RuntimeException("PendingConnection is an unknown type: " + pendingConnection.getClass().getName());
+		}
+	}
+
+	public static void disconnectPlayerQuiet(ProxiedPlayer player) {
+		PendingConnection pendingConnection = player.getPendingConnection();
+		if(class_InitialHandler.isAssignableFrom(pendingConnection.getClass())) {
+			try {
+				method_ChannelWrapper_close.invoke(field_InitialHandler_ch.get(pendingConnection));
+			} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException ex) {
+				throw Util.propagateReflectThrowable(ex);
+			}
+		}else {
+			throw new RuntimeException("PendingConnection is an unknown type: " + pendingConnection.getClass().getName());
+		}
+		Server serverConn = player.getServer();
+		if(serverConn != null) {
+			serverConn.disconnect(new TextComponent("Quitting"));
 		}
 	}
 

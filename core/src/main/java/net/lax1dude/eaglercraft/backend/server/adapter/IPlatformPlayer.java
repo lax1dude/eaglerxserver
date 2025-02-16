@@ -18,6 +18,10 @@ public interface IPlatformPlayer<PlayerObject> {
 
 	String getMinecraftBrand();
 
+	void disconnect();
+
+	<ComponentObject> void disconnect(ComponentObject kickMessage);
+
 	<T> T getPlayerAttachment();
 
 	default <T> T getConnectionAttachment() {
