@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.api;
 import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeHolder;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
@@ -75,6 +76,12 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 	boolean isEaglerPlayerByName(String playerName);
 
 	boolean isEaglerPlayerByUUID(UUID playerUUID);
+
+	void forEachPlayer(Consumer<IBasePlayer<PlayerObject>> callback);
+
+	void forEachEaglerPlayer(Consumer<IEaglerPlayer<PlayerObject>> callback);
+
+	Collection<IBasePlayer<PlayerObject>> getAllPlayers();
 
 	Collection<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers();
 

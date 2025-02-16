@@ -2,15 +2,18 @@ package net.lax1dude.eaglercraft.backend.server.base;
 
 import java.net.SocketAddress;
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
+
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
-import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnectionInitializer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.api.EnumPlatformType;
 import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
@@ -39,12 +42,14 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private EnumPlatformType platformType;
 	private Class<PlayerObject> playerClazz;
 	private IEventDispatchAdapter<PlayerObject, ?> eventDispatcher;
+	private Set<EaglerPlayerInstance<PlayerObject>> eaglerPlayers;
 
 	public EaglerXServer() {
 	}
 
 	@Override
 	public void load(IPlatform.Init<PlayerObject> init) {
+		eaglerPlayers = Sets.newConcurrentHashSet();
 		platform = init.getPlatform();
 		platformClazz = platform.getClass();
 		switch(platform.getType()) {
@@ -55,11 +60,13 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		}
 		playerClazz = platform.getPlayerClass();
 		eventDispatcher = platform.eventDispatcher();
+		eventDispatcher.setAPI(this);
 		APIFactoryImpl.INSTANCE.initialize(playerClazz, this);
 		init.setOnServerEnable(this::enableHandler);
 		init.setOnServerDisable(this::disableHandler);
-		init.setPipelineInitializer(this::initializePipelineHandler);
-		init.setPlayerInitializer(this::initializePlayerHandler);
+		init.setPipelineInitializer(new EaglerXServerNettyPipelineInitializer<PlayerObject>(this));
+		init.setConnectionInitializer(new EaglerXServerConnectionInitializer<PlayerObject>(this));
+		init.setPlayerInitializer(new EaglerXServerPlayerInitializer<PlayerObject>(this));
 		if(platform.getType().proxy) {
 			loadProxying((IPlatform.InitProxying<PlayerObject>)init);
 		}else {
@@ -87,13 +94,20 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		
 	}
 
-	public void initializePipelineHandler(IEaglerXServerListener listener, IPlatformConnection conn,
-			IPlatformConnectionInitializer<Object> initializer) {
-
+	public void registerPlayer(BasePlayerInstance<PlayerObject> playerInstance) {
+		
 	}
 
-	public void initializePlayerHandler(IPlatformPlayer player, IPlatformPlayerInitializer<Object> initializer) {
+	public void registerEaglerPlayer(EaglerPlayerInstance<PlayerObject> playerInstance) {
+		
+	}
 
+	public void unregisterPlayer(BasePlayerInstance<PlayerObject> playerInstance) {
+		
+	}
+
+	public void unregisterEaglerPlayer(EaglerPlayerInstance<PlayerObject> playerInstance) {
+		
 	}
 
 	@Override
@@ -194,127 +208,166 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public IBasePlayer<PlayerObject> getPlayer(PlayerObject player) {
-		// TODO Auto-generated method stub
-		return null;
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
+		return platformPlayer != null ? platformPlayer.getPlayerAttachment() : null;
 	}
 
 	@Override
 	public IBasePlayer<PlayerObject> getPlayerByName(String playerName) {
-		// TODO Auto-generated method stub
-		return null;
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
+		return platformPlayer != null ? platformPlayer.getPlayerAttachment() : null;
 	}
 
 	@Override
 	public IBasePlayer<PlayerObject> getPlayerByUUID(UUID playerUUID) {
-		// TODO Auto-generated method stub
-		return null;
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
+		return platformPlayer != null ? platformPlayer.getPlayerAttachment() : null;
 	}
 
 	@Override
 	public IEaglerPlayer<PlayerObject> getEaglerPlayer(PlayerObject player) {
-		// TODO Auto-generated method stub
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
+		if(platformPlayer != null) {
+			IBasePlayer<PlayerObject> basePlayer = platformPlayer.getPlayerAttachment();
+			if(basePlayer.isEaglerPlayer()) {
+				return (IEaglerPlayer<PlayerObject>) basePlayer;
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public IEaglerPlayer<PlayerObject> getEaglerPlayerByName(String playerName) {
-		// TODO Auto-generated method stub
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
+		if(platformPlayer != null) {
+			IBasePlayer<PlayerObject> basePlayer = platformPlayer.getPlayerAttachment();
+			if(basePlayer.isEaglerPlayer()) {
+				return (IEaglerPlayer<PlayerObject>) basePlayer;
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public IEaglerPlayer<PlayerObject> getEaglerPlayerByUUID(UUID playerUUID) {
-		// TODO Auto-generated method stub
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
+		if(platformPlayer != null) {
+			IBasePlayer<PlayerObject> basePlayer = platformPlayer.getPlayerAttachment();
+			if(basePlayer.isEaglerPlayer()) {
+				return (IEaglerPlayer<PlayerObject>) basePlayer;
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public boolean isEaglerPlayer(PlayerObject player) {
-		// TODO Auto-generated method stub
-		return false;
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
+		return platformPlayer != null && platformPlayer.<IBasePlayer<PlayerObject>>getConnectionAttachment().isEaglerPlayer();
 	}
 
 	@Override
 	public boolean isEaglerPlayerByName(String playerName) {
-		// TODO Auto-generated method stub
-		return false;
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
+		return platformPlayer != null && platformPlayer.<IBasePlayer<PlayerObject>>getConnectionAttachment().isEaglerPlayer();
 	}
 
 	@Override
 	public boolean isEaglerPlayerByUUID(UUID playerUUID) {
-		// TODO Auto-generated method stub
-		return false;
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
+		return platformPlayer != null && platformPlayer.<IBasePlayer<PlayerObject>>getConnectionAttachment().isEaglerPlayer();
+	}
+
+	@Override
+	public void forEachPlayer(Consumer<IBasePlayer<PlayerObject>> callback) {
+		platform.forEachPlayer((player) -> {
+			callback.accept(player.getPlayerAttachment());
+		});
+	}
+
+	@Override
+	public void forEachEaglerPlayer(Consumer<IEaglerPlayer<PlayerObject>> callback) {
+		eaglerPlayers.forEach(callback);
+	}
+
+	@Override
+	public Collection<IBasePlayer<PlayerObject>> getAllPlayers() {
+		return Collections2.transform(platform.getAllPlayers(),
+				IPlatformPlayer<PlayerObject>::<IBasePlayer<PlayerObject>>getConnectionAttachment);
 	}
 
 	@Override
 	public Collection<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers() {
-		// TODO Auto-generated method stub
-		return null;
+		return ImmutableSet.copyOf(eaglerPlayers);
 	}
 
 	@Override
 	public Collection<IEaglerListenerInfo> getAllEaglerListeners() {
-		// TODO Auto-generated method stub
+		// TODO
 		return null;
 	}
 
 	@Override
 	public IEaglerListenerInfo getListenerByName(String name) {
-		// TODO Auto-generated method stub
+		// TODO
 		return null;
 	}
 
 	@Override
 	public IEaglerListenerInfo getListenerByAddress(SocketAddress address) {
-		// TODO Auto-generated method stub
+		// TODO
 		return null;
 	}
 
 	@Override
 	public ISkinService<PlayerObject> getSkinService() {
-		// TODO Auto-generated method stub
+		// TODO
 		return null;
 	}
 
 	@Override
 	public IVoiceService<PlayerObject> getVoiceService() {
-		// TODO Auto-generated method stub
+		// TODO
 		return null;
 	}
 
 	@Override
 	public INotificationService<PlayerObject> getNotificationService() {
-		// TODO Auto-generated method stub
+		// TODO
 		return null;
 	}
 
 	@Override
 	public IPauseMenuService<PlayerObject> getPauseMenuService() {
-		// TODO Auto-generated method stub
+		// TODO
 		return null;
 	}
 
 	@Override
 	public IWebViewService<PlayerObject> getWebViewService() {
-		// TODO Auto-generated method stub
+		// TODO
 		return null;
 	}
 
 	@Override
 	public IQueryService<PlayerObject> getQueryService() {
-		// TODO Auto-generated method stub
+		// TODO
 		return null;
 	}
 
 	@Override
 	public ISupervisorService<PlayerObject> getSupervisorService() {
-		// TODO Auto-generated method stub
+		// TODO
 		return null;
 	}
 
 	@Override
 	public IAttributeManager getAttributeManager() {
 		return attributeManager;
+	}
+
+	public IPlatformLogger logger() {
+		return platform.logger();
 	}
 
 }

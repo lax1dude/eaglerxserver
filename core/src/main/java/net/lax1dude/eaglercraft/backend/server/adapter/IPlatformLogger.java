@@ -8,4 +8,6 @@ public interface IPlatformLogger {
 
 	void error(String msg);
 
+	IPlatformSubLogger createSubLogger(String name);
+
 }

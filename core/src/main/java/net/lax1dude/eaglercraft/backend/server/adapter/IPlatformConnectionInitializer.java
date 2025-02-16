@@ -1,9 +1,11 @@
 package net.lax1dude.eaglercraft.backend.server.adapter;
 
-public interface IPlatformConnectionInitializer<A> {
+public interface IPlatformConnectionInitializer<PipelineAttachment, ConnectionAttachment> {
 
-	void addFrameDecoder(String name, Object newDecoder);
+	IPlatformConnection getConnection();
 
-	void setConnectionAttachment(A attachment);
+	PipelineAttachment getPipelineAttachment();
+
+	void setConnectionAttachment(ConnectionAttachment attachment);
 
 }

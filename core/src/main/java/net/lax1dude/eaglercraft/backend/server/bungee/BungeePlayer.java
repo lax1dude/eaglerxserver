@@ -1,0 +1,72 @@
+package net.lax1dude.eaglercraft.backend.server.bungee;
+
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
+
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
+
+class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
+
+	private final ProxiedPlayer player;
+	private final BungeeConnection connection;
+	Object attachment;
+
+	BungeePlayer(ProxiedPlayer player, BungeeConnection connection) {
+		this.player = player;
+		this.connection = connection;
+	}
+
+	@Override
+	public IPlatformConnection getConnection() {
+		return connection;
+	}
+
+	@Override
+	public ProxiedPlayer getPlayerObject() {
+		return player;
+	}
+
+	@Override
+	public <T> T getPlayerAttachment() {
+		return (T) attachment;
+	}
+
+	@Override
+	public String getUsername() {
+		return player.getName();
+	}
+
+	@Override
+	public UUID getUniqueId() {
+		return player.getUniqueId();
+	}
+
+	@Override
+	public boolean isConnected() {
+		return player.isConnected();
+	}
+
+	@Override
+	public boolean isOnlineMode() {
+		return player.getPendingConnection().isOnlineMode();
+	}
+
+	@Override
+	public String getMinecraftBrand() {
+		byte[] ret = BungeeUnsafe.getBrandMessage(player.getPendingConnection());
+		if(ret != null && ret.length > 0) {
+			int len = (int)ret[0] & 0xFF;
+			if(len < 128) {
+				return new String(ret, 1, ret.length - 1, StandardCharsets.UTF_8);
+			}else {
+				// Brand over 127 chars is probably garbage anyway...
+				return null;
+			}
+		}else {
+			return null;
+		}
+	}
+
+}

@@ -19,6 +19,8 @@ public interface IBasePendingConnection extends IAttributeHolder {
 
 	boolean isEaglerPlayer();
 
+	boolean isOnlineMode();
+
 	void disconnect();
 
 }

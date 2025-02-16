@@ -1,7 +1,9 @@
 package net.lax1dude.eaglercraft.backend.server.adapter;
 
-public interface IEaglerXServerPlayerInitializer<A> {
+public interface IEaglerXServerPlayerInitializer<ConnectionAttachment, PlayerAttachment, PlayerObject> {
 
-	void initializePlayer(IPlatformPlayer player, IPlatformPlayerInitializer<A> initializer);
+	void initializePlayer(IPlatformPlayerInitializer<ConnectionAttachment, PlayerAttachment, PlayerObject> initializer);
+
+	void destroyPlayer(IPlatformPlayer<PlayerObject> player);
 
 }

@@ -17,9 +17,11 @@ public interface IPlatform<PlayerObject> {
 
 		void setEaglerPlayerChannels(Collection<IEaglerXServerMessageChannel> channels);
 
-		void setPipelineInitializer(IEaglerXServerPipelineInitializer<?> initializer);
+		void setPipelineInitializer(IEaglerXServerNettyPipelineInitializer<?> initializer);
 
-		void setPlayerInitializer(IEaglerXServerPlayerInitializer<?> initializer);
+		void setConnectionInitializer(IEaglerXServerConnectionInitializer<?, ?> initializer);
+
+		void setPlayerInitializer(IEaglerXServerPlayerInitializer<?, ?, PlayerObject> initializer);
 
 		void setCommandRegistry(Collection<IEaglerXServerCommandType> commands);
 
@@ -58,6 +60,8 @@ public interface IPlatform<PlayerObject> {
 	IPlatformPlayer<PlayerObject> getPlayer(String username);
 
 	IPlatformPlayer<PlayerObject> getPlayer(UUID uuid);
+
+	Collection<IPlatformPlayer<PlayerObject>> getAllPlayers();
 
 	IEventDispatchAdapter<PlayerObject, ?> eventDispatcher();
 

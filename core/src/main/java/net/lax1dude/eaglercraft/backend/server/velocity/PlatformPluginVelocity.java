@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
@@ -22,14 +23,16 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerCommandType;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageChannel;
-import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPipelineInitializer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipelineInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServerVersion;
@@ -51,8 +54,15 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 
 	protected Runnable onServerEnable;
 	protected Runnable onServerDisable;
+	protected IEaglerXServerNettyPipelineInitializer<Object> pipelineInitializer;
+	protected IEaglerXServerConnectionInitializer<Object, Object> connectionInitializer;
+	protected IEaglerXServerPlayerInitializer<Object, Object, Player> playerInitializer;
+	protected Collection<IEaglerXServerCommandType> commandsList;
+	protected Collection<IEaglerXServerListener> listenersList;
+	protected Collection<IEaglerXServerMessageChannel> playerChannelsList;
+	protected Collection<IEaglerXServerMessageChannel> backendChannelsList;
 
-	private final ConcurrentMap<Player, IPlatformPlayer<Player>> playerInstanceMap = new ConcurrentHashMap<>();
+	private final ConcurrentMap<Player, IPlatformPlayer<Player>> playerInstanceMap = new ConcurrentHashMap<>(1024);
 
 	@Inject
 	public PlatformPluginVelocity(ProxyServer proxyIn, Logger loggerIn, @DataDirectory Path dataDirIn) {
@@ -76,22 +86,27 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 
 			@Override
 			public void setEaglerPlayerChannels(Collection<IEaglerXServerMessageChannel> channels) {
-				
+				playerChannelsList = channels;
 			}
 
 			@Override
-			public void setPipelineInitializer(IEaglerXServerPipelineInitializer<?> initializer) {
-				
+			public void setPipelineInitializer(IEaglerXServerNettyPipelineInitializer<?> initializer) {
+				pipelineInitializer = (IEaglerXServerNettyPipelineInitializer<Object>) initializer;
 			}
 
 			@Override
-			public void setPlayerInitializer(IEaglerXServerPlayerInitializer<?> initializer) {
-				
+			public void setConnectionInitializer(IEaglerXServerConnectionInitializer<?, ?> initializer) {
+				connectionInitializer = (IEaglerXServerConnectionInitializer<Object, Object>) initializer;
+			}
+
+			@Override
+			public void setPlayerInitializer(IEaglerXServerPlayerInitializer<?, ?, Player> initializer) {
+				playerInitializer = (IEaglerXServerPlayerInitializer<Object, Object, Player>) initializer;
 			}
 
 			@Override
 			public void setCommandRegistry(Collection<IEaglerXServerCommandType> commands) {
-				
+				commandsList = commands;
 			}
 
 			@Override
@@ -101,12 +116,12 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 
 			@Override
 			public void setEaglerListeners(Collection<IEaglerXServerListener> listeners) {
-				
+				listenersList = listeners;
 			}
 
 			@Override
 			public void setEaglerBackendChannels(Collection<IEaglerXServerMessageChannel> channels) {
-				
+				backendChannelsList = channels;
 			}
 
 		});
@@ -114,6 +129,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 
     @Subscribe
     public void onProxyInit(ProxyInitializeEvent e) {
+    	proxy.getEventManager().register(this, new VelocityListener(this));
 		if(onServerEnable != null) {
 			onServerEnable.run();
 		}
@@ -121,6 +137,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 
 	@Subscribe
     public void onProxyShutdown(ProxyShutdownEvent e) {
+		proxy.getEventManager().unregisterListeners(this);
 		if(onServerDisable != null) {
 			onServerDisable.run();
 		}
@@ -149,6 +166,11 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	@Override
 	public void forEachPlayer(Consumer<IPlatformPlayer<Player>> playerCallback) {
 		playerInstanceMap.values().forEach(playerCallback);
+	}
+
+	@Override
+	public Collection<IPlatformPlayer<Player>> getAllPlayers() {
+		return ImmutableList.copyOf(playerInstanceMap.values());
 	}
 
 	@Override
@@ -184,6 +206,29 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	@Override
 	public Class<Player> getPlayerClass() {
 		return Player.class;
+	}
+
+	public void initializePlayer(Player player, VelocityConnection connection) {
+		VelocityPlayer p = new VelocityPlayer(player, connection);
+		playerInitializer.initializePlayer(new IPlatformPlayerInitializer<Object, Object, Player>() {
+			@Override
+			public void setPlayerAttachment(Object attachment) {
+				p.attachment = attachment;
+			}
+			@Override
+			public Object getConnectionAttachment() {
+				return connection;
+			}
+			@Override
+			public IPlatformPlayer<Player> getPlayer() {
+				return p;
+			}
+		});
+		playerInstanceMap.put(player, p);
+	}
+
+	public void dropPlayer(Player player) {
+		playerInstanceMap.remove(player);
 	}
 
 }

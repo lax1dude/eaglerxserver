@@ -114,7 +114,7 @@ public class EaglerAttributeManager implements IAttributeManager {
 
 	public class EaglerAttributeHolder implements IAttributeHolder {
 
-		private final ConcurrentMap<AttributeKeyBase<?>, Object> attribMap = new ConcurrentHashMap<>();
+		private final ConcurrentMap<AttributeKeyBase<?>, Object> attribMap = new ConcurrentHashMap<>(4);
 
 		@Override
 		public final <T> T get(IAttributeKey<T> key) {

@@ -32,7 +32,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	protected Runnable onServerEnable;
 	protected Runnable onServerDisable;
 
-	private final ConcurrentMap<Player, IPlatformPlayer<Player>> playerInstanceMap = new ConcurrentHashMap<>();
+	private final ConcurrentMap<Player, IPlatformPlayer<Player>> playerInstanceMap = new ConcurrentHashMap<>(1024);
 
 	public PlatformPluginBukkit() {
 	}
@@ -65,7 +65,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 
 			@Override
-			public void setPlayerInitializer(IEaglerXServerPlayerInitializer<?> initializer) {
+			public void setPlayerInitializer(IEaglerXServerPlayerInitializer<Player, ?> initializer) {
 				
 			}
 

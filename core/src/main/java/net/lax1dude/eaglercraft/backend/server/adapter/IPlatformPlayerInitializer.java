@@ -1,7 +1,11 @@
 package net.lax1dude.eaglercraft.backend.server.adapter;
 
-public interface IPlatformPlayerInitializer<A> {
+public interface IPlatformPlayerInitializer<ConnectionAttachment, PlayerAttachment, PlayerObject> {
 
-	void setPlayerAttachment(A attachment);
+	IPlatformPlayer<PlayerObject> getPlayer();
+
+	ConnectionAttachment getConnectionAttachment();
+
+	void setPlayerAttachment(PlayerAttachment attachment);
 
 }
