@@ -296,8 +296,33 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		});
 	}
 
-	public void initializePlayer(Player player, BukkitConnection connection) {
-		BukkitPlayer p = new BukkitPlayer(player, connection);
+	public void initializePlayer(Player player, BukkitConnection connection,
+			Consumer<BukkitConnection> setAttr) {
+		BukkitPlayer p;
+		final BukkitConnection c;
+		if(connection == null) {
+			// vanilla players won't have an initialized connection
+			c = new BukkitConnection(this, null);
+			p = new BukkitPlayer(player, c);
+			setAttr.accept(c);
+			connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<Object, Object>() {
+				@Override
+				public void setConnectionAttachment(Object attachment) {
+					c.attachment = attachment;
+				}
+				@Override
+				public Object getPipelineAttachment() {
+					return null;
+				}
+				@Override
+				public IPlatformConnection getConnection() {
+					return c;
+				}
+			});
+		}else {
+			c = connection;
+			p = new BukkitPlayer(player, c);
+		}
 		playerInitializer.initializePlayer(new IPlatformPlayerInitializer<Object, Object, Player>() {
 			@Override
 			public void setPlayerAttachment(Object attachment) {
@@ -305,7 +330,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 			@Override
 			public Object getConnectionAttachment() {
-				return connection;
+				return c;
 			}
 			@Override
 			public IPlatformPlayer<Player> getPlayer() {

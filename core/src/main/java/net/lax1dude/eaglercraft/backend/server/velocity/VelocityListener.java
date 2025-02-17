@@ -5,6 +5,8 @@ import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.event.connection.PostLoginEvent;
 import com.velocitypowered.api.event.connection.PreLoginEvent;
+import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
+import com.velocitypowered.api.network.ListenerType;
 import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.Player;
 
@@ -17,6 +19,13 @@ class VelocityListener {
 
 	VelocityListener(PlatformPluginVelocity plugin) {
 		this.plugin = plugin;
+	}
+
+	@Subscribe
+	public void onListenerBound(ListenerBoundEvent bindEvent) {
+		if(bindEvent.getListenerType() == ListenerType.MINECRAFT) {
+			VelocityUnsafe.injectListenerAttr(plugin.proxy(), bindEvent.getAddress(), plugin.listenersToInit);
+		}
 	}
 
 	@Subscribe(priority = Short.MAX_VALUE)

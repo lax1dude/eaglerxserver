@@ -9,6 +9,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import io.netty.channel.Channel;
+import io.netty.util.Attribute;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 
 class BukkitListener implements Listener {
@@ -23,8 +24,8 @@ class BukkitListener implements Listener {
 	public void onPlayerLogin(PlayerLoginEvent evt) {
 		Player player = evt.getPlayer();
 		Channel channel = BukkitUnsafe.getPlayerChannel(player);
-		BukkitConnection conn = channel.attr(PipelineAttributes.<BukkitConnection>connectionData()).get();
-		plugin.initializePlayer(player, conn);
+		Attribute<BukkitConnection> attr = channel.attr(PipelineAttributes.<BukkitConnection>connectionData());
+		plugin.initializePlayer(player, attr.get(), attr::set);
 	}
 
 	@EventHandler

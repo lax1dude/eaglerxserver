@@ -8,6 +8,13 @@ public interface IEaglerXServerListener {
 
 	boolean matchListenerAddress(SocketAddress addr);
 
-	void handleListenerBound(Channel channel);
+	default void reportVelocityInjected(Channel channel) {
+	}
+
+	default void reportPaperMCInjected() {
+	}
+
+	default void reportNettyInjected(Channel channel) {
+	}
 
 }

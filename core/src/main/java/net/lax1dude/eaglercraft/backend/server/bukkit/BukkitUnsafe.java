@@ -266,6 +266,7 @@ public class BukkitUnsafe {
 				return meth.invoke(proxy, args);
 			});
 			addListener.invoke(null, EAGLER_KEY, listenerImpl);
+			listener.reportPaperMCInjected();
 			return () -> {
 				try {
 					removeListener.invoke(null, EAGLER_KEY);
@@ -387,7 +388,7 @@ public class BukkitUnsafe {
 			return;
 		}
 		injectInto(foundHandler, foundField, initHandler, cleanupCallback);
-		listenerConf.handleListenerBound(channel);
+		listenerConf.reportNettyInjected(channel);
 	}
 
 	private static void injectInto(ChannelHandler foundHandler, Field foundField, Consumer<Channel> init,

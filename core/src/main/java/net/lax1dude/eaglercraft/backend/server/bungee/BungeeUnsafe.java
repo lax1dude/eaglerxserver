@@ -206,7 +206,7 @@ public class BungeeUnsafe {
 			injectInto(foundHandler, foundField, (channel2) -> {
 				initHandler.init(listener, channel2);
 			}, cleanupCallback);
-			listener.handleListenerBound(channel);
+			listener.reportNettyInjected(channel);
 		}
 	}
 
