@@ -68,8 +68,4 @@ public class BaseConnectionInstance implements IBasePendingConnection {
 		connection.disconnect();
 	}
 
-	public void handleDestroyed() {
-		
-	}
-
 }

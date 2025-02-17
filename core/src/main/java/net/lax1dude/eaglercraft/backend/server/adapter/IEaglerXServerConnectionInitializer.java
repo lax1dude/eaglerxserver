@@ -4,6 +4,4 @@ public interface IEaglerXServerConnectionInitializer<PipelineAttachment, Connect
 
 	void initializeConnection(IPlatformConnectionInitializer<PipelineAttachment, ConnectionAttachment> initializer);
 
-	void destroyConnection(IPlatformConnection connection);
-
 }

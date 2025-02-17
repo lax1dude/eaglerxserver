@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import com.google.common.collect.ImmutableList;
 
@@ -20,10 +21,14 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageChan
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipelineInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnectionInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
+import net.lax1dude.eaglercraft.backend.server.bukkit.BukkitUnsafe.LoginConnectionHolder;
 import net.lax1dude.eaglercraft.backend.server.bukkit.event.BukkitEventDispatchAdapter;
 import net.md_5.bungee.api.chat.BaseComponent;
 
@@ -41,7 +46,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	protected IEaglerXServerListener listenerConf;
 	protected Collection<IEaglerXServerMessageChannel> playerChannelsList;
 
-	private final ConcurrentMap<Player, IPlatformPlayer<Player>> playerInstanceMap = new ConcurrentHashMap<>(1024);
+	private final ConcurrentMap<Player, BukkitPlayer> playerInstanceMap = new ConcurrentHashMap<>(1024);
 
 	public PlatformPluginBukkit() {
 	}
@@ -174,6 +179,73 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public Class<Player> getPlayerClass() {
 		return Player.class;
+	}
+
+	public void initializeConnection(LoginConnectionHolder loginConnection, Object pipelineData,
+			Consumer<BukkitConnection> setAttr) {
+		BukkitConnection c = new BukkitConnection(this, loginConnection);
+		setAttr.accept(c);
+		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<Object, Object>() {
+			@Override
+			public void setConnectionAttachment(Object attachment) {
+				c.attachment = attachment;
+			}
+			@Override
+			public Object getPipelineAttachment() {
+				return pipelineData;
+			}
+			@Override
+			public IPlatformConnection getConnection() {
+				return c;
+			}
+		});
+	}
+
+	public void initializePlayer(Player player, BukkitConnection connection) {
+		BukkitPlayer p = new BukkitPlayer(player, connection);
+		playerInitializer.initializePlayer(new IPlatformPlayerInitializer<Object, Object, Player>() {
+			@Override
+			public void setPlayerAttachment(Object attachment) {
+				p.attachment = attachment;
+			}
+			@Override
+			public Object getConnectionAttachment() {
+				return connection;
+			}
+			@Override
+			public IPlatformPlayer<Player> getPlayer() {
+				return p;
+			}
+		});
+		playerInstanceMap.put(player, p);
+		p.confirmTask = getServer().getScheduler().runTaskLaterAsynchronously(this, () -> {
+			p.confirmTask = null;
+			getLogger().warning("Player " + p.getUsername() + " was initialized, but never fired PostLoginEvent, dropping...");
+			dropPlayer(player);
+		}, 5000l);
+	}
+
+	public void confirmPlayer(Player player) {
+		BukkitPlayer p = playerInstanceMap.get(player);
+		if(p != null) {
+			BukkitTask conf = p.confirmTask;
+			if(conf != null) {
+				p.confirmTask = null;
+				conf.cancel();
+			}
+		}
+	}
+
+	public void dropPlayer(Player player) {
+		BukkitPlayer p = playerInstanceMap.remove(player);
+		if(p != null) {
+			BukkitTask conf = p.confirmTask;
+			if(conf != null) {
+				p.confirmTask = null;
+				conf.cancel();
+			}
+			playerInitializer.destroyPlayer(p);
+		}
 	}
 
 }

@@ -1,7 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionInitializer;
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnectionInitializer;
 
 class EaglerXServerConnectionInitializer<PlayerObject>
@@ -28,14 +27,6 @@ class EaglerXServerConnectionInitializer<PlayerObject>
 		} else {
 			initializer.setConnectionAttachment(new BaseConnectionInstance(initializer.getConnection(),
 					server.getEaglerAttribManager().createEaglerHolder()));
-		}
-	}
-
-	@Override
-	public void destroyConnection(IPlatformConnection connection) {
-		BaseConnectionInstance instance = connection.getAttachment();
-		if(instance != null) {
-			instance.handleDestroyed();
 		}
 	}
 

@@ -17,6 +17,8 @@ public interface IPlatformConnection {
 
 	boolean isOnlineMode();
 
+	boolean isConnected();
+
 	void disconnect();
 
 	<ComponentObject> void disconnect(ComponentObject kickMessage);

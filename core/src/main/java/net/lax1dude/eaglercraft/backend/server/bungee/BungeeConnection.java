@@ -34,6 +34,11 @@ class BungeeConnection implements IPlatformConnection {
 	}
 
 	@Override
+	public boolean isConnected() {
+		return pendingConnection.isConnected();
+	}
+
+	@Override
 	public String getUsername() {
 		return pendingConnection.getName();
 	}

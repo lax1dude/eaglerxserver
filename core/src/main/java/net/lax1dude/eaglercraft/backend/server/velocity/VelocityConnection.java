@@ -65,6 +65,16 @@ class VelocityConnection implements IPlatformConnection {
 	}
 
 	@Override
+	public boolean isConnected() {
+		Player player = playerInstance;
+		if(player != null) {
+			return player.isActive();
+		}else {
+			return connection.isActive();
+		}
+	}
+
+	@Override
 	public void disconnect() {
 		Player player = playerInstance;
 		if(player != null) {

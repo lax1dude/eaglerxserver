@@ -252,7 +252,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		playerInstanceMap.put(player, p);
 		p.confirmTask = proxy.getScheduler().buildTask(this, () -> {
 			p.confirmTask = null;
-			proxyLogger.warn("Player {} was initialized, but never fired PostLoginEvent, dropping...", p.getUsername());
+			proxyLogger.warn("Player {} was initialized, but never fired PlayerJoinEvent, dropping...", p.getUsername());
 			dropPlayer(player);
 		}).delay(5l, TimeUnit.SECONDS).schedule();
 	}
@@ -271,6 +271,11 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	public void dropPlayer(Player player) {
 		VelocityPlayer p = playerInstanceMap.remove(player);
 		if(p != null) {
+			ScheduledTask conf = p.confirmTask;
+			if(conf != null) {
+				p.confirmTask = null;
+				conf.cancel();
+			}
 			playerInitializer.destroyPlayer(p);
 		}
 	}
