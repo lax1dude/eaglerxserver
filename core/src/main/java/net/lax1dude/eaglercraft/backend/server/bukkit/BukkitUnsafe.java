@@ -3,12 +3,29 @@ package net.lax1dude.eaglercraft.backend.server.bukkit;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Proxy;
+import java.lang.reflect.Type;
 import java.net.SocketAddress;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
+import org.bukkit.Server;
 import org.bukkit.entity.Player;
 
+import com.google.common.collect.ForwardingList;
+
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelInitializer;
+import net.kyori.adventure.key.Key;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
+import net.lax1dude.eaglercraft.backend.server.base.ChannelInitializerHijacker;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 
 public class BukkitUnsafe {
@@ -195,6 +212,237 @@ public class BukkitUnsafe {
 		} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
+	}
+
+	private static class CleanupList implements Consumer<ChannelInitializerHijacker>, Runnable {
+
+		protected List<ChannelInitializerHijacker> cleanup = new ArrayList<>();
+
+		@Override
+		public void accept(ChannelInitializerHijacker c) {
+			synchronized(this) {
+				if(cleanup != null) {
+					cleanup.add(c);
+					return;
+				}
+			}
+			c.deactivate();
+		}
+
+		@Override
+		public void run() {
+			List<ChannelInitializerHijacker> cc;
+			synchronized(this) {
+				cc = new ArrayList<>(cleanup);
+				cleanup = null;
+			}
+			for(ChannelInitializerHijacker c : cc) {
+				c.deactivate();
+			}
+		}
+
+	}
+
+	private static final Key EAGLER_KEY = Key.key("eaglerxserver", "channel_initializer");
+
+	public static Runnable injectChannelInitializer(Server server, Consumer<Channel> initHandler, IEaglerXServerListener listener) {
+		Class<?> paperChannelInitHolder;
+		Class<?> paperChannelInitListener;
+		try {
+			paperChannelInitHolder = Class.forName("io.papermc.paper.network.ChannelInitializeListenerHolder");
+			paperChannelInitListener = Class.forName("io.papermc.paper.network.ChannelInitializeListener");
+		}catch(ClassNotFoundException ex) {
+			return injectChannelInitializerOld(server, initHandler, listener);
+		}
+		try {
+			Method addListener = paperChannelInitHolder.getMethod("addListener", Key.class, paperChannelInitListener);
+			Method removeListener = paperChannelInitHolder.getMethod("removeListener", Key.class);
+			Object listenerImpl = Proxy.newProxyInstance(BukkitUnsafe.class.getClassLoader(),
+					new Class[] { paperChannelInitListener }, (proxy, meth, args) -> {
+				if("afterInitChannel".equals(meth.getName())) {
+					initHandler.accept((Channel) args[0]);
+					return null;
+				}
+				return meth.invoke(proxy, args);
+			});
+			addListener.invoke(null, EAGLER_KEY, listenerImpl);
+			return () -> {
+				try {
+					removeListener.invoke(null, EAGLER_KEY);
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					throw Util.propagateReflectThrowable(e);
+				}
+			};
+		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+	}
+
+	private static Runnable injectChannelInitializerOld(Server server, Consumer<Channel> initHandler, IEaglerXServerListener listener) {
+		try {
+			Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
+			Object minecraftServer = dedicatedPlayerList.getClass().getMethod("getServer").invoke(dedicatedPlayerList);
+			Method getServerConnection = minecraftServer.getClass().getMethod("getServerConnection");
+			Object serverConnection = getServerConnection.invoke(minecraftServer);
+			Class<?> serverConnectionClass;
+			if(serverConnection == null) {
+				serverConnectionClass = getServerConnection.getReturnType();
+				for(Method meth : minecraftServer.getClass().getMethods()) {
+					if(meth.getReturnType() == serverConnectionClass && !meth.equals(getServerConnection)) {
+						serverConnection = meth.invoke(minecraftServer);
+						if(serverConnection != null) {
+							break;
+						}
+					}
+				}
+				if(serverConnection == null) {
+					throw new RuntimeException("Could not get ServerConnection instance from server! (Try Paper)");
+				}
+			}
+			serverConnectionClass = serverConnection.getClass();
+			Field channelFuturesList = null;
+			for(Field f : serverConnectionClass.getDeclaredFields()) {
+				if(List.class.isAssignableFrom(f.getType())) {
+					Type t = f.getGenericType();
+					if(t instanceof ParameterizedType) {
+						Type[] params = ((ParameterizedType) t).getActualTypeArguments();
+						if(params.length == 1 && ChannelFuture.class.isAssignableFrom(params[0].getClass())) {
+							channelFuturesList = f;
+							channelFuturesList.setAccessible(true);
+							break;
+						}
+					}
+				}
+			}
+			if(channelFuturesList == null) {
+				throw new RuntimeException("Could not get ServerConnection channel futures list! (Try Paper)");
+			}
+			CleanupList cleanupList = new CleanupList();
+			final List<ChannelFuture> oldList = (List<ChannelFuture>) channelFuturesList.get(serverConnection);
+			for(ChannelFuture ch : oldList) {
+				injectChannelInitializer(ch, listener, initHandler, cleanupList);
+			}
+			List<ChannelFuture> hackList = new ForwardingList<ChannelFuture>() {
+				@Override
+				protected List<ChannelFuture> delegate() {
+					return oldList;
+				}
+				@Override
+				public boolean add(ChannelFuture element) {
+					super.add(element);
+					injectChannelInitializer(element, listener, initHandler, cleanupList);
+					return true;
+				}
+			};
+			channelFuturesList.set(serverConnection, hackList);
+			return cleanupList;
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
+				| SecurityException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+	}
+
+	private static void injectChannelInitializer(ChannelFuture channel, IEaglerXServerListener listenerConf,
+			Consumer<Channel> initHandler, CleanupList cleanupCallback) {
+		channel.addListener(new ChannelFutureListener() {
+			@Override
+			public void operationComplete(ChannelFuture var1) throws Exception {
+				if(var1.isSuccess() && cleanupCallback.cleanup != null) {
+					injectChannelInitializer(var1.channel(), listenerConf, initHandler, cleanupCallback);
+				}
+			}
+		});
+	}
+
+	// Inspired by ViaVersion
+	private static void injectChannelInitializer(Channel channel, IEaglerXServerListener listenerConf,
+			Consumer<Channel> initHandler, Consumer<ChannelInitializerHijacker> cleanupCallback) {
+		List<String> names = channel.pipeline().names();
+		ChannelHandler foundHandler;
+		Field foundField;
+		eagler: {
+			for(String name : names) {
+				ChannelHandler handler = channel.pipeline().get(name);
+				if(isServerInitializer(handler)) {
+					try {
+						foundField = handler.getClass().getDeclaredField("childHandler");
+						foundField.setAccessible(true);
+						foundHandler = handler;
+						break eagler;
+					}catch (IllegalArgumentException | NoSuchFieldException | SecurityException ex) {
+					}
+				}
+			}
+			foundHandler = channel.pipeline().first();
+			if(isServerInitializer(foundHandler)) {
+				try {
+					foundField = foundHandler.getClass().getDeclaredField("childHandler");
+					foundField.setAccessible(true);
+					break eagler;
+				}catch (IllegalArgumentException | NoSuchFieldException | SecurityException ex) {
+					throw new RuntimeException("Could not find ChannelBootstrapAccelerator to inject into!");
+				}
+			}
+			return;
+		}
+		injectInto(foundHandler, foundField, initHandler, cleanupCallback);
+		listenerConf.handleListenerBound(channel);
+	}
+
+	private static void injectInto(ChannelHandler foundHandler, Field foundField, Consumer<Channel> init,
+			Consumer<ChannelInitializerHijacker> cleanupCallback) {
+		ChannelInitializer<Channel> parent;
+		Method initChannel;
+		try {
+			parent = (ChannelInitializer<Channel>) foundField.get(foundHandler);
+			initChannel = parent.getClass().getDeclaredMethod("initChannel", Channel.class);
+			initChannel.setAccessible(true);
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+		ChannelInitializerHijacker newInit = new ChannelInitializerHijacker(init) {
+
+			@Override
+			protected void callParent(Channel channel) {
+				try {
+					initChannel.invoke(parent, channel);
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					throw Util.propagateReflectThrowable(e);
+				}
+			}
+
+			@Override
+			protected boolean reInject() {
+				Object newInitializer;
+				try {
+					newInitializer = foundField.get(foundHandler);
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					throw Util.propagateReflectThrowable(e);
+				}
+				if(this != newInitializer) {
+					System.err.println("Detected another plugin's channel initializer ("
+							+ newInitializer.getClass().getName() + ") injected into the pipeline, "
+							+ "reinjecting EaglerXServer again to make sure its first, because we "
+							+ "really are that rude");
+					injectInto(foundHandler, foundField, init, cleanupCallback);
+					return true;
+				}else {
+					return false;
+				}
+			}
+
+		};
+		try {
+			foundField.set(foundHandler, newInit);
+		} catch (IllegalArgumentException | IllegalAccessException | SecurityException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+		cleanupCallback.accept(newInit);
+	}
+
+	private static boolean isServerInitializer(ChannelHandler handler) {
+		return handler != null && ChannelInitializer.class.isAssignableFrom(handler.getClass());
 	}
 
 }

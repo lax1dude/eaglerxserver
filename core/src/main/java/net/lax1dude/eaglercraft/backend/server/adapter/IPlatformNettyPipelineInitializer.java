@@ -6,7 +6,9 @@ import io.netty.channel.Channel;
 
 public interface IPlatformNettyPipelineInitializer<PipelineAttachment> {
 
-	List<PipelineComponent> getVanillaPipeline();
+	List<IPipelineComponent> getPipeline();
+
+	IEaglerXServerListener getListener();
 
 	Channel getChannel();
 
