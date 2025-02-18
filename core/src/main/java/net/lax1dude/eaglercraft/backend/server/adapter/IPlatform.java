@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
+import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfig;
 
 public interface IPlatform<PlayerObject> {
 
@@ -64,5 +65,11 @@ public interface IPlatform<PlayerObject> {
 	Collection<IPlatformPlayer<PlayerObject>> getAllPlayers();
 
 	IEventDispatchAdapter<PlayerObject, ?> eventDispatcher();
+
+	IPlatformScheduler getScheduler();
+
+	String getConfigFormat();
+
+	IEaglerConfig getConfigFile(File file);
 
 }

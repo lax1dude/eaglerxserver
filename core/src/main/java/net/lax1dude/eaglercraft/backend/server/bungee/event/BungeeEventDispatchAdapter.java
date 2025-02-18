@@ -15,6 +15,8 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRe
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCookieEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthPasswordEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftClientBrandEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftDestroyPlayerEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterCapeEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterSkinEvent;
@@ -104,6 +106,18 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 	public void dispatchClientBrandEvent(IEaglerPendingConnection pendingConnection,
 			IEventDispatchCallback<IEaglercraftClientBrandEvent<ProxiedPlayer, BaseComponent>> onComplete) {
 		eventMgr.callEvent(new BungeeClientBrandEventImpl(api, pendingConnection, transformCallback(onComplete)));
+	}
+
+	@Override
+	public void dispatchInitializePlayerEvent(IEaglerPlayer<ProxiedPlayer> player,
+			IEventDispatchCallback<IEaglercraftInitializePlayerEvent<ProxiedPlayer>> onComplete) {
+		fireSync(new BungeeInitializePlayerEventImpl(api, player), onComplete);
+	}
+
+	@Override
+	public void dispatchDestroyPlayerEvent(IEaglerPlayer<ProxiedPlayer> player,
+			IEventDispatchCallback<IEaglercraftDestroyPlayerEvent<ProxiedPlayer>> onComplete) {
+		fireSync(new BungeeDestroyPlayerEventImpl(api, player), onComplete);
 	}
 
 	@Override

@@ -17,6 +17,8 @@ public class Util {
 				}
 				return new RuntimeException("Encountered an InvocationTargetException while performing reflection", cause);
 			}
+		}else if(ex instanceof RuntimeException) {
+			return (RuntimeException) ex;
 		}
 		return new RuntimeException("Could not perform reflection!", ex);
 	}

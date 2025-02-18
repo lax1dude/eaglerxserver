@@ -21,6 +21,8 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRe
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCookieEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthPasswordEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftClientBrandEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftDestroyPlayerEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterCapeEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterSkinEvent;
@@ -112,6 +114,18 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter<Playe
 	public void dispatchClientBrandEvent(IEaglerPendingConnection pendingConnection,
 			IEventDispatchCallback<IEaglercraftClientBrandEvent<Player, Component>> onComplete) {
 		fire(new VelocityClientBrandEventImpl(api, pendingConnection), onComplete);
+	}
+
+	@Override
+	public void dispatchInitializePlayerEvent(IEaglerPlayer<Player> player,
+			IEventDispatchCallback<IEaglercraftInitializePlayerEvent<Player>> onComplete) {
+		fire(new VelocityInitializePlayerEventImpl(api, player), onComplete);
+	}
+
+	@Override
+	public void dispatchDestroyPlayerEvent(IEaglerPlayer<Player> player,
+			IEventDispatchCallback<IEaglercraftDestroyPlayerEvent<Player>> onComplete) {
+		fire(new VelocityDestroyPlayerEventImpl(api, player), onComplete);
 	}
 
 	@Override

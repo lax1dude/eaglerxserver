@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.bukkit;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -34,12 +35,15 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformNettyPipelineInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitializer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformScheduler;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.bukkit.BukkitUnsafe.LoginConnectionHolder;
 import net.lax1dude.eaglercraft.backend.server.bukkit.event.BukkitEventDispatchAdapter;
+import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfig;
+import net.lax1dude.eaglercraft.backend.server.config.snakeyaml.YamlConfigLoader;
 import net.md_5.bungee.api.chat.BaseComponent;
 
 public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player> {
@@ -56,6 +60,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	protected Collection<IEaglerXServerCommandType> commandsList;
 	protected IEaglerXServerListener listenerConf;
 	protected Collection<IEaglerXServerMessageChannel> playerChannelsList;
+	protected IPlatformScheduler schedulerImpl;
 
 	private final ConcurrentMap<Player, BukkitPlayer> playerInstanceMap = new ConcurrentHashMap<>(1024);
 
@@ -66,6 +71,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	public void onLoad() {
 		eventDispatcherImpl = new BukkitEventDispatchAdapter(this, getServer().getPluginManager(),
 				getServer().getScheduler());
+		schedulerImpl = new BukkitScheduler(this, getServer().getScheduler());
 		IEaglerXServerImpl<Player> serverImpl = new EaglerXServer<>();
 		serverImpl.load(new InitNonProxying<Player>() {
 
@@ -274,6 +280,21 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public Class<Player> getPlayerClass() {
 		return Player.class;
+	}
+
+	@Override
+	public IPlatformScheduler getScheduler() {
+		return schedulerImpl;
+	}
+
+	@Override
+	public String getConfigFormat() {
+		return "yml";
+	}
+
+	@Override
+	public IEaglerConfig getConfigFile(File file) {
+		return YamlConfigLoader.getConfigFile(file);
 	}
 
 	public void initializeConnection(LoginConnectionHolder loginConnection, Object pipelineData,

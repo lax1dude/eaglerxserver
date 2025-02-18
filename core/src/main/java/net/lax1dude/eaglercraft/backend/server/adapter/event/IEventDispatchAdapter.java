@@ -17,6 +17,8 @@ import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCookieEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthPasswordEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftClientBrandEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftDestroyPlayerEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterCapeEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterSkinEvent;
@@ -46,6 +48,12 @@ public interface IEventDispatchAdapter<PlayerObject, ComponentObject> {
 
 	void dispatchClientBrandEvent(IEaglerPendingConnection pendingConnection,
 			IEventDispatchCallback<IEaglercraftClientBrandEvent<PlayerObject, ComponentObject>> onComplete);
+
+	void dispatchInitializePlayerEvent(IEaglerPlayer<PlayerObject> player,
+			IEventDispatchCallback<IEaglercraftInitializePlayerEvent<PlayerObject>> onComplete);
+
+	void dispatchDestroyPlayerEvent(IEaglerPlayer<PlayerObject> player,
+			IEventDispatchCallback<IEaglercraftDestroyPlayerEvent<PlayerObject>> onComplete);
 
 	void dispatchMOTDEvent(IMOTDConnection connection,
 			IEventDispatchCallback<IEaglercraftMOTDEvent<PlayerObject>> onComplete);

@@ -2,11 +2,14 @@ package net.lax1dude.eaglercraft.backend.server.base;
 
 import java.net.SocketAddress;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -26,11 +29,15 @@ import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistry;
 import net.lax1dude.eaglercraft.backend.server.api.internal.factory.IEaglerAPIFactory;
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationService;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuService;
-import net.lax1dude.eaglercraft.backend.server.api.query.IQueryService;
+import net.lax1dude.eaglercraft.backend.server.api.query.IQueryServer;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
+import net.lax1dude.eaglercraft.backend.server.api.webserver.IWebServer;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
+import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataRoot;
+import net.lax1dude.eaglercraft.backend.server.base.config.EaglerConfigLoader;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObject>, IEaglerAPIFactory, IEaglerXServerAPI<PlayerObject> {
 
@@ -41,8 +48,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private Class<?> platformClazz;
 	private EnumPlatformType platformType;
 	private Class<PlayerObject> playerClazz;
+	private ConfigDataRoot config;
 	private IEventDispatchAdapter<PlayerObject, ?> eventDispatcher;
 	private Set<EaglerPlayerInstance<PlayerObject>> eaglerPlayers;
+	private BrandRegistry brandRegistry;
+	private Map<String, EaglerListener> listeners;
+	private Map<SocketAddress, EaglerListener> listenersByAddress;
 
 	public EaglerXServer() {
 	}
@@ -52,21 +63,35 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		eaglerPlayers = Sets.newConcurrentHashSet();
 		platform = init.getPlatform();
 		platformClazz = platform.getClass();
+		playerClazz = platform.getPlayerClass();
 		switch(platform.getType()) {
 		case BUNGEE: platformType = EnumPlatformType.BUNGEECORD; break;
 		case BUKKIT: platformType = EnumPlatformType.BUKKIT; break;
 		case VELOCITY: platformType = EnumPlatformType.VELOCITY; break;
 		default: platformType = EnumPlatformType.STANDALONE; break;
 		}
-		playerClazz = platform.getPlayerClass();
+		
+		logger().info("Loading " + getServerBrand() + " " + getServerVersion() + "...");
+		logger().info("(Platform: " + platformType.getName() + ")");
+		
 		eventDispatcher = platform.eventDispatcher();
+		brandRegistry = new BrandRegistry();
+		listeners = new HashMap<>();
+		listenersByAddress = new HashMap<>();
+		
+		config = EaglerConfigLoader.loadConfig(platform);
+		
+		logger().info("Server Name: \"" + config.getSettings().getServerName() + "\"");
+		
 		eventDispatcher.setAPI(this);
 		APIFactoryImpl.INSTANCE.initialize(playerClazz, this);
+		
 		init.setOnServerEnable(this::enableHandler);
 		init.setOnServerDisable(this::disableHandler);
 		init.setPipelineInitializer(new EaglerXServerNettyPipelineInitializer<PlayerObject>(this));
 		init.setConnectionInitializer(new EaglerXServerConnectionInitializer<PlayerObject>(this));
 		init.setPlayerInitializer(new EaglerXServerPlayerInitializer<PlayerObject>(this));
+		
 		if(platform.getType().proxy) {
 			loadProxying((IPlatform.InitProxying<PlayerObject>)init);
 		}else {
@@ -82,11 +107,16 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		
 	}
 
+	public ConfigDataRoot getConfig() {
+		return config;
+	}
+
 	public IPlatform<PlayerObject> getPlatform() {
 		return platform;
 	}
 
 	public void enableHandler() {
+		logger().info("Enabling " + getServerBrand() + " " + getServerVersion() + "...");
 		
 	}
 
@@ -99,7 +129,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	public void registerEaglerPlayer(EaglerPlayerInstance<PlayerObject> playerInstance) {
-		
+		if(!eaglerPlayers.add(playerInstance)) return;
+		eventDispatcher.dispatchInitializePlayerEvent(playerInstance, null);
 	}
 
 	public void unregisterPlayer(BasePlayerInstance<PlayerObject> playerInstance) {
@@ -107,7 +138,9 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	public void unregisterEaglerPlayer(EaglerPlayerInstance<PlayerObject> playerInstance) {
+		if(!eaglerPlayers.remove(playerInstance)) return;
 		
+		eventDispatcher.dispatchDestroyPlayerEvent(playerInstance, null);
 	}
 
 	@Override
@@ -189,21 +222,19 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public boolean isEaglerAuthEnabled() {
+	public boolean isAuthenticationEventsEnabled() {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean isEaglerProtocolSupported(int vers) {
-		// TODO Auto-generated method stub
-		return false;
+		return GamePluginMessageProtocol.getByVersion(vers) != null;
 	}
 
 	@Override
 	public IBrandRegistry getBrandRegistry() {
-		// TODO Auto-generated method stub
-		return null;
+		return brandRegistry;
 	}
 
 	@Override
@@ -297,26 +328,23 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public Collection<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers() {
+	public Set<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers() {
 		return ImmutableSet.copyOf(eaglerPlayers);
 	}
 
 	@Override
 	public Collection<IEaglerListenerInfo> getAllEaglerListeners() {
-		// TODO
-		return null;
+		return ImmutableList.copyOf(listeners.values());
 	}
 
 	@Override
 	public IEaglerListenerInfo getListenerByName(String name) {
-		// TODO
-		return null;
+		return listeners.get(name);
 	}
 
 	@Override
 	public IEaglerListenerInfo getListenerByAddress(SocketAddress address) {
-		// TODO
-		return null;
+		return listenersByAddress.get(address);
 	}
 
 	@Override
@@ -350,7 +378,13 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public IQueryService<PlayerObject> getQueryService() {
+	public IQueryServer getQueryServer() {
+		// TODO
+		return null;
+	}
+
+	@Override
+	public IWebServer getWebServer() {
 		// TODO
 		return null;
 	}

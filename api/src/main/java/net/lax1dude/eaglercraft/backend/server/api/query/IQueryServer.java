@@ -1,10 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.api.query;
 
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
-
-public interface IQueryService<PlayerObject> extends IServerIconLoader {
-
-	IEaglerXServerAPI<PlayerObject> getServerAPI();
+public interface IQueryServer extends IServerIconLoader {
 
 	boolean isQueryType(String queryType);
 

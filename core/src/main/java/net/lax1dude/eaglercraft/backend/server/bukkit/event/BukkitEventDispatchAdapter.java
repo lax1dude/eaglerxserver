@@ -21,6 +21,8 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRe
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCookieEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthPasswordEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftClientBrandEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftDestroyPlayerEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterCapeEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterSkinEvent;
@@ -95,7 +97,8 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player,
 	@Override
 	public void dispatchAuthCookieEvent(IEaglerPendingConnection pendingConnection, byte[] authUsername,
 			boolean cookiesEnabled, byte[] cookieData, String profileUsername, UUID profileUUID, EnumAuthType authType,
-			String authMessage, String authRequestedServer, IEventDispatchCallback<IEaglercraftAuthCookieEvent<Player, BaseComponent>> onComplete) {
+			String authMessage, String authRequestedServer,
+			IEventDispatchCallback<IEaglercraftAuthCookieEvent<Player, BaseComponent>> onComplete) {
 		fireAsync(new BukkitAuthCookieEventImpl(api, pendingConnection, authUsername, cookiesEnabled,
 				cookieData, profileUsername, profileUUID, authType, authMessage, authRequestedServer), onComplete);
 	}
@@ -114,6 +117,18 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player,
 	public void dispatchClientBrandEvent(IEaglerPendingConnection pendingConnection,
 			IEventDispatchCallback<IEaglercraftClientBrandEvent<Player, BaseComponent>> onComplete) {
 		fireAsync(new BukkitClientBrandEventImpl(api, pendingConnection), onComplete);
+	}
+
+	@Override
+	public void dispatchInitializePlayerEvent(IEaglerPlayer<Player> player,
+			IEventDispatchCallback<IEaglercraftInitializePlayerEvent<Player>> onComplete) {
+		fireSync(new BukkitInitializePlayerEventImpl(api, player), onComplete);
+	}
+
+	@Override
+	public void dispatchDestroyPlayerEvent(IEaglerPlayer<Player> player,
+			IEventDispatchCallback<IEaglercraftDestroyPlayerEvent<Player>> onComplete) {
+		fireSync(new BukkitDestroyPlayerEventImpl(api, player), onComplete);
 	}
 
 	@Override

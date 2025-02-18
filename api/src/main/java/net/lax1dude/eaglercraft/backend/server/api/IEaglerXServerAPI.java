@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.api;
 
 import java.net.SocketAddress;
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -12,10 +13,11 @@ import net.lax1dude.eaglercraft.backend.server.api.internal.factory.EaglerXServe
 import net.lax1dude.eaglercraft.backend.server.api.internal.factory.IEaglerAPIFactory;
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationService;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuService;
-import net.lax1dude.eaglercraft.backend.server.api.query.IQueryService;
+import net.lax1dude.eaglercraft.backend.server.api.query.IQueryServer;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
+import net.lax1dude.eaglercraft.backend.server.api.webserver.IWebServer;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
 
 public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
@@ -53,7 +55,7 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	String getServerVersion();
 
-	boolean isEaglerAuthEnabled();
+	boolean isAuthenticationEventsEnabled();
 
 	boolean isEaglerProtocolSupported(int vers);
 
@@ -83,7 +85,7 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	Collection<IBasePlayer<PlayerObject>> getAllPlayers();
 
-	Collection<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers();
+	Set<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers();
 
 	Collection<IEaglerListenerInfo> getAllEaglerListeners();
 
@@ -101,9 +103,11 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	IWebViewService<PlayerObject> getWebViewService();
 
-	IQueryService<PlayerObject> getQueryService();
-
 	ISupervisorService<PlayerObject> getSupervisorService();
+
+	IQueryServer getQueryServer();
+
+	IWebServer getWebServer();
 
 	IAttributeManager getAttributeManager();
 

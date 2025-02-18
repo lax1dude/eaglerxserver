@@ -1,9 +1,9 @@
 package net.lax1dude.eaglercraft.backend.server.bungee;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -11,7 +11,6 @@ import java.util.function.Consumer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -32,11 +31,14 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformNettyPipelineInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitializer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformScheduler;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.bungee.event.BungeeEventDispatchAdapter;
+import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfig;
+import net.lax1dude.eaglercraft.backend.server.config.snakeyaml.YamlConfigLoader;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -57,6 +59,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	protected Collection<IEaglerXServerListener> listenersList;
 	protected Collection<IEaglerXServerMessageChannel> playerChannelsList;
 	protected Collection<IEaglerXServerMessageChannel> backendChannelsList;
+	protected IPlatformScheduler schedulerImpl;
 
 	private final ConcurrentMap<ProxiedPlayer, BungeePlayer> playerInstanceMap = new ConcurrentHashMap<>(1024);
 
@@ -66,6 +69,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	@Override
 	public void onLoad() {
 		eventDispatcherImpl = new BungeeEventDispatchAdapter(getProxy().getPluginManager());
+		schedulerImpl = new BungeeScheduler(this, getProxy().getScheduler());
 		IEaglerXServerImpl<ProxiedPlayer> serverImpl = new EaglerXServer<>();
 		serverImpl.load(new InitProxying<ProxiedPlayer>() {
 
@@ -281,6 +285,21 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	@Override
 	public Class<ProxiedPlayer> getPlayerClass() {
 		return ProxiedPlayer.class;
+	}
+
+	@Override
+	public IPlatformScheduler getScheduler() {
+		return schedulerImpl;
+	}
+
+	@Override
+	public String getConfigFormat() {
+		return "yml";
+	}
+
+	@Override
+	public IEaglerConfig getConfigFile(File file) {
+		return YamlConfigLoader.getConfigFile(file);
 	}
 
 	public void initializeConnection(PendingConnection conn, Object pipelineData, Consumer<BungeeConnection> setAttr) {

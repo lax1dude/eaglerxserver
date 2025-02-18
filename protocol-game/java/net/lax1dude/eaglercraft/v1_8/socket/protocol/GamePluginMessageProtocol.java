@@ -199,7 +199,7 @@ public enum GamePluginMessageProtocol {
 	}
 
 	public static GamePluginMessageProtocol getByVersion(int ver) {
-		if(ver < 0 || ver > PROTOCOLS_MAP.length) {
+		if(ver < 0 || ver >= PROTOCOLS_MAP.length) {
 			return null;
 		}
 		return PROTOCOLS_MAP[ver];
