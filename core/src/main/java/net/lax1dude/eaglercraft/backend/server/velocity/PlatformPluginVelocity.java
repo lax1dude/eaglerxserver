@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -53,8 +54,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapt
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServerVersion;
 import net.lax1dude.eaglercraft.backend.server.base.ListenerInitList;
-import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfig;
-import net.lax1dude.eaglercraft.backend.server.config.snakeyaml.YamlConfigLoader;
+import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
 import net.lax1dude.eaglercraft.backend.server.velocity.event.VelocityEventDispatchAdapter;
 
 public class PlatformPluginVelocity implements IPlatform<Player> {
@@ -316,13 +316,8 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	}
 
 	@Override
-	public String getConfigFormat() {
-		return "yml";
-	}
-
-	@Override
-	public IEaglerConfig getConfigFile(File file) {
-		return YamlConfigLoader.getConfigFile(file);
+	public Set<EnumConfigFormat> getConfigFormats() {
+		return EnumConfigFormat.getSupported();
 	}
 
 	public void initializeConnection(InboundConnection conn, String username, UUID uuid, Object pipelineData,

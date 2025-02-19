@@ -4,6 +4,8 @@ import java.io.File;
 
 public interface IEaglerConfig {
 
+	EnumConfigFormat getFormat();
+
 	IEaglerConfSection getRoot();
 
 	boolean isModified();

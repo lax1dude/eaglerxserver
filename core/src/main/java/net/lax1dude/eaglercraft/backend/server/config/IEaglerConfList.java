@@ -44,7 +44,11 @@ public interface IEaglerConfList {
 
 	boolean isString(int index);
 
-	String getIfString(int index);
+	String getIfString(int index, String defaultVal);
+
+	default String getIfString(int index) {
+		return getIfString(index, null);
+	}
 
 	default List<Integer> getAsIntegerList() {
 		int len = getLength();

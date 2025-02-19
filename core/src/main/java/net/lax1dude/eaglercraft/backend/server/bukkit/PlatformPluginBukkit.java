@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -42,8 +43,8 @@ import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapt
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.bukkit.BukkitUnsafe.LoginConnectionHolder;
 import net.lax1dude.eaglercraft.backend.server.bukkit.event.BukkitEventDispatchAdapter;
+import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfig;
-import net.lax1dude.eaglercraft.backend.server.config.snakeyaml.YamlConfigLoader;
 import net.md_5.bungee.api.chat.BaseComponent;
 
 public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player> {
@@ -288,13 +289,8 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	}
 
 	@Override
-	public String getConfigFormat() {
-		return "yml";
-	}
-
-	@Override
-	public IEaglerConfig getConfigFile(File file) {
-		return YamlConfigLoader.getConfigFile(file);
+	public Set<EnumConfigFormat> getConfigFormats() {
+		return EnumConfigFormat.getSupported();
 	}
 
 	public void initializeConnection(LoginConnectionHolder loginConnection, Object pipelineData,

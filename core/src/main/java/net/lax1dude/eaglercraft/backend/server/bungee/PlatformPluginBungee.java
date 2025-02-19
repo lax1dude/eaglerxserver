@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -37,8 +38,8 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPi
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.bungee.event.BungeeEventDispatchAdapter;
+import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfig;
-import net.lax1dude.eaglercraft.backend.server.config.snakeyaml.YamlConfigLoader;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -293,13 +294,8 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	}
 
 	@Override
-	public String getConfigFormat() {
-		return "yml";
-	}
-
-	@Override
-	public IEaglerConfig getConfigFile(File file) {
-		return YamlConfigLoader.getConfigFile(file);
+	public Set<EnumConfigFormat> getConfigFormats() {
+		return EnumConfigFormat.getSupported();
 	}
 
 	public void initializeConnection(PendingConnection conn, Object pipelineData, Consumer<BungeeConnection> setAttr) {

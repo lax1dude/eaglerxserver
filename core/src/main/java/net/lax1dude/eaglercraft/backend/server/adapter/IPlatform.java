@@ -2,11 +2,12 @@ package net.lax1dude.eaglercraft.backend.server.adapter;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
-import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfig;
+import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
 
 public interface IPlatform<PlayerObject> {
 
@@ -68,8 +69,6 @@ public interface IPlatform<PlayerObject> {
 
 	IPlatformScheduler getScheduler();
 
-	String getConfigFormat();
-
-	IEaglerConfig getConfigFile(File file);
+	Set<EnumConfigFormat> getConfigFormats();
 
 }

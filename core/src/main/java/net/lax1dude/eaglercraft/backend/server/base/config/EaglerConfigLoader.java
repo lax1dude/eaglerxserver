@@ -1,12 +1,12 @@
 package net.lax1dude.eaglercraft.backend.server.base.config;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,13 +24,15 @@ import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfSection;
 
 public class EaglerConfigLoader {
 
-	public static ConfigDataRoot loadConfig(IPlatform<?> platform) {
-		return ConfigHelper.getConfigDirectory(platform, (val) -> {
+	public static ConfigDataRoot loadConfig(IPlatform<?> platform) throws IOException {
+		ConfigHelper helper = new ConfigHelper(platform);
+		return helper.getConfigDirectory(platform, (val) -> {
 			return loadConfig(val, platform.getType());
 		});
 	}
 
-	public static ConfigDataRoot loadConfig(IConfigDirectory root, EnumAdapterPlatformType platform) {
+	public static ConfigDataRoot loadConfig(IConfigDirectory root, EnumAdapterPlatformType platform)
+			throws IOException {
 		ConfigDataSettings settings = root.loadConfig("settings", (config) -> {
 			String serverName = config.getString(
 				"server_name", "EaglercraftXServer (" + mapPlatformName(platform) + ")",
