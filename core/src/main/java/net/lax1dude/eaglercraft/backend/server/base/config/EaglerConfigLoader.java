@@ -403,13 +403,153 @@ public class EaglerConfigLoader {
 				"Default value is false, if pause menu customization should be enabled on supported clients or not"
 			);
 			IEaglerConfSection serverInfoButtonConf = config.getSection("server_info_button");
+			if(!serverInfoButtonConf.exists()) {
+				serverInfoButtonConf.setComment("Defines properties of the \"Server Info\" button, which is always "
+						+ "hidden unless pause menu customization is enabled");
+			}
 			boolean enableServerInfoButton = serverInfoButtonConf.getBoolean(
 				"enable_button", true,
-				""
+				"If the button should be shown or not"
 			);
-			return new ConfigDataPauseMenu();
+			String serverInfoButtonText = serverInfoButtonConf.getString(
+				"button_text", "Server Info",
+				"The text to display on the button, useful if you want to use this feature for something "
+				+ "other than a \"Server Info\" button");
+			boolean serverInfoButtonOpenNewTab = serverInfoButtonConf.getBoolean(
+				"button_mode_open_new_tab", false,
+				"Can be used to make the \"Server Info\" button act as a hyperlink that opens a URL in a "
+				+ "new tab instead of displaying content in an embedded webview iframe in the client."
+			);
+			String serverInfoButtonEmbedURL = serverInfoButtonConf.getString(
+				"server_info_embed_url", "",
+				"Sets the URL for the \"Server Info\" button to use if it should open a URL in a new tab "
+				+ "or the webview instead of directly downloading the markup to display from the "
+				+ "EaglerXBungee server itself over the WebSocket."
+			);
+			boolean serverInfoButtonModeEmbedFile = serverInfoButtonConf.getBoolean(
+				"button_mode_embed_file", true,
+				"Determines if the \"Server Info\" button should download the webview markup directly "
+				+ "from the EaglerXBungee server over WebSocket instead of loading an external URL. Cannot "
+				+ "be used with button_mode_open_new_tab!"
+			);
+			String serverInfoButtonEmbedFile = serverInfoButtonConf.getString(
+				"server_info_embed_file", "server_info.html",
+				"Sets the name of the local file/template containing the markup to display in the "
+				+ "\"Server Info\" webview if it is not in URL mode."
+			);
+			String serverInfoButtonEmbedScreenTitle = serverInfoButtonConf.getString(
+				"server_info_embed_screen_title", "Server Info",
+				"Sets the title string of the screen that displays the webview."
+			);
+			int serverInfoButtonEmbedSendChunkRate = serverInfoButtonConf.getInteger(
+				"server_info_embed_send_chunk_rate", 1,
+				"Defines how many chunks of server info data to send per 250ms when downloading the server "
+				+ "info markup to a client."
+			);
+			int serverInfoButtonEmbedSendChunkSize = serverInfoButtonConf.getInteger(
+				"server_info_embed_send_chunk_size", 24576,
+				"Defines the size of each chunk of server info data when it is being downloaded to a client."
+			);
+			boolean serverInfoButtonEmbedEnableTemplateMacros = serverInfoButtonConf.getBoolean(
+				"enable_template_macros", true,
+				"if the server info markup should be processed for any eagler template macros (defined like "
+				+ "{% arg1 `arg2` ... %})"
+			);
+			IEaglerConfSection serverInfoButtonEmbedTemplateGlobalsConf = serverInfoButtonConf.getSection("server_info_embed_template_globals");
+			if(!serverInfoButtonEmbedTemplateGlobalsConf.exists()) {
+				serverInfoButtonEmbedTemplateGlobalsConf.getString("example_global", "eagler");
+			}
+			ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+			for(String str : serverInfoButtonEmbedTemplateGlobalsConf.getKeys()) {
+				String s = serverInfoButtonEmbedTemplateGlobalsConf.getIfString(str);
+				if(s != null) {
+					builder.put(str, s);
+				}
+			}
+			Map<String, String> serverInfoButtonEmbedTemplateGlobals = builder.build();
+			boolean serverInfoButtonEmbedAllowTemplateEvalMacro = serverInfoButtonConf.getBoolean(
+				"allow_embed_template_eval_macro", false,
+				"If the template processor should allow the \"eval\" macro to be used in the server info "
+				+ "markup file (not to be confused with the JavaScript function, although there is never "
+				+ "a good reason to use JavaScript's eval function in your code either)"
+			);
+			boolean serverInfoButtonEmbedEnableJavascript = serverInfoButtonConf.getBoolean(
+				"enable_webview_javascript", false,
+				"If the server info webview should allow JavaScript to be executed or not. This will display "
+				+ "an \"allow JavaScript\" screen to your players the first time they attempt to view it."
+			);
+			boolean serverInfoButtonEmbedEnableMessageAPI = serverInfoButtonConf.getBoolean(
+				"enable_webview_message_api", false,
+				"If the server info webview has JavaScript enabled and should be permitted to open a message "
+				+ "channel back to your EaglerXBungee server to exchange arbitrary message packets. This "
+				+ "can be used, for example, to implement a dynamic menu on your server using JavaScript "
+				+ "and HTML that players can access through the server info webview that integrates directly "
+				+ "with your gamemodes."
+			);
+			boolean serverInfoButtonEmbedEnableStrictCSP = serverInfoButtonConf.getBoolean(
+				"enable_webview_strict_csp", true,
+				"If the csp attribute on the webview iframe should be set or not for added security, beware "
+				+ "this is not supported on all browsers and will be silently disabled when the client "
+				+ "detects it as unsupported."
+			);
+			IEaglerConfSection discordButtonConf = config.getSection("discord_button");
+			if(!discordButtonConf.exists()) {
+				discordButtonConf.setComment("Section, can be used to turn the \"Invite\" (formerly \"Open "
+						+ "to LAN\") button on the pause menu into a \"Discord\" button that players can "
+						+ "click to join your discord server");
+			}
+			boolean discordButtonEnable = discordButtonConf.getBoolean(
+				"enable_button", true,
+				"Sets if the discord button should be enabled or not."
+			);
+			String discordButtonText = discordButtonConf.getString(
+				"button_text", "Discord",
+				"Sets the text that should be displayed on the button"
+			);
+			String discordButtonURL =  discordButtonConf.getString(
+				"button_url", "https://invite url here",
+				"Defines the URL to open when the button is pressed"
+			);
+			IEaglerConfSection customImagesConf = config.getSection("custom_images");
+			if(!customImagesConf.exists()) {
+				customImagesConf.getString("icon_title_L", "");
+				customImagesConf.getString("icon_title_R", "");
+				customImagesConf.getString("icon_backToGame_L", "");
+				customImagesConf.getString("icon_backToGame_R", "");
+				customImagesConf.getString("icon_achievements_L", "");
+				customImagesConf.getString("icon_achievements_R", "");
+				customImagesConf.getString("icon_statistics_L", "");
+				customImagesConf.getString("icon_statistics_R", "");
+				customImagesConf.getString("icon_serverInfo_L", "");
+				customImagesConf.getString("icon_serverInfo_R", "");
+				customImagesConf.getString("icon_options_L", "");
+				customImagesConf.getString("icon_options_R", "");
+				customImagesConf.getString("icon_discord_L", "");
+				customImagesConf.getString("icon_discord_R", "");
+				customImagesConf.getString("icon_disconnect_L", "");
+				customImagesConf.getString("icon_disconnect_R", "");
+				customImagesConf.getString("icon_background_pause", "test_image.png");
+				customImagesConf.getString("icon_background_all", "test_image.png");
+				customImagesConf.getString("icon_watermark_pause", "");
+				customImagesConf.getString("icon_watermark_all", "");
+			}
+			builder = ImmutableMap.builder();
+			for(String str : customImagesConf.getKeys()) {
+				String s = customImagesConf.getIfString(str);
+				if(s != null) {
+					builder.put(str, s);
+				}
+			}
+			Map<String, String> customImages = builder.build();
+			return new ConfigDataPauseMenu(enableCustomPauseMenu, enableServerInfoButton, serverInfoButtonText,
+					serverInfoButtonOpenNewTab, serverInfoButtonEmbedURL, serverInfoButtonModeEmbedFile,
+					serverInfoButtonEmbedFile, serverInfoButtonEmbedScreenTitle, serverInfoButtonEmbedSendChunkRate,
+					serverInfoButtonEmbedSendChunkSize, serverInfoButtonEmbedEnableTemplateMacros,
+					serverInfoButtonEmbedTemplateGlobals, serverInfoButtonEmbedAllowTemplateEvalMacro,
+					serverInfoButtonEmbedEnableJavascript, serverInfoButtonEmbedEnableMessageAPI,
+					serverInfoButtonEmbedEnableStrictCSP, discordButtonEnable, discordButtonText, discordButtonURL,
+					customImages);
 		});
-		
 		return new ConfigDataRoot(settings, listeners, supervisor, iceServers, pauseMenu);
 	}
 

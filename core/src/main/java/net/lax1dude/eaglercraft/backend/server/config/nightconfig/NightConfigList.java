@@ -1,19 +1,28 @@
 package net.lax1dude.eaglercraft.backend.server.config.nightconfig;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
+
+import com.electronwill.nightconfig.core.CommentedConfig;
 
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfList;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfSection;
 
 public class NightConfigList implements IEaglerConfList {
 
+	private final NightConfigBase owner;
 	private final List<Object> data;
-	private final Consumer<String> commentSetter;
+	private final IContext commentSetter;
 	private final boolean exists;
 	private boolean initialized;
 
-	public NightConfigList(List<Object> list, Consumer<String> commentSetter, boolean exists) {
+	public interface IContext {
+		void setComment(String comment);
+		CommentedConfig genSection();
+	}
+
+	public NightConfigList(NightConfigBase owner, List<Object> list, IContext commentSetter, boolean exists) {
+		this.owner = owner;
 		this.data = list;
 		this.commentSetter = commentSetter;
 		this.exists = this.initialized = exists;
@@ -31,75 +40,103 @@ public class NightConfigList implements IEaglerConfList {
 
 	@Override
 	public void setComment(String comment) {
-		if(commentSetter != null) {
-			commentSetter.accept(comment);
-		}
+		commentSetter.setComment(comment);
+		owner.modified = true;
+		initialized = true;
 	}
 
 	@Override
 	public IEaglerConfSection appendSection() {
-		// TODO Auto-generated method stub
-		return null;
+		CommentedConfig conf = commentSetter.genSection();
+		data.add(conf);
+		owner.modified = true;
+		initialized = true;
+		return new NightConfigSection(owner, conf, null, false);
 	}
 
 	@Override
 	public IEaglerConfList appendList() {
-		// TODO Auto-generated method stub
-		return null;
+		List<Object> list = new ArrayList<>();
+		data.add(list);
+		owner.modified = true;
+		initialized = true;
+		return new NightConfigList(owner, list, new IContext() {
+			@Override
+			public void setComment(String comment) {
+			}
+			@Override
+			public CommentedConfig genSection() {
+				return commentSetter.genSection();
+			}
+		}, false);
 	}
 
 	@Override
 	public void appendInteger(int value) {
-		// TODO Auto-generated method stub
-
+		data.add(value);
+		owner.modified = true;
+		initialized = true;
 	}
 
 	@Override
 	public void appendString(String string) {
-		// TODO Auto-generated method stub
-
+		data.add(string);
+		owner.modified = true;
+		initialized = true;
 	}
 
 	@Override
 	public int getLength() {
-		// TODO Auto-generated method stub
-		return 0;
+		return data.size();
 	}
 
 	@Override
 	public IEaglerConfSection getIfSection(int index) {
-		// TODO Auto-generated method stub
-		return null;
+		if(index < 0 || index >= data.size()) return null;
+		Object val = data.get(index);
+		return (val instanceof CommentedConfig) ? 
+				new NightConfigSection(owner, (CommentedConfig) val, null, true) : null;
 	}
 
 	@Override
 	public IEaglerConfList getIfList(int index) {
-		// TODO Auto-generated method stub
-		return null;
+		if(index < 0 || index >= data.size()) return null;
+		Object val = data.get(index);
+		return (val instanceof List) ? new NightConfigList(owner, (List<Object>) val, new IContext() {
+			@Override
+			public void setComment(String comment) {
+			}
+			@Override
+			public CommentedConfig genSection() {
+				return commentSetter.genSection();
+			}
+		}, true) : null;
 	}
 
 	@Override
 	public boolean isInteger(int index) {
-		// TODO Auto-generated method stub
-		return false;
+		if(index < 0 || index >= data.size()) return false;
+		return (data.get(index) instanceof Number);
 	}
 
 	@Override
 	public int getIfInteger(int index, int defaultVal) {
-		// TODO Auto-generated method stub
-		return 0;
+		if(index < 0 || index >= data.size()) return defaultVal;
+		Object val = data.get(index);
+		return (val instanceof Number) ? ((Number)val).intValue() : defaultVal;
 	}
 
 	@Override
 	public boolean isString(int index) {
-		// TODO Auto-generated method stub
-		return false;
+		if(index < 0 || index >= data.size()) return false;
+		return (data.get(index) instanceof String);
 	}
 
 	@Override
 	public String getIfString(int index, String defaultVal) {
-		// TODO Auto-generated method stub
-		return null;
+		if(index < 0 || index >= data.size()) return defaultVal;
+		Object val = data.get(index);
+		return (val instanceof String) ? (String) val: defaultVal;
 	}
 
 }

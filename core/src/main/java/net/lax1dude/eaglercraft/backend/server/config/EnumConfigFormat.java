@@ -7,7 +7,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 
-import net.lax1dude.eaglercraft.backend.server.config.gson.JSONConfigLoader;
+import net.lax1dude.eaglercraft.backend.server.config.gson.GSONConfigLoader;
 import net.lax1dude.eaglercraft.backend.server.config.nightconfig.NightConfigLoader;
 import net.lax1dude.eaglercraft.backend.server.config.snakeyaml.YAMLConfigLoader;
 
@@ -22,7 +22,7 @@ public enum EnumConfigFormat {
 	}, "com.electronwill.nightconfig.toml.TomlParser"),
 
 	JSON(ImmutableSet.of("json"), "json", (f) -> {
-		return JSONConfigLoader.getConfigFile(f);
+		return GSONConfigLoader.getConfigFile(f);
 	}, "com.google.gson.Gson");
 
 	private interface IConfigProvider {

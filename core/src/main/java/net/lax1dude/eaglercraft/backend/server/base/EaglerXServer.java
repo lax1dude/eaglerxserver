@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
+import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.HashMap;
@@ -79,7 +80,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		listeners = new HashMap<>();
 		listenersByAddress = new HashMap<>();
 		
-		config = EaglerConfigLoader.loadConfig(platform);
+		try {
+			config = EaglerConfigLoader.loadConfig(platform);
+		} catch (IOException e) {
+			logger().error("Could not read one or more config files!", e);
+			return;
+		}
 		
 		logger().info("Server Name: \"" + config.getSettings().getServerName() + "\"");
 		

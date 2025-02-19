@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.config;
 
 import java.io.File;
+import java.io.IOException;
 
 public interface IEaglerConfig {
 
@@ -10,6 +11,6 @@ public interface IEaglerConfig {
 
 	boolean isModified();
 
-	boolean saveIfModified(File file);
+	boolean saveIfModified(File file) throws IOException;
 
 }

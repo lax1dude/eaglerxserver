@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.config.nightconfig;
+package net.lax1dude.eaglercraft.backend.server.config.snakeyaml;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,14 +7,14 @@ import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfSection;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfig;
 
-public class NightConfigBase implements IEaglerConfig {
+public class YAMLConfigBase implements IEaglerConfig {
 
-	NightConfigSection root;
+	YAMLConfigSection root;
 	boolean modified;
 
 	@Override
 	public EnumConfigFormat getFormat() {
-		return EnumConfigFormat.TOML;
+		return EnumConfigFormat.YAML;
 	}
 
 	@Override
@@ -30,8 +30,7 @@ public class NightConfigBase implements IEaglerConfig {
 	@Override
 	public boolean saveIfModified(File file) throws IOException {
 		if(modified) {
-			NightConfigLoader.writeConfigFile(root.config, file);
-			modified = false;
+			YAMLConfigLoader.writeConfigFile(root.yaml, file);
 			return true;
 		}else {
 			return false;
