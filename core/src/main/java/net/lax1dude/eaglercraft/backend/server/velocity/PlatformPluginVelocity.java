@@ -97,7 +97,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		dataDirFile = dataDirIn.toFile();
 		eventDispatcherImpl = new VelocityEventDispatchAdapter(proxy.getEventManager());
     	schedulerImpl = new VelocityScheduler(this, proxyIn.getScheduler());
-    	componentHelperImpl = new VelocityComponentHelper(this);
+    	componentHelperImpl = new VelocityComponentHelper();
 		IEaglerXServerImpl<Player> serverImpl = new EaglerXServer<>();
 		serverImpl.load(new InitProxying<Player>() {
 

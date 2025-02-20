@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.adapter;
 
+import java.util.List;
+
 public interface IPlatformComponentBuilder {
 
 	public static enum EnumChatColor {
@@ -48,6 +50,26 @@ public interface IPlatformComponentBuilder {
 	public interface IBuilderComponentTranslation<ParentType> extends IBuilderComponent<ParentType, IBuilderComponentTranslation<ParentType>> {
 
 		IBuilderComponentTranslation<ParentType> translation(String key);
+
+		IBuilderComponentTranslation<ParentType> stringArgs(Object... args);
+
+		IBuilderComponentTranslation<ParentType> stringArgs(List<Object> args);
+
+		IBuilderComponentTranslation<ParentType> componentArgs(Object... args);
+
+		IBuilderComponentTranslation<ParentType> componentArgs(List<Object> args);
+
+		IBuilderComponentTranslationArgs<IBuilderComponentTranslation<ParentType>> args();
+
+	}
+
+	public interface IBuilderComponentTranslationArgs<ParentType> extends IBuilderBase<ParentType> {
+
+		IBuilderComponentText<IBuilderComponentTranslationArgs<ParentType>> textArg();
+
+		IBuilderComponentTranslation<IBuilderComponentTranslationArgs<ParentType>> translateArg();
+
+		IBuilderComponentTranslationArgs<ParentType> rawArg(Object component);
 
 	}
 

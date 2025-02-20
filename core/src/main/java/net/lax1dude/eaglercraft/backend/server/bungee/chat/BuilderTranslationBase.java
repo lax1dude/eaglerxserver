@@ -1,18 +1,19 @@
-package net.lax1dude.eaglercraft.backend.server.velocity.chat;
+package net.lax1dude.eaglercraft.backend.server.bungee.chat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.ComponentLike;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder.IBuilderClickEvent;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder.IBuilderComponentText;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder.IBuilderComponentTranslation;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder.IBuilderComponentTranslationArgs;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder.IBuilderHoverEvent;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder.IBuilderStyle;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.TranslatableComponent;
 
 abstract class BuilderTranslationBase<ParentType> implements IBuilderComponentTranslation<ParentType>, IAppendCallback {
 
@@ -21,8 +22,8 @@ abstract class BuilderTranslationBase<ParentType> implements IBuilderComponentTr
 	BuilderHover<IBuilderComponentTranslation<ParentType>> hover;
 	String translation;
 	String insertion;
-	List<Component> buildChildren;
-	List<ComponentLike> args;
+	List<BaseComponent> buildChildren;
+	List<BaseComponent> args;
 
 	@Override
 	public IBuilderStyle<IBuilderComponentTranslation<ParentType>> beginStyle() {
@@ -50,8 +51,14 @@ abstract class BuilderTranslationBase<ParentType> implements IBuilderComponentTr
 	}
 
 	@Override
-	public IBuilderComponentTranslation<ParentType> translation(String key) {
-		this.translation = key;
+	public IBuilderComponentTranslation<ParentType> insertion(String txt) {
+		this.insertion = txt;
+		return this;
+	}
+
+	@Override
+	public IBuilderComponentTranslation<ParentType> translation(String txt) {
+		this.translation = txt;
 		return this;
 	}
 
@@ -59,7 +66,7 @@ abstract class BuilderTranslationBase<ParentType> implements IBuilderComponentTr
 	public IBuilderComponentTranslation<ParentType> stringArgs(Object... args) {
 		this.args = new ArrayList<>(args.length);
 		for(int i = 0; i < args.length; ++i) {
-			this.args.add(Component.text(Objects.toString(args[i])));
+			this.args.add(new TextComponent(Objects.toString(args[i])));
 		}
 		return this;
 	}
@@ -69,7 +76,7 @@ abstract class BuilderTranslationBase<ParentType> implements IBuilderComponentTr
 		int size = args.size();
 		this.args = new ArrayList<>(size);
 		for(int i = 0; i < size; ++i) {
-			this.args.add(Component.text(Objects.toString(args.get(i))));
+			this.args.add(new TextComponent(Objects.toString(args.get(i))));
 		}
 		return this;
 	}
@@ -77,14 +84,14 @@ abstract class BuilderTranslationBase<ParentType> implements IBuilderComponentTr
 	@SuppressWarnings("unchecked")
 	@Override
 	public IBuilderComponentTranslation<ParentType> componentArgs(Object... args) {
-		this.args = (List<ComponentLike>) (Object) Arrays.asList(args);
+		this.args = (List<BaseComponent>) (Object) Arrays.asList(args);
 		return this;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public IBuilderComponentTranslation<ParentType> componentArgs(List<Object> args) {
-		this.args = (List<ComponentLike>) (Object) args;
+		this.args = (List<BaseComponent>) (Object) args;
 		return this;
 	}
 
@@ -94,31 +101,20 @@ abstract class BuilderTranslationBase<ParentType> implements IBuilderComponentTr
 	}
 
 	@Override
-	public IBuilderComponentTranslation<ParentType> insertion(String txt) {
-		this.insertion = txt;
-		return this;
-	}
-
-	@Override
-	public void append(Component comp) {
+	public void append(BaseComponent comp) {
 		if(buildChildren == null) {
 			buildChildren = new ArrayList<>(4);
 		}
 		buildChildren.add(comp);
 	}
 
-	protected Component build() {
+	protected BaseComponent build() {
 		if(translation == null) {
 			throw new IllegalStateException("No translation key specified");
 		}
-		Component ret;
-		if(args != null) {
-			ret = Component.translatable(translation, args);
-		}else {
-			ret = Component.translatable(translation);
-		}
+		TranslatableComponent ret = new TranslatableComponent(translation);
 		if(insertion != null) {
-			ret.insertion(insertion);
+			ret.setInsertion(insertion);
 		}
 		if(style != null) {
 			style.applyTo(ret);
@@ -130,7 +126,10 @@ abstract class BuilderTranslationBase<ParentType> implements IBuilderComponentTr
 			hover.applyTo(ret);
 		}
 		if(buildChildren != null) {
-			ret.children(buildChildren);
+			ret.setExtra(buildChildren);
+		}
+		if(args != null) {
+			ret.setWith(args);
 		}
 		return ret;
 	}

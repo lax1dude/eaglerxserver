@@ -1,16 +1,35 @@
 package net.lax1dude.eaglercraft.backend.server.velocity.chat;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.json.JSONComponentSerializer;
+import net.kyori.adventure.text.serializer.json.LegacyHoverEventSerializer;
+import net.kyori.adventure.text.serializer.json.legacyimpl.NBTLegacyHoverEventSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
-import net.lax1dude.eaglercraft.backend.server.velocity.PlatformPluginVelocity;
 
 public class VelocityComponentHelper implements IPlatformComponentHelper {
 
-	private final PlatformPluginVelocity plugin;
+	private final LegacyComponentSerializer legacySection;
+	private final JSONComponentSerializer legacyJSON;
+	private final JSONComponentSerializer modernJSON;
 	private final VelocityComponentBuilder builder;
 
-	public VelocityComponentHelper(PlatformPluginVelocity plugin) {
-		this.plugin = plugin;
+	public VelocityComponentHelper() {
+		JSONComponentSerializer.Builder builder = JSONComponentSerializer.builder();
+		try {
+			builder.legacyHoverEventSerializer(NBTLegacyHoverEventSerializer.get());
+		}catch(Throwable t) {
+			try {
+				Class<?> c = Class.forName("com.velocitypowered.proxy.protocol.util.VelocityLegacyHoverEventSerializer");
+				builder.legacyHoverEventSerializer((LegacyHoverEventSerializer)c.getDeclaredField("INSTANCE").get(null));
+			}catch(Throwable tt) {
+				throw new RuntimeException("Legacy hover event serializer is unavailable! (downgrade velocity)");
+			}
+		}
+		this.legacySection = LegacyComponentSerializer.legacySection();
+		this.legacyJSON = builder.build();
+		this.modernJSON = JSONComponentSerializer.json();
 		this.builder = new VelocityComponentBuilder();
 	}
 
@@ -20,39 +39,23 @@ public class VelocityComponentHelper implements IPlatformComponentHelper {
 	}
 
 	@Override
-	public Object parseLegacySection(String str) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Object parseLegacyJSON(String str) throws IllegalArgumentException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Object parseModernJSON(String str) throws IllegalArgumentException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public String serializeLegacySection(Object component) {
-		// TODO Auto-generated method stub
-		return null;
+		return legacySection.serialize((Component) component);
+	}
+
+	@Override
+	public String serializeGenericJSON(Object component) {
+		return modernJSON.serialize((Component) component);
 	}
 
 	@Override
 	public String serializeLegacyJSON(Object component) {
-		// TODO Auto-generated method stub
-		return null;
+		return legacyJSON.serialize((Component) component);
 	}
 
 	@Override
 	public String serializeModernJSON(Object component) {
-		// TODO Auto-generated method stub
-		return null;
+		return modernJSON.serialize((Component) component);
 	}
 
 }

@@ -1,14 +1,15 @@
-package net.lax1dude.eaglercraft.backend.server.velocity.chat;
+package net.lax1dude.eaglercraft.backend.server.bungee.chat;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder.IBuilderClickEvent;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder.IBuilderComponentText;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder.IBuilderComponentTranslation;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder.IBuilderHoverEvent;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder.IBuilderStyle;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 
 abstract class BuilderTextBase<ParentType> implements IBuilderComponentText<ParentType>, IAppendCallback {
 
@@ -17,7 +18,7 @@ abstract class BuilderTextBase<ParentType> implements IBuilderComponentText<Pare
 	BuilderHover<IBuilderComponentText<ParentType>> hover;
 	String text;
 	String insertion;
-	List<Component> buildChildren;
+	List<BaseComponent> buildChildren;
 
 	@Override
 	public IBuilderStyle<IBuilderComponentText<ParentType>> beginStyle() {
@@ -45,29 +46,29 @@ abstract class BuilderTextBase<ParentType> implements IBuilderComponentText<Pare
 	}
 
 	@Override
-	public IBuilderComponentText<ParentType> text(String txt) {
-		this.text = txt;
-		return this;
-	}
-
-	@Override
 	public IBuilderComponentText<ParentType> insertion(String txt) {
 		this.insertion = txt;
 		return this;
 	}
 
 	@Override
-	public void append(Component comp) {
+	public IBuilderComponentText<ParentType> text(String txt) {
+		this.text = txt;
+		return this;
+	}
+
+	@Override
+	public void append(BaseComponent comp) {
 		if(buildChildren == null) {
 			buildChildren = new ArrayList<>(4);
 		}
 		buildChildren.add(comp);
 	}
 
-	protected Component build() {
-		Component ret = text != null ? Component.text(text) : Component.empty();
+	protected BaseComponent build() {
+		TextComponent ret = text != null ? new TextComponent(text) : new TextComponent();
 		if(insertion != null) {
-			ret.insertion(insertion);
+			ret.setInsertion(insertion);
 		}
 		if(style != null) {
 			style.applyTo(ret);
@@ -79,7 +80,7 @@ abstract class BuilderTextBase<ParentType> implements IBuilderComponentText<Pare
 			hover.applyTo(ret);
 		}
 		if(buildChildren != null) {
-			ret.children(buildChildren);
+			ret.setExtra(buildChildren);
 		}
 		return ret;
 	}

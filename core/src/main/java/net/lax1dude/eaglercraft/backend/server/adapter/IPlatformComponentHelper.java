@@ -4,16 +4,21 @@ public interface IPlatformComponentHelper {
 
 	IPlatformComponentBuilder builder();
 
-	Object parseLegacySection(String str);
-
-	Object parseLegacyJSON(String str) throws IllegalArgumentException;
-
-	Object parseModernJSON(String str) throws IllegalArgumentException;
-
 	String serializeLegacySection(Object component);
 
+	/**
+	 * Use for components that do not contain hover events
+	 */
+	String serializeGenericJSON(Object component);
+
+	/**
+	 * Use for components that contain hover events, on 1.8 clients
+	 */
 	String serializeLegacyJSON(Object component);
 
+	/**
+	 * Use for components that contain hover events, on modern clients
+	 */
 	String serializeModernJSON(Object component);
 
 }
