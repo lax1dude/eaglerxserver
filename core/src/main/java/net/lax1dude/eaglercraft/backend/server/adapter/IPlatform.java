@@ -25,7 +25,7 @@ public interface IPlatform<PlayerObject> {
 
 		void setPlayerInitializer(IEaglerXServerPlayerInitializer<?, ?, PlayerObject> initializer);
 
-		void setCommandRegistry(Collection<IEaglerXServerCommandType> commands);
+		void setCommandRegistry(Collection<IEaglerXServerCommandType<PlayerObject>> commands);
 
 		IPlatform<PlayerObject> getPlatform();
 
@@ -54,6 +54,8 @@ public interface IPlatform<PlayerObject> {
 	File getDataFolder();
 
 	IPlatformLogger logger();
+
+	IPlatformCommandSender<PlayerObject> getConsole();
 
 	void forEachPlayer(Consumer<IPlatformPlayer<PlayerObject>> playerCallback);
 

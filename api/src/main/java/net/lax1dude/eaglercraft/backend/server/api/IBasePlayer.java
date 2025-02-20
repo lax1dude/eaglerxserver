@@ -23,6 +23,8 @@ public interface IBasePlayer<PlayerObject> extends IBasePendingConnection {
 
 	boolean isOnlineMode();
 
+	IEaglerPlayer<PlayerObject> asEaglerPlayer();
+
 	ISkinManagerBase<PlayerObject> getSkinManager();
 
 	<ComponentObject> void disconnect(ComponentObject kickMessage);

@@ -1,11 +1,13 @@
 package net.lax1dude.eaglercraft.backend.server.adapter;
 
-public interface IEaglerXServerCommandType {
+public interface IEaglerXServerCommandType<PlayerObject> {
 
-	String[] getCommandName();
+	String getCommandName();
 
 	String getPermission();
 
-	IEaglerXServerCommandHandler getHandler();
+	String[] getCommandAliases();
+
+	IEaglerXServerCommandHandler<PlayerObject> getHandler();
 
 }

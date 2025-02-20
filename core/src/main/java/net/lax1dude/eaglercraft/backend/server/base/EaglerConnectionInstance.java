@@ -52,6 +52,11 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	}
 
 	@Override
+	public IEaglerPendingConnection asEaglerPlayer() {
+		return this;
+	}
+
+	@Override
 	public IEaglerListenerInfo getListenerInfo() {
 		return listenerInfo;
 	}

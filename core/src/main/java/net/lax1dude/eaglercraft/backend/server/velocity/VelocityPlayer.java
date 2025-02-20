@@ -72,4 +72,24 @@ class VelocityPlayer implements IPlatformPlayer<Player> {
 		return (T) attachment;
 	}
 
+	@Override
+	public boolean checkPermission(String permission) {
+		return player.hasPermission(permission);
+	}
+
+	@Override
+	public <ComponentObject> void sendMessage(ComponentObject component) {
+		player.sendMessage((Component) component);
+	}
+
+	@Override
+	public boolean isPlayer() {
+		return true;
+	}
+
+	@Override
+	public IPlatformPlayer<Player> asPlayer() {
+		return this;
+	}
+
 }

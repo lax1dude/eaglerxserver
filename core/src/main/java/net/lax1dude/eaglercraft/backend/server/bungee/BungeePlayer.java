@@ -81,4 +81,24 @@ class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
 		return (T) attachment;
 	}
 
+	@Override
+	public boolean checkPermission(String permission) {
+		return player.hasPermission(permission);
+	}
+
+	@Override
+	public <ComponentObject> void sendMessage(ComponentObject component) {
+		player.sendMessage((BaseComponent) component);
+	}
+
+	@Override
+	public boolean isPlayer() {
+		return true;
+	}
+
+	@Override
+	public IPlatformPlayer<ProxiedPlayer> asPlayer() {
+		return this;
+	}
+
 }

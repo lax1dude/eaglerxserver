@@ -68,6 +68,16 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
+	public boolean isEaglerPlayer() {
+		return true;
+	}
+
+	@Override
+	public IEaglerPlayer<PlayerObject> asEaglerPlayer() {
+		return this;
+	}
+
+	@Override
 	public void sendEaglerMessage(GameMessagePacket packet) {
 		// TODO
 	}

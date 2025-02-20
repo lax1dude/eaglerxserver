@@ -18,6 +18,8 @@ import org.slf4j.Logger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
+import com.velocitypowered.api.command.CommandMeta;
+import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
@@ -41,6 +43,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipeli
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformCommandSender;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnectionInitializer;
@@ -78,12 +81,15 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	protected IEaglerXServerNettyPipelineInitializer<Object> pipelineInitializer;
 	protected IEaglerXServerConnectionInitializer<Object, Object> connectionInitializer;
 	protected IEaglerXServerPlayerInitializer<Object, Object, Player> playerInitializer;
-	protected Collection<IEaglerXServerCommandType> commandsList;
+	protected Collection<IEaglerXServerCommandType<Player>> commandsList;
+	protected Collection<CommandMeta> registeredCommandsList;
 	protected Collection<IEaglerXServerListener> listenersList;
 	protected Collection<IEaglerXServerMessageChannel> playerChannelsList;
 	protected Collection<IEaglerXServerMessageChannel> backendChannelsList;
 	protected IPlatformScheduler schedulerImpl;
 	protected IPlatformComponentHelper componentHelperImpl;
+	protected CommandSource cacheConsoleCommandSenderInstance;
+	protected IPlatformCommandSender<Player> cacheConsoleCommandSenderHandle;
 
 	private final ConcurrentMap<Player, VelocityPlayer> playerInstanceMap = new ConcurrentHashMap<>(1024);
 
@@ -98,6 +104,9 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		eventDispatcherImpl = new VelocityEventDispatchAdapter(proxy.getEventManager());
     	schedulerImpl = new VelocityScheduler(this, proxyIn.getScheduler());
     	componentHelperImpl = new VelocityComponentHelper();
+    	cacheConsoleCommandSenderInstance = proxyIn.getConsoleCommandSource();
+    	cacheConsoleCommandSenderHandle = new VelocityConsole(cacheConsoleCommandSenderInstance);
+    	registeredCommandsList = new ArrayList<>();
 		IEaglerXServerImpl<Player> serverImpl = new EaglerXServer<>();
 		serverImpl.load(new InitProxying<Player>() {
 
@@ -132,7 +141,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			}
 
 			@Override
-			public void setCommandRegistry(Collection<IEaglerXServerCommandType> commands) {
+			public void setCommandRegistry(Collection<IEaglerXServerCommandType<Player>> commands) {
 				commandsList = commands;
 			}
 
@@ -172,6 +181,10 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
     public void onProxyInit(ProxyInitializeEvent e) {
     	proxy.getEventManager().register(this, new VelocityListener(this));
     	listenersToInit = new ListenerInitList(listenersList);
+    	registeredCommandsList.clear();
+    	for(IEaglerXServerCommandType<Player> cmd : commandsList) {
+    		registeredCommandsList.add((new VelocityCommand(this, cmd)).register());
+    	}
     	VelocityUnsafe.injectChannelInitializer(proxy, (listenerConf, channel) -> {
     		if (!channel.isActive()) {
 				return;
@@ -243,10 +256,14 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 
 	@Subscribe
     public void onProxyShutdown(ProxyShutdownEvent e) {
-		proxy.getEventManager().unregisterListeners(this);
 		if(onServerDisable != null) {
 			onServerDisable.run();
 		}
+		proxy.getEventManager().unregisterListeners(this);
+		for(CommandMeta cmd : registeredCommandsList) {
+			proxy.getCommandManager().unregister(cmd);
+		}
+		registeredCommandsList.clear();
 	}
 
 	@Override
@@ -267,6 +284,23 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	@Override
 	public IPlatformLogger logger() {
 		return loggerImpl;
+	}
+
+	@Override
+	public IPlatformCommandSender<Player> getConsole() {
+		return cacheConsoleCommandSenderHandle;
+	}
+
+	IPlatformCommandSender<Player> getCommandSender(CommandSource obj) {
+		if(obj == null) {
+			return null;
+		}else if(obj instanceof Player) {
+			return getPlayer((Player) obj);
+		}else if(obj == cacheConsoleCommandSenderInstance) {
+			return cacheConsoleCommandSenderHandle;
+		}else {
+			return new VelocityConsole(obj);
+		}
 	}
 
 	@Override

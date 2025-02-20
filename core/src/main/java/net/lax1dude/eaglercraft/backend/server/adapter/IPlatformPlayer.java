@@ -2,7 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.adapter;
 
 import java.util.UUID;
 
-public interface IPlatformPlayer<PlayerObject> {
+public interface IPlatformPlayer<PlayerObject> extends IPlatformCommandSender<PlayerObject> {
 
 	IPlatformConnection getConnection();
 

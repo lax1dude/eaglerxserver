@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IBasePendingConnection;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 
 public class BaseConnectionInstance implements IBasePendingConnection {
@@ -56,6 +57,11 @@ public class BaseConnectionInstance implements IBasePendingConnection {
 	@Override
 	public boolean isEaglerPlayer() {
 		return false;
+	}
+
+	@Override
+	public IEaglerPendingConnection asEaglerPlayer() {
+		return null;
 	}
 
 	@Override

@@ -25,6 +25,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipeli
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformCommandSender;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnectionInitializer;
@@ -40,10 +41,13 @@ import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.bungee.chat.BungeeComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.bungee.event.BungeeEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
+import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.api.plugin.PluginManager;
+import net.md_5.bungee.command.ConsoleCommandSender;
 
 public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPlayer> {
 
@@ -56,12 +60,14 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	protected IEaglerXServerNettyPipelineInitializer<Object> pipelineInitializer;
 	protected IEaglerXServerConnectionInitializer<Object, Object> connectionInitializer;
 	protected IEaglerXServerPlayerInitializer<Object, Object, ProxiedPlayer> playerInitializer;
-	protected Collection<IEaglerXServerCommandType> commandsList;
+	protected Collection<IEaglerXServerCommandType<ProxiedPlayer>> commandsList;
 	protected Collection<IEaglerXServerListener> listenersList;
 	protected Collection<IEaglerXServerMessageChannel> playerChannelsList;
 	protected Collection<IEaglerXServerMessageChannel> backendChannelsList;
 	protected IPlatformScheduler schedulerImpl;
 	protected IPlatformComponentHelper componentHelperImpl;
+	protected CommandSender cacheConsoleCommandSenderInstance;
+	protected IPlatformCommandSender<ProxiedPlayer> cacheConsoleCommandSenderHandle;
 
 	private final ConcurrentMap<ProxiedPlayer, BungeePlayer> playerInstanceMap = new ConcurrentHashMap<>(1024);
 
@@ -73,6 +79,8 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 		eventDispatcherImpl = new BungeeEventDispatchAdapter(getProxy().getPluginManager());
 		schedulerImpl = new BungeeScheduler(this, getProxy().getScheduler());
 		componentHelperImpl = new BungeeComponentHelper();
+		cacheConsoleCommandSenderInstance = getProxy().getConsole();
+		cacheConsoleCommandSenderHandle = new BungeeConsole(cacheConsoleCommandSenderInstance);
 		IEaglerXServerImpl<ProxiedPlayer> serverImpl = new EaglerXServer<>();
 		serverImpl.load(new InitProxying<ProxiedPlayer>() {
 
@@ -107,7 +115,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			}
 
 			@Override
-			public void setCommandRegistry(Collection<IEaglerXServerCommandType> commands) {
+			public void setCommandRegistry(Collection<IEaglerXServerCommandType<ProxiedPlayer>> commands) {
 				commandsList = commands;
 			}
 
@@ -147,7 +155,11 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 
 	@Override
 	public void onEnable() {
-		getProxy().getPluginManager().registerListener(this, new BungeeListener(this));
+		PluginManager mgr = getProxy().getPluginManager();
+		mgr.registerListener(this, new BungeeListener(this));
+		for(IEaglerXServerCommandType<ProxiedPlayer> cmd : commandsList) {
+			mgr.registerCommand(this, new BungeeCommand(this, cmd));
+		}
 		cleanupListeners = BungeeUnsafe.injectChannelInitializer(getProxy(), (listener, channel) -> {
 			if (!channel.isActive()) {
 				return;
@@ -220,14 +232,16 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 
 	@Override
 	public void onDisable() {
-		getProxy().getPluginManager().unregisterListeners(this);
+		if(onServerDisable != null) {
+			onServerDisable.run();
+		}
 		if(cleanupListeners != null) {
 			cleanupListeners.run();
 			cleanupListeners = null;
 		}
-		if(onServerDisable != null) {
-			onServerDisable.run();
-		}
+		PluginManager mgr = getProxy().getPluginManager();
+		mgr.unregisterListeners(this);
+		mgr.unregisterCommands(this);
 	}
 
 	@Override
@@ -243,6 +257,23 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	@Override
 	public IPlatformLogger logger() {
 		return loggerImpl;
+	}
+
+	@Override
+	public IPlatformCommandSender<ProxiedPlayer> getConsole() {
+		return cacheConsoleCommandSenderHandle;
+	}
+
+	IPlatformCommandSender<ProxiedPlayer> getCommandSender(CommandSender obj) {
+		if(obj == null) {
+			return null;
+		}else if(obj instanceof ProxiedPlayer) {
+			return getPlayer((ProxiedPlayer) obj);
+		}else if(obj == cacheConsoleCommandSenderInstance) {
+			return cacheConsoleCommandSenderHandle;
+		}else {
+			return new BungeeConsole(obj);
+		}
 	}
 
 	@Override
