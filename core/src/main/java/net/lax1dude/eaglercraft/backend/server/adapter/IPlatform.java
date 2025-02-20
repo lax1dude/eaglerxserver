@@ -71,4 +71,6 @@ public interface IPlatform<PlayerObject> {
 
 	Set<EnumConfigFormat> getConfigFormats();
 
+	IPlatformComponentHelper getComponentHelper();
+
 }

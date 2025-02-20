@@ -41,6 +41,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipeli
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnectionInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
@@ -55,6 +56,7 @@ import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServerVersion;
 import net.lax1dude.eaglercraft.backend.server.base.ListenerInitList;
 import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
+import net.lax1dude.eaglercraft.backend.server.velocity.chat.VelocityComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.velocity.event.VelocityEventDispatchAdapter;
 
 public class PlatformPluginVelocity implements IPlatform<Player> {
@@ -81,6 +83,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	protected Collection<IEaglerXServerMessageChannel> playerChannelsList;
 	protected Collection<IEaglerXServerMessageChannel> backendChannelsList;
 	protected IPlatformScheduler schedulerImpl;
+	protected IPlatformComponentHelper componentHelperImpl;
 
 	private final ConcurrentMap<Player, VelocityPlayer> playerInstanceMap = new ConcurrentHashMap<>(1024);
 
@@ -94,6 +97,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		dataDirFile = dataDirIn.toFile();
 		eventDispatcherImpl = new VelocityEventDispatchAdapter(proxy.getEventManager());
     	schedulerImpl = new VelocityScheduler(this, proxyIn.getScheduler());
+    	componentHelperImpl = new VelocityComponentHelper(this);
 		IEaglerXServerImpl<Player> serverImpl = new EaglerXServer<>();
 		serverImpl.load(new InitProxying<Player>() {
 
@@ -318,6 +322,11 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	@Override
 	public Set<EnumConfigFormat> getConfigFormats() {
 		return EnumConfigFormat.getSupported();
+	}
+
+	@Override
+	public IPlatformComponentHelper getComponentHelper() {
+		return componentHelperImpl;
 	}
 
 	public void initializeConnection(InboundConnection conn, String username, UUID uuid, Object pipelineData,
