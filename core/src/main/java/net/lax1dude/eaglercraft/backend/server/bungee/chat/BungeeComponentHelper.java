@@ -11,6 +11,19 @@ import net.md_5.bungee.chat.ComponentSerializer;
 
 public class BungeeComponentHelper implements IPlatformComponentHelper {
 
+	public static final boolean LEGACY_FLAG_SUPPORT;
+
+	static {
+		boolean b;
+		try {
+			BaseComponent.class.getMethod("setLegacy", boolean.class);
+			b = true;
+		}catch(NoSuchMethodException | SecurityException ex) {
+			b = false;
+		}
+		LEGACY_FLAG_SUPPORT = b;
+	}
+
 	private final BungeeComponentBuilder builder = new BungeeComponentBuilder();
 
 	@Override
@@ -31,14 +44,18 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 	@Override
 	public String serializeLegacyJSON(Object component) {
 		BaseComponent bc = (BaseComponent) component;
-		setLegacyHover(bc, true);
+		if(LEGACY_FLAG_SUPPORT) {
+			setLegacyHover(bc, true);
+		}
 		return ComponentSerializer.toString(bc);
 	}
 
 	@Override
 	public String serializeModernJSON(Object component) {
 		BaseComponent bc = (BaseComponent) component;
-		setLegacyHover(bc, false);
+		if(LEGACY_FLAG_SUPPORT) {
+			setLegacyHover(bc, false);
+		}
 		return ComponentSerializer.toString(bc);
 	}
 

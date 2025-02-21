@@ -14,6 +14,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import org.bukkit.Server;
+import org.bukkit.command.CommandMap;
 import org.bukkit.entity.Player;
 
 import com.google.common.collect.ForwardingList;
@@ -444,6 +445,23 @@ public class BukkitUnsafe {
 
 	private static boolean isServerInitializer(ChannelHandler handler) {
 		return handler != null && ChannelInitializer.class.isAssignableFrom(handler.getClass());
+	}
+
+	public static CommandMap getCommandMap(Server server) {
+		try {
+			Field f = server.getClass().getDeclaredField("commandMap");
+			f.setAccessible(true);
+			return (CommandMap) f.get(server);
+		}catch(IllegalAccessException | NoSuchFieldException | SecurityException ex) {
+			try {
+				Method m = server.getClass().getDeclaredMethod("getCommandMap");
+				m.setAccessible(true);
+				return (CommandMap) m.invoke(server);
+			} catch(IllegalAccessException | IllegalArgumentException | SecurityException | InvocationTargetException
+					| NoSuchMethodException ex1) {
+				throw Util.propagateReflectThrowable(ex1);
+			}
+		}
 	}
 
 }

@@ -10,7 +10,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.HoverEvent.Action;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Content;
 import net.md_5.bungee.api.chat.hover.content.Text;
 
 class BuilderHover<ParentType> implements IBuilderHoverEvent<ParentType>, IAppendCallback {
@@ -55,15 +55,26 @@ class BuilderHover<ParentType> implements IBuilderHoverEvent<ParentType>, IAppen
 
 	void applyTo(BaseComponent ret) {
 		if(action == EnumHoverAction.SHOW_TEXT && buildChildren != null) {
-			BaseComponent comp;
-			if(buildChildren.size() > 1) {
-				comp = new TextComponent();
-				comp.setExtra(buildChildren);
+			if(BungeeComponentHelper.LEGACY_FLAG_SUPPORT) {
+				applyModern(ret, buildChildren);
 			}else {
-				comp = buildChildren.get(0);
+				applyLegacy(ret, buildChildren);
 			}
-			ret.setHoverEvent(new HoverEvent(Action.SHOW_TEXT, new Text(comp)));
 		}
+	}
+
+	@SuppressWarnings("deprecation")
+	private static void applyLegacy(BaseComponent ret, List<BaseComponent> lst) {
+		ret.setHoverEvent(new HoverEvent(Action.SHOW_TEXT, lst.toArray(new BaseComponent[lst.size()])));
+	}
+
+	private static void applyModern(BaseComponent ret, List<BaseComponent> lst) {
+		int l = lst.size();
+		Content[] clist = new Content[l];
+		for(int i = 0; i < l; ++i) {
+			clist[i] = new Text(lst.get(i));
+		}
+		ret.setHoverEvent(new HoverEvent(Action.SHOW_TEXT, clist));
 	}
 
 }

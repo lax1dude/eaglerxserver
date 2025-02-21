@@ -1,6 +1,5 @@
 package net.lax1dude.eaglercraft.backend.server.bukkit;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -10,6 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
 
+import org.bukkit.command.CommandMap;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -30,6 +31,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipeli
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformCommandSender;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnectionInitializer;
@@ -46,7 +48,6 @@ import net.lax1dude.eaglercraft.backend.server.bukkit.BukkitUnsafe.LoginConnecti
 import net.lax1dude.eaglercraft.backend.server.bukkit.event.BukkitEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.bungee.chat.BungeeComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
-import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfig;
 import net.md_5.bungee.api.chat.BaseComponent;
 
 public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player> {
@@ -60,11 +61,13 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	protected IEaglerXServerNettyPipelineInitializer<Object> pipelineInitializer;
 	protected IEaglerXServerConnectionInitializer<Object, Object> connectionInitializer;
 	protected IEaglerXServerPlayerInitializer<Object, Object, Player> playerInitializer;
-	protected Collection<IEaglerXServerCommandType> commandsList;
+	protected Collection<IEaglerXServerCommandType<Player>> commandsList;
 	protected IEaglerXServerListener listenerConf;
 	protected Collection<IEaglerXServerMessageChannel> playerChannelsList;
 	protected IPlatformScheduler schedulerImpl;
 	protected IPlatformComponentHelper componentHelperImpl;
+	protected CommandSender cacheConsoleCommandSenderInstance;
+	protected IPlatformCommandSender<Player> cacheConsoleCommandSenderHandle;
 
 	private final ConcurrentMap<Player, BukkitPlayer> playerInstanceMap = new ConcurrentHashMap<>(1024);
 
@@ -77,6 +80,8 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 				getServer().getScheduler());
 		schedulerImpl = new BukkitScheduler(this, getServer().getScheduler());
 		componentHelperImpl = new BungeeComponentHelper();
+		cacheConsoleCommandSenderInstance = getServer().getConsoleSender();
+		cacheConsoleCommandSenderHandle = new BukkitConsole(cacheConsoleCommandSenderInstance);
 		IEaglerXServerImpl<Player> serverImpl = new EaglerXServer<>();
 		serverImpl.load(new InitNonProxying<Player>() {
 
@@ -116,7 +121,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 
 			@Override
-			public void setCommandRegistry(Collection<IEaglerXServerCommandType> commands) {
+			public void setCommandRegistry(Collection<IEaglerXServerCommandType<Player>> commands) {
 				commandsList = commands;
 			}
 
@@ -147,6 +152,10 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public void onEnable() {
 		getServer().getPluginManager().registerEvents(new BukkitListener(this), this);
+		CommandMap cmdMap = BukkitUnsafe.getCommandMap(getServer());
+		for(IEaglerXServerCommandType<Player> cmd : commandsList) {
+			cmdMap.register("eagler", new BukkitCommand(this, cmd));
+		}
 		cleanupListeners = BukkitUnsafe.injectChannelInitializer(getServer(), (channel) -> {
 			if (!channel.isActive()) {
 				return;
@@ -240,6 +249,23 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public IPlatformLogger logger() {
 		return loggerImpl;
+	}
+
+	@Override
+	public IPlatformCommandSender<Player> getConsole() {
+		return cacheConsoleCommandSenderHandle;
+	}
+
+	IPlatformCommandSender<Player> getCommandSender(CommandSender obj) {
+		if(obj == null) {
+			return null;
+		}else if(obj instanceof Player) {
+			return getPlayer((Player) obj);
+		}else if(obj == cacheConsoleCommandSenderInstance) {
+			return cacheConsoleCommandSenderHandle;
+		}else {
+			return new BukkitConsole(obj);
+		}
 	}
 
 	@Override
