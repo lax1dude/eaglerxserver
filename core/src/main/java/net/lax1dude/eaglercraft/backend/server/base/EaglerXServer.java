@@ -25,6 +25,8 @@ import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.IPacketImageLoader;
+import net.lax1dude.eaglercraft.backend.server.api.IServerIconLoader;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistry;
@@ -60,6 +62,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private BrandRegistry brandRegistry;
 	private Map<String, EaglerListener> listeners;
 	private Map<SocketAddress, EaglerListener> listenersByAddress;
+	private QueryServer queryServer;
+	private WebServer webServer;
 
 	public EaglerXServer() {
 	}
@@ -84,6 +88,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		brandRegistry = new BrandRegistry();
 		listeners = new HashMap<>();
 		listenersByAddress = new HashMap<>();
+		queryServer = new QueryServer(this);
+		webServer = new WebServer(this);
 		
 		try {
 			config = EaglerConfigLoader.loadConfig(platform);
@@ -395,21 +401,29 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public IQueryServer getQueryServer() {
+	public ISupervisorService<PlayerObject> getSupervisorService() {
 		// TODO
 		return null;
+	}
+
+	@Override
+	public IPacketImageLoader getPacketImageLoader() {
+		return PacketImageLoader.INSTANCE;
+	}
+
+	@Override
+	public IServerIconLoader getServerIconLoader() {
+		return ServerIconLoader.INSTANCE;
+	}
+
+	@Override
+	public IQueryServer getQueryServer() {
+		return queryServer;
 	}
 
 	@Override
 	public IWebServer getWebServer() {
-		// TODO
-		return null;
-	}
-
-	@Override
-	public ISupervisorService<PlayerObject> getSupervisorService() {
-		// TODO
-		return null;
+		return webServer;
 	}
 
 	@Override

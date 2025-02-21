@@ -1,6 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.api.query;
 
-public interface IQueryServer extends IServerIconLoader {
+public interface IQueryServer {
 
 	boolean isQueryType(String queryType);
 

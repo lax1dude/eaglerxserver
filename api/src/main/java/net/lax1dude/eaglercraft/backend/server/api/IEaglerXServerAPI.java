@@ -105,6 +105,10 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	ISupervisorService<PlayerObject> getSupervisorService();
 
+	IPacketImageLoader getPacketImageLoader();
+
+	IServerIconLoader getServerIconLoader();
+
 	IQueryServer getQueryServer();
 
 	IWebServer getWebServer();

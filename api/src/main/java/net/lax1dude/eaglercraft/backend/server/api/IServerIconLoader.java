@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.api.query;
+package net.lax1dude.eaglercraft.backend.server.api;
 
 import java.awt.image.BufferedImage;
 import java.io.File;

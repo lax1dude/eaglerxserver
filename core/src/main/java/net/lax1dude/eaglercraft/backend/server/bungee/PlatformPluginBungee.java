@@ -180,6 +180,11 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 							public EnumPipelineComponent getIdentifiedType() {
 								if(type == null) {
 									type = PIPELINE_COMPONENTS_MAP.getOrDefault(str, EnumPipelineComponent.UNIDENTIFIED);
+									if (type == EnumPipelineComponent.UNIDENTIFIED
+											&& "io.netty.handler.codec.haproxy.HAProxyMessageDecoder"
+													.equals(handler.getClass().getName())) {
+										type = EnumPipelineComponent.HAPROXY_HANDLER;
+									}
 								}
 								return type;
 							}
