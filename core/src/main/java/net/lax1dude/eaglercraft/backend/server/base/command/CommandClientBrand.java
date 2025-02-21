@@ -75,20 +75,26 @@ public class CommandClientBrand<PlayerObject> extends EaglerCommand<PlayerObject
 		}
 		if(uuid) {
 			UUID brandUUID = player.getEaglerBrandUUID();
-			String brandName = "Unknown";
 			IBrandRegistration registeredBrand = getServer().getBrandRegistry().lookupRegisteredBrand(brandUUID);
 			if(registeredBrand != null) {
-				brandName = registeredBrand.getBrandDesc();
+				sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.AQUA).end()
+						.text("Eagler Client UUID: ").appendTextComponent().beginStyle().color(EnumChatColor.GOLD).end()
+						.text(brandUUID.toString()).end().appendTextComponent().beginStyle().color(EnumChatColor.AQUA)
+						.end().text(" (").end().appendTextComponent().beginStyle().color(EnumChatColor.GOLD).end()
+						.text(registeredBrand.getBrandDesc()).end().appendTextComponent().beginStyle()
+						.color(EnumChatColor.AQUA).end().text(")").end().end());
+			}else {
+				sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.AQUA).end()
+						.text("Eagler Client UUID: ").appendTextComponent().beginStyle().color(EnumChatColor.GOLD).end()
+						.text(brandUUID.toString()).end().appendTextComponent().beginStyle().color(EnumChatColor.AQUA)
+						.end().text(" (Unknown)").end().end());
 			}
-			sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.AQUA).end()
-					.text("Eagler Client UUID: ").appendTextComponent().beginStyle().color(EnumChatColor.GOLD).end()
-					.text(brandUUID.toString()).end().appendTextComponent().beginStyle().color(EnumChatColor.AQUA)
-					.end().text(" (" + brandName + ")").end());
 		}
 		if(mc) {
 			String mcBrand = player.getMinecraftBrand();
 			sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.AQUA).end()
-					.text("Minecraft Client Brand: ").appendTextComponent().beginStyle().color(EnumChatColor.GOLD).end()
+					.text("Minecraft Client Brand: ").appendTextComponent().beginStyle()
+					.color(mcBrand != null ? EnumChatColor.GOLD : EnumChatColor.AQUA).end()
 					.text(mcBrand != null ? mcBrand : "(null)").end().end());
 		}
 	}
