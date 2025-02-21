@@ -73,7 +73,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
-	public IEaglerPlayer<PlayerObject> asEaglerPlayer() {
+	public EaglerPlayerInstance<PlayerObject> asEaglerPlayer() {
 		return this;
 	}
 

@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistry;
@@ -55,7 +54,7 @@ public class BasePlayerInstance<PlayerObject> implements IBasePlayer<PlayerObjec
 	}
 
 	@Override
-	public IEaglerPlayer<PlayerObject> asEaglerPlayer() {
+	public EaglerPlayerInstance<PlayerObject> asEaglerPlayer() {
 		return null;
 	}
 

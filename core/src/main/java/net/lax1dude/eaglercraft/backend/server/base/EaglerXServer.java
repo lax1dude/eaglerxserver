@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.base;
 
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +37,10 @@ import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IWebServer;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
+import net.lax1dude.eaglercraft.backend.server.base.command.CommandClientBrand;
+import net.lax1dude.eaglercraft.backend.server.base.command.CommandDomain;
+import net.lax1dude.eaglercraft.backend.server.base.command.CommandUserAgent;
+import net.lax1dude.eaglercraft.backend.server.base.command.CommandVersion;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataRoot;
 import net.lax1dude.eaglercraft.backend.server.base.config.EaglerConfigLoader;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
@@ -97,6 +102,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		init.setPipelineInitializer(new EaglerXServerNettyPipelineInitializer<PlayerObject>(this));
 		init.setConnectionInitializer(new EaglerXServerConnectionInitializer<PlayerObject>(this));
 		init.setPlayerInitializer(new EaglerXServerPlayerInitializer<PlayerObject>(this));
+		init.setCommandRegistry(Arrays.asList(
+				new CommandVersion<PlayerObject>(this),
+				new CommandClientBrand<PlayerObject>(this),
+				new CommandDomain<PlayerObject>(this),
+				new CommandUserAgent<PlayerObject>(this)
+		));
 		
 		if(platform.getType().proxy) {
 			loadProxying((IPlatform.InitProxying<PlayerObject>)init);
@@ -244,54 +255,54 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public IBasePlayer<PlayerObject> getPlayer(PlayerObject player) {
+	public BasePlayerInstance<PlayerObject> getPlayer(PlayerObject player) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
 		return platformPlayer != null ? platformPlayer.getPlayerAttachment() : null;
 	}
 
 	@Override
-	public IBasePlayer<PlayerObject> getPlayerByName(String playerName) {
+	public BasePlayerInstance<PlayerObject> getPlayerByName(String playerName) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
 		return platformPlayer != null ? platformPlayer.getPlayerAttachment() : null;
 	}
 
 	@Override
-	public IBasePlayer<PlayerObject> getPlayerByUUID(UUID playerUUID) {
+	public BasePlayerInstance<PlayerObject> getPlayerByUUID(UUID playerUUID) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
 		return platformPlayer != null ? platformPlayer.getPlayerAttachment() : null;
 	}
 
 	@Override
-	public IEaglerPlayer<PlayerObject> getEaglerPlayer(PlayerObject player) {
+	public EaglerPlayerInstance<PlayerObject> getEaglerPlayer(PlayerObject player) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
 		if(platformPlayer != null) {
 			IBasePlayer<PlayerObject> basePlayer = platformPlayer.getPlayerAttachment();
 			if(basePlayer.isEaglerPlayer()) {
-				return (IEaglerPlayer<PlayerObject>) basePlayer;
+				return (EaglerPlayerInstance<PlayerObject>) basePlayer;
 			}
 		}
 		return null;
 	}
 
 	@Override
-	public IEaglerPlayer<PlayerObject> getEaglerPlayerByName(String playerName) {
+	public EaglerPlayerInstance<PlayerObject> getEaglerPlayerByName(String playerName) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
 		if(platformPlayer != null) {
 			IBasePlayer<PlayerObject> basePlayer = platformPlayer.getPlayerAttachment();
 			if(basePlayer.isEaglerPlayer()) {
-				return (IEaglerPlayer<PlayerObject>) basePlayer;
+				return (EaglerPlayerInstance<PlayerObject>) basePlayer;
 			}
 		}
 		return null;
 	}
 
 	@Override
-	public IEaglerPlayer<PlayerObject> getEaglerPlayerByUUID(UUID playerUUID) {
+	public EaglerPlayerInstance<PlayerObject> getEaglerPlayerByUUID(UUID playerUUID) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
 		if(platformPlayer != null) {
 			IBasePlayer<PlayerObject> basePlayer = platformPlayer.getPlayerAttachment();
 			if(basePlayer.isEaglerPlayer()) {
-				return (IEaglerPlayer<PlayerObject>) basePlayer;
+				return (EaglerPlayerInstance<PlayerObject>) basePlayer;
 			}
 		}
 		return null;
