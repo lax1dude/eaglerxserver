@@ -148,7 +148,7 @@ public class DualStackInitialInboundHandler extends ByteToMessageCodec<ByteBuf> 
 	private int isValidHTTPRequestLinePart2(ByteBuf buffer) {
 		
 		// this is a ring buffer
-		char[] requestLineEnd = new char[8];
+		char[] requestLineEnd = new char[9];
 		
 		int i = 0;
 		for(;;) {
@@ -159,23 +159,23 @@ public class DualStackInitialInboundHandler extends ByteToMessageCodec<ByteBuf> 
 			if(c == '\n') {
 				break;
 			}
-			requestLineEnd[i++ & 7] = c;
+			requestLineEnd[i++ % 9] = c;
 		}
 		
-		if(i < 8) {
+		if(i < 9) {
 			return 2;
 		}
 		
-		// Make sure the request line ended with HTTP/1.0 or HTTP/1.1
-		if(requestLineEnd[(i - 8) & 7] == 'H' &&
-			requestLineEnd[(i - 7) & 7] == 'T' &&
-			requestLineEnd[(i - 6) & 7] == 'T' &&
-			requestLineEnd[(i - 5) & 7] == 'P' &&
-			requestLineEnd[(i - 4) & 7] == '/' &&
-			requestLineEnd[(i - 3) & 7] == '1' &&
-			requestLineEnd[(i - 2) & 7] == '.' &&
-			(requestLineEnd[(i - 1) & 7] == '1' ||
-			requestLineEnd[(i - 1) & 7] == '0')) {
+		// Make sure the request line ended with " HTTP/1.0" or " HTTP/1.1"
+		if(requestLineEnd[(i - 8) % 9] == 'H' &&
+			requestLineEnd[(i - 7) % 9] == 'T' &&
+			requestLineEnd[(i - 6) % 9] == 'T' &&
+			requestLineEnd[(i - 5) % 9] == 'P' &&
+			requestLineEnd[(i - 4) % 9] == '/' &&
+			requestLineEnd[(i - 3) % 9] == '1' &&
+			requestLineEnd[(i - 2) % 9] == '.' &&
+			(requestLineEnd[(i - 1) % 9] == '1' ||
+			requestLineEnd[(i - 1) % 9] == '0')) {
 			return 1;
 		}
 		
