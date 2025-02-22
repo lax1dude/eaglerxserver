@@ -50,7 +50,9 @@ public class ConfigDataListener {
 
 	}
 
+	private final String listenerName;
 	private final SocketAddress injectAddress;
+	private final boolean dualStack;
 	private final boolean forwardIp;
 	private final String forwardIPHeader;
 	private final String redirectLegacyClientsTo;
@@ -71,13 +73,15 @@ public class ConfigDataListener {
 	private final ConfigRateLimit limitQuery;
 	private final ConfigRateLimit limitHTTP;
 
-	public ConfigDataListener(SocketAddress injectAddress, boolean forwardIp, String forwardIPHeader,
-			String redirectLegacyClientsTo, String serverIcon, List<String> serverMOTD, boolean allowMOTD,
-			boolean allowQuery, boolean showMOTDPlayerList, boolean allowCookieRevokeQuery, int motdCacheTTL,
-			boolean motdCacheAnimation, boolean motdCacheResults, boolean motdCacheTrending,
+	public ConfigDataListener(String listenerName, SocketAddress injectAddress, boolean dualStack, boolean forwardIp,
+			String forwardIPHeader, String redirectLegacyClientsTo, String serverIcon, List<String> serverMOTD,
+			boolean allowMOTD, boolean allowQuery, boolean showMOTDPlayerList, boolean allowCookieRevokeQuery,
+			int motdCacheTTL, boolean motdCacheAnimation, boolean motdCacheResults, boolean motdCacheTrending,
 			boolean motdCachePortfolios, ConfigRateLimit limitIP, ConfigRateLimit limitLogin, ConfigRateLimit limitMOTD,
 			ConfigRateLimit limitQuery, ConfigRateLimit limitHTTP) {
+		this.listenerName = listenerName;
 		this.injectAddress = injectAddress;
+		this.dualStack = dualStack;
 		this.forwardIp = forwardIp;
 		this.forwardIPHeader = forwardIPHeader;
 		this.redirectLegacyClientsTo = redirectLegacyClientsTo;
@@ -99,8 +103,16 @@ public class ConfigDataListener {
 		this.limitHTTP = limitHTTP;
 	}
 
+	public String getListenerName() {
+		return listenerName;
+	}
+
 	public SocketAddress getInjectAddress() {
 		return injectAddress;
+	}
+
+	public boolean isDualStack() {
+		return dualStack;
 	}
 
 	public boolean isForwardIp() {
