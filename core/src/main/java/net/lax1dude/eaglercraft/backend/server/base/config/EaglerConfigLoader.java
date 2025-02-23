@@ -104,6 +104,11 @@ public class EaglerConfigLoader {
 				"Default value is 340, sets the maximum Minecraft protocol version that "
 				+ "EaglercraftX-based clients are allowed to connect with (340 = 1.12.2)"
 			);
+			boolean eaglerXRewindAllowed = protocols.getBoolean(
+				"eaglerxrewind_allowed", true,
+				"If eagler 1.5.2 clients should be allowed to join (emulates a 1.8 connection), "
+				+ "requires the EaglerXRewind plugin"
+			);
 			boolean protocolLegacyAllowed = protocols.getBoolean(
 				"protocol_legacy_allowed", true,
 				"If v1 and v2 clients should be allowed to join"
@@ -275,7 +280,8 @@ public class EaglerConfigLoader {
 					httpWebSocketCompressionLevel, enableAuthenticationEvents, enableBackendRPCAPI,
 					useModernizedChannelNames, eaglerPlayersVanillaSkin, protocolV4DefragSendDelay,
 					new ConfigDataSettings.ConfigDataProtocols(minMinecraftProtocol, maxMinecraftProtocol,
-							protocolLegacyAllowed, protocolV3Allowed, protocolV4Allowed, protocolV5Allowed),
+							eaglerXRewindAllowed, protocolLegacyAllowed, protocolV3Allowed, protocolV4Allowed,
+							protocolV5Allowed),
 					new ConfigDataSettings.ConfigDataSkinService(skinLookupRatelimitPlayer,
 							downloadVanillaSkinsToClients, validSkinDownloadURLs, skinDownloadRatelimit,
 							skinDownloadRatelimitGlobal, skinCacheDBURI, skinCacheDriverClass, skinCacheDriverPath,
