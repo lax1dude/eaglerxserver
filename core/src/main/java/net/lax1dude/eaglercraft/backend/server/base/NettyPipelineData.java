@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformSubLogger;
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class NettyPipelineData {
@@ -12,7 +11,7 @@ public class NettyPipelineData {
 	public final Channel channel;
 	public final EaglerAttributeManager.EaglerAttributeHolder attributeHolder;
 
-	public IEaglerListenerInfo listenerInfo;
+	public EaglerListener listenerInfo;
 	public String eaglerBrandString;
 	public String eaglerVersionString;
 	public UUID eaglerBrandUUID;
@@ -29,8 +28,10 @@ public class NettyPipelineData {
 
 	public IPlatformSubLogger connectionLogger;
 
-	public NettyPipelineData(Channel channel, EaglerAttributeManager.EaglerAttributeHolder attributeHolder) {
+	public NettyPipelineData(Channel channel, EaglerListener listenerInfo,
+			EaglerAttributeManager.EaglerAttributeHolder attributeHolder) {
 		this.channel = channel;
+		this.listenerInfo = listenerInfo;
 		this.attributeHolder = attributeHolder;
 	}
 

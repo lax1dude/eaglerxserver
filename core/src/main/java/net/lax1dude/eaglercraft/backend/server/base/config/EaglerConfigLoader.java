@@ -568,6 +568,14 @@ public class EaglerConfigLoader {
 				+ "this address are configured on the underlying proxy, then this entry will "
 				+ "not do anything"));
 		}
+		boolean dualStack = listener.getBoolean(
+			"dual_stack", true,
+			"Default value is true, sets if this listener should accept both Eaglercraft "
+			+ "WebSockets and regular Minecraft Java Edition TCP connections. The connection "
+			+ "type is determined from the first packet, where an HTTP/1.1 request will be "
+			+ "treated as an Eaglercraft connection, and anything else will be assumed to be "
+			+ "an ordinary vanilla TCP connection."
+		);
 		boolean forwardIp = listener.getBoolean(
 			"forward_ip", false,
 			"Default value is false, sets if connections to this listener will use an HTTP "
@@ -677,10 +685,10 @@ public class EaglerConfigLoader {
 			ratelimitConf, "http", 30, 10, 20, 300,
 			"Sets ratelimit on non-WebSocket HTTP connections."
 		);
-		return new ConfigDataListener(injectAddress, forwardIp, forwardIPHeader, redirectLegacyClientsTo, serverIcon,
-				serverMOTD, allowMOTD, allowQuery, showMOTDPlayerList, allowCookieRevokeQuery, motdCacheTTL,
-				motdCacheAnimation, motdCacheResults, motdCacheTrending, motdCachePortfolios, limitIP, limitLogin,
-				limitMOTD, limitQuery, limitHTTP);
+		return new ConfigDataListener(name, injectAddress, dualStack, forwardIp, forwardIPHeader,
+				redirectLegacyClientsTo, serverIcon, serverMOTD, allowMOTD, allowQuery, showMOTDPlayerList,
+				allowCookieRevokeQuery, motdCacheTTL, motdCacheAnimation, motdCacheResults, motdCacheTrending,
+				motdCachePortfolios, limitIP, limitLogin, limitMOTD, limitQuery, limitHTTP);
 	}
 
 	private static ConfigDataListener.ConfigRateLimit loadRatelimiter(IEaglerConfSection parent, String name,

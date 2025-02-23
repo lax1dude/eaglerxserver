@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.adapter;
 
 import java.io.File;
+import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
@@ -42,6 +43,8 @@ public interface IPlatform<PlayerObject> {
 	public interface InitNonProxying<PlayerObject> extends Init<PlayerObject> {
 
 		void setEaglerListener(IEaglerXServerListener listener);
+
+		SocketAddress getListenerAddress();
 
 	}
 

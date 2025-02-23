@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -12,10 +11,12 @@ import java.util.function.Consumer;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
@@ -43,8 +44,10 @@ import net.lax1dude.eaglercraft.backend.server.base.command.CommandClientBrand;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandDomain;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandUserAgent;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandVersion;
+import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataRoot;
 import net.lax1dude.eaglercraft.backend.server.base.config.EaglerConfigLoader;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.PipelineTransformer;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObject>, IEaglerAPIFactory, IEaglerXServerAPI<PlayerObject> {
@@ -64,6 +67,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private Map<SocketAddress, EaglerListener> listenersByAddress;
 	private QueryServer queryServer;
 	private WebServer webServer;
+	private PipelineTransformer pipelineTransformer;
 
 	public EaglerXServer() {
 	}
@@ -86,10 +90,9 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		
 		eventDispatcher = platform.eventDispatcher();
 		brandRegistry = new BrandRegistry();
-		listeners = new HashMap<>();
-		listenersByAddress = new HashMap<>();
 		queryServer = new QueryServer(this);
 		webServer = new WebServer(this);
+		pipelineTransformer = new PipelineTransformer(this);
 		
 		try {
 			config = EaglerConfigLoader.loadConfig(platform);
@@ -99,9 +102,6 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		}
 		
 		logger().info("Server Name: \"" + config.getSettings().getServerName() + "\"");
-		
-		eventDispatcher.setAPI(this);
-		APIFactoryImpl.INSTANCE.initialize(playerClazz, this);
 		
 		init.setOnServerEnable(this::enableHandler);
 		init.setOnServerDisable(this::disableHandler);
@@ -120,14 +120,32 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		}else {
 			loadNonProxying((IPlatform.InitNonProxying<PlayerObject>)init);
 		}
+		
+		eventDispatcher.setAPI(this);
+		APIFactoryImpl.INSTANCE.initialize(playerClazz, this);
 	}
 
 	private void loadProxying(IPlatform.InitProxying<PlayerObject> init) {
-		
+		ImmutableMap.Builder<String, EaglerListener> listenersBuilder = ImmutableMap.builder();
+		ImmutableMap.Builder<SocketAddress, EaglerListener> listenersByAddressBuilder = ImmutableMap.builder();
+		ImmutableList.Builder<IEaglerXServerListener> listenersImpl = ImmutableList.builder();
+		for(ConfigDataListener listener : config.getListeners().values()) {
+			EaglerListener eagListener = new EaglerListener(this, listener);
+			listenersBuilder.put(listener.getListenerName(), eagListener);
+			listenersByAddressBuilder.put(listener.getInjectAddress(), eagListener);
+			listenersImpl.add(eagListener);
+		}
+		listeners = listenersBuilder.build();
+		listenersByAddress = listenersByAddressBuilder.build();
+		init.setEaglerListeners(listenersImpl.build());
 	}
 
 	private void loadNonProxying(IPlatform.InitNonProxying<PlayerObject> init) {
-		
+		EaglerListener eagListener = new EaglerListener(this, init.getListenerAddress(),
+				config.getListeners().values().iterator().next());
+		listeners = ImmutableMap.of("default", eagListener);
+		listenersByAddress = ImmutableMap.of(init.getListenerAddress(), eagListener);
+		init.setEaglerListener(eagListener);
 	}
 
 	public ConfigDataRoot getConfig() {
@@ -136,6 +154,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	public IPlatform<PlayerObject> getPlatform() {
 		return platform;
+	}
+
+	public PipelineTransformer getPipelineTransformer() {
+		return pipelineTransformer;
 	}
 
 	public void enableHandler() {
