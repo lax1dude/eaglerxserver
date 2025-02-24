@@ -1,26 +1,132 @@
 package net.lax1dude.eaglercraft.backend.server.base.pipeline;
 
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
+
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.compression.ZlibCodecFactory;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.extensions.WebSocketServerExtensionHandler;
+import io.netty.handler.codec.http.websocketx.extensions.compression.DeflateFrameServerExtensionHandshaker;
+import io.netty.handler.codec.http.websocketx.extensions.compression.PerMessageDeflateServerExtensionHandshaker;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerListener;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
+import net.lax1dude.eaglercraft.backend.server.base.config.SSLContextHolder;
 
 public class PipelineTransformer {
 
-	private final EaglerXServer<?> server;
+	public static final String HANDLER_MULTI_STACK_INITIAL = "eagler-multistack-initial";
+	public static final String HANDLER_HTTP_SSL = "eagler-ssl-handler";
+	public static final String HANDLER_HTTP_SERVER_CODEC = "eagler-http-codec";
+	public static final String HANDLER_HTTP_AGGREGATOR = "eagler-http-aggregator";
+	public static final String HANDLER_HTTP_COMPRESSION = "eagler-http-compression";
+	public static final String HANDLER_HTTP_INITIAL = "eagler-http-initial";
+	public static final String HANDLER_QUERY_HANDLER = "eagler-query-handler";
+	public static final String HANDLER_FRAME_DECODER = "eagler-frame-decoder";
+	public static final String HANDLER_FRAME_ENCODER = "eagler-frame-encoder";
+	public static final String HANDLER_REWIND_DECODER = "eagler-rewind-decoder";
+	public static final String HANDLER_REWIND_ENCODER = "eagler-rewind-encoder";
+
+	protected static final Set<String> EAGLER_HTTP_HANDLERS = ImmutableSet.of(HANDLER_HTTP_SSL,
+			HANDLER_HTTP_SERVER_CODEC, HANDLER_HTTP_AGGREGATOR, HANDLER_HTTP_COMPRESSION, HANDLER_HTTP_INITIAL);
+
+	protected static final Set<EnumPipelineComponent> VANILLA_FRAME_DECODERS = EnumSet.of(
+			EnumPipelineComponent.FRAME_DECODER, EnumPipelineComponent.FRAME_ENCODER,
+			EnumPipelineComponent.BUKKIT_LEGACY_HANDLER, EnumPipelineComponent.BUNGEE_LEGACY_HANDLER,
+			EnumPipelineComponent.BUNGEE_LEGACY_KICK_ENCODER, EnumPipelineComponent.VELOCITY_LEGACY_PING_ENCODER);
+
+	public final EaglerXServer<?> server;
 
 	public PipelineTransformer(EaglerXServer<?> server) {
 		this.server = server;
 	}
 
 	public void injectSingleStack(List<IPipelineComponent> components, Channel channel, NettyPipelineData pipelineData) {
-		
+		ChannelPipeline pipeline = channel.pipeline();
+		String first = null;
+		for(IPipelineComponent comp : components) {
+			if(VANILLA_FRAME_DECODERS.contains(comp.getIdentifiedType())) {
+				pipeline.remove(comp.getHandle());
+			}else {
+				if(first == null && comp.getIdentifiedType() != EnumPipelineComponent.HAPROXY_HANDLER) {
+					first = comp.getName();
+				}
+			}
+		}
+		if(first == null) {
+			return;
+		}
+		EaglerListener eagListener = pipelineData.listenerInfo;
+		if(eagListener.isTLSEnabled()) {
+			SSLContextHolder ssl = eagListener.getSSLContext();
+			if(ssl == null) {
+				throw new IllegalStateException();
+			}
+			if(!eagListener.isTLSRequired()) {
+				channel.pipeline().addBefore(first, HANDLER_MULTI_STACK_INITIAL, new MultiStackInitialInboundHandler(this, pipelineData, null));
+			}else {
+				initializeHTTPHandler(pipelineData, ssl, pipeline, first, null);
+			}
+		}else {
+			initializeHTTPHandler(pipelineData, null, pipeline, first, null);
+		}
 	}
 
 	public void injectDualStack(List<IPipelineComponent> components, Channel channel, NettyPipelineData pipelineData) {
-		
+		List<ChannelHandler> toRemove = new ArrayList<>(4);
+		String first = null;
+		for(IPipelineComponent comp : components) {
+			if(VANILLA_FRAME_DECODERS.contains(comp.getIdentifiedType())) {
+				toRemove.add(comp.getHandle());
+			}else {
+				if(first == null && comp.getIdentifiedType() != EnumPipelineComponent.HAPROXY_HANDLER) {
+					first = comp.getName();
+				}
+			}
+		}
+		if(first == null) {
+			return;
+		}
+		channel.pipeline().addBefore(first, HANDLER_MULTI_STACK_INITIAL, new MultiStackInitialInboundHandler(this, pipelineData, toRemove));
+	}
+
+	protected void initializeHTTPHandler(NettyPipelineData pipelineData, SSLContextHolder context, ChannelPipeline pipeline,
+			String before, List<ByteBuf> waitingOutboundFrames) {
+		if(context != null) {
+			pipeline.addBefore(before, HANDLER_HTTP_SSL, context.newHandler(pipeline.channel().alloc()));
+		}
+		pipeline.addBefore(before, HANDLER_HTTP_SERVER_CODEC, new HttpServerCodec());
+		pipeline.addBefore(before, HANDLER_HTTP_AGGREGATOR, new HttpObjectAggregator(65535, true));
+		int compressionLevel = Math.min(server.getConfig().getSettings().getHTTPWebSocketCompressionLevel(), 9);
+		if(compressionLevel > 0) {
+			DeflateFrameServerExtensionHandshaker deflateExtensionHandshaker = new DeflateFrameServerExtensionHandshaker(compressionLevel);
+			PerMessageDeflateServerExtensionHandshaker perMessageDeflateExtensionHandshaker = new PerMessageDeflateServerExtensionHandshaker(
+					compressionLevel, ZlibCodecFactory.isSupportingWindowSizeAndMemLevel(),
+					PerMessageDeflateServerExtensionHandshaker.MAX_WINDOW_SIZE, false, false);
+			pipeline.addBefore(before, HANDLER_HTTP_COMPRESSION, new WebSocketServerExtensionHandler(
+					deflateExtensionHandshaker, perMessageDeflateExtensionHandshaker));
+		}
+		List<ByteBuf> waitingOut;
+		if(waitingOutboundFrames != null) {
+			waitingOut = new ArrayList<>(waitingOutboundFrames);
+			for(ByteBuf buf : waitingOut) {
+				buf.retain();
+			}
+		}else {
+			waitingOut = new ArrayList<>(4);
+		}
+		pipeline.addBefore(before, HANDLER_HTTP_INITIAL, new HTTPInitialInboundHandler(server, pipelineData, waitingOut));
 	}
 
 }

@@ -20,6 +20,8 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	private final String headerHost;
 	private final String headerOrigin;
 	private final String headerUserAgent;
+	private final String headerCookie;
+	private final String headerAuthorization;
 	private final String requestPath;
 	private final int handshakeProtocol;
 	private final GamePluginMessageProtocol gameProtocol;
@@ -38,6 +40,8 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		this.headerHost = pipelineData.headerHost;
 		this.headerOrigin = pipelineData.headerOrigin;
 		this.headerUserAgent = pipelineData.headerUserAgent;
+		this.headerCookie = pipelineData.headerCookie;
+		this.headerAuthorization = pipelineData.headerAuthorization;
 		this.requestPath = pipelineData.requestPath;
 		this.handshakeProtocol = pipelineData.handshakeProtocol;
 		this.gameProtocol = pipelineData.gameProtocol;
@@ -70,6 +74,10 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 			return headerOrigin;
 		case HEADER_USER_AGENT:
 			return headerUserAgent;
+		case HEADER_COOKIE:
+			return headerCookie;
+		case HEADER_AUTHORIZATION:
+			return headerAuthorization;
 		case REQUEST_PATH:
 			return requestPath;
 		default:

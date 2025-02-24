@@ -55,6 +55,11 @@ public class ConfigDataListener {
 	private final boolean dualStack;
 	private final boolean forwardIp;
 	private final String forwardIPHeader;
+	private final boolean enableTLS;
+	private final boolean requireTLS;
+	private final String tlsPublicChainFile;
+	private final String tlsPrivateKeyFile;
+	private final boolean tlsAutoRefreshCert;
 	private final String redirectLegacyClientsTo;
 	private final String serverIcon;
 	private final List<String> serverMOTD;
@@ -74,7 +79,8 @@ public class ConfigDataListener {
 	private final ConfigRateLimit limitHTTP;
 
 	public ConfigDataListener(String listenerName, SocketAddress injectAddress, boolean dualStack, boolean forwardIp,
-			String forwardIPHeader, String redirectLegacyClientsTo, String serverIcon, List<String> serverMOTD,
+			String forwardIPHeader, boolean enableTLS, boolean requireTLS, String tlsPublicChainFile, String tlsPrivateKeyFile,
+			boolean tlsAutoRefreshCert, String redirectLegacyClientsTo, String serverIcon, List<String> serverMOTD,
 			boolean allowMOTD, boolean allowQuery, boolean showMOTDPlayerList, boolean allowCookieRevokeQuery,
 			int motdCacheTTL, boolean motdCacheAnimation, boolean motdCacheResults, boolean motdCacheTrending,
 			boolean motdCachePortfolios, ConfigRateLimit limitIP, ConfigRateLimit limitLogin, ConfigRateLimit limitMOTD,
@@ -84,6 +90,11 @@ public class ConfigDataListener {
 		this.dualStack = dualStack;
 		this.forwardIp = forwardIp;
 		this.forwardIPHeader = forwardIPHeader;
+		this.enableTLS = enableTLS;
+		this.requireTLS = requireTLS;
+		this.tlsPublicChainFile = tlsPublicChainFile;
+		this.tlsPrivateKeyFile = tlsPrivateKeyFile;
+		this.tlsAutoRefreshCert = tlsAutoRefreshCert;
 		this.redirectLegacyClientsTo = redirectLegacyClientsTo;
 		this.serverIcon = serverIcon;
 		this.serverMOTD = serverMOTD;
@@ -121,6 +132,26 @@ public class ConfigDataListener {
 
 	public String getForwardIPHeader() {
 		return forwardIPHeader;
+	}
+
+	public boolean isEnableTLS() {
+		return enableTLS;
+	}
+
+	public boolean isTLSAutoRefreshCert() {
+		return tlsAutoRefreshCert;
+	}
+
+	public String getTLSPublicChainFile() {
+		return tlsPublicChainFile;
+	}
+
+	public String getTLSPrivateKeyFile() {
+		return tlsPrivateKeyFile;
+	}
+
+	public boolean isRequireTLS() {
+		return requireTLS;
 	}
 
 	public String getRedirectLegacyClientsTo() {

@@ -1,28 +1,59 @@
 package net.lax1dude.eaglercraft.backend.server.base.pipeline;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.ByteToMessageCodec;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerListener;
+import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
+import net.lax1dude.eaglercraft.backend.server.base.config.SSLContextHolder;
 
-public class DualStackInitialInboundHandler extends ByteToMessageCodec<ByteBuf> {
+public class MultiStackInitialInboundHandler extends ByteToMessageCodec<ByteBuf> {
 
-	private final List<ByteBuf> waitingOutboundFrames = new LinkedList<>();
+	private final PipelineTransformer transformer;
+	private final NettyPipelineData pipelineData;
+	private final List<ChannelHandler> componentsToRemove;
+	private List<ByteBuf> waitingOutboundFrames;
+
+	public MultiStackInitialInboundHandler(PipelineTransformer transformer, NettyPipelineData pipelineData, List<ChannelHandler> componentsToRemove) {
+		this.transformer = transformer;
+		this.pipelineData = pipelineData;
+		this.componentsToRemove = componentsToRemove;
+	}
 
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
 		if (!ctx.channel().isActive()) {
 			in.skipBytes(in.readableBytes());
-		}else if(isVanillaHandshake(in)) {
-			setVanillaHandler(in.readRetainedSlice(in.readableBytes()));
 		}else {
-			int triState = isValidHTTPRequestLine(in);
-			if(triState == 1) {
-				setHTTPHandler(in.readRetainedSlice(in.readableBytes()));
-			}else if(triState == 2) {
-				setVanillaHandler(in.readRetainedSlice(in.readableBytes()));
+			EaglerListener listener = pipelineData.listenerInfo;
+			if(listener.isDualStack() && isVanillaHandshake(in)) {
+				setVanillaHandler(ctx, in.readRetainedSlice(in.readableBytes()));
+			}else {
+				int state = isValidHTTPRequestLine(in);
+				if(state == 1) {
+					if(!listener.isTLSEnabled() || !listener.isTLSRequired()) {
+						setHTTPHandler(ctx, null, in.readRetainedSlice(in.readableBytes()));
+					}else {
+						ctx.close();
+					}
+				}else if(state == 2) {
+					if(listener.isTLSEnabled()) {
+						setHTTPHandler(ctx, listener.getSSLContext(), in.readRetainedSlice(in.readableBytes()));
+					}else {
+						ctx.close();
+					}
+				}else if(state == 3) {
+					if(listener.isDualStack()) {
+						setVanillaHandler(ctx, in.readRetainedSlice(in.readableBytes()));
+					}else {
+						ctx.close();
+					}
+				}
 			}
 		}
 	}
@@ -32,7 +63,23 @@ public class DualStackInitialInboundHandler extends ByteToMessageCodec<ByteBuf> 
 			buffer.markReaderIndex();
 			try {
 				int frameLen = BufferUtils.readVarInt(buffer, 3);
-				if(frameLen <= 267 && buffer.readableBytes() >= frameLen) {
+				if(frameLen == 2 && buffer.readableBytes() >= 9) {
+					// pre netty-rewrite handshake
+					buffer.readUnsignedByte(); // skip protocol version
+					int strLen = buffer.readUnsignedShort();
+					if(strLen > 16) {
+						throw new IndexOutOfBoundsException();
+					}
+					buffer.skipBytes(strLen * 2); // skip username string
+					strLen = buffer.readUnsignedShort();
+					if(strLen > 255) {
+						throw new IndexOutOfBoundsException();
+					}
+					buffer.skipBytes(strLen * 2); // skip host string
+					buffer.readInt(); // skip port
+					return true;
+				}else if(frameLen <= 267 && buffer.readableBytes() >= frameLen) {
+					// post netty rewrite handshake
 					int packetId = BufferUtils.readVarInt(buffer, 5);
 					if(packetId == 0) {
 						BufferUtils.readVarInt(buffer, 5); // validate protocol version
@@ -182,26 +229,89 @@ public class DualStackInitialInboundHandler extends ByteToMessageCodec<ByteBuf> 
 		return 2;
 	}
 
-	private void setVanillaHandler(ByteBuf buffer) {
-		
+	private void setVanillaHandler(ChannelHandlerContext ctx, ByteBuf buffer) {
+		if(waitingOutboundFrames != null) {
+			for(ByteBuf buf : waitingOutboundFrames) {
+				ctx.write(buf, ctx.voidPromise());
+			}
+			ctx.flush();
+			waitingOutboundFrames = null;
+		}
+		ChannelPipeline p = ctx.pipeline();
+		p.remove(PipelineTransformer.HANDLER_MULTI_STACK_INITIAL);
+		p.fireChannelRead(buffer);
 	}
 
-	private void setHTTPHandler(ByteBuf buffer) {
-		
+	private void setHTTPHandler(ChannelHandlerContext ctx, SSLContextHolder ssl, ByteBuf buffer) {
+		ChannelPipeline p = ctx.pipeline();
+		if(componentsToRemove != null) {
+			for(ChannelHandler handler : componentsToRemove) {
+				p.remove(handler);
+			}
+		}
+		List<ByteBuf> waiting2 = null;
+		if(waitingOutboundFrames != null) {
+			waiting2 = sliceVarIntFrames(waitingOutboundFrames);
+		}
+		try {
+			transformer.initializeHTTPHandler(pipelineData, ssl, p, PipelineTransformer.HANDLER_MULTI_STACK_INITIAL, waiting2);
+		}finally {
+			if(waiting2 != null) {
+				for(ByteBuf buf : waiting2) {
+					buf.release();
+				}
+			}
+		}
+		p.remove(PipelineTransformer.HANDLER_MULTI_STACK_INITIAL);
+		p.fireChannelRead(buffer);
 	}
 
 	@Override
 	protected void encode(ChannelHandlerContext arg0, ByteBuf arg1, ByteBuf arg2) throws Exception {
-		waitingOutboundFrames.add(arg1);
+		if (arg0.channel().isActive()) {
+			if(waitingOutboundFrames == null) {
+				waitingOutboundFrames = new ArrayList<>(4);
+			}
+			waitingOutboundFrames.add(arg1.retain());
+		}
 	}
 
-    @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-    	super.handlerRemoved(ctx);
-    	for(ByteBuf b : waitingOutboundFrames) {
-    		b.release();
-    	}
-    	waitingOutboundFrames.clear();
-    }
+	@Override
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		super.channelInactive(ctx);
+		release();
+	}
+
+	@Override
+	public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+		super.handlerRemoved(ctx);
+		release();
+	}
+
+	private List<ByteBuf> sliceVarIntFrames(List<ByteBuf> buffers) {
+		List<ByteBuf> framesRet = new ArrayList<>(buffers.size());
+		for(ByteBuf buf : buffers) {
+			buf.markReaderIndex();
+			int maxLen = buf.readableBytes();
+			try {
+				int len = BufferUtils.readVarInt(buf, 3);
+				framesRet.add(buf.readRetainedSlice(len));
+			}catch(IndexOutOfBoundsException ex) {
+				transformer.server.logger().warn("Dropping " + maxLen + " byte outbound frame with an invalid length");
+			}finally {
+				buf.resetReaderIndex();
+			}
+		}
+		return framesRet;
+	}
+
+	private void release() {
+		if (waitingOutboundFrames != null) {
+			for (ByteBuf b : waitingOutboundFrames) {
+				b.release();
+			}
+			waitingOutboundFrames = null;
+		}
+	}
 
 }

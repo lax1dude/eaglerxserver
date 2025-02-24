@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.bukkit;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -21,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
+import net.lax1dude.eaglercraft.backend.server.adapter.AbortLoadException;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerCommandType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionInitializer;
@@ -55,6 +58,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	private IPlatformLogger loggerImpl;
 	private IEventDispatchAdapter<Player, BaseComponent> eventDispatcherImpl;
 
+	protected boolean aborted = false;
 	protected Runnable cleanupListeners;
 	protected Runnable onServerEnable;
 	protected Runnable onServerDisable;
@@ -83,7 +87,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		cacheConsoleCommandSenderInstance = getServer().getConsoleSender();
 		cacheConsoleCommandSenderHandle = new BukkitConsole(cacheConsoleCommandSenderInstance);
 		IEaglerXServerImpl<Player> serverImpl = new EaglerXServer<>();
-		serverImpl.load(new InitNonProxying<Player>() {
+		Init<Player> init = new InitNonProxying<Player>() {
 
 			@Override
 			public void setOnServerEnable(Runnable enable) {
@@ -130,7 +134,23 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 				listenerConf = listener;
 			}
 
-		});
+			@Override
+			public SocketAddress getListenerAddress() {
+				return new InetSocketAddress(getServer().getIp(), getServer().getPort());
+			}
+
+		};
+		try {
+			((IEaglerXServerImpl<Player>) new EaglerXServer<Player>()).load(init);
+		}catch(AbortLoadException ex) {
+			logger().error("Server startup aborted: " + ex.getMessage());
+			Throwable t = ex.getCause();
+			if(t != null) {
+				logger().error("Caused by: ", t);
+			}
+			aborted = true;
+			throw new IllegalStateException("Startup aborted");
+		}
 	}
 
 	private static final ImmutableMap<String, EnumPipelineComponent> PIPELINE_COMPONENTS_MAP = 
@@ -147,10 +167,16 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			.put("timeout", EnumPipelineComponent.READ_TIMEOUT_HANDLER)
 			.put("legacy_query", EnumPipelineComponent.BUKKIT_LEGACY_HANDLER)
 			.put("packet_handler", EnumPipelineComponent.INBOUND_PACKET_HANDLER)
+			.put("pe-decoder-packetevents", EnumPipelineComponent.PACKETEVENTS_DECODER)
+			.put("pe-encoder-packetevents", EnumPipelineComponent.PACKETEVENTS_ENCODER)
+			.put("pe-timeout-handler-packetevents", EnumPipelineComponent.PACKETEVENTS_TIMEOUT_HANDLER)
 			.build();
 
 	@Override
 	public void onEnable() {
+		if(aborted) {
+			return;
+		}
 		getServer().getPluginManager().registerEvents(new BukkitListener(this), this);
 		CommandMap cmdMap = BukkitUnsafe.getCommandMap(getServer());
 		for(IEaglerXServerCommandType<Player> cmd : commandsList) {
@@ -227,6 +253,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	@Override
 	public void onDisable() {
+		if(aborted) {
+			return;
+		}
 		if(cleanupListeners != null) {
 			cleanupListeners.run();
 			cleanupListeners = null;
@@ -326,6 +355,11 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public IPlatformComponentHelper getComponentHelper() {
 		return componentHelperImpl;
+	}
+
+	@Override
+	public boolean isOnlineMode() {
+		return getServer().getOnlineMode();
 	}
 
 	public void initializeConnection(LoginConnectionHolder loginConnection, Object pipelineData,

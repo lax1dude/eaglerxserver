@@ -10,4 +10,8 @@ public interface IEaglerListenerInfo {
 
 	boolean isDualStack();
 
+	boolean isTLSEnabled();
+
+	boolean isTLSRequired();
+
 }

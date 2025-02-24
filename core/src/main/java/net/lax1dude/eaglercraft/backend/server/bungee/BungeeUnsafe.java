@@ -36,6 +36,9 @@ public class BungeeUnsafe {
 	private static final Method method_PluginMessage_getData;
 	private static final Class<?> class_BungeeCord;
 	private static final Field field_BungeeCord_listeners;
+	private static final Field field_BungeeCord_config;
+	private static final Class<?> class_Configuration;
+	private static final Method method_Configuration_isOnlineMode;
 
 	static {
 		try {
@@ -51,6 +54,10 @@ public class BungeeUnsafe {
 			class_BungeeCord = Class.forName("net.md_5.bungee.BungeeCord");
 			field_BungeeCord_listeners = class_BungeeCord.getDeclaredField("listeners");
 			field_BungeeCord_listeners.setAccessible(true);
+			field_BungeeCord_config = class_BungeeCord.getDeclaredField("config");
+			field_BungeeCord_config.setAccessible(true);
+			class_Configuration = Class.forName("net.md_5.bungee.conf.Configuration");
+			method_Configuration_isOnlineMode = class_Configuration.getMethod("isOnlineMode");
 		}catch(Exception ex) {
 			throw Util.propagateReflectThrowable(ex);
 		}
@@ -98,6 +105,14 @@ public class BungeeUnsafe {
 		Server serverConn = player.getServer();
 		if(serverConn != null) {
 			serverConn.disconnect(new TextComponent("Quitting"));
+		}
+	}
+
+	public static boolean isOnlineMode(ProxyServer proxy) {
+		try {
+			return (Boolean) method_Configuration_isOnlineMode.invoke(field_BungeeCord_config.get(proxy));
+		}catch(IllegalArgumentException | IllegalAccessException | SecurityException | InvocationTargetException e) {
+			return proxy.getConfig().isOnlineMode();
 		}
 	}
 

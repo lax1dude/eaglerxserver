@@ -19,6 +19,8 @@ public class NettyPipelineData {
 	public String headerHost;
 	public String headerOrigin;
 	public String headerUserAgent;
+	public String headerCookie;
+	public String headerAuthorization;
 	public String requestPath;
 
 	public int handshakeProtocol;

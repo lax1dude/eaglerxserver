@@ -9,12 +9,15 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import javax.net.ssl.SSLException;
+
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
+import net.lax1dude.eaglercraft.backend.server.adapter.AbortLoadException;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
@@ -47,6 +50,7 @@ import net.lax1dude.eaglercraft.backend.server.base.command.CommandVersion;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataRoot;
 import net.lax1dude.eaglercraft.backend.server.base.config.EaglerConfigLoader;
+import net.lax1dude.eaglercraft.backend.server.base.config.SSLCertificateManager;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.PipelineTransformer;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
@@ -68,6 +72,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private QueryServer queryServer;
 	private WebServer webServer;
 	private PipelineTransformer pipelineTransformer;
+	private SSLCertificateManager certificateManager;
 
 	public EaglerXServer() {
 	}
@@ -88,17 +93,21 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		logger().info("Loading " + getServerBrand() + " " + getServerVersion() + "...");
 		logger().info("(Platform: " + platformType.getName() + ")");
 		
+		if(platform.isOnlineMode()) {
+			throw new AbortLoadException("Online mode is not supported yet!");
+		}
+		
 		eventDispatcher = platform.eventDispatcher();
 		brandRegistry = new BrandRegistry();
 		queryServer = new QueryServer(this);
 		webServer = new WebServer(this);
 		pipelineTransformer = new PipelineTransformer(this);
+		certificateManager = new SSLCertificateManager(logger());
 		
 		try {
 			config = EaglerConfigLoader.loadConfig(platform);
 		} catch (IOException e) {
-			logger().error("Could not read one or more config files!", e);
-			return;
+			throw new AbortLoadException("Could not read one or more config files!", e);
 		}
 		
 		logger().info("Server Name: \"" + config.getSettings().getServerName() + "\"");
@@ -130,7 +139,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		ImmutableMap.Builder<SocketAddress, EaglerListener> listenersByAddressBuilder = ImmutableMap.builder();
 		ImmutableList.Builder<IEaglerXServerListener> listenersImpl = ImmutableList.builder();
 		for(ConfigDataListener listener : config.getListeners().values()) {
-			EaglerListener eagListener = new EaglerListener(this, listener);
+			EaglerListener eagListener;
+			try {
+				eagListener = new EaglerListener(this, listener);
+			}catch(SSLException ex) {
+				throw new AbortLoadException("TLS configuration is invalid!", ex);
+			}
 			listenersBuilder.put(listener.getListenerName(), eagListener);
 			listenersByAddressBuilder.put(listener.getInjectAddress(), eagListener);
 			listenersImpl.add(eagListener);
@@ -141,8 +155,13 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	private void loadNonProxying(IPlatform.InitNonProxying<PlayerObject> init) {
-		EaglerListener eagListener = new EaglerListener(this, init.getListenerAddress(),
-				config.getListeners().values().iterator().next());
+		EaglerListener eagListener;
+		try {
+			eagListener = new EaglerListener(this, init.getListenerAddress(),
+					config.getListeners().values().iterator().next());
+		}catch(SSLException ex) {
+			throw new AbortLoadException("TLS configuration is invalid!", ex);
+		}
 		listeners = ImmutableMap.of("default", eagListener);
 		listenersByAddress = ImmutableMap.of(init.getListenerAddress(), eagListener);
 		init.setEaglerListener(eagListener);
@@ -158,6 +177,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	public PipelineTransformer getPipelineTransformer() {
 		return pipelineTransformer;
+	}
+
+	public SSLCertificateManager getCertificateManager() {
+		return certificateManager;
 	}
 
 	public void enableHandler() {

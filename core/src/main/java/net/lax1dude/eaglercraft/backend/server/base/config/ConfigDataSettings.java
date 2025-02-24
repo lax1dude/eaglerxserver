@@ -239,6 +239,7 @@ public class ConfigDataSettings {
 	private final int websocketHandshakeTimeout;
 	private final int builtinHTTPServerTimeout;
 	private final int httpWebSocketCompressionLevel;
+	private final int tlsCertRefreshRate;
 	private final boolean enableAuthenticationEvents;
 	private final boolean enableBackendRPCAPI;
 	private final boolean useModernizedChannelNames;
@@ -250,15 +251,17 @@ public class ConfigDataSettings {
 	private final ConfigDataUpdateService updateService;
 
 	public ConfigDataSettings(String serverName, UUID serverUUID, int websocketHandshakeTimeout,
-			int builtinHTTPServerTimeout, int httpWebSocketCompressionLevel, boolean enableAuthenticationEvents,
-			boolean enableBackendRPCAPI, boolean useModernizedChannelNames, String eaglerPlayersVanillaSkin,
-			int protocolV4DefragSendDelay, ConfigDataProtocols protocols, ConfigDataSkinService skinService,
-			ConfigDataVoiceService voiceService, ConfigDataUpdateService updateService) {
+			int builtinHTTPServerTimeout, int httpWebSocketCompressionLevel, int tlsCertRefreshRate,
+			boolean enableAuthenticationEvents, boolean enableBackendRPCAPI, boolean useModernizedChannelNames,
+			String eaglerPlayersVanillaSkin, int protocolV4DefragSendDelay, ConfigDataProtocols protocols,
+			ConfigDataSkinService skinService, ConfigDataVoiceService voiceService,
+			ConfigDataUpdateService updateService) {
 		this.serverName = serverName;
 		this.serverUUID = serverUUID;
 		this.websocketHandshakeTimeout = websocketHandshakeTimeout;
 		this.builtinHTTPServerTimeout = builtinHTTPServerTimeout;
 		this.httpWebSocketCompressionLevel = httpWebSocketCompressionLevel;
+		this.tlsCertRefreshRate = tlsCertRefreshRate;
 		this.enableAuthenticationEvents = enableAuthenticationEvents;
 		this.enableBackendRPCAPI = enableBackendRPCAPI;
 		this.useModernizedChannelNames = useModernizedChannelNames;
@@ -286,8 +289,12 @@ public class ConfigDataSettings {
 		return builtinHTTPServerTimeout;
 	}
 
-	public int getHttpWebSocketCompressionLevel() {
+	public int getHTTPWebSocketCompressionLevel() {
 		return httpWebSocketCompressionLevel;
+	}
+
+	public int getTLSCertRefreshRate() {
+		return tlsCertRefreshRate;
 	}
 
 	public boolean isEnableAuthenticationEvents() {

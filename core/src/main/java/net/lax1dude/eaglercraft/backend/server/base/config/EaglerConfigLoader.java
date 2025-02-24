@@ -61,6 +61,11 @@ public class EaglerConfigLoader {
 				+ "already handled through a reverse proxy. You almost definitely need some "
 				+ "level of compression for the game to be playable on WiFi networks."
 			);
+			int tlsCertRefreshRate = config.getInteger(
+				"tls_certificate_refresh_rate", 30,
+				"Default value is 30, how often in seconds to check if any listener TLS "
+				+ "certificates have been changed and need to be reloaded."
+			);
 			String eaglerPlayersVanillaSkin = config.getString(
 				"eagler_players_vanilla_skin", "",
 				"Default value is '' but was originally 'lax1dude', can be used to set "
@@ -106,30 +111,30 @@ public class EaglerConfigLoader {
 			);
 			boolean eaglerXRewindAllowed = protocols.getBoolean(
 				"eaglerxrewind_allowed", true,
-				"If eagler 1.5.2 clients should be allowed to join (emulates a 1.8 connection), "
-				+ "requires the EaglerXRewind plugin"
+				"If eagler 1.5.2 clients should be allowed to join (emulates an EaglercraftX "
+				+ "1.8 connection), has no effect unless the EaglerXRewind plugin is installed."
 			);
 			boolean protocolLegacyAllowed = protocols.getBoolean(
 				"protocol_legacy_allowed", true,
-				"If v1 and v2 clients should be allowed to join"
+				"If v1 and v2 clients should be allowed to join."
 			);
 			boolean protocolV3Allowed = protocols.getBoolean(
 				"protocol_v3_allowed", true,
-				"If v3 clients should be allowed to join"
+				"If v3 clients should be allowed to join."
 			);
 			boolean protocolV4Allowed = protocols.getBoolean(
 				"protocol_v4_allowed", true,
-				"If v4 clients should be allowed to join"
+				"If v4 clients should be allowed to join."
 			);
 			boolean protocolV5Allowed = protocols.getBoolean(
 				"protocol_v5_allowed", true,
-				"If v5 clients should be allowed to join"
+				"If v5 clients should be allowed to join."
 			);
 			IEaglerConfSection skinService = config.getSection("skin_service");
 			int skinLookupRatelimitPlayer = skinService.getInteger(
 				"skin_lookup_ratelimit_player", 1000,
 				"Default value is 1000, limit of how many skin lookups an eaglercraft player is "
-				+ "allowed to attempt per minute"
+				+ "allowed to attempt per minute."
 			);
 			boolean downloadVanillaSkinsToClients = skinService.getBoolean(
 				"download_vanilla_skins_to_clients", true,
@@ -277,7 +282,7 @@ public class EaglerConfigLoader {
 				+ "updated certificates"
 			);
 			return new ConfigDataSettings(serverName, serverUUID, websocketHandshakeTimeout, builtinHTTPServerTimeout,
-					httpWebSocketCompressionLevel, enableAuthenticationEvents, enableBackendRPCAPI,
+					httpWebSocketCompressionLevel, tlsCertRefreshRate, enableAuthenticationEvents, enableBackendRPCAPI,
 					useModernizedChannelNames, eaglerPlayersVanillaSkin, protocolV4DefragSendDelay,
 					new ConfigDataSettings.ConfigDataProtocols(minMinecraftProtocol, maxMinecraftProtocol,
 							eaglerXRewindAllowed, protocolLegacyAllowed, protocolV3Allowed, protocolV4Allowed,
@@ -590,6 +595,32 @@ public class EaglerConfigLoader {
 			+ "the player's real IP address if the forward_ip option is enabled. This option "
 			+ "is commonly set to X-Forwarded-For or CF-Connecting-IP for a lot of server setups."
 		);
+		IEaglerConfSection tlsConfigSection = listener.getSection("tls_config");
+		if(!tlsConfigSection.exists()) {
+			tlsConfigSection.setComment("Settings for HTTPS (WSS) connections, HTTPS is normally "
+					+ "handled by nginx or caddy, but if you are trying to run EaglerXServer "
+					+ "without any reverse HTTP proxies then this can be useful.");
+		}
+		boolean enableTLS = tlsConfigSection.getBoolean(
+			"enable_tls", false,
+			"Default value is false, sets if this listener should accept HTTPS (WSS) connections."
+		);
+		boolean requireTLS = tlsConfigSection.getBoolean(
+			"require_tls", false,
+			"Default value is false, sets if this listener should require connections to be HTTPS (WSS)."
+		);
+		String tlsPublicChainFile = tlsConfigSection.getString(
+			"tls_public_chain_file", "fullchain.pem",
+			"The X.509 certificate chain file in PEM format, relative to the working directory."
+		);
+		String tlsPrivateKeyFile = tlsConfigSection.getString(
+			"tls_private_key_file", "privatekey.pem",
+			"The PKCS#8 private key file in PEM format, relative to the working directory."
+		);
+		boolean tlsAutoRefreshCert = tlsConfigSection.getBoolean(
+			"tls_auto_refresh_cert", true,
+			"If the certificate and private key should be reloaded when changes are detected."
+		);
 		String redirectLegacyClientsTo = listener.getString(
 			"redirect_legacy_clients_to", "null",
 			"Default value is 'null', sets the WebSocket address to redirect legacy Eaglercraft "
@@ -598,8 +629,7 @@ public class EaglerConfigLoader {
 		String serverIcon = listener.getString(
 			"server_icon", "server-icon.png",
 			"Default value is 'server-icon.png', sets the name of the 64x64 PNG file to display "
-			+ "as this listener's server icon, relative to the working directory of the "
-			+ "BungeeCord proxy server."
+			+ "as this listener's server icon, relative to the working directory."
 		);
 		IEaglerConfList serverMOTDConf = listener.getList("server_motd");
 		if(!serverMOTDConf.exists()) {
@@ -685,10 +715,11 @@ public class EaglerConfigLoader {
 			ratelimitConf, "http", 30, 10, 20, 300,
 			"Sets ratelimit on non-WebSocket HTTP connections."
 		);
-		return new ConfigDataListener(name, injectAddress, dualStack, forwardIp, forwardIPHeader,
-				redirectLegacyClientsTo, serverIcon, serverMOTD, allowMOTD, allowQuery, showMOTDPlayerList,
-				allowCookieRevokeQuery, motdCacheTTL, motdCacheAnimation, motdCacheResults, motdCacheTrending,
-				motdCachePortfolios, limitIP, limitLogin, limitMOTD, limitQuery, limitHTTP);
+		return new ConfigDataListener(name, injectAddress, dualStack, forwardIp, forwardIPHeader, enableTLS, requireTLS,
+				tlsPublicChainFile, tlsPrivateKeyFile, tlsAutoRefreshCert, redirectLegacyClientsTo, serverIcon,
+				serverMOTD, allowMOTD, allowQuery, showMOTDPlayerList, allowCookieRevokeQuery, motdCacheTTL,
+				motdCacheAnimation, motdCacheResults, motdCacheTrending, motdCachePortfolios, limitIP, limitLogin,
+				limitMOTD, limitQuery, limitHTTP);
 	}
 
 	private static ConfigDataListener.ConfigRateLimit loadRatelimiter(IEaglerConfSection parent, String name,

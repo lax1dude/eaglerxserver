@@ -33,6 +33,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
 import net.kyori.adventure.text.Component;
+import net.lax1dude.eaglercraft.backend.server.adapter.AbortLoadException;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerCommandType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionInitializer;
@@ -76,6 +77,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	private IPlatformLogger loggerImpl;
 	private IEventDispatchAdapter<Player, Component> eventDispatcherImpl;
 
+	protected boolean aborted = false;
 	protected Runnable onServerEnable;
 	protected Runnable onServerDisable;
 	protected IEaglerXServerNettyPipelineInitializer<Object> pipelineInitializer;
@@ -107,8 +109,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
     	cacheConsoleCommandSenderInstance = proxyIn.getConsoleCommandSource();
     	cacheConsoleCommandSenderHandle = new VelocityConsole(cacheConsoleCommandSenderInstance);
     	registeredCommandsList = new ArrayList<>();
-		IEaglerXServerImpl<Player> serverImpl = new EaglerXServer<>();
-		serverImpl.load(new InitProxying<Player>() {
+		Init<Player> init = new InitProxying<Player>() {
 
 			@Override
 			public void setOnServerEnable(Runnable enable) {
@@ -160,7 +161,18 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 				backendChannelsList = channels;
 			}
 
-		});
+		};
+		try {
+			((IEaglerXServerImpl<Player>) new EaglerXServer<Player>()).load(init);
+		}catch(AbortLoadException ex) {
+			logger().error("Server startup aborted: " + ex.getMessage());
+			Throwable t = ex.getCause();
+			if(t != null) {
+				logger().error("Caused by: ", t);
+			}
+			aborted = true;
+			throw new IllegalStateException("Startup aborted");
+		}
 	}
 
 	private static final ImmutableMap<String, EnumPipelineComponent> PIPELINE_COMPONENTS_MAP = 
@@ -175,10 +187,16 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			.put("protocolize2-encoder", EnumPipelineComponent.PROTOCOLIZE_ENCODER)
 			.put("read-timeout", EnumPipelineComponent.READ_TIMEOUT_HANDLER)
 			.put("legacy-ping-encoder", EnumPipelineComponent.VELOCITY_LEGACY_PING_ENCODER)
+			.put("pe-decoder-packetevents", EnumPipelineComponent.PACKETEVENTS_DECODER)
+			.put("pe-encoder-packetevents", EnumPipelineComponent.PACKETEVENTS_ENCODER)
+			.put("pe-timeout-handler-packetevents", EnumPipelineComponent.PACKETEVENTS_TIMEOUT_HANDLER)
 			.build();
 
     @Subscribe
     public void onProxyInit(ProxyInitializeEvent e) {
+		if(aborted) {
+			return;
+		}
     	proxy.getEventManager().register(this, new VelocityListener(this));
     	listenersToInit = new ListenerInitList(listenersList);
     	registeredCommandsList.clear();
@@ -261,6 +279,9 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 
 	@Subscribe
     public void onProxyShutdown(ProxyShutdownEvent e) {
+		if(aborted) {
+			return;
+		}
 		if(onServerDisable != null) {
 			onServerDisable.run();
 		}
@@ -366,6 +387,11 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	@Override
 	public IPlatformComponentHelper getComponentHelper() {
 		return componentHelperImpl;
+	}
+
+	@Override
+	public boolean isOnlineMode() {
+		return proxy.getConfiguration().isOnlineMode();
 	}
 
 	public void initializeConnection(InboundConnection conn, String username, UUID uuid, Object pipelineData,

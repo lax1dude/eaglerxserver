@@ -78,4 +78,6 @@ public interface IPlatform<PlayerObject> {
 
 	IPlatformComponentHelper getComponentHelper();
 
+	boolean isOnlineMode();
+
 }

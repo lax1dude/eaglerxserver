@@ -1,28 +1,42 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
+import java.io.File;
 import java.net.SocketAddress;
+
+import javax.net.ssl.SSLException;
 
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
+import net.lax1dude.eaglercraft.backend.server.base.config.SSLContextHolder;
 
 public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListener {
 
 	private final EaglerXServer<?> server;
 	private final SocketAddress address;
 	private final ConfigDataListener listenerConf;
+	private final SSLContextHolder sslContext;
 
-	public EaglerListener(EaglerXServer<?> server, ConfigDataListener listenerConf) {
-		this.server = server;
-		this.address = listenerConf.getInjectAddress();
-		this.listenerConf = listenerConf;
+	EaglerListener(EaglerXServer<?> server, ConfigDataListener listenerConf) throws SSLException {
+		this(server, listenerConf.getInjectAddress(), listenerConf);
 	}
 
-	public EaglerListener(EaglerXServer<?> server, SocketAddress address, ConfigDataListener listenerConf) {
+	EaglerListener(EaglerXServer<?> server, SocketAddress address, ConfigDataListener listenerConf) throws SSLException {
 		this.server = server;
 		this.address = address;
 		this.listenerConf = listenerConf;
+		if (listenerConf.isEnableTLS()) {
+			this.sslContext = server.getCertificateManager().createHolder(
+					new File(listenerConf.getTLSPublicChainFile()), new File(listenerConf.getTLSPrivateKeyFile()),
+					listenerConf.isTLSAutoRefreshCert());
+		} else {
+			this.sslContext = null;
+		}
+	}
+
+	public SSLContextHolder getSSLContext() {
+		return sslContext;
 	}
 
 	@Override
@@ -38,6 +52,16 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 	@Override
 	public boolean isDualStack() {
 		return listenerConf.isDualStack();
+	}
+
+	@Override
+	public boolean isTLSEnabled() {
+		return listenerConf.isEnableTLS();
+	}
+
+	@Override
+	public boolean isTLSRequired() {
+		return listenerConf.isRequireTLS();
 	}
 
 	@Override

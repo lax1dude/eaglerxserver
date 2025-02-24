@@ -15,6 +15,7 @@ import com.google.common.collect.ImmutableMap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
+import net.lax1dude.eaglercraft.backend.server.adapter.AbortLoadException;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerCommandType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionInitializer;
@@ -47,13 +48,13 @@ import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginManager;
-import net.md_5.bungee.command.ConsoleCommandSender;
 
 public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPlayer> {
 
 	private IPlatformLogger loggerImpl;
 	private IEventDispatchAdapter<ProxiedPlayer, BaseComponent> eventDispatcherImpl;
 
+	protected boolean aborted = false;
 	protected Runnable cleanupListeners;
 	protected Runnable onServerEnable;
 	protected Runnable onServerDisable;
@@ -81,8 +82,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 		componentHelperImpl = new BungeeComponentHelper();
 		cacheConsoleCommandSenderInstance = getProxy().getConsole();
 		cacheConsoleCommandSenderHandle = new BungeeConsole(cacheConsoleCommandSenderInstance);
-		IEaglerXServerImpl<ProxiedPlayer> serverImpl = new EaglerXServer<>();
-		serverImpl.load(new InitProxying<ProxiedPlayer>() {
+		Init<ProxiedPlayer> init = new InitProxying<ProxiedPlayer>() {
 
 			@Override
 			public void setOnServerEnable(Runnable enable) {
@@ -134,7 +134,18 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 				backendChannelsList = channels;
 			}
 
-		});
+		};
+		try {
+			((IEaglerXServerImpl<ProxiedPlayer>) new EaglerXServer<ProxiedPlayer>()).load(init);
+		}catch(AbortLoadException ex) {
+			logger().error("Server startup aborted: " + ex.getMessage());
+			Throwable t = ex.getCause();
+			if(t != null) {
+				logger().error("Caused by: ", t);
+			}
+			aborted = true;
+			throw new IllegalStateException("Startup aborted");
+		}
 	}
 
 	private static final ImmutableMap<String, EnumPipelineComponent> PIPELINE_COMPONENTS_MAP = 
@@ -151,10 +162,16 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			.put("legacy-decoder", EnumPipelineComponent.BUNGEE_LEGACY_HANDLER)
 			.put("legacy-kick", EnumPipelineComponent.BUNGEE_LEGACY_KICK_ENCODER)
 			.put("handler-boss", EnumPipelineComponent.INBOUND_PACKET_HANDLER)
+			.put("pe-decoder-packetevents", EnumPipelineComponent.PACKETEVENTS_DECODER)
+			.put("pe-encoder-packetevents", EnumPipelineComponent.PACKETEVENTS_ENCODER)
+			.put("pe-timeout-handler-packetevents", EnumPipelineComponent.PACKETEVENTS_TIMEOUT_HANDLER)
 			.build();
 
 	@Override
 	public void onEnable() {
+		if(aborted) {
+			return;
+		}
 		PluginManager mgr = getProxy().getPluginManager();
 		mgr.registerListener(this, new BungeeListener(this));
 		for(IEaglerXServerCommandType<ProxiedPlayer> cmd : commandsList) {
@@ -237,6 +254,9 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 
 	@Override
 	public void onDisable() {
+		if(aborted) {
+			return;
+		}
 		if(onServerDisable != null) {
 			onServerDisable.run();
 		}
@@ -339,6 +359,11 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	@Override
 	public IPlatformComponentHelper getComponentHelper() {
 		return componentHelperImpl;
+	}
+
+	@Override
+	public boolean isOnlineMode() {
+		return BungeeUnsafe.isOnlineMode(getProxy());
 	}
 
 	public void initializeConnection(PendingConnection conn, Object pipelineData, Consumer<BungeeConnection> setAttr) {
