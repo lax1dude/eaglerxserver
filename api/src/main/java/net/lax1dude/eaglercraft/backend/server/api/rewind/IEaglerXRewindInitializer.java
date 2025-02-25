@@ -15,7 +15,11 @@ public interface IEaglerXRewindInitializer<Attachment> {
 
 	String getWebSocketHeader(EnumWebSocketHeader header);
 
-	int getLegacyMinecraftProtocol();
+	default int getLegacyMinecraftProtocol() {
+		return getLegacyHandshake().getProtocolVersion();
+	}
+
+	IPacket2ClientProtocol getLegacyHandshake();
 
 	void injectNettyEncoder(Object nettyEncoder);
 

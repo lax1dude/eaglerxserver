@@ -57,8 +57,10 @@ public class ConfigDataListener {
 	private final String forwardIPHeader;
 	private final boolean enableTLS;
 	private final boolean requireTLS;
+	private final boolean tlsManagedByExternalPlugin;
 	private final String tlsPublicChainFile;
 	private final String tlsPrivateKeyFile;
+	private final String tlsPrivateKeyPassword;
 	private final boolean tlsAutoRefreshCert;
 	private final String redirectLegacyClientsTo;
 	private final String serverIcon;
@@ -79,7 +81,8 @@ public class ConfigDataListener {
 	private final ConfigRateLimit limitHTTP;
 
 	public ConfigDataListener(String listenerName, SocketAddress injectAddress, boolean dualStack, boolean forwardIp,
-			String forwardIPHeader, boolean enableTLS, boolean requireTLS, String tlsPublicChainFile, String tlsPrivateKeyFile,
+			String forwardIPHeader, boolean enableTLS, boolean requireTLS, boolean tlsManagedByExternalPlugin,
+			String tlsPublicChainFile, String tlsPrivateKeyFile, String tlsPrivateKeyPassword,
 			boolean tlsAutoRefreshCert, String redirectLegacyClientsTo, String serverIcon, List<String> serverMOTD,
 			boolean allowMOTD, boolean allowQuery, boolean showMOTDPlayerList, boolean allowCookieRevokeQuery,
 			int motdCacheTTL, boolean motdCacheAnimation, boolean motdCacheResults, boolean motdCacheTrending,
@@ -92,8 +95,10 @@ public class ConfigDataListener {
 		this.forwardIPHeader = forwardIPHeader;
 		this.enableTLS = enableTLS;
 		this.requireTLS = requireTLS;
+		this.tlsManagedByExternalPlugin = tlsManagedByExternalPlugin;
 		this.tlsPublicChainFile = tlsPublicChainFile;
 		this.tlsPrivateKeyFile = tlsPrivateKeyFile;
+		this.tlsPrivateKeyPassword = tlsPrivateKeyPassword;
 		this.tlsAutoRefreshCert = tlsAutoRefreshCert;
 		this.redirectLegacyClientsTo = redirectLegacyClientsTo;
 		this.serverIcon = serverIcon;
@@ -138,6 +143,14 @@ public class ConfigDataListener {
 		return enableTLS;
 	}
 
+	public boolean isRequireTLS() {
+		return requireTLS;
+	}
+
+	public boolean isTLSManagedByExternalPlugin() {
+		return tlsManagedByExternalPlugin;
+	}
+
 	public boolean isTLSAutoRefreshCert() {
 		return tlsAutoRefreshCert;
 	}
@@ -150,8 +163,8 @@ public class ConfigDataListener {
 		return tlsPrivateKeyFile;
 	}
 
-	public boolean isRequireTLS() {
-		return requireTLS;
+	public String getTLSPrivateKeyPassword() {
+		return tlsPrivateKeyPassword;
 	}
 
 	public String getRedirectLegacyClientsTo() {

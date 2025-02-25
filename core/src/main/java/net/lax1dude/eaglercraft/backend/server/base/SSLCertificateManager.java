@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.base.config;
+package net.lax1dude.eaglercraft.backend.server.base;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,7 +23,7 @@ import net.lax1dude.eaglercraft.backend.server.util.HashPair;
 
 public class SSLCertificateManager {
 
-	private final BiMap<HashPair<File, File>, SSLContextHolder> pairs = HashBiMap.create();
+	private final BiMap<HashPair<File, File>, SSLContextHolderBuiltin> pairs = HashBiMap.create();
 	private final Multiset<File> filesRefreshable = HashMultiset.create();
 	private final Map<File, RefreshWatcher> refreshableFiles = new HashMap<>();
 	private final IPlatformLogger logger;
@@ -33,8 +33,8 @@ public class SSLCertificateManager {
 		protected final File file;
 		protected byte[] data;
 		protected long lastModified;
-		protected final Set<SSLContextHolder> childrenA = new HashSet<>();
-		protected final Set<SSLContextHolder> childrenB = new HashSet<>();
+		protected final Set<SSLContextHolderBuiltin> childrenA = new HashSet<>();
+		protected final Set<SSLContextHolderBuiltin> childrenB = new HashSet<>();
 
 		protected RefreshWatcher(File file) throws SSLException {
 			this.file = file;
@@ -52,18 +52,19 @@ public class SSLCertificateManager {
 		this.logger = logger;
 	}
 
-	public synchronized SSLContextHolder createHolder(File publicChain, File privateKey, boolean autoRefresh) throws SSLException {
+	public synchronized SSLContextHolderBuiltin createHolder(File publicChain, File privateKey,
+			String privateKeyPassword, boolean autoRefresh) throws SSLException {
 		publicChain = publicChain.getAbsoluteFile();
 		privateKey = privateKey.getAbsoluteFile();
 		if(publicChain.equals(privateKey)) {
 			throw new IllegalArgumentException("Public and private key are the same file");
 		}
 		HashPair<File, File> pair = new HashPair<>(publicChain, privateKey);
-		SSLContextHolder ret = pairs.get(pair);
+		SSLContextHolderBuiltin ret = pairs.get(pair);
 		if(ret != null) {
 			return ret;
 		}
-		ret = new SSLContextHolder(createName(publicChain, privateKey));
+		ret = new SSLContextHolderBuiltin(createName(publicChain, privateKey), privateKeyPassword);
 		RefreshWatcher pub = getOrCreateRefresher(publicChain);
 		RefreshWatcher priv = getOrCreateRefresher(privateKey);
 		ret.pubKey = pub.data;
@@ -81,7 +82,7 @@ public class SSLCertificateManager {
 		return ret;
 	}
 
-	public synchronized void releaseHolder(SSLContextHolder holder) {
+	public synchronized void releaseHolder(SSLContextHolderBuiltin holder) {
 		HashPair<File, File> pair = pairs.inverse().remove(holder);
 		if(pair != null) {
 			filesRefreshable.remove(pair.valueA);
@@ -109,7 +110,7 @@ public class SSLCertificateManager {
 		if(refreshableFiles.isEmpty()) {
 			return;
 		}
-		Set<SSLContextHolder> holdersThatNeedRefresh = null;
+		Set<SSLContextHolderBuiltin> holdersThatNeedRefresh = null;
 		for(RefreshWatcher w : refreshableFiles.values()) {
 			long l = w.file.lastModified();
 			if(l != w.lastModified) {
@@ -124,14 +125,14 @@ public class SSLCertificateManager {
 				if(!Arrays.equals(w.data, newData)) {
 					logger.info("TLS certificate was modified: " + w.file.getAbsolutePath());
 					w.data = newData;
-					for(SSLContextHolder a : w.childrenA) {
+					for(SSLContextHolderBuiltin a : w.childrenA) {
 						a.pubKey = newData;
 						if(holdersThatNeedRefresh == null) {
 							holdersThatNeedRefresh = new HashSet<>();
 						}
 						holdersThatNeedRefresh.add(a);
 					}
-					for(SSLContextHolder b : w.childrenB) {
+					for(SSLContextHolderBuiltin b : w.childrenB) {
 						b.privKey = newData;
 						if(holdersThatNeedRefresh == null) {
 							holdersThatNeedRefresh = new HashSet<>();
@@ -143,7 +144,7 @@ public class SSLCertificateManager {
 		}
 		if(holdersThatNeedRefresh != null) {
 			boolean err = false;
-			for(SSLContextHolder ctx : holdersThatNeedRefresh) {
+			for(SSLContextHolderBuiltin ctx : holdersThatNeedRefresh) {
 				try {
 					ctx.refresh();
 				}catch(SSLException ex) {

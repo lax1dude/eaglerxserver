@@ -14,7 +14,6 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
-import io.netty.util.concurrent.GenericFutureListener;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings;
@@ -98,14 +97,20 @@ public class HTTPInitialInboundHandler extends MessageToMessageCodec<HttpRequest
 
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		super.channelInactive(ctx);
-		release();
+		try {
+			super.channelInactive(ctx);
+		}finally {
+			release();
+		}
 	}
 
 	@Override
 	public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-		super.handlerRemoved(ctx);
-		release();
+		try {
+			super.handlerRemoved(ctx);
+		}finally {
+			release();
+		}
 	}
 
 	private List<ByteBuf> retainWaitingOutbound(List<ByteBuf> buffers) {

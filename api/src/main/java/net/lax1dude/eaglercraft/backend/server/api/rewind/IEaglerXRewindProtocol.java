@@ -7,7 +7,7 @@ public interface IEaglerXRewindProtocol<PlayerObject, Attachment> {
 
 	int[] getLegacyProtocols();
 
-	int getEmulatedEaglerHanshake();
+	int getEmulatedEaglerHandshake();
 
 	default void handleRegistered(IEaglerXServerAPI<PlayerObject> server) {
 	}

@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.base.config;
+package net.lax1dude.eaglercraft.backend.server.base;
 
 import java.io.ByteArrayInputStream;
 
@@ -9,23 +9,26 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 
-public class SSLContextHolder {
+public class SSLContextHolderBuiltin implements ISSLContextProvider {
 
 	protected final String name;
+	protected final String password;
 	protected byte[] pubKey;
 	protected byte[] privKey;
-	protected volatile SslContext ctx = null;
+	protected volatile SslContext ctx;
 
-	protected SSLContextHolder(String name) {
+	protected SSLContextHolderBuiltin(String name, String password) {
 		this.name = name;
+		this.password = password;
 	}
 
+	@Override
 	public SslHandler newHandler(ByteBufAllocator alloc) {
 		return ctx.newHandler(alloc);
 	}
 
 	protected void refresh() throws SSLException {
-		ctx = SslContextBuilder.forServer(new ByteArrayInputStream(privKey), new ByteArrayInputStream(pubKey)).build();
+		ctx = SslContextBuilder.forServer(new ByteArrayInputStream(pubKey), new ByteArrayInputStream(privKey), password).build();
 	}
 
 }

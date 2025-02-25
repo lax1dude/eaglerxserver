@@ -627,6 +627,10 @@ public class EaglerConfigLoader {
 			"Default value is true, sets if this listener should always assume connections to be "
 			+ "HTTPS (WSS), requires enable_tls to be true."
 		);
+		boolean tlsManagedByExternalPlugin = tlsConfigSection.getBoolean(
+			"tls_managed_by_external_plugin", false,
+			"Default value is false, if the TLS certificates for this listener are managed by another plugin."
+		);
 		String tlsPublicChainFile = tlsConfigSection.getString(
 			"tls_public_chain_file", "fullchain.pem",
 			"The X.509 certificate chain file in PEM format, relative to the working directory."
@@ -635,15 +639,25 @@ public class EaglerConfigLoader {
 			"tls_private_key_file", "privatekey.pem",
 			"The PKCS#8 private key file in PEM format, relative to the working directory."
 		);
+		String tlsPrivateKeyPassword = tlsConfigSection.getString(
+			"tls_private_key_password", "",
+			"The password to the private key (if applicable), leave blank for none"
+		);
+		if(tlsPrivateKeyPassword.trim().length() == 0|| "null".equals(tlsPrivateKeyPassword)) {
+			tlsPrivateKeyPassword = null;
+		}
 		boolean tlsAutoRefreshCert = tlsConfigSection.getBoolean(
 			"tls_auto_refresh_cert", true,
-			"If the certificate and private key should be reloaded when changes are detected."
+			"Default value is true, if the certificate and private key should be reloaded when changes are detected."
 		);
 		String redirectLegacyClientsTo = listener.getString(
-			"redirect_legacy_clients_to", "null",
-			"Default value is 'null', sets the WebSocket address to redirect legacy Eaglercraft "
+			"redirect_legacy_clients_to", "",
+			"Default value is '', sets the WebSocket address to redirect legacy Eaglercraft "
 			+ "1.5 clients to if they mistakenly try to join the server through this listener."
 		);
+		if(redirectLegacyClientsTo.trim().length() == 0 || "null".equals(redirectLegacyClientsTo)) {
+			redirectLegacyClientsTo = null;
+		}
 		String serverIcon = listener.getString(
 			"server_icon", "server-icon.png",
 			"Default value is 'server-icon.png', sets the name of the 64x64 PNG file to display "
@@ -734,10 +748,10 @@ public class EaglerConfigLoader {
 			"Sets ratelimit on non-WebSocket HTTP connections."
 		);
 		return new ConfigDataListener(name, injectAddress, dualStack, forwardIp, forwardIPHeader, enableTLS, requireTLS,
-				tlsPublicChainFile, tlsPrivateKeyFile, tlsAutoRefreshCert, redirectLegacyClientsTo, serverIcon,
-				serverMOTD, allowMOTD, allowQuery, showMOTDPlayerList, allowCookieRevokeQuery, motdCacheTTL,
-				motdCacheAnimation, motdCacheResults, motdCacheTrending, motdCachePortfolios, limitIP, limitLogin,
-				limitMOTD, limitQuery, limitHTTP);
+				tlsManagedByExternalPlugin, tlsPublicChainFile, tlsPrivateKeyFile, tlsPrivateKeyPassword,
+				tlsAutoRefreshCert, redirectLegacyClientsTo, serverIcon, serverMOTD, allowMOTD, allowQuery,
+				showMOTDPlayerList, allowCookieRevokeQuery, motdCacheTTL, motdCacheAnimation, motdCacheResults,
+				motdCacheTrending, motdCachePortfolios, limitIP, limitLogin, limitMOTD, limitQuery, limitHTTP);
 	}
 
 	private static ConfigDataListener.ConfigRateLimit loadRatelimiter(IEaglerConfSection parent, String name,

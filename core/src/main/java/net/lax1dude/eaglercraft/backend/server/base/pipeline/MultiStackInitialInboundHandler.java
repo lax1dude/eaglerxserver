@@ -9,8 +9,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.ByteToMessageCodec;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerListener;
+import net.lax1dude.eaglercraft.backend.server.base.ISSLContextProvider;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
-import net.lax1dude.eaglercraft.backend.server.base.config.SSLContextHolder;
 
 public class MultiStackInitialInboundHandler extends ByteToMessageCodec<ByteBuf> {
 
@@ -236,41 +236,51 @@ public class MultiStackInitialInboundHandler extends ByteToMessageCodec<ByteBuf>
 	}
 
 	private void setVanillaHandler(ChannelHandlerContext ctx, ByteBuf buffer) {
-		pipelineData.listenerInfo = null;
-		if(waitingOutboundFrames != null) {
-			for(ByteBuf buf : waitingOutboundFrames) {
-				ctx.write(buf, ctx.voidPromise());
+		try {
+			pipelineData.listenerInfo = null;
+			if(waitingOutboundFrames != null) {
+				for(ByteBuf buf : waitingOutboundFrames) {
+					ctx.write(buf, ctx.voidPromise());
+				}
+				ctx.flush();
+				waitingOutboundFrames = null;
 			}
-			ctx.flush();
-			waitingOutboundFrames = null;
+			ChannelPipeline p = ctx.pipeline();
+			p.remove(PipelineTransformer.HANDLER_MULTI_STACK_INITIAL);
+			p.fireChannelRead(buffer.retain());
+		}finally {
+			buffer.release();
 		}
-		ChannelPipeline p = ctx.pipeline();
-		p.remove(PipelineTransformer.HANDLER_MULTI_STACK_INITIAL);
-		p.fireChannelRead(buffer);
 	}
 
-	private void setHTTPHandler(ChannelHandlerContext ctx, SSLContextHolder ssl, ByteBuf buffer) {
-		ChannelPipeline p = ctx.pipeline();
-		if(componentsToRemove != null) {
-			for(ChannelHandler handler : componentsToRemove) {
-				p.remove(handler);
-			}
-		}
-		List<ByteBuf> waiting2 = null;
-		if(waitingOutboundFrames != null) {
-			waiting2 = sliceVarIntFrames(waitingOutboundFrames);
-		}
+	private void setHTTPHandler(ChannelHandlerContext ctx, ISSLContextProvider ssl, ByteBuf buffer) {
 		try {
-			transformer.initializeHTTPHandler(pipelineData, ssl, p, PipelineTransformer.HANDLER_MULTI_STACK_INITIAL, waiting2);
-		}finally {
-			if(waiting2 != null) {
-				for(ByteBuf buf : waiting2) {
-					buf.release();
+			ChannelPipeline p = ctx.pipeline();
+			if(componentsToRemove != null) {
+				for(ChannelHandler handler : componentsToRemove) {
+					p.remove(handler);
 				}
 			}
+			List<ByteBuf> waiting2 = null;
+			if(waitingOutboundFrames != null) {
+				waiting2 = sliceVarIntFrames(waitingOutboundFrames);
+			}
+			try {
+				transformer.initializeHTTPHandler(pipelineData, ssl, p, PipelineTransformer.HANDLER_MULTI_STACK_INITIAL, waiting2);
+			}finally {
+				if(waiting2 != null) {
+					for(ByteBuf buf : waiting2) {
+						buf.release();
+					}
+				}
+			}
+			p.remove(PipelineTransformer.HANDLER_MULTI_STACK_INITIAL);
+			if (ctx.channel().isActive()) {
+				p.fireChannelRead(buffer.retain());
+			}
+		}finally {
+			buffer.release();
 		}
-		p.remove(PipelineTransformer.HANDLER_MULTI_STACK_INITIAL);
-		p.fireChannelRead(buffer);
 	}
 
 	@Override
@@ -285,14 +295,20 @@ public class MultiStackInitialInboundHandler extends ByteToMessageCodec<ByteBuf>
 
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		super.channelInactive(ctx);
-		release();
+		try {
+			super.channelInactive(ctx);
+		}finally {
+			release();
+		}
 	}
 
 	@Override
 	public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-		super.handlerRemoved(ctx);
-		release();
+		try {
+			super.handlerRemoved(ctx);
+		}finally {
+			release();
+		}
 	}
 
 	private List<ByteBuf> sliceVarIntFrames(List<ByteBuf> buffers) {

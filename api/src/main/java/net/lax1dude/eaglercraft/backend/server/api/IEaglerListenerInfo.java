@@ -14,4 +14,8 @@ public interface IEaglerListenerInfo {
 
 	boolean isTLSRequired();
 
+	boolean isTLSManagedByPlugin();
+
+	ITLSManager getTLSManager() throws IllegalStateException;
+
 }

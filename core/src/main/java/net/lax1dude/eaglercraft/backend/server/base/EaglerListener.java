@@ -8,15 +8,16 @@ import javax.net.ssl.SSLException;
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
+import net.lax1dude.eaglercraft.backend.server.api.ITLSManager;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
-import net.lax1dude.eaglercraft.backend.server.base.config.SSLContextHolder;
 
 public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListener {
 
 	private final EaglerXServer<?> server;
 	private final SocketAddress address;
 	private final ConfigDataListener listenerConf;
-	private final SSLContextHolder sslContext;
+	private final boolean sslPluginManaged;
+	private final ISSLContextProvider sslContext;
 
 	EaglerListener(EaglerXServer<?> server, ConfigDataListener listenerConf) throws SSLException {
 		this(server, listenerConf.getInjectAddress(), listenerConf);
@@ -27,15 +28,21 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 		this.address = address;
 		this.listenerConf = listenerConf;
 		if (listenerConf.isEnableTLS()) {
-			this.sslContext = server.getCertificateManager().createHolder(
-					new File(listenerConf.getTLSPublicChainFile()), new File(listenerConf.getTLSPrivateKeyFile()),
-					listenerConf.isTLSAutoRefreshCert());
+			this.sslPluginManaged = listenerConf.isTLSManagedByExternalPlugin();
+			if(this.sslPluginManaged) {
+				this.sslContext = new SSLContextHolderPlugin(this);
+			}else {
+				this.sslContext = server.getCertificateManager().createHolder(
+						new File(listenerConf.getTLSPublicChainFile()), new File(listenerConf.getTLSPrivateKeyFile()),
+						listenerConf.getTLSPrivateKeyPassword(), listenerConf.isTLSAutoRefreshCert());
+			}
 		} else {
+			this.sslPluginManaged = false;
 			this.sslContext = null;
 		}
 	}
 
-	public SSLContextHolder getSSLContext() {
+	public ISSLContextProvider getSSLContext() {
 		return sslContext;
 	}
 
@@ -62,6 +69,22 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 	@Override
 	public boolean isTLSRequired() {
 		return listenerConf.isRequireTLS();
+	}
+
+	@Override
+	public boolean isTLSManagedByPlugin() {
+		return sslPluginManaged;
+	}
+
+	@Override
+	public ITLSManager getTLSManager() throws IllegalStateException {
+		if(!listenerConf.isEnableTLS()) {
+			throw new IllegalStateException("TLS is not enabled on this listener!");
+		}
+		if(!sslPluginManaged) {
+			throw new IllegalStateException("TLS manager is disabled for this listener! (Set 'tls_managed_by_external_plugin' to true)");
+		}
+		return (ITLSManager) sslContext;
 	}
 
 	@Override

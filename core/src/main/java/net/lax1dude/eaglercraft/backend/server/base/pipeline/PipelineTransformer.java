@@ -19,14 +19,15 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.extensions.WebSocketServerExtensionHandler;
 import io.netty.handler.codec.http.websocketx.extensions.compression.DeflateFrameServerExtensionHandshaker;
 import io.netty.handler.codec.http.websocketx.extensions.compression.PerMessageDeflateServerExtensionHandshaker;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerListener;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
+import net.lax1dude.eaglercraft.backend.server.base.ISSLContextProvider;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings;
-import net.lax1dude.eaglercraft.backend.server.base.config.SSLContextHolder;
 
 public class PipelineTransformer {
 
@@ -76,7 +77,7 @@ public class PipelineTransformer {
 		}
 		EaglerListener eagListener = pipelineData.listenerInfo;
 		if(eagListener.isTLSEnabled()) {
-			SSLContextHolder ssl = eagListener.getSSLContext();
+			ISSLContextProvider ssl = eagListener.getSSLContext();
 			if(ssl == null) {
 				throw new IllegalStateException();
 			}
@@ -108,10 +109,15 @@ public class PipelineTransformer {
 		channel.pipeline().addBefore(first, HANDLER_MULTI_STACK_INITIAL, new MultiStackInitialInboundHandler(this, pipelineData, toRemove));
 	}
 
-	protected void initializeHTTPHandler(NettyPipelineData pipelineData, SSLContextHolder context, ChannelPipeline pipeline,
+	protected void initializeHTTPHandler(NettyPipelineData pipelineData, ISSLContextProvider context, ChannelPipeline pipeline,
 			String before, List<ByteBuf> waitingOutboundFrames) {
 		if(context != null) {
-			pipeline.addBefore(before, HANDLER_HTTP_SSL, context.newHandler(pipeline.channel().alloc()));
+			SslHandler sslHandler = context.newHandler(pipeline.channel().alloc());
+			if(sslHandler == null) {
+				pipeline.channel().close();
+				return;
+			}
+			pipeline.addBefore(before, HANDLER_HTTP_SSL, sslHandler);
 			pipelineData.wss = true;
 		}
 		ConfigDataSettings settings = server.getConfig().getSettings();
