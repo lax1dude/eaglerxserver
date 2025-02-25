@@ -13,8 +13,8 @@ public class HandshakerV1 extends HandshakerInstance implements IHandshaker {
 		super(inboundHandler);
 	}
 
-	public HandshakerV1 init(String eaglerBrand, String eaglerVersionString) {
-		handlePacketInit(eaglerBrand, eaglerVersionString, 47, false, null);
+	public HandshakerV1 init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString) {
+		handlePacketInit(ctx, eaglerBrand, eaglerVersionString, 47, false, null);
 		return this;
 	}
 

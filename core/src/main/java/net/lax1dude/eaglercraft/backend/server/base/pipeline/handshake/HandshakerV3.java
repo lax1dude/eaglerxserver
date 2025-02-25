@@ -15,7 +15,8 @@ public class HandshakerV3 implements IHandshaker {
 		this.inboundHandler = inboundHandler;
 	}
 
-	public HandshakerV3 init(String eaglerBrand, String eaglerVersionString, int minecraftVersion, boolean auth, byte[] authUsername) {
+	public HandshakerV3 init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString,
+			int minecraftVersion, boolean auth, byte[] authUsername) {
 		return this;
 	}
 

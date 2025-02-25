@@ -298,12 +298,15 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 			return;
 		}
 		
-		if(selectedHandshakeProtocol == 4) {
-			handshaker = (new HandshakerV4(this)).init(eaglerBrand, eaglerVersionString, maxAvailableMC, clientAuth, authUsername);
+		if (selectedHandshakeProtocol == 4) {
+			handshaker = (new HandshakerV4(this)).init(ctx, eaglerBrand, eaglerVersionString, maxAvailableMC,
+					clientAuth, authUsername);
 		}else if(selectedHandshakeProtocol == 3) {
-			handshaker = (new HandshakerV3(this)).init(eaglerBrand, eaglerVersionString, maxAvailableMC, clientAuth, authUsername);
+			handshaker = (new HandshakerV3(this)).init(ctx, eaglerBrand, eaglerVersionString, maxAvailableMC,
+					clientAuth, authUsername);
 		}else if(selectedHandshakeProtocol == 2) {
-			handshaker = (new HandshakerV2(this)).init(eaglerBrand, eaglerVersionString, maxAvailableMC, clientAuth, authUsername);
+			handshaker = (new HandshakerV2(this)).init(ctx, eaglerBrand, eaglerVersionString, maxAvailableMC,
+					clientAuth, authUsername);
 		}else {
 			ctx.close();
 			return;
@@ -325,7 +328,7 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 			ctx.close();
 			return;
 		}
-		handshaker = (new HandshakerV1(this)).init(eaglerBrand, eaglerVersionString);
+		handshaker = (new HandshakerV1(this)).init(ctx, eaglerBrand, eaglerVersionString);
 	}
 
 	private void handleRewindConnection(ChannelHandlerContext ctx, int protocolVers, ByteBuf binaryMsg) {
@@ -389,26 +392,27 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 		switch(eaglerProtocol) {
 		case 1:
 			if(protocols.isProtocolLegacyAllowed()) {
-				handshaker = (new HandshakerV1(this)).init(initializer.getEaglerClientBrand(), initializer.getEaglerClientVersion());
+				handshaker = (new HandshakerV1(this)).init(ctx, initializer.getEaglerClientBrand(),
+						initializer.getEaglerClientVersion());
 			}
 			break;
 		case 2:
 			if(protocols.isProtocolLegacyAllowed()) {
-				handshaker = (new HandshakerV2(this)).init(initializer.getEaglerClientBrand(),
+				handshaker = (new HandshakerV2(this)).init(ctx, initializer.getEaglerClientBrand(),
 						initializer.getEaglerClientVersion(), initializer.getMinecraftProtocol(),
 						initializer.isAuthEnabled(), initializer.getAuthUsername());
 			}
 			break;
 		case 3:
 			if(protocols.isProtocolV3Allowed()) {
-				handshaker = (new HandshakerV3(this)).init(initializer.getEaglerClientBrand(),
+				handshaker = (new HandshakerV3(this)).init(ctx, initializer.getEaglerClientBrand(),
 						initializer.getEaglerClientVersion(), initializer.getMinecraftProtocol(),
 						initializer.isAuthEnabled(), initializer.getAuthUsername());
 			}
 			break;
 		case 4:
 			if(protocols.isProtocolV4Allowed()) {
-				handshaker = (new HandshakerV4(this)).init(initializer.getEaglerClientBrand(),
+				handshaker = (new HandshakerV4(this)).init(ctx, initializer.getEaglerClientBrand(),
 						initializer.getEaglerClientVersion(), initializer.getMinecraftProtocol(),
 						initializer.isAuthEnabled(), initializer.getAuthUsername());
 			}
@@ -422,7 +426,6 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 			return;
 		}
 		pipelineData.rewindProtocol = protocol;
-			
 	}
 
 	private void kickLegacy(ChannelHandlerContext ctx) {
