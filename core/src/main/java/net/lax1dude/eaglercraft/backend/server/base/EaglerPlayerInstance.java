@@ -38,6 +38,21 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
+	public boolean isWebSocketSecure() {
+		return connectionInstance.isWebSocketSecure();
+	}
+
+	@Override
+	public boolean isEaglerXRewindPlayer() {
+		return connectionInstance.isEaglerXRewindPlayer();
+	}
+
+	@Override
+	public int getRewindProtocolVersion() {
+		return connectionInstance.getRewindProtocolVersion();
+	}
+
+	@Override
 	public String getWebSocketHeader(EnumWebSocketHeader header) {
 		return connectionInstance.getWebSocketHeader(header);
 	}

@@ -44,15 +44,21 @@ public class EaglerConfigLoader {
 				"Sets the UUID of this EaglercraftX server to send with query responses, has "
 				+ "no official uses outside of server lists"
 			));
-			int websocketHandshakeTimeout = config.getInteger(
-				"websocket_handshake_timeout", 5000,
-				"Default value is 5000 milliseconds, sets how long a connection can sit in the "
-				+ "handshake phase before being disconnected."
+			int httpMaxInitialLineLength = config.getInteger(
+				"http_max_initial_line_length", 4096,
+				"Default value is 4096, sets the maximum length for the initial request line"
 			);
-			int builtinHTTPServerTimeout = config.getInteger(
-				"builtin_http_server_timeout", 10000,
-				"Default value is 10000 milliseconds, sets how long an HTTP request to the "
-				+ "built-in HTTP server can remain open before being forcefully disconnected."
+			int httpMaxHeaderSize = config.getInteger(
+				"http_max_header_size", 16384,
+				"Default value is 16384, sets the maximum combined length of all initial headers"
+			);
+			int httpMaxChunkSize = config.getInteger(
+				"http_max_chunk_size", 16384,
+				"Default value is 16384, sets the maximum length of every request body chunk"
+			);
+			int httpMaxContentLength = config.getInteger(
+				"http_max_content_length", 65536,
+				"Default value is 65536, sets the maximum total length of an incoming request body"
 			);
 			int httpWebSocketCompressionLevel = config.getInteger(
 				"http_websocket_compression_level", 6,
@@ -60,6 +66,15 @@ public class EaglerConfigLoader {
 				+ "compressing websocket frames, set to 0 to disable if HTTP compression is "
 				+ "already handled through a reverse proxy. You almost definitely need some "
 				+ "level of compression for the game to be playable on WiFi networks."
+			);
+			int httpWebSocketFragmentSize = config.getInteger(
+				"http_websocket_fragment_size", 65536,
+				"Default value is 65536, sets the size limit for websocket frames before a "
+				+ "frame is split into multiple fragments"
+			);
+			int httpWebSocketMaxFrameLength = config.getInteger(
+				"http_websocket_max_frame_length", 2097151,
+				"Default value is 2097151, sets the max size for websocket frames"
 			);
 			int tlsCertRefreshRate = config.getInteger(
 				"tls_certificate_refresh_rate", 30,
@@ -111,8 +126,9 @@ public class EaglerConfigLoader {
 			);
 			boolean eaglerXRewindAllowed = protocols.getBoolean(
 				"eaglerxrewind_allowed", true,
-				"If eagler 1.5.2 clients should be allowed to join (emulates an EaglercraftX "
-				+ "1.8 connection), has no effect unless the EaglerXRewind plugin is installed."
+				"If legacy clients (like eagler 1.5.2) should be allowed to join (emulates "
+				+ "an EaglercraftX 1.8 connection), has no effect unless the EaglerXRewind "
+				+ "plugin is installed."
 			);
 			boolean protocolLegacyAllowed = protocols.getBoolean(
 				"protocol_legacy_allowed", true,
@@ -281,8 +297,9 @@ public class EaglerConfigLoader {
 				"Default value is 28800 seconds, defines how often to check the URL list for "
 				+ "updated certificates"
 			);
-			return new ConfigDataSettings(serverName, serverUUID, websocketHandshakeTimeout, builtinHTTPServerTimeout,
-					httpWebSocketCompressionLevel, tlsCertRefreshRate, enableAuthenticationEvents, enableBackendRPCAPI,
+			return new ConfigDataSettings(serverName, serverUUID, httpMaxInitialLineLength, httpMaxHeaderSize,
+					httpMaxChunkSize, httpMaxContentLength, httpWebSocketCompressionLevel, httpWebSocketFragmentSize,
+					httpWebSocketMaxFrameLength, tlsCertRefreshRate, enableAuthenticationEvents, enableBackendRPCAPI,
 					useModernizedChannelNames, eaglerPlayersVanillaSkin, protocolV4DefragSendDelay,
 					new ConfigDataSettings.ConfigDataProtocols(minMinecraftProtocol, maxMinecraftProtocol,
 							eaglerXRewindAllowed, protocolLegacyAllowed, protocolV3Allowed, protocolV4Allowed,
@@ -606,8 +623,9 @@ public class EaglerConfigLoader {
 			"Default value is false, sets if this listener should accept HTTPS (WSS) connections."
 		);
 		boolean requireTLS = tlsConfigSection.getBoolean(
-			"require_tls", false,
-			"Default value is false, sets if this listener should require connections to be HTTPS (WSS)."
+			"require_tls", true,
+			"Default value is true, sets if this listener should always assume connections to be "
+			+ "HTTPS (WSS), requires enable_tls to be true."
 		);
 		String tlsPublicChainFile = tlsConfigSection.getString(
 			"tls_public_chain_file", "fullchain.pem",

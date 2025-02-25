@@ -8,6 +8,12 @@ public interface IEaglerPendingConnection extends IBasePendingConnection {
 
 	IEaglerListenerInfo getListenerInfo();
 
+	boolean isWebSocketSecure();
+
+	boolean isEaglerXRewindPlayer();
+
+	int getRewindProtocolVersion();
+
 	String getWebSocketHeader(EnumWebSocketHeader header);
 
 	String getEaglerVersionName();

@@ -38,6 +38,7 @@ import net.lax1dude.eaglercraft.backend.server.api.internal.factory.IEaglerAPIFa
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationService;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuService;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryServer;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindService;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
@@ -447,6 +448,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public ISupervisorService<PlayerObject> getSupervisorService() {
+		// TODO
+		return null;
+	}
+
+	@Override
+	public IEaglerXRewindService<PlayerObject> getEaglerXRewindService() {
 		// TODO
 		return null;
 	}

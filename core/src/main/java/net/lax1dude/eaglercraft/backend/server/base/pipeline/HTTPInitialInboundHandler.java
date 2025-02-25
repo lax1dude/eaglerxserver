@@ -5,18 +5,19 @@ import java.util.List;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.MessageToMessageCodec;
-import io.netty.handler.codec.haproxy.HAProxyMessageDecoder;
-import io.netty.handler.codec.haproxy.HAProxyMessageEncoder;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
+import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
+import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
+import io.netty.util.concurrent.GenericFutureListener;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
+import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings;
 
 public class HTTPInitialInboundHandler extends MessageToMessageCodec<HttpRequest, ByteBuf> {
 
@@ -36,7 +37,7 @@ public class HTTPInitialInboundHandler extends MessageToMessageCodec<HttpRequest
 		String connection = headers.get(HttpHeaderNames.CONNECTION);
 		if(connection != null && "upgrade".equalsIgnoreCase(connection)) {
 			String upgrade = headers.get(HttpHeaderNames.UPGRADE);
-			if("websocket".equalsIgnoreCase(upgrade)) {
+			if(upgrade != null && "websocket".equalsIgnoreCase(upgrade)) {
 				handleWebSocket(ctx, msg);
 				return;
 			}
@@ -53,26 +54,35 @@ public class HTTPInitialInboundHandler extends MessageToMessageCodec<HttpRequest
 		pipelineData.headerAuthorization = headers.get(HttpHeaderNames.AUTHORIZATION);
 		pipelineData.requestPath = msg.uri();
 		
+		ConfigDataSettings settings = server.getConfig().getSettings();
+		ctx.pipeline().replace(PipelineTransformer.HANDLER_HTTP_AGGREGATOR, PipelineTransformer.HANDLER_WS_AGGREGATOR,
+				new WebSocketFrameAggregator(settings.getHTTPWebSocketFragmentSize()));
+		ctx.pipeline().replace(PipelineTransformer.HANDLER_HTTP_INITIAL, PipelineTransformer.HANDLER_WS_INITIAL,
+				new WebSocketInitialInboundHandler(server, pipelineData, retainWaitingOutbound(waitingOutboundFrames)));
+		
+		WebSocketServerHandshakerFactory factory = new WebSocketServerHandshakerFactory(
+				(pipelineData.wss ? "wss://" : "ws://") + pipelineData.headerHost + pipelineData.requestPath, null,
+				true, settings.getHTTPWebSocketMaxFrameLength());
+		WebSocketServerHandshaker hs = factory.newHandshaker(msg);
+		if(hs != null) {
+			hs.handshake(ctx.channel(), msg).addListener((future) -> {
+				if(future.isSuccess()) {
+					//TODO handle websocket
+				}else {
+					ctx.channel().close();
+				}
+			});
+		}else {
+			WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel())
+					.addListener(ChannelFutureListener.CLOSE);
+		}
 	}
 
 	private void handleHTTP(ChannelHandlerContext ctx, HttpRequest msg) throws Exception {
-		removeVanillaHandlers(ctx);
+		server.getPipelineTransformer().removeVanillaHandlers(ctx.pipeline());
 		
 		//TODO: handle http request
 		
-	}
-
-	private void removeVanillaHandlers(ChannelHandlerContext ctx) {
-		ChannelPipeline pipeline = ctx.channel().pipeline();
-		for(String key : pipeline.names()) {
-			if(!PipelineTransformer.EAGLER_HTTP_HANDLERS.contains(key)) {
-				ChannelHandler handler = pipeline.get(key);
-				if (!(handler instanceof ReadTimeoutHandler) && !(handler instanceof HAProxyMessageDecoder)
-						&& !(handler instanceof HAProxyMessageEncoder)) {
-					pipeline.remove(key);
-				}
-			}
-		}
 	}
 
 	@Override
@@ -96,6 +106,18 @@ public class HTTPInitialInboundHandler extends MessageToMessageCodec<HttpRequest
 	public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
 		super.handlerRemoved(ctx);
 		release();
+	}
+
+	private List<ByteBuf> retainWaitingOutbound(List<ByteBuf> buffers) {
+		if (buffers != null) {
+			List<ByteBuf> framesRet = new ArrayList<>(buffers.size());
+			for (ByteBuf b : buffers) {
+				framesRet.add(b.retain());
+			}
+			return framesRet;
+		}else {
+			return null;
+		}
 	}
 
 	private void release() {

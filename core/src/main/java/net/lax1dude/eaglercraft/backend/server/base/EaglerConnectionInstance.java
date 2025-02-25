@@ -17,6 +17,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	private final String eaglerBrandString;
 	private final String eaglerVersionString;
 	private final UUID eaglerBrandUUID;
+	private final boolean wss;
 	private final String headerHost;
 	private final String headerOrigin;
 	private final String headerUserAgent;
@@ -37,6 +38,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		this.eaglerBrandString = pipelineData.eaglerBrandString;
 		this.eaglerVersionString = pipelineData.eaglerVersionString;
 		this.eaglerBrandUUID = pipelineData.eaglerBrandUUID;
+		this.wss = pipelineData.wss;
 		this.headerHost = pipelineData.headerHost;
 		this.headerOrigin = pipelineData.headerOrigin;
 		this.headerUserAgent = pipelineData.headerUserAgent;
@@ -63,6 +65,23 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	@Override
 	public IEaglerListenerInfo getListenerInfo() {
 		return listenerInfo;
+	}
+
+	@Override
+	public boolean isWebSocketSecure() {
+		return wss;
+	}
+
+	@Override
+	public boolean isEaglerXRewindPlayer() {
+		// TODO
+		return false;
+	}
+
+	@Override
+	public int getRewindProtocolVersion() {
+		// TODO
+		return 0;
 	}
 
 	@Override

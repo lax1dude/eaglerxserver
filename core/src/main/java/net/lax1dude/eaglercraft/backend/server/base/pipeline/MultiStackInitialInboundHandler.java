@@ -108,6 +108,12 @@ public class MultiStackInitialInboundHandler extends ByteToMessageCodec<ByteBuf>
 			try {
 				char firstChar = (char) buffer.readUnsignedByte();
 				switch(firstChar) {
+				case 0x16:
+					// TLS
+					if(buffer.readUnsignedByte() == 0x03) {
+						return 2;
+					}
+					break;
 				case 'G':
 					// "GET "
 					if (len >= 4 && buffer.readUnsignedByte() == 'E' && buffer.readUnsignedByte() == 'T'
@@ -182,8 +188,8 @@ public class MultiStackInitialInboundHandler extends ByteToMessageCodec<ByteBuf>
 					}
 					break;
 				}
-				// Returns 2 if there's not a chance this is HTTP
-				return 2;
+				// Returns 3 if there's not a chance this is HTTP
+				return 3;
 			}catch(IndexOutOfBoundsException ex) {
 			}finally {
 				buffer.resetReaderIndex();
@@ -210,7 +216,7 @@ public class MultiStackInitialInboundHandler extends ByteToMessageCodec<ByteBuf>
 		}
 		
 		if(i < 9) {
-			return 2;
+			return 3;
 		}
 		
 		// Make sure the request line ended with " HTTP/1.0" or " HTTP/1.1"
@@ -226,10 +232,11 @@ public class MultiStackInitialInboundHandler extends ByteToMessageCodec<ByteBuf>
 			return 1;
 		}
 		
-		return 2;
+		return 3;
 	}
 
 	private void setVanillaHandler(ChannelHandlerContext ctx, ByteBuf buffer) {
+		pipelineData.listenerInfo = null;
 		if(waitingOutboundFrames != null) {
 			for(ByteBuf buf : waitingOutboundFrames) {
 				ctx.write(buf, ctx.voidPromise());

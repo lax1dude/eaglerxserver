@@ -16,6 +16,7 @@ public class NettyPipelineData {
 	public String eaglerVersionString;
 	public UUID eaglerBrandUUID;
 
+	public boolean wss;
 	public String headerHost;
 	public String headerOrigin;
 	public String headerUserAgent;

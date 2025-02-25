@@ -235,10 +235,14 @@ public class ConfigDataSettings {
 	}
 
 	private final String serverName;
-	private final UUID serverUUID ;
-	private final int websocketHandshakeTimeout;
-	private final int builtinHTTPServerTimeout;
+	private final UUID serverUUID;
+	private final int httpMaxInitialLineLength;
+	private final int httpMaxHeaderSize;
+	private final int httpMaxChunkSize;
+	private final int httpMaxContentLength;
 	private final int httpWebSocketCompressionLevel;
+	private final int httpWebSocketFragmentSize;
+	private final int httpWebSocketMaxFrameLength;
 	private final int tlsCertRefreshRate;
 	private final boolean enableAuthenticationEvents;
 	private final boolean enableBackendRPCAPI;
@@ -250,17 +254,22 @@ public class ConfigDataSettings {
 	private final ConfigDataVoiceService voiceService;
 	private final ConfigDataUpdateService updateService;
 
-	public ConfigDataSettings(String serverName, UUID serverUUID, int websocketHandshakeTimeout,
-			int builtinHTTPServerTimeout, int httpWebSocketCompressionLevel, int tlsCertRefreshRate,
+	public ConfigDataSettings(String serverName, UUID serverUUID, int httpMaxInitialLineLength, int httpMaxHeaderSize,
+			int httpMaxChunkSize, int httpMaxContentLength, int httpWebSocketCompressionLevel,
+			int httpWebSocketFragmentSize, int httpWebSocketMaxFrameLength, int tlsCertRefreshRate,
 			boolean enableAuthenticationEvents, boolean enableBackendRPCAPI, boolean useModernizedChannelNames,
 			String eaglerPlayersVanillaSkin, int protocolV4DefragSendDelay, ConfigDataProtocols protocols,
 			ConfigDataSkinService skinService, ConfigDataVoiceService voiceService,
 			ConfigDataUpdateService updateService) {
 		this.serverName = serverName;
 		this.serverUUID = serverUUID;
-		this.websocketHandshakeTimeout = websocketHandshakeTimeout;
-		this.builtinHTTPServerTimeout = builtinHTTPServerTimeout;
+		this.httpMaxInitialLineLength = httpMaxInitialLineLength;
+		this.httpMaxHeaderSize = httpMaxHeaderSize;
+		this.httpMaxChunkSize = httpMaxChunkSize;
+		this.httpMaxContentLength = httpMaxContentLength;
 		this.httpWebSocketCompressionLevel = httpWebSocketCompressionLevel;
+		this.httpWebSocketFragmentSize = httpWebSocketFragmentSize;
+		this.httpWebSocketMaxFrameLength = httpWebSocketMaxFrameLength;
 		this.tlsCertRefreshRate = tlsCertRefreshRate;
 		this.enableAuthenticationEvents = enableAuthenticationEvents;
 		this.enableBackendRPCAPI = enableBackendRPCAPI;
@@ -281,16 +290,32 @@ public class ConfigDataSettings {
 		return serverUUID;
 	}
 
-	public int getWebsocketHandshakeTimeout() {
-		return websocketHandshakeTimeout;
+	public int getHTTPMaxInitialLineLength() {
+		return httpMaxInitialLineLength;
 	}
 
-	public int getBuiltinHTTPServerTimeout() {
-		return builtinHTTPServerTimeout;
+	public int getHTTPMaxHeaderSize() {
+		return httpMaxHeaderSize;
+	}
+
+	public int getHTTPMaxChunkSize() {
+		return httpMaxChunkSize;
+	}
+
+	public int getHTTPMaxContentLength() {
+		return httpMaxContentLength;
 	}
 
 	public int getHTTPWebSocketCompressionLevel() {
 		return httpWebSocketCompressionLevel;
+	}
+
+	public int getHTTPWebSocketFragmentSize() {
+		return httpWebSocketFragmentSize;
+	}
+
+	public int getHTTPWebSocketMaxFrameLength() {
+		return httpWebSocketMaxFrameLength;
 	}
 
 	public int getTLSCertRefreshRate() {
@@ -309,7 +334,7 @@ public class ConfigDataSettings {
 		return useModernizedChannelNames;
 	}
 
-	public String isEaglerPlayersVanillaSkin() {
+	public String getEaglerPlayersVanillaSkin() {
 		return eaglerPlayersVanillaSkin;
 	}
 
