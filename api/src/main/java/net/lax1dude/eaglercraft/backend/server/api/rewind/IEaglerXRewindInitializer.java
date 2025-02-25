@@ -21,13 +21,17 @@ public interface IEaglerXRewindInitializer<Attachment> {
 
 	IPacket2ClientProtocol getLegacyHandshake();
 
-	void injectNettyEncoder(Object nettyEncoder);
+	void injectNettyHandlers(Object nettyEncoder, Object nettyDecoder);
 
-	void injectNettyDecoder(Object nettyDecoder);
+	void injectNettyHandlers(Object nettyCodec);
+
+	void rewriteInitialHandshakeV1(int eaglerProtocol, int minecraftProtocol, String eaglerClientBrand, String eaglerClientVersion);
+
+	void rewriteInitialHandshakeV2(int eaglerProtocol, int minecraftProtocol, String eaglerClientBrand, String eaglerClientVersion, boolean authEnabled, byte[] authUsername);
 
 	Object getNettyChannel();
 
-	List<Object> getWaitingOutboundFrames();
+	List<?> getWaitingOutboundFrames();
 
 	void cancelDisconnect();
 

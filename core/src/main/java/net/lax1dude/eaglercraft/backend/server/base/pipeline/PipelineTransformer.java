@@ -27,6 +27,7 @@ import net.lax1dude.eaglercraft.backend.server.base.EaglerListener;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.ISSLContextProvider;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
+import net.lax1dude.eaglercraft.backend.server.base.RewindService;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings;
 
 public class PipelineTransformer {
@@ -42,6 +43,7 @@ public class PipelineTransformer {
 	public static final String HANDLER_QUERY_HANDLER = "eagler-query-handler";
 	public static final String HANDLER_FRAME_DECODER = "eagler-frame-decoder";
 	public static final String HANDLER_FRAME_ENCODER = "eagler-frame-encoder";
+	public static final String HANDLER_REWIND_CODEC = "eagler-rewind-codec";
 	public static final String HANDLER_REWIND_DECODER = "eagler-rewind-decoder";
 	public static final String HANDLER_REWIND_ENCODER = "eagler-rewind-encoder";
 
@@ -55,9 +57,11 @@ public class PipelineTransformer {
 			EnumPipelineComponent.BUNGEE_LEGACY_KICK_ENCODER, EnumPipelineComponent.VELOCITY_LEGACY_PING_ENCODER);
 
 	public final EaglerXServer<?> server;
+	public final RewindService<?> rewind;
 
-	public PipelineTransformer(EaglerXServer<?> server) {
+	public PipelineTransformer(EaglerXServer<?> server, RewindService<?> rewind) {
 		this.server = server;
+		this.rewind = rewind;
 	}
 
 	public void injectSingleStack(List<IPipelineComponent> components, Channel channel, NettyPipelineData pipelineData) {

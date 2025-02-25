@@ -10,6 +10,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.ITLSManager;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketInitialInboundHandler;
 
 public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListener {
 
@@ -18,6 +19,7 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 	private final ConfigDataListener listenerConf;
 	private final boolean sslPluginManaged;
 	private final ISSLContextProvider sslContext;
+	private final byte[] legacyRedirectAddressBuf;
 
 	EaglerListener(EaglerXServer<?> server, ConfigDataListener listenerConf) throws SSLException {
 		this(server, listenerConf.getInjectAddress(), listenerConf);
@@ -39,6 +41,11 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 		} else {
 			this.sslPluginManaged = false;
 			this.sslContext = null;
+		}
+		if (listenerConf.getRedirectLegacyClientsTo() != null) {
+			this.legacyRedirectAddressBuf = WebSocketInitialInboundHandler.prepareRedirectAddr(listenerConf.getRedirectLegacyClientsTo());
+		}else {
+			this.legacyRedirectAddressBuf = null;
 		}
 	}
 
@@ -105,6 +112,10 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 	@Override
 	public void reportNettyInjected(Channel channel) {
 		server.logger().info("Listener \"" + listenerConf.getListenerName() + "\" injected into channel " + channel + " successfully (Generic Netty method)");
+	}
+
+	public byte[] getLegacyRedirectAddressBuf() {
+		return legacyRedirectAddressBuf;
 	}
 
 }

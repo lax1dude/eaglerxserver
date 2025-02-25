@@ -24,6 +24,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	private final String headerCookie;
 	private final String headerAuthorization;
 	private final String requestPath;
+	private final String realAddress;
 	private final int handshakeProtocol;
 	private final GamePluginMessageProtocol gameProtocol;
 	private final boolean cookieEnabled;
@@ -45,6 +46,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		this.headerCookie = pipelineData.headerCookie;
 		this.headerAuthorization = pipelineData.headerAuthorization;
 		this.requestPath = pipelineData.requestPath;
+		this.realAddress = pipelineData.realAddress;
 		this.handshakeProtocol = pipelineData.handshakeProtocol;
 		this.gameProtocol = pipelineData.gameProtocol;
 		this.cookieEnabled = pipelineData.cookieEnabled;
@@ -65,6 +67,11 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	@Override
 	public IEaglerListenerInfo getListenerInfo() {
 		return listenerInfo;
+	}
+
+	@Override
+	public String getRealAddress() {
+		return realAddress != null ? realAddress : super.getRealAddress();
 	}
 
 	@Override

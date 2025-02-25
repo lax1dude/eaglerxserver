@@ -53,4 +53,16 @@ public class BufferUtils {
 		return 5;
 	}
 
+	public static String readLegacyMCString(ByteBuf buffer, int maxLen) {
+		int len = buffer.readUnsignedShort();
+		if(len > maxLen) {
+			throw new IndexOutOfBoundsException("String too long");
+		}
+		char[] chars = new char[len];
+		for(int i = 0; i < len; ++i) {
+			chars[i] = buffer.readChar();
+		}
+		return new String(chars);
+	}
+
 }

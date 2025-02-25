@@ -88,6 +88,35 @@ public class ConfigDataSettings {
 			return maxEaglerProtocol;
 		}
 
+		public boolean isEaglerHandshakeSupported(int vers) {
+			switch(vers) {
+			case 1:
+			case 2:
+				return protocolLegacyAllowed;
+			case 3:
+				return protocolV3Allowed;
+			case 4:
+				return protocolV4Allowed;
+			case 5:
+				return protocolV5Allowed;
+			default:
+				return false;
+			}
+		}
+
+		public boolean isEaglerProtocolSupported(int vers) {
+			switch(vers) {
+			case 3:
+				return protocolLegacyAllowed || protocolV3Allowed;
+			case 4:
+				return protocolV4Allowed;
+			case 5:
+				return protocolV5Allowed;
+			default:
+				return false;
+			}
+		}
+
 	}
 
 	public static class ConfigDataSkinService {

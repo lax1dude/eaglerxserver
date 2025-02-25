@@ -71,6 +71,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private Map<SocketAddress, EaglerListener> listenersByAddress;
 	private QueryServer queryServer;
 	private WebServer webServer;
+	private RewindService<PlayerObject> rewindService;
 	private PipelineTransformer pipelineTransformer;
 	private SSLCertificateManager certificateManager;
 
@@ -98,11 +99,6 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		}
 		
 		eventDispatcher = platform.eventDispatcher();
-		brandRegistry = new BrandRegistry();
-		queryServer = new QueryServer(this);
-		webServer = new WebServer(this);
-		pipelineTransformer = new PipelineTransformer(this);
-		certificateManager = new SSLCertificateManager(logger());
 		
 		try {
 			config = EaglerConfigLoader.loadConfig(platform);
@@ -111,6 +107,13 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		}
 		
 		logger().info("Server Name: \"" + config.getSettings().getServerName() + "\"");
+		
+		brandRegistry = new BrandRegistry();
+		queryServer = new QueryServer(this);
+		webServer = new WebServer(this);
+		rewindService = new RewindService<PlayerObject>(this);
+		pipelineTransformer = new PipelineTransformer(this, rewindService);
+		certificateManager = new SSLCertificateManager(logger());
 		
 		init.setOnServerEnable(this::enableHandler);
 		init.setOnServerDisable(this::disableHandler);
@@ -296,8 +299,13 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
+	public boolean isEaglerHandshakeSupported(int vers) {
+		return config.getSettings().getProtocols().isEaglerHandshakeSupported(vers);
+	}
+
+	@Override
 	public boolean isEaglerProtocolSupported(int vers) {
-		return GamePluginMessageProtocol.getByVersion(vers) != null;
+		return config.getSettings().getProtocols().isEaglerProtocolSupported(vers);
 	}
 
 	@Override
@@ -453,8 +461,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public IEaglerXRewindService<PlayerObject> getEaglerXRewindService() {
-		// TODO
-		return null;
+		return rewindService;
 	}
 
 	@Override

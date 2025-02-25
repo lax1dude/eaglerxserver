@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformSubLogger;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class NettyPipelineData {
@@ -23,6 +24,7 @@ public class NettyPipelineData {
 	public String headerCookie;
 	public String headerAuthorization;
 	public String requestPath;
+	public String realAddress;
 
 	public int handshakeProtocol;
 	public GamePluginMessageProtocol gameProtocol;
@@ -30,6 +32,9 @@ public class NettyPipelineData {
 	public byte[] cookieData;
 
 	public IPlatformSubLogger connectionLogger;
+
+	public Object rewindAttachment;
+	public IEaglerXRewindProtocol<?, ?> rewindProtocol;
 
 	public NettyPipelineData(Channel channel, EaglerListener listenerInfo,
 			EaglerAttributeManager.EaglerAttributeHolder attributeHolder) {

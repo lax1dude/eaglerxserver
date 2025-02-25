@@ -58,6 +58,8 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	boolean isAuthenticationEventsEnabled();
 
+	boolean isEaglerHandshakeSupported(int vers);
+
 	boolean isEaglerProtocolSupported(int vers);
 
 	IBrandRegistry getBrandRegistry();

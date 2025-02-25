@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake;
 
+import java.util.List;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketInitialInboundHandler;
@@ -18,7 +20,7 @@ public class HandshakerV4 implements IHandshaker {
 	}
 
 	@Override
-	public void handleInbound(ChannelHandlerContext ctx, ByteBuf buffer) {
+	public void handleInbound(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) {
 		
 	}
 
