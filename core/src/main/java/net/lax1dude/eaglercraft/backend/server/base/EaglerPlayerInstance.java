@@ -33,6 +33,16 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
+	public boolean isHandshakeAuthEnabled() {
+		return connectionInstance.isHandshakeAuthEnabled();
+	}
+
+	@Override
+	public byte[] getAuthUsername() {
+		return connectionInstance.getAuthUsername();
+	}
+
+	@Override
 	public IEaglerListenerInfo getListenerInfo() {
 		return connectionInstance.getListenerInfo();
 	}
@@ -58,13 +68,13 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
-	public String getEaglerVersionName() {
-		return connectionInstance.getEaglerVersionName();
+	public String getEaglerVersionString() {
+		return connectionInstance.getEaglerVersionString();
 	}
 
 	@Override
-	public String getEaglerBrandName() {
-		return connectionInstance.getEaglerBrandName();
+	public String getEaglerBrandString() {
+		return connectionInstance.getEaglerBrandString();
 	}
 
 	@Override

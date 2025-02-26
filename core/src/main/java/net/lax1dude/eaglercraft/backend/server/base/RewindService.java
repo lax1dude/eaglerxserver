@@ -62,17 +62,16 @@ public class RewindService<PlayerObject> implements IEaglerXRewindService<Player
 		if(protocols == null || protocols.length == 0) {
 			return;
 		}
+		protocols = protocols.clone();
+		for(int i = 0; i < protocols.length; ++i) {
+			int j = protocols[i];
+			if(j < 0 && j > 255) {
+				throw new UnsupportedOperationException("Invalid legacy protocol version: " + j);
+			}
+		}
 		registerLock.writeLock().lock();
 		try {
-			if(!registeredProtocols.containsKey(protocolHandler)) {
-				for(int i = 0; i < protocols.length; ++i) {
-					int j = protocols[i];
-					if(j < 0 && j > 255) {
-						throw new UnsupportedOperationException("Invalid legacy protocol version: " + j);
-					}
-				}
-				protocols = protocols.clone();
-				registeredProtocols.put(protocolHandler, protocols);
+			if(registeredProtocols.putIfAbsent(protocolHandler, protocols) == null) {
 				for(int i = 0; i < protocols.length; ++i) {
 					protocolIds[protocols[i]] = protocolHandler;
 				}

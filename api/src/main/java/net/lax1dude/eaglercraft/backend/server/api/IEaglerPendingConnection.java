@@ -6,6 +6,10 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public interface IEaglerPendingConnection extends IBasePendingConnection {
 
+	boolean isHandshakeAuthEnabled();
+
+	byte[] getAuthUsername();
+
 	IEaglerListenerInfo getListenerInfo();
 
 	boolean isWebSocketSecure();
@@ -16,9 +20,9 @@ public interface IEaglerPendingConnection extends IBasePendingConnection {
 
 	String getWebSocketHeader(EnumWebSocketHeader header);
 
-	String getEaglerVersionName();
+	String getEaglerVersionString();
 
-	String getEaglerBrandName();
+	String getEaglerBrandString();
 
 	UUID getEaglerBrandUUID();
 

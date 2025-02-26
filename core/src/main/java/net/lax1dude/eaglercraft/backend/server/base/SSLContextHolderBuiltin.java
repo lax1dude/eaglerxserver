@@ -15,7 +15,7 @@ public class SSLContextHolderBuiltin implements ISSLContextProvider {
 	protected final String password;
 	protected byte[] pubKey;
 	protected byte[] privKey;
-	protected volatile SslContext ctx;
+	protected SslContext ctx;
 
 	protected SSLContextHolderBuiltin(String name, String password) {
 		this.name = name;

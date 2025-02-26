@@ -65,7 +65,7 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 	private final NettyPipelineData pipelineData;
 	private List<ByteBuf> waitingOutboundFrames;
 	private IHandshaker handshaker;
-	private boolean terminated;
+	public boolean terminated;
 
 	public WebSocketInitialInboundHandler(EaglerXServer<?> server, NettyPipelineData pipelineData, List<ByteBuf> waitingOutboundFrames) {
 		this.server = server;
@@ -99,9 +99,43 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 		return ctx.writeAndFlush(new BinaryWebSocketFrame(buf));
 	}
 
+	public ChannelFuture sendErrorCode(ChannelHandlerContext ctx, int handshakeProtocol, int errorCode, Object errorComponent) {
+		ByteBuf buf = ctx.alloc().buffer();
+		buf.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_ERROR);
+		buf.writeByte(errorCode);
+		if(handshakeProtocol >= 3) {
+			String errorMessage = server.componentHelper().serializeLegacyJSON(errorComponent);
+			if(errorMessage.length() > 65535) {
+				errorMessage = errorMessage.substring(0, 65535);
+			}
+			byte[] msg = errorMessage.getBytes(StandardCharsets.UTF_8);
+			buf.writeShort(msg.length);
+			buf.writeBytes(msg);
+		}else {
+			String errorMessage = server.componentHelper().serializeLegacySection(errorComponent);
+			if(errorMessage.length() > 255) {
+				errorMessage = errorMessage.substring(0, 255);
+			}
+			byte[] msg = errorMessage.getBytes(StandardCharsets.UTF_8);
+			buf.writeByte(msg.length);
+			buf.writeBytes(msg);
+		}
+		return ctx.writeAndFlush(new BinaryWebSocketFrame(buf));
+	}
+
+	public void terminateInternalError(ChannelHandlerContext ctx, int handshakeProtocol) {
+		terminateErrorCode(ctx, handshakeProtocol, HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE,
+				HandshakePacketTypes.MSG_INTERNAL_ERROR);
+	}
+
 	public void terminateErrorCode(ChannelHandlerContext ctx, int handshakeProtocol, int errorCode, String errorMessage) {
 		terminated = true;
 		sendErrorCode(ctx, handshakeProtocol, errorCode, errorMessage).addListener(ChannelFutureListener.CLOSE);
+	}
+
+	public void terminateErrorCode(ChannelHandlerContext ctx, int handshakeProtocol, int errorCode, Object errorComponent) {
+		terminated = true;
+		sendErrorCode(ctx, handshakeProtocol, errorCode, errorComponent).addListener(ChannelFutureListener.CLOSE);
 	}
 
 	@Override
@@ -328,7 +362,7 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 			ctx.close();
 			return;
 		}
-		handshaker = (new HandshakerV1(this)).init(ctx, eaglerBrand, eaglerVersionString);
+		handshaker = (new HandshakerV1(server, pipelineData, this)).init(ctx, eaglerBrand, eaglerVersionString);
 	}
 
 	private void handleRewindConnection(ChannelHandlerContext ctx, int protocolVers, ByteBuf binaryMsg) {
@@ -388,12 +422,14 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 			server.logger().error("Cancelling EaglerXRewind connection for protocol " + protocol + ", no handshake was injected");
 			return;
 		}
+		pipelineData.rewindProtocol = protocol;
+		pipelineData.rewindProtocolVersion = protocolVers;
 		int eaglerProtocol = initializer.getEaglerProtocol();
 		switch(eaglerProtocol) {
 		case 1:
 			if(protocols.isProtocolLegacyAllowed()) {
-				handshaker = (new HandshakerV1(this)).init(ctx, initializer.getEaglerClientBrand(),
-						initializer.getEaglerClientVersion());
+				handshaker = (new HandshakerV1(server, pipelineData, this)).init(ctx,
+						initializer.getEaglerClientBrand(), initializer.getEaglerClientVersion());
 			}
 			break;
 		case 2:
@@ -425,7 +461,6 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 			server.logger().error("Cancelling EaglerXRewind connection for protocol " + protocol + ", unsupported injected handshake version " + eaglerProtocol);
 			return;
 		}
-		pipelineData.rewindProtocol = protocol;
 	}
 
 	private void kickLegacy(ChannelHandlerContext ctx) {

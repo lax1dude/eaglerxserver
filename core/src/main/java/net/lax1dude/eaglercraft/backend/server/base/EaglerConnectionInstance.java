@@ -8,6 +8,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformSubLogger;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class EaglerConnectionInstance extends BaseConnectionInstance implements IEaglerPendingConnection {
@@ -27,9 +28,15 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	private final String realAddress;
 	private final int handshakeProtocol;
 	private final GamePluginMessageProtocol gameProtocol;
+	private final int minecraftProtocol;
+	private final boolean handshakeAuthEnabled;
+	private final byte[] handshakeAuthUsername;
 	private final boolean cookieEnabled;
 	private byte[] cookieDataInit;
 	private final IPlatformSubLogger connectionLogger;
+	private final Object rewindAttachment;
+	private final IEaglerXRewindProtocol<?, ?> rewindProtocol;
+	private final int rewindProtocolVersion;
 
 	public EaglerConnectionInstance(IPlatformConnection connection,
 			NettyPipelineData pipelineData) {
@@ -49,9 +56,20 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		this.realAddress = pipelineData.realAddress;
 		this.handshakeProtocol = pipelineData.handshakeProtocol;
 		this.gameProtocol = pipelineData.gameProtocol;
+		this.minecraftProtocol = pipelineData.minecraftProtocol;
+		this.handshakeAuthEnabled = pipelineData.handshakeAuthEnabled;
+		this.handshakeAuthUsername = pipelineData.handshakeAuthUsername;
 		this.cookieEnabled = pipelineData.cookieEnabled;
 		this.cookieDataInit = pipelineData.cookieData;
 		this.connectionLogger = pipelineData.connectionLogger;
+		this.rewindAttachment = pipelineData.rewindAttachment;
+		this.rewindProtocol = pipelineData.rewindProtocol;
+		this.rewindProtocolVersion = pipelineData.rewindProtocolVersion;
+	}
+
+	@Override
+	public int getMinecraftProtocol() {
+		return minecraftProtocol;
 	}
 
 	@Override
@@ -62,6 +80,16 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	@Override
 	public IEaglerPendingConnection asEaglerPlayer() {
 		return this;
+	}
+
+	@Override
+	public boolean isHandshakeAuthEnabled() {
+		return handshakeAuthEnabled;
+	}
+
+	@Override
+	public byte[] getAuthUsername() {
+		return handshakeAuthUsername;
 	}
 
 	@Override
@@ -81,14 +109,16 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 
 	@Override
 	public boolean isEaglerXRewindPlayer() {
-		// TODO
-		return false;
+		return rewindProtocol != null;
 	}
 
 	@Override
 	public int getRewindProtocolVersion() {
-		// TODO
-		return 0;
+		return rewindProtocolVersion;
+	}
+
+	public Object getRewindAttachment() {
+		return rewindAttachment;
 	}
 
 	@Override
@@ -112,12 +142,12 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	}
 
 	@Override
-	public String getEaglerBrandName() {
+	public String getEaglerBrandString() {
 		return eaglerBrandString;
 	}
 
 	@Override
-	public String getEaglerVersionName() {
+	public String getEaglerVersionString() {
 		return eaglerVersionString;
 	}
 

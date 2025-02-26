@@ -18,7 +18,7 @@ import net.lax1dude.eaglercraft.backend.server.api.TLSManagerException;
 public class SSLContextHolderPlugin implements ISSLContextProvider, ITLSManager {
 
 	private final EaglerListener listener;
-	private volatile SslContext ctx;
+	private SslContext ctx;
 
 	public SSLContextHolderPlugin(EaglerListener listener) {
 		this.listener = listener;

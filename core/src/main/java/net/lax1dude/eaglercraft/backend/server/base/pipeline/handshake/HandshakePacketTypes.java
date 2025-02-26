@@ -47,4 +47,6 @@ public class HandshakePacketTypes {
 	public static final int SERVER_ERROR_CUSTOM_MESSAGE = 0x08;
 	public static final int SERVER_ERROR_AUTHENTICATION_REQUIRED = 0x09;
 
+	public static final String MSG_INTERNAL_ERROR = "Internal Error";
+
 }

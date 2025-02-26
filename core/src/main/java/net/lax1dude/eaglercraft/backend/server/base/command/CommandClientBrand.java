@@ -64,10 +64,10 @@ public class CommandClientBrand<PlayerObject> extends EaglerCommand<PlayerObject
 				EaglerPlayerInstance<PlayerObject> eagPlayer = player.asEaglerPlayer();
 				sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.AQUA).end()
 						.text("Eagler Client Brand: ").appendTextComponent().beginStyle().color(EnumChatColor.GOLD).end()
-						.text(eagPlayer.getEaglerBrandName()).end().end());
+						.text(eagPlayer.getEaglerBrandString()).end().end());
 				sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.AQUA).end()
 						.text("Eagler Client Version: ").appendTextComponent().beginStyle().color(EnumChatColor.GOLD).end()
-						.text(eagPlayer.getEaglerVersionName()).end().end());
+						.text(eagPlayer.getEaglerVersionString()).end().end());
 			}else {
 				sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.AQUA).end()
 						.text("Player is not using Eaglercraft").end());
