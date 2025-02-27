@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
 import java.net.SocketAddress;
+import java.util.Map;
 import java.util.UUID;
 
 import io.netty.channel.Channel;
@@ -9,6 +10,7 @@ import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
@@ -41,9 +43,13 @@ public class NettyPipelineData implements IEaglerPendingConnection {
 	public UUID uuid;
 	public String requestedServer;
 	public boolean authEventEnabled;
+	public IEaglercraftAuthCheckRequiredEvent.EnumAuthType authType;
+	public String authMessage;
+	public byte[] authSalt;
 	public boolean cookieEnabled;
 	public boolean cookieAuthEventEnabled;
 	public byte[] cookieData;
+	public Map<String, byte[]> profileDatas;
 
 	public UUID brandUUID;
 

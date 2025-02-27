@@ -1,33 +1,54 @@
 package net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake;
 
-import java.util.List;
+import java.nio.charset.StandardCharsets;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
+import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketInitialInboundHandler;
-import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketInitialInboundHandler.IHandshaker;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
-public class HandshakerV3 implements IHandshaker {
+public class HandshakerV3 extends HandshakerV2 {
 
-	private final WebSocketInitialInboundHandler inboundHandler;
-
-	public HandshakerV3(WebSocketInitialInboundHandler inboundHandler) {
-		this.inboundHandler = inboundHandler;
+	public HandshakerV3(EaglerXServer<?> server, NettyPipelineData pipelineData,
+			WebSocketInitialInboundHandler inboundHandler) {
+		super(server, pipelineData, inboundHandler);
 	}
 
 	public HandshakerV3 init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString,
 			int minecraftVersion, boolean auth, byte[] authUsername) {
+		handlePacketInit(ctx, eaglerBrand, eaglerVersionString, minecraftVersion, auth, authUsername);
 		return this;
 	}
 
 	@Override
-	public void handleInbound(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) {
-		
+	protected int getVersion() {
+		return 3;
 	}
 
 	@Override
-	public boolean handleOutbound(ChannelHandlerContext ctx, ByteBuf buffer) {
-		return false;
+	protected GamePluginMessageProtocol getFinalVersion() {
+		return GamePluginMessageProtocol.V3;
+	}
+
+	@Override
+	protected ChannelFuture sendPacketDenyLogin(ChannelHandlerContext ctx, String message) {
+		if(message.length() > 65535) {
+			message = message.substring(0, 65535);
+		}
+		ByteBuf buffer = ctx.alloc().buffer();
+		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_DENY_LOGIN);
+		byte[] msg = message.getBytes(StandardCharsets.UTF_8);
+		int len = msg.length;
+		if(len > 65535) {
+			len = 65535;
+		}
+		buffer.writeShort(len);
+		buffer.writeBytes(msg, 0, len);
+		return ctx.writeAndFlush(new BinaryWebSocketFrame(buffer));
 	}
 
 }

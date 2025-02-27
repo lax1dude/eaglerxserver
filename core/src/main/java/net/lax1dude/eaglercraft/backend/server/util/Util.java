@@ -4,6 +4,12 @@ import java.lang.reflect.InvocationTargetException;
 
 public class Util {
 
+	public static final byte[] ZERO_BYTES = new byte[0];
+
+	public static byte[] newByteArray(int len) {
+		return len > 0 ? new byte[len] : ZERO_BYTES;
+	}
+
 	public static long steadyTime() {
 		return System.nanoTime() / 1000000l;
 	}

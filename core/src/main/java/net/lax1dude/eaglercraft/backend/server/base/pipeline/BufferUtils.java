@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.pipeline;
 
+import java.nio.charset.StandardCharsets;
+
 import io.netty.buffer.ByteBuf;
 
 public class BufferUtils {
@@ -63,6 +65,27 @@ public class BufferUtils {
 			chars[i] = buffer.readChar();
 		}
 		return new String(chars);
+	}
+
+	public static String readMCString(ByteBuf buffer, int maxLen) {
+		int len = BufferUtils.readVarInt(buffer, 5);
+		if(len * 4 > maxLen) {
+			throw new IndexOutOfBoundsException();
+		}
+		CharSequence ret = buffer.readCharSequence(len, StandardCharsets.UTF_8);
+		if(ret.length() > maxLen) {
+			throw new IndexOutOfBoundsException();
+		}
+		return ret.toString();
+	}
+
+	public static void writeMCString(ByteBuf buffer, String value, int maxLen) {
+		if(value.length() > maxLen) {
+			throw new IndexOutOfBoundsException();
+		}
+		byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+		BufferUtils.writeVarInt(buffer, bytes.length);
+		buffer.writeBytes(bytes);
 	}
 
 }

@@ -47,7 +47,7 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter<Playe
 		this.eventMgr = eventMgr;
 	}
 
-	private static class DispatchCallbackWrapper<I, T extends I> implements Consumer<T>, Function<Throwable, Void> {
+	private static class DispatchCallbackWrapper<I, T extends I> implements Consumer<T>, Function<Throwable, T> {
 
 		private final IEventDispatchCallback<I> event;
 
@@ -56,14 +56,16 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter<Playe
 		}
 
 		@Override
-		public Void apply(Throwable t) {
+		public T apply(Throwable t) {
 			event.complete(null, t);
 			return null;
 		}
 
 		@Override
 		public void accept(T t) {
-			event.complete(t, null);
+			if(t != null) {
+				event.complete(t, null);
+			}
 		}
 
 	}
@@ -71,7 +73,7 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter<Playe
 	private <I, T extends I> void fire(T event, IEventDispatchCallback<I> cont) {
 		if (cont != null) {
 			DispatchCallbackWrapper<I, T> cb = new DispatchCallbackWrapper<>(cont);
-			eventMgr.fire(event).thenAccept(cb).exceptionally(cb);
+			eventMgr.fire(event).exceptionally(cb).thenAccept(cb);
 		} else {
 			eventMgr.fireAndForget(event);
 		}

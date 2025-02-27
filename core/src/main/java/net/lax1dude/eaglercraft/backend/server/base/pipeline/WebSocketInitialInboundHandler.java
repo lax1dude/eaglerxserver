@@ -26,14 +26,16 @@ import net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake.Handshake
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake.HandshakerV2;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake.HandshakerV3;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake.HandshakerV4;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake.VanillaInitializer;
+import net.lax1dude.eaglercraft.backend.server.util.Util;
 
 public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSocketFrame, ByteBuf> {
 
 	public interface IHandshaker {
 
-		void handleInbound(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out);
+		void handleInbound(ChannelHandlerContext ctx, ByteBuf buffer);
 
-		boolean handleOutbound(ChannelHandlerContext ctx, ByteBuf buffer);
+		void finish(ChannelHandlerContext ctx);
 
 	}
 
@@ -65,16 +67,13 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 	private final NettyPipelineData pipelineData;
 	private List<ByteBuf> waitingOutboundFrames;
 	private IHandshaker handshaker;
+	private VanillaInitializer vanillaInitializer;
 	public boolean terminated;
 
 	public WebSocketInitialInboundHandler(EaglerXServer<?> server, NettyPipelineData pipelineData, List<ByteBuf> waitingOutboundFrames) {
 		this.server = server;
 		this.pipelineData = pipelineData;
 		this.waitingOutboundFrames = waitingOutboundFrames;
-	}
-
-	public void setHandshaker(IHandshaker handshaker) {
-		this.handshaker = handshaker;
 	}
 
 	public ChannelFuture sendErrorCode(ChannelHandlerContext ctx, int handshakeProtocol, int errorCode, String errorMessage) {
@@ -109,16 +108,24 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 				errorMessage = errorMessage.substring(0, 65535);
 			}
 			byte[] msg = errorMessage.getBytes(StandardCharsets.UTF_8);
-			buf.writeShort(msg.length);
-			buf.writeBytes(msg);
+			int len = msg.length;
+			if(len > 65535) {
+				len = 65535;
+			}
+			buf.writeShort(len);
+			buf.writeBytes(msg, 0, len);
 		}else {
 			String errorMessage = server.componentHelper().serializeLegacySection(errorComponent);
 			if(errorMessage.length() > 255) {
 				errorMessage = errorMessage.substring(0, 255);
 			}
 			byte[] msg = errorMessage.getBytes(StandardCharsets.UTF_8);
-			buf.writeByte(msg.length);
-			buf.writeBytes(msg);
+			int len = msg.length;
+			if(len > 255) {
+				len = 255;
+			}
+			buf.writeByte(len);
+			buf.writeBytes(msg, 0, len);
 		}
 		return ctx.writeAndFlush(new BinaryWebSocketFrame(buf));
 	}
@@ -145,7 +152,7 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 				BinaryWebSocketFrame binaryMsg = (BinaryWebSocketFrame) msg;
 				ByteBuf data = binaryMsg.content();
 				if(handshaker != null) {
-					handshaker.handleInbound(ctx, data, output);
+					handshaker.handleInbound(ctx, data);
 				}else {
 					if(data.readableBytes() > 2) {
 						short b1 = data.readUnsignedByte();
@@ -322,7 +329,7 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 			eaglerVersionString = binaryMsg.readCharSequence(strlen, StandardCharsets.US_ASCII).toString();
 			clientAuth = binaryMsg.readBoolean();
 			strlen = binaryMsg.readUnsignedByte();
-			authUsername = new byte[strlen];
+			authUsername = Util.newByteArray(strlen);
 			binaryMsg.readBytes(authUsername);
 			if(binaryMsg.isReadable()) {
 				throw new IndexOutOfBoundsException();
@@ -333,14 +340,14 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 		}
 		
 		if (selectedHandshakeProtocol == 4) {
-			handshaker = (new HandshakerV4(this)).init(ctx, eaglerBrand, eaglerVersionString, maxAvailableMC,
-					clientAuth, authUsername);
+			handshaker = (new HandshakerV4(server, pipelineData, this)).init(ctx, eaglerBrand, eaglerVersionString,
+					maxAvailableMC, clientAuth, authUsername);
 		}else if(selectedHandshakeProtocol == 3) {
-			handshaker = (new HandshakerV3(this)).init(ctx, eaglerBrand, eaglerVersionString, maxAvailableMC,
-					clientAuth, authUsername);
+			handshaker = (new HandshakerV3(server, pipelineData, this)).init(ctx, eaglerBrand, eaglerVersionString,
+					maxAvailableMC, clientAuth, authUsername);
 		}else if(selectedHandshakeProtocol == 2) {
-			handshaker = (new HandshakerV2(this)).init(ctx, eaglerBrand, eaglerVersionString, maxAvailableMC,
-					clientAuth, authUsername);
+			handshaker = (new HandshakerV2(server, pipelineData, this)).init(ctx, eaglerBrand, eaglerVersionString,
+					maxAvailableMC, clientAuth, authUsername);
 		}else {
 			ctx.close();
 			return;
@@ -434,23 +441,23 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 			break;
 		case 2:
 			if(protocols.isProtocolLegacyAllowed()) {
-				handshaker = (new HandshakerV2(this)).init(ctx, initializer.getEaglerClientBrand(),
-						initializer.getEaglerClientVersion(), initializer.getMinecraftProtocol(),
-						initializer.isAuthEnabled(), initializer.getAuthUsername());
+				handshaker = (new HandshakerV2(server, pipelineData, this)).init(ctx,
+						initializer.getEaglerClientBrand(), initializer.getEaglerClientVersion(),
+						initializer.getMinecraftProtocol(), initializer.isAuthEnabled(), initializer.getAuthUsername());
 			}
 			break;
 		case 3:
 			if(protocols.isProtocolV3Allowed()) {
-				handshaker = (new HandshakerV3(this)).init(ctx, initializer.getEaglerClientBrand(),
-						initializer.getEaglerClientVersion(), initializer.getMinecraftProtocol(),
-						initializer.isAuthEnabled(), initializer.getAuthUsername());
+				handshaker = (new HandshakerV3(server, pipelineData, this)).init(ctx,
+						initializer.getEaglerClientBrand(), initializer.getEaglerClientVersion(),
+						initializer.getMinecraftProtocol(), initializer.isAuthEnabled(), initializer.getAuthUsername());
 			}
 			break;
 		case 4:
 			if(protocols.isProtocolV4Allowed()) {
-				handshaker = (new HandshakerV4(this)).init(ctx, initializer.getEaglerClientBrand(),
-						initializer.getEaglerClientVersion(), initializer.getMinecraftProtocol(),
-						initializer.isAuthEnabled(), initializer.getAuthUsername());
+				handshaker = (new HandshakerV4(server, pipelineData, this)).init(ctx,
+						initializer.getEaglerClientBrand(), initializer.getEaglerClientVersion(),
+						initializer.getMinecraftProtocol(), initializer.isAuthEnabled(), initializer.getAuthUsername());
 			}
 			break;
 		default:
@@ -496,10 +503,14 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 	@Override
 	protected void encode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> output) throws Exception {
 		if (!terminated && ctx.channel().isActive()) {
-			if(waitingOutboundFrames == null) {
-				waitingOutboundFrames = new ArrayList<>(4);
+			if(vanillaInitializer != null) {
+				vanillaInitializer.handleInbound(ctx, msg);
+			}else {
+				if(waitingOutboundFrames == null) {
+					waitingOutboundFrames = new ArrayList<>(4);
+				}
+				waitingOutboundFrames.add(msg.retain());
 			}
-			waitingOutboundFrames.add(msg.retain());
 		}
 		output.add(Unpooled.EMPTY_BUFFER); // :(
 	}
@@ -541,6 +552,17 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 			}
 			waitingOutboundFrames = null;
 		}
+	}
+
+	public void finishLogin(ChannelHandlerContext ctx) {
+		vanillaInitializer = (new VanillaInitializer(server, pipelineData, this))
+				.init(ctx, retainWaitingOutbound(waitingOutboundFrames));
+		release();
+	}
+
+	public void enterPlayState(ChannelHandlerContext ctx) {
+		handshaker.finish(ctx);
+		ctx.pipeline().remove(this);
 	}
 
 }
