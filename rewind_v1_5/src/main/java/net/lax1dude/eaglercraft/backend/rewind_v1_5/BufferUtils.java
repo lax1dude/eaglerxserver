@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.base.pipeline;
+package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
 import java.nio.charset.StandardCharsets;
 
