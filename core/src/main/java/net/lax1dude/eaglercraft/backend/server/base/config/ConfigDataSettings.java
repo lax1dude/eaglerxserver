@@ -297,6 +297,7 @@ public class ConfigDataSettings {
 
 	private final String serverName;
 	private final UUID serverUUID;
+	private final int eaglerLoginTimeout;
 	private final int httpMaxInitialLineLength;
 	private final int httpMaxHeaderSize;
 	private final int httpMaxChunkSize;
@@ -304,6 +305,7 @@ public class ConfigDataSettings {
 	private final int httpWebSocketCompressionLevel;
 	private final int httpWebSocketFragmentSize;
 	private final int httpWebSocketMaxFrameLength;
+	private final boolean httpAllowKeepAlive;
 	private final int tlsCertRefreshRate;
 	private final boolean enableAuthenticationEvents;
 	private final boolean enableBackendRPCAPI;
@@ -315,15 +317,16 @@ public class ConfigDataSettings {
 	private final ConfigDataVoiceService voiceService;
 	private final ConfigDataUpdateService updateService;
 
-	public ConfigDataSettings(String serverName, UUID serverUUID, int httpMaxInitialLineLength, int httpMaxHeaderSize,
-			int httpMaxChunkSize, int httpMaxContentLength, int httpWebSocketCompressionLevel,
-			int httpWebSocketFragmentSize, int httpWebSocketMaxFrameLength, int tlsCertRefreshRate,
-			boolean enableAuthenticationEvents, boolean enableBackendRPCAPI, boolean useModernizedChannelNames,
-			String eaglerPlayersVanillaSkin, int protocolV4DefragSendDelay, ConfigDataProtocols protocols,
-			ConfigDataSkinService skinService, ConfigDataVoiceService voiceService,
+	public ConfigDataSettings(String serverName, UUID serverUUID, int eaglerLoginTimeout, int httpMaxInitialLineLength,
+			int httpMaxHeaderSize, int httpMaxChunkSize, int httpMaxContentLength, int httpWebSocketCompressionLevel,
+			int httpWebSocketFragmentSize, int httpWebSocketMaxFrameLength, boolean httpAllowKeepAlive,
+			int tlsCertRefreshRate, boolean enableAuthenticationEvents, boolean enableBackendRPCAPI,
+			boolean useModernizedChannelNames, String eaglerPlayersVanillaSkin, int protocolV4DefragSendDelay,
+			ConfigDataProtocols protocols, ConfigDataSkinService skinService, ConfigDataVoiceService voiceService,
 			ConfigDataUpdateService updateService) {
 		this.serverName = serverName;
 		this.serverUUID = serverUUID;
+		this.eaglerLoginTimeout = eaglerLoginTimeout;
 		this.httpMaxInitialLineLength = httpMaxInitialLineLength;
 		this.httpMaxHeaderSize = httpMaxHeaderSize;
 		this.httpMaxChunkSize = httpMaxChunkSize;
@@ -331,6 +334,7 @@ public class ConfigDataSettings {
 		this.httpWebSocketCompressionLevel = httpWebSocketCompressionLevel;
 		this.httpWebSocketFragmentSize = httpWebSocketFragmentSize;
 		this.httpWebSocketMaxFrameLength = httpWebSocketMaxFrameLength;
+		this.httpAllowKeepAlive = httpAllowKeepAlive;
 		this.tlsCertRefreshRate = tlsCertRefreshRate;
 		this.enableAuthenticationEvents = enableAuthenticationEvents;
 		this.enableBackendRPCAPI = enableBackendRPCAPI;
@@ -349,6 +353,10 @@ public class ConfigDataSettings {
 
 	public UUID getServerUUID() {
 		return serverUUID;
+	}
+
+	public int getEaglerLoginTimeout() {
+		return eaglerLoginTimeout;
 	}
 
 	public int getHTTPMaxInitialLineLength() {
@@ -377,6 +385,10 @@ public class ConfigDataSettings {
 
 	public int getHTTPWebSocketMaxFrameLength() {
 		return httpWebSocketMaxFrameLength;
+	}
+
+	public boolean isHTTPAllowKeepAlive() {
+		return httpAllowKeepAlive;
 	}
 
 	public int getTLSCertRefreshRate() {

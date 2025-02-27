@@ -1,12 +1,20 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
 import java.net.SocketAddress;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.collect.ImmutableSet;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformSubLogger;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
@@ -17,6 +25,26 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class NettyPipelineData implements IEaglerPendingConnection, IPipelineData {
 
+	public static class ProfileDataHolder {
+
+		public final byte[] skinDataV1Init;
+		public final byte[] skinDataV2Init;
+		public final byte[] capeDataInit;
+		public final byte[] updateCertInit;
+
+		protected ProfileDataHolder(byte[] skinDataV1Init, byte[] skinDataV2Init, byte[] capeDataInit,
+				byte[] updateCertInit) {
+			this.skinDataV1Init = skinDataV1Init;
+			this.skinDataV2Init = skinDataV2Init;
+			this.capeDataInit = capeDataInit;
+			this.updateCertInit = updateCertInit;
+		}
+
+	}
+
+	private static final Set<String> profileDataStandard = ImmutableSet.of(
+			"skin_v1", "skin_v2", "cape_v1", "update_cert_v1", "brand_uuid_v1");
+
 	public final Channel channel;
 	public final EaglerXServer<?> server;
 	public final EaglerAttributeManager.EaglerAttributeHolder attributeHolder;
@@ -24,7 +52,6 @@ public class NettyPipelineData implements IEaglerPendingConnection, IPipelineDat
 	public EaglerListener listenerInfo;
 	public String eaglerBrandString;
 	public String eaglerVersionString;
-	public UUID eaglerBrandUUID;
 
 	public boolean wss;
 	public String headerHost;
@@ -53,8 +80,6 @@ public class NettyPipelineData implements IEaglerPendingConnection, IPipelineDat
 	public byte[] cookieData;
 	public Map<String, byte[]> profileDatas;
 
-	public UUID brandUUID;
-
 	public IPlatformSubLogger connectionLogger;
 
 	public Object rewindAttachment;
@@ -62,6 +87,8 @@ public class NettyPipelineData implements IEaglerPendingConnection, IPipelineDat
 	public int rewindProtocolVersion = -1;
 
 	public IEaglerPendingConnection redirectAPICallsTo;
+
+	private volatile IPlatformTask disconnectTask = null;
 
 	public NettyPipelineData(Channel channel, EaglerXServer<?> server, EaglerListener listenerInfo,
 			EaglerAttributeManager.EaglerAttributeHolder attributeHolder) {
@@ -188,7 +215,7 @@ public class NettyPipelineData implements IEaglerPendingConnection, IPipelineDat
 
 	@Override
 	public UUID getEaglerBrandUUID() {
-		return brandUUID;
+		return null;
 	}
 
 	@Override
@@ -199,6 +226,74 @@ public class NettyPipelineData implements IEaglerPendingConnection, IPipelineDat
 	@Override
 	public GamePluginMessageProtocol getEaglerProtocol() {
 		return gameProtocol;
+	}
+
+	public void scheduleLoginTimeoutHelper() {
+		if(disconnectTask == null) {
+			synchronized(this) {
+				if(disconnectTask != null) {
+					return;
+				}
+				disconnectTask = server.getPlatform().getScheduler().executeAsyncDelayedTask(() -> {
+					channel.close();
+				}, server.getConfig().getSettings().getEaglerLoginTimeout());
+			}
+		}
+	}
+
+	public void cancelLoginTimeoutHelper() {
+		if(disconnectTask != null) {
+			IPlatformTask task;
+			synchronized(this) {
+				task = disconnectTask;
+				if(task == null) {
+					return;
+				}
+				disconnectTask = null;
+			}
+			task.cancel();
+		}
+	}
+
+	public UUID brandUUIDHelper() {
+		if(profileDatas != null) {
+			byte[] uuid = profileDatas.get("brand_uuid_v1");
+			if(uuid != null && uuid.length == 16) {
+				ByteBuf buf = Unpooled.wrappedBuffer(uuid);
+				UUID ret = new UUID(buf.readLong(), buf.readLong());
+				if (!server.getBrandRegistry().sanitizeUUID(ret)) {
+					return ret;
+				}
+			}
+		}
+		return server.getBrandRegistry().getBrandUUIDClientLegacy(eaglerBrandString);
+	}
+
+	public ProfileDataHolder profileDataHelper() {
+		if(profileDatas != null) {
+			byte[] skinV2 = profileDatas.get("skin_v2");
+			byte[] skinV1 = skinV2 == null ? profileDatas.get("skin_v1") : null;
+			byte[] cape = profileDatas.get("cape_v1");
+			byte[] updateCert = profileDatas.get("update_cert_v1");
+			return new ProfileDataHolder(skinV1, skinV2, cape, updateCert);
+		}else {
+			return null;
+		}
+	}
+
+	public Map<String, byte[]> extraProfileDataHelper() {
+		Map<String, byte[]> ret = null;
+		if(profileDatas != null) {
+			for(Entry<String, byte[]> extra : profileDatas.entrySet()) {
+				if(!profileDataStandard.contains(extra.getKey())) {
+					if(ret == null) {
+						ret = new HashMap<>(4);
+					}
+					ret.put(extra.getKey(), extra.getValue());
+				}
+			}
+		}
+		return ret;
 	}
 
 }

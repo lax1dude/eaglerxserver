@@ -44,6 +44,13 @@ public class EaglerConfigLoader {
 				"Sets the UUID of this EaglercraftX server to send with query responses, has "
 				+ "no official uses outside of server lists"
 			));
+			int eaglerLoginTimeout = config.getInteger(
+				"eagler_login_timeout", 10000,
+				"Default value is 10000, sets the maximum age in milliseconds that a connection "
+				+ "can stay in the login phase before being disconnected, this is necessary "
+				+ "because WebSocket ping frames could be used to keep a connection from timing "
+				+ "out forever without ever having to advance it to the next state"
+			);
 			int httpMaxInitialLineLength = config.getInteger(
 				"http_max_initial_line_length", 4096,
 				"Default value is 4096, sets the maximum length for the initial request line"
@@ -59,6 +66,13 @@ public class EaglerConfigLoader {
 			int httpMaxContentLength = config.getInteger(
 				"http_max_content_length", 65536,
 				"Default value is 65536, sets the maximum total length of an incoming request body"
+			);
+			boolean httpAllowKeepAlive = config.getBoolean(
+				"http_allow_keep_alive", false,
+				"Default value is false, set to true to allow the server to keep non-WebSocket "
+				+ "HTTP connections alive for multiple requests, so that the browser can reuse "
+				+ "the same channel for efficiency. Ignore if you are using EaglerXServer for "
+				+ "WebSockets only."
 			);
 			int httpWebSocketCompressionLevel = config.getInteger(
 				"http_websocket_compression_level", 6,
@@ -297,10 +311,11 @@ public class EaglerConfigLoader {
 				"Default value is 28800 seconds, defines how often to check the URL list for "
 				+ "updated certificates"
 			);
-			return new ConfigDataSettings(serverName, serverUUID, httpMaxInitialLineLength, httpMaxHeaderSize,
-					httpMaxChunkSize, httpMaxContentLength, httpWebSocketCompressionLevel, httpWebSocketFragmentSize,
-					httpWebSocketMaxFrameLength, tlsCertRefreshRate, enableAuthenticationEvents, enableBackendRPCAPI,
-					useModernizedChannelNames, eaglerPlayersVanillaSkin, protocolV4DefragSendDelay,
+			return new ConfigDataSettings(serverName, serverUUID, eaglerLoginTimeout, httpMaxInitialLineLength,
+					httpMaxHeaderSize, httpMaxChunkSize, httpMaxContentLength, httpWebSocketCompressionLevel,
+					httpWebSocketFragmentSize, httpWebSocketMaxFrameLength, httpAllowKeepAlive, tlsCertRefreshRate,
+					enableAuthenticationEvents, enableBackendRPCAPI, useModernizedChannelNames,
+					eaglerPlayersVanillaSkin, protocolV4DefragSendDelay,
 					new ConfigDataSettings.ConfigDataProtocols(minMinecraftProtocol, maxMinecraftProtocol,
 							eaglerXRewindAllowed, protocolLegacyAllowed, protocolV3Allowed, protocolV4Allowed,
 							protocolV5Allowed),

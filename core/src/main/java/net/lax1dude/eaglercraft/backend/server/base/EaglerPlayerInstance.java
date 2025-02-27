@@ -191,4 +191,8 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 		return playerLogger;
 	}
 
+	public EaglerConnectionInstance connectionImpl() {
+		return connectionInstance;
+	}
+
 }

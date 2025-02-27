@@ -68,7 +68,7 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 		if(hs != null) {
 			hs.handshake(ctx.channel(), msg).addListener((future) -> {
 				if(future.isSuccess()) {
-					//TODO handle websocket
+					pipelineData.scheduleLoginTimeoutHelper();
 				}else {
 					ctx.channel().close();
 				}

@@ -35,7 +35,6 @@ import net.lax1dude.eaglercraft.backend.server.api.IPacketImageLoader;
 import net.lax1dude.eaglercraft.backend.server.api.IServerIconLoader;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
-import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistry;
 import net.lax1dude.eaglercraft.backend.server.api.internal.factory.IEaglerAPIFactory;
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationService;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuService;
@@ -202,6 +201,11 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	public void registerEaglerPlayer(EaglerPlayerInstance<PlayerObject> playerInstance) {
 		if(!eaglerPlayers.add(playerInstance)) return;
+		EaglerConnectionInstance pendingConnection = playerInstance.connectionImpl();
+		NettyPipelineData.ProfileDataHolder profileData = pendingConnection.transferProfileData();
+		
+		//TODO: handle profile
+		
 		eventDispatcher.dispatchInitializePlayerEvent(playerInstance, null);
 	}
 
@@ -310,7 +314,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public IBrandRegistry getBrandRegistry() {
+	public BrandRegistry getBrandRegistry() {
 		return brandRegistry;
 	}
 

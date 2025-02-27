@@ -493,6 +493,12 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		output.add(Unpooled.EMPTY_BUFFER); // :(
 	}
 
+	@Override
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		super.channelInactive(ctx);
+		pipelineData.cancelLoginTimeoutHelper();
+	}
+
 	public void finishLogin(ChannelHandlerContext ctx) {
 		ctx.pipeline().remove(PipelineTransformer.HANDLER_OUTBOUND_THROW);
 		vanillaInitializer = new VanillaInitializer(server, pipelineData, this);
@@ -500,6 +506,7 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 	}
 
 	public void enterPlayState(ChannelHandlerContext ctx) {
+		pipelineData.cancelLoginTimeoutHelper();
 		handshaker.finish(ctx);
 		ctx.pipeline().remove(PipelineTransformer.HANDLER_HANDSHAKE);
 	}

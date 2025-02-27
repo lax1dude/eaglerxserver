@@ -172,6 +172,12 @@ public class BrandRegistry implements IBrandRegistry {
 			.add(BRAND_EAGLERCRAFTX_LEGACY)
 			.build();
 
+	private static final Set<UUID> invalidUUIDs = ImmutableSet.<UUID>builder()
+			.add(BRAND_VANILLA)
+			.add(new UUID(0x6969696969696969L, 0x6969696969696969L))
+			.add(new UUID(0xEEEEA64771094C4EL, 0x86E55B81D17E67EBL))
+			.build();
+
 	public BrandRegistry() {
 		mapLock = new ReentrantReadWriteLock();
 		map = new HashMap<>();
@@ -223,6 +229,10 @@ public class BrandRegistry implements IBrandRegistry {
 		}finally {
 			mapLock.readLock().unlock();
 		}
+	}
+
+	public boolean sanitizeUUID(UUID uuid) {
+		return !invalidUUIDs.contains(uuid);
 	}
 
 }

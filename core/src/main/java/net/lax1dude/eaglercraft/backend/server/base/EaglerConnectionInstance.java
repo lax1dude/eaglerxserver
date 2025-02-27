@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
+import java.util.Map;
 import java.util.UUID;
 
 import io.netty.channel.Channel;
@@ -37,6 +38,8 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	private final Object rewindAttachment;
 	private final IEaglerXRewindProtocol<?, ?> rewindProtocol;
 	private final int rewindProtocolVersion;
+	private final Map<String, byte[]> extraProfileData;
+	private NettyPipelineData.ProfileDataHolder profileDataInit;
 
 	public EaglerConnectionInstance(IPlatformConnection connection,
 			NettyPipelineData pipelineData) {
@@ -45,7 +48,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		this.listenerInfo = pipelineData.listenerInfo;
 		this.eaglerBrandString = pipelineData.eaglerBrandString;
 		this.eaglerVersionString = pipelineData.eaglerVersionString;
-		this.eaglerBrandUUID = pipelineData.eaglerBrandUUID;
+		this.eaglerBrandUUID = pipelineData.brandUUIDHelper();
 		this.wss = pipelineData.wss;
 		this.headerHost = pipelineData.headerHost;
 		this.headerOrigin = pipelineData.headerOrigin;
@@ -65,6 +68,8 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		this.rewindAttachment = pipelineData.rewindAttachment;
 		this.rewindProtocol = pipelineData.rewindProtocol;
 		this.rewindProtocolVersion = pipelineData.rewindProtocolVersion;
+		this.profileDataInit = pipelineData.profileDataHelper();
+		this.extraProfileData = pipelineData.extraProfileDataHelper();
 	}
 
 	@Override
@@ -181,6 +186,12 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	public byte[] transferCookieData() {
 		byte[] ret = cookieDataInit;
 		cookieDataInit = null;
+		return ret;
+	}
+
+	public NettyPipelineData.ProfileDataHolder transferProfileData() {
+		NettyPipelineData.ProfileDataHolder ret = profileDataInit;
+		profileDataInit = null;
 		return ret;
 	}
 
