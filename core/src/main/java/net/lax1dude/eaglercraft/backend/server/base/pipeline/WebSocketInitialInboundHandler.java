@@ -562,7 +562,8 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 
 	public void enterPlayState(ChannelHandlerContext ctx) {
 		handshaker.finish(ctx);
-		ctx.pipeline().remove(this);
+		ctx.pipeline().replace(PipelineTransformer.HANDLER_WS_INITIAL, PipelineTransformer.HANDLER_FRAME_CODEC,
+				new WebSocketEaglerFrameCodec());
 	}
 
 }

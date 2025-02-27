@@ -58,6 +58,8 @@ public class HTTPInitialInboundHandler extends MessageToMessageCodec<HttpRequest
 				new WebSocketFrameAggregator(settings.getHTTPWebSocketFragmentSize()));
 		ctx.pipeline().replace(PipelineTransformer.HANDLER_HTTP_INITIAL, PipelineTransformer.HANDLER_WS_INITIAL,
 				new WebSocketInitialInboundHandler(server, pipelineData, retainWaitingOutbound(waitingOutboundFrames)));
+		ctx.pipeline().addBefore(PipelineTransformer.HANDLER_WS_INITIAL, PipelineTransformer.HANDLER_WS_PING,
+				new WebSocketPingFrameHandler());
 		
 		WebSocketServerHandshakerFactory factory = new WebSocketServerHandshakerFactory(
 				(pipelineData.wss ? "wss://" : "ws://") + pipelineData.headerHost + pipelineData.requestPath, null,

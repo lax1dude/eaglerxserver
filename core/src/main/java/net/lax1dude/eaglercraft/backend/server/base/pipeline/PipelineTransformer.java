@@ -40,9 +40,9 @@ public class PipelineTransformer {
 	public static final String HANDLER_WS_COMPRESSION = "eagler-ws-compression";
 	public static final String HANDLER_HTTP_INITIAL = "eagler-http-initial";
 	public static final String HANDLER_WS_INITIAL = "eagler-ws-initial";
+	public static final String HANDLER_WS_PING = "eagler-ws-ping-handler";
 	public static final String HANDLER_QUERY_HANDLER = "eagler-query-handler";
-	public static final String HANDLER_FRAME_DECODER = "eagler-frame-decoder";
-	public static final String HANDLER_FRAME_ENCODER = "eagler-frame-encoder";
+	public static final String HANDLER_FRAME_CODEC = "eagler-frame-codec";
 	public static final String HANDLER_REWIND_CODEC = "eagler-rewind-codec";
 	public static final String HANDLER_REWIND_DECODER = "eagler-rewind-decoder";
 	public static final String HANDLER_REWIND_ENCODER = "eagler-rewind-encoder";
