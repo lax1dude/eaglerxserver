@@ -1,8 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.base.pipeline;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import io.netty.buffer.ByteBuf;
@@ -12,10 +10,6 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
@@ -29,7 +23,7 @@ import net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake.Handshake
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake.VanillaInitializer;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 
-public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSocketFrame, ByteBuf> {
+public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf, ByteBuf> {
 
 	public interface IHandshaker {
 
@@ -65,15 +59,13 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 
 	private final EaglerXServer<?> server;
 	private final NettyPipelineData pipelineData;
-	private List<ByteBuf> waitingOutboundFrames;
 	private IHandshaker handshaker;
 	private VanillaInitializer vanillaInitializer;
 	public boolean terminated;
 
-	public WebSocketInitialInboundHandler(EaglerXServer<?> server, NettyPipelineData pipelineData, List<ByteBuf> waitingOutboundFrames) {
+	public WebSocketEaglerInitialHandler(EaglerXServer<?> server, NettyPipelineData pipelineData) {
 		this.server = server;
 		this.pipelineData = pipelineData;
-		this.waitingOutboundFrames = waitingOutboundFrames;
 	}
 
 	public ChannelFuture sendErrorCode(ChannelHandlerContext ctx, int handshakeProtocol, int errorCode, String errorMessage) {
@@ -95,7 +87,7 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 			buf.writeByte(msg.length);
 			buf.writeBytes(msg);
 		}
-		return ctx.writeAndFlush(new BinaryWebSocketFrame(buf));
+		return ctx.writeAndFlush(buf);
 	}
 
 	public ChannelFuture sendErrorCode(ChannelHandlerContext ctx, int handshakeProtocol, int errorCode, Object errorComponent) {
@@ -127,7 +119,7 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 			buf.writeByte(len);
 			buf.writeBytes(msg, 0, len);
 		}
-		return ctx.writeAndFlush(new BinaryWebSocketFrame(buf));
+		return ctx.writeAndFlush(buf);
 	}
 
 	public void terminateInternalError(ChannelHandlerContext ctx, int handshakeProtocol) {
@@ -146,44 +138,31 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 	}
 
 	@Override
-	protected void decode(ChannelHandlerContext ctx, WebSocketFrame msg, List<Object> output) throws Exception {
+	protected void decode(ChannelHandlerContext ctx, ByteBuf data, List<Object> output) throws Exception {
 		if (!terminated && ctx.channel().isActive()) {
-			if(msg instanceof BinaryWebSocketFrame) {
-				BinaryWebSocketFrame binaryMsg = (BinaryWebSocketFrame) msg;
-				ByteBuf data = binaryMsg.content();
-				if(handshaker != null) {
-					handshaker.handleInbound(ctx, data);
-				}else {
-					if(data.readableBytes() > 2) {
-						short b1 = data.readUnsignedByte();
-						short b2 = data.readUnsignedByte();
-						if(b1 == 1) {
-							// EaglercraftX 1.8
-							if(b2 == 2) {
-								// EaglercraftX 1.8 v2/v3/v4/v5
-								handleEaglerConnection(ctx, data);
-								return;
-							}else if(b2 == 1) {
-								// EaglercraftX 1.8 v1
-								handleEaglerLegacyConnection(ctx, data);
-								return;
-							}
-						}else if(b1 == 2) {
-							// Packet2ClientProtocol
-							handleRewindConnection(ctx, b2, data);
+			if(handshaker != null) {
+				handshaker.handleInbound(ctx, data);
+			}else {
+				if(data.readableBytes() > 2) {
+					short b1 = data.readUnsignedByte();
+					short b2 = data.readUnsignedByte();
+					if(b1 == 1) {
+						// EaglercraftX 1.8
+						if(b2 == 2) {
+							// EaglercraftX 1.8 v2/v3/v4/v5
+							handleEaglerConnection(ctx, data);
+							return;
+						}else if(b2 == 1) {
+							// EaglercraftX 1.8 v1
+							handleEaglerLegacyConnection(ctx, data);
 							return;
 						}
+					}else if(b1 == 2) {
+						// Packet2ClientProtocol
+						handleRewindConnection(ctx, b2, data);
+						return;
 					}
-					ctx.close();
 				}
-			}else if(msg instanceof TextWebSocketFrame) {
-				if(handshaker == null) {
-					server.getPipelineTransformer().removeVanillaHandlers(ctx.pipeline());
-					//TODO: query
-				}else {
-					ctx.close();
-				}
-			}else if(msg instanceof CloseWebSocketFrame) {
 				ctx.close();
 			}
 		}
@@ -314,7 +293,7 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 			String str = isClientProbablyOutdated ? "Outdated Client" : (isServerProbablyOutdated ? "Outdated Server" : "Unsupported Client Version");
 			buf.writeByte(str.length());
 			buf.writeCharSequence(str, StandardCharsets.US_ASCII);
-			ctx.writeAndFlush(new BinaryWebSocketFrame(buf)).addListener(ChannelFutureListener.CLOSE);
+			ctx.writeAndFlush(buf).addListener(ChannelFutureListener.CLOSE);
 			return;
 		}
 		
@@ -340,14 +319,17 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 		}
 		
 		if (selectedHandshakeProtocol == 4) {
-			handshaker = (new HandshakerV4(server, pipelineData, this)).init(ctx, eaglerBrand, eaglerVersionString,
-					maxAvailableMC, clientAuth, authUsername);
+			HandshakerV4 hs = new HandshakerV4(server, pipelineData, this);
+			handshaker = hs;
+			hs.init(ctx, eaglerBrand, eaglerVersionString, maxAvailableMC, clientAuth, authUsername);
 		}else if(selectedHandshakeProtocol == 3) {
-			handshaker = (new HandshakerV3(server, pipelineData, this)).init(ctx, eaglerBrand, eaglerVersionString,
-					maxAvailableMC, clientAuth, authUsername);
+			HandshakerV3 hs = new HandshakerV3(server, pipelineData, this);
+			handshaker = hs;
+			hs.init(ctx, eaglerBrand, eaglerVersionString, maxAvailableMC, clientAuth, authUsername);
 		}else if(selectedHandshakeProtocol == 2) {
-			handshaker = (new HandshakerV2(server, pipelineData, this)).init(ctx, eaglerBrand, eaglerVersionString,
-					maxAvailableMC, clientAuth, authUsername);
+			HandshakerV2 hs = new HandshakerV2(server, pipelineData, this);
+			handshaker = hs;
+			hs.init(ctx, eaglerBrand, eaglerVersionString, maxAvailableMC, clientAuth, authUsername);
 		}else {
 			ctx.close();
 			return;
@@ -369,7 +351,9 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 			ctx.close();
 			return;
 		}
-		handshaker = (new HandshakerV1(server, pipelineData, this)).init(ctx, eaglerBrand, eaglerVersionString);
+		HandshakerV1 hs = new HandshakerV1(server, pipelineData, this);
+		handshaker = hs;
+		hs.init(ctx, eaglerBrand, eaglerVersionString);
 	}
 
 	private void handleRewindConnection(ChannelHandlerContext ctx, int protocolVers, ByteBuf binaryMsg) {
@@ -398,19 +382,13 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 
 			@Override
 			public void injectNettyHandlers0(Object nettyEncoder, Object nettyDecoder) {
-				ctx.pipeline().addBefore(PipelineTransformer.HANDLER_WS_INITIAL, PipelineTransformer.HANDLER_REWIND_DECODER, (ChannelHandler) nettyDecoder);
-				ctx.pipeline().addBefore(PipelineTransformer.HANDLER_WS_INITIAL, PipelineTransformer.HANDLER_REWIND_ENCODER, (ChannelHandler) nettyEncoder);
+				ctx.pipeline().addBefore(PipelineTransformer.HANDLER_HANDSHAKE, PipelineTransformer.HANDLER_REWIND_DECODER, (ChannelHandler) nettyDecoder);
+				ctx.pipeline().addBefore(PipelineTransformer.HANDLER_HANDSHAKE, PipelineTransformer.HANDLER_REWIND_ENCODER, (ChannelHandler) nettyEncoder);
 			}
 
 			@Override
 			public void injectNettyHandlers0(Object nettyCodec) {
-				ctx.pipeline().addBefore(PipelineTransformer.HANDLER_WS_INITIAL, PipelineTransformer.HANDLER_REWIND_CODEC, (ChannelHandler) nettyCodec);
-			}
-
-			@Override
-			public List<?> getWaitingOutboundFrames() {
-				List<?> ret = retainWaitingOutbound(waitingOutboundFrames);
-				return ret != null ? ret : Collections.emptyList();
+				ctx.pipeline().addBefore(PipelineTransformer.HANDLER_HANDSHAKE, PipelineTransformer.HANDLER_REWIND_CODEC, (ChannelHandler) nettyCodec);
 			}
 
 		};
@@ -435,28 +413,32 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 		switch(eaglerProtocol) {
 		case 1:
 			if(protocols.isProtocolLegacyAllowed()) {
-				handshaker = (new HandshakerV1(server, pipelineData, this)).init(ctx,
-						initializer.getEaglerClientBrand(), initializer.getEaglerClientVersion());
+				HandshakerV1 hs = new HandshakerV1(server, pipelineData, this);
+				handshaker = hs;
+				hs.init(ctx, initializer.getEaglerClientBrand(), initializer.getEaglerClientVersion());
 			}
 			break;
 		case 2:
 			if(protocols.isProtocolLegacyAllowed()) {
-				handshaker = (new HandshakerV2(server, pipelineData, this)).init(ctx,
-						initializer.getEaglerClientBrand(), initializer.getEaglerClientVersion(),
+				HandshakerV2 hs = new HandshakerV2(server, pipelineData, this);
+				handshaker = hs;
+				hs.init(ctx, initializer.getEaglerClientBrand(), initializer.getEaglerClientVersion(),
 						initializer.getMinecraftProtocol(), initializer.isAuthEnabled(), initializer.getAuthUsername());
 			}
 			break;
 		case 3:
 			if(protocols.isProtocolV3Allowed()) {
-				handshaker = (new HandshakerV3(server, pipelineData, this)).init(ctx,
-						initializer.getEaglerClientBrand(), initializer.getEaglerClientVersion(),
+				HandshakerV3 hs = new HandshakerV3(server, pipelineData, this);
+				handshaker = hs;
+				hs.init(ctx, initializer.getEaglerClientBrand(), initializer.getEaglerClientVersion(),
 						initializer.getMinecraftProtocol(), initializer.isAuthEnabled(), initializer.getAuthUsername());
 			}
 			break;
 		case 4:
 			if(protocols.isProtocolV4Allowed()) {
-				handshaker = (new HandshakerV4(server, pipelineData, this)).init(ctx,
-						initializer.getEaglerClientBrand(), initializer.getEaglerClientVersion(),
+				HandshakerV4 hs = new HandshakerV4(server, pipelineData, this);
+				handshaker = hs;
+				hs.init(ctx, initializer.getEaglerClientBrand(), initializer.getEaglerClientVersion(),
 						initializer.getMinecraftProtocol(), initializer.isAuthEnabled(), initializer.getAuthUsername());
 			}
 			break;
@@ -492,11 +474,10 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 			ByteBuf buf = ctx.alloc().buffer();
 			buf.writeBytes(LEGACY_REDIRECT);
 			buf.writeBytes(pipelineData.listenerInfo.getLegacyRedirectAddressBuf());
-			ctx.write(new BinaryWebSocketFrame(buf)).addListener(ChannelFutureListener.CLOSE);
+			ctx.write(buf).addListener(ChannelFutureListener.CLOSE);
 		} else {
 			terminated = true;
-			ctx.write(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(LEGACY_KICK)))
-					.addListener(ChannelFutureListener.CLOSE);
+			ctx.write(Unpooled.wrappedBuffer(LEGACY_KICK)).addListener(ChannelFutureListener.CLOSE);
 		}
 	}
 
@@ -506,64 +487,21 @@ public class WebSocketInitialInboundHandler extends MessageToMessageCodec<WebSoc
 			if(vanillaInitializer != null) {
 				vanillaInitializer.handleInbound(ctx, msg);
 			}else {
-				if(waitingOutboundFrames == null) {
-					waitingOutboundFrames = new ArrayList<>(4);
-				}
-				waitingOutboundFrames.add(msg.retain());
+				throw new IllegalStateException("Received an unexpected packet before the connection was initialized");
 			}
 		}
 		output.add(Unpooled.EMPTY_BUFFER); // :(
 	}
 
-	@Override
-	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		try {
-			super.channelInactive(ctx);
-		}finally {
-			release();
-		}
-	}
-
-	@Override
-	public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-		try {
-			super.handlerRemoved(ctx);
-		}finally {
-			release();
-		}
-	}
-
-	private List<ByteBuf> retainWaitingOutbound(List<ByteBuf> buffers) {
-		if (buffers != null) {
-			List<ByteBuf> framesRet = new ArrayList<>(buffers.size());
-			for (ByteBuf b : buffers) {
-				framesRet.add(b.retain());
-			}
-			return framesRet;
-		}else {
-			return null;
-		}
-	}
-
-	private void release() {
-		if (waitingOutboundFrames != null) {
-			for (ByteBuf b : waitingOutboundFrames) {
-				b.release();
-			}
-			waitingOutboundFrames = null;
-		}
-	}
-
 	public void finishLogin(ChannelHandlerContext ctx) {
-		vanillaInitializer = (new VanillaInitializer(server, pipelineData, this))
-				.init(ctx, retainWaitingOutbound(waitingOutboundFrames));
-		release();
+		ctx.pipeline().remove(PipelineTransformer.HANDLER_OUTBOUND_THROW);
+		vanillaInitializer = new VanillaInitializer(server, pipelineData, this);
+		vanillaInitializer.init(ctx);
 	}
 
 	public void enterPlayState(ChannelHandlerContext ctx) {
 		handshaker.finish(ctx);
-		ctx.pipeline().replace(PipelineTransformer.HANDLER_WS_INITIAL, PipelineTransformer.HANDLER_FRAME_CODEC,
-				new WebSocketEaglerFrameCodec());
+		ctx.pipeline().remove(PipelineTransformer.HANDLER_HANDSHAKE);
 	}
 
 }

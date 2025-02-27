@@ -1,18 +1,17 @@
 package net.lax1dude.eaglercraft.backend.server.base.pipeline;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.ByteToMessageCodec;
+import io.netty.handler.codec.ByteToMessageDecoder;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerListener;
 import net.lax1dude.eaglercraft.backend.server.base.ISSLContextProvider;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 
-public class MultiStackInitialInboundHandler extends ByteToMessageCodec<ByteBuf> {
+public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 
 	private final PipelineTransformer transformer;
 	private final NettyPipelineData pipelineData;
@@ -261,79 +260,13 @@ public class MultiStackInitialInboundHandler extends ByteToMessageCodec<ByteBuf>
 					p.remove(handler);
 				}
 			}
-			List<ByteBuf> waiting2 = null;
-			if(waitingOutboundFrames != null) {
-				waiting2 = sliceVarIntFrames(waitingOutboundFrames);
-			}
-			try {
-				transformer.initializeHTTPHandler(pipelineData, ssl, p, PipelineTransformer.HANDLER_MULTI_STACK_INITIAL, waiting2);
-			}finally {
-				if(waiting2 != null) {
-					for(ByteBuf buf : waiting2) {
-						buf.release();
-					}
-				}
-			}
+			transformer.initializeHTTPHandler(pipelineData, ssl, p, PipelineTransformer.HANDLER_MULTI_STACK_INITIAL);
 			p.remove(PipelineTransformer.HANDLER_MULTI_STACK_INITIAL);
 			if (ctx.channel().isActive()) {
 				p.fireChannelRead(buffer.retain());
 			}
 		}finally {
 			buffer.release();
-		}
-	}
-
-	@Override
-	protected void encode(ChannelHandlerContext arg0, ByteBuf arg1, ByteBuf arg2) throws Exception {
-		if (arg0.channel().isActive()) {
-			if(waitingOutboundFrames == null) {
-				waitingOutboundFrames = new ArrayList<>(4);
-			}
-			waitingOutboundFrames.add(arg1.retain());
-		}
-	}
-
-	@Override
-	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		try {
-			super.channelInactive(ctx);
-		}finally {
-			release();
-		}
-	}
-
-	@Override
-	public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-		try {
-			super.handlerRemoved(ctx);
-		}finally {
-			release();
-		}
-	}
-
-	private List<ByteBuf> sliceVarIntFrames(List<ByteBuf> buffers) {
-		List<ByteBuf> framesRet = new ArrayList<>(buffers.size());
-		for(ByteBuf buf : buffers) {
-			buf.markReaderIndex();
-			int maxLen = buf.readableBytes();
-			try {
-				int len = BufferUtils.readVarInt(buf, 3);
-				framesRet.add(buf.readRetainedSlice(len));
-			}catch(IndexOutOfBoundsException ex) {
-				transformer.server.logger().warn("Dropping " + maxLen + " byte outbound frame with an invalid length");
-			}finally {
-				buf.resetReaderIndex();
-			}
-		}
-		return framesRet;
-	}
-
-	private void release() {
-		if (waitingOutboundFrames != null) {
-			for (ByteBuf b : waitingOutboundFrames) {
-				b.release();
-			}
-			waitingOutboundFrames = null;
 		}
 	}
 

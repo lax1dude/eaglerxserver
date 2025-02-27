@@ -1,7 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.api.rewind;
 
 import java.net.SocketAddress;
-import java.util.List;
 
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 
@@ -30,8 +29,6 @@ public interface IEaglerXRewindInitializer<Attachment> {
 	void rewriteInitialHandshakeV2(int eaglerProtocol, int minecraftProtocol, String eaglerClientBrand, String eaglerClientVersion, boolean authEnabled, byte[] authUsername);
 
 	Object getNettyChannel();
-
-	List<?> getWaitingOutboundFrames();
 
 	void cancelDisconnect();
 

@@ -2,18 +2,14 @@ package net.lax1dude.eaglercraft.backend.server.base.pipeline;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
-
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.compression.ZlibCodecFactory;
-import io.netty.handler.codec.haproxy.HAProxyMessageDecoder;
-import io.netty.handler.codec.haproxy.HAProxyMessageEncoder;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.extensions.WebSocketServerExtensionHandler;
@@ -41,15 +37,14 @@ public class PipelineTransformer {
 	public static final String HANDLER_HTTP_INITIAL = "eagler-http-initial";
 	public static final String HANDLER_WS_INITIAL = "eagler-ws-initial";
 	public static final String HANDLER_WS_PING = "eagler-ws-ping-handler";
-	public static final String HANDLER_QUERY_HANDLER = "eagler-query-handler";
+	public static final String HANDLER_HANDSHAKE = "eagler-handshake";
+	public static final String HANDLER_OUTBOUND_THROW = "eagler-outbound-throw";
+	public static final String HANDLER_QUERY = "eagler-query";
+	public static final String HANDLER_HTTP = "eagler-http";
 	public static final String HANDLER_FRAME_CODEC = "eagler-frame-codec";
 	public static final String HANDLER_REWIND_CODEC = "eagler-rewind-codec";
 	public static final String HANDLER_REWIND_DECODER = "eagler-rewind-decoder";
 	public static final String HANDLER_REWIND_ENCODER = "eagler-rewind-encoder";
-
-	protected static final Set<String> EAGLER_HTTP_HANDLERS = ImmutableSet.of(HANDLER_HTTP_SSL,
-			HANDLER_HTTP_SERVER_CODEC, HANDLER_HTTP_AGGREGATOR, HANDLER_WS_AGGREGATOR, HANDLER_WS_COMPRESSION,
-			HANDLER_HTTP_INITIAL);
 
 	protected static final Set<EnumPipelineComponent> VANILLA_FRAME_DECODERS = EnumSet.of(
 			EnumPipelineComponent.FRAME_DECODER, EnumPipelineComponent.FRAME_ENCODER,
@@ -88,11 +83,12 @@ public class PipelineTransformer {
 			if(!eagListener.isTLSRequired()) {
 				channel.pipeline().addBefore(first, HANDLER_MULTI_STACK_INITIAL, new MultiStackInitialInboundHandler(this, pipelineData, null));
 			}else {
-				initializeHTTPHandler(pipelineData, ssl, pipeline, first, null);
+				initializeHTTPHandler(pipelineData, ssl, pipeline, first);
 			}
 		}else {
-			initializeHTTPHandler(pipelineData, null, pipeline, first, null);
+			initializeHTTPHandler(pipelineData, null, pipeline, first);
 		}
+		channel.pipeline().addLast(HANDLER_OUTBOUND_THROW, new OutboundPacketThrowHandler());
 	}
 
 	public void injectDualStack(List<IPipelineComponent> components, Channel channel, NettyPipelineData pipelineData) {
@@ -114,7 +110,7 @@ public class PipelineTransformer {
 	}
 
 	protected void initializeHTTPHandler(NettyPipelineData pipelineData, ISSLContextProvider context, ChannelPipeline pipeline,
-			String before, List<ByteBuf> waitingOutboundFrames) {
+			String before) {
 		if(context != null) {
 			SslHandler sslHandler = context.newHandler(pipeline.channel().alloc());
 			if(sslHandler == null) {
@@ -137,25 +133,20 @@ public class PipelineTransformer {
 			pipeline.addBefore(before, HANDLER_WS_COMPRESSION, new WebSocketServerExtensionHandler(
 					deflateExtensionHandshaker, perMessageDeflateExtensionHandshaker));
 		}
-		List<ByteBuf> waitingOut;
-		if(waitingOutboundFrames != null) {
-			waitingOut = new ArrayList<>(waitingOutboundFrames);
-			for(ByteBuf buf : waitingOut) {
-				buf.retain();
-			}
-		}else {
-			waitingOut = new ArrayList<>(4);
-		}
-		pipeline.addBefore(before, HANDLER_HTTP_INITIAL, new HTTPInitialInboundHandler(server, pipelineData, waitingOut));
+		pipeline.addBefore(before, HANDLER_HTTP_INITIAL, HTTPInitialInboundHandler.INSTANCE);
 	}
 
 	protected void removeVanillaHandlers(ChannelPipeline pipeline) {
-		for(String key : pipeline.names()) {
-			if(!PipelineTransformer.EAGLER_HTTP_HANDLERS.contains(key)) {
-				ChannelHandler handler = pipeline.get(key);
-				if (!(handler instanceof ReadTimeoutHandler) && !(handler instanceof HAProxyMessageDecoder)
-						&& !(handler instanceof HAProxyMessageEncoder)) {
-					pipeline.remove(key);
+		Iterator<String> keyItr = pipeline.names().iterator();
+		while(keyItr.hasNext()) {
+			String nm = keyItr.next();
+			if(PipelineTransformer.HANDLER_HTTP_INITIAL.equals(nm) || PipelineTransformer.HANDLER_WS_INITIAL.equals(nm)) {
+				while(keyItr.hasNext()) {
+					nm = keyItr.next();
+					ChannelHandler handler = pipeline.get(nm);
+					if (!(handler instanceof ReadTimeoutHandler)) {
+						pipeline.remove(nm);
+					}
 				}
 			}
 		}

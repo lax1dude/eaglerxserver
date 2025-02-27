@@ -13,7 +13,7 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCookieE
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthPasswordEvent;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
-import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketInitialInboundHandler;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public abstract class HandshakerInstance {
@@ -23,11 +23,11 @@ public abstract class HandshakerInstance {
 
 	protected final EaglerXServer<?> server;
 	protected final NettyPipelineData pipelineData;
-	protected final WebSocketInitialInboundHandler inboundHandler;
+	protected final WebSocketEaglerInitialHandler inboundHandler;
 	protected int state = HandshakePacketTypes.STATE_OPENED;
 
 	protected HandshakerInstance(EaglerXServer<?> server, NettyPipelineData pipelineData,
-			WebSocketInitialInboundHandler inboundHandler) {
+			WebSocketEaglerInitialHandler inboundHandler) {
 		this.server = server;
 		this.pipelineData = pipelineData;
 		this.inboundHandler = inboundHandler;

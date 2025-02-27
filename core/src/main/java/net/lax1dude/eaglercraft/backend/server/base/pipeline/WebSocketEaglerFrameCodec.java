@@ -1,28 +1,43 @@
 package net.lax1dude.eaglercraft.backend.server.base.pipeline;
 
-import java.util.List;
-
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 
-public class WebSocketEaglerFrameCodec extends MessageToMessageCodec<WebSocketFrame, ByteBuf> {
+@ChannelHandler.Sharable
+public class WebSocketEaglerFrameCodec extends ChannelDuplexHandler {
+
+	public static final WebSocketEaglerFrameCodec INSTANCE = new WebSocketEaglerFrameCodec();
 
 	@Override
-	protected void decode(ChannelHandlerContext ctx, WebSocketFrame msg, List<Object> out) throws Exception {
-		if(msg instanceof BinaryWebSocketFrame) {
-			out.add(msg.content().retain());
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		if(msg instanceof WebSocketFrame) {
+			if(msg instanceof BinaryWebSocketFrame) {
+				ctx.fireChannelRead(((BinaryWebSocketFrame)msg).content().retain());
+			}else {
+				// Text or close frames
+				((WebSocketFrame)msg).release();
+				ctx.close();
+			}
 		}else {
-			// Text or close frames
-			ctx.close();
+			ctx.fireChannelRead(msg);
 		}
 	}
 
 	@Override
-	protected void encode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
-		out.add(new BinaryWebSocketFrame(msg.retain()));
+	public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+		if(msg instanceof ByteBuf) {
+			ByteBuf buf = (ByteBuf) msg;
+			if(buf.readableBytes() > 0) {
+				ctx.write(new BinaryWebSocketFrame(buf), promise);
+				return;
+			}
+		}
+		ctx.write(msg, promise);
 	}
 
 }

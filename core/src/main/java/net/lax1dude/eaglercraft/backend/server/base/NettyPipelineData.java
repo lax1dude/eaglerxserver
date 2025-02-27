@@ -18,6 +18,7 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 public class NettyPipelineData implements IEaglerPendingConnection, IPipelineData {
 
 	public final Channel channel;
+	public final EaglerXServer<?> server;
 	public final EaglerAttributeManager.EaglerAttributeHolder attributeHolder;
 
 	public EaglerListener listenerInfo;
@@ -62,9 +63,10 @@ public class NettyPipelineData implements IEaglerPendingConnection, IPipelineDat
 
 	public IEaglerPendingConnection redirectAPICallsTo;
 
-	public NettyPipelineData(Channel channel, EaglerListener listenerInfo,
+	public NettyPipelineData(Channel channel, EaglerXServer<?> server, EaglerListener listenerInfo,
 			EaglerAttributeManager.EaglerAttributeHolder attributeHolder) {
 		this.channel = channel;
+		this.server = server;
 		this.listenerInfo = listenerInfo;
 		this.attributeHolder = attributeHolder;
 	}

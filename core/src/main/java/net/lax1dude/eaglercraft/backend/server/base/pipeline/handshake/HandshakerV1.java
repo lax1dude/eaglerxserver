@@ -10,21 +10,20 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
-import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketInitialInboundHandler;
-import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketInitialInboundHandler.IHandshaker;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler.IHandshaker;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class HandshakerV1 extends HandshakerInstance implements IHandshaker {
 
 	public HandshakerV1(EaglerXServer<?> server, NettyPipelineData pipelineData,
-			WebSocketInitialInboundHandler inboundHandler) {
+			WebSocketEaglerInitialHandler inboundHandler) {
 		super(server, pipelineData, inboundHandler);
 	}
 
-	public HandshakerV1 init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString) {
+	public void init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString) {
 		handlePacketInit(ctx, eaglerBrand, eaglerVersionString, 47, false, null);
-		return this;
 	}
 
 	@Override

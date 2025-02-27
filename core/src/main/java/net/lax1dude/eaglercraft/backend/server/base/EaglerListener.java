@@ -10,7 +10,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.ITLSManager;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
-import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketInitialInboundHandler;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
 
 public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListener {
 
@@ -43,7 +43,7 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 			this.sslContext = null;
 		}
 		if (listenerConf.getRedirectLegacyClientsTo() != null) {
-			this.legacyRedirectAddressBuf = WebSocketInitialInboundHandler.prepareRedirectAddr(listenerConf.getRedirectLegacyClientsTo());
+			this.legacyRedirectAddressBuf = WebSocketEaglerInitialHandler.prepareRedirectAddr(listenerConf.getRedirectLegacyClientsTo());
 		}else {
 			this.legacyRedirectAddressBuf = null;
 		}

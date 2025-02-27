@@ -9,24 +9,23 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
-import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketInitialInboundHandler;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class HandshakerV2 extends HandshakerV1 {
 
 	public HandshakerV2(EaglerXServer<?> server, NettyPipelineData pipelineData,
-			WebSocketInitialInboundHandler inboundHandler) {
+			WebSocketEaglerInitialHandler inboundHandler) {
 		super(server, pipelineData, inboundHandler);
 	}
 
-	public HandshakerV1 init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString) {
+	public void init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString) {
 		throw new IllegalStateException();
 	}
 
-	public HandshakerV2 init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString,
+	public void init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString,
 			int minecraftVersion, boolean auth, byte[] authUsername) {
 		handlePacketInit(ctx, eaglerBrand, eaglerVersionString, minecraftVersion, auth, authUsername);
-		return this;
 	}
 
 	@Override

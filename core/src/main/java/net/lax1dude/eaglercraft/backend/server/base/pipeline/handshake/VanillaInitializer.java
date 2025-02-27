@@ -1,6 +1,5 @@
 package net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake;
 
-import java.util.List;
 import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
@@ -8,13 +7,13 @@ import io.netty.channel.ChannelHandlerContext;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.BufferUtils;
-import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketInitialInboundHandler;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
 
 public class VanillaInitializer {
 
 	protected final EaglerXServer<?> server;
 	protected final NettyPipelineData pipelineData;
-	protected final WebSocketInitialInboundHandler inboundHandler;
+	protected final WebSocketEaglerInitialHandler inboundHandler;
 
 	private static final int STATE_PRE = 0;
 	private static final int STATE_SENT_LOGIN = 1;
@@ -22,28 +21,13 @@ public class VanillaInitializer {
 	private int connectionState = STATE_PRE;
 
 	public VanillaInitializer(EaglerXServer<?> server, NettyPipelineData pipelineData,
-			WebSocketInitialInboundHandler inboundHandler) {
+			WebSocketEaglerInitialHandler inboundHandler) {
 		this.server = server;
 		this.pipelineData = pipelineData;
 		this.inboundHandler = inboundHandler;
 	}
 
-	public VanillaInitializer init(ChannelHandlerContext ctx, List<ByteBuf> waitingOutbound) {
-		if(waitingOutbound != null) {
-			try {
-				for(ByteBuf buf : waitingOutbound) {
-					handleInbound(ctx, buf);
-					if(inboundHandler.terminated) {
-						return this;
-					}
-				}
-			}finally {
-				for(ByteBuf buf : waitingOutbound) {
-					buf.release();
-				}
-			}
-		}
-		
+	public VanillaInitializer init(ChannelHandlerContext ctx) {		
 		// C00Handshake
 		ByteBuf buffer = ctx.alloc().buffer();
 		try {
