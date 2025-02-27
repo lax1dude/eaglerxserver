@@ -31,6 +31,7 @@ import com.velocitypowered.api.scheduler.ScheduledTask;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.adapter.AbortLoadException;
@@ -392,6 +393,15 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	@Override
 	public boolean isOnlineMode() {
 		return proxy.getConfiguration().isOnlineMode();
+	}
+
+	@Override
+	public void handleConnectionInitFallback(Channel channel) {
+	}
+
+	@Override
+	public void handleUndoCompression(ChannelHandlerContext ctx) {
+		//TODO: there is a user event
 	}
 
 	public void initializeConnection(InboundConnection conn, String username, UUID uuid, Object pipelineData,

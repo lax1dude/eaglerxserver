@@ -7,6 +7,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
 
@@ -79,5 +81,9 @@ public interface IPlatform<PlayerObject> {
 	IPlatformComponentHelper getComponentHelper();
 
 	boolean isOnlineMode();
+
+	void handleConnectionInitFallback(Channel channel);
+
+	void handleUndoCompression(ChannelHandlerContext ctx);
 
 }

@@ -70,9 +70,14 @@ public class VanillaInitializer {
 		}finally {
 			buffer.release();
 		}
-		
-		connectionState = STATE_SENT_LOGIN;
-		
+
+		if(ctx.channel().isActive()) {
+			connectionState = STATE_SENT_LOGIN;
+			server.getPlatform().handleConnectionInitFallback(ctx.channel());
+		}else {
+			inboundHandler.terminated = true;
+		}
+
 		return this;
 	}
 
@@ -97,7 +102,10 @@ public class VanillaInitializer {
 					}
 				}else if(pktId == 0x03) {
 					// S03PacketEnableCompression
-					handleUndoCompression(ctx);
+					int val = BufferUtils.readVarInt(msg, 5);
+					if(val > 0) {
+						server.getPlatform().handleUndoCompression(ctx);
+					}
 				}else if(pktId == 0x01) {
 					// S01PacketEncryptionRequest
 					inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
@@ -123,11 +131,6 @@ public class VanillaInitializer {
 		inboundHandler.terminateErrorCode(ctx, pipelineData.handshakeProtocol,
 				HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE, BufferUtils.readMCString(data, 65535));
 		connectionState = STATE_COMPLETE;
-	}
-
-	private void handleUndoCompression(ChannelHandlerContext ctx) {
-		pipelineData.connectionLogger.error("TODO: handle undo compression");
-		//TODO
 	}
 
 	private void finish(ChannelHandlerContext ctx) {

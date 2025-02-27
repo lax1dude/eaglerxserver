@@ -14,6 +14,7 @@ import com.google.common.collect.ImmutableMap;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import net.lax1dude.eaglercraft.backend.server.adapter.AbortLoadException;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
@@ -37,6 +38,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitialize
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformScheduler;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.bungee.chat.BungeeComponentHelper;
@@ -366,7 +368,18 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 		return BungeeUnsafe.isOnlineMode(getProxy());
 	}
 
+	@Override
+	public void handleConnectionInitFallback(Channel channel) {
+	}
+
+	@Override
+	public void handleUndoCompression(ChannelHandlerContext ctx) {
+	}
+
 	public void initializeConnection(PendingConnection conn, Object pipelineData, Consumer<BungeeConnection> setAttr) {
+		if((pipelineData instanceof IPipelineData) && ((IPipelineData)pipelineData).isEaglerPlayer()) {
+			BungeeUnsafe.injectCompressionDisable(conn);
+		}
 		BungeeConnection c = new BungeeConnection(this, conn);
 		setAttr.accept(c);
 		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<Object, Object>() {

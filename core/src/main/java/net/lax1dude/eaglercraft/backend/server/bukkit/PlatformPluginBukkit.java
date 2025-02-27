@@ -22,7 +22,9 @@ import com.google.common.collect.ImmutableMap;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
+import io.netty.util.Attribute;
 import net.lax1dude.eaglercraft.backend.server.adapter.AbortLoadException;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerCommandType;
@@ -51,6 +53,8 @@ import net.lax1dude.eaglercraft.backend.server.bukkit.BukkitUnsafe.LoginConnecti
 import net.lax1dude.eaglercraft.backend.server.bukkit.event.BukkitEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.bungee.chat.BungeeComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
+import net.lax1dude.eaglercraft.backend.server.util.CompressionDisablerHack;
+import net.lax1dude.eaglercraft.backend.server.util.DecompressionDisablerHack;
 import net.md_5.bungee.api.chat.BaseComponent;
 
 public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player> {
@@ -360,6 +364,23 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public boolean isOnlineMode() {
 		return getServer().getOnlineMode();
+	}
+
+	@Override
+	public void handleConnectionInitFallback(Channel channel) {
+		LoginConnectionHolder holder = BukkitUnsafe.getLoginConnection(channel.pipeline().get("packet_handler"));
+		Object pipelineData = channel.attr(PipelineAttributes.<Object>pipelineData()).getAndSet(null);
+		Attribute<BukkitConnection> attr = channel.attr(PipelineAttributes.<BukkitConnection>connectionData());
+		initializeConnection(holder, pipelineData, attr::set);
+	}
+
+	private static final ChannelHandler COMPRESSION_DISABLE_INSTANCE = new CompressionDisablerHack("compress", BukkitUnsafe::disposeCompressionHandler);
+	private static final ChannelHandler DECOMPRESSION_DISABLE_INSTANCE = new DecompressionDisablerHack("decompress", BukkitUnsafe::disposeDecompressionHandler);
+
+	@Override
+	public void handleUndoCompression(ChannelHandlerContext ctx) {
+		ctx.pipeline().addAfter("compress", "compress-disable-hack", COMPRESSION_DISABLE_INSTANCE);
+		ctx.pipeline().addBefore("decompress", "decompress-disable-hack", DECOMPRESSION_DISABLE_INSTANCE);
 	}
 
 	public void initializeConnection(LoginConnectionHolder loginConnection, Object pipelineData,

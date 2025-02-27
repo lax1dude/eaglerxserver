@@ -4,14 +4,14 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.net.SocketAddress;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.zip.Deflater;
+import java.util.zip.Inflater;
 
 import org.bukkit.Server;
 import org.bukkit.command.CommandMap;
@@ -24,6 +24,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
+import io.papermc.paper.network.ChannelInitializeListener;
 import net.kyori.adventure.key.Key;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.base.ChannelInitializerHijacker;
@@ -99,7 +100,7 @@ public class BukkitUnsafe {
 
 	}
 
-	private static Class<?> class_NetworkManager = null;
+	private static volatile Class<?> class_NetworkManager = null;
 	private static Field field_NetworkManager_channel = null;
 	private static Method method_NetworkManager_getPacketListener = null;
 	private static Class<?> class_LoginListener_maybe = null;
@@ -171,7 +172,7 @@ public class BukkitUnsafe {
 		}
 	}
 
-	private static Class<?> class_CraftPlayer = null;
+	private static volatile Class<?> class_CraftPlayer = null;
 	private static Method method_CraftPlayer_getHandle = null;
 	private static Class<?> class_EntityPlayer = null;
 	private static Field field_EntityPlayer_playerConnection = null;
@@ -244,33 +245,37 @@ public class BukkitUnsafe {
 
 	}
 
-	private static final Key EAGLER_KEY = Key.key("eaglerxserver", "channel_initializer");
+	@SuppressWarnings("unused")
+	private static class KeyHolder {
+		public static final Key EAGLER_KEY = Key.key("eaglerxserver", "channel_initializer");
+	}
 
 	public static Runnable injectChannelInitializer(Server server, Consumer<Channel> initHandler, IEaglerXServerListener listener) {
+		Object eaglerKey;
 		Class<?> paperChannelInitHolder;
 		Class<?> paperChannelInitListener;
 		try {
+			eaglerKey = Class.forName("net.lax1dude.eaglercraft.backend.server.bukkit.BukkitUnsafe.KeyHolder").getField("EAGLER_KEY").get(null);
 			paperChannelInitHolder = Class.forName("io.papermc.paper.network.ChannelInitializeListenerHolder");
 			paperChannelInitListener = Class.forName("io.papermc.paper.network.ChannelInitializeListener");
-		}catch(ClassNotFoundException ex) {
+		}catch(ClassNotFoundException | IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException ex) {
 			return injectChannelInitializerOld(server, initHandler, listener);
 		}
+		return injectChannelInitializerPaper(paperChannelInitHolder, paperChannelInitListener, eaglerKey, initHandler, listener);
+	}
+
+	private static Runnable injectChannelInitializerPaper(Class<?> paperChannelInitHolder,
+			Class<?> paperChannelInitListener, Object eaglerKey, Consumer<Channel> initHandler,
+			IEaglerXServerListener listener) {
 		try {
 			Method addListener = paperChannelInitHolder.getMethod("addListener", Key.class, paperChannelInitListener);
 			Method removeListener = paperChannelInitHolder.getMethod("removeListener", Key.class);
-			Object listenerImpl = Proxy.newProxyInstance(BukkitUnsafe.class.getClassLoader(),
-					new Class[] { paperChannelInitListener }, (proxy, meth, args) -> {
-				if("afterInitChannel".equals(meth.getName())) {
-					initHandler.accept((Channel) args[0]);
-					return null;
-				}
-				return meth.invoke(proxy, args);
-			});
-			addListener.invoke(null, EAGLER_KEY, listenerImpl);
+			Object listenerImpl = (ChannelInitializeListener) initHandler::accept;
+			addListener.invoke(null, eaglerKey, listenerImpl);
 			listener.reportPaperMCInjected();
 			return () -> {
 				try {
-					removeListener.invoke(null, EAGLER_KEY);
+					removeListener.invoke(null, eaglerKey);
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 					throw Util.propagateReflectThrowable(e);
 				}
@@ -462,6 +467,82 @@ public class BukkitUnsafe {
 				throw Util.propagateReflectThrowable(ex1);
 			}
 		}
+	}
+
+	private static volatile Class<?> class_PacketCompressor_maybe = null;
+	private static Field field_PacketCompressor_deflater = null;
+
+	private static synchronized void bindPacketCompressor(Class<?> packetCompressor) {
+		if(class_PacketCompressor_maybe != null) {
+			return;
+		}
+		try {
+			field_PacketCompressor_deflater = findField(packetCompressor, Deflater.class);
+			field_PacketCompressor_deflater.setAccessible(true);
+			class_PacketCompressor_maybe = packetCompressor;
+		} catch (NoSuchFieldException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+	}
+
+	public static void disposeCompressionHandler(ChannelHandler remove) {
+		if(remove != null) {
+			if(class_PacketCompressor_maybe == null) {
+				bindPacketCompressor(remove.getClass());
+			}
+			Deflater deflater;
+			try {
+				deflater = (Deflater) field_PacketCompressor_deflater.get(remove);
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+			if(deflater != null) {
+				deflater.end();
+			}
+		}
+	}
+
+	private static Class<?> class_PacketDecompressor_maybe = null;
+	private static Field field_PacketDecompressor_inflater = null;
+
+	private static synchronized void bindPacketDecompressor(Class<?> packetDecompressor) {
+		if(class_PacketDecompressor_maybe != null) {
+			return;
+		}
+		try {
+			field_PacketDecompressor_inflater = findField(packetDecompressor, Inflater.class);
+			field_PacketDecompressor_inflater.setAccessible(true);
+			class_PacketDecompressor_maybe = packetDecompressor;
+		} catch (NoSuchFieldException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+	}
+
+	public static void disposeDecompressionHandler(ChannelHandler remove) {
+		if(remove != null) {
+			if(class_PacketDecompressor_maybe == null) {
+				bindPacketDecompressor(remove.getClass());
+			}
+			Inflater inflater;
+			try {
+				inflater = (Inflater) field_PacketDecompressor_inflater.get(remove);
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+			if(inflater != null) {
+				inflater.end();
+			}
+		}
+	}
+
+	private static Field findField(Class<?> clazz, Class<?> fieldType) throws NoSuchFieldException {
+		for(Field field : clazz.getDeclaredFields()) {
+			if(field.getType() == fieldType) {
+				field.setAccessible(true);
+				return field;
+			}
+		}
+		throw new NoSuchFieldException("Could not find field with type " + fieldType + " in class " + clazz);
 	}
 
 }

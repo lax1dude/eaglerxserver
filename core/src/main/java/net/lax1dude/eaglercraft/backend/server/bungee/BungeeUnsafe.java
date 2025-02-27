@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.bungee;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -13,6 +14,7 @@ import com.google.common.collect.ForwardingSet;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.base.ChannelInitializerHijacker;
@@ -23,6 +25,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.connection.Server;
+import net.md_5.bungee.netty.ChannelWrapper;
 
 public class BungeeUnsafe {
 
@@ -31,6 +34,7 @@ public class BungeeUnsafe {
 	private static final Field field_InitialHandler_ch;
 	private static final Class<?> class_ChannelWrapper;
 	private static final Method method_ChannelWrapper_getHandle;
+	private static final Method method_ChannelWrapper_isClosing;
 	private static final Method method_ChannelWrapper_close;
 	private static final Class<?> class_PluginMessage;
 	private static final Method method_PluginMessage_getData;
@@ -48,6 +52,7 @@ public class BungeeUnsafe {
 			field_InitialHandler_ch.setAccessible(true);
 			class_ChannelWrapper = Class.forName("net.md_5.bungee.netty.ChannelWrapper");
 			method_ChannelWrapper_getHandle = class_ChannelWrapper.getMethod("getHandle");
+			method_ChannelWrapper_isClosing = class_ChannelWrapper.getMethod("isClosing");
 			method_ChannelWrapper_close = class_ChannelWrapper.getMethod("close");
 			class_PluginMessage = Class.forName("net.md_5.bungee.connection.PluginMessage");
 			method_PluginMessage_getData = class_PluginMessage.getMethod("getData");
@@ -113,6 +118,41 @@ public class BungeeUnsafe {
 			return (Boolean) method_Configuration_isOnlineMode.invoke(field_BungeeCord_config.get(proxy));
 		}catch(IllegalArgumentException | IllegalAccessException | SecurityException | InvocationTargetException e) {
 			return proxy.getConfig().isOnlineMode();
+		}
+	}
+
+	private static boolean hasShownChannelWrapperWarning = false;
+
+	public static void injectCompressionDisable(PendingConnection conn) {
+		if(class_InitialHandler.isAssignableFrom(conn.getClass())) {
+			try {
+				Object ch = field_InitialHandler_ch.get(conn);
+				if(!(Boolean) method_ChannelWrapper_isClosing.invoke(ch)) {
+					if(ch.getClass() != class_ChannelWrapper && !hasShownChannelWrapperWarning) {
+						hasShownChannelWrapperWarning = true;
+						System.err.println("ERROR: ChannelWrapper is unknown class \"" + ch.getClass().getName()
+								+ "\" and will be overridden, set compression threshold to -1 in the BungeeCord "
+								+ "config.yml if that is an issue");
+					}
+					field_InitialHandler_ch.set(conn, new ChannelWrapper((ChannelHandlerContext) Proxy.newProxyInstance(
+							BungeeUnsafe.class.getClassLoader(), new Class[] { ChannelHandlerContext.class },
+							(proxy, meth, args) -> {
+						if ("channel".equals(meth.getName())) {
+							return method_ChannelWrapper_getHandle.invoke(ch);
+						}
+						throw new IllegalStateException();
+					})) {
+						@Override
+						public void setCompressionThreshold(int compressionThreshold) {
+							// FUCK YOU!!!
+						}
+					});
+				}
+			} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+		}else {
+			throw new RuntimeException("PendingConnection is an unknown type: " + conn.getClass().getName());
 		}
 	}
 

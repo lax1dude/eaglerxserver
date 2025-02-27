@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import io.netty.channel.Channel;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformSubLogger;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
@@ -14,7 +15,7 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRe
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
-public class NettyPipelineData implements IEaglerPendingConnection {
+public class NettyPipelineData implements IEaglerPendingConnection, IPipelineData {
 
 	public final Channel channel;
 	public final EaglerAttributeManager.EaglerAttributeHolder attributeHolder;
