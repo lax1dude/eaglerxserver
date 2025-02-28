@@ -13,6 +13,8 @@ import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.ITLSManager;
+import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerAttributeManager.EaglerAttributeHolder;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
 
@@ -21,6 +23,7 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 	private final EaglerXServer<?> server;
 	private final SocketAddress address;
 	private final ConfigDataListener listenerConf;
+	private final EaglerAttributeHolder attrHolder;
 	private final boolean sslPluginManaged;
 	private final ISSLContextProvider sslContext;
 	private final byte[] legacyRedirectAddressBuf;
@@ -35,6 +38,7 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 		this.server = server;
 		this.address = address;
 		this.listenerConf = listenerConf;
+		this.attrHolder = server.getEaglerAttribManager().createEaglerHolder();
 		if (listenerConf.isEnableTLS()) {
 			this.sslPluginManaged = listenerConf.isTLSManagedByExternalPlugin();
 			if(this.sslPluginManaged) {
@@ -57,6 +61,16 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 
 	public ISSLContextProvider getSSLContext() {
 		return sslContext;
+	}
+
+	@Override
+	public <T> T get(IAttributeKey<T> key) {
+		return attrHolder.get(key);
+	}
+
+	@Override
+	public <T> void set(IAttributeKey<T> key, T value) {
+		attrHolder.set(key, value);
 	}
 
 	@Override
@@ -131,7 +145,7 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 
 	@Override
 	public boolean isForwardIP() {
-		return false;
+		return listenerConf.isForwardIP();
 	}
 
 	@Override
@@ -168,6 +182,10 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 
 	public boolean isShowMOTDPlayerList() {
 		return listenerConf.isShowMOTDPlayerList();
+	}
+
+	public ConfigDataListener getConfigData() {
+		return listenerConf;
 	}
 
 }

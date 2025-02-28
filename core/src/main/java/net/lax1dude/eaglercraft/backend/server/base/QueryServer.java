@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.google.gson.JsonObject;
+
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryHandler;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryServer;
 
@@ -28,6 +30,31 @@ public class QueryServer implements IQueryServer {
 		}finally {
 			registeredQueriesLock.readLock().unlock();
 		}
+	}
+
+	private JsonObject createBaseResponse() {
+		JsonObject json = new JsonObject();
+		json.addProperty("name", server.getServerName());
+		json.addProperty("brand", "lax1dude");
+		json.addProperty("vers", server.getServerVersionString());
+		json.addProperty("cracked", true);
+		json.addProperty("time", System.currentTimeMillis());
+		json.addProperty("uuid", server.getServerUUIDString());
+		return json;
+	}
+
+	public JsonObject createStringResponse(String type, String str) {
+		JsonObject ret = createBaseResponse();
+		ret.addProperty("type", type);
+		ret.addProperty("data", str);
+		return ret;
+	}
+
+	public JsonObject createJsonObjectResponse(String type, JsonObject json) {
+		JsonObject ret = createBaseResponse();
+		ret.addProperty("type", type);
+		ret.add("data", json);
+		return ret;
 	}
 
 	@Override

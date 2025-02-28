@@ -43,7 +43,7 @@ public interface IRequestContext {
 
 		Object getNettyChannelHandlerContext();
 
-		Object getNettyHttpRequest();
+		Object getNettyFullHttpRequest();
 
 	}
 

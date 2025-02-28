@@ -16,7 +16,6 @@ public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 	private final PipelineTransformer transformer;
 	private final NettyPipelineData pipelineData;
 	private final List<ChannelHandler> componentsToRemove;
-	private List<ByteBuf> waitingOutboundFrames;
 
 	public MultiStackInitialInboundHandler(PipelineTransformer transformer, NettyPipelineData pipelineData, List<ChannelHandler> componentsToRemove) {
 		this.transformer = transformer;
@@ -237,16 +236,10 @@ public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 	private void setVanillaHandler(ChannelHandlerContext ctx, ByteBuf buffer) {
 		try {
 			pipelineData.listenerInfo = null;
-			if(waitingOutboundFrames != null) {
-				for(ByteBuf buf : waitingOutboundFrames) {
-					ctx.write(buf, ctx.voidPromise());
-				}
-				ctx.flush();
-				waitingOutboundFrames = null;
-			}
 			ChannelPipeline p = ctx.pipeline();
+			p.remove(PipelineTransformer.HANDLER_OUTBOUND_THROW);
+			ctx.fireChannelRead(buffer.retain());
 			p.remove(PipelineTransformer.HANDLER_MULTI_STACK_INITIAL);
-			p.fireChannelRead(buffer.retain());
 		}finally {
 			buffer.release();
 		}
@@ -261,10 +254,10 @@ public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 				}
 			}
 			transformer.initializeHTTPHandler(pipelineData, ssl, p, PipelineTransformer.HANDLER_MULTI_STACK_INITIAL);
-			p.remove(PipelineTransformer.HANDLER_MULTI_STACK_INITIAL);
 			if (ctx.channel().isActive()) {
-				p.fireChannelRead(buffer.retain());
+				ctx.fireChannelRead(buffer.retain());
 			}
+			p.remove(PipelineTransformer.HANDLER_MULTI_STACK_INITIAL);
 		}finally {
 			buffer.release();
 		}

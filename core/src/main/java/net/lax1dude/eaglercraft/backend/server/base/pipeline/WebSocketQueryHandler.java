@@ -15,6 +15,7 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.util.ReferenceCountUtil;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.query.IDuplexHandler;
@@ -32,12 +33,14 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 	private final NettyPipelineData pipelineData;
 	private final long createdAt;
 
+	private boolean initial = true;
 	private boolean handled = false;
 	private volatile boolean dead = false;
 	private String accepted = null;
 	private IDuplexHandler<String> stringHandler = null;
 	private IDuplexHandler<byte[]> binaryHandler = null;
 	private long maxAge = -1l;
+	private IPlatformTask closeTask = null;
 
 	private final ChannelFutureListener writeListener = (e) -> {
 		WebSocketQueryHandler.this.checkClose();
@@ -136,6 +139,7 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 					if(maxAge <= 0l) {
 						close();
 					}
+					initial = false;
 				}
 			});
 		}else {
@@ -156,6 +160,7 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 					if(maxAge <= 0l) {
 						close();
 					}
+					initial = false;
 				}
 			}
 		}
@@ -175,7 +180,7 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 
 	@Override
 	public boolean isClosed() {
-		return !pipelineData.channel.isActive();
+		return dead || !pipelineData.channel.isActive();
 	}
 
 	@Override
@@ -230,8 +235,26 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 
 	@Override
 	public void setMaxAge(long millis) {
-		maxAge = millis;
-		//TODO schedule task
+		if(!dead) {
+			if(maxAge != millis) {
+				maxAge = millis;
+				if(closeTask != null) {
+					closeTask.cancel();
+				}
+				if(millis > 0l) {
+					long closeAfter = maxAge - getAge();
+					if(closeAfter > 0l) {
+						closeTask = server.getPlatform().getScheduler().executeAsyncDelayedTask(this::close, closeAfter);
+					}else {
+						close();
+					}
+				}else {
+					if(!initial) {
+						close();
+					}
+				}
+			}
+		}
 	}
 
 	@Override
@@ -257,12 +280,16 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 
 	@Override
 	public void sendResponse(String type, String str) {
-		//TODO
+		if(!dead) {
+			send(server.getQueryServer().createStringResponse(type, str).toString());
+		}
 	}
 
 	@Override
 	public void sendResponse(String type, JsonObject jsonObject) {
-		//TODO
+		if(!dead) {
+			send(server.getQueryServer().createJsonObjectResponse(type, jsonObject).toString());
+		}
 	}
 
 	private void checkClose() {

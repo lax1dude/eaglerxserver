@@ -6,20 +6,25 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.query.IMOTDConnection;
+import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketQueryHandler;
 
 public class MOTDConnectionWrapper implements IMOTDConnection {
 
 	private final WebSocketQueryHandler queryConnection;
+	private String subType;
+	private String returnType;
 	private byte[] icon;
 	private boolean iconCloned;
-	private boolean dirty;
 	private boolean hasIcon;
 	private boolean iconDirty;
 	private List<String> motd;
@@ -29,7 +34,6 @@ public class MOTDConnectionWrapper implements IMOTDConnection {
 
 	public MOTDConnectionWrapper(WebSocketQueryHandler queryConnection) {
 		this.queryConnection = queryConnection;
-		this.dirty = true;
 	}
 
 	private static class EaglerArrayList extends ArrayList<String> implements Consumer<IEaglerPlayer<Object>> {
@@ -53,10 +57,6 @@ public class MOTDConnectionWrapper implements IMOTDConnection {
 
 	public void setDefaults(EaglerXServer<?> server) {
 		EaglerListener listener = queryConnection.getListenerInfo();
-		dirty = true;
-		icon = listener.getServerIcon();
-		iconCloned = icon == null;
-		hasIcon = iconDirty = icon != null;
 		motd = listener.getServerMOTD();
 		IPlatform<?> platform = server.getPlatform();
 		playerTotal = platform.getPlayerTotal();
@@ -73,6 +73,85 @@ public class MOTDConnectionWrapper implements IMOTDConnection {
 			}
 		}else {
 			playerList = Collections.emptyList();
+		}
+		String queryType = queryConnection.getAccept();
+		int i = queryType.indexOf('.');
+		if(i > 0) {
+			subType = queryType.substring(i + 1);
+			if(subType.length() == 0) {
+				subType = null;
+			}
+		}else {
+			subType = null;
+		}
+		if(subType == null || (!subType.startsWith("noicon") && !subType.startsWith("cache.noicon"))) {
+			icon = listener.getServerIcon();
+		}else {
+			icon = null;
+		}
+		iconCloned = icon == null;
+		hasIcon = iconDirty = icon != null;
+	}
+
+	private static final JsonArray EMPTY_LIST = new JsonArray();
+
+	@Override
+	public void sendToUser() {
+		if(!queryConnection.isClosed()) {
+			JsonObject obj = new JsonObject();
+			if(subType.startsWith("cache.anim")) {
+				obj.addProperty("unsupported", true);
+				queryConnection.sendResponse(returnType, obj);
+				return;
+			}else if(subType.startsWith("cache")) {
+				JsonArray cacheControl = new JsonArray();
+				ConfigDataListener cc = queryConnection.getListenerInfo().getConfigData();
+				if(cc.isMotdCacheAnimation()) {
+					cacheControl.add("animation");
+				}
+				if(cc.isMotdCacheResults()) {
+					cacheControl.add("results");
+				}
+				if(cc.isMotdCacheTrending()) {
+					cacheControl.add("trending");
+				}
+				if(cc.isMotdCachePortfolios()) {
+					cacheControl.add("portfolio");
+				}
+				obj.add("cache", cacheControl);
+				obj.addProperty("ttl", cc.getMotdCacheTTL());
+			}else {
+				obj.addProperty("cache", queryConnection.getListenerInfo().getConfigData().isMotdCacheAny());
+			}
+			boolean noIcon = subType.startsWith("noicon") || subType.startsWith("cache.noicon");
+			JsonArray motd = new JsonArray(this.motd.size());
+			for(int i = 0; i < 2; ++i) {
+				if(i >= this.motd.size()) break;
+				motd.add(this.motd.get(i));
+			}
+			obj.add("motd", motd);
+			obj.addProperty("icon", hasIcon && !noIcon);
+			obj.addProperty("online", playerTotal);
+			obj.addProperty("max", playerMax);
+			int i = playerList.size();
+			JsonArray playerz;
+			if(i > 0) {
+				playerz = new JsonArray(playerList.size());
+				for(String s : playerList) {
+					playerz.add(s);
+				}
+			}else {
+				playerz = EMPTY_LIST;
+			}
+			obj.add("players", playerz);
+			queryConnection.sendResponse(returnType, obj);
+			if(hasIcon && !noIcon && iconDirty && icon != null) {
+				queryConnection.send(icon);
+				iconDirty = false;
+			}
+			if(subType.startsWith("cache")) {
+				close();
+			}
 		}
 	}
 
@@ -117,13 +196,23 @@ public class MOTDConnectionWrapper implements IMOTDConnection {
 	}
 
 	@Override
-	public String getHeader(EnumWebSocketHeader header) {
-		return queryConnection.getHeader(header);
+	public String getSubType() {
+		return subType;
 	}
 
 	@Override
-	public void sendToUser() {
-		//TODO
+	public String getResponseType() {
+		return returnType;
+	}
+
+	@Override
+	public void setResponseType(String type) {
+		returnType = type;
+	}
+
+	@Override
+	public String getHeader(EnumWebSocketHeader header) {
+		return queryConnection.getHeader(header);
 	}
 
 	@Override
@@ -157,7 +246,7 @@ public class MOTDConnectionWrapper implements IMOTDConnection {
 		if(icon != null && icon.length != 16384) {
 			throw new IllegalArgumentException("Server icon is the wrong length, should be 16384");
 		}
-		this.iconCloned = true;
+		this.iconCloned = this.iconDirty = this.hasIcon = true;
 		this.icon = icon;
 	}
 

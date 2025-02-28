@@ -4,9 +4,9 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
@@ -23,8 +23,8 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msgRaw) throws Exception {
 		try {
-			if(msgRaw instanceof HttpRequest) {
-				HttpRequest msg = (HttpRequest) msgRaw;
+			if(msgRaw instanceof FullHttpRequest) {
+				FullHttpRequest msg = (FullHttpRequest) msgRaw;
 				HttpHeaders headers = msg.headers();
 				String connection = headers.get(HttpHeaderNames.CONNECTION);
 				if(connection != null && "upgrade".equalsIgnoreCase(connection)) {
@@ -43,7 +43,7 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 		}
 	}
 
-	private void handleWebSocket(ChannelHandlerContext ctx, HttpRequest msg) throws Exception {
+	private void handleWebSocket(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
 		NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
 		HttpHeaders headers = msg.headers();
 		pipelineData.headerHost = headers.get(HttpHeaderNames.HOST);
@@ -79,7 +79,7 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 		}
 	}
 
-	private void handleHTTP(ChannelHandlerContext ctx, HttpRequest msg) throws Exception {
+	private void handleHTTP(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
 		NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
 		pipelineData.server.getPipelineTransformer().removeVanillaHandlers(ctx.pipeline());
 		ctx.pipeline().addAfter(PipelineTransformer.HANDLER_HTTP_INITIAL, PipelineTransformer.HANDLER_HTTP,

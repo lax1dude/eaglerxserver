@@ -38,12 +38,10 @@ import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
 import net.lax1dude.eaglercraft.backend.server.api.internal.factory.IEaglerAPIFactory;
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationService;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuService;
-import net.lax1dude.eaglercraft.backend.server.api.query.IQueryServer;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindService;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
-import net.lax1dude.eaglercraft.backend.server.api.webserver.IWebServer;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandClientBrand;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandDomain;
@@ -297,10 +295,27 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		return EaglerXServerVersion.VERSION;
 	}
 
+	public String getServerVersionString() {
+		return EaglerXServerVersion.BRAND + "/" + EaglerXServerVersion.VERSION;
+	}
+
+	@Override
+	public String getServerName() {
+		return config.getSettings().getServerName();
+	}
+
+	@Override
+	public UUID getServerUUID() {
+		return config.getSettings().getServerUUID();
+	}
+
+	public String getServerUUIDString() {
+		return config.getSettings().getServerUUIDString();
+	}
+
 	@Override
 	public boolean isAuthenticationEventsEnabled() {
-		// TODO Auto-generated method stub
-		return false;
+		return config.getSettings().isEnableAuthenticationEvents();
 	}
 
 	@Override

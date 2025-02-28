@@ -21,6 +21,12 @@ public interface IMOTDConnection extends IAttributeHolder {
 
 	String getAccept();
 
+	String getSubType();
+
+	String getResponseType();
+
+	void setResponseType(String type);
+
 	String getHeader(EnumWebSocketHeader header);
 
 	void sendToUser();

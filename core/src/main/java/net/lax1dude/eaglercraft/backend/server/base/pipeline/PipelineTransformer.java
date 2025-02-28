@@ -61,17 +61,23 @@ public class PipelineTransformer {
 
 	public void injectSingleStack(List<IPipelineComponent> components, Channel channel, NettyPipelineData pipelineData) {
 		ChannelPipeline pipeline = channel.pipeline();
+		String before = null;
 		String first = null;
+		boolean e = false;
 		for(IPipelineComponent comp : components) {
 			if(VANILLA_FRAME_DECODERS.contains(comp.getIdentifiedType())) {
 				pipeline.remove(comp.getHandle());
 			}else {
-				if(first == null && comp.getIdentifiedType() != EnumPipelineComponent.HAPROXY_HANDLER) {
-					first = comp.getName();
+				if(!e) {
+					if(comp.getIdentifiedType() != EnumPipelineComponent.HAPROXY_HANDLER) {
+						first = before;
+						e = true;
+					}
+					before = comp.getName();
 				}
 			}
 		}
-		if(first == null) {
+		if(!e) {
 			return;
 		}
 		EaglerListener eagListener = pipelineData.listenerInfo;
@@ -81,7 +87,12 @@ public class PipelineTransformer {
 				throw new IllegalStateException();
 			}
 			if(!eagListener.isTLSRequired()) {
-				channel.pipeline().addBefore(first, HANDLER_MULTI_STACK_INITIAL, new MultiStackInitialInboundHandler(this, pipelineData, null));
+				MultiStackInitialInboundHandler ms = new MultiStackInitialInboundHandler(this, pipelineData, null);
+				if(first == null) {
+					channel.pipeline().addFirst(HANDLER_MULTI_STACK_INITIAL, ms);
+				}else {
+					channel.pipeline().addAfter(first, HANDLER_MULTI_STACK_INITIAL, ms);
+				}
 			}else {
 				initializeHTTPHandler(pipelineData, ssl, pipeline, first);
 			}
@@ -110,30 +121,43 @@ public class PipelineTransformer {
 	}
 
 	protected void initializeHTTPHandler(NettyPipelineData pipelineData, ISSLContextProvider context, ChannelPipeline pipeline,
-			String before) {
+			String after) {
 		if(context != null) {
 			SslHandler sslHandler = context.newHandler(pipeline.channel().alloc());
 			if(sslHandler == null) {
 				pipeline.channel().close();
 				return;
 			}
-			pipeline.addBefore(before, HANDLER_HTTP_SSL, sslHandler);
+			if(after == null) {
+				pipeline.addFirst(HANDLER_HTTP_SSL, sslHandler);
+			}else {
+				pipeline.addAfter(after, HANDLER_HTTP_SSL, sslHandler);
+			}
+			after = HANDLER_HTTP_SSL;
 			pipelineData.wss = true;
 		}
 		ConfigDataSettings settings = server.getConfig().getSettings();
-		pipeline.addBefore(before, HANDLER_HTTP_SERVER_CODEC, new HttpServerCodec(settings.getHTTPMaxInitialLineLength(), 
-				settings.getHTTPMaxHeaderSize(), settings.getHTTPMaxChunkSize()));
-		pipeline.addBefore(before, HANDLER_HTTP_AGGREGATOR, new HttpObjectAggregator(settings.getHTTPMaxContentLength(), true));
+		HttpServerCodec serverCodec = new HttpServerCodec(settings.getHTTPMaxInitialLineLength(), 
+				settings.getHTTPMaxHeaderSize(), settings.getHTTPMaxChunkSize());
+		if(after == null) {
+			pipeline.addFirst(HANDLER_HTTP_SERVER_CODEC, serverCodec);
+		}else {
+			pipeline.addAfter(after, HANDLER_HTTP_SERVER_CODEC, serverCodec);
+		}
+		after = HANDLER_HTTP_SERVER_CODEC;
+		pipeline.addAfter(after, HANDLER_HTTP_AGGREGATOR, new HttpObjectAggregator(settings.getHTTPMaxContentLength(), true));
+		after = HANDLER_HTTP_AGGREGATOR;
 		int compressionLevel = Math.min(settings.getHTTPWebSocketCompressionLevel(), 9);
 		if(compressionLevel > 0) {
 			DeflateFrameServerExtensionHandshaker deflateExtensionHandshaker = new DeflateFrameServerExtensionHandshaker(compressionLevel);
 			PerMessageDeflateServerExtensionHandshaker perMessageDeflateExtensionHandshaker = new PerMessageDeflateServerExtensionHandshaker(
 					compressionLevel, ZlibCodecFactory.isSupportingWindowSizeAndMemLevel(),
 					PerMessageDeflateServerExtensionHandshaker.MAX_WINDOW_SIZE, false, false);
-			pipeline.addBefore(before, HANDLER_WS_COMPRESSION, new WebSocketServerExtensionHandler(
+			pipeline.addAfter(after, HANDLER_WS_COMPRESSION, new WebSocketServerExtensionHandler(
 					deflateExtensionHandshaker, perMessageDeflateExtensionHandshaker));
+			after = HANDLER_WS_COMPRESSION;
 		}
-		pipeline.addBefore(before, HANDLER_HTTP_INITIAL, HTTPInitialInboundHandler.INSTANCE);
+		pipeline.addAfter(after, HANDLER_HTTP_INITIAL, HTTPInitialInboundHandler.INSTANCE);
 	}
 
 	protected void removeVanillaHandlers(ChannelPipeline pipeline) {

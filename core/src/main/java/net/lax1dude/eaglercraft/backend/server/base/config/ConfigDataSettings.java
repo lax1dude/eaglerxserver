@@ -297,6 +297,7 @@ public class ConfigDataSettings {
 
 	private final String serverName;
 	private final UUID serverUUID;
+	private final String serverUUIDString;
 	private final int eaglerLoginTimeout;
 	private final int httpMaxInitialLineLength;
 	private final int httpMaxHeaderSize;
@@ -326,6 +327,7 @@ public class ConfigDataSettings {
 			ConfigDataUpdateService updateService) {
 		this.serverName = serverName;
 		this.serverUUID = serverUUID;
+		this.serverUUIDString = serverUUID.toString();
 		this.eaglerLoginTimeout = eaglerLoginTimeout;
 		this.httpMaxInitialLineLength = httpMaxInitialLineLength;
 		this.httpMaxHeaderSize = httpMaxHeaderSize;
@@ -353,6 +355,10 @@ public class ConfigDataSettings {
 
 	public UUID getServerUUID() {
 		return serverUUID;
+	}
+
+	public String getServerUUIDString() {
+		return serverUUIDString;
 	}
 
 	public int getEaglerLoginTimeout() {

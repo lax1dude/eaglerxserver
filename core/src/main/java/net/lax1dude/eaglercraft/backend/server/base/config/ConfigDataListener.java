@@ -74,6 +74,7 @@ public class ConfigDataListener {
 	private final boolean motdCacheResults;
 	private final boolean motdCacheTrending;
 	private final boolean motdCachePortfolios;
+	private final boolean motdCacheAny;
 	private final ConfigRateLimit limitIP;
 	private final ConfigRateLimit limitLogin;
 	private final ConfigRateLimit limitMOTD;
@@ -112,6 +113,7 @@ public class ConfigDataListener {
 		this.motdCacheResults = motdCacheResults;
 		this.motdCacheTrending = motdCacheTrending;
 		this.motdCachePortfolios = motdCachePortfolios;
+		this.motdCacheAny = motdCacheAnimation || motdCacheResults || motdCacheTrending || motdCachePortfolios;
 		this.limitIP = limitIP;
 		this.limitLogin = limitLogin;
 		this.limitMOTD = limitMOTD;
@@ -213,6 +215,10 @@ public class ConfigDataListener {
 
 	public boolean isMotdCachePortfolios() {
 		return motdCachePortfolios;
+	}
+
+	public boolean isMotdCacheAny() {
+		return motdCacheAny;
 	}
 
 	public ConfigRateLimit getLimitIP() {

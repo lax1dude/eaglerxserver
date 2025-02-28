@@ -3,7 +3,9 @@ package net.lax1dude.eaglercraft.backend.server.api;
 import java.net.SocketAddress;
 import java.util.List;
 
-public interface IEaglerListenerInfo {
+import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeHolder;
+
+public interface IEaglerListenerInfo extends IAttributeHolder {
 
 	String getName();
 

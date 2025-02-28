@@ -56,6 +56,10 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	String getServerVersion();
 
+	String getServerName();
+
+	UUID getServerUUID();
+
 	boolean isAuthenticationEventsEnabled();
 
 	boolean isEaglerHandshakeSupported(int vers);
