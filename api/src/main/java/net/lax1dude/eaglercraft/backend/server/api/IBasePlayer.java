@@ -9,6 +9,10 @@ public interface IBasePlayer<PlayerObject> extends IBasePendingConnection {
 
 	IEaglerXServerAPI<PlayerObject> getServerAPI();
 
+	String getUsername();
+
+	UUID getUniqueId();
+
 	PlayerObject getPlayerObject();
 
 	String getMinecraftBrand();

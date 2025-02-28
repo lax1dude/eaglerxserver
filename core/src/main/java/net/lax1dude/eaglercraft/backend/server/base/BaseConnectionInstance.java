@@ -1,7 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
 import java.net.SocketAddress;
-import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IBasePendingConnection;
@@ -27,16 +26,6 @@ public class BaseConnectionInstance implements IBasePendingConnection {
 	@Override
 	public <T> void set(IAttributeKey<T> key, T value) {
 		attributeHolder.set(key, value);
-	}
-
-	@Override
-	public String getUsername() {
-		return connection.getUsername();
-	}
-
-	@Override
-	public UUID getUniqueId() {
-		return connection.getUniqueId();
 	}
 
 	@Override

@@ -6,10 +6,10 @@ import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 
 public interface IWebSocketOpenDelegate {
 
-	String getHeader(EnumWebSocketHeader header);
+	String getWebSocketHeader(EnumWebSocketHeader header);
 
 	SocketAddress getSocketAddress();
 
-	String getRealIP();
+	String getRealAddress();
 
 }

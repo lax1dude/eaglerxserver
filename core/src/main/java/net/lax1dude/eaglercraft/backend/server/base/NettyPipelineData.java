@@ -1,12 +1,12 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
 import java.net.SocketAddress;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import io.netty.buffer.ByteBuf;
@@ -15,6 +15,7 @@ import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformSubLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
+import net.lax1dude.eaglercraft.backend.server.adapter.event.IWebSocketOpenDelegate;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
@@ -23,7 +24,7 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRe
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
-public class NettyPipelineData implements IEaglerPendingConnection, IPipelineData {
+public class NettyPipelineData implements IEaglerPendingConnection, IPipelineData, IWebSocketOpenDelegate {
 
 	public static class ProfileDataHolder {
 
@@ -96,16 +97,6 @@ public class NettyPipelineData implements IEaglerPendingConnection, IPipelineDat
 		this.server = server;
 		this.listenerInfo = listenerInfo;
 		this.attributeHolder = attributeHolder;
-	}
-
-	@Override
-	public String getUsername() {
-		return username;
-	}
-
-	@Override
-	public UUID getUniqueId() {
-		return uuid;
 	}
 
 	@Override
@@ -219,6 +210,11 @@ public class NettyPipelineData implements IEaglerPendingConnection, IPipelineDat
 	}
 
 	@Override
+	public Map<String, byte[]> getExtraProfileData() {
+		return null;
+	}
+
+	@Override
 	public int getHandshakeEaglerProtocol() {
 		return handshakeProtocol;
 	}
@@ -282,18 +278,18 @@ public class NettyPipelineData implements IEaglerPendingConnection, IPipelineDat
 	}
 
 	public Map<String, byte[]> extraProfileDataHelper() {
-		Map<String, byte[]> ret = null;
+		ImmutableMap.Builder<String, byte[]> ret = null;
 		if(profileDatas != null) {
 			for(Entry<String, byte[]> extra : profileDatas.entrySet()) {
 				if(!profileDataStandard.contains(extra.getKey())) {
 					if(ret == null) {
-						ret = new HashMap<>(4);
+						ret = ImmutableMap.builder();
 					}
 					ret.put(extra.getKey(), extra.getValue());
 				}
 			}
 		}
-		return ret;
+		return ret != null ? ret.build() : null;
 	}
 
 }

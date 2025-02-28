@@ -36,7 +36,7 @@ class BungeeWebSocketOpenEventImpl extends EaglercraftWebSocketOpenEvent {
 
 	@Override
 	public String getHeader(EnumWebSocketHeader header) {
-		return delegate.getHeader(header);
+		return delegate.getWebSocketHeader(header);
 	}
 
 	@Override
@@ -46,7 +46,7 @@ class BungeeWebSocketOpenEventImpl extends EaglercraftWebSocketOpenEvent {
 
 	@Override
 	public String getRealIP() {
-		return delegate.getRealIP();
+		return delegate.getRealAddress();
 	}
 
 }

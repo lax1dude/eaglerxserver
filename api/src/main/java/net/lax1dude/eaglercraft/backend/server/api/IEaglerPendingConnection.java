@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.api;
 
+import java.util.Map;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
@@ -25,6 +26,8 @@ public interface IEaglerPendingConnection extends IBasePendingConnection {
 	String getEaglerBrandString();
 
 	UUID getEaglerBrandUUID();
+
+	Map<String, byte[]> getExtraProfileData();
 
 	int getHandshakeEaglerProtocol();
 

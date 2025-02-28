@@ -21,6 +21,8 @@ public class QueryServer implements IQueryServer {
 		this.server = server;
 		this.registeredQueriesLock = new ReentrantReadWriteLock();
 		this.registeredQueries = new HashMap<>();
+		this.registeredQueries.put("version", new VersionQueryHandler(server));
+		this.registeredQueries.put("revoke_session_token", new RevokeSessionQueryHandler(server));
 	}
 
 	public IQueryHandler getHandlerFor(String queryType) {

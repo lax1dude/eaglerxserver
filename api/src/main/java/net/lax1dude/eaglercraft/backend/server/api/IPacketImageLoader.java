@@ -9,12 +9,24 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.PacketImageData;
 
 public interface IPacketImageLoader {
 
-	PacketImageData loadPacketImageData(int width, int height, int[] pixelsARGB8);
+	PacketImageData loadPacketImageData(int[] pixelsARGB8, int width, int height);
 
-	PacketImageData loadPacketImageData(BufferedImage bufferedImage);
+	default PacketImageData loadPacketImageData(BufferedImage bufferedImage) {
+		return loadPacketImageData(bufferedImage, 255, 255);
+	}
 
-	PacketImageData loadPacketImageData(InputStream inputStream) throws IOException;
+	PacketImageData loadPacketImageData(BufferedImage bufferedImage, int maxWidth, int maxHeight);
 
-	PacketImageData loadPacketImageData(File imageFile) throws IOException;
+	default PacketImageData loadPacketImageData(InputStream inputStream) throws IOException {
+		return loadPacketImageData(inputStream, 255, 255);
+	}
+
+	PacketImageData loadPacketImageData(InputStream inputStream, int maxWidth, int maxHeight) throws IOException;
+
+	default PacketImageData loadPacketImageData(File imageFile) throws IOException {
+		return loadPacketImageData(imageFile, 255, 255);
+	}
+
+	PacketImageData loadPacketImageData(File imageFile, int maxWidth, int maxHeight) throws IOException;
 
 }
