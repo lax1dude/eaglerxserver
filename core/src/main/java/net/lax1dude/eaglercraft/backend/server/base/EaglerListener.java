@@ -118,4 +118,12 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 		return legacyRedirectAddressBuf;
 	}
 
+	public boolean isAllowMOTD() {
+		return listenerConf.isAllowMOTD();
+	}
+
+	public boolean isAllowQuery() {
+		return listenerConf.isAllowQuery();
+	}
+
 }

@@ -4,6 +4,8 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.util.ReferenceCountUtil;
 
 @ChannelHandler.Sharable
@@ -13,8 +15,12 @@ public class OutboundPacketThrowHandler extends ChannelOutboundHandlerAdapter {
 
 	@Override
 	public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-		ReferenceCountUtil.release(msg);
-		throw new IllegalStateException("Server sent an unexpected packet before the connection was initialized");
+		if(!(msg instanceof HttpResponse) && !(msg instanceof WebSocketFrame)) {
+			ReferenceCountUtil.release(msg);
+			throw new IllegalStateException("Server sent an unexpected packet before the connection was initialized");
+		}else {
+			ctx.write(msg, promise);
+		}
 	}
 
 }

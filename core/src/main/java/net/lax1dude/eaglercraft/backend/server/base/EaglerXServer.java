@@ -480,12 +480,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public IQueryServer getQueryServer() {
+	public QueryServer getQueryServer() {
 		return queryServer;
 	}
 
 	@Override
-	public IWebServer getWebServer() {
+	public WebServer getWebServer() {
 		return webServer;
 	}
 

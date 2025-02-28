@@ -1,27 +1,43 @@
 package net.lax1dude.eaglercraft.backend.server.api.query;
 
+import java.net.SocketAddress;
 import java.util.List;
 
+import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeHolder;
-import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 
 public interface IMOTDConnection extends IAttributeHolder {
 
-	IQueryConnection getSocket();
+	boolean isClosed();
 
-	default <T> T get(IAttributeKey<T> key) {
-		return getSocket().get(key);
-	}
+	void close();
 
-	default <T> void set(IAttributeKey<T> key, T value) {
-		getSocket().set(key, value);
-	}
+	SocketAddress getRemoteAddress();
+
+	String getRealAddress();
+
+	IEaglerListenerInfo getListenerInfo();
+
+	String getAccept();
+
+	String getHeader(EnumWebSocketHeader header);
 
 	void sendToUser();
 
+	long getAge();
+
+	void setMaxAge(long millis);
+
+	long getMaxAge();
+
+	default boolean shouldKeepAlive() {
+		return getMaxAge() > 0l;
+	}
+
 	int[] getBitmap();
 
-	void getBitmap(int[] bitmap);
+	void setBitmap(int[] bitmap);
 
 	String getLine1();
 
