@@ -71,10 +71,14 @@ public class QueryServer implements IQueryServer {
 
 	@Override
 	public void registerQueryType(String queryType, IQueryHandler handler) {
+		queryType = queryType.toLowerCase(Locale.US);
+		if("motd".equals(queryType) || queryType.startsWith("motd.")) {
+			throw new UnsupportedOperationException("Cannot replace the default MOTD handler");
+		}
 		boolean warn;
 		registeredQueriesLock.writeLock().lock();
 		try {
-			warn = registeredQueries.put(queryType.toLowerCase(Locale.US), handler) != null;
+			warn = registeredQueries.put(queryType, handler) != null;
 		}finally {
 			registeredQueriesLock.writeLock().unlock();
 		}
