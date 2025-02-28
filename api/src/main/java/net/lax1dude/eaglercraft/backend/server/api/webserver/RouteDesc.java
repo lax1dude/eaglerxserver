@@ -18,6 +18,18 @@ public class RouteDesc {
 		return null;
 	}
 
+	public static RouteDesc create(String listenerName, String pattern) {
+		return null;
+	}
+
+	public static RouteDesc create(String listenerName, String pattern, EnumRequestMethod method) {
+		return null;
+	}
+
+	public static RouteDesc create(String listenerName, String pattern, EnumRequestMethod... method) {
+		return null;
+	}
+
 	private RouteDesc() {
 	}
 
