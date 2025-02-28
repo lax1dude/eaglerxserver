@@ -43,6 +43,7 @@ public class BungeeUnsafe {
 	private static final Field field_BungeeCord_config;
 	private static final Class<?> class_Configuration;
 	private static final Method method_Configuration_isOnlineMode;
+	private static final Method method_Configuration_getPlayerLimit;
 
 	static {
 		try {
@@ -63,6 +64,7 @@ public class BungeeUnsafe {
 			field_BungeeCord_config.setAccessible(true);
 			class_Configuration = Class.forName("net.md_5.bungee.conf.Configuration");
 			method_Configuration_isOnlineMode = class_Configuration.getMethod("isOnlineMode");
+			method_Configuration_getPlayerLimit = class_Configuration.getMethod("getPlayerLimit");
 		}catch(Exception ex) {
 			throw Util.propagateReflectThrowable(ex);
 		}
@@ -113,11 +115,21 @@ public class BungeeUnsafe {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public static boolean isOnlineMode(ProxyServer proxy) {
 		try {
 			return (Boolean) method_Configuration_isOnlineMode.invoke(field_BungeeCord_config.get(proxy));
 		}catch(IllegalArgumentException | IllegalAccessException | SecurityException | InvocationTargetException e) {
 			return proxy.getConfig().isOnlineMode();
+		}
+	}
+
+	@SuppressWarnings("deprecation")
+	public static int getPlayerMax(ProxyServer proxy) {
+		try {
+			return (Integer) method_Configuration_getPlayerLimit.invoke(field_BungeeCord_config.get(proxy));
+		}catch(IllegalArgumentException | IllegalAccessException | SecurityException | InvocationTargetException e) {
+			return proxy.getConfig().getPlayerLimit();
 		}
 	}
 

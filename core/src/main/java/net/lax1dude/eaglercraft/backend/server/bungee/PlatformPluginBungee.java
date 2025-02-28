@@ -369,6 +369,16 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	}
 
 	@Override
+	public int getPlayerTotal() {
+		return getProxy().getOnlineCount();
+	}
+
+	@Override
+	public int getPlayerMax() {
+		return BungeeUnsafe.getPlayerMax(getProxy());
+	}
+
+	@Override
 	public void handleConnectionInitFallback(Channel channel) {
 	}
 

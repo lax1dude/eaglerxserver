@@ -5,6 +5,7 @@ import java.util.List;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TranslatableComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
@@ -12,6 +13,7 @@ import net.md_5.bungee.chat.ComponentSerializer;
 public class BungeeComponentHelper implements IPlatformComponentHelper {
 
 	public static final boolean LEGACY_FLAG_SUPPORT;
+	public static final ClickEvent.Action CLICK_ACTION_COPY_TO_CLIPBOARD;
 
 	static {
 		boolean b;
@@ -22,6 +24,13 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 			b = false;
 		}
 		LEGACY_FLAG_SUPPORT = b;
+		ClickEvent.Action action;
+		try {
+			action = ClickEvent.Action.valueOf("COPY_TO_CLIPBOARD");
+		}catch(IllegalArgumentException ex) {
+			action = null;
+		}
+		CLICK_ACTION_COPY_TO_CLIPBOARD = action;
 	}
 
 	private final BungeeComponentBuilder builder = new BungeeComponentBuilder();

@@ -1,7 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.api.query;
 
 import java.net.SocketAddress;
-import java.util.function.Consumer;
 
 import com.google.gson.JsonObject;
 
@@ -25,9 +24,9 @@ public interface IQueryConnection extends IAttributeHolder {
 
 	String getHeader(EnumWebSocketHeader header);
 
-	void setStringHandler(Consumer<String> handler);
+	void setStringHandler(IDuplexHandler<String> handler);
 
-	void setBinaryHandler(Consumer<byte[]> handler);
+	void setBinaryHandler(IDuplexHandler<byte[]> handler);
 
 	long getAge();
 

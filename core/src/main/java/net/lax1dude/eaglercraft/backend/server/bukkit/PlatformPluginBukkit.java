@@ -367,6 +367,16 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	}
 
 	@Override
+	public int getPlayerTotal() {
+		return getServer().getOnlinePlayers().size();
+	}
+
+	@Override
+	public int getPlayerMax() {
+		return getServer().getMaxPlayers();
+	}
+
+	@Override
 	public void handleConnectionInitFallback(Channel channel) {
 		LoginConnectionHolder holder = BukkitUnsafe.getLoginConnection(channel.pipeline().get("packet_handler"));
 		Object pipelineData = channel.attr(PipelineAttributes.<Object>pipelineData()).getAndSet(null);

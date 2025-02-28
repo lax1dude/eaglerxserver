@@ -2,8 +2,12 @@ package net.lax1dude.eaglercraft.backend.server.base;
 
 import java.io.File;
 import java.net.SocketAddress;
+import java.util.Collections;
+import java.util.List;
 
 import javax.net.ssl.SSLException;
+
+import com.google.common.collect.ImmutableList;
 
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
@@ -20,6 +24,8 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 	private final boolean sslPluginManaged;
 	private final ISSLContextProvider sslContext;
 	private final byte[] legacyRedirectAddressBuf;
+	private byte[] cachedServerIcon;
+	private List<String> cachedServerMOTD;
 
 	EaglerListener(EaglerXServer<?> server, ConfigDataListener listenerConf) throws SSLException {
 		this(server, listenerConf.getInjectAddress(), listenerConf);
@@ -95,6 +101,40 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 	}
 
 	@Override
+	public byte[] getServerIcon() {
+		return cachedServerIcon;
+	}
+
+	@Override
+	public void setServerIcon(byte[] pixels) {
+		if(pixels != null && pixels.length != 16384) {
+			throw new IllegalArgumentException("Server icon is the wrong length, should be 16384");
+		}
+		cachedServerIcon = pixels;
+	}
+
+	@Override
+	public List<String> getServerMOTD() {
+		return cachedServerMOTD;
+	}
+
+	@Override
+	public void setServerMOTD(List<String> motd) {
+		if(motd.size() == 0) {
+			cachedServerMOTD = Collections.emptyList();
+		}else if(motd.size() == 1) {
+			cachedServerMOTD = ImmutableList.of(motd.get(0));
+		}else {
+			cachedServerMOTD = ImmutableList.of(motd.get(0), motd.get(1));
+		}
+	}
+
+	@Override
+	public boolean isForwardIP() {
+		return false;
+	}
+
+	@Override
 	public boolean matchListenerAddress(SocketAddress addr) {
 		return addr.equals(listenerConf.getInjectAddress());
 	}
@@ -124,6 +164,10 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 
 	public boolean isAllowQuery() {
 		return listenerConf.isAllowQuery();
+	}
+
+	public boolean isShowMOTDPlayerList() {
+		return listenerConf.isShowMOTDPlayerList();
 	}
 
 }

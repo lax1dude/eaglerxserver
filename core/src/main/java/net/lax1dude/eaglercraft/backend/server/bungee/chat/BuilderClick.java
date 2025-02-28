@@ -53,7 +53,9 @@ class BuilderClick<ParentType> implements IBuilderClickEvent<ParentType> {
 				ret.setClickEvent(new ClickEvent(Action.CHANGE_PAGE, value));
 				break;
 			case COPY_TO_CLIPBOARD:
-				ret.setClickEvent(new ClickEvent(Action.COPY_TO_CLIPBOARD, value));
+				if(BungeeComponentHelper.CLICK_ACTION_COPY_TO_CLIPBOARD != null) {
+					ret.setClickEvent(new ClickEvent(BungeeComponentHelper.CLICK_ACTION_COPY_TO_CLIPBOARD, value));
+				}
 				break;
 			}
 		}

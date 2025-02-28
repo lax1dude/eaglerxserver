@@ -53,7 +53,7 @@ public class ConfigDataListener {
 	private final String listenerName;
 	private final SocketAddress injectAddress;
 	private final boolean dualStack;
-	private final boolean forwardIp;
+	private final boolean forwardIP;
 	private final String forwardIPHeader;
 	private final boolean enableTLS;
 	private final boolean requireTLS;
@@ -91,7 +91,7 @@ public class ConfigDataListener {
 		this.listenerName = listenerName;
 		this.injectAddress = injectAddress;
 		this.dualStack = dualStack;
-		this.forwardIp = forwardIp;
+		this.forwardIP = forwardIp;
 		this.forwardIPHeader = forwardIPHeader;
 		this.enableTLS = enableTLS;
 		this.requireTLS = requireTLS;
@@ -131,8 +131,8 @@ public class ConfigDataListener {
 		return dualStack;
 	}
 
-	public boolean isForwardIp() {
-		return forwardIp;
+	public boolean isForwardIP() {
+		return forwardIP;
 	}
 
 	public String getForwardIPHeader() {

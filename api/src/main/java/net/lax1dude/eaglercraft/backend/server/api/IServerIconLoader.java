@@ -7,12 +7,12 @@ import java.io.InputStream;
 
 public interface IServerIconLoader {
 
-	int[] loadServerIcon(int[] pixelsIn, int width, int height);
+	byte[] loadServerIcon(int[] pixelsIn, int width, int height);
 
-	int[] loadServerIcon(BufferedImage image);
+	byte[] loadServerIcon(BufferedImage image);
 
-	int[] loadServerIcon(InputStream stream) throws IOException;
+	byte[] loadServerIcon(InputStream stream) throws IOException;
 
-	int[] loadServerIcon(File file) throws IOException;
+	byte[] loadServerIcon(File file) throws IOException;
 
 }

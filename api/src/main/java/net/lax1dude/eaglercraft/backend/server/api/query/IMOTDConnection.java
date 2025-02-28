@@ -35,17 +35,13 @@ public interface IMOTDConnection extends IAttributeHolder {
 		return getMaxAge() > 0l;
 	}
 
-	int[] getBitmap();
+	byte[] getServerIcon();
 
-	void setBitmap(int[] bitmap);
+	void setServerIcon(byte[] bitmap);
 
-	String getLine1();
+	List<String> getServerMOTD();
 
-	void setLine1(String str);
-
-	String getLine2();
-
-	void setLine2(String str);
+	void setServerMOTD(List<String> motd);
 
 	int getPlayerTotal();
 
@@ -54,6 +50,10 @@ public interface IMOTDConnection extends IAttributeHolder {
 	int getPlayerMax();
 
 	void setPlayerMax(int total);
+
+	default void setPlayerUnlimited() {
+		setPlayerMax(-1);
+	}
 
 	List<String> getPlayerList();
 

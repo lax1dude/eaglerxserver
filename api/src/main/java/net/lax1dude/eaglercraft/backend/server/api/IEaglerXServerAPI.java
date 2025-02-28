@@ -90,6 +90,8 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	Set<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers();
 
+	int getEaglerPlayerCount();
+
 	Collection<IEaglerListenerInfo> getAllEaglerListeners();
 
 	IEaglerListenerInfo getListenerByName(String name);

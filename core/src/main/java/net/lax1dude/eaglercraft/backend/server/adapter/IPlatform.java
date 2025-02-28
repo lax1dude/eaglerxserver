@@ -82,6 +82,10 @@ public interface IPlatform<PlayerObject> {
 
 	boolean isOnlineMode();
 
+	int getPlayerTotal();
+
+	int getPlayerMax();
+
 	void handleConnectionInitFallback(Channel channel);
 
 	void handleUndoCompression(ChannelHandlerContext ctx);

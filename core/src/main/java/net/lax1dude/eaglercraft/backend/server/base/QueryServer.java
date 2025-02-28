@@ -21,6 +21,15 @@ public class QueryServer implements IQueryServer {
 		this.registeredQueries = new HashMap<>();
 	}
 
+	public IQueryHandler getHandlerFor(String queryType) {
+		registeredQueriesLock.readLock().lock();
+		try {
+			return registeredQueries.get(queryType);
+		}finally {
+			registeredQueriesLock.readLock().unlock();
+		}
+	}
+
 	@Override
 	public boolean isQueryType(String queryType) {
 		registeredQueriesLock.readLock().lock();

@@ -184,6 +184,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			.put("minecraft-decoder", EnumPipelineComponent.MINECRAFT_DECODER)
 			.put("via-encoder", EnumPipelineComponent.VIA_ENCODER)
 			.put("via-decoder", EnumPipelineComponent.VIA_DECODER)
+			.put("handler", EnumPipelineComponent.INBOUND_PACKET_HANDLER)
 			.put("protocolize2-decoder", EnumPipelineComponent.PROTOCOLIZE_DECODER)
 			.put("protocolize2-encoder", EnumPipelineComponent.PROTOCOLIZE_ENCODER)
 			.put("read-timeout", EnumPipelineComponent.READ_TIMEOUT_HANDLER)
@@ -396,12 +397,24 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	}
 
 	@Override
+	public int getPlayerTotal() {
+		return proxy.getPlayerCount();
+	}
+
+	@Override
+	public int getPlayerMax() {
+		return proxy.getConfiguration().getShowMaxPlayers();
+	}
+
+	@Override
 	public void handleConnectionInitFallback(Channel channel) {
 	}
 
 	@Override
 	public void handleUndoCompression(ChannelHandlerContext ctx) {
-		//TODO: there is a user event
+		if(ctx.pipeline().get("eagler-velocity-compression-disabler") == null) {
+			ctx.pipeline().addFirst("eagler-velocity-compression-disabler", VelocityCompressionDisablerHack.INSTANCE);
+		}
 	}
 
 	public void initializeConnection(InboundConnection conn, String username, UUID uuid, Object pipelineData,

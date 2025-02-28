@@ -414,6 +414,11 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
+	public int getEaglerPlayerCount() {
+		return eaglerPlayers.size();
+	}
+
+	@Override
 	public Collection<IEaglerListenerInfo> getAllEaglerListeners() {
 		return ImmutableList.copyOf(listeners.values());
 	}

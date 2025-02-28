@@ -13,6 +13,7 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.util.AttributeKey;
 import net.kyori.adventure.text.Component;
@@ -34,6 +35,7 @@ public class VelocityUnsafe {
 	private static final Method method_MinecraftConnection_getState;
 	private static final Method method_MinecraftConnection_close;
 	private static final Method method_MinecraftConnection_closeWith;
+	private static final Method method_MinecraftConnection_setCompressionThreshold;
 	private static final Class<?> class_DisconnectPacket;
 	private static final Class<?> class_StateRegistry;
 	private static final Method method_DisconnectPacket_create;
@@ -48,6 +50,8 @@ public class VelocityUnsafe {
 	private static final Method method_ServerChannelInitializerHolder_get;
 	private static final Method method_ServerChannelInitializerHolder_set;
 	private static final Method method_ChannelInitializer_initChannel;
+	private static final Class<?> class_VelocityConnectionEvent;
+	private static final Object enum_VelocityConnectionEvent_COMPRESSION_ENABLED;
 
 	static {
 		try {
@@ -63,6 +67,7 @@ public class VelocityUnsafe {
 			method_MinecraftConnection_getState = class_MinecraftConnection.getMethod("getState");
 			method_MinecraftConnection_close = class_MinecraftConnection.getMethod("close");
 			method_MinecraftConnection_closeWith = class_MinecraftConnection.getMethod("closeWith", Object.class);
+			method_MinecraftConnection_setCompressionThreshold = class_MinecraftConnection.getMethod("setCompressionThreshold", Integer.class);
 			class_DisconnectPacket = Class.forName("com.velocitypowered.proxy.protocol.packet.DisconnectPacket");
 			class_StateRegistry = Class.forName("com.velocitypowered.proxy.protocol.StateRegistry");
 			method_DisconnectPacket_create = class_DisconnectPacket.getMethod("create", Component.class, ProtocolVersion.class, class_StateRegistry);
@@ -80,6 +85,8 @@ public class VelocityUnsafe {
 			method_ServerChannelInitializerHolder_set = class_ServerChannelInitializerHolder.getMethod("set", ChannelInitializer.class);
 			method_ChannelInitializer_initChannel = ChannelInitializer.class.getDeclaredMethod("initChannel", Channel.class);
 			method_ChannelInitializer_initChannel.setAccessible(true);
+			class_VelocityConnectionEvent = Class.forName("com.velocitypowered.proxy.protocol.VelocityConnectionEvent");
+			enum_VelocityConnectionEvent_COMPRESSION_ENABLED = class_VelocityConnectionEvent.getField("COMPRESSION_ENABLED").get(null);
 		}catch(Exception ex) {
 			throw Util.propagateReflectThrowable(ex);
 		}
@@ -172,6 +179,10 @@ public class VelocityUnsafe {
 		}
 	}
 
+	public static boolean isCompressionEnableEvent(Object event) {
+		return event == enum_VelocityConnectionEvent_COMPRESSION_ENABLED;
+	}
+
 	public interface IListenerInitHandler {
 		void init(IEaglerXServerListener listener, Channel channel);
 	}
@@ -249,6 +260,19 @@ public class VelocityUnsafe {
 			}
 		} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
 			throw Util.propagateReflectThrowable(e);
+		}
+	}
+
+	public static void disableCompression(ChannelHandler handler) {
+		Class<?> clz = handler.getClass();
+		if(class_MinecraftConnection.isAssignableFrom(clz)) {
+			try {
+				method_MinecraftConnection_setCompressionThreshold.invoke(handler, -1);
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+		}else {
+			throw new RuntimeException("Unknown MinecraftConnection type: " + clz.getName());
 		}
 	}
 
