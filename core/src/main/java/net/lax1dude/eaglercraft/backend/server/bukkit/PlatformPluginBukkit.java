@@ -5,6 +5,7 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -45,6 +46,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformNettyPipelineIni
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformScheduler;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
@@ -57,7 +59,9 @@ import net.lax1dude.eaglercraft.backend.server.util.CompressionDisablerHack;
 import net.lax1dude.eaglercraft.backend.server.util.DecompressionDisablerHack;
 import net.md_5.bungee.api.chat.BaseComponent;
 
-public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player> {
+public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player>, IPlatformServer<Player> {
+
+	protected final Map<String, IPlatformServer<Player>> registeredServers;
 
 	private IPlatformLogger loggerImpl;
 	private IEventDispatchAdapter<Player, BaseComponent> eventDispatcherImpl;
@@ -80,6 +84,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	private final ConcurrentMap<Player, BukkitPlayer> playerInstanceMap = new ConcurrentHashMap<>(1024);
 
 	public PlatformPluginBukkit() {
+		registeredServers = ImmutableMap.of("default", this);
 	}
 
 	@Override
@@ -336,6 +341,15 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		}
 	}
 
+	public IPlatformServer<Player> getPlatformServerInstance() {
+		return this;
+	}
+
+	@Override
+	public Map<String, IPlatformServer<Player>> getRegisteredServers() {
+		return registeredServers;
+	}
+
 	@Override
 	public IEventDispatchAdapter<Player, ?> eventDispatcher() {
 		return eventDispatcherImpl;
@@ -374,6 +388,16 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public int getPlayerMax() {
 		return getServer().getMaxPlayers();
+	}
+
+	@Override
+	public boolean isEaglerRegistered() {
+		return true;
+	}
+
+	@Override
+	public String getServerConfName() {
+		return "default";
 	}
 
 	@Override

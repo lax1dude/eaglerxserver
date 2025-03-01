@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
@@ -13,6 +14,7 @@ class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
 	private final ProxiedPlayer player;
 	private final BungeeConnection connection;
 	Object attachment;
+	IPlatformServer<ProxiedPlayer> server;
 
 	BungeePlayer(ProxiedPlayer player, BungeeConnection connection) {
 		this.player = player;
@@ -28,6 +30,11 @@ class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
 	@Override
 	public ProxiedPlayer getPlayerObject() {
 		return player;
+	}
+
+	@Override
+	public IPlatformServer<ProxiedPlayer> getServer() {
+		return server;
 	}
 
 	@Override

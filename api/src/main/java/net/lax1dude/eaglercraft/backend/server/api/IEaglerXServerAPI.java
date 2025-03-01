@@ -124,6 +124,8 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	IWebServer getWebServer();
 
+	IScheduler getScheduler();
+
 	IAttributeManager getAttributeManager();
 
 }

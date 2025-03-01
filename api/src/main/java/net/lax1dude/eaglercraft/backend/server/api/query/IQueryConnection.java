@@ -24,9 +24,15 @@ public interface IQueryConnection extends IAttributeHolder {
 
 	String getHeader(EnumWebSocketHeader header);
 
-	void setStringHandler(IDuplexHandler<String> handler);
+	void setHandlers(IDuplexBaseHandler compositeHandler);
 
-	void setBinaryHandler(IDuplexHandler<byte[]> handler);
+	void setHandlers(IDuplexBaseHandler... compositeHandlers);
+
+	void setStringHandler(IDuplexStringHandler handler);
+
+	void setJSONHandler(IDuplexJSONHandler handler);
+
+	void setBinaryHandler(IDuplexBinaryHandler handler);
 
 	long getAge();
 

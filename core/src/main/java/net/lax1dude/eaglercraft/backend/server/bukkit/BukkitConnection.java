@@ -32,6 +32,10 @@ class BukkitConnection implements IPlatformConnection {
 		return (T) attachment;
 	}
 
+	public PlatformPluginBukkit getPlugin() {
+		return plugin;
+	}
+
 	@Override
 	public String getUsername() {
 		Player player = playerInstance;

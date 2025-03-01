@@ -3,6 +3,8 @@ package net.lax1dude.eaglercraft.backend.server.bungee;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,6 +38,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformNettyPipelineIni
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformScheduler;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
@@ -46,6 +49,7 @@ import net.lax1dude.eaglercraft.backend.server.bungee.event.BungeeEventDispatchA
 import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -71,6 +75,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	protected IPlatformComponentHelper componentHelperImpl;
 	protected CommandSender cacheConsoleCommandSenderInstance;
 	protected IPlatformCommandSender<ProxiedPlayer> cacheConsoleCommandSenderHandle;
+	protected Map<String, IPlatformServer<ProxiedPlayer>> registeredServers;
 
 	private final ConcurrentMap<ProxiedPlayer, BungeePlayer> playerInstanceMap = new ConcurrentHashMap<>(1024);
 
@@ -84,6 +89,11 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 		componentHelperImpl = new BungeeComponentHelper();
 		cacheConsoleCommandSenderInstance = getProxy().getConsole();
 		cacheConsoleCommandSenderHandle = new BungeeConsole(cacheConsoleCommandSenderInstance);
+		ImmutableMap.Builder<String, IPlatformServer<ProxiedPlayer>> serverMapBuilder = ImmutableMap.builder();
+		for(Entry<String, ServerInfo> etr : getProxy().getServers().entrySet()) {
+			serverMapBuilder.put(etr.getKey(), new BungeeServer(this, etr.getValue(), true));
+		}
+		registeredServers = serverMapBuilder.build();
 		Init<ProxiedPlayer> init = new InitProxying<ProxiedPlayer>() {
 
 			@Override
@@ -336,6 +346,11 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 		}else {
 			return null;
 		}
+	}
+
+	@Override
+	public Map<String, IPlatformServer<ProxiedPlayer>> getRegisteredServers() {
+		return registeredServers;
 	}
 
 	@Override

@@ -4,7 +4,10 @@ import java.net.SocketAddress;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -18,7 +21,10 @@ import io.netty.util.ReferenceCountUtil;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
-import net.lax1dude.eaglercraft.backend.server.api.query.IDuplexHandler;
+import net.lax1dude.eaglercraft.backend.server.api.query.IDuplexBaseHandler;
+import net.lax1dude.eaglercraft.backend.server.api.query.IDuplexBinaryHandler;
+import net.lax1dude.eaglercraft.backend.server.api.query.IDuplexJSONHandler;
+import net.lax1dude.eaglercraft.backend.server.api.query.IDuplexStringHandler;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryConnection;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryHandler;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerListener;
@@ -37,8 +43,9 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 	private boolean handled = false;
 	private volatile boolean dead = false;
 	private String accepted = null;
-	private IDuplexHandler<String> stringHandler = null;
-	private IDuplexHandler<byte[]> binaryHandler = null;
+	private IDuplexStringHandler stringHandler = null;
+	private IDuplexJSONHandler jsonHandler = null;
+	private IDuplexBinaryHandler binaryHandler = null;
 	private long maxAge = -1l;
 	private IPlatformTask closeTask = null;
 
@@ -85,8 +92,20 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 					ctx.close();
 				}else {
 					if(msg instanceof TextWebSocketFrame) {
+						String txt = ((TextWebSocketFrame)msg).text();
+						if(jsonHandler != null) {
+							JsonElement el = null;
+							try {
+								el = JsonParser.parseString(txt);
+							}catch(JsonSyntaxException ex) {
+							}
+							if(el != null && el.isJsonObject()) {
+								jsonHandler.handleJSONObject(this, el.getAsJsonObject());
+								return;
+							}
+						}
 						if(stringHandler != null) {
-							stringHandler.process(this, ((TextWebSocketFrame)msg).text());
+							stringHandler.handleString(this, txt);
 						}else {
 							dead = true;
 							ctx.close();
@@ -96,7 +115,7 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 							ByteBuf buf = ((BinaryWebSocketFrame)msg).content();
 							byte[] data = new byte[buf.readableBytes()];
 							buf.readBytes(data);
-							binaryHandler.process(this, data);
+							binaryHandler.handleBinary(this, data);
 						}else {
 							dead = true;
 							ctx.close();
@@ -219,12 +238,37 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 	}
 
 	@Override
-	public void setStringHandler(IDuplexHandler<String> handler) {
+	public void setHandlers(IDuplexBaseHandler compositeHandler) {
+		if(compositeHandler instanceof IDuplexStringHandler) {
+			stringHandler = (IDuplexStringHandler) compositeHandler;
+		}
+		if(compositeHandler instanceof IDuplexJSONHandler) {
+			jsonHandler = (IDuplexJSONHandler) compositeHandler;
+		}
+		if(compositeHandler instanceof IDuplexBinaryHandler) {
+			binaryHandler = (IDuplexBinaryHandler) compositeHandler;
+		}
+	}
+
+	@Override
+	public void setHandlers(IDuplexBaseHandler... compositeHandlers) {
+		for(int i = 0; i < compositeHandlers.length; ++i) {
+			setHandlers(compositeHandlers[i]);
+		}
+	}
+
+	@Override
+	public void setStringHandler(IDuplexStringHandler handler) {
 		stringHandler = handler;
 	}
 
 	@Override
-	public void setBinaryHandler(IDuplexHandler<byte[]> handler) {
+	public void setJSONHandler(IDuplexJSONHandler handler) {
+		jsonHandler = handler;
+	}
+
+	@Override
+	public void setBinaryHandler(IDuplexBinaryHandler handler) {
 		binaryHandler = handler;
 	}
 

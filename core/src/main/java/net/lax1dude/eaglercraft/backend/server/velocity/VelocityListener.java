@@ -5,12 +5,16 @@ import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.event.connection.PostLoginEvent;
 import com.velocitypowered.api.event.connection.PreLoginEvent;
+import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
 import com.velocitypowered.api.network.ListenerType;
 import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.Player;
+import com.velocitypowered.api.proxy.server.RegisteredServer;
 
 import io.netty.channel.Channel;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 
 class VelocityListener {
@@ -53,6 +57,23 @@ class VelocityListener {
 	@Subscribe(priority = Short.MIN_VALUE)
 	public void onPlayerDisconnected(DisconnectEvent disconnectEvent) {
 		plugin.dropPlayer(disconnectEvent.getPlayer());
+	}
+
+	@Subscribe(priority = Short.MAX_VALUE)
+	public void onServerConnected(ServerConnectedEvent connectEvent) {
+		IPlatformPlayer<Player> platformPlayer = plugin.getPlayer(connectEvent.getPlayer());
+		if(platformPlayer != null) {
+			RegisteredServer server = connectEvent.getServer();
+			if(server != null) {
+				IPlatformServer<Player> platformServer = plugin.getRegisteredServers().get(server.getServerInfo().getName());
+				if(platformServer == null) {
+					platformServer = new VelocityServer(plugin, server, false);
+				}
+				((VelocityPlayer)platformPlayer).server = platformServer;
+			}else {
+				((VelocityPlayer)platformPlayer).server = null;
+			}
+		}
 	}
 
 }

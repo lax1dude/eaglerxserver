@@ -8,6 +8,7 @@ import org.bukkit.scheduler.BukkitTask;
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 
 class BukkitPlayer implements IPlatformPlayer<Player> {
@@ -31,6 +32,11 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 	@Override
 	public Player getPlayerObject() {
 		return player;
+	}
+
+	@Override
+	public IPlatformServer<Player> getServer() {
+		return connection.getPlugin();
 	}
 
 	@Override

@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.adapter;
 import java.io.File;
 import java.net.SocketAddress;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -71,6 +72,8 @@ public interface IPlatform<PlayerObject> {
 	IPlatformPlayer<PlayerObject> getPlayer(UUID uuid);
 
 	Collection<IPlatformPlayer<PlayerObject>> getAllPlayers();
+
+	Map<String, IPlatformServer<PlayerObject>> getRegisteredServers();
 
 	IEventDispatchAdapter<PlayerObject, ?> eventDispatcher();
 

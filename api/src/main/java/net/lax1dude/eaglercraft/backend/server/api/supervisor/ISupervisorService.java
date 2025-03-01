@@ -14,7 +14,7 @@ public interface ISupervisorService<PlayerObject> extends IBrandResolver, ISkinR
 
 	boolean isSupervisorConnected();
 
-	ISupervisorConnection<PlayerObject> getConnection();
+	ISupervisorConnection getConnection();
 
 	int getNodeId();
 
@@ -22,7 +22,7 @@ public interface ISupervisorService<PlayerObject> extends IBrandResolver, ISkinR
 
 	int getPlayerMax();
 
-	ISupervisorRPCHandler<PlayerObject> getRPCHandler();
+	ISupervisorRPCHandler getRPCHandler();
 
 	boolean isPlayerKnown(UUID playerUUID);
 

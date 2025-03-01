@@ -8,6 +8,8 @@ public interface IPlatformPlayer<PlayerObject> extends IPlatformCommandSender<Pl
 
 	PlayerObject getPlayerObject();
 
+	IPlatformServer<PlayerObject> getServer();
+
 	String getUsername();
 
 	UUID getUniqueId();

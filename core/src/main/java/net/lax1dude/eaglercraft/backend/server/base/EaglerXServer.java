@@ -32,6 +32,7 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.IPacketImageLoader;
+import net.lax1dude.eaglercraft.backend.server.api.IScheduler;
 import net.lax1dude.eaglercraft.backend.server.api.IServerIconLoader;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
@@ -72,6 +73,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private RewindService<PlayerObject> rewindService;
 	private PipelineTransformer pipelineTransformer;
 	private SSLCertificateManager certificateManager;
+	private Scheduler scheduler;
 
 	public EaglerXServer() {
 	}
@@ -112,6 +114,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		rewindService = new RewindService<PlayerObject>(this);
 		pipelineTransformer = new PipelineTransformer(this, rewindService);
 		certificateManager = new SSLCertificateManager(logger());
+		scheduler = new Scheduler(platform.getScheduler());
 		
 		init.setOnServerEnable(this::enableHandler);
 		init.setOnServerDisable(this::disableHandler);
@@ -507,6 +510,11 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	public WebServer getWebServer() {
 		return webServer;
+	}
+
+	@Override
+	public IScheduler getScheduler() {
+		return scheduler;
 	}
 
 	@Override

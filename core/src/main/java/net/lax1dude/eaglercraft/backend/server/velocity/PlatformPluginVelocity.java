@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -27,6 +28,7 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.scheduler.ScheduledTask;
 
 import io.netty.channel.Channel;
@@ -54,6 +56,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformNettyPipelineIni
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformScheduler;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
@@ -93,6 +96,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	protected IPlatformComponentHelper componentHelperImpl;
 	protected CommandSource cacheConsoleCommandSenderInstance;
 	protected IPlatformCommandSender<Player> cacheConsoleCommandSenderHandle;
+	protected Map<String, IPlatformServer<Player>> registeredServers;
 
 	private final ConcurrentMap<Player, VelocityPlayer> playerInstanceMap = new ConcurrentHashMap<>(1024);
 
@@ -110,6 +114,11 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
     	cacheConsoleCommandSenderInstance = proxyIn.getConsoleCommandSource();
     	cacheConsoleCommandSenderHandle = new VelocityConsole(cacheConsoleCommandSenderInstance);
     	registeredCommandsList = new ArrayList<>();
+    	ImmutableMap.Builder<String, IPlatformServer<Player>> builder = ImmutableMap.builder();
+    	for(RegisteredServer server : proxyIn.getAllServers()) {
+    		builder.put(server.getServerInfo().getName(), new VelocityServer(this, server, true));
+    	}
+    	registeredServers = builder.build();
 		Init<Player> init = new InitProxying<Player>() {
 
 			@Override
@@ -364,6 +373,11 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		}else {
 			return null;
 		}
+	}
+
+	@Override
+	public Map<String, IPlatformServer<Player>> getRegisteredServers() {
+		return registeredServers;
 	}
 
 	@Override

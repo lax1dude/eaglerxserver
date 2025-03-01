@@ -3,13 +3,13 @@ package net.lax1dude.eaglercraft.backend.server.base;
 import com.google.gson.JsonObject;
 
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRevokeSessionQueryEvent.EnumSessionRevokeStatus;
-import net.lax1dude.eaglercraft.backend.server.api.query.IDuplexHandler;
+import net.lax1dude.eaglercraft.backend.server.api.query.IDuplexBinaryHandler;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryConnection;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryHandler;
 
 public class RevokeSessionQueryHandler implements IQueryHandler {
 
-	private final IDuplexHandler<byte[]> packetHandler;
+	private final IDuplexBinaryHandler packetHandler;
 
 	public RevokeSessionQueryHandler(EaglerXServer<?> server) {
 		this.packetHandler = (conn, bytes) -> {

@@ -8,6 +8,7 @@ import com.velocitypowered.api.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 
 class VelocityPlayer implements IPlatformPlayer<Player> {
 
@@ -15,6 +16,7 @@ class VelocityPlayer implements IPlatformPlayer<Player> {
 	private final VelocityConnection connection;
 	volatile ScheduledTask confirmTask;
 	Object attachment;
+	IPlatformServer<Player> server;
 
 	VelocityPlayer(Player player, VelocityConnection connection) {
 		this.player = player;
@@ -30,6 +32,11 @@ class VelocityPlayer implements IPlatformPlayer<Player> {
 	@Override
 	public Player getPlayerObject() {
 		return player;
+	}
+
+	@Override
+	public IPlatformServer<Player> getServer() {
+		return server;
 	}
 
 	@Override

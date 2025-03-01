@@ -9,9 +9,7 @@ import java.util.function.Consumer;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorData;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.SupervisorDataVoid;
 
-public interface ISupervisorRPCHandler<PlayerObject> {
-
-	ISupervisorService<PlayerObject> getSupervisorService();
+public interface ISupervisorRPCHandler {
 
 	<In extends ISupervisorData, Out extends ISupervisorData> void registerProcedure(String name,
 			Class<In> inputType, Class<Out> outputType, ISupervisorProc<In, Out> proc);

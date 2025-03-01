@@ -2,9 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.api.supervisor;
 
 import java.net.SocketAddress;
 
-public interface ISupervisorConnection<PlayerObject> {
-
-	ISupervisorService<PlayerObject> getSupervisorService();
+public interface ISupervisorConnection {
 
 	SocketAddress getRemoteAddress();
 
@@ -12,6 +10,12 @@ public interface ISupervisorConnection<PlayerObject> {
 
 	long getPing();
 
-	void writePacket(Object packet);
+	Unsafe unsafe();
+
+	public interface Unsafe {
+
+		void writePacket(Object packet);
+
+	}
 
 }
