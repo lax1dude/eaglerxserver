@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake;
+package net.lax1dude.eaglercraft.backend.server.base.handshake;
 
 import java.nio.charset.StandardCharsets;
 

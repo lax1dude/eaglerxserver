@@ -14,7 +14,7 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake;
+package net.lax1dude.eaglercraft.backend.server.base.handshake;
 
 public class HandshakePacketTypes {
 

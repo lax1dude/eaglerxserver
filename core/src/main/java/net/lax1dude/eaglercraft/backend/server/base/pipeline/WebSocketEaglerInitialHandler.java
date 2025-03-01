@@ -15,12 +15,12 @@ import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.RewindInitializer;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings.ConfigDataProtocols;
-import net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake.HandshakePacketTypes;
-import net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake.HandshakerV1;
-import net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake.HandshakerV2;
-import net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake.HandshakerV3;
-import net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake.HandshakerV4;
-import net.lax1dude.eaglercraft.backend.server.base.pipeline.handshake.VanillaInitializer;
+import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakePacketTypes;
+import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakerV1;
+import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakerV2;
+import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakerV3;
+import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakerV4;
+import net.lax1dude.eaglercraft.backend.server.base.handshake.VanillaInitializer;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 
 public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf, ByteBuf> {
