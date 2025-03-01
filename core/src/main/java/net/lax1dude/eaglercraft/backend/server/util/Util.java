@@ -1,6 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.util;
 
 import java.lang.reflect.InvocationTargetException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class Util {
 
@@ -27,6 +29,26 @@ public class Util {
 			return (RuntimeException) ex;
 		}
 		return new RuntimeException("Could not perform reflection!", ex);
+	}
+
+	public static byte[] sha1(byte[] input) {
+		try {
+			return MessageDigest.getInstance("SHA-1").digest(input);
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException("SHA-1 is not supported on this JRE!", e);
+		}
+	}
+
+	private static final String hex = "0123456789abcdef";
+
+	public static String hash2string(byte[] b) {
+		char[] ret = new char[b.length * 2];
+		for (int i = 0; i < b.length; ++i) {
+			int bb = (int) b[i] & 0xFF;
+			ret[i * 2] = hex.charAt((bb >> 4) & 0xF);
+			ret[i * 2 + 1] = hex.charAt(bb & 0xF);
+		}
+		return new String(ret);
 	}
 
 }

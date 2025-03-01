@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -45,6 +46,7 @@ import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandClientBrand;
+import net.lax1dude.eaglercraft.backend.server.base.command.CommandConfirmCode;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandDomain;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandUserAgent;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandVersion;
@@ -74,6 +76,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private PipelineTransformer pipelineTransformer;
 	private SSLCertificateManager certificateManager;
 	private Scheduler scheduler;
+	private String serverListConfirmCode;
 
 	public EaglerXServer() {
 	}
@@ -125,7 +128,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 				new CommandVersion<PlayerObject>(this),
 				new CommandClientBrand<PlayerObject>(this),
 				new CommandDomain<PlayerObject>(this),
-				new CommandUserAgent<PlayerObject>(this)
+				new CommandUserAgent<PlayerObject>(this),
+				new CommandConfirmCode<PlayerObject>(this)
 		));
 		
 		if(platform.getType().proxy) {
@@ -536,6 +540,20 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	public IPlatformComponentBuilder componentBuilder() {
 		return platform.getComponentHelper().builder();
+	}
+
+	public void setServerListConfirmCode(String code) {
+		serverListConfirmCode = code;
+	}
+
+	public boolean testServerListConfirmCode(String code) {
+		if(serverListConfirmCode != null) {
+			if(code.equals(serverListConfirmCode)) {
+				serverListConfirmCode = null;
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

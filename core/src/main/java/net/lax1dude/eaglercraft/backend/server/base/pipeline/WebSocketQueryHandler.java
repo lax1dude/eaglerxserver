@@ -168,6 +168,11 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 	}
 
 	private void acceptQuery(ChannelHandlerContext ctx, String type) {
+		if(server.testServerListConfirmCode(type)) {
+			dead = true;
+			ctx.writeAndFlush(new TextWebSocketFrame("OK")).addListener(ChannelFutureListener.CLOSE);
+			return;
+		}
 		if(pipelineData.listenerInfo.isAllowQuery()) {
 			IQueryHandler handler = server.getQueryServer().getHandlerFor(type);
 			if(handler != null) {
