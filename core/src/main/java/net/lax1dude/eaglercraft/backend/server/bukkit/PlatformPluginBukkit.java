@@ -12,10 +12,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
 
+import org.bukkit.Server;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.messaging.Messenger;
+import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.bukkit.scheduler.BukkitTask;
 
 import com.google.common.collect.ImmutableList;
@@ -33,6 +36,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionI
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageChannel;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipelineInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent;
@@ -75,7 +79,8 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	protected IEaglerXServerPlayerInitializer<Object, Object, Player> playerInitializer;
 	protected Collection<IEaglerXServerCommandType<Player>> commandsList;
 	protected IEaglerXServerListener listenerConf;
-	protected Collection<IEaglerXServerMessageChannel> playerChannelsList;
+	protected Collection<IEaglerXServerMessageChannel<Player>> playerChannelsList;
+	protected boolean post_v1_13;
 	protected IPlatformScheduler schedulerImpl;
 	protected IPlatformComponentHelper componentHelperImpl;
 	protected CommandSender cacheConsoleCommandSenderInstance;
@@ -89,13 +94,13 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	@Override
 	public void onLoad() {
+		post_v1_13 = isPost_v1_13();
 		eventDispatcherImpl = new BukkitEventDispatchAdapter(this, getServer().getPluginManager(),
 				getServer().getScheduler());
 		schedulerImpl = new BukkitScheduler(this, getServer().getScheduler());
 		componentHelperImpl = new BungeeComponentHelper();
 		cacheConsoleCommandSenderInstance = getServer().getConsoleSender();
 		cacheConsoleCommandSenderHandle = new BukkitConsole(cacheConsoleCommandSenderInstance);
-		IEaglerXServerImpl<Player> serverImpl = new EaglerXServer<>();
 		Init<Player> init = new InitNonProxying<Player>() {
 
 			@Override
@@ -124,7 +129,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 
 			@Override
-			public void setEaglerPlayerChannels(Collection<IEaglerXServerMessageChannel> channels) {
+			public void setEaglerPlayerChannels(Collection<IEaglerXServerMessageChannel<Player>> channels) {
 				playerChannelsList = channels;
 			}
 
@@ -186,10 +191,31 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		if(aborted) {
 			return;
 		}
-		getServer().getPluginManager().registerEvents(new BukkitListener(this), this);
-		CommandMap cmdMap = BukkitUnsafe.getCommandMap(getServer());
+		Server server = getServer();
+		server.getPluginManager().registerEvents(new BukkitListener(this), this);
+		CommandMap cmdMap = BukkitUnsafe.getCommandMap(server);
 		for(IEaglerXServerCommandType<Player> cmd : commandsList) {
 			cmdMap.register("eagler", new BukkitCommand(this, cmd));
+		}
+		Messenger msgr = server.getMessenger();
+		for(IEaglerXServerMessageChannel<Player> channel : playerChannelsList) {
+			IEaglerXServerMessageHandler<Player> handler = channel.getHandler();
+			msgr.registerOutgoingPluginChannel(this, channel.getModernName());
+			if(!post_v1_13) {
+				msgr.registerOutgoingPluginChannel(this, channel.getLegacyName());
+			}
+			if(handler != null) {
+				PluginMessageListener ls = (ch, player, data) -> {
+					IPlatformPlayer<Player> platformPlayer = getPlayer(player);
+					if(platformPlayer != null) {
+						handler.handle(channel, platformPlayer, data);
+					}
+				};
+				msgr.registerIncomingPluginChannel(this, channel.getModernName(), ls);
+				if(!post_v1_13) {
+					msgr.registerIncomingPluginChannel(this, channel.getLegacyName(), ls);
+				}
+			}
 		}
 		cleanupListeners = BukkitUnsafe.injectChannelInitializer(getServer(), (channel) -> {
 			if (!channel.isActive()) {
@@ -271,6 +297,21 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		}
 		if(onServerDisable != null) {
 			onServerDisable.run();
+		}
+		Server server = getServer();
+		Messenger msgr = server.getMessenger();
+		for(IEaglerXServerMessageChannel<Player> channel : playerChannelsList) {
+			IEaglerXServerMessageHandler<Player> handler = channel.getHandler();
+			msgr.unregisterOutgoingPluginChannel(this, channel.getModernName());
+			if(!post_v1_13) {
+				msgr.unregisterOutgoingPluginChannel(this, channel.getLegacyName());
+			}
+			if(handler != null) {
+				msgr.unregisterIncomingPluginChannel(this, channel.getModernName());
+				if(!post_v1_13) {
+					msgr.unregisterIncomingPluginChannel(this, channel.getLegacyName());
+				}
+			}
 		}
 	}
 
@@ -378,6 +419,11 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public boolean isOnlineMode() {
 		return getServer().getOnlineMode();
+	}
+
+	@Override
+	public boolean isModernPluginChannelNamesOnly() {
+		return post_v1_13;
 	}
 
 	@Override
@@ -507,6 +553,17 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 			playerInitializer.destroyPlayer(p);
 		}
+	}
+
+	private boolean isPost_v1_13() {
+		String[] ver = getServer().getVersion().split("[\\.\\-]");
+		if(ver.length >= 2) {
+			try {
+				return Integer.parseInt(ver[0]) >= 1 || Integer.parseInt(ver[1]) >= 13;
+			}catch(NumberFormatException ex) {
+			}
+		}
+		return false;
 	}
 
 }

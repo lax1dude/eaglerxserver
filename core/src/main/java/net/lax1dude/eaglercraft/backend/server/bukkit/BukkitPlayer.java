@@ -66,6 +66,16 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 	}
 
 	@Override
+	public void sendDataClient(String channel, byte[] message) {
+		player.sendPluginMessage(connection.getPlugin(), channel, message);
+	}
+
+	@Override
+	public void sendDataBackend(String channel, byte[] message) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public void disconnect() {
 		player.kickPlayer("Connection Closed");
 	}

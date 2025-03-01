@@ -1,11 +1,11 @@
 package net.lax1dude.eaglercraft.backend.server.adapter;
 
-public interface IEaglerXServerMessageChannel {
+public interface IEaglerXServerMessageChannel<PlayerObject> {
 
 	String getLegacyName();
 
 	String getModernName();
 
-	IEaglerXServerMessageHandler getHandler();
+	IEaglerXServerMessageHandler<PlayerObject> getHandler();
 
 }

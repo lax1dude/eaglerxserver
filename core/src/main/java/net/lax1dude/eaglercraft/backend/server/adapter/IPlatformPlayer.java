@@ -20,6 +20,10 @@ public interface IPlatformPlayer<PlayerObject> extends IPlatformCommandSender<Pl
 
 	String getMinecraftBrand();
 
+	void sendDataClient(String channel, byte[] message);
+
+	void sendDataBackend(String channel, byte[] message);
+
 	void disconnect();
 
 	<ComponentObject> void disconnect(ComponentObject kickMessage);

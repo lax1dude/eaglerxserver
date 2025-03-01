@@ -1,12 +1,18 @@
 package net.lax1dude.eaglercraft.backend.server.bungee;
 
 import io.netty.channel.Channel;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
+import net.lax1dude.eaglercraft.backend.server.bungee.PlatformPluginBungee.PluginMessageHandler;
 import net.md_5.bungee.api.config.ServerInfo;
+import net.md_5.bungee.api.connection.Connection;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.connection.Server;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
+import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.event.PreLoginEvent;
 import net.md_5.bungee.api.event.ServerConnectedEvent;
@@ -61,6 +67,33 @@ class BungeeListener implements Listener {
 	@EventHandler(priority = -128)
 	public void onServerDisconnected(ServerDisconnectEvent event) {
 		((BungeePlayer)plugin.getPlayer(event.getPlayer())).server = null;
+	}
+
+	@EventHandler
+	public void onPluginMessage(PluginMessageEvent event) {
+		PluginMessageHandler handler = plugin.registeredChannelsMap.get(event.getTag());
+		if(handler != null) {
+			event.setCancelled(true);
+			Connection src = event.getSender();
+			Connection dst = event.getReceiver();
+			if(handler.backend) {
+				IEaglerXServerMessageHandler<ProxiedPlayer> ls = handler.handler;
+				if(ls != null && (src instanceof Server) && (dst instanceof ProxiedPlayer)) {
+					IPlatformPlayer<ProxiedPlayer> player = plugin.getPlayer((ProxiedPlayer)dst);
+					if(player != null) {
+						ls.handle(handler.channel, player, event.getData());
+					}
+				}
+			}else {
+				IEaglerXServerMessageHandler<ProxiedPlayer> ls = handler.handler;
+				if(ls != null && (src instanceof ProxiedPlayer) && (dst instanceof Server)) {
+					IPlatformPlayer<ProxiedPlayer> player = plugin.getPlayer((ProxiedPlayer)src);
+					if(player != null) {
+						ls.handle(handler.channel, player, event.getData());
+					}
+				}
+			}
+		}
 	}
 
 }

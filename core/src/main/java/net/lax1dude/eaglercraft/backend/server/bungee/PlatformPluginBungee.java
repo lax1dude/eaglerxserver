@@ -25,6 +25,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionI
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageChannel;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipelineInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent;
@@ -48,6 +49,7 @@ import net.lax1dude.eaglercraft.backend.server.bungee.chat.BungeeComponentHelper
 import net.lax1dude.eaglercraft.backend.server.bungee.event.BungeeEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
@@ -69,13 +71,29 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	protected IEaglerXServerPlayerInitializer<Object, Object, ProxiedPlayer> playerInitializer;
 	protected Collection<IEaglerXServerCommandType<ProxiedPlayer>> commandsList;
 	protected Collection<IEaglerXServerListener> listenersList;
-	protected Collection<IEaglerXServerMessageChannel> playerChannelsList;
-	protected Collection<IEaglerXServerMessageChannel> backendChannelsList;
+	protected Collection<IEaglerXServerMessageChannel<ProxiedPlayer>> playerChannelsList;
+	protected Collection<IEaglerXServerMessageChannel<ProxiedPlayer>> backendChannelsList;
 	protected IPlatformScheduler schedulerImpl;
 	protected IPlatformComponentHelper componentHelperImpl;
 	protected CommandSender cacheConsoleCommandSenderInstance;
 	protected IPlatformCommandSender<ProxiedPlayer> cacheConsoleCommandSenderHandle;
 	protected Map<String, IPlatformServer<ProxiedPlayer>> registeredServers;
+	protected Map<String, PluginMessageHandler> registeredChannelsMap;
+
+	public class PluginMessageHandler {
+
+		public final boolean backend;
+		public final IEaglerXServerMessageChannel<ProxiedPlayer> channel;
+		public final IEaglerXServerMessageHandler<ProxiedPlayer> handler;
+
+		protected PluginMessageHandler(boolean backend, IEaglerXServerMessageChannel<ProxiedPlayer> channel,
+				IEaglerXServerMessageHandler<ProxiedPlayer> handler) {
+			this.backend = backend;
+			this.channel = channel;
+			this.handler = handler;
+		}
+
+	}
 
 	private final ConcurrentMap<ProxiedPlayer, BungeePlayer> playerInstanceMap = new ConcurrentHashMap<>(1024);
 
@@ -107,7 +125,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			}
 
 			@Override
-			public void setEaglerPlayerChannels(Collection<IEaglerXServerMessageChannel> channels) {
+			public void setEaglerPlayerChannels(Collection<IEaglerXServerMessageChannel<ProxiedPlayer>> channels) {
 				playerChannelsList = channels;
 			}
 
@@ -142,7 +160,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			}
 
 			@Override
-			public void setEaglerBackendChannels(Collection<IEaglerXServerMessageChannel> channels) {
+			public void setEaglerBackendChannels(Collection<IEaglerXServerMessageChannel<ProxiedPlayer>> channels) {
 				backendChannelsList = channels;
 			}
 
@@ -184,10 +202,26 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 		if(aborted) {
 			return;
 		}
-		PluginManager mgr = getProxy().getPluginManager();
+		ProxyServer bungee = getProxy();
+		PluginManager mgr = bungee.getPluginManager();
 		mgr.registerListener(this, new BungeeListener(this));
 		for(IEaglerXServerCommandType<ProxiedPlayer> cmd : commandsList) {
 			mgr.registerCommand(this, new BungeeCommand(this, cmd));
+		}
+		ImmutableMap.Builder<String, PluginMessageHandler> builder = ImmutableMap.builder();
+		for(IEaglerXServerMessageChannel<ProxiedPlayer> channel : playerChannelsList) {
+			PluginMessageHandler handler = new PluginMessageHandler(false, channel, channel.getHandler());
+			builder.put(channel.getLegacyName(), handler);
+			builder.put(channel.getModernName(), handler);
+		}
+		for(IEaglerXServerMessageChannel<ProxiedPlayer> channel : backendChannelsList) {
+			PluginMessageHandler handler = new PluginMessageHandler(true, channel, channel.getHandler());
+			builder.put(channel.getLegacyName(), handler);
+			builder.put(channel.getModernName(), handler);
+		}
+		registeredChannelsMap = builder.build();
+		for(String channel : registeredChannelsMap.keySet()) {
+			bungee.registerChannel(channel);
 		}
 		cleanupListeners = BungeeUnsafe.injectChannelInitializer(getProxy(), (listener, channel) -> {
 			if (!channel.isActive()) {
@@ -276,9 +310,13 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			cleanupListeners.run();
 			cleanupListeners = null;
 		}
-		PluginManager mgr = getProxy().getPluginManager();
+		ProxyServer bungee = getProxy();
+		PluginManager mgr = bungee.getPluginManager();
 		mgr.unregisterListeners(this);
 		mgr.unregisterCommands(this);
+		for(String channel : registeredChannelsMap.keySet()) {
+			bungee.unregisterChannel(channel);
+		}
 	}
 
 	@Override
@@ -381,6 +419,11 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	@Override
 	public boolean isOnlineMode() {
 		return BungeeUnsafe.isOnlineMode(getProxy());
+	}
+
+	@Override
+	public boolean isModernPluginChannelNamesOnly() {
+		return false;
 	}
 
 	@Override

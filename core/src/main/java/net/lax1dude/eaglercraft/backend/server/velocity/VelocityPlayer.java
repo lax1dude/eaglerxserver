@@ -1,8 +1,10 @@
 package net.lax1dude.eaglercraft.backend.server.velocity;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import com.velocitypowered.api.proxy.Player;
+import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.scheduler.ScheduledTask;
 
 import net.kyori.adventure.text.Component;
@@ -62,6 +64,19 @@ class VelocityPlayer implements IPlatformPlayer<Player> {
 	@Override
 	public String getMinecraftBrand() {
 		return player.getClientBrand();
+	}
+
+	@Override
+	public void sendDataClient(String channel, byte[] message) {
+		VelocityUnsafe.sendDataClient(player, channel, message);
+	}
+
+	@Override
+	public void sendDataBackend(String channel, byte[] message) {
+		Optional<ServerConnection> serverCon = player.getCurrentServer();
+		if(serverCon.isPresent()) {
+			VelocityUnsafe.sendDataBackend(serverCon.get(), channel, message);
+		}
 	}
 
 	@Override

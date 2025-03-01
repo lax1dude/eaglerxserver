@@ -11,7 +11,13 @@ import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.api.proxy.ServerConnection;
+import com.velocitypowered.proxy.connection.MinecraftConnection;
+import com.velocitypowered.proxy.connection.backend.VelocityServerConnection;
+import com.velocitypowered.proxy.connection.util.VelocityInboundConnection;
+import com.velocitypowered.proxy.protocol.packet.PluginMessagePacket;
 
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
@@ -23,19 +29,8 @@ import net.lax1dude.eaglercraft.backend.server.util.Util;
 
 public class VelocityUnsafe {
 
-	private static final Class<?> class_ConnectedPlayer;
-	private static final Method method_ConnectedPlayer_getConnection;
-	private static final Class<?> class_InitialInboundConnection;
-	private static final Method method_InitialInboundConnection_getConnection;
-	private static final Class<?> class_LoginInboundConnection;
-	private static final Method method_LoginInboundConnection_delegatedConnection;
 	private static final Class<?> class_MinecraftConnection;
-	private static final Method method_MinecraftConnection_getChannel;
-	private static final Method method_MinecraftConnection_getProtocolVersion;
 	private static final Method method_MinecraftConnection_getState;
-	private static final Method method_MinecraftConnection_close;
-	private static final Method method_MinecraftConnection_closeWith;
-	private static final Method method_MinecraftConnection_setCompressionThreshold;
 	private static final Class<?> class_DisconnectPacket;
 	private static final Class<?> class_StateRegistry;
 	private static final Method method_DisconnectPacket_create;
@@ -55,19 +50,8 @@ public class VelocityUnsafe {
 
 	static {
 		try {
-			class_ConnectedPlayer = Class.forName("com.velocitypowered.proxy.connection.client.ConnectedPlayer");
-			method_ConnectedPlayer_getConnection = class_ConnectedPlayer.getMethod("getConnection");
-			class_InitialInboundConnection = Class.forName("com.velocitypowered.proxy.connection.client.InitialInboundConnection");
-			method_InitialInboundConnection_getConnection = class_InitialInboundConnection.getMethod("getConnection");
-			class_LoginInboundConnection = Class.forName("com.velocitypowered.proxy.connection.client.LoginInboundConnection");
-			method_LoginInboundConnection_delegatedConnection = class_LoginInboundConnection.getMethod("delegatedConnection");
 			class_MinecraftConnection = Class.forName("com.velocitypowered.proxy.connection.MinecraftConnection");
-			method_MinecraftConnection_getChannel = class_MinecraftConnection.getMethod("getChannel");
-			method_MinecraftConnection_getProtocolVersion = class_MinecraftConnection.getMethod("getProtocolVersion");
 			method_MinecraftConnection_getState = class_MinecraftConnection.getMethod("getState");
-			method_MinecraftConnection_close = class_MinecraftConnection.getMethod("close");
-			method_MinecraftConnection_closeWith = class_MinecraftConnection.getMethod("closeWith", Object.class);
-			method_MinecraftConnection_setCompressionThreshold = class_MinecraftConnection.getMethod("setCompressionThreshold", Integer.class);
 			class_DisconnectPacket = Class.forName("com.velocitypowered.proxy.protocol.packet.DisconnectPacket");
 			class_StateRegistry = Class.forName("com.velocitypowered.proxy.protocol.StateRegistry");
 			method_DisconnectPacket_create = class_DisconnectPacket.getMethod("create", Component.class, ProtocolVersion.class, class_StateRegistry);
@@ -92,44 +76,20 @@ public class VelocityUnsafe {
 		}
 	}
 
-	private static Object getMinecraftConnection(InboundConnection connection) {
-		Class<?> clz = connection.getClass();
-		Object ret;
-		try {
-			if(class_InitialInboundConnection.isAssignableFrom(clz)) {
-				ret = method_InitialInboundConnection_getConnection.invoke(connection);
-			}else if(class_LoginInboundConnection.isAssignableFrom(clz)) {
-				ret = method_LoginInboundConnection_delegatedConnection.invoke(connection);
-			}else if(class_ConnectedPlayer.isAssignableFrom(clz)) {
-				ret = method_ConnectedPlayer_getConnection.invoke(connection);
-			}else {
-				throw new RuntimeException("Unknown InboundConnection type: " + clz.getName());
-			}
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-			throw Util.propagateReflectThrowable(ex);
+	private static MinecraftConnection getMinecraftConnection(InboundConnection connection) {
+		if(connection instanceof VelocityInboundConnection) {
+			return ((VelocityInboundConnection) connection).getConnection();
+		}else {
+			throw new RuntimeException("Unknown InboundConnection type: " + connection.getClass().getName());
 		}
-		if(ret == null) {
-			throw new NullPointerException();
-		}
-		return ret;
 	}
 
-	private static Object getMinecraftConnection(Player player) {
-		Class<?> clz = player.getClass();
-		Object ret;
-		if(class_ConnectedPlayer.isAssignableFrom(clz)) {
-			try {
-				ret = method_ConnectedPlayer_getConnection.invoke(player);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-				throw Util.propagateReflectThrowable(ex);
-			}
+	private static MinecraftConnection getBackendConnection(ServerConnection connection) {
+		if(connection instanceof VelocityServerConnection) {
+			return ((VelocityServerConnection) connection).getConnection();
 		}else {
-			throw new RuntimeException("Unknown Player type: " + clz.getName());
+			throw new RuntimeException("Unknown ServerConnection type: " + connection.getClass().getName());
 		}
-		if(ret == null) {
-			throw new NullPointerException();
-		}
-		return ret;
 	}
 
 	public static void disconnectInbound(InboundConnection connection) {
@@ -145,37 +105,24 @@ public class VelocityUnsafe {
 	}
 
 	private static void disconnectMinecraftConnection(Object minecraftConnection) {
-		try {
-			method_MinecraftConnection_close.invoke(minecraftConnection);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-			throw Util.propagateReflectThrowable(ex);
-		}
+		((MinecraftConnection) minecraftConnection).close();
 	}
 
 	private static void disconnectMinecraftConnection(Object minecraftConnection, Component kickMessage) {
+		MinecraftConnection conn = (MinecraftConnection) minecraftConnection;
 		try {
-			method_MinecraftConnection_closeWith.invoke(minecraftConnection,
-					method_DisconnectPacket_create.invoke(null, kickMessage,
-							method_MinecraftConnection_getProtocolVersion.invoke(minecraftConnection),
-							method_MinecraftConnection_getState.invoke(minecraftConnection)));
+			conn.closeWith(method_DisconnectPacket_create.invoke(null, kickMessage, conn.getProtocolVersion(),
+					method_MinecraftConnection_getState.invoke(minecraftConnection)));
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
 			throw Util.propagateReflectThrowable(ex);
 		}
 	}
 
 	public static Channel getInboundChannel(InboundConnection connection) {
-		return getChannel(getMinecraftConnection(connection));
-	}
-
-	public static Channel getPlayerChannel(Player connection) {
-		return getChannel(getMinecraftConnection(connection));
-	}
-
-	private static Channel getChannel(Object minecraftConnection) {
-		try {
-			return (Channel) method_MinecraftConnection_getChannel.invoke(minecraftConnection);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-			throw Util.propagateReflectThrowable(ex);
+		if(connection instanceof VelocityInboundConnection) {
+			return ((VelocityInboundConnection) connection).getConnection().getChannel();
+		}else {
+			throw new RuntimeException("Unknown InboundConnection type: " + connection.getClass().getName());
 		}
 	}
 
@@ -264,16 +211,19 @@ public class VelocityUnsafe {
 	}
 
 	public static void disableCompression(ChannelHandler handler) {
-		Class<?> clz = handler.getClass();
-		if(class_MinecraftConnection.isAssignableFrom(clz)) {
-			try {
-				method_MinecraftConnection_setCompressionThreshold.invoke(handler, -1);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw Util.propagateReflectThrowable(e);
-			}
+		if(handler instanceof MinecraftConnection) {
+			((MinecraftConnection) handler).setCompressionThreshold(-1);
 		}else {
-			throw new RuntimeException("Unknown MinecraftConnection type: " + clz.getName());
+			throw new RuntimeException("Unknown MinecraftConnection type: " + handler.getClass().getName());
 		}
+	}
+
+	public static void sendDataClient(InboundConnection connection, String channel, byte[] data) {
+		getMinecraftConnection(connection).write(new PluginMessagePacket(channel, Unpooled.wrappedBuffer(data)));
+	}
+
+	public static void sendDataBackend(ServerConnection connection, String channel, byte[] data) {
+		getBackendConnection(connection).write(new PluginMessagePacket(channel, Unpooled.wrappedBuffer(data)));
 	}
 
 }

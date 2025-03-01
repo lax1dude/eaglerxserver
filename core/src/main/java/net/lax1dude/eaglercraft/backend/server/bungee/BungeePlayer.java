@@ -8,6 +8,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.connection.Server;
 
 class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
 
@@ -70,6 +71,19 @@ class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
 			}
 		}else {
 			return null;
+		}
+	}
+
+	@Override
+	public void sendDataClient(String channel, byte[] message) {
+		player.sendData(channel, message);
+	}
+
+	@Override
+	public void sendDataBackend(String channel, byte[] message) {
+		Server server = player.getServer();
+		if(server != null) {
+			server.sendData(channel, message);
 		}
 	}
 

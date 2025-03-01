@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,6 +29,9 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
+import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
+import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.scheduler.ScheduledTask;
 
@@ -43,6 +47,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionI
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageChannel;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipelineInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent;
@@ -90,13 +95,30 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	protected Collection<IEaglerXServerCommandType<Player>> commandsList;
 	protected Collection<CommandMeta> registeredCommandsList;
 	protected Collection<IEaglerXServerListener> listenersList;
-	protected Collection<IEaglerXServerMessageChannel> playerChannelsList;
-	protected Collection<IEaglerXServerMessageChannel> backendChannelsList;
+	protected Collection<IEaglerXServerMessageChannel<Player>> playerChannelsList;
+	protected Collection<IEaglerXServerMessageChannel<Player>> backendChannelsList;
 	protected IPlatformScheduler schedulerImpl;
 	protected IPlatformComponentHelper componentHelperImpl;
 	protected CommandSource cacheConsoleCommandSenderInstance;
 	protected IPlatformCommandSender<Player> cacheConsoleCommandSenderHandle;
 	protected Map<String, IPlatformServer<Player>> registeredServers;
+	protected ChannelIdentifier[] registeredChannels;
+	protected Map<ChannelIdentifier, PluginMessageHandler> registeredChannelsMap;
+
+	public class PluginMessageHandler {
+
+		public final boolean backend;
+		public final IEaglerXServerMessageChannel<Player> channel;
+		public final IEaglerXServerMessageHandler<Player> handler;
+
+		protected PluginMessageHandler(boolean backend, IEaglerXServerMessageChannel<Player> channel,
+				IEaglerXServerMessageHandler<Player> handler) {
+			this.backend = backend;
+			this.channel = channel;
+			this.handler = handler;
+		}
+
+	}
 
 	private final ConcurrentMap<Player, VelocityPlayer> playerInstanceMap = new ConcurrentHashMap<>(1024);
 
@@ -132,7 +154,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			}
 
 			@Override
-			public void setEaglerPlayerChannels(Collection<IEaglerXServerMessageChannel> channels) {
+			public void setEaglerPlayerChannels(Collection<IEaglerXServerMessageChannel<Player>> channels) {
 				playerChannelsList = channels;
 			}
 
@@ -167,7 +189,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			}
 
 			@Override
-			public void setEaglerBackendChannels(Collection<IEaglerXServerMessageChannel> channels) {
+			public void setEaglerBackendChannels(Collection<IEaglerXServerMessageChannel<Player>> channels) {
 				backendChannelsList = channels;
 			}
 
@@ -214,6 +236,20 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
     	for(IEaglerXServerCommandType<Player> cmd : commandsList) {
     		registeredCommandsList.add((new VelocityCommand(this, cmd)).register());
     	}
+    	ImmutableMap.Builder<ChannelIdentifier, PluginMessageHandler> channelMapBuilder = ImmutableMap.builder();
+    	for(IEaglerXServerMessageChannel<Player> ch : playerChannelsList) {
+    		PluginMessageHandler handler = new PluginMessageHandler(false, ch, ch.getHandler());
+    		channelMapBuilder.put(new LegacyChannelIdentifier(ch.getLegacyName()), handler);
+    		channelMapBuilder.put(MinecraftChannelIdentifier.from(ch.getModernName()), handler);
+    	}
+    	for(IEaglerXServerMessageChannel<Player> ch : backendChannelsList) {
+    		PluginMessageHandler handler = new PluginMessageHandler(true, ch, ch.getHandler());
+    		channelMapBuilder.put(new LegacyChannelIdentifier(ch.getLegacyName()), handler);
+    		channelMapBuilder.put(MinecraftChannelIdentifier.from(ch.getModernName()), handler);
+    	}
+    	registeredChannelsMap = channelMapBuilder.build();
+    	registeredChannels = registeredChannelsMap.keySet().toArray(new ChannelIdentifier[registeredChannelsMap.size()]);
+    	proxy.getChannelRegistrar().register(registeredChannels);
     	VelocityUnsafe.injectChannelInitializer(proxy, (listenerConf, channel) -> {
     		if (!channel.isActive()) {
 				return;
@@ -301,6 +337,10 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			proxy.getCommandManager().unregister(cmd);
 		}
 		registeredCommandsList.clear();
+		if(registeredChannels != null) {
+			proxy.getChannelRegistrar().unregister(registeredChannels);
+			registeredChannels = null;
+		}
 	}
 
 	@Override
@@ -408,6 +448,11 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	@Override
 	public boolean isOnlineMode() {
 		return proxy.getConfiguration().isOnlineMode();
+	}
+
+	@Override
+	public boolean isModernPluginChannelNamesOnly() {
+		return false;
 	}
 
 	@Override

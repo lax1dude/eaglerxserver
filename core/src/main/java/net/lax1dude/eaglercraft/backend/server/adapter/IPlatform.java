@@ -21,7 +21,7 @@ public interface IPlatform<PlayerObject> {
 
 		void setOnServerDisable(Runnable disable);
 
-		void setEaglerPlayerChannels(Collection<IEaglerXServerMessageChannel> channels);
+		void setEaglerPlayerChannels(Collection<IEaglerXServerMessageChannel<PlayerObject>> channels);
 
 		void setPipelineInitializer(IEaglerXServerNettyPipelineInitializer<?> initializer);
 
@@ -39,7 +39,7 @@ public interface IPlatform<PlayerObject> {
 
 		void setEaglerListeners(Collection<IEaglerXServerListener> listeners);
 
-		void setEaglerBackendChannels(Collection<IEaglerXServerMessageChannel> channels);
+		void setEaglerBackendChannels(Collection<IEaglerXServerMessageChannel<PlayerObject>> channels);
 
 	}
 
@@ -84,6 +84,8 @@ public interface IPlatform<PlayerObject> {
 	IPlatformComponentHelper getComponentHelper();
 
 	boolean isOnlineMode();
+
+	boolean isModernPluginChannelNamesOnly();
 
 	int getPlayerTotal();
 
