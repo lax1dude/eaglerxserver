@@ -10,10 +10,10 @@ import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 
-public class CommandClientBrand<PlayerObject> extends EaglerCommand<PlayerObject> {
+public class CommandBrand<PlayerObject> extends EaglerCommand<PlayerObject> {
 
-	public CommandClientBrand(EaglerXServer<PlayerObject> server) {
-		super(server, "client-brand", "eaglercraft.command.clientbrand", "clientbrand");
+	public CommandBrand(EaglerXServer<PlayerObject> server) {
+		super(server, "brand", "eaglercraft.command.brand", "eaglerbrand", "eagler-brand");
 	}
 
 	@Override
@@ -54,7 +54,7 @@ public class CommandClientBrand<PlayerObject> extends EaglerCommand<PlayerObject
 					.text("Invalid number of arguments").end());
 		}
 		sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.RED).end()
-				.text("Usage: /client-brand [name|uuid|mc] <username>").end());
+				.text("Usage: /brand [name|uuid|mc] <username>").end());
 	}
 
 	private void handle(IPlatformCommandSender<PlayerObject> sender, BasePlayerInstance<PlayerObject> player,

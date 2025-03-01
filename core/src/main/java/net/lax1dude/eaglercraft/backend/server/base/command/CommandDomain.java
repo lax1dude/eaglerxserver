@@ -10,7 +10,7 @@ import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 public class CommandDomain<PlayerObject> extends EaglerCommand<PlayerObject> {
 
 	public CommandDomain(EaglerXServer<PlayerObject> server) {
-		super(server, "domain", "eaglercraft.command.domain");
+		super(server, "domain", "eaglercraft.command.domain", "eaglerdomain", "eagler-domain");
 	}
 
 	@Override

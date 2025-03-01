@@ -18,16 +18,16 @@ public class CommandConfirmCode<PlayerObject> extends EaglerCommand<PlayerObject
 	public void handle(IEaglerXServerCommandType<PlayerObject> command, IPlatformCommandSender<PlayerObject> sender,
 			String[] args) {
 		if(args.length != 1) {
-			sender.sendMessage(getServer().componentBuilder().buildTextComponent().beginStyle().color(EnumChatColor.RED)
-					.end().text("How to use: ").appendTextComponent().beginStyle().color(EnumChatColor.WHITE).end()
+			sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.RED).end()
+					.text("How to use: ").appendTextComponent().beginStyle().color(EnumChatColor.WHITE).end()
 					.text("/confirm-code <code>").end().end());
 		}else {
 			getServer().setServerListConfirmCode(Util.hash2string(Util.sha1(args[0].getBytes(StandardCharsets.US_ASCII))));
-			sender.sendMessage(getServer().componentBuilder().buildTextComponent().beginStyle()
-					.color(EnumChatColor.YELLOW).end().text("Server list 2FA code has been set to: ")
-					.appendTextComponent().beginStyle().color(EnumChatColor.GREEN).end().text(args[0]).end().end());
-			sender.sendMessage(getServer().componentBuilder().buildTextComponent().beginStyle()
-					.color(EnumChatColor.YELLOW).end().text("You can now return to the server list site and continue").end());
+			sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.AQUA).end()
+					.text("Server list 2FA code has been set to: ").appendTextComponent().beginStyle()
+					.color(EnumChatColor.GOLD).end().text(args[0]).end().end());
+			sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.AQUA).end()
+					.text("You can now return to the server list site and continue").end());
 		}
 	}
 

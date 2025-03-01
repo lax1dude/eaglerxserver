@@ -44,9 +44,10 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
-import net.lax1dude.eaglercraft.backend.server.base.command.CommandClientBrand;
+import net.lax1dude.eaglercraft.backend.server.base.command.CommandBrand;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandConfirmCode;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandDomain;
+import net.lax1dude.eaglercraft.backend.server.base.command.CommandProtocol;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandUserAgent;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandVersion;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
@@ -125,7 +126,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		init.setPlayerInitializer(new EaglerXServerPlayerInitializer<PlayerObject>(this));
 		init.setCommandRegistry(Arrays.asList(
 				new CommandVersion<PlayerObject>(this),
-				new CommandClientBrand<PlayerObject>(this),
+				new CommandBrand<PlayerObject>(this),
+				new CommandProtocol<PlayerObject>(this),
 				new CommandDomain<PlayerObject>(this),
 				new CommandUserAgent<PlayerObject>(this),
 				new CommandConfirmCode<PlayerObject>(this)
