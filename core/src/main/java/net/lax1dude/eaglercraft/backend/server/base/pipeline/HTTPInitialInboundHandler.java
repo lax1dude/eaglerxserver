@@ -4,6 +4,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -13,6 +14,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import io.netty.util.ReferenceCountUtil;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
+import net.lax1dude.eaglercraft.backend.server.api.EnumPipelineEvent;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings;
 
@@ -55,11 +57,12 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 		pipelineData.requestPath = msg.uri();
 		
 		ConfigDataSettings settings = pipelineData.server.getConfig().getSettings();
-		ctx.pipeline().replace(PipelineTransformer.HANDLER_HTTP_AGGREGATOR, PipelineTransformer.HANDLER_WS_AGGREGATOR,
+		ChannelPipeline pipeline = ctx.pipeline();
+		pipeline.replace(PipelineTransformer.HANDLER_HTTP_AGGREGATOR, PipelineTransformer.HANDLER_WS_AGGREGATOR,
 				new WebSocketFrameAggregator(settings.getHTTPWebSocketFragmentSize()));
-		ctx.pipeline().replace(PipelineTransformer.HANDLER_HTTP_INITIAL, PipelineTransformer.HANDLER_WS_INITIAL,
+		pipeline.replace(PipelineTransformer.HANDLER_HTTP_INITIAL, PipelineTransformer.HANDLER_WS_INITIAL,
 				WebSocketInitialHandler.INSTANCE);
-		ctx.pipeline().addBefore(PipelineTransformer.HANDLER_WS_INITIAL, PipelineTransformer.HANDLER_WS_PING,
+		pipeline.addBefore(PipelineTransformer.HANDLER_WS_INITIAL, PipelineTransformer.HANDLER_WS_PING,
 				new WebSocketPingFrameHandler());
 		
 		IEventDispatchAdapter<?, ?> dispatch = pipelineData.server.eventDispatcher();
@@ -99,11 +102,13 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 
 	private void handleHTTP(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
 		NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
-		pipelineData.server.getPipelineTransformer().removeVanillaHandlers(ctx.pipeline());
-		ctx.pipeline().addAfter(PipelineTransformer.HANDLER_HTTP_INITIAL, PipelineTransformer.HANDLER_HTTP,
+		ChannelPipeline pipeline = ctx.pipeline();
+		pipelineData.server.getPipelineTransformer().removeVanillaHandlers(pipeline);
+		pipeline.addAfter(PipelineTransformer.HANDLER_HTTP_INITIAL, PipelineTransformer.HANDLER_HTTP,
 				new HTTPRequestInboundHandler(pipelineData.server, pipelineData));
+		pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_STATE_HTTP_REQUEST);
 		ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
-		ctx.pipeline().remove(PipelineTransformer.HANDLER_HTTP_INITIAL);
+		pipeline.remove(PipelineTransformer.HANDLER_HTTP_INITIAL);
 	}
 
 }

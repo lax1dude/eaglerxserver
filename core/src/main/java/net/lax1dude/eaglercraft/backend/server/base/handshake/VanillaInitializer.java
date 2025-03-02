@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import net.lax1dude.eaglercraft.backend.server.api.EnumPipelineEvent;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.BufferUtils;
@@ -89,6 +90,7 @@ public class VanillaInitializer {
 					int val = BufferUtils.readVarInt(msg, 5);
 					if(val > 0) {
 						server.getPlatform().handleUndoCompression(ctx);
+						ctx.pipeline().fireUserEventTriggered(EnumPipelineEvent.EAGLER_DISABLE_COMPRESSION_HACK);
 					}
 				}else if(pktId == 0x01) {
 					// S01PacketEncryptionRequest

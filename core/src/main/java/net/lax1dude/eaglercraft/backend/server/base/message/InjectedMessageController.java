@@ -6,6 +6,7 @@ import java.util.List;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import net.lax1dude.eaglercraft.backend.server.api.EnumPipelineEvent;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.BufferUtils;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.EaglerInjectedMessageHandler;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.PipelineTransformer;
@@ -35,6 +36,7 @@ public class InjectedMessageController extends MessageController {
 		InjectedMessageController controller = new InjectedMessageController(protocol, handler, channel, defragSendDelay);
 		channel.pipeline().addAfter(PipelineTransformer.HANDLER_FRAME_CODEC, PipelineTransformer.HANDLER_INJECTED,
 				new EaglerInjectedMessageHandler(controller));
+		channel.pipeline().fireUserEventTriggered(EnumPipelineEvent.EAGLER_INJECTED_MESSAGE_CONTROLLER);
 		return controller;
 	}
 

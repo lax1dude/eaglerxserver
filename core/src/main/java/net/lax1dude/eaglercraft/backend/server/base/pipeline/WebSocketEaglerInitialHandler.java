@@ -9,7 +9,9 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.MessageToMessageCodec;
+import net.lax1dude.eaglercraft.backend.server.api.EnumPipelineEvent;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
@@ -382,13 +384,17 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 
 			@Override
 			public void injectNettyHandlers0(Object nettyEncoder, Object nettyDecoder) {
-				ctx.pipeline().addBefore(PipelineTransformer.HANDLER_HANDSHAKE, PipelineTransformer.HANDLER_REWIND_DECODER, (ChannelHandler) nettyDecoder);
-				ctx.pipeline().addBefore(PipelineTransformer.HANDLER_HANDSHAKE, PipelineTransformer.HANDLER_REWIND_ENCODER, (ChannelHandler) nettyEncoder);
+				ChannelPipeline pipeline = ctx.pipeline();
+				pipeline.addBefore(PipelineTransformer.HANDLER_HANDSHAKE, PipelineTransformer.HANDLER_REWIND_DECODER, (ChannelHandler) nettyDecoder);
+				pipeline.addBefore(PipelineTransformer.HANDLER_HANDSHAKE, PipelineTransformer.HANDLER_REWIND_ENCODER, (ChannelHandler) nettyEncoder);
+				pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_INJECTED_REWIND_HANDLERS);
 			}
 
 			@Override
 			public void injectNettyHandlers0(Object nettyCodec) {
-				ctx.pipeline().addBefore(PipelineTransformer.HANDLER_HANDSHAKE, PipelineTransformer.HANDLER_REWIND_CODEC, (ChannelHandler) nettyCodec);
+				ChannelPipeline pipeline = ctx.pipeline();
+				pipeline.addBefore(PipelineTransformer.HANDLER_HANDSHAKE, PipelineTransformer.HANDLER_REWIND_CODEC, (ChannelHandler) nettyCodec);
+				pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_INJECTED_REWIND_HANDLERS);
 			}
 
 		};
@@ -500,7 +506,9 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 	}
 
 	public void finishLogin(ChannelHandlerContext ctx) {
-		ctx.pipeline().remove(PipelineTransformer.HANDLER_OUTBOUND_THROW);
+		ChannelPipeline pipeline = ctx.pipeline();
+		pipeline.remove(PipelineTransformer.HANDLER_OUTBOUND_THROW);
+		pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_OUTBOUND_THROW_REMOVED);
 		vanillaInitializer = new VanillaInitializer(server, pipelineData, this);
 		vanillaInitializer.init(ctx);
 	}
@@ -508,7 +516,9 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 	public void enterPlayState(ChannelHandlerContext ctx) {
 		pipelineData.cancelLoginTimeoutHelper();
 		handshaker.finish(ctx);
-		ctx.pipeline().remove(PipelineTransformer.HANDLER_HANDSHAKE);
+		ChannelPipeline pipeline = ctx.pipeline();
+		pipeline.remove(PipelineTransformer.HANDLER_HANDSHAKE);
+		pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_HANDSHAKE_COMPLETE);
 	}
 
 }
