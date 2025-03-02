@@ -117,6 +117,10 @@ public class ConfigDataSettings {
 			}
 		}
 
+		public boolean isMinecraftProtocolSupported(int vers) {
+			return minMinecraftProtocol >= vers && maxMinecraftProtocol <= vers;
+		}
+
 	}
 
 	public static class ConfigDataSkinService {

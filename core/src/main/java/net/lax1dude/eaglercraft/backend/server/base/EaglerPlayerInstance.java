@@ -116,6 +116,12 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
+	public boolean isSkinSupported() {
+		// TODO
+		return false;
+	}
+
+	@Override
 	public ISkinManagerEagler<PlayerObject> getSkinManager() {
 		// TODO
 		return null;
@@ -136,13 +142,20 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
+	public boolean isVoiceSupported() {
+		// TODO
+		return false;
+	}
+
+	@Override
 	public IVoiceManager<PlayerObject> getVoiceManager() {
 		// TODO
 		return null;
 	}
 
 	@Override
-	public boolean isCookieAllowed() {
+	public boolean isCookieSupported() {
+		// TODO
 		return connectionInstance.cookieEnabled();
 	}
 
@@ -193,6 +206,23 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	public IWebViewManager<PlayerObject> getWebViewManager() {
 		// TODO
 		return null;
+	}
+
+	@Override
+	public boolean isUpdateSystemSupported() {
+		// TODO
+		return false;
+	}
+
+	@Override
+	public byte[] getUpdateCertificate() {
+		// TODO
+		return null;
+	}
+
+	@Override
+	public void sendUpdateCertificate(byte[] certificate) {
+		// TODO
 	}
 
 	public IPlatformSubLogger logger() {

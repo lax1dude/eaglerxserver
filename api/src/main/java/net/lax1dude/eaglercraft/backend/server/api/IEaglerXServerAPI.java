@@ -20,6 +20,7 @@ import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IWebServer;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
@@ -64,7 +65,9 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	boolean isEaglerHandshakeSupported(int vers);
 
-	boolean isEaglerProtocolSupported(int vers);
+	boolean isEaglerProtocolSupported(GamePluginMessageProtocol vers);
+
+	boolean isMinecraftProtocolSupported(int vers);
 
 	IBrandRegistry getBrandRegistry();
 
@@ -95,6 +98,8 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 	Set<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers();
 
 	int getEaglerPlayerCount();
+
+	Collection<byte[]> getUpdateCertificates();
 
 	Collection<IEaglerListenerInfo> getAllEaglerListeners();
 

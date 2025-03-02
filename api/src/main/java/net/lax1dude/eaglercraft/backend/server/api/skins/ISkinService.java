@@ -20,4 +20,6 @@ public interface ISkinService<PlayerObject> extends ISkinResolver, ISkinImageLoa
 
 	ISkinManagerEagler<PlayerObject> getEaglerPlayerByUUID(UUID playerUUID);
 
+	void setEaglerPlayersVanillaSkin(String texturesPropertyValue, String texturesPropertySignature);
+
 }

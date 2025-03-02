@@ -19,6 +19,8 @@ public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject>, 
 
 	void redirectPlayerToWebSocket(String webSocketURI);
 
+	boolean isSkinSupported();
+
 	ISkinManagerEagler<PlayerObject> getSkinManager();
 
 	default IEaglerPlayerSkin getEaglerSkin() {
@@ -29,9 +31,11 @@ public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject>, 
 		return getSkinManager().getEaglerCape();
 	}
 
+	boolean isVoiceSupported();
+
 	IVoiceManager<PlayerObject> getVoiceManager();
 
-	boolean isCookieAllowed();
+	boolean isCookieSupported();
 
 	byte[] getCookieData();
 
@@ -64,5 +68,11 @@ public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject>, 
 	boolean isWebViewSupported();
 
 	IWebViewManager<PlayerObject> getWebViewManager();
+
+	boolean isUpdateSystemSupported();
+
+	byte[] getUpdateCertificate();
+
+	void sendUpdateCertificate(byte[] certificate);
 
 }

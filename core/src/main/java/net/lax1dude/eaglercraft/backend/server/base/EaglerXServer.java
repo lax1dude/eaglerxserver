@@ -54,6 +54,7 @@ import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataRoot;
 import net.lax1dude.eaglercraft.backend.server.base.config.EaglerConfigLoader;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.PipelineTransformer;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObject>, IEaglerAPIFactory, IEaglerXServerAPI<PlayerObject> {
 
@@ -332,8 +333,13 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public boolean isEaglerProtocolSupported(int vers) {
-		return config.getSettings().getProtocols().isEaglerProtocolSupported(vers);
+	public boolean isEaglerProtocolSupported(GamePluginMessageProtocol vers) {
+		return config.getSettings().getProtocols().isEaglerProtocolSupported(vers.ver);
+	}
+
+	@Override
+	public boolean isMinecraftProtocolSupported(int vers) {
+		return config.getSettings().getProtocols().isMinecraftProtocolSupported(vers);
 	}
 
 	@Override
@@ -439,6 +445,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	public int getEaglerPlayerCount() {
 		return eaglerPlayers.size();
+	}
+
+	@Override
+	public Collection<byte[]> getUpdateCertificates() {
+		// TODO
+		return null;
 	}
 
 	@Override
