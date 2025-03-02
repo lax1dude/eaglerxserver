@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.bungee;
 import java.net.SocketAddress;
 import java.util.UUID;
 
+import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TranslatableComponent;
@@ -21,6 +22,11 @@ class BungeeConnection implements IPlatformConnection {
 	BungeeConnection(PlatformPluginBungee platformPlugin, PendingConnection pendingConnection) {
 		this.platformPlugin = platformPlugin;
 		this.pendingConnection = pendingConnection;
+	}
+
+	@Override
+	public Channel getChannel() {
+		return BungeeUnsafe.getInitialHandlerChannel(pendingConnection);
 	}
 
 	@Override

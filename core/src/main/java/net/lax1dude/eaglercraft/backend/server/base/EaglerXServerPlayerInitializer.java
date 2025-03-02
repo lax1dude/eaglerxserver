@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.base;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitializer;
+import net.lax1dude.eaglercraft.backend.server.base.message.MessageControllerFactory;
 
 class EaglerXServerPlayerInitializer<PlayerObject> implements
 		IEaglerXServerPlayerInitializer<BaseConnectionInstance, BasePlayerInstance<PlayerObject>, PlayerObject> {
@@ -17,6 +18,7 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 	public void initializePlayer(IPlatformPlayerInitializer<BaseConnectionInstance, BasePlayerInstance<PlayerObject>, PlayerObject> initializer) {
 		if(initializer.getConnectionAttachment().isEaglerPlayer()) {
 			EaglerPlayerInstance<PlayerObject> instance = new EaglerPlayerInstance<>(initializer.getPlayer(), server);
+			instance.messageController = MessageControllerFactory.initializePlayer(instance);
 			initializer.setPlayerAttachment(instance);
 			server.registerEaglerPlayer(instance);
 		}else {

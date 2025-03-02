@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.Player;
 
+import io.netty.channel.Channel;
 import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 
@@ -26,6 +27,11 @@ class VelocityConnection implements IPlatformConnection {
 		this.connection = connection;
 		this.username = username;
 		this.uuid = uuid;
+	}
+
+	@Override
+	public Channel getChannel() {
+		return VelocityUnsafe.getInboundChannel(connection);
 	}
 
 	@Override

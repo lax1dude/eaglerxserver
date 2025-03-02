@@ -28,6 +28,11 @@ class BukkitConnection implements IPlatformConnection {
 	}
 
 	@Override
+	public Channel getChannel() {
+		return loginConnection.getChannel();
+	}
+
+	@Override
 	public <T> T getAttachment() {
 		return (T) attachment;
 	}

@@ -13,6 +13,7 @@ import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuManager;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerEagler;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewManager;
+import net.lax1dude.eaglercraft.backend.server.base.message.MessageController;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketRedirectClientV4EAG;
@@ -23,7 +24,8 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	private final EaglerConnectionInstance connectionInstance;
 	private final IPlatformSubLogger playerLogger;
-	private volatile byte[] cookieData;
+	private byte[] cookieData;
+	MessageController messageController;
 
 	public EaglerPlayerInstance(IPlatformPlayer<PlayerObject> player,
 			EaglerXServer<PlayerObject> server) {
@@ -110,7 +112,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public void sendEaglerMessage(GameMessagePacket packet) {
-		// TODO
+		messageController.sendPacket(packet);
 	}
 
 	@Override
@@ -199,6 +201,10 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	public EaglerConnectionInstance connectionImpl() {
 		return connectionInstance;
+	}
+
+	public MessageController getMessageController() {
+		return messageController;
 	}
 
 }

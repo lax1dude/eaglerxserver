@@ -23,6 +23,10 @@ public class BasePlayerInstance<PlayerObject> implements IBasePlayer<PlayerObjec
 		this.server = server;
 	}
 
+	public IPlatformPlayer<PlayerObject> getPlatformPlayer() {
+		return player;
+	}
+
 	@Override
 	public String getUsername() {
 		return player.getUsername();
@@ -112,6 +116,10 @@ public class BasePlayerInstance<PlayerObject> implements IBasePlayer<PlayerObjec
 	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
 		player.getConnection().disconnect(kickMessage);
+	}
+
+	public EaglerXServer<PlayerObject> getEaglerXServer() {
+		return server;
 	}
 
 }

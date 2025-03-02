@@ -175,6 +175,10 @@ public enum GamePluginMessageProtocol {
 		return ret;
 	}
 
+	public GameMessagePacket readPacketV5(int direction, GamePacketInputBuffer buffer) throws IOException {
+		return null; //TODO
+	}
+
 	public String writePacket(int direction, GamePacketOutputBuffer stream, GameMessagePacket packet) throws IOException {
 		Class<? extends GameMessagePacket> clazz = packet.getClass();
 		PacketDef def = classMap[direction].get(clazz);
@@ -186,6 +190,10 @@ public enum GamePluginMessageProtocol {
 		}
 		packet.writePacket(stream);
 		return def.channel;
+	}
+
+	public void writePacketV5(int direction, GamePacketOutputBuffer stream, GameMessagePacket packet) throws IOException {
+		 //TODO
 	}
 
 	public List<String> filterProtocols(Collection<String> data) {

@@ -45,6 +45,7 @@ public class PipelineTransformer {
 	public static final String HANDLER_REWIND_CODEC = "eagler-rewind-codec";
 	public static final String HANDLER_REWIND_DECODER = "eagler-rewind-decoder";
 	public static final String HANDLER_REWIND_ENCODER = "eagler-rewind-encoder";
+	public static final String HANDLER_INJECTED = "eagler-v5-msg-handler";
 
 	protected static final Set<EnumPipelineComponent> VANILLA_FRAME_DECODERS = EnumSet.of(
 			EnumPipelineComponent.FRAME_DECODER, EnumPipelineComponent.FRAME_ENCODER,

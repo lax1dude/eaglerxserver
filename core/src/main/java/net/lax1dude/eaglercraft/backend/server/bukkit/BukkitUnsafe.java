@@ -98,6 +98,14 @@ public class BukkitUnsafe {
 			}
 		}
 
+		public Channel getChannel() {
+			try {
+				return (Channel) field_NetworkManager_channel.get(networkManager);
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+		}
+
 	}
 
 	private static volatile Class<?> class_NetworkManager = null;

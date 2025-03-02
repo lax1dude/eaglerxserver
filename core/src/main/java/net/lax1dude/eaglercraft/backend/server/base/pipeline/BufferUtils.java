@@ -27,22 +27,43 @@ public class BufferUtils {
 		return out;
 	}
 
-	public static void writeVarInt(ByteBuf buffer, int val) {
-		int part;
+	public static long readVarLong(ByteBuf buffer, int maxBytes) {
+		long i = 0L;
+		int j = 0;
+		byte b0;
 		while (true) {
-			part = val & 0x7F;
+			b0 = buffer.readByte();
 
-			val >>>= 7;
-			if (val != 0) {
-				part |= 0x80;
+			i |= (long) (b0 & 0x7F) << j++ * 7;
+
+			if (j > maxBytes) {
+				throw new IndexOutOfBoundsException("VarLong too big (max " + maxBytes + ")");
 			}
 
-			buffer.writeByte(part);
-
-			if (val == 0) {
+			if ((b0 & 0x80) != 0x80) {
 				break;
 			}
 		}
+
+		return i;
+	}
+
+	public static void writeVarInt(ByteBuf buffer, int input) {
+		while ((input & -128) != 0) {
+			buffer.writeByte(input & 127 | 128);
+			input >>>= 7;
+		}
+
+		buffer.writeByte(input);
+	}
+
+	public static void writeVarLong(ByteBuf buffer, long value) {
+		while ((value & -128L) != 0L) {
+			buffer.writeByte((int) (value & 127L) | 128);
+			value >>>= 7;
+		}
+
+		buffer.writeByte((int) value);
 	}
 
 	public static int varIntLength(int val) {
@@ -98,5 +119,6 @@ public class BufferUtils {
 		BufferUtils.writeVarInt(buffer, bytes.length);
 		buffer.writeBytes(bytes);
 	}
+
 
 }
