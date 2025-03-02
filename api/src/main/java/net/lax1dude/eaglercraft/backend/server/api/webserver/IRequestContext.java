@@ -3,6 +3,8 @@ package net.lax1dude.eaglercraft.backend.server.api.webserver;
 import java.net.SocketAddress;
 import java.nio.charset.Charset;
 
+import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
+
 public interface IRequestContext {
 
 	IWebServer getServer();

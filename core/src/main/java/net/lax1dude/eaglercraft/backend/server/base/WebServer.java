@@ -3,7 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.base;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
-import net.lax1dude.eaglercraft.backend.server.api.webserver.EnumRequestMethod;
+import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IPreparedResponse;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestHandler;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IWebServer;
