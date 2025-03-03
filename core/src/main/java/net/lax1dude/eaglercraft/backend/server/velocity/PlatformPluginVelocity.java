@@ -74,6 +74,7 @@ import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServerVersion;
 import net.lax1dude.eaglercraft.backend.server.base.ListenerInitList;
 import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
+import net.lax1dude.eaglercraft.backend.server.util.FallbackJava11Zlib;
 import net.lax1dude.eaglercraft.backend.server.velocity.chat.VelocityComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.velocity.event.VelocityEventDispatchAdapter;
 
@@ -115,6 +116,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	protected ChannelFactory<? extends ServerChannel> serverUnixChannelFactory;
 	protected EventLoopGroup bossEventLoopGroup;
 	protected EventLoopGroup workerEventLoopGroup;
+	protected VelocityNative.IVelocityNativeZlibFactory zlibFactory;
 
 	public class PluginMessageHandler {
 
@@ -530,8 +532,12 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	}
 
 	@Override
-	public IPlatformZlib tryCreateNativeZlib(boolean compression, boolean decompression, int compressionLevel) {
-		return null;
+	public IPlatformZlib createNativeZlib(boolean compression, boolean decompression, int compressionLevel) {
+		IPlatformZlib ret;
+		if(zlibFactory != null && (ret = zlibFactory.create(compressionLevel)) != null) {
+			return ret;
+		}
+		return FallbackJava11Zlib.create(compression, decompression, compressionLevel);
 	}
 
 	public void initializeConnection(InboundConnection conn, String username, UUID uuid, Object pipelineData,

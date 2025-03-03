@@ -67,8 +67,8 @@ class BungeeNative {
 
 	public static class BungeeZlibWrapper implements IPlatformZlib {
 
-		private final BungeeZlib compressionInstance;
-		private final BungeeZlib decompressionInstance;
+		private BungeeZlib compressionInstance;
+		private BungeeZlib decompressionInstance;
 
 		public BungeeZlibWrapper(BungeeZlib compressionInstance, BungeeZlib decompressionInstance) {
 			this.compressionInstance = compressionInstance;
@@ -100,10 +100,12 @@ class BungeeNative {
 			try {
 				if(compressionInstance != null) {
 					compressionInstance.free();
+					compressionInstance = null;
 				}
 			}finally {
 				if(decompressionInstance != null) {
 					decompressionInstance.free();
+					decompressionInstance = null;
 				}
 			}
 		}

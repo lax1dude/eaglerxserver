@@ -72,6 +72,7 @@ import net.lax1dude.eaglercraft.backend.server.bungee.chat.BungeeComponentHelper
 import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
 import net.lax1dude.eaglercraft.backend.server.util.CompressionDisablerHack;
 import net.lax1dude.eaglercraft.backend.server.util.DecompressionDisablerHack;
+import net.lax1dude.eaglercraft.backend.server.util.FallbackJava11Zlib;
 import net.md_5.bungee.api.chat.BaseComponent;
 
 public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player>, IPlatformServer<Player> {
@@ -521,8 +522,8 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	}
 
 	@Override
-	public IPlatformZlib tryCreateNativeZlib(boolean compression, boolean decompression, int compressionLevel) {
-		return null;
+	public IPlatformZlib createNativeZlib(boolean compression, boolean decompression, int compressionLevel) {
+		return FallbackJava11Zlib.create(compression, decompression, compressionLevel);
 	}
 
 	public void initializeConnection(LoginConnectionHolder loginConnection, Object pipelineData,

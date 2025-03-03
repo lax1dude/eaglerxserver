@@ -54,6 +54,7 @@ import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.bungee.chat.BungeeComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.bungee.event.BungeeEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
+import net.lax1dude.eaglercraft.backend.server.util.FallbackJava11Zlib;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -482,8 +483,12 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	}
 
 	@Override
-	public IPlatformZlib tryCreateNativeZlib(boolean compression, boolean decompression, int compressionLevel) {
-		return zlibFactory != null ? zlibFactory.create(compression, decompression, compressionLevel) : null;
+	public IPlatformZlib createNativeZlib(boolean compression, boolean decompression, int compressionLevel) {
+		IPlatformZlib ret;
+		if(zlibFactory != null && (ret = zlibFactory.create(compression, decompression, compressionLevel)) != null) {
+			return ret;
+		}
+		return FallbackJava11Zlib.create(compression, decompression, compressionLevel);
 	}
 
 	public void initializeConnection(PendingConnection conn, Object pipelineData, Consumer<BungeeConnection> setAttr) {
