@@ -29,6 +29,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformZlib;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.api.EnumPlatformType;
 import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
@@ -36,6 +37,7 @@ import net.lax1dude.eaglercraft.backend.server.api.IBinaryHTTPClient;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.INativeZlib;
 import net.lax1dude.eaglercraft.backend.server.api.IPacketImageLoader;
 import net.lax1dude.eaglercraft.backend.server.api.IScheduler;
 import net.lax1dude.eaglercraft.backend.server.api.IServerIconLoader;
@@ -566,6 +568,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	public IBinaryHTTPClient getBinaryHTTPClient() {
 		return httpClientAPI;
+	}
+
+	@Override
+	public INativeZlib tryCreateNativeZlib(boolean compression, boolean decompression, int compressionLevel) {
+		IPlatformZlib platformZLib = platform.tryCreateNativeZlib(compression, decompression, compressionLevel);
+		return platformZLib != null ? new NativeZlibWrapper(platformZLib) : null;
 	}
 
 	@Override

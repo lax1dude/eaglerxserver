@@ -61,6 +61,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformScheduler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformZlib;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
@@ -517,6 +518,11 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public EventLoopGroup getWorkerEventLoopGroup() {
 		return eventLoopGroup;
+	}
+
+	@Override
+	public IPlatformZlib tryCreateNativeZlib(boolean compression, boolean decompression, int compressionLevel) {
+		return null;
 	}
 
 	public void initializeConnection(LoginConnectionHolder loginConnection, Object pipelineData,
