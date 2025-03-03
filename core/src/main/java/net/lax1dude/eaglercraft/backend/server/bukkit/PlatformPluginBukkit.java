@@ -37,6 +37,7 @@ import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.channel.unix.DomainSocketAddress;
 import io.netty.util.Attribute;
 import net.lax1dude.eaglercraft.backend.server.adapter.AbortLoadException;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
@@ -486,6 +487,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	@Override
 	public ChannelFactory<? extends Channel> getChannelFactory(SocketAddress address) {
+		if(address instanceof DomainSocketAddress) {
+			throw new UnsupportedOperationException("Unix sockets not supported by this platform!");
+		}
 		if(enableNativeTransport) {
 			return channelFactoryEpoll;
 		}else {
@@ -495,6 +499,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	@Override
 	public ChannelFactory<? extends ServerChannel> getServerChannelFactory(SocketAddress address) {
+		if(address instanceof DomainSocketAddress) {
+			throw new UnsupportedOperationException("Unix sockets not supported by this platform!");
+		}
 		if(enableNativeTransport) {
 			return serverChannelFactoryEpoll;
 		}else {

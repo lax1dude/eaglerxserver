@@ -182,6 +182,28 @@ public class SkinPacketVersionCache {
 		}
 	}
 
+	public boolean isPreset() {
+		if(skinPacketV4 != null) {
+			return skinPacketV4 instanceof SPacketOtherSkinPresetEAG;
+		}else if(skinPacketV3 != null) {
+			return skinPacketV3 instanceof SPacketOtherSkinPresetEAG;
+		}
+		return false;
+	}
+
+	public int getPresetId() {
+		if(skinPacketV4 != null) {
+			if(skinPacketV4 instanceof SPacketOtherSkinPresetEAG) {
+				return ((SPacketOtherSkinPresetEAG)skinPacketV4).presetSkin;
+			}
+		}else if(skinPacketV3 != null) {
+			if(skinPacketV3 instanceof SPacketOtherSkinPresetEAG) {
+				return ((SPacketOtherSkinPresetEAG)skinPacketV3).presetSkin;
+			}
+		}
+		return -1;
+	}
+
 	public int getModelId() {
 		if(skinPacketV4 != null) {
 			if(skinPacketV4 instanceof SPacketOtherSkinCustomV4EAG) {

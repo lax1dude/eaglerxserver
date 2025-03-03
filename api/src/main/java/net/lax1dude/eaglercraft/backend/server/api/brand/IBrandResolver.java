@@ -7,4 +7,6 @@ public interface IBrandResolver {
 
 	void resolveEaglerPlayerBrand(UUID playerUUID, Consumer<UUID> callback);
 
+	void resolveEaglerPlayerRegisteredBrand(UUID playerUUID, Consumer<IBrandRegistration> callback);
+
 }

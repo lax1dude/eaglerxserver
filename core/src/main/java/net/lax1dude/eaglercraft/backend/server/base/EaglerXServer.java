@@ -60,6 +60,7 @@ import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataRoot;
 import net.lax1dude.eaglercraft.backend.server.base.config.EaglerConfigLoader;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.PipelineTransformer;
+import net.lax1dude.eaglercraft.backend.skin_cache.HTTPClient;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObject>, IEaglerAPIFactory,
@@ -68,6 +69,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private final EaglerAttributeManager attributeManager = APIFactoryImpl.INSTANCE.getEaglerAttribManager();
 	private final EaglerAttributeManager.EaglerAttributeHolder attributeHolder = attributeManager.createEaglerHolder();
 
+	private boolean hasStartedLoading = false;
 	private IPlatform<PlayerObject> platform;
 	private Class<?> platformClazz;
 	private EnumPlatformType platformType;
@@ -85,12 +87,18 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private SSLCertificateManager certificateManager;
 	private Scheduler scheduler;
 	private String serverListConfirmCode;
+	private HTTPClient httpClient;
+	private BinaryHTTPClient httpClientAPI;
 
 	public EaglerXServer() {
 	}
 
 	@Override
 	public void load(IPlatform.Init<PlayerObject> init) {
+		if(hasStartedLoading) {
+			throw new IllegalStateException();
+		}
+		hasStartedLoading = true;
 		eaglerPlayers = Sets.newConcurrentHashSet();
 		platform = init.getPlatform();
 		platformClazz = platform.getClass();
@@ -126,6 +134,9 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		pipelineTransformer = new PipelineTransformer(this, rewindService);
 		certificateManager = new SSLCertificateManager(logger());
 		scheduler = new Scheduler(platform.getScheduler());
+		httpClient = new HTTPClient(platform.getWorkerEventLoopGroup(), platform.getChannelFactory(null),
+				"Mozilla/5.0 " + getServerVersionString());
+		httpClientAPI = new BinaryHTTPClient(httpClient);
 		
 		init.setOnServerEnable(this::enableHandler);
 		init.setOnServerDisable(this::disableHandler);
@@ -554,8 +565,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public IBinaryHTTPClient getBinaryHTTPClient() {
-		// TODO
-		return null;
+		return httpClientAPI;
 	}
 
 	@Override

@@ -15,15 +15,15 @@ public interface ISkinImageLoader {
 
 	IEaglerPlayerSkin loadPresetCape(EnumPresetCapes presetCape);
 
-	IEaglerPlayerSkin loadSkinImageData64x64(int[] pixelsARGB8);
+	IEaglerPlayerSkin loadSkinImageData64x64(int[] pixelsARGB8, EnumSkinModel modelId);
 
-	IEaglerPlayerSkin loadSkinImageData64x32(int[] pixelsARGB8);
+	IEaglerPlayerSkin loadSkinImageData64x32(int[] pixelsARGB8, EnumSkinModel modelId);
 
-	IEaglerPlayerSkin loadSkinImageData(BufferedImage image);
+	IEaglerPlayerSkin loadSkinImageData(BufferedImage image, EnumSkinModel modelId);
 
-	IEaglerPlayerSkin loadSkinImageData(InputStream inputStream) throws IOException;
+	IEaglerPlayerSkin loadSkinImageData(InputStream inputStream, EnumSkinModel modelId) throws IOException;
 
-	IEaglerPlayerSkin loadSkinImageData(File imageFile) throws IOException;
+	IEaglerPlayerSkin loadSkinImageData(File imageFile, EnumSkinModel modelId) throws IOException;
 
 	IEaglerPlayerCape loadCapeImageData64x32(int[] pixelsARGB8);
 

@@ -2,12 +2,11 @@ package net.lax1dude.eaglercraft.backend.server.api.skins;
 
 import java.util.UUID;
 
+import net.lax1dude.eaglercraft.backend.server.api.IOptional;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 
-public interface IEaglerPlayerCape {
-
-	GameMessagePacket getCapePacket(GamePluginMessageProtocol protocol);
+public interface IEaglerPlayerCape extends IOptional<IEaglerPlayerCape> {
 
 	GameMessagePacket getCapePacket(long rewriteUUIDMost, long rewriteUUIDLeast, GamePluginMessageProtocol protocol);
 
@@ -28,7 +27,5 @@ public interface IEaglerPlayerCape {
 	void getCustomCapePixels_RGBA8_32x32(byte[] array);
 
 	void getCustomCapePixels_eagler(byte[] array);
-
-	int getCustomSkinModelId();
 
 }

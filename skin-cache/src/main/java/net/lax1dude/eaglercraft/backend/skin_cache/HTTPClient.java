@@ -32,12 +32,14 @@ import com.google.common.cache.CacheBuilder;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ReflectiveChannelFactory;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpClientCodec;
@@ -184,12 +186,18 @@ public class HTTPClient {
 
 	private final Cache<String, InetAddress> addressCache = CacheBuilder.newBuilder().expireAfterWrite(15L, TimeUnit.MINUTES).build();
 	private final EventLoopGroup eventLoop;
-	private final Class<? extends Channel> channelClass;
+	private final ChannelFactory<? extends Channel> channelFactory;
 	private final String userAgent;
 
 	public HTTPClient(EventLoopGroup eventLoop, Class<? extends Channel> channelClass, String userAgent) {
 		this.eventLoop = eventLoop;
-		this.channelClass = channelClass;
+		this.channelFactory = new ReflectiveChannelFactory<>(channelClass);
+		this.userAgent = userAgent;
+	}
+
+	public HTTPClient(EventLoopGroup eventLoop, ChannelFactory<? extends Channel> channelFactory, String userAgent) {
+		this.eventLoop = eventLoop;
+		this.channelFactory = channelFactory;
 		this.userAgent = userAgent;
 	}
 
@@ -226,7 +234,7 @@ public class HTTPClient {
 			addressCache.put(host, inetHost);
 		}
 		InetSocketAddress addr = new InetSocketAddress(inetHost, port);
-		(new Bootstrap()).channel(channelClass).group(eventLoop)
+		(new Bootstrap()).channelFactory(channelFactory).group(eventLoop)
 				.handler(new NettyHttpChannelInitializer(responseCallback, ssl, host, port))
 				.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000).option(ChannelOption.TCP_NODELAY, true)
 				.remoteAddress(addr).connect()
