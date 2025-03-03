@@ -572,7 +572,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public INativeZlib createNativeZlib(boolean compression, boolean decompression, int compressionLevel) {
-		if(compressionLevel < 1 || compressionLevel > 9) {
+		if(compressionLevel < 0 || compressionLevel > 9) {
 			throw new IllegalArgumentException("Compression level is invalid, must be between 1 and 9");
 		}else if(!compression && !decompression) {
 			throw new IllegalArgumentException("Compression and decompression are both false");
