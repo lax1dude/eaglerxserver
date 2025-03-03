@@ -3,14 +3,16 @@ package net.lax1dude.eaglercraft.backend.server.base;
 import java.net.SocketAddress;
 import java.util.UUID;
 
+import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.INettyChannel;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistry;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
 
-public class BasePlayerInstance<PlayerObject> implements IBasePlayer<PlayerObject> {
+public class BasePlayerInstance<PlayerObject> implements IBasePlayer<PlayerObject>, INettyChannel.NettyUnsafe {
 
 	protected final IPlatformPlayer<PlayerObject> player;
 	protected final EaglerAttributeManager.EaglerAttributeHolder attributeHolder;
@@ -120,6 +122,16 @@ public class BasePlayerInstance<PlayerObject> implements IBasePlayer<PlayerObjec
 
 	public EaglerXServer<PlayerObject> getEaglerXServer() {
 		return server;
+	}
+
+	@Override
+	public NettyUnsafe getNettyUnsafe() {
+		return this;
+	}
+
+	@Override
+	public Channel getChannel() {
+		return player.getConnection().getChannel();
 	}
 
 }

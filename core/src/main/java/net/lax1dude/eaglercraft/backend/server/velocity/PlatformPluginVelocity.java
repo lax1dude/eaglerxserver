@@ -1,10 +1,10 @@
 package net.lax1dude.eaglercraft.backend.server.velocity;
 
 import java.io.File;
+import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,9 +36,13 @@ import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.scheduler.ScheduledTask;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ServerChannel;
+import io.netty.channel.unix.DomainSocketAddress;
 import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.adapter.AbortLoadException;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
@@ -104,6 +108,12 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	protected Map<String, IPlatformServer<Player>> registeredServers;
 	protected ChannelIdentifier[] registeredChannels;
 	protected Map<ChannelIdentifier, PluginMessageHandler> registeredChannelsMap;
+	protected ChannelFactory<? extends Channel> channelFactory;
+	protected ChannelFactory<? extends Channel> unixChannelFactory;
+	protected ChannelFactory<? extends ServerChannel> serverChannelFactory;
+	protected ChannelFactory<? extends ServerChannel> serverUnixChannelFactory;
+	protected EventLoopGroup bossEventLoopGroup;
+	protected EventLoopGroup workerEventLoopGroup;
 
 	public class PluginMessageHandler {
 
@@ -141,6 +151,12 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
     		builder.put(server.getServerInfo().getName(), new VelocityServer(this, server, true));
     	}
     	registeredServers = builder.build();
+    	channelFactory = VelocityUnsafe.getChannelFactory(proxyIn);
+    	unixChannelFactory = VelocityUnsafe.getUnixChannelFactory(proxyIn);
+    	serverChannelFactory = VelocityUnsafe.getServerChannelFactory(proxyIn);
+    	serverUnixChannelFactory = VelocityUnsafe.getServerUnixChannelFactory(proxyIn);
+    	bossEventLoopGroup = VelocityUnsafe.getBossEventLoopGroup(proxyIn);
+    	workerEventLoopGroup = VelocityUnsafe.getWorkerEventLoopGroup(proxyIn);
 		Init<Player> init = new InitProxying<Player>() {
 
 			@Override
@@ -474,6 +490,42 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		if(ctx.pipeline().get("eagler-velocity-compression-disabler") == null) {
 			ctx.pipeline().addFirst("eagler-velocity-compression-disabler", VelocityCompressionDisablerHack.INSTANCE);
 		}
+	}
+
+	@Override
+	public ChannelFactory<? extends Channel> getChannelFactory(SocketAddress address) {
+		if(address instanceof DomainSocketAddress) {
+			if(unixChannelFactory != null) {
+				return unixChannelFactory;
+			}else {
+				throw new UnsupportedOperationException("Unix sockets unsupported on this platform");
+			}
+		}else {
+			return channelFactory;
+		}
+	}
+
+	@Override
+	public ChannelFactory<? extends ServerChannel> getServerChannelFactory(SocketAddress address) {
+		if(address instanceof DomainSocketAddress) {
+			if(serverUnixChannelFactory != null) {
+				return serverUnixChannelFactory;
+			}else {
+				throw new UnsupportedOperationException("Unix sockets unsupported on this platform");
+			}
+		}else {
+			return serverChannelFactory;
+		}
+	}
+
+	@Override
+	public EventLoopGroup getBossEventLoopGroup() {
+		return bossEventLoopGroup;
+	}
+
+	@Override
+	public EventLoopGroup getWorkerEventLoopGroup() {
+		return workerEventLoopGroup;
 	}
 
 	public void initializeConnection(InboundConnection conn, String username, UUID uuid, Object pipelineData,

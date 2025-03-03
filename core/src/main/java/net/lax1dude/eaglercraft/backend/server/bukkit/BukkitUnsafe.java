@@ -24,6 +24,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
 import io.papermc.paper.network.ChannelInitializeListener;
 import net.kyori.adventure.key.Key;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
@@ -551,6 +552,73 @@ public class BukkitUnsafe {
 			}
 		}
 		throw new NoSuchFieldException("Could not find field with type " + fieldType + " in class " + clazz);
+	}
+
+	public static boolean isEnableNativeTransport(Server server) {
+		try {
+			Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
+			Object dedicatedServer = dedicatedPlayerList.getClass().getMethod("getServer").invoke(dedicatedPlayerList);
+			Object propertyManager = dedicatedServer.getClass().getMethod("getPropertyManager").invoke(dedicatedServer);
+			return (Boolean) propertyManager.getClass().getMethod("getBoolean", String.class, boolean.class)
+					.invoke(propertyManager, "use-native-transport", true);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
+				| SecurityException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+	}
+
+	public static EventLoopGroup getEventLoopGroup(Server server, boolean enableNativeTransport) {
+		Class<?> serverConnection;
+		try {
+			Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
+			Object minecraftServer = dedicatedPlayerList.getClass().getMethod("getServer").invoke(dedicatedPlayerList);
+			serverConnection = minecraftServer.getClass().getMethod("getServerConnection").getReturnType();
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException | SecurityException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+		return getEventLoopGroup(serverConnection, enableNativeTransport);
+	}
+
+	public static EventLoopGroup getEventLoopGroup(Class<?> serverConnection, boolean enableNativeTransport) {
+		Field[] fields = serverConnection.getFields();
+		if(enableNativeTransport) {
+			for(Field field : fields) {
+				Class<?> clz = field.getClass();
+				if(clz.getSimpleName().equals("LazyInitVar")) {
+					Type type = field.getGenericType();
+					if(type instanceof ParameterizedType) {
+						Type[] args = ((ParameterizedType)type).getActualTypeArguments();
+						if(args.length == 1 && "io.netty.channel.epoll.EpollEventLoopGroup".equals(args[0].getTypeName())) {
+							try {
+								return (EventLoopGroup) clz.getMethod("init").invoke(field.get(null));
+							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
+									| NoSuchMethodException | SecurityException e) {
+								throw Util.propagateReflectThrowable(e);
+							}
+						}
+					}
+				}
+			}
+		}
+		for(Field field : fields) {
+			Class<?> clz = field.getClass();
+			if(clz.getSimpleName().equals("LazyInitVar")) {
+				Type type = field.getGenericType();
+				if(type instanceof ParameterizedType) {
+					Type[] args = ((ParameterizedType)type).getActualTypeArguments();
+					if(args.length == 1 && "io.netty.channel.nio.NioEventLoopGroup".equals(args[0].getTypeName())) {
+						try {
+							return (EventLoopGroup) clz.getMethod("init").invoke(field.get(null));
+						} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
+								| NoSuchMethodException | SecurityException e) {
+							throw Util.propagateReflectThrowable(e);
+						}
+					}
+				}
+			}
+		}
+		throw new RuntimeException("Could not locate the server event loop!");
 	}
 
 }

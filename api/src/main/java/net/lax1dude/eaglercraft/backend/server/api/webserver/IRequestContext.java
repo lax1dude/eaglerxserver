@@ -3,6 +3,10 @@ package net.lax1dude.eaglercraft.backend.server.api.webserver;
 import java.net.SocketAddress;
 import java.nio.charset.Charset;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.FullHttpRequest;
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 
 public interface IRequestContext {
@@ -39,13 +43,15 @@ public interface IRequestContext {
 
 	public interface NettyUnsafe {
 
-		void setResponseBodyByteBuf(Object byteBuf);
+		void setResponseBodyByteBuf(ByteBuf byteBuf);
 
 		void setRequestHandled();
 
-		Object getNettyChannelHandlerContext();
+		Channel getChannel();
 
-		Object getNettyFullHttpRequest();
+		ChannelHandlerContext getChannelHandlerContext();
+
+		FullHttpRequest getFullHttpRequest();
 
 	}
 

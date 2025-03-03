@@ -2,12 +2,14 @@ package net.lax1dude.eaglercraft.backend.server.base;
 
 import java.net.SocketAddress;
 
+import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IBasePendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
+import net.lax1dude.eaglercraft.backend.server.api.INettyChannel;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 
-public class BaseConnectionInstance implements IBasePendingConnection {
+public class BaseConnectionInstance implements IBasePendingConnection, INettyChannel.NettyUnsafe {
 
 	protected final IPlatformConnection connection;
 	protected final EaglerAttributeManager.EaglerAttributeHolder attributeHolder;
@@ -61,6 +63,16 @@ public class BaseConnectionInstance implements IBasePendingConnection {
 	@Override
 	public void disconnect() {
 		connection.disconnect();
+	}
+
+	@Override
+	public NettyUnsafe getNettyUnsafe() {
+		return this;
+	}
+
+	@Override
+	public Channel getChannel() {
+		return connection.getChannel();
 	}
 
 }

@@ -25,9 +25,18 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ServerChannel;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
+import io.netty.channel.epoll.EpollSocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.Attribute;
 import net.lax1dude.eaglercraft.backend.server.adapter.AbortLoadException;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
@@ -85,8 +94,18 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	protected IPlatformComponentHelper componentHelperImpl;
 	protected CommandSender cacheConsoleCommandSenderInstance;
 	protected IPlatformCommandSender<Player> cacheConsoleCommandSenderHandle;
+	protected boolean enableNativeTransport;
+	protected EventLoopGroup eventLoopGroup;
 
 	private final ConcurrentMap<Player, BukkitPlayer> playerInstanceMap = new ConcurrentHashMap<>(1024);
+
+	private final ChannelHandler compressionDisabler = new CompressionDisablerHack("compress", BukkitUnsafe::disposeCompressionHandler);
+	private final ChannelHandler decompressionDisabler = new DecompressionDisablerHack("decompress", BukkitUnsafe::disposeDecompressionHandler);
+
+	private final ChannelFactory<? extends Channel> channelFactoryNIO = NioSocketChannel::new;
+	private final ChannelFactory<? extends Channel> channelFactoryEpoll = EpollSocketChannel::new;
+	private final ChannelFactory<? extends ServerChannel> serverChannelFactoryNIO = NioServerSocketChannel::new;
+	private final ChannelFactory<? extends ServerChannel> serverChannelFactoryEpoll = EpollServerSocketChannel::new;
 
 	public PlatformPluginBukkit() {
 		registeredServers = ImmutableMap.of("default", this);
@@ -95,12 +114,17 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public void onLoad() {
 		post_v1_13 = isPost_v1_13();
-		eventDispatcherImpl = new BukkitEventDispatchAdapter(this, getServer().getPluginManager(),
-				getServer().getScheduler());
-		schedulerImpl = new BukkitScheduler(this, getServer().getScheduler());
+		Server server = getServer();
+		eventDispatcherImpl = new BukkitEventDispatchAdapter(this, server.getPluginManager(), server.getScheduler());
+		schedulerImpl = new BukkitScheduler(this, server.getScheduler());
 		componentHelperImpl = new BungeeComponentHelper();
-		cacheConsoleCommandSenderInstance = getServer().getConsoleSender();
+		cacheConsoleCommandSenderInstance = server.getConsoleSender();
 		cacheConsoleCommandSenderHandle = new BukkitConsole(cacheConsoleCommandSenderInstance);
+		enableNativeTransport = Epoll.isAvailable() && BukkitUnsafe.isEnableNativeTransport(server);
+		eventLoopGroup = BukkitUnsafe.getEventLoopGroup(server, enableNativeTransport);
+		if(enableNativeTransport && !(eventLoopGroup instanceof EpollEventLoopGroup)) {
+			enableNativeTransport = false;
+		}
 		Init<Player> init = new InitNonProxying<Player>() {
 
 			@Override
@@ -150,7 +174,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 			@Override
 			public SocketAddress getListenerAddress() {
-				return new InetSocketAddress(getServer().getIp(), getServer().getPort());
+				return new InetSocketAddress(server.getIp(), server.getPort());
 			}
 
 		};
@@ -454,13 +478,38 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		initializeConnection(holder, pipelineData, attr::set);
 	}
 
-	private static final ChannelHandler COMPRESSION_DISABLE_INSTANCE = new CompressionDisablerHack("compress", BukkitUnsafe::disposeCompressionHandler);
-	private static final ChannelHandler DECOMPRESSION_DISABLE_INSTANCE = new DecompressionDisablerHack("decompress", BukkitUnsafe::disposeDecompressionHandler);
-
 	@Override
 	public void handleUndoCompression(ChannelHandlerContext ctx) {
-		ctx.pipeline().addAfter("compress", "compress-disable-hack", COMPRESSION_DISABLE_INSTANCE);
-		ctx.pipeline().addBefore("decompress", "decompress-disable-hack", DECOMPRESSION_DISABLE_INSTANCE);
+		ctx.pipeline().addAfter("compress", "compress-disable-hack", compressionDisabler);
+		ctx.pipeline().addBefore("decompress", "decompress-disable-hack", decompressionDisabler);
+	}
+
+	@Override
+	public ChannelFactory<? extends Channel> getChannelFactory(SocketAddress address) {
+		if(enableNativeTransport) {
+			return channelFactoryEpoll;
+		}else {
+			return channelFactoryNIO;
+		}
+	}
+
+	@Override
+	public ChannelFactory<? extends ServerChannel> getServerChannelFactory(SocketAddress address) {
+		if(enableNativeTransport) {
+			return serverChannelFactoryEpoll;
+		}else {
+			return serverChannelFactoryNIO;
+		}
+	}
+
+	@Override
+	public EventLoopGroup getBossEventLoopGroup() {
+		return null;
+	}
+
+	@Override
+	public EventLoopGroup getWorkerEventLoopGroup() {
+		return eventLoopGroup;
 	}
 
 	public void initializeConnection(LoginConnectionHolder loginConnection, Object pipelineData,

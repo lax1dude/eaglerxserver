@@ -5,9 +5,10 @@ import java.util.List;
 
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
+import net.lax1dude.eaglercraft.backend.server.api.INettyChannel;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeHolder;
 
-public interface IMOTDConnection extends IAttributeHolder {
+public interface IMOTDConnection extends INettyChannel, IAttributeHolder {
 
 	boolean isClosed();
 

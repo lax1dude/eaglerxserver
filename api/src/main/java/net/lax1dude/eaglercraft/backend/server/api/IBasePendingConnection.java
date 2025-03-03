@@ -4,7 +4,7 @@ import java.net.SocketAddress;
 
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeHolder;
 
-public interface IBasePendingConnection extends IAttributeHolder {
+public interface IBasePendingConnection extends INettyChannel, IAttributeHolder {
 
 	SocketAddress getSocketAddress();
 

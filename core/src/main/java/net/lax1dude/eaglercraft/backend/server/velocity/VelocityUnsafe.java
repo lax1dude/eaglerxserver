@@ -19,8 +19,11 @@ import com.velocitypowered.proxy.protocol.packet.PluginMessagePacket;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ServerChannel;
 import io.netty.util.AttributeKey;
 import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
@@ -39,6 +42,12 @@ public class VelocityUnsafe {
 	private static final Class<?> class_ConnectionManager;
 	private static final Method method_ConnectionManager_getServerChannelInitializer;
 	private static final Field field_ConnectionManager_endpoints;
+	private static final Field field_ConnectionManager_bossGroup;
+	private static final Field field_ConnectionManager_workerGroup;
+	private static final Field field_ConnectionManager_transportType;
+	private static final Class<?> class_TransportType;
+	private static final Field field_TransportType_socketChannelFactory;
+	private static final Field field_TransportType_serverSocketChannelFactory;
 	private static final Class<?> class_Endpoint;
 	private static final Method method_Endpoint_getChannel;
 	private static final Class<?> class_ServerChannelInitializerHolder;
@@ -62,6 +71,17 @@ public class VelocityUnsafe {
 			method_ConnectionManager_getServerChannelInitializer = class_ConnectionManager.getMethod("getServerChannelInitializer");
 			field_ConnectionManager_endpoints = class_ConnectionManager.getDeclaredField("endpoints");
 			field_ConnectionManager_endpoints.setAccessible(true);
+			field_ConnectionManager_bossGroup = class_ConnectionManager.getDeclaredField("bossGroup");
+			field_ConnectionManager_bossGroup.setAccessible(true);
+			field_ConnectionManager_workerGroup = class_ConnectionManager.getDeclaredField("workerGroup");
+			field_ConnectionManager_workerGroup.setAccessible(true);
+			field_ConnectionManager_transportType = class_ConnectionManager.getDeclaredField("transportType");
+			field_ConnectionManager_transportType.setAccessible(true);
+			class_TransportType = Class.forName("com.velocitypowered.proxy.network.TransportType");
+			field_TransportType_socketChannelFactory = class_TransportType.getDeclaredField("socketChannelFactory");
+			field_TransportType_socketChannelFactory.setAccessible(true);
+			field_TransportType_serverSocketChannelFactory = class_TransportType.getDeclaredField("serverSocketChannelFactory");
+			field_TransportType_serverSocketChannelFactory.setAccessible(true);
 			class_Endpoint = Class.forName("com.velocitypowered.proxy.network.Endpoint");
 			method_Endpoint_getChannel = class_Endpoint.getMethod("getChannel");
 			class_ServerChannelInitializerHolder = Class.forName("com.velocitypowered.proxy.network.ServerChannelInitializerHolder");
@@ -224,6 +244,48 @@ public class VelocityUnsafe {
 
 	public static void sendDataBackend(ServerConnection connection, String channel, byte[] data) {
 		getBackendConnection(connection).write(new PluginMessagePacket(channel, Unpooled.wrappedBuffer(data)));
+	}
+
+	public static EventLoopGroup getBossEventLoopGroup(ProxyServer proxyIn) {
+		try {
+			return (EventLoopGroup) field_ConnectionManager_bossGroup.get(field_VelocityServer_cm.get(proxyIn));
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+	}
+
+	public static EventLoopGroup getWorkerEventLoopGroup(ProxyServer proxyIn) {
+		try {
+			return (EventLoopGroup) field_ConnectionManager_workerGroup.get(field_VelocityServer_cm.get(proxyIn));
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+	}
+
+	public static ChannelFactory<? extends Channel> getChannelFactory(ProxyServer proxyIn) {
+		try {
+			return (ChannelFactory<? extends Channel>) field_TransportType_socketChannelFactory
+					.get(field_ConnectionManager_transportType.get(field_VelocityServer_cm.get(proxyIn)));
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+	}
+
+	public static ChannelFactory<? extends Channel> getUnixChannelFactory(ProxyServer proxyIn) {
+		return null;
+	}
+
+	public static ChannelFactory<? extends ServerChannel> getServerChannelFactory(ProxyServer proxyIn) {
+		try {
+			return (ChannelFactory<? extends ServerChannel>) field_TransportType_serverSocketChannelFactory
+					.get(field_ConnectionManager_transportType.get(field_VelocityServer_cm.get(proxyIn)));
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+	}
+
+	public static ChannelFactory<? extends ServerChannel> getServerUnixChannelFactory(ProxyServer proxyIn) {
+		return null;
 	}
 
 }

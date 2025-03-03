@@ -290,4 +290,9 @@ public class MOTDConnectionWrapper implements IMOTDConnection {
 		playerList = list;
 	}
 
+	@Override
+	public NettyUnsafe getNettyUnsafe() {
+		return queryConnection.getNettyUnsafe();
+	}
+
 }

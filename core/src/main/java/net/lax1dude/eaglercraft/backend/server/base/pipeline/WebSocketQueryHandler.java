@@ -11,6 +11,7 @@ import com.google.gson.JsonSyntaxException;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -20,6 +21,7 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.util.ReferenceCountUtil;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
+import net.lax1dude.eaglercraft.backend.server.api.INettyChannel;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.query.IDuplexBaseHandler;
 import net.lax1dude.eaglercraft.backend.server.api.query.IDuplexBinaryHandler;
@@ -33,7 +35,7 @@ import net.lax1dude.eaglercraft.backend.server.base.MOTDConnectionWrapper;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 
-public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implements IQueryConnection {
+public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implements IQueryConnection, INettyChannel.NettyUnsafe {
 
 	private final EaglerXServer<?> server;
 	private final NettyPipelineData pipelineData;
@@ -339,6 +341,16 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 		if(!dead) {
 			send(server.getQueryServer().createJsonObjectResponse(type, jsonObject).toString());
 		}
+	}
+
+	@Override
+	public NettyUnsafe getNettyUnsafe() {
+		return this;
+	}
+
+	@Override
+	public Channel getChannel() {
+		return pipelineData.channel;
 	}
 
 	private void checkClose() {

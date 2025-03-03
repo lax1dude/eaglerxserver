@@ -6,6 +6,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ServerChannel;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeHolder;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistry;
@@ -134,5 +138,19 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 	IBinaryHTTPClient getBinaryHTTPClient();
 
 	IAttributeManager getAttributeManager();
+
+	NettyUnsafe getNettyUnsafe();
+
+	public interface NettyUnsafe {
+
+		ChannelFactory<? extends Channel> getChannelFactory(SocketAddress address);
+
+		ChannelFactory<? extends ServerChannel> getServerChannelFactory(SocketAddress address);
+
+		EventLoopGroup getBossEventLoopGroup();
+
+		EventLoopGroup getWorkerEventLoopGroup();
+
+	}
 
 }

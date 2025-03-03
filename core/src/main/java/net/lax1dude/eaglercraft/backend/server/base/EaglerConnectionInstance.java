@@ -123,6 +123,10 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		return rewindProtocolVersion;
 	}
 
+	public IEaglerXRewindProtocol<?, ?> getRewindProtocol() {
+		return rewindProtocol;
+	}
+
 	public Object getRewindAttachment() {
 		return rewindAttachment;
 	}

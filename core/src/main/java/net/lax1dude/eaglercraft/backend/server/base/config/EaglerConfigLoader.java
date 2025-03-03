@@ -208,7 +208,7 @@ public class EaglerConfigLoader {
 			String skinCacheDriverPath = skinService.getString(
 				"skin_cache_db_driver_path", "internal",
 				"Default value is 'internal', the path to the JAR containing the JDBC driver "
-				+ "to use for the database, if the driver is already on the classpath set it "
+				+ "to use for the database. If the driver is already on the classpath, set it "
 				+ "to 'classpath'."
 			);
 			int skinCacheKeepObjectsDays = skinService.getInteger(

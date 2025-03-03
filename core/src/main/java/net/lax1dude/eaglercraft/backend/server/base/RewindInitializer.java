@@ -3,11 +3,15 @@ package net.lax1dude.eaglercraft.backend.server.base;
 import java.net.SocketAddress;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelInboundHandler;
+import io.netty.channel.ChannelOutboundHandler;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindInitializer;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IPacket2ClientProtocol;
 
-public abstract class RewindInitializer<Attachment> implements IEaglerXRewindInitializer<Attachment> {
+public abstract class RewindInitializer<Attachment> implements IEaglerXRewindInitializer<Attachment>,
+		IEaglerXRewindInitializer.NettyUnsafe {
 
 	private static class Packet2ClientProtocol implements IPacket2ClientProtocol {
 
@@ -118,28 +122,6 @@ public abstract class RewindInitializer<Attachment> implements IEaglerXRewindIni
 	}
 
 	@Override
-	public void injectNettyHandlers(Object nettyEncoder, Object nettyDecoder) {
-		if(injected) {
-			throw new IllegalStateException("Handlers have already been injected");
-		}
-		injected = true;
-		injectNettyHandlers0(nettyEncoder, nettyDecoder);
-	}
-
-	protected abstract void injectNettyHandlers0(Object nettyEncoder, Object nettyDecoder);
-
-	@Override
-	public void injectNettyHandlers(Object nettyCodec) {
-		if(injected) {
-			throw new IllegalStateException("Handlers have already been injected");
-		}
-		injected = true;
-		injectNettyHandlers0(nettyCodec);
-	}
-
-	protected abstract void injectNettyHandlers0(Object nettyCodec);
-
-	@Override
 	public void rewriteInitialHandshakeV1(int eaglerProtocol, int minecraftProtocol, String eaglerClientBrand, String eaglerClientVersion) {
 		if(handshake) {
 			throw new IllegalStateException("Handshake has already been injected");
@@ -177,14 +159,41 @@ public abstract class RewindInitializer<Attachment> implements IEaglerXRewindIni
 	}
 
 	@Override
-	public Object getNettyChannel() {
+	public void cancelDisconnect() {
+		canceled = true;
+	}
+
+	@Override
+	public NettyUnsafe getNettyUnsafe() {
+		return this;
+	}
+
+	@Override
+	public Channel getChannel() {
 		return channel;
 	}
 
 	@Override
-	public void cancelDisconnect() {
-		canceled = true;
+	public void injectNettyHandlers(ChannelOutboundHandler nettyEncoder, ChannelInboundHandler nettyDecoder) {
+		if(injected) {
+			throw new IllegalStateException("Handlers have already been injected");
+		}
+		injected = true;
+		injectNettyHandlers0(nettyEncoder, nettyDecoder);
 	}
+
+	protected abstract void injectNettyHandlers0(Object nettyEncoder, Object nettyDecoder);
+
+	@Override
+	public void injectNettyHandlers(ChannelHandler nettyCodec) {
+		if(injected) {
+			throw new IllegalStateException("Handlers have already been injected");
+		}
+		injected = true;
+		injectNettyHandlers0(nettyCodec);
+	}
+
+	protected abstract void injectNettyHandlers0(Object nettyCodec);
 
 	public boolean isCanceled() {
 		return canceled;

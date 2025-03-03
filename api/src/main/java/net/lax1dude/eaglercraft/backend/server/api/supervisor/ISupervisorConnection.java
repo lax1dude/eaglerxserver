@@ -2,20 +2,14 @@ package net.lax1dude.eaglercraft.backend.server.api.supervisor;
 
 import java.net.SocketAddress;
 
-public interface ISupervisorConnection {
+import net.lax1dude.eaglercraft.backend.server.api.INettyChannel;
+
+public interface ISupervisorConnection extends INettyChannel {
 
 	SocketAddress getRemoteAddress();
 
 	int getProtocolVersion();
 
 	long getPing();
-
-	Unsafe unsafe();
-
-	public interface Unsafe {
-
-		void writePacket(Object packet);
-
-	}
 
 }

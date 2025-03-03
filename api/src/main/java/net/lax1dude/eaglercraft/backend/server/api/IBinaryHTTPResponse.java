@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.api;
 
+import io.netty.buffer.ByteBuf;
+
 public interface IBinaryHTTPResponse {
 
 	boolean isSuccess();
@@ -16,7 +18,7 @@ public interface IBinaryHTTPResponse {
 
 	public interface NettyUnsafe {
 
-		Object getResponseBodyBuffer();
+		ByteBuf getResponseBodyBuffer();
 
 	}
 

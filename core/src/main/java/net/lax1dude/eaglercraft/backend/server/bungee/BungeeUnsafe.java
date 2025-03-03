@@ -4,18 +4,29 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ForwardingSet;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ReflectiveChannelFactory;
+import io.netty.channel.ServerChannel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.base.ChannelInitializerHijacker;
 import net.lax1dude.eaglercraft.backend.server.base.ListenerInitList;
@@ -41,9 +52,15 @@ public class BungeeUnsafe {
 	private static final Class<?> class_BungeeCord;
 	private static final Field field_BungeeCord_listeners;
 	private static final Field field_BungeeCord_config;
+	private static final Field field_BungeeCord_eventLoops;
+	private static final Field field_BungeeCord_bossEventLoopGroup;
+	private static final Field field_BungeeCord_workerEventLoopGroup;
 	private static final Class<?> class_Configuration;
 	private static final Method method_Configuration_isOnlineMode;
 	private static final Method method_Configuration_getPlayerLimit;
+	private static final Class<?> class_PipelineUtils;
+	private static final Method method_PipelineUtils_getChannel;
+	private static final Method method_PipelineUtils_getServerChannel;
 
 	static {
 		try {
@@ -62,9 +79,22 @@ public class BungeeUnsafe {
 			field_BungeeCord_listeners.setAccessible(true);
 			field_BungeeCord_config = class_BungeeCord.getDeclaredField("config");
 			field_BungeeCord_config.setAccessible(true);
+			Field bossGroup = null, workerGroup = null, group = null;
+			try {
+				bossGroup = class_BungeeCord.getField("bossEventLoopGroup");
+				workerGroup = class_BungeeCord.getField("workerEventLoopGroup");
+			}catch(Exception ex) {
+				group = class_BungeeCord.getField("eventLoops");
+			}
+			field_BungeeCord_eventLoops = group;
+			field_BungeeCord_bossEventLoopGroup = bossGroup;
+			field_BungeeCord_workerEventLoopGroup = workerGroup;
 			class_Configuration = Class.forName("net.md_5.bungee.conf.Configuration");
 			method_Configuration_isOnlineMode = class_Configuration.getMethod("isOnlineMode");
 			method_Configuration_getPlayerLimit = class_Configuration.getMethod("getPlayerLimit");
+			class_PipelineUtils = Class.forName("net.md_5.bungee.netty.PipelineUtils");
+			method_PipelineUtils_getChannel = class_PipelineUtils.getMethod("getChannel", SocketAddress.class);
+			method_PipelineUtils_getServerChannel = class_PipelineUtils.getMethod("getServerChannel", SocketAddress.class);
 		}catch(Exception ex) {
 			throw Util.propagateReflectThrowable(ex);
 		}
@@ -331,6 +361,68 @@ public class BungeeUnsafe {
 	private static boolean isServerInitializer(ChannelHandler handler) {
 		return handler != null && ChannelInitializer.class.isAssignableFrom(handler.getClass())
 				&& !"net.md_5.bungee.query.QueryHandler".equals(handler.getClass().getName());
+	}
+
+	public static EventLoopGroup getBossEventLoopGroup(ProxyServer proxy) {
+		if(field_BungeeCord_bossEventLoopGroup != null) {
+			try {
+				return (EventLoopGroup) field_BungeeCord_eventLoops.get(proxy);
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+		}else {
+			return null;
+		}
+	}
+
+	public static EventLoopGroup getWorkerEventLoopGroup(ProxyServer proxy) {
+		if(field_BungeeCord_workerEventLoopGroup != null) {
+			try {
+				return (EventLoopGroup) field_BungeeCord_workerEventLoopGroup.get(proxy);
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+		}else if(field_BungeeCord_eventLoops != null) {
+			try {
+				return (EventLoopGroup) field_BungeeCord_eventLoops.get(proxy);
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+		}else {
+			throw new IllegalStateException("Event loop group field could not be found");
+		}
+	}
+
+	private static final LoadingCache<Class<Channel>, ChannelFactory<? extends Channel>> factoryCache = CacheBuilder.newBuilder()
+			.build(new CacheLoader<Class<Channel>, ChannelFactory<? extends Channel>>() {
+				@Override
+				public ChannelFactory<? extends Channel> load(Class<Channel> var1) throws Exception {
+					return new ReflectiveChannelFactory<Channel>(var1);
+				}
+			});
+
+	public static Function<SocketAddress, ChannelFactory<? extends Channel>> getChannelFactory() {
+		return (addr) -> {
+			try {
+				return factoryCache.get((Class<Channel>) method_PipelineUtils_getChannel.invoke(addr));
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
+					| ExecutionException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+		};
+	}
+
+	@SuppressWarnings("unchecked")
+	public static Function<SocketAddress, ChannelFactory<? extends ServerChannel>> getServerChannelFactory() {
+		return (addr) -> {
+			try {
+				return (ChannelFactory<? extends ServerChannel>) factoryCache
+						.get((Class<Channel>) method_PipelineUtils_getServerChannel.invoke(addr));
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
+					| ExecutionException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+		};
 	}
 
 }

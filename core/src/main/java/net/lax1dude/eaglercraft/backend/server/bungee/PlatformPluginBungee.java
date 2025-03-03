@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.bungee;
 
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -10,14 +11,18 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ServerChannel;
 import net.lax1dude.eaglercraft.backend.server.adapter.AbortLoadException;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerCommandType;
@@ -79,6 +84,10 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	protected IPlatformCommandSender<ProxiedPlayer> cacheConsoleCommandSenderHandle;
 	protected Map<String, IPlatformServer<ProxiedPlayer>> registeredServers;
 	protected Map<String, PluginMessageHandler> registeredChannelsMap;
+	protected Function<SocketAddress, ChannelFactory<? extends Channel>> channelFactory;
+	protected Function<SocketAddress, ChannelFactory<? extends ServerChannel>> serverChannelFactory;
+	protected EventLoopGroup bossEventLoopGroup;
+	protected EventLoopGroup workerEventLoopGroup;
 
 	public class PluginMessageHandler {
 
@@ -102,16 +111,21 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 
 	@Override
 	public void onLoad() {
-		eventDispatcherImpl = new BungeeEventDispatchAdapter(getProxy().getPluginManager());
-		schedulerImpl = new BungeeScheduler(this, getProxy().getScheduler());
+		ProxyServer proxy = getProxy();
+		eventDispatcherImpl = new BungeeEventDispatchAdapter(proxy.getPluginManager());
+		schedulerImpl = new BungeeScheduler(this, proxy.getScheduler());
 		componentHelperImpl = new BungeeComponentHelper();
-		cacheConsoleCommandSenderInstance = getProxy().getConsole();
+		cacheConsoleCommandSenderInstance = proxy.getConsole();
 		cacheConsoleCommandSenderHandle = new BungeeConsole(cacheConsoleCommandSenderInstance);
 		ImmutableMap.Builder<String, IPlatformServer<ProxiedPlayer>> serverMapBuilder = ImmutableMap.builder();
-		for(Entry<String, ServerInfo> etr : getProxy().getServers().entrySet()) {
+		for(Entry<String, ServerInfo> etr : proxy.getServers().entrySet()) {
 			serverMapBuilder.put(etr.getKey(), new BungeeServer(this, etr.getValue(), true));
 		}
 		registeredServers = serverMapBuilder.build();
+    	channelFactory = BungeeUnsafe.getChannelFactory();
+    	serverChannelFactory = BungeeUnsafe.getServerChannelFactory();
+    	bossEventLoopGroup = BungeeUnsafe.getBossEventLoopGroup(proxy);
+    	workerEventLoopGroup = BungeeUnsafe.getWorkerEventLoopGroup(proxy);
 		Init<ProxiedPlayer> init = new InitProxying<ProxiedPlayer>() {
 
 			@Override
@@ -442,6 +456,26 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 
 	@Override
 	public void handleUndoCompression(ChannelHandlerContext ctx) {
+	}
+
+	@Override
+	public ChannelFactory<? extends Channel> getChannelFactory(SocketAddress address) {
+		return channelFactory.apply(address);
+	}
+
+	@Override
+	public ChannelFactory<? extends ServerChannel> getServerChannelFactory(SocketAddress address) {
+		return serverChannelFactory.apply(address);
+	}
+
+	@Override
+	public EventLoopGroup getBossEventLoopGroup() {
+		return bossEventLoopGroup;
+	}
+
+	@Override
+	public EventLoopGroup getWorkerEventLoopGroup() {
+		return workerEventLoopGroup;
 	}
 
 	public void initializeConnection(PendingConnection conn, Object pipelineData, Consumer<BungeeConnection> setAttr) {

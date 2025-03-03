@@ -17,6 +17,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ServerChannel;
 import net.lax1dude.eaglercraft.backend.server.adapter.AbortLoadException;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
@@ -28,6 +32,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.api.EnumPlatformType;
 import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
+import net.lax1dude.eaglercraft.backend.server.api.IBinaryHTTPClient;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
@@ -39,6 +44,7 @@ import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
 import net.lax1dude.eaglercraft.backend.server.api.internal.factory.IEaglerAPIFactory;
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationService;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuService;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindService;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService;
@@ -56,7 +62,8 @@ import net.lax1dude.eaglercraft.backend.server.base.config.EaglerConfigLoader;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.PipelineTransformer;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
-public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObject>, IEaglerAPIFactory, IEaglerXServerAPI<PlayerObject> {
+public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObject>, IEaglerAPIFactory,
+		IEaglerXServerAPI<PlayerObject>, IEaglerXServerAPI.NettyUnsafe {
 
 	private final EaglerAttributeManager attributeManager = APIFactoryImpl.INSTANCE.getEaglerAttribManager();
 	private final EaglerAttributeManager.EaglerAttributeHolder attributeHolder = attributeManager.createEaglerHolder();
@@ -212,7 +219,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		NettyPipelineData.ProfileDataHolder profileData = pendingConnection.transferProfileData();
 		
 		//TODO: handle profile
-		
+
+		if(pendingConnection.isEaglerXRewindPlayer()) {
+			((IEaglerXRewindProtocol<PlayerObject, Object>) pendingConnection.getRewindProtocol())
+					.handleCreatePlayer(pendingConnection.getRewindAttachment(), playerInstance);
+		}
+
 		eventDispatcher.dispatchInitializePlayerEvent(playerInstance, null);
 	}
 
@@ -222,7 +234,13 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	public void unregisterEaglerPlayer(EaglerPlayerInstance<PlayerObject> playerInstance) {
 		if(!eaglerPlayers.remove(playerInstance)) return;
-		
+		EaglerConnectionInstance pendingConnection = playerInstance.connectionImpl();
+
+		if(pendingConnection.isEaglerXRewindPlayer()) {
+			((IEaglerXRewindProtocol<PlayerObject, Object>) pendingConnection.getRewindProtocol())
+					.handleDestroyPlayer(pendingConnection.getRewindAttachment());
+		}
+
 		eventDispatcher.dispatchDestroyPlayerEvent(playerInstance, null);
 	}
 
@@ -535,8 +553,39 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
+	public IBinaryHTTPClient getBinaryHTTPClient() {
+		// TODO
+		return null;
+	}
+
+	@Override
 	public IAttributeManager getAttributeManager() {
 		return attributeManager;
+	}
+
+	@Override
+	public NettyUnsafe getNettyUnsafe() {
+		return this;
+	}
+
+	@Override
+	public ChannelFactory<? extends Channel> getChannelFactory(SocketAddress address) {
+		return platform.getChannelFactory(address);
+	}
+
+	@Override
+	public ChannelFactory<? extends ServerChannel> getServerChannelFactory(SocketAddress address) {
+		return platform.getServerChannelFactory(address);
+	}
+
+	@Override
+	public EventLoopGroup getBossEventLoopGroup() {
+		return platform.getBossEventLoopGroup();
+	}
+
+	@Override
+	public EventLoopGroup getWorkerEventLoopGroup() {
+		return platform.getWorkerEventLoopGroup();
 	}
 
 	public IPlatformLogger logger() {

@@ -19,12 +19,14 @@ import net.lax1dude.eaglercraft.backend.server.adapter.event.IWebSocketOpenDeleg
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
+import net.lax1dude.eaglercraft.backend.server.api.INettyChannel;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
-public class NettyPipelineData implements IEaglerPendingConnection, IPipelineData, IWebSocketOpenDelegate {
+public class NettyPipelineData implements IEaglerPendingConnection, INettyChannel.NettyUnsafe,
+		IPipelineData, IWebSocketOpenDelegate {
 
 	public static class ProfileDataHolder {
 
@@ -290,6 +292,16 @@ public class NettyPipelineData implements IEaglerPendingConnection, IPipelineDat
 			}
 		}
 		return ret != null ? ret.build() : null;
+	}
+
+	@Override
+	public NettyUnsafe getNettyUnsafe() {
+		return this;
+	}
+
+	@Override
+	public Channel getChannel() {
+		return channel;
 	}
 
 }

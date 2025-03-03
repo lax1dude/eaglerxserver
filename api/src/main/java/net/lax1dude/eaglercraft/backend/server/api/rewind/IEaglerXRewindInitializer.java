@@ -2,6 +2,10 @@ package net.lax1dude.eaglercraft.backend.server.api.rewind;
 
 import java.net.SocketAddress;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelInboundHandler;
+import io.netty.channel.ChannelOutboundHandler;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 
 public interface IEaglerXRewindInitializer<Attachment> {
@@ -20,16 +24,22 @@ public interface IEaglerXRewindInitializer<Attachment> {
 
 	IPacket2ClientProtocol getLegacyHandshake();
 
-	void injectNettyHandlers(Object nettyEncoder, Object nettyDecoder);
-
-	void injectNettyHandlers(Object nettyCodec);
-
 	void rewriteInitialHandshakeV1(int eaglerProtocol, int minecraftProtocol, String eaglerClientBrand, String eaglerClientVersion);
 
 	void rewriteInitialHandshakeV2(int eaglerProtocol, int minecraftProtocol, String eaglerClientBrand, String eaglerClientVersion, boolean authEnabled, byte[] authUsername);
 
-	Object getNettyChannel();
-
 	void cancelDisconnect();
+
+	NettyUnsafe getNettyUnsafe();
+
+	public interface NettyUnsafe {
+
+		Channel getChannel();
+
+		void injectNettyHandlers(ChannelOutboundHandler nettyEncoder, ChannelInboundHandler nettyDecoder);
+
+		void injectNettyHandlers(ChannelHandler nettyCodec);
+
+	}
 
 }

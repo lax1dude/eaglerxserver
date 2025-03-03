@@ -9,7 +9,10 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ServerChannel;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
 
@@ -94,5 +97,13 @@ public interface IPlatform<PlayerObject> {
 	void handleConnectionInitFallback(Channel channel);
 
 	void handleUndoCompression(ChannelHandlerContext ctx);
+
+	ChannelFactory<? extends Channel> getChannelFactory(SocketAddress address);
+
+	ChannelFactory<? extends ServerChannel> getServerChannelFactory(SocketAddress address);
+
+	EventLoopGroup getBossEventLoopGroup();
+
+	EventLoopGroup getWorkerEventLoopGroup();
 
 }
