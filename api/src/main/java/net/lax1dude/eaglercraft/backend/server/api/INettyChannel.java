@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.api;
 
 import io.netty.channel.Channel;
+import io.netty.util.ReferenceCountUtil;
 
 public interface INettyChannel {
 
@@ -14,6 +15,8 @@ public interface INettyChannel {
 			Channel channel = getChannel();
 			if(channel.isActive()) {
 				channel.writeAndFlush(packet, channel.voidPromise());
+			}else {
+				ReferenceCountUtil.release(packet);
 			}
 		}
 
