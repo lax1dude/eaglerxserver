@@ -18,6 +18,25 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 	protected void encode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
 		int pktId = in.readUnsignedByte();
 		//TODO: switch statement translate 1.5 to 1.8
+		// plan: when first handshake packet received, take its data, and turn it into 1.8 handshake. then switch to play mode (once 1.8 confirms?)
+		ByteBuf bb = null;
+		switch (pktId) {
+			case 0x00:
+				bb = ctx.alloc().buffer();
+				BufferUtils.writeVarInt(bb, 0x00);
+				BufferUtils.writeVarInt(bb, in.readInt());
+				break;
+			case 0x03:
+				bb = ctx.alloc().buffer();
+				BufferUtils.writeVarInt(bb, 0x01);
+				BufferUtils.writeMCString(bb, BufferUtils.readLegacyMCString(in, 100), 100);
+				break;
+
+		}
+		if (bb != null) {
+			out.add(bb);
+		}
+		in.skipBytes(in.readableBytes());
 	}
 
 }
