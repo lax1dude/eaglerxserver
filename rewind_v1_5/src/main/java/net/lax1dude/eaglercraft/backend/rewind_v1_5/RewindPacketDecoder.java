@@ -18,7 +18,7 @@ public class RewindPacketDecoder<PlayerObject> extends MessageToMessageDecoder<B
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
 		int pktId = BufferUtils.readVarInt(in, 5);
-		//TODO: switch statement translate 1.8 to 1.5
+		//TODO: switch statement translate inbound 1.5 to 1.8
 		ByteBuf bb = null;
 		switch (pktId) {
 			case 0x00:

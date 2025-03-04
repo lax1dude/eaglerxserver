@@ -17,7 +17,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 	@Override
 	protected void encode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
 		int pktId = in.readUnsignedByte();
-		//TODO: switch statement translate 1.5 to 1.8
+		//TODO: switch statement translate outbound 1.8 to 1.5
 		// plan: when first handshake packet received, take its data, and turn it into 1.8 handshake. then switch to play mode (once 1.8 confirms?)
 		ByteBuf bb = null;
 		switch (pktId) {
