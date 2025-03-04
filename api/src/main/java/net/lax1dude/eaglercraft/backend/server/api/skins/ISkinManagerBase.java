@@ -8,7 +8,11 @@ public interface ISkinManagerBase<PlayerObject> {
 
 	IBasePlayer<PlayerObject> getPlayer();
 
+	ISkinService<PlayerObject> getSkinService();
+
 	boolean isEaglerPlayer();
+
+	ISkinManagerEagler<PlayerObject> asEaglerPlayer();
 
 	IEaglerPlayerSkin getPlayerSkinIfLoaded();
 

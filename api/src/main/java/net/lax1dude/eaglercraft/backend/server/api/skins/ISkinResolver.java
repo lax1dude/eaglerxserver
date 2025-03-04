@@ -15,9 +15,9 @@ public interface ISkinResolver {
 
 	IEaglerPlayerCape getCapeNotFound();
 
-	void resolveEaglerPlayerSkin(UUID playerUUID, Consumer<IEaglerPlayerSkin> callback);
+	void resolvePlayerSkin(UUID playerUUID, Consumer<IEaglerPlayerSkin> callback);
 
-	void resolveEaglerPlayerCape(UUID playerUUID, Consumer<IEaglerPlayerCape> callback);
+	void resolvePlayerCape(UUID playerUUID, Consumer<IEaglerPlayerCape> callback);
 
 	default void loadCacheSkinFromURL(String skinURL, Consumer<IEaglerPlayerSkin> callback) {
 		loadCacheSkinFromURL(skinURL, EnumSkinModel.STEVE, callback);

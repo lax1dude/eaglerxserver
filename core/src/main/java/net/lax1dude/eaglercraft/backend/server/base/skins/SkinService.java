@@ -13,9 +13,8 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.EnumPresetSkins;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
-import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
-import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerEagler;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
+import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.skin_cache.ISkinCacheService;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherCapeCustomEAG;
@@ -47,15 +46,25 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 	}
 
 	@Override
-	public void resolveEaglerPlayerSkin(UUID playerUUID, Consumer<IEaglerPlayerSkin> callback) {
-		// TODO Auto-generated method stub
-		
+	public void resolvePlayerSkin(UUID playerUUID, Consumer<IEaglerPlayerSkin> callback) {
+		BasePlayerInstance<PlayerObject> player = server.getPlayerByUUID(playerUUID);
+		if(player != null) {
+			player.getSkinManager().resolvePlayerSkin(callback);
+		}else {
+			callback.accept(MissingSkin.forPlayerUUID(playerUUID));
+			//TODO: supervisor
+		}
 	}
 
 	@Override
-	public void resolveEaglerPlayerCape(UUID playerUUID, Consumer<IEaglerPlayerCape> callback) {
-		// TODO Auto-generated method stub
-		
+	public void resolvePlayerCape(UUID playerUUID, Consumer<IEaglerPlayerCape> callback) {
+		BasePlayerInstance<PlayerObject> player = server.getPlayerByUUID(playerUUID);
+		if(player != null) {
+			player.getSkinManager().resolvePlayerCape(callback);
+		}else {
+			callback.accept(MissingSkin.MISSING_CAPE);
+			//TODO: supervisor
+		}
 	}
 
 	@Override
@@ -89,135 +98,94 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 	}
 
 	@Override
-	public IEaglerPlayerSkin loadPresetSkin(int presetSkin) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public IEaglerPlayerSkin loadPresetSkin(EnumPresetSkins presetSkin) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public IEaglerPlayerSkin loadPresetCape(int presetCape) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public IEaglerPlayerSkin loadPresetCape(EnumPresetCapes presetCape) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public IEaglerPlayerSkin loadSkinImageData64x64(int[] pixelsARGB8, EnumSkinModel modelId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public IEaglerPlayerSkin loadSkinImageData64x32(int[] pixelsARGB8, EnumSkinModel modelId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public IEaglerPlayerSkin loadSkinImageData(BufferedImage image, EnumSkinModel modelId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public IEaglerPlayerSkin loadSkinImageData(InputStream inputStream, EnumSkinModel modelId) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public IEaglerPlayerSkin loadSkinImageData(File imageFile, EnumSkinModel modelId) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public IEaglerPlayerCape loadCapeImageData64x32(int[] pixelsARGB8) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public IEaglerPlayerCape loadCapeImageData32x32(int[] pixelsARGB8) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public IEaglerPlayerCape loadCapeImageData(BufferedImage image) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public IEaglerPlayerCape loadCapeImageData(InputStream inputStream) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public IEaglerPlayerCape loadCapeImageData(File imageFile) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public IEaglerXServerAPI<PlayerObject> getServerAPI() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ISkinManagerBase<PlayerObject> getPlayer(PlayerObject player) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ISkinManagerBase<PlayerObject> getPlayerByName(String playerName) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ISkinManagerBase<PlayerObject> getPlayerByUUID(UUID playerUUID) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ISkinManagerEagler<PlayerObject> getEaglerPlayer(PlayerObject player) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ISkinManagerEagler<PlayerObject> getEaglerPlayerByName(String playerName) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ISkinManagerEagler<PlayerObject> getEaglerPlayerByUUID(UUID playerUUID) {
-		// TODO Auto-generated method stub
-		return null;
+		return server;
 	}
 
 	@Override
 	public void setEaglerPlayersVanillaSkin(String texturesPropertyValue, String texturesPropertySignature) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData64x64(int[] pixelsARGB8, EnumSkinModel modelId) {
+		return SkinImageLoader.loadSkinImageData64x64(pixelsARGB8, modelId);
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData64x32(int[] pixelsARGB8, EnumSkinModel modelId) {
+		return SkinImageLoader.loadSkinImageData64x32(pixelsARGB8, modelId);
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData(File imageFile, EnumSkinModel modelId) throws IOException {
+		return SkinImageLoader.loadSkinImageData(imageFile, modelId);
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData(InputStream inputStream, EnumSkinModel modelId) throws IOException {
+		return SkinImageLoader.loadSkinImageData(inputStream, modelId);
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData(BufferedImage image, EnumSkinModel modelId) {
+		return SkinImageLoader.loadSkinImageData(image, modelId);
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadPresetSkin(UUID playerUUID) {
+		return SkinImageLoader.loadPresetSkin(playerUUID);
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadPresetSkin(EnumPresetSkins presetSkin) {
+		return SkinImageLoader.loadPresetSkin(presetSkin);
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadPresetSkin(int presetSkin) {
+		return SkinImageLoader.loadPresetSkin(presetSkin);
+	}
+
+	@Override
+	public IEaglerPlayerCape loadPresetNoCape() {
+		return SkinImageLoader.loadPresetNoCape();
+	}
+
+	@Override
+	public IEaglerPlayerCape loadPresetCape(EnumPresetCapes presetCape) {
+		return SkinImageLoader.loadPresetCape(presetCape);
+	}
+
+	@Override
+	public IEaglerPlayerCape loadPresetCape(int presetCape) {
+		return SkinImageLoader.loadPresetCape(presetCape);
+	}
+
+	@Override
+	public IEaglerPlayerCape loadCapeImageData64x32(int[] pixelsARGB8) {
+		return SkinImageLoader.loadCapeImageData64x32(pixelsARGB8);
+	}
+
+	@Override
+	public IEaglerPlayerCape loadCapeImageData32x32(int[] pixelsARGB8) {
+		return SkinImageLoader.loadCapeImageData32x32(pixelsARGB8);
+	}
+
+	@Override
+	public IEaglerPlayerCape loadCapeImageData(File imageFile) throws IOException {
+		return SkinImageLoader.loadCapeImageData(imageFile);
+	}
+
+	@Override
+	public IEaglerPlayerCape loadCapeImageData(InputStream inputStream) throws IOException {
+		return SkinImageLoader.loadCapeImageData(inputStream);
+	}
+
+	@Override
+	public IEaglerPlayerCape loadCapeImageData(BufferedImage image) {
+		return SkinImageLoader.loadCapeImageData(image);
 	}
 
 }

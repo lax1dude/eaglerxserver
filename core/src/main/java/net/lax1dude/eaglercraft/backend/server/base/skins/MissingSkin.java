@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.skins;
 
+import java.util.UUID;
+
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumPresetCapes;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumPresetSkins;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
@@ -7,6 +9,8 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketForceClientCapePresetV4EAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketForceClientSkinPresetV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherCapePresetEAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.SkinPacketVersionCache;
 
@@ -46,6 +50,11 @@ public class MissingSkin {
 		}
 
 		@Override
+		public GameMessagePacket getForceSkinPacketV4() {
+			return new SPacketForceClientSkinPresetV4EAG(0);
+		}
+
+		@Override
 		public boolean isSkinPreset() {
 			return true;
 		}
@@ -67,17 +76,22 @@ public class MissingSkin {
 
 		@Override
 		public void getCustomSkinPixels_RGBA8_64x64(byte[] array, int offset) {
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException("EaglerPlayerSkin is not a custom skin");
 		}
 
 		@Override
 		public void getCustomSkinPixels_eagler(byte[] array, int offset) {
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException("EaglerPlayerSkin is not a custom skin");
 		}
 
 		@Override
 		public EnumSkinModel getCustomSkinModelId() {
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException("EaglerPlayerSkin is not a custom skin");
+		}
+
+		@Override
+		public IEaglerPlayerSkin rewriteCustomSkinModelId(EnumSkinModel rewriteModelId) {
+			throw new UnsupportedOperationException("EaglerPlayerSkin is not a custom skin");
 		}
 
 	};
@@ -116,6 +130,11 @@ public class MissingSkin {
 		}
 
 		@Override
+		public GameMessagePacket getForceSkinPacketV4() {
+			return new SPacketForceClientSkinPresetV4EAG(1);
+		}
+
+		@Override
 		public boolean isSkinPreset() {
 			return true;
 		}
@@ -137,24 +156,27 @@ public class MissingSkin {
 
 		@Override
 		public void getCustomSkinPixels_RGBA8_64x64(byte[] array, int offset) {
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException("EaglerPlayerSkin is not a custom skin");
 		}
 
 		@Override
 		public void getCustomSkinPixels_eagler(byte[] array, int offset) {
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException("EaglerPlayerSkin is not a custom skin");
 		}
 
 		@Override
 		public EnumSkinModel getCustomSkinModelId() {
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException("EaglerPlayerSkin is not a custom skin");
+		}
+
+		@Override
+		public IEaglerPlayerSkin rewriteCustomSkinModelId(EnumSkinModel rewriteModelId) {
+			throw new UnsupportedOperationException("EaglerPlayerSkin is not a custom skin");
 		}
 
 	};
 
 	public static final IEaglerPlayerCape MISSING_CAPE = new IEaglerPlayerCape() {
-
-		private final GameMessagePacket packet = new SPacketOtherCapePresetEAG(0, 0, 0);
 
 		@Override
 		public boolean isSuccess() {
@@ -165,6 +187,11 @@ public class MissingSkin {
 		public GameMessagePacket getCapePacket(long rewriteUUIDMost, long rewriteUUIDLeast,
 				GamePluginMessageProtocol protocol) {
 			return new SPacketOtherCapePresetEAG(rewriteUUIDMost, rewriteUUIDLeast, 0);
+		}
+
+		@Override
+		public GameMessagePacket getForceCapePacketV4() {
+			return new SPacketForceClientCapePresetV4EAG(0);
 		}
 
 		@Override
@@ -193,15 +220,19 @@ public class MissingSkin {
 		}
 
 		@Override
-		public void getCustomCapePixels_RGBA8_32x32(byte[] array) {
-			throw new UnsupportedOperationException();
+		public void getCustomCapePixels_RGBA8_32x32(byte[] array, int offset) {
+			throw new UnsupportedOperationException("EaglerPlayerCape is not a custom cape");
 		}
 
 		@Override
-		public void getCustomCapePixels_eagler(byte[] array) {
-			throw new UnsupportedOperationException();
+		public void getCustomCapePixels_eagler(byte[] array, int offset) {
+			throw new UnsupportedOperationException("EaglerPlayerCape is not a custom cape");
 		}
 
 	};
+
+	public static IEaglerPlayerSkin forPlayerUUID(UUID playerUUID) {
+		return (playerUUID.hashCode() & 1) != 0 ? MISSING_SKIN_ALEX : MISSING_SKIN;
+	}
 
 }

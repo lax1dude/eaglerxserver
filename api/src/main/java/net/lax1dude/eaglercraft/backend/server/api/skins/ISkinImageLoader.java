@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.UUID;
 
 public interface ISkinImageLoader {
 
@@ -11,9 +12,13 @@ public interface ISkinImageLoader {
 
 	IEaglerPlayerSkin loadPresetSkin(EnumPresetSkins presetSkin);
 
-	IEaglerPlayerSkin loadPresetCape(int presetCape);
+	IEaglerPlayerSkin loadPresetSkin(UUID playerUUID);
 
-	IEaglerPlayerSkin loadPresetCape(EnumPresetCapes presetCape);
+	IEaglerPlayerCape loadPresetNoCape();
+
+	IEaglerPlayerCape loadPresetCape(int presetCape);
+
+	IEaglerPlayerCape loadPresetCape(EnumPresetCapes presetCape);
 
 	IEaglerPlayerSkin loadSkinImageData64x64(int[] pixelsARGB8, EnumSkinModel modelId);
 

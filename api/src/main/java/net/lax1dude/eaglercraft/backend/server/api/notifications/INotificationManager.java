@@ -14,18 +14,28 @@ public interface INotificationManager<PlayerObject> {
 
 	INotificationService<PlayerObject> getNotificationService();
 
-	void registerNotificationIcon(UUID iconUUID, PacketImageData icon);
+	void registerUnmanagedNotificationIcon(UUID iconUUID, PacketImageData icon);
 
-	void registerNotificationIcons(Map<UUID, PacketImageData> icons);
+	void registerUnmanagedNotificationIcons(Map<UUID, PacketImageData> icons);
+
+	void releaseUnmanagedNotificationIcon(UUID iconUUID);
+
+	void releaseUnmanagedNotificationIcons(Collection<UUID> iconUUIDs);
 
 	void releaseNotificationIcon(UUID iconUUID);
 
-	void releaseNotificationIcons(Collection<UUID> iconUUIDs);
+	void releaseNotificationIcons();
 
 	void showNotificationBadge(INotificationBuilder<?> builder);
 
+	void showUnmanagedNotificationBadge(INotificationBuilder<?> builder);
+
 	void showNotificationBadge(SPacketNotifBadgeShowV4EAG packet);
 
+	void showUnmanagedNotificationBadge(SPacketNotifBadgeShowV4EAG packet);
+
 	void hideNotificationBadge(UUID badgeUUID);
+
+	void hideUnmanagedNotificationBadge(UUID badgeUUID);
 
 }

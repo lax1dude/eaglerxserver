@@ -25,6 +25,8 @@ public interface IEaglerPlayerSkin extends IOptional<IEaglerPlayerSkin> {
 		return getSkinPacket(rewriteUUID.getMostSignificantBits(), rewriteUUID.getLeastSignificantBits(), rewriteModelId, protocol);
 	}
 
+	GameMessagePacket getForceSkinPacketV4();
+
 	boolean isSkinPreset();
 
 	int getPresetSkinId();
@@ -46,5 +48,7 @@ public interface IEaglerPlayerSkin extends IOptional<IEaglerPlayerSkin> {
 	void getCustomSkinPixels_eagler(byte[] array, int offset);
 
 	EnumSkinModel getCustomSkinModelId();
+
+	IEaglerPlayerSkin rewriteCustomSkinModelId(EnumSkinModel rewriteModelId);
 
 }

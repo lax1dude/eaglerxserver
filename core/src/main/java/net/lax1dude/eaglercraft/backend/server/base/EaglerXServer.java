@@ -29,7 +29,6 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformZlib;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.api.EnumPlatformType;
 import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
@@ -62,6 +61,7 @@ import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataRoot;
 import net.lax1dude.eaglercraft.backend.server.base.config.EaglerConfigLoader;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.PipelineTransformer;
+import net.lax1dude.eaglercraft.backend.server.base.skins.SkinService;
 import net.lax1dude.eaglercraft.backend.skin_cache.HTTPClient;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
@@ -500,7 +500,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public ISkinService<PlayerObject> getSkinService() {
+	public SkinService<PlayerObject> getSkinService() {
 		// TODO
 		return null;
 	}

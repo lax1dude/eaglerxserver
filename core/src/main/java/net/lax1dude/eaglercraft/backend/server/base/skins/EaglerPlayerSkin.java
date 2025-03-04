@@ -41,6 +41,11 @@ public class EaglerPlayerSkin implements IEaglerPlayerSkin {
 	}
 
 	@Override
+	public GameMessagePacket getForceSkinPacketV4() {
+		return skin.getForceClientV4();
+	}
+
+	@Override
 	public boolean isSuccess() {
 		return true;
 	}
@@ -56,7 +61,7 @@ public class EaglerPlayerSkin implements IEaglerPlayerSkin {
 		if(id != -1) {
 			return id;
 		}else {
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException("EaglerPlayerSkin is not a preset skin");
 		}
 	}
 
@@ -66,7 +71,7 @@ public class EaglerPlayerSkin implements IEaglerPlayerSkin {
 		if(id != -1) {
 			return EnumPresetSkins.getById(id);
 		}else {
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException("EaglerPlayerSkin is not a preset skin");
 		}
 	}
 
@@ -81,7 +86,7 @@ public class EaglerPlayerSkin implements IEaglerPlayerSkin {
 		if(pkt instanceof SPacketOtherSkinCustomV3EAG) {
 			System.arraycopy(((SPacketOtherSkinCustomV3EAG) pkt).customSkin, 0, array, offset, 16384);
 		}else {
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException("EaglerPlayerSkin is not a custom skin");
 		}
 	}
 
@@ -91,7 +96,7 @@ public class EaglerPlayerSkin implements IEaglerPlayerSkin {
 		if(pkt instanceof SPacketOtherSkinCustomV4EAG) {
 			System.arraycopy(((SPacketOtherSkinCustomV4EAG) pkt).customSkin, 0, array, offset, 12288);
 		}else {
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException("EaglerPlayerSkin is not a custom skin");
 		}
 	}
 
@@ -101,8 +106,13 @@ public class EaglerPlayerSkin implements IEaglerPlayerSkin {
 		if(id != -1) {
 			return EnumSkinModel.getById(id);
 		}else {
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException("EaglerPlayerSkin is not a custom skin");
 		}
+	}
+
+	@Override
+	public IEaglerPlayerSkin rewriteCustomSkinModelId(EnumSkinModel rewriteModelId) {
+		return null;//TODO
 	}
 
 }

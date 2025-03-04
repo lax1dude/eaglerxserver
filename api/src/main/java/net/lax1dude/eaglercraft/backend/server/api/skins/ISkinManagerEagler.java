@@ -24,14 +24,18 @@ public interface ISkinManagerEagler<PlayerObject> extends ISkinManagerBase<Playe
 
 	void resetEaglerSkinAndCape(boolean notifyOthers);
 
+	boolean isClientFNAWSkinsEnabled();
+
+	boolean isClientFNAWSkinsForced();
+
 	void setClientFNAWSkinsEnabled(boolean enabled);
 
 	void setClientFNAWSkinsForced(boolean forced);
 
 	void setClientFNAWSkinsEnabledForced(boolean enabled, boolean forced);
 
-	void resetClientFNAWSkins();
+	void resetClientFNAWSkinsForced();
 
-	void resetEaglerSkinAndCapeAndClientFNAWSkins(boolean notifyOthers);
+	void resetEaglerSkinAndCapeAndClientFNAWSkinsForced(boolean notifyOthers);
 
 }

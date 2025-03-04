@@ -25,22 +25,24 @@ public interface INotificationService<PlayerObject> extends IPacketImageLoader {
 		return player.getNotificationManager();
 	}
 
+	INotificationManager<PlayerObject> getNotificationManagerAll();
+
 	INotificationManager<PlayerObject> getNotificationManagerMulti(Collection<PlayerObject> players);
 
-	INotificationManager<PlayerObject> getNotificationManagerMultiAll(Collection<IEaglerPlayer<PlayerObject>> players);
+	INotificationManager<PlayerObject> getNotificationManagerMultiEagler(Collection<IEaglerPlayer<PlayerObject>> players);
 
-	void registerGlobalNotificationIcon(UUID iconUUID, PacketImageData icon);
+	void registerNotificationIcon(UUID iconUUID, PacketImageData icon);
 
-	void registerGlobalNotificationIcons(Map<UUID, PacketImageData> icons);
+	void registerNotificationIcons(Map<UUID, PacketImageData> icons);
 
-	void releaseGlobalNotificationIcon(UUID iconUUID);
+	void releaseNotificationIcon(UUID iconUUID);
 
-	void releaseGlobalNotificationIcons(Collection<UUID> iconUUIDs);
+	void releaseNotificationIcons(Collection<UUID> iconUUIDs);
 
-	void showGlobalNotificationBadge(INotificationBuilder<?> builder);
+	void showNotificationBadge(INotificationBuilder<?> builder);
 
-	void showGlobalNotificationBadge(SPacketNotifBadgeShowV4EAG packet);
+	void showNotificationBadge(SPacketNotifBadgeShowV4EAG packet);
 
-	void hideGlobalNotificationBadge(UUID badgeUUID);
+	void hideNotificationBadge(UUID badgeUUID);
 
 }
