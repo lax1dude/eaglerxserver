@@ -33,6 +33,8 @@ import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapt
 import net.lax1dude.eaglercraft.backend.server.api.EnumPlatformType;
 import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IBinaryHTTPClient;
+import net.lax1dude.eaglercraft.backend.server.api.IComponentSerializer;
+import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
@@ -47,7 +49,6 @@ import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationSe
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuService;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindService;
-import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
@@ -89,6 +90,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private SSLCertificateManager certificateManager;
 	private Scheduler scheduler;
 	private String serverListConfirmCode;
+	private Class<?> componentType;
+	private ComponentHelper<?> componentHelper;
 	private HTTPClient httpClient;
 	private BinaryHTTPClient httpClientAPI;
 
@@ -136,6 +139,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		pipelineTransformer = new PipelineTransformer(this, rewindService);
 		certificateManager = new SSLCertificateManager(logger());
 		scheduler = new Scheduler(platform.getScheduler());
+		componentType = componentHelper().getComponentType();
+		componentHelper = new ComponentHelper<>(componentHelper());
 		httpClient = new HTTPClient(platform.getWorkerEventLoopGroup(), platform.getChannelFactory(null),
 				"Mozilla/5.0 " + getServerVersionString());
 		httpClientAPI = new BinaryHTTPClient(httpClient);
@@ -272,6 +277,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> IEaglerXServerAPI<T> createAPI(Class<T> playerClass) {
 		if(playerClazz != playerClass) {
 			throw new ClassCastException("Class " + playerClazz.getName() + " cannot be cast to " + playerClass.getName());
@@ -300,6 +306,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <ServerImpl> ServerImpl getEaglerXServerInstance(Class<ServerImpl> clazz) {
 		if(EaglerXServer.class != clazz) {
 			throw new ClassCastException("Class " + EaglerXServer.class.getName() + " cannot be cast to " + clazz.getName());
@@ -318,6 +325,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <PluginImpl> PluginImpl getPlatformPluginInstance(Class<PluginImpl> clazz) {
 		if(platformClazz != clazz) {
 			throw new ClassCastException("Class " + platformClazz.getName() + " cannot be cast to " + clazz.getName());
@@ -546,13 +554,13 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public IServerIconLoader getServerIconLoader() {
-		return ServerIconLoader.INSTANCE;
+	public QueryServer getQueryServer() {
+		return queryServer;
 	}
 
 	@Override
-	public QueryServer getQueryServer() {
-		return queryServer;
+	public IServerIconLoader getServerIconLoader() {
+		return ServerIconLoader.INSTANCE;
 	}
 
 	@Override
@@ -563,6 +571,25 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	public IScheduler getScheduler() {
 		return scheduler;
+	}
+
+	@Override
+	public Class<?> getComponentClass() {
+		return componentType;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <ComponentObject> IComponentSerializer<ComponentObject> getComponentSerializer(Class<ComponentObject> componentType) {
+		if(this.componentType != componentType) {
+			throw new ClassCastException("Class " + this.componentType.getName() + " cannot be cast to " + componentType.getName());
+		}
+		return (IComponentSerializer<ComponentObject>) componentHelper;
+	}
+
+	@Override
+	public IComponentHelper getComponentHelper() {
+		return componentHelper;
 	}
 
 	@Override

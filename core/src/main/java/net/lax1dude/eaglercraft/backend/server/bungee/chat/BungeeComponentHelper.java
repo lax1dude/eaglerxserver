@@ -2,6 +2,8 @@ package net.lax1dude.eaglercraft.backend.server.bungee.chat;
 
 import java.util.List;
 
+import com.google.gson.JsonParseException;
+
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -41,8 +43,18 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 	}
 
 	@Override
+	public Class<?> getComponentType() {
+		return BaseComponent.class;
+	}
+
+	@Override
 	public String serializeLegacySection(Object component) {
 		return ((BaseComponent) component).toLegacyText();
+	}
+
+	@Override
+	public String serializePlainText(Object component) {
+		return ((BaseComponent) component).toPlainText();
 	}
 
 	@Override
@@ -87,6 +99,33 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 				}
 			}
 		}
+	}
+
+	@Override
+	public Object parseGenericJSON(String json) throws IllegalArgumentException {
+		try {
+			Object ret = ComponentSerializer.deserialize(json);
+			if(ret == null) {
+				throw new NullPointerException("Deserialization result is null");
+			}
+			return ret;
+		}catch(IllegalArgumentException ex) {
+			throw ex;
+		}catch(JsonParseException ex) {
+			throw new IllegalArgumentException(ex.getMessage(), ex.getCause());
+		}catch(Exception ex) {
+			throw new IllegalArgumentException("Could not parse JSON chat component", ex);
+		}
+	}
+
+	@Override
+	public Object parseLegacyJSON(String json) throws IllegalArgumentException {
+		return parseGenericJSON(json);
+	}
+
+	@Override
+	public Object parseModernJSON(String json) throws IllegalArgumentException {
+		return parseModernJSON(json);
 	}
 
 }

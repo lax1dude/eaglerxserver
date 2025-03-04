@@ -135,6 +135,12 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	IScheduler getScheduler();
 
+	Class<?> getComponentClass();
+
+	<ComponentObject> IComponentSerializer<ComponentObject> getComponentSerializer(Class<ComponentObject> componentType);
+
+	IComponentHelper getComponentHelper();
+
 	IBinaryHTTPClient getBinaryHTTPClient();
 
 	INativeZlib createNativeZlib(boolean compression, boolean decompression, int compressionLevel);
