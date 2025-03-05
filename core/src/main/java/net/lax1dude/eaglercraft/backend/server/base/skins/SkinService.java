@@ -13,9 +13,13 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.EnumPresetSkins;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
+import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
+import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerEagler;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
+import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.skin_cache.ISkinCacheService;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherCapeCustomEAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.SkinPacketVersionCache;
@@ -106,6 +110,25 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 	public void setEaglerPlayersVanillaSkin(String texturesPropertyValue, String texturesPropertySignature) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	public ISkinManagerBase<PlayerObject> createVanillaSkinManager(BasePlayerInstance<PlayerObject> playerInstance) {
+		return null;
+	}
+
+	public ISkinManagerEagler<PlayerObject> createEaglerSkinManager(EaglerPlayerInstance<PlayerObject> playerInstance,
+			NettyPipelineData.ProfileDataHolder profileData) {
+		IEaglerPlayerSkin skin = null;
+		IEaglerPlayerCape cape = null;
+
+		if(profileData.skinDataV2Init != null) {
+			//TODO
+		}else if(profileData.skinDataV1Init != null) {
+			
+		}
+
+		
+		return null;
 	}
 
 	@Override

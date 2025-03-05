@@ -37,6 +37,8 @@ public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject>, 
 
 	boolean isCookieSupported();
 
+	boolean isCookieEnabled();
+
 	byte[] getCookieData();
 
 	default void setCookieData(byte[] data, long expiresAfter, TimeUnit timeUnit) {

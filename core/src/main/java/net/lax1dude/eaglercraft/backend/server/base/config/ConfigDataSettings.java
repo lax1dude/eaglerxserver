@@ -133,8 +133,13 @@ public class ConfigDataSettings {
 		private final String skinCacheDBURI;
 		private final String skinCacheDriverClass;
 		private final String skinCacheDriverPath;
-		private final int skinCacheKeepObjectsDays;
-		private final int skinCacheMaxObjects;
+		private final boolean skinCacheSQLiteCompatible;
+		private final int skinCacheThreadCount;
+		private final int skinCacheCompressionLevel;
+		private final int skinCacheMemoryKeepSeconds;
+		private final int skinCacheMemoryMaxObjects;
+		private final int skinCacheDiskKeepObjectsDays;
+		private final int skinCacheDiskMaxObjects;
 		private final int skinCacheAntagonistsRatelimit;
 		private final boolean enableIsEaglerPlayerProperty;
 		private final boolean enableFNAWSkinModelsGlobal;
@@ -143,9 +148,10 @@ public class ConfigDataSettings {
 		public ConfigDataSkinService(int skinLookupRatelimitPlayer, boolean downloadVanillaSkinsToClients,
 				Set<String> validSkinDownloadURLs, int skinDownloadRatelimit, int skinDownloadRatelimitGlobal,
 				String skinCacheDBURI, String skinCacheDriverClass, String skinCacheDriverPath,
-				int skinCacheKeepObjectsDays, int skinCacheMaxObjects, int skinCacheAntagonistsRatelimit,
-				boolean enableIsEaglerPlayerProperty, boolean enableFNAWSkinModelsGlobal,
-				Set<String> enableFNAWSkinModelsOnServers) {
+				boolean skinCacheSQLiteCompatible, int skinCacheThreadCount, int skinCacheCompressionLevel,
+				int skinCacheMemoryKeepSeconds, int skinCacheMemoryMaxObjects, int skinCacheDiskKeepObjectsDays,
+				int skinCacheDiskMaxObjects, int skinCacheAntagonistsRatelimit, boolean enableIsEaglerPlayerProperty,
+				boolean enableFNAWSkinModelsGlobal, Set<String> enableFNAWSkinModelsOnServers) {
 			this.skinLookupRatelimitPlayer = skinLookupRatelimitPlayer;
 			this.downloadVanillaSkinsToClients = downloadVanillaSkinsToClients;
 			this.validSkinDownloadURLs = validSkinDownloadURLs;
@@ -154,8 +160,13 @@ public class ConfigDataSettings {
 			this.skinCacheDBURI = skinCacheDBURI;
 			this.skinCacheDriverClass = skinCacheDriverClass;
 			this.skinCacheDriverPath = skinCacheDriverPath;
-			this.skinCacheKeepObjectsDays = skinCacheKeepObjectsDays;
-			this.skinCacheMaxObjects = skinCacheMaxObjects;
+			this.skinCacheSQLiteCompatible = skinCacheSQLiteCompatible;
+			this.skinCacheThreadCount = skinCacheThreadCount;
+			this.skinCacheCompressionLevel = skinCacheCompressionLevel;
+			this.skinCacheMemoryKeepSeconds = skinCacheMemoryKeepSeconds;
+			this.skinCacheMemoryMaxObjects = skinCacheMemoryMaxObjects;
+			this.skinCacheDiskKeepObjectsDays = skinCacheDiskKeepObjectsDays;
+			this.skinCacheDiskMaxObjects = skinCacheDiskMaxObjects;
 			this.skinCacheAntagonistsRatelimit = skinCacheAntagonistsRatelimit;
 			this.enableIsEaglerPlayerProperty = enableIsEaglerPlayerProperty;
 			this.enableFNAWSkinModelsGlobal = enableFNAWSkinModelsGlobal;
@@ -194,12 +205,32 @@ public class ConfigDataSettings {
 			return skinCacheDriverPath;
 		}
 
-		public int getSkinCacheKeepObjectsDays() {
-			return skinCacheKeepObjectsDays;
+		public boolean isSkinCacheSQLiteCompatible() {
+			return skinCacheSQLiteCompatible;
 		}
 
-		public int getSkinCacheMaxObjects() {
-			return skinCacheMaxObjects;
+		public int getSkinCacheThreadCount() {
+			return skinCacheThreadCount;
+		}
+
+		public int getSkinCacheCompressionLevel() {
+			return skinCacheCompressionLevel;
+		}
+
+		public int getSkinCacheMemoryKeepSeconds() {
+			return skinCacheMemoryKeepSeconds;
+		}
+
+		public int getSkinCacheMemoryMaxObjects() {
+			return skinCacheMemoryMaxObjects;
+		}
+
+		public int getSkinCacheDiskKeepObjectsDays() {
+			return skinCacheDiskKeepObjectsDays;
+		}
+
+		public int getSkinCacheDiskMaxObjects() {
+			return skinCacheDiskMaxObjects;
 		}
 
 		public int getSkinCacheAntagonistsRatelimit() {

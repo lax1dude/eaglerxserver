@@ -51,4 +51,9 @@ public class Util {
 		return new String(ret);
 	}
 
+	public static String sanitizeJDBCURIForLogs(String uri) {
+		//TODO
+		return uri;
+	}
+
 }

@@ -118,13 +118,12 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	@Override
 	public boolean isSkinSupported() {
 		// TODO
-		return false;
+		return true;
 	}
 
 	@Override
 	public ISkinManagerEagler<PlayerObject> getSkinManager() {
-		// TODO
-		return null;
+		return (ISkinManagerEagler<PlayerObject>) skinManager;
 	}
 
 	@Override
@@ -155,6 +154,12 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public boolean isCookieSupported() {
+		// TODO
+		return connectionInstance.getEaglerProtocol().ver >= 4;
+	}
+
+	@Override
+	public boolean isCookieEnabled() {
 		// TODO
 		return connectionInstance.cookieEnabled();
 	}

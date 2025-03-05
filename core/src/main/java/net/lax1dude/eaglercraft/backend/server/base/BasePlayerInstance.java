@@ -17,6 +17,7 @@ public class BasePlayerInstance<PlayerObject> implements IBasePlayer<PlayerObjec
 	protected final IPlatformPlayer<PlayerObject> player;
 	protected final EaglerAttributeManager.EaglerAttributeHolder attributeHolder;
 	protected final EaglerXServer<PlayerObject> server;
+	ISkinManagerBase<PlayerObject> skinManager;
 
 	public BasePlayerInstance(IPlatformPlayer<PlayerObject> player,
 			EaglerXServer<PlayerObject> server) {
@@ -106,8 +107,7 @@ public class BasePlayerInstance<PlayerObject> implements IBasePlayer<PlayerObjec
 
 	@Override
 	public ISkinManagerBase<PlayerObject> getSkinManager() {
-		//TODO
-		return null;
+		return skinManager;
 	}
 
 	@Override

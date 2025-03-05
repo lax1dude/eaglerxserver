@@ -2,6 +2,8 @@ package net.lax1dude.eaglercraft.backend.server.base;
 
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -60,10 +62,18 @@ import net.lax1dude.eaglercraft.backend.server.base.command.CommandUserAgent;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandVersion;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataRoot;
+import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings.ConfigDataSkinService;
+import net.lax1dude.eaglercraft.backend.server.base.message.MessageControllerFactory;
 import net.lax1dude.eaglercraft.backend.server.base.config.EaglerConfigLoader;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.PipelineTransformer;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinService;
+import net.lax1dude.eaglercraft.backend.server.util.Util;
 import net.lax1dude.eaglercraft.backend.skin_cache.HTTPClient;
+import net.lax1dude.eaglercraft.backend.skin_cache.ISkinCacheService;
+import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheDatastore;
+import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheDownloader;
+import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheService;
+import net.lax1dude.eaglercraft.backend.util.EaglerDrivers;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObject>, IEaglerAPIFactory,
@@ -94,6 +104,9 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private ComponentHelper<?> componentHelper;
 	private HTTPClient httpClient;
 	private BinaryHTTPClient httpClientAPI;
+	private SkinService<PlayerObject> skinService;
+	private DeferredStartSkinCache skinCacheService;
+	private Connection skinCacheJDBCHandle;
 
 	public EaglerXServer() {
 	}
@@ -135,7 +148,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		brandRegistry = new BrandRegistry();
 		queryServer = new QueryServer(this);
 		webServer = new WebServer(this);
-		rewindService = new RewindService<PlayerObject>(this);
+		rewindService = new RewindService<>(this);
 		pipelineTransformer = new PipelineTransformer(this, rewindService);
 		certificateManager = new SSLCertificateManager(logger());
 		scheduler = new Scheduler(platform.getScheduler());
@@ -144,19 +157,25 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		httpClient = new HTTPClient(platform.getWorkerEventLoopGroup(), platform.getChannelFactory(null),
 				"Mozilla/5.0 " + getServerVersionString());
 		httpClientAPI = new BinaryHTTPClient(httpClient);
+		if(config.getSettings().getSkinService().isDownloadVanillaSkinsToClients()) {
+			skinCacheService = new DeferredStartSkinCache();
+			skinService = new SkinService<>(this, skinCacheService);
+		}else {
+			skinService = new SkinService<>(this, null);
+		}
 		
 		init.setOnServerEnable(this::enableHandler);
 		init.setOnServerDisable(this::disableHandler);
-		init.setPipelineInitializer(new EaglerXServerNettyPipelineInitializer<PlayerObject>(this));
-		init.setConnectionInitializer(new EaglerXServerConnectionInitializer<PlayerObject>(this));
-		init.setPlayerInitializer(new EaglerXServerPlayerInitializer<PlayerObject>(this));
+		init.setPipelineInitializer(new EaglerXServerNettyPipelineInitializer<>(this));
+		init.setConnectionInitializer(new EaglerXServerConnectionInitializer<>(this));
+		init.setPlayerInitializer(new EaglerXServerPlayerInitializer<>(this));
 		init.setCommandRegistry(Arrays.asList(
-				new CommandVersion<PlayerObject>(this),
-				new CommandBrand<PlayerObject>(this),
-				new CommandProtocol<PlayerObject>(this),
-				new CommandDomain<PlayerObject>(this),
-				new CommandUserAgent<PlayerObject>(this),
-				new CommandConfirmCode<PlayerObject>(this)
+				new CommandVersion<>(this),
+				new CommandBrand<>(this),
+				new CommandProtocol<>(this),
+				new CommandDomain<>(this),
+				new CommandUserAgent<>(this),
+				new CommandConfirmCode<>(this)
 		));
 		
 		if(platform.getType().proxy) {
@@ -218,32 +237,77 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		return certificateManager;
 	}
 
-	public void enableHandler() {
+	private void enableHandler() {
 		logger().info("Enabling " + getServerBrand() + " " + getServerVersion() + "...");
-		
+
+		if(skinCacheService != null) {
+			ConfigDataSkinService skinConf = config.getSettings().getSkinService();
+			logger().info("Connecting to skin cache database \"" + Util.sanitizeJDBCURIForLogs(skinConf.getSkinCacheDBURI()) + "\"...");
+			SkinCacheDatastore datastore;
+			try {
+				skinCacheJDBCHandle = EaglerDrivers.connectToDatabase(skinConf.getSkinCacheDBURI(),
+						skinConf.getSkinCacheDriverClass(), skinConf.getSkinCacheDriverPath(), null);
+				datastore = new SkinCacheDatastore(skinCacheJDBCHandle, skinConf.getSkinCacheThreadCount(),
+						skinConf.getSkinCacheDiskKeepObjectsDays(), skinConf.getSkinCacheDiskMaxObjects(),
+						Math.min(skinConf.getSkinCacheCompressionLevel(), 9), skinConf.isSkinCacheSQLiteCompatible());
+				logger().info("Connected to skin cache database successfully");
+			} catch (SQLException e) {
+				logger().error("Caught an exception while initializing the skin cache database", e);
+				if(skinCacheJDBCHandle != null) {
+					try {
+						skinCacheJDBCHandle.close();
+					} catch (SQLException ee) {
+					}
+					skinCacheJDBCHandle = null;
+				}
+				return;
+			}
+			skinCacheService.setDelegate(new SkinCacheService(
+					new SkinCacheDownloader(httpClient, skinConf.getValidSkinDownloadURLs()), datastore,
+					skinConf.getSkinCacheMemoryKeepSeconds(), skinConf.getSkinCacheMemoryMaxObjects()));
+		}
 	}
 
-	public void disableHandler() {
-		
+	private void disableHandler() {
+		logger().info("Disabling " + getServerBrand() + " " + getServerVersion() + "...");
+		if(skinCacheService != null) {
+			if(skinCacheJDBCHandle != null) {
+				logger().info("Disconnecting from skin cache database \""
+						+ Util.sanitizeJDBCURIForLogs(config.getSettings().getSkinService().getSkinCacheDBURI())
+						+ "\"");
+				try {
+					skinCacheJDBCHandle.close();
+				} catch (SQLException ee) {
+				}
+				skinCacheJDBCHandle = null;
+				logger().info("Disconnected from skin cache database successfully");
+			}
+			skinCacheService.setDelegate(null);
+		}
 	}
 
 	public void registerPlayer(BasePlayerInstance<PlayerObject> playerInstance) {
-		
+		playerInstance.skinManager = skinService.createVanillaSkinManager(playerInstance);
+	}
+
+	public static class RegistrationStateException extends IllegalStateException {
 	}
 
 	public void registerEaglerPlayer(EaglerPlayerInstance<PlayerObject> playerInstance) {
-		if(!eaglerPlayers.add(playerInstance)) return;
+		if(!eaglerPlayers.add(playerInstance)) {
+			throw new RegistrationStateException();
+		}
+
 		EaglerConnectionInstance pendingConnection = playerInstance.connectionImpl();
 		NettyPipelineData.ProfileDataHolder profileData = pendingConnection.transferProfileData();
-		
-		//TODO: handle profile
+
+		playerInstance.messageController = MessageControllerFactory.initializePlayer(playerInstance);
+		playerInstance.skinManager = skinService.createEaglerSkinManager(playerInstance, profileData);
 
 		if(pendingConnection.isEaglerXRewindPlayer()) {
 			((IEaglerXRewindProtocol<PlayerObject, Object>) pendingConnection.getRewindProtocol())
 					.handleCreatePlayer(pendingConnection.getRewindAttachment(), playerInstance);
 		}
-
-		eventDispatcher.dispatchInitializePlayerEvent(playerInstance, null);
 	}
 
 	public void unregisterPlayer(BasePlayerInstance<PlayerObject> playerInstance) {
@@ -251,15 +315,16 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	public void unregisterEaglerPlayer(EaglerPlayerInstance<PlayerObject> playerInstance) {
-		if(!eaglerPlayers.remove(playerInstance)) return;
+		if(!eaglerPlayers.remove(playerInstance)) {
+			throw new RegistrationStateException();
+		}
+
 		EaglerConnectionInstance pendingConnection = playerInstance.connectionImpl();
 
 		if(pendingConnection.isEaglerXRewindPlayer()) {
 			((IEaglerXRewindProtocol<PlayerObject, Object>) pendingConnection.getRewindProtocol())
 					.handleDestroyPlayer(pendingConnection.getRewindAttachment());
 		}
-
-		eventDispatcher.dispatchDestroyPlayerEvent(playerInstance, null);
 	}
 
 	@Override
@@ -509,8 +574,11 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public SkinService<PlayerObject> getSkinService() {
-		// TODO
-		return null;
+		return skinService;
+	}
+
+	public ISkinCacheService getSkinCacheService() {
+		return skinCacheService;
 	}
 
 	@Override

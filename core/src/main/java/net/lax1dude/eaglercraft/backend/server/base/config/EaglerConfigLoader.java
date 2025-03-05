@@ -211,14 +211,40 @@ public class EaglerConfigLoader {
 				+ "to use for the database. If the driver is already on the classpath, set it "
 				+ "to 'classpath'."
 			);
-			int skinCacheKeepObjectsDays = skinService.getInteger(
-				"skin_cache_keep_objects_days", 45,
+			boolean skinCacheSQLiteCompatible = skinService.getBoolean(
+				"skin_cache_db_sqlite_compatible", true,
+				"Default value is true, if the skin cache should use SQL syntax compatible with "
+				+ "SQLite, if false it is assumed you are using a MySQL or MariaDB database "
+				+ "instead of the default setup."
+			);
+			int skinCacheThreadCount = skinService.getInteger(
+				"skin_cache_thread_count", -1,
+				"Default value is -1, sets the number of threads to use for database queries "
+				+ "and compression. Set to -1 to use all available processors."
+			);
+			int skinCacheCompressionLevel = skinService.getInteger(
+				"skin_cache_compression_level", 6,
+				"Default value is 6, sets the compression level to use for the skin cache "
+				+ "database, value can be between 0-9."
+			);
+			int skinCacheMemoryKeepSeconds = skinService.getInteger(
+				"skin_cache_memory_keep_objects_seconds", 900,
+				"Default value is 900, sets how many seconds skins and capes should be cached "
+				+ "in memory after being downloaded/loaded from the database."
+			);
+			int skinCacheMemoryMaxObjects = skinService.getInteger(
+				"skin_cache_memory_max_objects", 4096,
+				"Default value is 4096, sets the maximum number of skins that should be "
+				+ "cached in memory."
+			);
+			int skinCacheDiskKeepObjectsDays = skinService.getInteger(
+				"skin_cache_disk_keep_objects_days", 45,
 				"Default value is 45, sets the max age for textures (skin/cape files) stored "
 				+ "in the skin cache database, only relevant if download_vanilla_skins_to_clients "
 				+ "is enabled."
 			);
-			int skinCacheMaxObjects = skinService.getInteger(
-				"skin_cache_max_objects", 32768,
+			int skinCacheDiskMaxObjects = skinService.getInteger(
+				"skin_cache_disk_max_objects", 32768,
 				"Default value is 32768, sets the max number of textures (skin files) stored "
 				+ "in the skin cache database before the oldest textures begin to be deleted, "
 				+ "only relevant if download_vanilla_skins_to_clients is enabled."
@@ -322,8 +348,10 @@ public class EaglerConfigLoader {
 					new ConfigDataSettings.ConfigDataSkinService(skinLookupRatelimitPlayer,
 							downloadVanillaSkinsToClients, validSkinDownloadURLs, skinDownloadRatelimit,
 							skinDownloadRatelimitGlobal, skinCacheDBURI, skinCacheDriverClass, skinCacheDriverPath,
-							skinCacheKeepObjectsDays, skinCacheMaxObjects, skinCacheAntagonistsRatelimit,
-							enableIsEaglerPlayerProperty, enableFNAWSkinModelsGlobal, enableFNAWSkinModelsOnServers),
+							skinCacheSQLiteCompatible, skinCacheThreadCount, skinCacheCompressionLevel,
+							skinCacheMemoryKeepSeconds, skinCacheMemoryMaxObjects, skinCacheDiskKeepObjectsDays,
+							skinCacheDiskMaxObjects, skinCacheAntagonistsRatelimit, enableIsEaglerPlayerProperty,
+							enableFNAWSkinModelsGlobal, enableFNAWSkinModelsOnServers),
 					new ConfigDataSettings.ConfigDataVoiceService(enableVoiceChatGlobal, enableVoiceChatOnServers,
 							separateVoiceChannelsPerServer),
 					new ConfigDataSettings.ConfigDataUpdateService(enableUpdateSystem, discardLoginPacketCerts,
