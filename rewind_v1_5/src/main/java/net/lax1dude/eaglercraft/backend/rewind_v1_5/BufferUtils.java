@@ -209,6 +209,7 @@ public class BufferUtils {
 	}
 
 	// "also use an Inflater and Deflater not an InflaterInputStream/DeflaterOutputStream"
+	// lax: USE THE NATIVE BYTEBUF ONE FROM EAGLERXSERVER
 
 	public static void convertChunk2Legacy(boolean skyLightSent, int pbm, boolean guc, ByteBuf buffer, ByteBuf bb) {
 		if (buffer.readUnsignedByte() > 0) {
@@ -222,6 +223,9 @@ public class BufferUtils {
 
 		for (int i = 0; i < 16; ++i) {
 			if ((pbm & (1 << i)) != 0) {
+				
+				// lax: WHY IS THIS BYTE ARRAY NECESSARY, JUST SET BYTES DIRECTLY IN THE OUTPUT
+				// lax: Don't create a new one each time if necessary
 				byte[] outputBlockMetadataArray = new byte[2048];
 
 				int dataArrayLength = BufferUtils.readVarInt(buffer);
@@ -245,6 +249,19 @@ public class BufferUtils {
 		}
 	}
 
+	public static int posX(long position) {
+		return (int)(position >>> 38l);
+	}
+
+	public static int posY(long position) {
+		return (int)((position >>> 26l) & 0xFFFl);
+	}
+
+	public static int posZ(long position) {
+		return (int)(position << 38l >>> 38l);
+	}
+
+	@Deprecated(since = "vigg")
 	public static int[] readPosition(ByteBuf buffer) {
 		BigInteger bi = new BigInteger(Long.toUnsignedString(buffer.readLong()));
 		int x = bi.shiftRight(38).intValue();
