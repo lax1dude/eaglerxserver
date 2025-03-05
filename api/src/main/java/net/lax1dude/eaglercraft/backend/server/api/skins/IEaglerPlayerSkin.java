@@ -5,13 +5,8 @@ import java.util.UUID;
 import net.lax1dude.eaglercraft.backend.server.api.IOptional;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.SkinPacketVersionCache;
 
 public interface IEaglerPlayerSkin extends IOptional<IEaglerPlayerSkin> {
-
-	SkinPacketVersionCache getSkinPacketVersionCache(long rewriteUUIDMost, long rewriteUUIDLeast);
-
-	SkinPacketVersionCache getSkinPacketVersionCache(long rewriteUUIDMost, long rewriteUUIDLeast, EnumSkinModel rewriteModelId);
 
 	GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast, GamePluginMessageProtocol protocol);
 
@@ -48,7 +43,5 @@ public interface IEaglerPlayerSkin extends IOptional<IEaglerPlayerSkin> {
 	void getCustomSkinPixels_eagler(byte[] array, int offset);
 
 	EnumSkinModel getCustomSkinModelId();
-
-	IEaglerPlayerSkin rewriteCustomSkinModelId(EnumSkinModel rewriteModelId);
 
 }

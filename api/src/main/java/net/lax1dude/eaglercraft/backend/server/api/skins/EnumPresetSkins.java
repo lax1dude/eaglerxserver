@@ -53,6 +53,11 @@ public enum EnumPresetSkins {
 		return id >= 0 && id < VALUES.length ? VALUES[id] : null;
 	}
 
+	public static EnumPresetSkins getByIdOrDefault(int id) {
+		EnumPresetSkins ret = getById(id);
+		return ret != null ? ret : DEFAULT_STEVE;
+	}
+
 	static {
 		EnumPresetSkins[] skins = values();
 		EnumPresetSkins[] arr = new EnumPresetSkins[32];

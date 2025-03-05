@@ -18,17 +18,6 @@ public class EaglerPlayerSkin implements IEaglerPlayerSkin {
 	}
 
 	@Override
-	public SkinPacketVersionCache getSkinPacketVersionCache(long rewriteUUIDMost, long rewriteUUIDLeast) {
-		return SkinPacketVersionCache.rewriteUUID(skin, rewriteUUIDMost, rewriteUUIDLeast);
-	}
-
-	@Override
-	public SkinPacketVersionCache getSkinPacketVersionCache(long rewriteUUIDMost, long rewriteUUIDLeast,
-			EnumSkinModel rewriteModelId) {
-		return SkinPacketVersionCache.rewriteUUIDModel(skin, rewriteUUIDMost, rewriteUUIDLeast, rewriteModelId.getId());
-	}
-
-	@Override
 	public GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast,
 			GamePluginMessageProtocol protocol) {
 		return skin.get(protocol, rewriteUUIDMost, rewriteUUIDLeast);
@@ -108,11 +97,6 @@ public class EaglerPlayerSkin implements IEaglerPlayerSkin {
 		}else {
 			throw new UnsupportedOperationException("EaglerPlayerSkin is not a custom skin");
 		}
-	}
-
-	@Override
-	public IEaglerPlayerSkin rewriteCustomSkinModelId(EnumSkinModel rewriteModelId) {
-		return null;//TODO
 	}
 
 }

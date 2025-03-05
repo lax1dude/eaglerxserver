@@ -20,6 +20,8 @@ import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingCape;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingSkin;
 import net.lax1dude.eaglercraft.backend.skin_cache.ISkinCacheService;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherCapeCustomEAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.SkinPacketVersionCache;
@@ -46,7 +48,7 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 
 	@Override
 	public IEaglerPlayerCape getCapeNotFound() {
-		return MissingSkin.MISSING_CAPE;
+		return MissingCape.MISSING_CAPE;
 	}
 
 	@Override
@@ -66,7 +68,7 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 		if(player != null) {
 			player.getSkinManager().resolvePlayerCape(callback);
 		}else {
-			callback.accept(MissingSkin.MISSING_CAPE);
+			callback.accept(MissingCape.MISSING_CAPE);
 			//TODO: supervisor
 		}
 	}
@@ -93,11 +95,11 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 				if(data != null) {
 					callback.accept(new EaglerPlayerCape(new SPacketOtherCapeCustomEAG(0, 0, data)));
 				}else {
-					callback.accept(MissingSkin.MISSING_CAPE);
+					callback.accept(MissingCape.MISSING_CAPE);
 				}
 			});
 		}else {
-			callback.accept(MissingSkin.MISSING_CAPE);
+			callback.accept(MissingCape.MISSING_CAPE);
 		}
 	}
 
@@ -122,13 +124,24 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 		IEaglerPlayerCape cape = null;
 
 		if(profileData.skinDataV2Init != null) {
-			//TODO
+			skin = SkinHandshake.loadSkinDataV2(this, profileData.skinDataV2Init);
 		}else if(profileData.skinDataV1Init != null) {
-			
+			skin = SkinHandshake.loadSkinDataV1(this, profileData.skinDataV1Init);
 		}
 
-		
-		return null;
+		if(profileData.capeDataInit != null) {
+			cape = SkinHandshake.loadCapeDataV1(this, profileData.capeDataInit);
+		}
+
+		if(skin == null) {
+			skin = loadPresetSkin(0);
+		}
+
+		if(cape == null) {
+			cape = loadPresetNoCape();
+		}
+
+		return new SkinManagerEagler<>(playerInstance, skin, cape, true);
 	}
 
 	@Override
@@ -154,6 +167,11 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 	@Override
 	public IEaglerPlayerSkin loadSkinImageData(BufferedImage image, EnumSkinModel modelId) {
 		return SkinImageLoader.loadSkinImageData(image, modelId);
+	}
+
+	@Override
+	public IEaglerPlayerSkin rewriteCustomSkinModelId(IEaglerPlayerSkin skin, EnumSkinModel modelId) {
+		return SkinImageLoader.rewriteCustomSkinModelId(skin, modelId);
 	}
 
 	@Override

@@ -37,6 +37,10 @@ public class SkinImageLoader {
 			return SkinImageLoader.loadSkinImageData(image, modelId);
 		}
 		@Override
+		public IEaglerPlayerSkin rewriteCustomSkinModelId(IEaglerPlayerSkin skin, EnumSkinModel modelId) {
+			return SkinImageLoader.rewriteCustomSkinModelId(skin, modelId);
+		}
+		@Override
 		public IEaglerPlayerSkin loadPresetSkin(UUID playerUUID) {
 			return SkinImageLoader.loadPresetSkin(playerUUID);
 		}
@@ -91,6 +95,10 @@ public class SkinImageLoader {
 	}
 
 	public static IEaglerPlayerSkin loadPresetSkin(UUID playerUUID) {
+		return null;
+	}
+
+	public static IEaglerPlayerSkin rewriteCustomSkinModelId(IEaglerPlayerSkin skin, EnumSkinModel modelId) {
 		return null;
 	}
 

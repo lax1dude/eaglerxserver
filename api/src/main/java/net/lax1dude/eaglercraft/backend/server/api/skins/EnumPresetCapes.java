@@ -50,6 +50,11 @@ public enum EnumPresetCapes {
 		return id >= 0 && id < VALUES.length ? VALUES[id] : null;
 	}
 
+	public static EnumPresetCapes getByIdOrDefault(int id) {
+		EnumPresetCapes ret = getById(id);
+		return ret != null ? ret : NO_CAPE;
+	}
+
 	static {
 		EnumPresetCapes[] skins = values();
 		EnumPresetCapes[] arr = new EnumPresetCapes[32];

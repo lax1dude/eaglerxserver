@@ -30,6 +30,8 @@ public interface ISkinImageLoader {
 
 	IEaglerPlayerSkin loadSkinImageData(File imageFile, EnumSkinModel modelId) throws IOException;
 
+	IEaglerPlayerSkin rewriteCustomSkinModelId(IEaglerPlayerSkin skin, EnumSkinModel modelId);
+
 	IEaglerPlayerCape loadCapeImageData64x32(int[] pixelsARGB8);
 
 	IEaglerPlayerCape loadCapeImageData32x32(int[] pixelsARGB8);
