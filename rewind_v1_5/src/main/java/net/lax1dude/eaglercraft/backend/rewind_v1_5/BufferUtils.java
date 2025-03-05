@@ -3,14 +3,11 @@ package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 
 public class BufferUtils {
 
@@ -259,14 +256,5 @@ public class BufferUtils {
 
 	public static int posZ(long position) {
 		return (int)(position << 38l >>> 38l);
-	}
-
-	@Deprecated(since = "vigg")
-	public static int[] readPosition(ByteBuf buffer) {
-		BigInteger bi = new BigInteger(Long.toUnsignedString(buffer.readLong()));
-		int x = bi.shiftRight(38).intValue();
-		int y = bi.shiftLeft(26).intValue() & 0xFFF;
-		int z = bi.shiftLeft(38).shiftRight(38).intValue();
-		return new int[] { x, y, z };
 	}
 }

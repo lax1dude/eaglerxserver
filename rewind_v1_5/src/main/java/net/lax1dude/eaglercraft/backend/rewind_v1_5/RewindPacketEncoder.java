@@ -1,11 +1,12 @@
 package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
 import java.util.List;
+import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
-import net.lax1dude.eaglercraft.backend.server.api.bukkit.EaglerXServerAPI;
+import net.md_5.bungee.chat.ComponentSerializer;
 
 public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<ByteBuf> {
 
@@ -92,8 +93,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 			case 0x02:
 				bb = ctx.alloc().buffer();
 				bb.writeByte(0x03);
-				// todo: json to legacy
-				BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 32767), 32767);
+				BufferUtils.writeLegacyMCString(bb, ComponentSerializer.deserialize(BufferUtils.readMCString(in, 32767)).toLegacyText(), 32767);
 				break;
 			case 0x03:
 				bb = ctx.alloc().buffer();
@@ -113,10 +113,10 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 			case 0x05:
 				bb = ctx.alloc().buffer();
 				bb.writeByte(0x06);
-				int[] xyz = BufferUtils.readPosition(in);
-				bb.writeInt(xyz[0]);
-				bb.writeInt(xyz[1]);
-				bb.writeInt(xyz[2]);
+				long xyz = in.readLong();
+				bb.writeInt(BufferUtils.posX(xyz));
+				bb.writeInt(BufferUtils.posY(xyz));
+				bb.writeInt(BufferUtils.posZ(xyz));
 				break;
 			case 0x06:
 				bb = ctx.alloc().buffer();
@@ -170,12 +170,12 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				bb = ctx.alloc().buffer();
 				bb.writeByte(0x11);
 				int beid = BufferUtils.readVarInt(in);
-				int[] bxyz = BufferUtils.readPosition(in);
+				long bxyz = in.readLong();
 				bb.writeInt(beid);
 				bb.writeByte(0);
-				bb.writeInt(bxyz[0]);
-				bb.writeByte(bxyz[1]);
-				bb.writeInt(bxyz[2]);
+				bb.writeInt(BufferUtils.posX(bxyz));
+				bb.writeByte(BufferUtils.posY(bxyz));
+				bb.writeInt(BufferUtils.posZ(bxyz));
 				break;
 			case 0x0B:
 				int aeid = BufferUtils.readVarInt(in);
@@ -288,13 +288,13 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				bb.writeByte(0x19);
 				int paintEid = BufferUtils.readVarInt(in);
 				String paintTitle = BufferUtils.readMCString(in, 13);
-				int[] paintxyz = BufferUtils.readPosition(in);
+				long paintxyz = in.readLong();
 				short paintDir = in.readUnsignedByte();
 				bb.writeInt(paintEid);
 				BufferUtils.writeLegacyMCString(bb, paintTitle, 13);
-				bb.writeInt(paintxyz[0]);
-				bb.writeInt(paintxyz[1]);
-				bb.writeInt(paintxyz[2]);
+				bb.writeInt(BufferUtils.posX(paintxyz));
+				bb.writeInt(BufferUtils.posY(paintxyz));
+				bb.writeInt(BufferUtils.posZ(paintxyz));
 				bb.writeInt(paintDir);
 				break;
 			case 0x11:
@@ -432,7 +432,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				bb.writeShort(chunkPbm);
 				bb.writeShort(0);
 				ByteBuf chunkData2 = ctx.alloc().buffer();
-				EaglerXServerAPI.instance().createNativeZlib(true, false, 6).getNettyUnsafe().deflate(chunkData, chunkData2);
+				player.getPlayer().getServerAPI().createNativeZlib(true, false, 6).getNettyUnsafe().deflate(chunkData, chunkData2);
 				chunkData.release();
 				bb.writeInt(chunkData2.readableBytes());
 				bb.writeBytes(chunkData2);
@@ -463,25 +463,25 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 			case 0x23:
 				bb = ctx.alloc().buffer();
 				bb.writeByte(0x35);
-				int[] bcxyz = BufferUtils.readPosition(in);
+				long bcxyz = in.readLong();
 				int bcbid = BufferUtils.readVarInt(in);
 				int bcbt = bcbid >> 4;
 				int bcbm = bcbid & 15;
-				bb.writeInt(bcxyz[0]);
-				bb.writeByte(bcxyz[1]);
-				bb.writeInt(bcxyz[2]);
+				bb.writeInt(BufferUtils.posX(bcxyz));
+				bb.writeByte(BufferUtils.posY(bcxyz));
+				bb.writeInt(BufferUtils.posZ(bcxyz));
 				bb.writeShort(bcbt);
 				bb.writeByte(bcbm);
 				break;
 			case 0x24:
 				bb = ctx.alloc().buffer();
 				bb.writeByte(0x36);
-				int[] baxyz = BufferUtils.readPosition(in);
+				long baxyz = in.readLong();
 				short baa = in.readShort();
 				int bat = BufferUtils.readVarInt(in);
-				bb.writeInt(baxyz[0]);
-				bb.writeShort(baxyz[1]);
-				bb.writeShort(baxyz[2]);
+				bb.writeInt(BufferUtils.posX(baxyz));
+				bb.writeShort(BufferUtils.posY(baxyz));
+				bb.writeInt(BufferUtils.posZ(baxyz));
 				bb.writeShort(baa);
 				bb.writeShort(bat);
 				break;
@@ -489,12 +489,12 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				bb = ctx.alloc().buffer();
 				bb.writeByte(0x37);
 				int bbaEid = BufferUtils.readVarInt(in);
-				int[] bbaxyz = BufferUtils.readPosition(in);
+				long bbaxyz = in.readLong();
 				byte bbas = in.readByte();
 				bb.writeInt(bbaEid);
-				bb.writeInt(bbaxyz[0]);
-				bb.writeInt(bbaxyz[1]);
-				bb.writeInt(bbaxyz[2]);
+				bb.writeInt(BufferUtils.posX(bbaxyz));
+				bb.writeInt(BufferUtils.posY(bbaxyz));
+				bb.writeInt(BufferUtils.posZ(bbaxyz));
 				bb.writeByte(bbas);
 				break;
 			case 0x26:
@@ -516,7 +516,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				}
 				bb.writeShort(mcbCcc);
 				ByteBuf guhBuf2 = ctx.alloc().buffer();
-				EaglerXServerAPI.instance().createNativeZlib(true, false, 6).getNettyUnsafe().deflate(guhBuf, guhBuf2);
+				player.getPlayer().getServerAPI().createNativeZlib(true, false, 6).getNettyUnsafe().deflate(guhBuf, guhBuf2);
 				guhBuf.release();
 				bb.writeInt(guhBuf2.readableBytes());
 				bb.writeBoolean(mcbSkyLightSent);
@@ -547,10 +547,10 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				bb = ctx.alloc().buffer();
 				bb.writeByte(0x3D);
 				bb.writeInt(in.readInt());
-				int[] effPos = BufferUtils.readPosition(in);
-				bb.writeInt(effPos[0]);
-				bb.writeByte(effPos[1]);
-				bb.writeInt(effPos[2]);
+				long effPos = in.readLong();
+				bb.writeInt(BufferUtils.posX(effPos));
+				bb.writeByte(BufferUtils.posY(effPos));
+				bb.writeInt(BufferUtils.posZ(effPos));
 				bb.writeInt(in.readInt());
 				bb.writeBoolean(in.readBoolean());
 				break;
@@ -619,8 +619,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				// todo: window type string to int
 				bb.writeByte(0); // temp to keep aligned
 				String windowTitle = BufferUtils.readMCString(in, 4095);
-				// todo: convert chat json to legacy
-				// windowTitle = windowTitle;
+				windowTitle = ComponentSerializer.deserialize(windowTitle).toLegacyText();
 				BufferUtils.writeLegacyMCString(bb, windowTitle, 255);
 				bb.writeByte(in.readUnsignedByte());
 				bb.writeBoolean(!windowTitle.isEmpty());
@@ -675,15 +674,13 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 			case 0x33:
 				bb = ctx.alloc().buffer();
 				bb.writeByte(0x82);
-				int[] signPos = BufferUtils.readPosition(in);
-				bb.writeInt(signPos[0]);
-				bb.writeShort(signPos[1]);
-				bb.writeInt(signPos[2]);
-				// todo: json chat to legacy format!!
-				BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 4095), 255);
-				BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 4095), 255);
-				BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 4095), 255);
-				BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 4095), 255);
+				long signPos = in.readLong();
+				bb.writeInt(BufferUtils.posX(signPos));
+				bb.writeShort(BufferUtils.posY(signPos));
+				bb.writeInt(BufferUtils.posZ(signPos));
+				for (int ii = 0; ii < 4; ++ii) {
+					BufferUtils.writeLegacyMCString(bb, ComponentSerializer.deserialize(BufferUtils.readMCString(in, 4095)).toLegacyText(), 255);
+				}
 				break;
 			case 0x34:
 				// todo: all this bullshit
@@ -696,14 +693,14 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 
 				break;
 			case 0x35:
-				int[] ubePos = BufferUtils.readPosition(in);
+				long ubePos = in.readLong();
 				short ubeAct = in.readUnsignedByte();
 				if (ubeAct == 1) {
 					bb = ctx.alloc().buffer();
 					bb.writeByte(0x84);
-					bb.writeInt(ubePos[0]);
-					bb.writeShort(ubePos[1]);
-					bb.writeInt(ubePos[2]);
+					bb.writeInt(BufferUtils.posX(ubePos));
+					bb.writeShort(BufferUtils.posY(ubePos));
+					bb.writeInt(BufferUtils.posZ(ubePos));
 					bb.writeByte(ubeAct);
 					BufferUtils.convertNBT2Legacy(in, bb);
 				}
@@ -800,9 +797,33 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				bb = null;
 				break;
 			case 0x38:
-				bb = ctx.alloc().buffer();
-				bb.writeByte(0xC9);
 				// TODO: CONTINUE FROM HERE: "PLAYER LIST ITEM" PACKET
+				int pliAction = BufferUtils.readVarInt(in);
+				if (pliAction != 1) {
+					int pliNum = BufferUtils.readVarInt(in);
+					for (int ii = 0; ii < pliNum; ++ii) {
+						bb = ctx.alloc().buffer();
+						bb.writeByte(0xC9);
+						long plimsb = in.readLong();
+						long plilsb = in.readLong();
+						String pliName = player.getPlayer().getServerAPI().getPlayerByUUID(new UUID(plimsb, plilsb)).getUsername();
+						if (pliAction != 0) {
+							// remove player
+							// todo: need to keep internal map of username to current display name!!
+						}
+						if (pliAction == 2) {
+							// set ping
+						} else if (pliAction == 3) {
+							if (in.readBoolean()) {
+								pliName = ComponentSerializer.deserialize(BufferUtils.readMCString(in, 255)).toLegacyText();
+							}
+						}
+						if (pliAction != 4) {
+							// add player
+						}
+					}
+					bb = null;
+				}
 				break;
 		}
 		if (bb != null) {
