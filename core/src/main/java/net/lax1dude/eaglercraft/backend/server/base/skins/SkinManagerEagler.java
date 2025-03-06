@@ -6,12 +6,17 @@ import java.util.function.Consumer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumPresetCapes;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumPresetSkins;
+import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
+import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerEagler;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketGetOtherCapeEAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketGetOtherSkinEAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketGetSkinByURLEAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketEnableFNAWSkinsEAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketInvalidatePlayerCacheV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketUnforceClientV4EAG;
@@ -255,6 +260,44 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 	@Override
 	public void resetEaglerSkinAndCapeAndClientFNAWSkinsForced(boolean notifyOthers) {
 		resetEaglerSkinAndCape0(notifyOthers, true);
+	}
+
+	public void handlePacketGetOtherSkin(CPacketGetOtherSkinEAG packet) {
+		UUID targetUUID = new UUID(packet.uuidMost, packet.uuidLeast);
+		BasePlayerInstance<PlayerObject> target = player.getEaglerXServer().getPlayerByUUID(targetUUID);
+		if(target != null) {
+			ISkinManagerBase<PlayerObject> skinMgr = target.getSkinManager();
+			IEaglerPlayerSkin skin = skinMgr.getPlayerSkinIfLoaded();
+			if(skin != null) {
+				player.sendEaglerMessage(skin.getSkinPacket(packet.uuidMost, packet.uuidLeast, player.getEaglerProtocol()));
+			}else {
+				skinMgr.resolvePlayerSkin((res) -> {
+					player.sendEaglerMessage(res.getSkinPacket(packet.uuidMost, packet.uuidLeast, player.getEaglerProtocol()));
+				});
+			}
+		}
+	}
+
+	public void handlePacketGetOtherCape(CPacketGetOtherCapeEAG packet) {
+		UUID targetUUID = new UUID(packet.uuidMost, packet.uuidLeast);
+		BasePlayerInstance<PlayerObject> target = player.getEaglerXServer().getPlayerByUUID(targetUUID);
+		if(target != null) {
+			ISkinManagerBase<PlayerObject> skinMgr = target.getSkinManager();
+			IEaglerPlayerCape skin = skinMgr.getPlayerCapeIfLoaded();
+			if(skin != null) {
+				player.sendEaglerMessage(skin.getCapePacket(packet.uuidMost, packet.uuidLeast, player.getEaglerProtocol()));
+			}else {
+				skinMgr.resolvePlayerCape((res) -> {
+					player.sendEaglerMessage(res.getCapePacket(packet.uuidMost, packet.uuidLeast, player.getEaglerProtocol()));
+				});
+			}
+		}
+	}
+
+	public void handlePacketGetSkinByURL(CPacketGetSkinByURLEAG packet) {
+		skinService.loadCacheSkinFromURL(packet.url, EnumSkinModel.STEVE, (res) -> {
+			player.sendEaglerMessage(res.getSkinPacket(packet.uuidMost, packet.uuidLeast, player.getEaglerProtocol()));
+		});
 	}
 
 }

@@ -10,13 +10,16 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerEagler;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.InternUtils;
 
 public class SkinManagerVanillaOffline<PlayerObject> implements ISkinManagerBase<PlayerObject>, ISkinManagerImpl {
 
 	private final BasePlayerInstance<PlayerObject> player;
+	private final IEaglerPlayerSkin skin;
 
-	SkinManagerVanillaOffline(BasePlayerInstance<PlayerObject> player) {
+	SkinManagerVanillaOffline(BasePlayerInstance<PlayerObject> player, IEaglerPlayerSkin skin) {
 		this.player = player;
+		this.skin = skin;
 	}
 
 	@Override
@@ -41,12 +44,12 @@ public class SkinManagerVanillaOffline<PlayerObject> implements ISkinManagerBase
 
 	@Override
 	public IEaglerPlayerSkin getPlayerSkinIfLoaded() {
-		return player.getEaglerXServer().getSkinService().loadPresetSkin(player.getUniqueId());
+		return skin;
 	}
 
 	@Override
 	public IEaglerPlayerCape getPlayerCapeIfLoaded() {
-		return player.getEaglerXServer().getSkinService().loadPresetNoCape();
+		return InternUtils.getPresetCape(0);
 	}
 
 	@Override

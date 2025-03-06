@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.api;
 
+import java.util.function.Supplier;
+
 public interface IOptional<T> {
 
 	boolean isSuccess();
@@ -7,6 +9,15 @@ public interface IOptional<T> {
 	@SuppressWarnings("unchecked")
 	default T orNull() {
 		return isSuccess() ? (T) this : null;
+	}
+
+	@SuppressWarnings("unchecked")
+	default T orDefault(Supplier<T> defaultValue) {
+		if(isSuccess()) {
+			return (T) this;
+		}else {
+			return defaultValue.get();
+		}
 	}
 
 	@SuppressWarnings("unchecked")

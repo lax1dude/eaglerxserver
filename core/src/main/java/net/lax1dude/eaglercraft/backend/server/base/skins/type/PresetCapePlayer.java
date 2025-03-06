@@ -7,32 +7,41 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketForceClientCapePresetV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherCapePresetEAG;
 
-public class MissingCape extends BasePresetCape implements IEaglerPlayerCape {
+public class PresetCapePlayer extends BasePresetCape implements IEaglerPlayerCape {
 
-	public static final IEaglerPlayerCape MISSING_CAPE = new MissingCape();
+	private final SPacketOtherCapePresetEAG packet;
 
-	private MissingCape() {
+	public PresetCapePlayer(long uuidMost, long uuidLeast, int presetId) {
+		this.packet = new SPacketOtherCapePresetEAG(uuidMost, uuidLeast, presetId);
+	}
+
+	public PresetCapePlayer(SPacketOtherCapePresetEAG packet) {
+		this.packet = packet;
 	}
 
 	@Override
 	public boolean isSuccess() {
-		return false;
+		return true;
 	}
 
 	@Override
 	public GameMessagePacket getCapePacket(long rewriteUUIDMost, long rewriteUUIDLeast,
 			GamePluginMessageProtocol protocol) {
-		return new SPacketOtherCapePresetEAG(rewriteUUIDMost, rewriteUUIDLeast, 0);
+		if(rewriteUUIDMost == packet.uuidMost && rewriteUUIDLeast == packet.uuidLeast) {
+			return packet;
+		}else {
+			return new SPacketOtherCapePresetEAG(rewriteUUIDMost, rewriteUUIDLeast, packet.presetCape);
+		}
 	}
 
 	@Override
 	public GameMessagePacket getForceCapePacketV4() {
-		return new SPacketForceClientCapePresetV4EAG(0);
+		return new SPacketForceClientCapePresetV4EAG(packet.presetCape);
 	}
 
 	@Override
 	public boolean isCapeEnabled() {
-		return false;
+		return packet.presetCape != 0;
 	}
 
 	@Override
@@ -42,12 +51,12 @@ public class MissingCape extends BasePresetCape implements IEaglerPlayerCape {
 
 	@Override
 	public int getPresetCapeId() {
-		return 0;
+		return packet.presetCape;
 	}
 
 	@Override
 	public EnumPresetCapes getPresetCape() {
-		return EnumPresetCapes.NO_CAPE;
+		return EnumPresetCapes.getByIdOrDefault(packet.presetCape);
 	}
 
 	@Override
@@ -67,7 +76,7 @@ public class MissingCape extends BasePresetCape implements IEaglerPlayerCape {
 
 	@Override
 	protected int presetId() {
-		return 0;
+		return packet.presetCape;
 	}
 
 }

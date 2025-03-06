@@ -20,11 +20,11 @@ import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.CustomCapeGeneric;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.CustomSkinGeneric;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingCape;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingSkin;
 import net.lax1dude.eaglercraft.backend.skin_cache.ISkinCacheService;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherCapeCustomEAG;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.SkinPacketVersionCache;
 
 public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 
@@ -78,7 +78,7 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 		if(skinCache != null) {
 			skinCache.resolveSkinByURL(skinURL, (data) -> {
 				if(data != null) {
-					callback.accept(new EaglerPlayerSkin(SkinPacketVersionCache.createCustomV4(0, 0, modelId.getId(), data)));
+					callback.accept(CustomSkinGeneric.createV3(modelId.getId(), data));
 				}else {
 					callback.accept(MissingSkin.MISSING_SKIN);
 				}
@@ -93,7 +93,7 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 		if(skinCache != null) {
 			skinCache.resolveCapeByURL(capeURL, (data) -> {
 				if(data != null) {
-					callback.accept(new EaglerPlayerCape(new SPacketOtherCapeCustomEAG(0, 0, data)));
+					callback.accept(new CustomCapeGeneric(data));
 				}else {
 					callback.accept(MissingCape.MISSING_CAPE);
 				}
@@ -120,27 +120,13 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 
 	public ISkinManagerEagler<PlayerObject> createEaglerSkinManager(EaglerPlayerInstance<PlayerObject> playerInstance,
 			NettyPipelineData.ProfileDataHolder profileData) {
-		IEaglerPlayerSkin skin = null;
-		IEaglerPlayerCape cape = null;
-
+		IEaglerPlayerSkin skin;
 		if(profileData.skinDataV2Init != null) {
-			skin = SkinHandshake.loadSkinDataV2(this, profileData.skinDataV2Init);
-		}else if(profileData.skinDataV1Init != null) {
-			skin = SkinHandshake.loadSkinDataV1(this, profileData.skinDataV1Init);
+			skin = SkinHandshake.loadSkinDataV2(playerInstance.getUniqueId(), profileData.skinDataV2Init);
+		}else {
+			skin = SkinHandshake.loadSkinDataV1(playerInstance.getUniqueId(), profileData.skinDataV1Init);
 		}
-
-		if(profileData.capeDataInit != null) {
-			cape = SkinHandshake.loadCapeDataV1(this, profileData.capeDataInit);
-		}
-
-		if(skin == null) {
-			skin = loadPresetSkin(0);
-		}
-
-		if(cape == null) {
-			cape = loadPresetNoCape();
-		}
-
+		IEaglerPlayerCape cape = SkinHandshake.loadCapeDataV1(playerInstance.getUniqueId(), profileData.capeDataInit);
 		return new SkinManagerEagler<>(playerInstance, skin, cape, true);
 	}
 

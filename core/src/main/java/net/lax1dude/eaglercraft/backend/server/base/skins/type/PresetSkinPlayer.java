@@ -8,12 +8,16 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketForceClientSkinPresetV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherSkinPresetEAG;
 
-public class PresetSkinGeneric extends BasePresetSkin implements IEaglerPlayerSkin {
+public class PresetSkinPlayer extends BasePresetSkin implements IEaglerPlayerSkin {
 
-	private final int presetId;
+	private final SPacketOtherSkinPresetEAG packet;
 
-	PresetSkinGeneric(int presetId) {
-		this.presetId = presetId;
+	public PresetSkinPlayer(long uuidMost, long uuidLeast, int presetId) {
+		this.packet = new SPacketOtherSkinPresetEAG(uuidMost, uuidLeast, presetId);
+	}
+
+	public PresetSkinPlayer(SPacketOtherSkinPresetEAG packet) {
+		this.packet = packet;
 	}
 
 	@Override
@@ -24,18 +28,26 @@ public class PresetSkinGeneric extends BasePresetSkin implements IEaglerPlayerSk
 	@Override
 	public GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast,
 			GamePluginMessageProtocol protocol) {
-		return new SPacketOtherSkinPresetEAG(rewriteUUIDMost, rewriteUUIDLeast, presetId);
+		if(rewriteUUIDMost == packet.uuidMost && rewriteUUIDLeast == packet.uuidLeast) {
+			return packet;
+		}else {
+			return new SPacketOtherSkinPresetEAG(rewriteUUIDMost, rewriteUUIDLeast, packet.presetSkin);
+		}
 	}
 
 	@Override
 	public GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast, EnumSkinModel rewriteModelId,
 			GamePluginMessageProtocol protocol) {
-		return new SPacketOtherSkinPresetEAG(rewriteUUIDMost, rewriteUUIDLeast, presetId);
+		if(rewriteUUIDMost == packet.uuidMost && rewriteUUIDLeast == packet.uuidLeast) {
+			return packet;
+		}else {
+			return new SPacketOtherSkinPresetEAG(rewriteUUIDMost, rewriteUUIDLeast, packet.presetSkin);
+		}
 	}
 
 	@Override
 	public GameMessagePacket getForceSkinPacketV4() {
-		return new SPacketForceClientSkinPresetV4EAG(presetId);
+		return new SPacketForceClientSkinPresetV4EAG(packet.presetSkin);
 	}
 
 	@Override
@@ -45,12 +57,12 @@ public class PresetSkinGeneric extends BasePresetSkin implements IEaglerPlayerSk
 
 	@Override
 	public int getPresetSkinId() {
-		return presetId;
+		return packet.presetSkin;
 	}
 
 	@Override
 	public EnumPresetSkins getPresetSkin() {
-		return EnumPresetSkins.getByIdOrDefault(presetId);
+		return EnumPresetSkins.getByIdOrDefault(packet.presetSkin);
 	}
 
 	@Override
@@ -75,7 +87,7 @@ public class PresetSkinGeneric extends BasePresetSkin implements IEaglerPlayerSk
 
 	@Override
 	protected int presetId() {
-		return presetId;
+		return packet.presetSkin;
 	}
 
 }

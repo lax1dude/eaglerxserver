@@ -12,6 +12,7 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinImageLoader;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.InternUtils;
 
 public class SkinImageLoader {
 
@@ -87,15 +88,15 @@ public class SkinImageLoader {
 	};
 
 	public static IEaglerPlayerSkin loadPresetSkin(int presetSkin) {
-		return null;
+		return InternUtils.getPresetSkin(presetSkin);
 	}
 
 	public static IEaglerPlayerSkin loadPresetSkin(EnumPresetSkins presetSkin) {
-		return null;
+		return InternUtils.getPresetSkin(presetSkin.getId());
 	}
 
 	public static IEaglerPlayerSkin loadPresetSkin(UUID playerUUID) {
-		return null;
+		return InternUtils.getPresetSkin((playerUUID.hashCode() & 1) != 0 ? 1 : 0);
 	}
 
 	public static IEaglerPlayerSkin rewriteCustomSkinModelId(IEaglerPlayerSkin skin, EnumSkinModel modelId) {
@@ -103,15 +104,15 @@ public class SkinImageLoader {
 	}
 
 	public static IEaglerPlayerCape loadPresetNoCape() {
-		return null;
+		return InternUtils.getPresetCape(0);
 	}
 
 	public static IEaglerPlayerCape loadPresetCape(int presetCape) {
-		return null;
+		return InternUtils.getPresetCape(presetCape);
 	}
 
 	public static IEaglerPlayerCape loadPresetCape(EnumPresetCapes presetCape) {
-		return null;
+		return InternUtils.getPresetCape(presetCape.getId());
 	}
 
 	public static IEaglerPlayerSkin loadSkinImageData64x64(int[] pixelsARGB8, EnumSkinModel modelId) {

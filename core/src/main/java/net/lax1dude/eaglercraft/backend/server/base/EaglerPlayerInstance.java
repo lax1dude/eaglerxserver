@@ -10,10 +10,10 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationManager;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuManager;
-import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerEagler;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewManager;
 import net.lax1dude.eaglercraft.backend.server.base.message.MessageController;
+import net.lax1dude.eaglercraft.backend.server.base.skins.SkinManagerEagler;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketRedirectClientV4EAG;
@@ -122,8 +122,8 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
-	public ISkinManagerEagler<PlayerObject> getSkinManager() {
-		return (ISkinManagerEagler<PlayerObject>) skinManager;
+	public SkinManagerEagler<PlayerObject> getSkinManager() {
+		return (SkinManagerEagler<PlayerObject>) skinManager;
 	}
 
 	@Override
