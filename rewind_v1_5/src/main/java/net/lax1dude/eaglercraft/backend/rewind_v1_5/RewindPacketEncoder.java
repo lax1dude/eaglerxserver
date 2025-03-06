@@ -1,14 +1,10 @@
 package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
-import net.md_5.bungee.chat.ComponentSerializer;
 
 public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<ByteBuf> {
 
@@ -29,6 +25,8 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 	}
 
 	private final Map<UUID, TabListItem> tabList = new HashMap<>();
+
+	private final Map<String, Map<String, Integer>> scoreBoard = new HashMap<>();
 
 	private static final String[] particleNames = new String[] {
 			"explode",
@@ -107,7 +105,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 			case 0x02:
 				bb = ctx.alloc().buffer();
 				bb.writeByte(0x03);
-				BufferUtils.writeLegacyMCString(bb, ComponentSerializer.deserialize(BufferUtils.readMCString(in, 32767)).toLegacyText(), 32767);
+				BufferUtils.writeLegacyMCString(bb, player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767)), 32767);
 				break;
 			case 0x03:
 				bb = ctx.alloc().buffer();
@@ -633,7 +631,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				// todo: window type string to int
 				bb.writeByte(0); // temp to keep aligned
 				String windowTitle = BufferUtils.readMCString(in, 4095);
-				windowTitle = ComponentSerializer.deserialize(windowTitle).toLegacyText();
+				windowTitle = player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(windowTitle);
 				BufferUtils.writeLegacyMCString(bb, windowTitle, 255);
 				bb.writeByte(in.readUnsignedByte());
 				bb.writeBoolean(!windowTitle.isEmpty());
@@ -693,8 +691,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				bb.writeShort(BufferUtils.posY(signPos));
 				bb.writeInt(BufferUtils.posZ(signPos));
 				for (int ii = 0; ii < 4; ++ii) {
-					BufferUtils.writeLegacyMCString(bb, ComponentSerializer.deserialize(BufferUtils.readMCString(in, 4095)).toLegacyText(), 255);
-				}
+					BufferUtils.writeLegacyMCString(bb, player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 4095)), 255);				}
 				break;
 			case 0x34:
 				// todo: all this bullshit
@@ -832,7 +829,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 								BufferUtils.readVarInt(in);
 								int tbPing = BufferUtils.readVarInt(in);
 								if (in.readBoolean()) {
-									tempName = ComponentSerializer.deserialize(BufferUtils.readMCString(in, 255)).toLegacyText();
+									tempName = player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 255));
 								}
 								tabList.put(pliUuid, new TabListItem(tempName, tbPing));
 							} else {
@@ -857,7 +854,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 							out.add(bb);
 						} else if (pliAction == 3) {
 							if (in.readBoolean()) {
-								pliItem.name = ComponentSerializer.deserialize(BufferUtils.readMCString(in, 255)).toLegacyText();
+								pliItem.name = player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 255));
 							}
 						}
 						if (pliAction != 4) {
@@ -873,6 +870,91 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 					}
 					bb = null;
 				}
+				break;
+			case 0x39:
+				bb = ctx.alloc().buffer();
+				bb.writeByte(0xCA);
+				byte paFlags = in.readByte();
+				if ((paFlags & 0x01) != ((paFlags & 0x08) >> 3)) {
+					paFlags ^= 0x09;
+				}
+				bb.writeByte(paFlags);
+				bb.writeByte((int) in.readFloat());
+				bb.writeByte((int) in.readFloat());
+				break;
+			case 0x3A:
+				bb = ctx.alloc().buffer();
+				bb.writeByte(0xCB);
+				int tcCount = BufferUtils.readVarInt(in);
+				StringBuilder tcSb = new StringBuilder();
+				for (int ii = 0; ii < tcCount; ++ii) {
+					tcSb.append(BufferUtils.readMCString(in, 255));
+					if (ii + 1 < tcCount) {
+						tcSb.append("\u0000");
+					}
+				}
+				BufferUtils.writeLegacyMCString(bb, tcSb.toString(), 32767);
+				break;
+			case 0x3B:
+				bb = ctx.alloc().buffer();
+				bb.writeByte(0xCE);
+				String sboName = BufferUtils.readMCString(in, 255);
+				BufferUtils.writeLegacyMCString(bb, sboName, 255);
+				byte sboMode = in.readByte();
+				if (sboMode == 0) {
+					scoreBoard.put(sboName, new HashMap<>());
+				} else if (sboMode == 1) {
+					scoreBoard.remove(sboName);
+				}
+				BufferUtils.writeLegacyMCString(bb, sboMode == 1 ? "" : BufferUtils.readMCString(in, 255), 255);
+				bb.writeByte(sboMode);
+				break;
+			case 0x3C:
+				String sbItem = BufferUtils.readMCString(in, 255);
+				byte usAction = in.readByte();
+				String sbName = BufferUtils.readMCString(in, 255);
+				if (scoreBoard.containsKey(sbName)) {
+					if (usAction == 1) {
+						Map<String, Integer> guhhh = scoreBoard.get(sbName);
+						guhhh.remove(sbItem);
+						if (guhhh.isEmpty()) {
+							scoreBoard.remove(sbName);
+						}
+						bb = ctx.alloc().buffer();
+						bb.writeByte(0xCF);
+						BufferUtils.writeLegacyMCString(bb, sbItem, 255);
+						bb.writeByte(1);
+						out.add(bb);
+						for (String s : scoreBoard.keySet()) {
+							Map<String, Integer> argh = scoreBoard.get(s);
+							if (argh.containsKey(sbItem)) {
+								bb = ctx.alloc().buffer();
+								bb.writeByte(0xCF);
+								BufferUtils.writeLegacyMCString(bb, sbItem, 255);
+								bb.writeByte(0);
+								BufferUtils.writeLegacyMCString(bb, s, 255);
+								bb.writeInt(argh.get(sbItem));
+								out.add(bb);
+							}
+						}
+						bb = null;
+					} else {
+						int sbVal = BufferUtils.readVarInt(in);
+						scoreBoard.get(sbName).put(sbItem, sbVal);
+						bb = ctx.alloc().buffer();
+						bb.writeByte(0xCF);
+						BufferUtils.writeLegacyMCString(bb, sbItem, 255);
+						bb.writeByte(usAction);
+						BufferUtils.writeLegacyMCString(bb, sbName, 255);
+						bb.writeInt(sbVal);
+					}
+				}
+				break;
+			case 0x3D:
+				bb = ctx.alloc().buffer();
+				bb.writeByte(0xD0);
+				bb.writeByte(in.readByte());
+				BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
 				break;
 		}
 		if (bb != null) {
