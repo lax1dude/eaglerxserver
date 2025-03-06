@@ -12,6 +12,8 @@ public class RewindPluginProtocol<PlayerObject> implements IEaglerXRewindProtoco
 
 	private final IRewindPlatform<PlayerObject> platform;
 
+	private IEaglerXServerAPI<PlayerObject> server;
+
 	public RewindPluginProtocol(IRewindPlatform<PlayerObject> platform) {
 		this.platform = platform;
 	}
@@ -20,9 +22,14 @@ public class RewindPluginProtocol<PlayerObject> implements IEaglerXRewindProtoco
 		return platform;
 	}
 
+	public IEaglerXServerAPI<PlayerObject> getServerAPI() {
+		return server;
+	}
+
 	@Override
 	public void handleRegistered(IEaglerXServerAPI<PlayerObject> server) {
 		// On startup
+		this.server = server;
 	}
 
 	@Override

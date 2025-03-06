@@ -444,7 +444,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				bb.writeShort(chunkPbm);
 				bb.writeShort(0);
 				ByteBuf chunkData2 = ctx.alloc().buffer();
-				player.getPlayer().getServerAPI().createNativeZlib(true, false, 6).getNettyUnsafe().deflate(chunkData, chunkData2);
+				player.getNativeZlib().getNettyUnsafe().deflate(chunkData, chunkData2);
 				chunkData.release();
 				bb.writeInt(chunkData2.readableBytes());
 				bb.writeBytes(chunkData2);
@@ -528,7 +528,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				}
 				bb.writeShort(mcbCcc);
 				ByteBuf guhBuf2 = ctx.alloc().buffer();
-				player.getPlayer().getServerAPI().createNativeZlib(true, false, 6).getNettyUnsafe().deflate(guhBuf, guhBuf2);
+				player.getNativeZlib().getNettyUnsafe().deflate(guhBuf, guhBuf2);
 				guhBuf.release();
 				bb.writeInt(guhBuf2.readableBytes());
 				bb.writeBoolean(mcbSkyLightSent);
@@ -955,6 +955,39 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				bb.writeByte(0xD0);
 				bb.writeByte(in.readByte());
 				BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+				break;
+			case 0x3E:
+				bb = ctx.alloc().buffer();
+				bb.writeByte(0xD1);
+				BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+				byte teamMode = in.readByte();
+				if (teamMode == 0 || teamMode == 2) {
+					BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+					BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+					BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+					bb.writeByte(in.readByte());
+					BufferUtils.readMCString(in, 255);
+					in.readByte(); // team color, does not exist in 1.5, maybe fake it by appending to display name, prefix, and suffix???
+				}
+				if (teamMode == 0 || teamMode == 3 || teamMode == 4) {
+					int teamPlNum = BufferUtils.readVarInt(in);
+					bb.writeShort(teamPlNum);
+					for (int ii = 0; ii < teamPlNum; ++ii) {
+						BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 40), 40);
+					}
+				}
+				break;
+			case 0x3F:
+				bb = ctx.alloc().buffer();
+				bb.writeByte(0xFA);
+				int pmLen = BufferUtils.readVarInt(in);
+				bb.writeShort(pmLen);
+				bb.writeBytes(in, pmLen);
+				break;
+			case 0x40:
+				bb = ctx.alloc().buffer();
+				bb.writeByte(0xFF);
+				BufferUtils.writeLegacyMCString(bb, player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767)), 32767);
 				break;
 		}
 		if (bb != null) {
