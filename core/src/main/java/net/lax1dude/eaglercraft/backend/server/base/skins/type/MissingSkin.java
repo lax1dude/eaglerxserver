@@ -10,7 +10,7 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketForceClientSkinPresetV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherSkinPresetEAG;
 
-public class MissingSkin extends BasePresetSkin implements IEaglerPlayerSkin {
+public class MissingSkin extends BasePresetSkin {
 
 	public static final IEaglerPlayerSkin MISSING_SKIN = new MissingSkin(EnumPresetSkins.DEFAULT_STEVE);
 	public static final IEaglerPlayerSkin MISSING_SKIN_ALEX = new MissingSkin(EnumPresetSkins.DEFAULT_ALEX);

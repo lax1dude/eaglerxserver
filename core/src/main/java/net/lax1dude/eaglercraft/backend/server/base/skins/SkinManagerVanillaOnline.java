@@ -12,6 +12,8 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerEagler;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.PresetCapePlayer;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.PresetSkinPlayer;
 import net.lax1dude.eaglercraft.backend.server.util.KeyedConcurrentLazyLoader.KeyedConsumerList;
 
 public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<PlayerObject>, ISkinManagerImpl {
@@ -30,11 +32,17 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 
 	SkinManagerVanillaOnline(BasePlayerInstance<PlayerObject> player, String skinURL, EnumSkinModel skinModel, String capeURL) {
 		this.player = player;
+		UUID uuid = player.getUniqueId();
 		this.skinURL = skinURL;
 		this.skinModel = skinURL != null ? skinModel : null;
-		this.skin = skinURL == null ? getSkinService().loadPresetSkin(player.getUniqueId()) : null;
+		this.skin = skinURL == null
+				? new PresetSkinPlayer(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(),
+						(uuid.hashCode() & 1) != 0 ? 1 : 0)
+				: null;
 		this.capeURL = capeURL;
-		this.cape = capeURL == null ? getSkinService().loadPresetNoCape() : null;
+		this.cape = capeURL == null
+				? new PresetCapePlayer(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(), 0)
+				: null;
 	}
 
 	@Override

@@ -1,13 +1,12 @@
 package net.lax1dude.eaglercraft.backend.server.base.skins.type;
 
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumPresetCapes;
-import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketForceClientCapePresetV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherCapePresetEAG;
 
-public class PresetCapePlayer extends BasePresetCape implements IEaglerPlayerCape {
+public class PresetCapePlayer extends BasePresetCape {
 
 	private final SPacketOtherCapePresetEAG packet;
 

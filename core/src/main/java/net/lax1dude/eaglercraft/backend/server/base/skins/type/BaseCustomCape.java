@@ -2,7 +2,9 @@ package net.lax1dude.eaglercraft.backend.server.base.skins.type;
 
 import java.util.Arrays;
 
-abstract class BaseCustomCape {
+import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
+
+abstract class BaseCustomCape implements IEaglerPlayerCape {
 
 	private int hashCode;
 	private boolean hashZero;

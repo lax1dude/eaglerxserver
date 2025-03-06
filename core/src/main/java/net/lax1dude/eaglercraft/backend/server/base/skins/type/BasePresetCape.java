@@ -1,6 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.base.skins.type;
 
-abstract class BasePresetCape {
+import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
+
+abstract class BasePresetCape implements IEaglerPlayerCape {
 
 	protected abstract int presetId();
 

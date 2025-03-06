@@ -14,6 +14,7 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerEagler;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.InternUtils;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketGetOtherCapeEAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketGetOtherSkinEAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketGetSkinByURLEAG;
@@ -104,7 +105,7 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	@Override
 	public void changeEaglerSkin(IEaglerPlayerSkin newSkin, boolean notifyOthers) {
-		if(skin != newSkin) {
+		if(!newSkin.equals(skin)) {
 			skin = newSkin;
 			if(player.getEaglerProtocol().ver >= 4) {
 				if(newSkin == oldSkin) {
@@ -130,12 +131,12 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	@Override
 	public void changeEaglerSkin(EnumPresetSkins newSkin, boolean notifyOthers) {
-		changeEaglerSkin(skinService.loadPresetSkin(newSkin), notifyOthers);
+		changeEaglerSkin(InternUtils.getPresetSkin(newSkin.getId()), notifyOthers);
 	}
 
 	@Override
 	public void changeEaglerCape(IEaglerPlayerCape newCape, boolean notifyOthers) {
-		if(cape != newCape) {
+		if(!newCape.equals(cape)) {
 			cape = newCape;
 			if(player.getEaglerProtocol().ver >= 4) {
 				if(newCape == oldCape) {
@@ -161,7 +162,7 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	@Override
 	public void changeEaglerCape(EnumPresetCapes newCape, boolean notifyOthers) {
-		changeEaglerCape(skinService.loadPresetCape(newCape), notifyOthers);
+		changeEaglerCape(InternUtils.getPresetCape(newCape.getId()), notifyOthers);
 	}
 
 	@Override
@@ -180,7 +181,7 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 	}
 
 	private void resetEaglerSkinAndCape0(boolean notifyOthers, boolean fnaw) {
-		boolean s = skin != oldSkin, c = cape != oldCape;
+		boolean s = !skin.equals(oldSkin), c = !cape.equals(oldCape);
 		if(s || c) {
 			if(s) {
 				skin = oldSkin;

@@ -10,7 +10,7 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherSkin
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherSkinCustomV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.SkinPacketVersionCache;
 
-public class CustomSkinPlayer extends BaseCustomSkin implements IEaglerPlayerSkin {
+public class CustomSkinPlayer extends BaseCustomSkin implements IModelRewritable {
 
 	private SPacketOtherSkinCustomV3EAG packetV3;
 	private SPacketOtherSkinCustomV4EAG packetV4;
@@ -151,6 +151,15 @@ public class CustomSkinPlayer extends BaseCustomSkin implements IEaglerPlayerSki
 	@Override
 	protected byte[] textureDataV4() {
 		return packetV4().customSkin;
+	}
+
+	@Override
+	public IEaglerPlayerSkin rewriteModelInternal(int modelId) {
+		if(modelId != modelId()) {
+			return new CustomSkinModelRw(this, modelId);
+		}else {
+			return this;
+		}
 	}
 
 }

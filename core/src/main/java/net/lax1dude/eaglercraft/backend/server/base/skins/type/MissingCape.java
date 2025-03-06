@@ -7,7 +7,7 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketForceClientCapePresetV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherCapePresetEAG;
 
-public class MissingCape extends BasePresetCape implements IEaglerPlayerCape {
+public class MissingCape extends BasePresetCape {
 
 	public static final IEaglerPlayerCape MISSING_CAPE = new MissingCape();
 

@@ -6,7 +6,7 @@ import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 
-public interface ISkinService<PlayerObject> extends ISkinResolver, ISkinImageLoader {
+public interface ISkinService<PlayerObject> extends ISkinResolver {
 
 	IEaglerXServerAPI<PlayerObject> getServerAPI();
 
@@ -41,5 +41,11 @@ public interface ISkinService<PlayerObject> extends ISkinResolver, ISkinImageLoa
 	}
 
 	void setEaglerPlayersVanillaSkin(String texturesPropertyValue, String texturesPropertySignature);
+
+	ISkinImageLoader getSkinLoader(boolean cacheEnabled);
+
+	default ISkinImageLoader getSkinLoader() {
+		return getSkinLoader(true);
+	}
 
 }

@@ -2,13 +2,12 @@ package net.lax1dude.eaglercraft.backend.server.base.skins.type;
 
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumPresetSkins;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
-import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketForceClientSkinPresetV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherSkinPresetEAG;
 
-public class PresetSkinGeneric extends BasePresetSkin implements IEaglerPlayerSkin {
+public class PresetSkinGeneric extends BasePresetSkin {
 
 	private final int presetId;
 
