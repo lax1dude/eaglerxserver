@@ -58,9 +58,15 @@ class BungeeListener implements Listener {
 			if(server == null) {
 				server = new BungeeServer(plugin, info, false);
 			}
-			((BungeePlayer)plugin.getPlayer(event.getPlayer())).server = server;
+			IPlatformPlayer<ProxiedPlayer> player = plugin.getPlayer(event.getPlayer());
+			if(player != null) {
+				((BungeePlayer)player).server = server;
+			}
 		}else {
-			((BungeePlayer)plugin.getPlayer(event.getPlayer())).server = null;
+			IPlatformPlayer<ProxiedPlayer> player = plugin.getPlayer(event.getPlayer());
+			if(player != null) {
+				((BungeePlayer)player).server = null;
+			}
 		}
 	}
 

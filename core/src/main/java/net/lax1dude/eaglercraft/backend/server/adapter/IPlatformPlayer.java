@@ -20,6 +20,8 @@ public interface IPlatformPlayer<PlayerObject> extends IPlatformCommandSender<Pl
 
 	String getMinecraftBrand();
 
+	String getTexturesProperty();
+
 	void sendDataClient(String channel, byte[] message);
 
 	void sendDataBackend(String channel, byte[] message);

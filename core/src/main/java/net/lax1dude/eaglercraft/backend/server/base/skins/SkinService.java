@@ -115,7 +115,17 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 	}
 
 	public ISkinManagerBase<PlayerObject> createVanillaSkinManager(BasePlayerInstance<PlayerObject> playerInstance) {
-		return null;
+		if(skinCache != null) {
+			String prop = playerInstance.getPlatformPlayer().getTexturesProperty();
+			if(prop != null) {
+				GameProfileUtil props = GameProfileUtil.extractSkinAndCape(prop);
+				if(props != null) {
+					return new SkinManagerVanillaOnline<PlayerObject>(playerInstance, props.skinURL,
+							"slim".equals(props.skinModel) ? EnumSkinModel.ALEX : EnumSkinModel.STEVE, props.capeURL);
+				}
+			}
+		}
+		return new SkinManagerVanillaOffline<PlayerObject>(playerInstance);
 	}
 
 	public ISkinManagerEagler<PlayerObject> createEaglerSkinManager(EaglerPlayerInstance<PlayerObject> playerInstance,

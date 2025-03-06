@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.scheduler.ScheduledTask;
+import com.velocitypowered.api.util.GameProfile;
 
 import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
@@ -80,6 +81,19 @@ class VelocityPlayer implements IPlatformPlayer<Player> {
 	}
 
 	@Override
+	public String getTexturesProperty() {
+		GameProfile profile = player.getGameProfile();
+		if(profile != null) {
+			for(GameProfile.Property prop : profile.getProperties()) {
+				if("textures".equals(prop.getName())) {
+					return prop.getValue();
+				}
+			}
+		}
+		return null;
+	}
+
+	@Override
 	public void disconnect() {
 		player.disconnect(VelocityConnection.DEFAULT_KICK_MESSAGE);
 	}
@@ -90,6 +104,7 @@ class VelocityPlayer implements IPlatformPlayer<Player> {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> T getPlayerAttachment() {
 		return (T) attachment;
 	}

@@ -12,9 +12,9 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinImageLoader;
 
-public class SkinImageLoaderCacheOn extends SkinImageLoaderCacheOff {
+class SkinImageLoaderCacheOn extends SkinImageLoaderCacheOff {
 
-	public static final ISkinImageLoader INSTANCE = new SkinImageLoaderCacheOn();
+	static final ISkinImageLoader INSTANCE = new SkinImageLoaderCacheOn();
 
 	private static final Cache<File, IEaglerPlayerSkin> cachedSkinFiles = CacheBuilder.newBuilder().weakValues().build();
 	private static final Cache<File, IEaglerPlayerCape> cachedCapeFiles = CacheBuilder.newBuilder().weakValues().build();

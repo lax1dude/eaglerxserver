@@ -11,15 +11,25 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerEagler;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.InternUtils;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.PresetSkinPlayer;
 
 public class SkinManagerVanillaOffline<PlayerObject> implements ISkinManagerBase<PlayerObject>, ISkinManagerImpl {
 
 	private final BasePlayerInstance<PlayerObject> player;
 	private final IEaglerPlayerSkin skin;
 
+	SkinManagerVanillaOffline(BasePlayerInstance<PlayerObject> player) {
+		this(player, initDefaultSkin(player.getUniqueId()));
+	}
+
 	SkinManagerVanillaOffline(BasePlayerInstance<PlayerObject> player, IEaglerPlayerSkin skin) {
 		this.player = player;
 		this.skin = skin;
+	}
+
+	private static IEaglerPlayerSkin initDefaultSkin(UUID uuid) {
+		return new PresetSkinPlayer(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(),
+				(uuid.hashCode() & 1) != 0 ? 1 : 0);
 	}
 
 	@Override

@@ -13,9 +13,9 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinImageLoader;
 
-public class SkinImageLoaderCacheOff implements ISkinImageLoader {
+class SkinImageLoaderCacheOff implements ISkinImageLoader {
 
-	public static final ISkinImageLoader INSTANCE = new SkinImageLoaderCacheOff();
+	static final ISkinImageLoader INSTANCE = new SkinImageLoaderCacheOff();
 
 	SkinImageLoaderCacheOff() {
 	}

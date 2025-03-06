@@ -88,6 +88,11 @@ class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
 	}
 
 	@Override
+	public String getTexturesProperty() {
+		return BungeeUnsafe.getTexturesProperty(player.getPendingConnection());
+	}
+
+	@Override
 	public void disconnect() {
 		player.disconnect(BungeeConnection.DEFAULT_KICK_MESSAGE);
 	}
@@ -98,6 +103,7 @@ class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> T getPlayerAttachment() {
 		return (T) attachment;
 	}

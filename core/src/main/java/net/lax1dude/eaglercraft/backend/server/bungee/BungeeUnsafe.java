@@ -41,6 +41,7 @@ public class BungeeUnsafe {
 
 	private static final Class<?> class_InitialHandler;
 	private static final Method method_InitialHandler_getBrandMessage;
+	private static final Method method_InitialHandler_getLoginProfile;
 	private static final Field field_InitialHandler_ch;
 	private static final Class<?> class_ChannelWrapper;
 	private static final Method method_ChannelWrapper_getHandle;
@@ -48,6 +49,11 @@ public class BungeeUnsafe {
 	private static final Method method_ChannelWrapper_close;
 	private static final Class<?> class_PluginMessage;
 	private static final Method method_PluginMessage_getData;
+	private static final Class<?> class_LoginResult;
+	private static final Method method_LoginResult_getProperties;
+	private static final Class<?> class_Property;
+	private static final Method method_Property_getName;
+	private static final Method method_Property_getValue;
 	private static final Class<?> class_BungeeCord;
 	private static final Field field_BungeeCord_listeners;
 	private static final Field field_BungeeCord_config;
@@ -65,6 +71,7 @@ public class BungeeUnsafe {
 		try {
 			class_InitialHandler = Class.forName("net.md_5.bungee.connection.InitialHandler");
 			method_InitialHandler_getBrandMessage = class_InitialHandler.getMethod("getBrandMessage");
+			method_InitialHandler_getLoginProfile = class_InitialHandler.getMethod("getLoginProfile");
 			field_InitialHandler_ch = class_InitialHandler.getDeclaredField("ch");
 			field_InitialHandler_ch.setAccessible(true);
 			class_ChannelWrapper = Class.forName("net.md_5.bungee.netty.ChannelWrapper");
@@ -73,6 +80,11 @@ public class BungeeUnsafe {
 			method_ChannelWrapper_close = class_ChannelWrapper.getMethod("close");
 			class_PluginMessage = Class.forName("net.md_5.bungee.connection.PluginMessage");
 			method_PluginMessage_getData = class_PluginMessage.getMethod("getData");
+			class_LoginResult = Class.forName("net.md_5.bungee.connection.LoginResult");
+			method_LoginResult_getProperties = class_LoginResult.getMethod("getProperties");
+			class_Property = Class.forName("net.md_5.bungee.protocol.Property");
+			method_Property_getName = class_Property.getMethod("getName");
+			method_Property_getValue = class_Property.getMethod("getValue");
 			class_BungeeCord = Class.forName("net.md_5.bungee.BungeeCord");
 			field_BungeeCord_listeners = class_BungeeCord.getDeclaredField("listeners");
 			field_BungeeCord_listeners.setAccessible(true);
@@ -190,6 +202,30 @@ public class BungeeUnsafe {
 					});
 				}
 			} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+		}else {
+			throw new RuntimeException("PendingConnection is an unknown type: " + conn.getClass().getName());
+		}
+	}
+
+	public static String getTexturesProperty(PendingConnection conn) {
+		if(class_InitialHandler.isAssignableFrom(conn.getClass())) {
+			try {
+				Object loginResult = method_InitialHandler_getLoginProfile.invoke(conn);
+				if(loginResult != null) {
+					Object[] props = (Object[]) method_LoginResult_getProperties.invoke(loginResult);
+					if(props != null) {
+						for(int i = 0; i < props.length; ++i) {
+							Object p = props[i];
+							if("textures".equals(method_Property_getName.invoke(p))) {
+								return (String) method_Property_getValue.invoke(p);
+							}
+						}
+					}
+				}
+				return null;
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		}else {

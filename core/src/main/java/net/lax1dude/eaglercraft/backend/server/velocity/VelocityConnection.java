@@ -35,6 +35,7 @@ class VelocityConnection implements IPlatformConnection {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> T getAttachment() {
 		return (T) attachment;
 	}
