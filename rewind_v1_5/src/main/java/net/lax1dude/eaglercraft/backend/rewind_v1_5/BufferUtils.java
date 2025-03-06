@@ -208,36 +208,23 @@ public class BufferUtils {
 	// "also use an Inflater and Deflater not an InflaterInputStream/DeflaterOutputStream"
 	// lax: USE THE NATIVE BYTEBUF ONE FROM EAGLERXSERVER
 
-	public static void convertChunk2Legacy(boolean skyLightSent, int pbm, boolean guc, ByteBuf buffer, ByteBuf bb) {
-		if (buffer.readUnsignedByte() > 0) {
-			// oh no
-			int len = BufferUtils.readVarInt(buffer);
-			for (int i = 0; i < len; ++i) {
-				BufferUtils.readVarInt(buffer);
-			}
-			// assume ALWAYS global palette (PLEASE)
-		}
-
+	public static void convertChunk2Legacy(boolean skyLightSent, int sbm, boolean guc, ByteBuf buffer, ByteBuf bb) {
 		for (int i = 0; i < 16; ++i) {
-			if ((pbm & (1 << i)) != 0) {
-				
-				// lax: WHY IS THIS BYTE ARRAY NECESSARY, JUST SET BYTES DIRECTLY IN THE OUTPUT
-				// lax: Don't create a new one each time if necessary
-				byte[] outputBlockMetadataArray = new byte[2048];
+			if ((sbm & (1 << i)) != 0) {
+				int ind1 = bb.writerIndex();
 
-				int dataArrayLength = BufferUtils.readVarInt(buffer);
-				for (int ii = 0; ii < dataArrayLength; ++ii) {
-					long data = buffer.readLong();
-					byte metadata = (byte) (data & 0xF);
-					byte type = (byte) (data >> 4);
-					bb.writeByte(type);
-					if (ii % 2 == 0) {
-						outputBlockMetadataArray[ii / 2] = (byte) (metadata << 4);
-					} else {
-						outputBlockMetadataArray[ii / 2] |= (byte) (metadata & 0xF);
-					}
+				for (int ii = 0; ii < 2048; ++ii) {
+					short data1 = buffer.readShort();
+					byte type1 = (byte) (data1 >> 4);
+					byte metadata1 = (byte) (data1 & 15);
+					short data2 = buffer.readShort();
+					byte type2 = (byte) (data2 >> 4);
+					byte metadata2 = (byte) (data2 & 15);
+					bb.writeByte(type1);
+					bb.writeByte(type2);
+					bb.setByte(ind1 + 4096 + (ii / 2), (metadata1 << 4) | (metadata2 & 15));
 				}
-				bb.writeBytes(outputBlockMetadataArray);
+				bb.writerIndex(ind1 + 6144);
 				bb.writeBytes(buffer, skyLightSent ? 4096 : 2048);
 			}
 		}
@@ -256,5 +243,27 @@ public class BufferUtils {
 
 	public static int posZ(long position) {
 		return (int)(position << 38l >>> 38l);
+	}
+
+	public static void convertMetadata2Legacy(ByteBuf buffer, ByteBuf bb) {
+		while (true) {
+			short item = buffer.readUnsignedByte();
+			if (item == 127) {
+				break;
+			}
+			int type = (item & 224) >> 5;
+			if (type == 7) {
+				buffer.readFloat();
+				buffer.readFloat();
+				buffer.readFloat();
+				continue;
+			}
+			bb.writeByte(item);
+			if (type == 4) {
+				BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(buffer, 32767), 32767);
+			} else if (type == 5) {
+				BufferUtils.convertSlot2Legacy(buffer, bb);
+			}
+		}
 	}
 }

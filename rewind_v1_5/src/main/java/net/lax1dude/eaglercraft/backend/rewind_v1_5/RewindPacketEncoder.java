@@ -28,6 +28,12 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 
 	private final Map<String, Map<String, Integer>> scoreBoard = new HashMap<>();
 
+	private double playerX = 0;
+	private double playerY = 0;
+	private double playerZ = 0;
+	private float playerYaw = 0;
+	private float playerPitch = 0;
+
 	private static final String[] particleNames = new String[] {
 			"explode",
 			"largeexplosion",
@@ -161,17 +167,19 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				double plz = in.readDouble();
 				float plyaw = in.readFloat();
 				float plpitch = in.readFloat();
-				byte flags = in.readByte(); // todo: aaa
-				// todo: track player pos at all times!!
-				// <Dinnerbone> It's a bitfield, X/Y/Z/Y_ROT/X_ROT. If X is set, the x value is relative and not absolute.
-				// X 0x01 Y 0x02 Z 0x04 Y_ROT 0x08 X_ROT 0x10
+				byte flags = in.readByte();
+				playerX = plx + ((flags & 0x01) != 0 ? playerX : 0);
+				playerY = ply + ((flags & 0x02) != 0 ? playerY : 0);
+				playerZ = plz + ((flags & 0x04) != 0 ? playerZ : 0);
+				playerYaw = plyaw + ((flags & 0x10) != 0 ? playerYaw : 0);
+				playerPitch = plpitch + ((flags & 0x08) != 0 ? playerPitch : 0);
 				bb.writeDouble(plx);
 				bb.writeDouble(ply);
 				bb.writeDouble(ply);
 				bb.writeDouble(plz);
 				bb.writeFloat(plyaw);
 				bb.writeFloat(plpitch);
-				bb.writeBoolean(true); // on ground status, todo: track on ground status instead of only showing true
+				bb.writeBoolean(false);
 				break;
 			case 0x09:
 				bb = ctx.alloc().buffer();
@@ -202,29 +210,16 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 			case 0x0C:
 				bb = ctx.alloc().buffer();
 				bb.writeByte(0x14);
-				int peid = BufferUtils.readVarInt(in);
-				// uuid:
-				long pmsb = in.readLong();
-				long plsb = in.readLong();
-				int px = in.readInt();
-				int py = in.readInt();
-				int pz = in.readInt();
-				byte pyaw = in.readByte();
-				byte ppitch = in.readByte();
-				short pitem = in.readShort();
-				// todo: metadata :(
-
-				bb.writeInt(peid);
-				// todo: use metadata to get username!!
-				BufferUtils.writeLegacyMCString(bb, pmsb + " " + plsb, 255);
-				bb.writeInt(px);
-				bb.writeInt(py);
-				bb.writeInt(pz);
-				bb.writeByte(pyaw);
-				bb.writeByte(ppitch);
-				bb.writeShort(pitem);
-				// todo: metadata :(
-				bb.writeByte((short) 0xFF); // temp, no metadata...
+				bb.writeInt(BufferUtils.readVarInt(in));
+				UUID puuid = new UUID(in.readLong(), in.readLong());
+				BufferUtils.writeLegacyMCString(bb, player.getPlayer().getServerAPI().getPlayerByUUID(puuid).getUsername(), 255);
+				bb.writeInt(in.readInt());
+				bb.writeInt(in.readInt());
+				bb.writeInt(in.readInt());
+				bb.writeByte(in.readByte());
+				bb.writeByte(in.readByte());
+				bb.writeShort(in.readShort());
+				BufferUtils.convertMetadata2Legacy(in, bb);
 				break;
 			case 0x0D:
 				bb = ctx.alloc().buffer();
@@ -250,7 +245,6 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				bb.writeInt(oz);
 				bb.writeByte(opitch);
 				bb.writeByte(oyaw);
-				// todo: verify object data between versions!!
 				bb.writeByte(odata);
 				if (odata != 0) {
 					short ovx = in.readShort();
@@ -268,32 +262,21 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 			case 0x0F:
 				bb = ctx.alloc().buffer();
 				bb.writeByte(0x18);
-				int meid = BufferUtils.readVarInt(in);
-				short mtype = in.readUnsignedByte();
-				int mx = in.readInt();
-				int my = in.readInt();
-				int mz = in.readInt();
+				bb.writeInt(BufferUtils.readVarInt(in));
+				bb.writeByte(in.readUnsignedByte());
+				bb.writeInt(in.readInt());
+				bb.writeInt(in.readInt());
+				bb.writeInt(in.readInt());
 				byte myaw = in.readByte();
 				byte mpitch = in.readByte();
 				byte mhpitch = in.readByte();
-				short mvx = in.readShort();
-				short mvy = in.readShort();
-				short mvz = in.readShort();
-				// todo: entity metadata!!!!!!!
-
-				bb.writeInt(meid);
-				bb.writeByte(mtype);
-				bb.writeInt(mx);
-				bb.writeInt(my);
-				bb.writeInt(mz);
 				bb.writeByte(mpitch);
 				bb.writeByte(mhpitch);
 				bb.writeByte(myaw);
-				bb.writeByte(mvx);
-				bb.writeByte(mvy);
-				bb.writeByte(mvz);
-				// todo: entity metadata!!!!!!!
-				bb.writeByte((short) 0xFF); // temp, no metadata...
+				bb.writeShort(in.readShort());
+				bb.writeShort(in.readShort());
+				bb.writeShort(in.readShort());
+				BufferUtils.convertMetadata2Legacy(in, bb);
 				break;
 			case 0x10:
 				bb = ctx.alloc().buffer();
@@ -402,8 +385,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				bb = ctx.alloc().buffer();
 				bb.writeByte(0x28);
 				bb.writeInt(BufferUtils.readVarInt(in));
-				// todo: metadata :(
-				bb.writeByte((short) 0xFF); // temp, no metadata...
+				BufferUtils.convertMetadata2Legacy(in, bb);
 				break;
 			case 0x1D:
 				bb = ctx.alloc().buffer();
@@ -715,9 +697,6 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 					bb.writeByte(ubeAct);
 					BufferUtils.convertNBT2Legacy(in, bb);
 				}
-				break;
-			case 0x36:
-				// not exist, todo: perhaps log in chat or polyfill with chat?
 				break;
 			case 0x37:
 				int numStats = BufferUtils.readVarInt(in);
