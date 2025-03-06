@@ -9,6 +9,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.TranslatableComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
 
@@ -103,18 +104,26 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 
 	@Override
 	public Object parseGenericJSON(String json) throws IllegalArgumentException {
+		BaseComponent[] components;
 		try {
-			Object ret = ComponentSerializer.deserialize(json);
-			if(ret == null) {
-				throw new NullPointerException("Deserialization result is null");
-			}
-			return ret;
+			components = ComponentSerializer.parse(json);
 		}catch(IllegalArgumentException ex) {
 			throw ex;
 		}catch(JsonParseException ex) {
 			throw new IllegalArgumentException(ex.getMessage(), ex.getCause());
 		}catch(Exception ex) {
 			throw new IllegalArgumentException("Could not parse JSON chat component", ex);
+		}
+		if(components.length == 1) {
+			return components[0];
+		}else if(components.length == 0) {
+			return new TextComponent();
+		}else {
+			BaseComponent ret = components[0];
+			for(int i = 1; i < components.length; ++i) {
+				ret.addExtra(components[i]);
+			}
+			return ret;
 		}
 	}
 

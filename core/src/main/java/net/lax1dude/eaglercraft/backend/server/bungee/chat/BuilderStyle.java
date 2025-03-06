@@ -4,7 +4,6 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder.IBuilderStyle;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ComponentStyle;
 
 class BuilderStyle<ParentType> implements IBuilderStyle<ParentType> {
 
@@ -63,75 +62,73 @@ class BuilderStyle<ParentType> implements IBuilderStyle<ParentType> {
 	}
 
 	void applyTo(BaseComponent ret) {
-		ComponentStyle style = new ComponentStyle();
 		if(color != null) {
 			switch(color) {
 			case BLACK:
-				style.setColor(ChatColor.BLACK);
+				ret.setColor(ChatColor.BLACK);
 				break;
 			case DARK_BLUE:
-				style.setColor(ChatColor.DARK_BLUE);
+				ret.setColor(ChatColor.DARK_BLUE);
 				break;
 			case DARK_GREEN:
-				style.setColor(ChatColor.DARK_GREEN);
+				ret.setColor(ChatColor.DARK_GREEN);
 				break;
 			case DARK_AQUA:
-				style.setColor(ChatColor.DARK_AQUA);
+				ret.setColor(ChatColor.DARK_AQUA);
 				break;
 			case DARK_RED:
-				style.setColor(ChatColor.DARK_RED);
+				ret.setColor(ChatColor.DARK_RED);
 				break;
 			case DARK_PURPLE:
-				style.setColor(ChatColor.DARK_PURPLE);
+				ret.setColor(ChatColor.DARK_PURPLE);
 				break;
 			case GOLD:
-				style.setColor(ChatColor.GOLD);
+				ret.setColor(ChatColor.GOLD);
 				break;
 			case GRAY:
-				style.setColor(ChatColor.GRAY);
+				ret.setColor(ChatColor.GRAY);
 				break;
 			case DARK_GRAY:
-				style.setColor(ChatColor.DARK_GRAY);
+				ret.setColor(ChatColor.DARK_GRAY);
 				break;
 			case BLUE:
-				style.setColor(ChatColor.BLUE);
+				ret.setColor(ChatColor.BLUE);
 				break;
 			case GREEN:
-				style.setColor(ChatColor.GREEN);
+				ret.setColor(ChatColor.GREEN);
 				break;
 			case AQUA:
-				style.setColor(ChatColor.AQUA);
+				ret.setColor(ChatColor.AQUA);
 				break;
 			case RED:
-				style.setColor(ChatColor.RED);
+				ret.setColor(ChatColor.RED);
 				break;
 			case LIGHT_PURPLE:
-				style.setColor(ChatColor.LIGHT_PURPLE);
+				ret.setColor(ChatColor.LIGHT_PURPLE);
 				break;
 			case YELLOW:
-				style.setColor(ChatColor.YELLOW);
+				ret.setColor(ChatColor.YELLOW);
 				break;
 			case WHITE:
-				style.setColor(ChatColor.WHITE);
+				ret.setColor(ChatColor.WHITE);
 				break;
 			}
 		}
 		if(bold) {
-			style.setBold(true);
+			ret.setBold(true);
 		}
 		if(italic) {
-			style.setItalic(true);
+			ret.setItalic(true);
 		}
 		if(strikethrough) {
-			style.setStrikethrough(true);
+			ret.setStrikethrough(true);
 		}
 		if(underline) {
-			style.setUnderlined(true);
+			ret.setUnderlined(true);
 		}
 		if(obfuscated) {
-			style.setObfuscated(true);
+			ret.setObfuscated(true);
 		}
-		ret.setStyle(style);
 	}
 
 }
