@@ -1,6 +1,8 @@
 package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
@@ -15,6 +17,18 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 	public RewindPacketEncoder(PlayerInstance<PlayerObject> player) {
 		this.player = player;
 	}
+
+	private static final class TabListItem {
+		public String name;
+		public int ping;
+
+		public TabListItem(String name, int ping) {
+			this.name = name;
+			this.ping = ping;
+		}
+	}
+
+	private final Map<UUID, TabListItem> tabList = new HashMap<>();
 
 	private static final String[] particleNames = new String[] {
 			"explode",
@@ -797,29 +811,64 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				bb = null;
 				break;
 			case 0x38:
-				// TODO: CONTINUE FROM HERE: "PLAYER LIST ITEM" PACKET
 				int pliAction = BufferUtils.readVarInt(in);
 				if (pliAction != 1) {
 					int pliNum = BufferUtils.readVarInt(in);
 					for (int ii = 0; ii < pliNum; ++ii) {
-						bb = ctx.alloc().buffer();
-						bb.writeByte(0xC9);
 						long plimsb = in.readLong();
 						long plilsb = in.readLong();
-						String pliName = player.getPlayer().getServerAPI().getPlayerByUUID(new UUID(plimsb, plilsb)).getUsername();
+						UUID pliUuid = new UUID(plimsb, plilsb);
+						if (!tabList.containsKey(pliUuid)) {
+							if (pliAction == 0) {
+								String tempName = BufferUtils.readMCString(in, 255);
+								int tempSkip = BufferUtils.readVarInt(in);
+								for (int iii = 0; iii < tempSkip; ++iii) {
+									BufferUtils.readMCString(in, 255);
+									BufferUtils.readMCString(in, 255);
+									if (in.readBoolean()) {
+										BufferUtils.readMCString(in, 255);
+									}
+								}
+								BufferUtils.readVarInt(in);
+								int tbPing = BufferUtils.readVarInt(in);
+								if (in.readBoolean()) {
+									tempName = ComponentSerializer.deserialize(BufferUtils.readMCString(in, 255)).toLegacyText();
+								}
+								tabList.put(pliUuid, new TabListItem(tempName, tbPing));
+							} else {
+								tabList.put(pliUuid, new TabListItem(player.getPlayer().getServerAPI().getPlayerByUUID(pliUuid).getUsername(), 0));
+							}
+						}
+						TabListItem pliItem = tabList.get(pliUuid);
 						if (pliAction != 0) {
-							// remove player
-							// todo: need to keep internal map of username to current display name!!
+							bb = ctx.alloc().buffer();
+							bb.writeByte(0xC9);
+							BufferUtils.writeLegacyMCString(bb, pliItem.name, 255);
+							bb.writeBoolean(false);
+							bb.writeShort(pliItem.ping);
+							out.add(bb);
 						}
 						if (pliAction == 2) {
-							// set ping
+							bb = ctx.alloc().buffer();
+							bb.writeByte(0xC9);
+							BufferUtils.writeLegacyMCString(bb, pliItem.name, 255);
+							bb.writeBoolean(true);
+							bb.writeShort(pliItem.ping = BufferUtils.readVarInt(in));
+							out.add(bb);
 						} else if (pliAction == 3) {
 							if (in.readBoolean()) {
-								pliName = ComponentSerializer.deserialize(BufferUtils.readMCString(in, 255)).toLegacyText();
+								pliItem.name = ComponentSerializer.deserialize(BufferUtils.readMCString(in, 255)).toLegacyText();
 							}
 						}
 						if (pliAction != 4) {
-							// add player
+							bb = ctx.alloc().buffer();
+							bb.writeByte(0xC9);
+							BufferUtils.writeLegacyMCString(bb, pliItem.name, 255);
+							bb.writeBoolean(true);
+							bb.writeShort(pliItem.ping);
+							out.add(bb);
+						} else {
+							tabList.remove(pliUuid);
 						}
 					}
 					bb = null;
