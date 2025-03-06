@@ -448,7 +448,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 					int recBlockId = BufferUtils.readVarInt(in);
 					byte recXCoord = (byte) ((recHorizPos >> 4) & 0x0F);
 					byte recZCoord = (byte) (recHorizPos & 0x0F);
-					// todo: conv to legacy as needed
+					recBlockId = BufferUtils.convertTypeMeta2Legacy(recBlockId);
 					int recBlockType = recBlockId >> 4;
 					int recBlockMeta = recBlockId & 15;
 					bb.writeInt((recBlockMeta & 0xF) | ((recBlockType & 0xFFF) << 4) | ((recYCoord & 0xFF) << 16) | ((recZCoord & 0xF) << 24) | ((recXCoord & 0xF) << 28));
@@ -610,8 +610,42 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				bb.writeByte(0x64);
 				bb.writeByte(in.readUnsignedByte());
 				String windowType = BufferUtils.readMCString(in, 255);
-				// todo: window type string to int
-				bb.writeByte(0); // temp to keep aligned
+				byte windowId = -1;
+				switch (windowType) {
+					case "minecraft:chest":
+					case "EntityHorse":
+						windowId = 0;
+						break;
+					case "minecraft:crafting_table":
+						windowId = 1;
+						break;
+					case "minecraft:furnace":
+						windowId = 2;
+						break;
+					case "minecraft:dispenser":
+					case "minecraft:dropper":
+						windowId = 3;
+						break;
+					case "minecraft:enchanting_table":
+						windowId = 4;
+						break;
+					case "minecraft:brewing_stand":
+						windowId = 5;
+						break;
+					case "minecraft:villager":
+						windowId = 6;
+						break;
+					case "minecraft:beacon":
+						windowId = 7;
+						break;
+					case "minecraft:anvil":
+						windowId = 8;
+						break;
+					case "minecraft:hopper":
+						windowId = 9;
+						break;
+				}
+				bb.writeByte(windowId);
 				String windowTitle = BufferUtils.readMCString(in, 4095);
 				windowTitle = player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(windowTitle);
 				BufferUtils.writeLegacyMCString(bb, windowTitle, 255);
@@ -676,7 +710,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 					BufferUtils.writeLegacyMCString(bb, player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 4095)), 255);				}
 				break;
 			case 0x34:
-				// todo: all this bullshit
+				// todo: all this bullshit (maps)
 				/*
 				bb = ctx.alloc().buffer();
 				bb.writeByte(0x83);

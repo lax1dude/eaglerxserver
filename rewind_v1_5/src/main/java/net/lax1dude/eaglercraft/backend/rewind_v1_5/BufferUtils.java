@@ -130,6 +130,7 @@ public class BufferUtils {
 	}
 
 	public static void convertSlot2Legacy(ByteBuf buffer, ByteBuf bb) {
+		// todo: convert 1.8 items to 1.5
 		short blockId = buffer.readShort();
 		bb.writeShort(blockId);
 		if (blockId == -1) {
@@ -148,6 +149,7 @@ public class BufferUtils {
 	}
 
 	public static void convertLegacySlot(ByteBuf buffer, ByteBuf bb) {
+		// todo: convert 1.5 items to 1.8
 		short blockId = buffer.readShort();
 		bb.writeShort(blockId);
 		if (blockId == -1) {
@@ -162,7 +164,6 @@ public class BufferUtils {
 			bb.writeByte(0);
 			return;
 		}
-		// todo: ungzip buffer using len for length to ungzip!! rfc 1952
 		convertLegacyNBT(buffer, bb);
 	}
 
@@ -215,9 +216,11 @@ public class BufferUtils {
 
 				for (int ii = 0; ii < 2048; ++ii) {
 					short data1 = buffer.readShort();
+					data1 = (short) BufferUtils.convertTypeMeta2Legacy(data1);
 					byte type1 = (byte) (data1 >> 4);
 					byte metadata1 = (byte) (data1 & 15);
 					short data2 = buffer.readShort();
+					data2 = (short) BufferUtils.convertTypeMeta2Legacy(data2);
 					byte type2 = (byte) (data2 >> 4);
 					byte metadata2 = (byte) (data2 & 15);
 					bb.writeByte(type1);
@@ -252,7 +255,7 @@ public class BufferUtils {
 				break;
 			}
 			int type = (item & 224) >> 5;
-			if (type == 7) {
+			if (type == 7) { // may need to send 0xFF if ALL items are this
 				buffer.readFloat();
 				buffer.readFloat();
 				buffer.readFloat();
@@ -265,5 +268,12 @@ public class BufferUtils {
 				BufferUtils.convertSlot2Legacy(buffer, bb);
 			}
 		}
+	}
+
+	public static int convertTypeMeta2Legacy(int typeMeta) {
+		int type = typeMeta >> 4;
+		int meta = typeMeta & 15;
+		// todo: map these
+		return (type << 4) | meta;
 	}
 }
