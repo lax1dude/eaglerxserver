@@ -54,6 +54,7 @@ import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindService;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
+import net.lax1dude.eaglercraft.backend.server.base.bukkit_rpc.BackendChannelHelper;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandBrand;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandConfirmCode;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandDomain;
@@ -64,6 +65,7 @@ import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataRoot;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings.ConfigDataSkinService;
 import net.lax1dude.eaglercraft.backend.server.base.message.MessageControllerFactory;
+import net.lax1dude.eaglercraft.backend.server.base.message.PlayerChannelHelper;
 import net.lax1dude.eaglercraft.backend.server.base.config.EaglerConfigLoader;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.PipelineTransformer;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinService;
@@ -204,6 +206,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		listeners = listenersBuilder.build();
 		listenersByAddress = listenersByAddressBuilder.build();
 		init.setEaglerListeners(listenersImpl.build());
+		init.setEaglerPlayerChannels(PlayerChannelHelper.getPlayerChannels(this));
+		init.setEaglerBackendChannels(BackendChannelHelper.getBackendChannels(this));
 	}
 
 	private void loadNonProxying(IPlatform.InitNonProxying<PlayerObject> init) {
@@ -217,6 +221,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		listeners = ImmutableMap.of("default", eagListener);
 		listenersByAddress = ImmutableMap.of(init.getListenerAddress(), eagListener);
 		init.setEaglerListener(eagListener);
+		init.setEaglerPlayerChannels(PlayerChannelHelper.getPlayerChannels(this));
 	}
 
 	public ConfigDataRoot getConfig() {
