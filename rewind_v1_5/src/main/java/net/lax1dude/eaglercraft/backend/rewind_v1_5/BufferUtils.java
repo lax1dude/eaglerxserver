@@ -270,10 +270,16 @@ public class BufferUtils {
 		}
 	}
 
+	public static int convertType2Legacy(int type) {
+		// todo: map type
+		return type;
+	}
+
 	public static int convertTypeMeta2Legacy(int typeMeta) {
 		int type = typeMeta >> 4;
 		int meta = typeMeta & 15;
-		// todo: map these
+		type = convertType2Legacy(type);
+		// todo: map meta
 		return (type << 4) | meta;
 	}
 }
