@@ -10,7 +10,8 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.INettyChannel;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 
-public class BaseConnectionInstance implements IBaseLoginConnection, INettyChannel.NettyUnsafe {
+public class BaseConnectionInstance extends IIdentifiedConnection.Base
+		implements IBaseLoginConnection, INettyChannel.NettyUnsafe {
 
 	protected final IPlatformConnection connection;
 	protected final EaglerAttributeManager.EaglerAttributeHolder attributeHolder;
@@ -19,6 +20,11 @@ public class BaseConnectionInstance implements IBaseLoginConnection, INettyChann
 			EaglerAttributeManager.EaglerAttributeHolder attributeHolder) {
 		this.connection = connection;
 		this.attributeHolder = attributeHolder;
+	}
+
+	@Override
+	public Object getIdentityToken() {
+		return attributeHolder;
 	}
 
 	@Override

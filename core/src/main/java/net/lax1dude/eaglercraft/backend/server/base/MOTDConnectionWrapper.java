@@ -18,7 +18,7 @@ import net.lax1dude.eaglercraft.backend.server.api.query.IMOTDConnection;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketQueryHandler;
 
-public class MOTDConnectionWrapper implements IMOTDConnection {
+public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements IMOTDConnection {
 
 	private final WebSocketQueryHandler queryConnection;
 	private String subType;
@@ -163,6 +163,11 @@ public class MOTDConnectionWrapper implements IMOTDConnection {
 	@Override
 	public <T> void set(IAttributeKey<T> key, T value) {
 		queryConnection.set(key, value);
+	}
+
+	@Override
+	public Object getIdentityToken() {
+		return queryConnection.getIdentityToken();
 	}
 
 	@Override

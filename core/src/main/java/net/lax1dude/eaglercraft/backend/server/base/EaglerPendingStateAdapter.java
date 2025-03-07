@@ -8,7 +8,7 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
-public class EaglerPendingStateAdapter implements IEaglerPendingConnection {
+public class EaglerPendingStateAdapter extends IIdentifiedConnection.Base implements IEaglerPendingConnection {
 
 	protected final NettyPipelineData pipelineData;
 
@@ -54,6 +54,11 @@ public class EaglerPendingStateAdapter implements IEaglerPendingConnection {
 	@Override
 	public NettyUnsafe getNettyUnsafe() {
 		return pipelineData;
+	}
+
+	@Override
+	public Object getIdentityToken() {
+		return pipelineData.getIdentityToken();
 	}
 
 	@Override

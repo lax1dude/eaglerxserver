@@ -26,7 +26,8 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRe
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
-public class NettyPipelineData implements IEaglerConnection, INettyChannel.NettyUnsafe, IPipelineData {
+public class NettyPipelineData extends IIdentifiedConnection.Base
+		implements IEaglerConnection, INettyChannel.NettyUnsafe, IPipelineData {
 
 	public static class ProfileDataHolder {
 
@@ -125,6 +126,11 @@ public class NettyPipelineData implements IEaglerConnection, INettyChannel.Netty
 	@Override
 	public void disconnect() {
 		channel.close();
+	}
+
+	@Override
+	public Object getIdentityToken() {
+		return attributeHolder;
 	}
 
 	@Override

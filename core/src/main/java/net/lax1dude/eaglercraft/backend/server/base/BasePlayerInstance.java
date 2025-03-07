@@ -12,7 +12,8 @@ import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistry;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
 
-public class BasePlayerInstance<PlayerObject> implements IBasePlayer<PlayerObject>, INettyChannel.NettyUnsafe {
+public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
+		implements IBasePlayer<PlayerObject>, INettyChannel.NettyUnsafe {
 
 	protected final IPlatformPlayer<PlayerObject> player;
 	protected final EaglerAttributeManager.EaglerAttributeHolder attributeHolder;
@@ -63,6 +64,11 @@ public class BasePlayerInstance<PlayerObject> implements IBasePlayer<PlayerObjec
 	@Override
 	public EaglerPlayerInstance<PlayerObject> asEaglerPlayer() {
 		return null;
+	}
+
+	@Override
+	public Object getIdentityToken() {
+		return attributeHolder;
 	}
 
 	@Override

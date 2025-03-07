@@ -31,11 +31,13 @@ import net.lax1dude.eaglercraft.backend.server.api.query.IQueryConnection;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryHandler;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerListener;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
+import net.lax1dude.eaglercraft.backend.server.base.IIdentifiedConnection;
 import net.lax1dude.eaglercraft.backend.server.base.MOTDConnectionWrapper;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 
-public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implements IQueryConnection, INettyChannel.NettyUnsafe {
+public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
+		implements IQueryConnection, IIdentifiedConnection, INettyChannel.NettyUnsafe {
 
 	private final EaglerXServer<?> server;
 	private final NettyPipelineData pipelineData;
@@ -195,13 +197,28 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 	}
 
 	@Override
+	public Object getIdentityToken() {
+		return pipelineData.attributeHolder;
+	}
+
+	@Override
+	public int hashCode() {
+		return System.identityHashCode(pipelineData.attributeHolder);
+	}
+
+	public boolean equals(Object o) {
+		return this == o || ((o instanceof IIdentifiedConnection)
+				&& ((IIdentifiedConnection) o).getIdentityToken() == pipelineData.attributeHolder);
+	}
+
+	@Override
 	public <T> T get(IAttributeKey<T> key) {
-		return pipelineData.get(key);
+		return pipelineData.attributeHolder.get(key);
 	}
 
 	@Override
 	public <T> void set(IAttributeKey<T> key, T value) {
-		pipelineData.set(key, value);
+		pipelineData.attributeHolder.set(key, value);
 	}
 
 	@Override
