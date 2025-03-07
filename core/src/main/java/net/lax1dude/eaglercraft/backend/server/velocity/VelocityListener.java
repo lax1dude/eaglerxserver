@@ -8,6 +8,7 @@ import com.velocitypowered.api.event.connection.PluginMessageEvent;
 import com.velocitypowered.api.event.connection.PluginMessageEvent.ForwardResult;
 import com.velocitypowered.api.event.connection.PostLoginEvent;
 import com.velocitypowered.api.event.connection.PreLoginEvent;
+import com.velocitypowered.api.event.player.GameProfileRequestEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
 import com.velocitypowered.api.network.ListenerType;
@@ -47,6 +48,15 @@ class VelocityListener {
 		Object pipelineData = channel.attr(PipelineAttributes.<Object>pipelineData()).getAndSet(null);
 		plugin.initializeConnection(conn, handshakeEvent.getUsername(), handshakeEvent.getUniqueId(), pipelineData,
 				channel.attr(PipelineAttributes.<VelocityConnection>connectionData())::set);
+	}
+
+	@Subscribe(priority = Short.MAX_VALUE)
+	public void onGameProfileRequestEvent(GameProfileRequestEvent gameProfileEvent) {
+		VelocityConnection conn = VelocityUnsafe.getInboundChannel(gameProfileEvent.getConnection())
+				.attr(PipelineAttributes.<VelocityConnection>connectionData()).get();
+		if(!conn.uuid.equals(gameProfileEvent.getGameProfile().getId())) {
+			gameProfileEvent.setGameProfile(gameProfileEvent.getGameProfile().withId(conn.uuid));
+		}
 	}
 
 	@Subscribe(priority = Short.MAX_VALUE, async = true)

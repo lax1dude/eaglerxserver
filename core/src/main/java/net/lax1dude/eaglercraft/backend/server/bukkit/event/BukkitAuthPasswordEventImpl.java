@@ -101,7 +101,8 @@ class BukkitAuthPasswordEventImpl extends EaglercraftAuthPasswordEvent {
 
 	@Override
 	public void setProfileUUID(UUID uuid) {
-		profileUUID = uuid;
+		//profileUUID = uuid;
+		throw new UnsupportedOperationException("Cannot change player UUID on Bukkit platform!");
 	}
 
 	@Override

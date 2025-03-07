@@ -510,6 +510,10 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			public IPlatformConnection getConnection() {
 				return c;
 			}
+			@Override
+			public void setUniqueId(UUID uuid) {
+				conn.setUniqueId(uuid);
+			}
 		});
 	}
 

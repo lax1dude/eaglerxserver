@@ -557,6 +557,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			public IPlatformConnection getConnection() {
 				return c;
 			}
+			@Override
+			public void setUniqueId(UUID uuid) {
+			}
 		});
 	}
 
@@ -581,6 +584,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 				@Override
 				public IPlatformConnection getConnection() {
 					return c;
+				}
+				@Override
+				public void setUniqueId(UUID uuid) {
 				}
 			});
 		}else {

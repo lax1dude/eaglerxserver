@@ -557,6 +557,10 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			public IPlatformConnection getConnection() {
 				return c;
 			}
+			@Override
+			public void setUniqueId(UUID uuid) {
+				c.uuid = uuid;
+			}
 		});
 	}
 

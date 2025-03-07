@@ -17,7 +17,7 @@ class VelocityConnection implements IPlatformConnection {
 	private final PlatformPluginVelocity plugin;
 	private final InboundConnection connection;
 	private final String username;
-	private final UUID uuid;
+	UUID uuid;
 	volatile Player playerInstance;
 	Object attachment;
 
@@ -42,12 +42,22 @@ class VelocityConnection implements IPlatformConnection {
 
 	@Override
 	public String getUsername() {
-		return username;
+		Player player = playerInstance;
+		if(player != null) {
+			return player.getUsername();
+		}else {
+			return username;
+		}
 	}
 
 	@Override
 	public UUID getUniqueId() {
-		return uuid;
+		Player player = playerInstance;
+		if(player != null) {
+			return player.getUniqueId();
+		}else {
+			return uuid;
+		}
 	}
 
 	@Override

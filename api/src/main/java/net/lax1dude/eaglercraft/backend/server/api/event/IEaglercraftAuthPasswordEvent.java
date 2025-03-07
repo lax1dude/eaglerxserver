@@ -3,6 +3,9 @@ package net.lax1dude.eaglercraft.backend.server.api.event;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
+import net.lax1dude.eaglercraft.backend.server.api.EnumPlatformType;
+import net.lax1dude.eaglercraft.backend.server.api.UnsupportedOn;
+
 public interface IEaglercraftAuthPasswordEvent<PlayerObject, ComponentObject> extends IBaseLoginEvent<PlayerObject> {
 
 	public static enum EnumAuthResponse {
@@ -30,6 +33,7 @@ public interface IEaglercraftAuthPasswordEvent<PlayerObject, ComponentObject> ex
 
 	UUID getProfileUUID();
 
+	@UnsupportedOn({EnumPlatformType.BUKKIT})
 	void setProfileUUID(UUID uuid);
 
 	IEaglercraftAuthCheckRequiredEvent.EnumAuthType getAuthType();
