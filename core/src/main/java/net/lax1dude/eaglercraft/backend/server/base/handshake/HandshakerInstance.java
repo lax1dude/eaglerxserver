@@ -54,7 +54,7 @@ public abstract class HandshakerInstance {
 			pipelineData.minecraftProtocol = minecraftVersion;
 			pipelineData.handshakeAuthEnabled = auth;
 			pipelineData.handshakeAuthUsername = authUsername;
-			server.eventDispatcher().dispatchClientBrandEvent(pipelineData, (evt, err) -> {
+			server.eventDispatcher().dispatchClientBrandEvent(pipelineData.asPendingConnection(), (evt, err) -> {
 				if(err == null) {
 					if(!evt.isCancelled()) {
 						continueHandshakeInit(ctx);
@@ -87,7 +87,7 @@ public abstract class HandshakerInstance {
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 				return;
 			}
-			server.eventDispatcher().dispatchAuthCheckRequired(pipelineData, pipelineData.handshakeAuthEnabled,
+			server.eventDispatcher().dispatchAuthCheckRequired(pipelineData.asPendingConnection(), pipelineData.handshakeAuthEnabled,
 					pipelineData.handshakeAuthUsername, (evt, err) -> {
 				if(!ctx.channel().isActive()) {
 					return;
@@ -233,10 +233,10 @@ public abstract class HandshakerInstance {
 	}
 
 	private void continueLoginPasswordAuth(ChannelHandlerContext ctx, byte[] authPassword) {
-		server.eventDispatcher().dispatchAuthPasswordEvent(pipelineData, pipelineData.handshakeAuthUsername,
-				pipelineData.authSalt, authPassword, pipelineData.cookieEnabled, pipelineData.cookieData,
-				pipelineData.username, pipelineData.uuid, pipelineData.authType, pipelineData.authMessage,
-				pipelineData.requestedServer, (evt, err) -> {
+		server.eventDispatcher().dispatchAuthPasswordEvent(pipelineData.asLoginConnection(),
+				pipelineData.handshakeAuthUsername, pipelineData.authSalt, authPassword, pipelineData.cookieEnabled,
+				pipelineData.cookieData, pipelineData.username, pipelineData.uuid, pipelineData.authType,
+				pipelineData.authMessage, pipelineData.requestedServer, (evt, err) -> {
 			IEaglercraftAuthPasswordEvent.EnumAuthResponse response = evt.getAuthResponse();
 			if(response == null) {
 				inboundHandler.terminateInternalError(ctx, getVersion());
@@ -260,9 +260,10 @@ public abstract class HandshakerInstance {
 	}
 
 	private void continueLoginCookieAuth(ChannelHandlerContext ctx) {
-		server.eventDispatcher().dispatchAuthCookieEvent(pipelineData, pipelineData.handshakeAuthUsername,
-				pipelineData.cookieEnabled, pipelineData.cookieData, pipelineData.username, pipelineData.uuid,
-				pipelineData.authType, pipelineData.authMessage, pipelineData.requestedServer, (evt, err) -> {
+		server.eventDispatcher().dispatchAuthCookieEvent(pipelineData.asLoginConnection(),
+				pipelineData.handshakeAuthUsername, pipelineData.cookieEnabled, pipelineData.cookieData,
+				pipelineData.username, pipelineData.uuid, pipelineData.authType, pipelineData.authMessage,
+				pipelineData.requestedServer, (evt, err) -> {
 			pipelineData.username = evt.getProfileUsername();
 			pipelineData.uuid = evt.getProfileUUID();
 			pipelineData.requestedServer = evt.getAuthRequestedServer();

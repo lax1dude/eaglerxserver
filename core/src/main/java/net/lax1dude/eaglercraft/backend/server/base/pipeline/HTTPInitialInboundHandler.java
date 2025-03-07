@@ -70,7 +70,13 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 		dispatch.dispatchWebSocketOpenEvent(pipelineData, (evt, err) -> {
 			try {
 				if(err == null) {
-					handshakeWebSocket(ctx, pipelineData, msg, settings.getHTTPWebSocketMaxFrameLength());
+					if(ctx.channel().isActive()) {
+						if(!evt.isCancelled()) {
+							handshakeWebSocket(ctx, pipelineData, msg, settings.getHTTPWebSocketMaxFrameLength());
+						}else {
+							ctx.close();
+						}
+					}
 				}else {
 					pipelineData.connectionLogger.error("Exception thrown while handling web socket open event", err);
 					ctx.close();

@@ -15,9 +15,10 @@ import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformSubLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
-import net.lax1dude.eaglercraft.backend.server.adapter.event.IWebSocketOpenDelegate;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.INettyChannel;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
@@ -25,8 +26,7 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRe
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
-public class NettyPipelineData implements IEaglerPendingConnection, INettyChannel.NettyUnsafe,
-		IPipelineData, IWebSocketOpenDelegate {
+public class NettyPipelineData implements IEaglerConnection, INettyChannel.NettyUnsafe, IPipelineData {
 
 	public static class ProfileDataHolder {
 
@@ -89,7 +89,8 @@ public class NettyPipelineData implements IEaglerPendingConnection, INettyChanne
 	public IEaglerXRewindProtocol<?, ?> rewindProtocol;
 	public int rewindProtocolVersion = -1;
 
-	public IEaglerPendingConnection redirectAPICallsTo;
+	public EaglerPendingStateAdapter pendingConnection;
+	public EaglerLoginStateAdapter loginConnection;
 
 	private volatile IPlatformTask disconnectTask = null;
 
@@ -112,23 +113,13 @@ public class NettyPipelineData implements IEaglerPendingConnection, INettyChanne
 	}
 
 	@Override
-	public int getMinecraftProtocol() {
-		return minecraftProtocol;
-	}
-
-	@Override
 	public boolean isEaglerPlayer() {
 		return listenerInfo != null;
 	}
 
 	@Override
-	public IEaglerPendingConnection asEaglerPlayer() {
-		return listenerInfo != null ? this : null;
-	}
-
-	@Override
-	public boolean isOnlineMode() {
-		return false;
+	public boolean isConnected() {
+		return channel.isActive();
 	}
 
 	@Override
@@ -147,16 +138,6 @@ public class NettyPipelineData implements IEaglerPendingConnection, INettyChanne
 	}
 
 	@Override
-	public boolean isHandshakeAuthEnabled() {
-		return handshakeAuthEnabled;
-	}
-
-	@Override
-	public byte[] getAuthUsername() {
-		return handshakeAuthUsername;
-	}
-
-	@Override
 	public IEaglerListenerInfo getListenerInfo() {
 		return listenerInfo;
 	}
@@ -164,16 +145,6 @@ public class NettyPipelineData implements IEaglerPendingConnection, INettyChanne
 	@Override
 	public boolean isWebSocketSecure() {
 		return wss;
-	}
-
-	@Override
-	public boolean isEaglerXRewindPlayer() {
-		return rewindProtocol != null;
-	}
-
-	@Override
-	public int getRewindProtocolVersion() {
-		return rewindProtocolVersion;
 	}
 
 	@Override
@@ -194,36 +165,6 @@ public class NettyPipelineData implements IEaglerPendingConnection, INettyChanne
 		default:
 			return null;
 		}
-	}
-
-	@Override
-	public String getEaglerVersionString() {
-		return eaglerVersionString;
-	}
-
-	@Override
-	public String getEaglerBrandString() {
-		return eaglerBrandString;
-	}
-
-	@Override
-	public UUID getEaglerBrandUUID() {
-		return null;
-	}
-
-	@Override
-	public Map<String, byte[]> getExtraProfileData() {
-		return null;
-	}
-
-	@Override
-	public int getHandshakeEaglerProtocol() {
-		return handshakeProtocol;
-	}
-
-	@Override
-	public GamePluginMessageProtocol getEaglerProtocol() {
-		return gameProtocol;
 	}
 
 	public void scheduleLoginTimeoutHelper() {
@@ -302,6 +243,26 @@ public class NettyPipelineData implements IEaglerPendingConnection, INettyChanne
 	@Override
 	public Channel getChannel() {
 		return channel;
+	}
+
+	public IEaglerPendingConnection asPendingConnection() {
+		if(loginConnection != null) {
+			return loginConnection;
+		}else if(pendingConnection != null) {
+			return pendingConnection;
+		}else {
+			return pendingConnection = new EaglerPendingStateAdapter(this);
+		}
+	}
+
+	public IEaglerLoginConnection asLoginConnection() {
+		if(loginConnection != null) {
+			return loginConnection;
+		}else {
+			loginConnection = new EaglerLoginStateAdapter(this);
+			pendingConnection = null;
+			return loginConnection;
+		}
 	}
 
 }

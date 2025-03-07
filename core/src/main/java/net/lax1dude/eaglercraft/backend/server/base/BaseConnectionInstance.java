@@ -1,15 +1,16 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
 import java.net.SocketAddress;
+import java.util.UUID;
 
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
-import net.lax1dude.eaglercraft.backend.server.api.IBasePendingConnection;
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
+import net.lax1dude.eaglercraft.backend.server.api.IBaseLoginConnection;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.INettyChannel;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 
-public class BaseConnectionInstance implements IBasePendingConnection, INettyChannel.NettyUnsafe {
+public class BaseConnectionInstance implements IBaseLoginConnection, INettyChannel.NettyUnsafe {
 
 	protected final IPlatformConnection connection;
 	protected final EaglerAttributeManager.EaglerAttributeHolder attributeHolder;
@@ -51,13 +52,28 @@ public class BaseConnectionInstance implements IBasePendingConnection, INettyCha
 	}
 
 	@Override
-	public IEaglerPendingConnection asEaglerPlayer() {
+	public IEaglerLoginConnection asEaglerPlayer() {
 		return null;
+	}
+
+	@Override
+	public UUID getUniqueId() {
+		return connection.getUniqueId();
+	}
+
+	@Override
+	public String getUsername() {
+		return connection.getUsername();
 	}
 
 	@Override
 	public boolean isOnlineMode() {
 		return connection.isOnlineMode();
+	}
+
+	@Override
+	public boolean isConnected() {
+		return connection.isConnected();
 	}
 
 	@Override

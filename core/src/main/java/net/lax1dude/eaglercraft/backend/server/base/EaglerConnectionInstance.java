@@ -9,11 +9,11 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformSubLogger;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
-public class EaglerConnectionInstance extends BaseConnectionInstance implements IEaglerPendingConnection {
+public class EaglerConnectionInstance extends BaseConnectionInstance implements IEaglerLoginConnection {
 
 	private final Channel channel;
 	private final IEaglerListenerInfo listenerInfo;
@@ -34,7 +34,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	private final boolean handshakeAuthEnabled;
 	private final byte[] handshakeAuthUsername;
 	private final boolean cookieEnabled;
-	private byte[] cookieDataInit;
+	private byte[] cookieData;
 	private final IPlatformSubLogger connectionLogger;
 	private final Object rewindAttachment;
 	private final IEaglerXRewindProtocol<?, ?> rewindProtocol;
@@ -64,7 +64,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		this.handshakeAuthEnabled = pipelineData.handshakeAuthEnabled;
 		this.handshakeAuthUsername = pipelineData.handshakeAuthUsername;
 		this.cookieEnabled = pipelineData.cookieEnabled;
-		this.cookieDataInit = pipelineData.cookieData;
+		this.cookieData = pipelineData.cookieData;
 		this.connectionLogger = pipelineData.connectionLogger;
 		this.rewindAttachment = pipelineData.rewindAttachment;
 		this.rewindProtocol = pipelineData.rewindProtocol;
@@ -84,7 +84,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	}
 
 	@Override
-	public IEaglerPendingConnection asEaglerPlayer() {
+	public IEaglerLoginConnection asEaglerPlayer() {
 		return this;
 	}
 
@@ -162,11 +162,6 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	}
 
 	@Override
-	public UUID getEaglerBrandUUID() {
-		return eaglerBrandUUID;
-	}
-
-	@Override
 	public int getHandshakeEaglerProtocol() {
 		return handshakeProtocol;
 	}
@@ -174,6 +169,25 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	@Override
 	public GamePluginMessageProtocol getEaglerProtocol() {
 		return gameProtocol;
+	}
+
+	@Override
+	public boolean isCookieSupported() {
+		return gameProtocol.ver >= 4;
+	}
+
+	@Override
+	public boolean isCookieEnabled() {
+		return cookieEnabled;
+	}
+
+	@Override
+	public byte[] getCookieData() {
+		return cookieData;
+	}
+
+	void setCookieData(byte[] cookie) {
+		cookieData = cookie;
 	}
 
 	public Channel channel() {
@@ -184,23 +198,16 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		return connectionLogger;
 	}
 
-	public boolean cookieEnabled() {
-		return cookieEnabled;
-	}
-
-	public byte[] transferCookieData() {
-		byte[] ret = cookieDataInit;
-		cookieDataInit = null;
-		return ret;
-	}
-
 	public NettyPipelineData.ProfileDataHolder transferProfileData() {
 		NettyPipelineData.ProfileDataHolder ret = profileDataInit;
 		profileDataInit = null;
 		return ret;
 	}
 
-	@Override
+	public UUID getEaglerBrandUUID() {
+		return eaglerBrandUUID;
+	}
+
 	public Map<String, byte[]> getExtraProfileData() {
 		return extraProfileData != null ? extraProfileData : Collections.emptyMap();
 	}

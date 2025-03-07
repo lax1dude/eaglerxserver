@@ -93,11 +93,11 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 					callback.accept(CustomSkinPlayer.createV3(playerUUID.getMostSignificantBits(),
 							playerUUID.getLeastSignificantBits(), modelId.getId(), data));
 				} else {
-					callback.accept(MissingSkin.MISSING_SKIN);
+					callback.accept(MissingSkin.forPlayerUUID(playerUUID));
 				}
 			});
 		}else {
-			callback.accept(MissingSkin.MISSING_SKIN);
+			callback.accept(MissingSkin.forPlayerUUID(playerUUID));
 		}
 	}
 

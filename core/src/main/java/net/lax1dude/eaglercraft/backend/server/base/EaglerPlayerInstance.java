@@ -24,7 +24,6 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	private final EaglerConnectionInstance connectionInstance;
 	private final IPlatformSubLogger playerLogger;
-	private byte[] cookieData;
 	MessageController messageController;
 
 	public EaglerPlayerInstance(IPlatformPlayer<PlayerObject> player,
@@ -32,7 +31,6 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 		super(player, server);
 		connectionInstance = player.getConnectionAttachment();
 		playerLogger = connectionInstance.logger();
-		cookieData = connectionInstance.transferCookieData();
 	}
 
 	@Override
@@ -154,26 +152,24 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public boolean isCookieSupported() {
-		// TODO
-		return connectionInstance.getEaglerProtocol().ver >= 4;
+		return connectionInstance.isCookieSupported();
 	}
 
 	@Override
 	public boolean isCookieEnabled() {
-		// TODO
-		return connectionInstance.cookieEnabled();
+		return connectionInstance.isCookieEnabled();
 	}
 
 	@Override
 	public byte[] getCookieData() {
-		return cookieData;
+		return connectionInstance.getCookieData();
 	}
 
 	@Override
 	public void setCookieData(byte[] data, long expiresAfterSec, boolean revokeQuerySupported,
 			boolean clientSaveCookieToDisk) {
-		if(connectionInstance.cookieEnabled()) {
-			cookieData = data;
+		if(connectionInstance.isCookieEnabled()) {
+			connectionInstance.setCookieData(data);
 			sendEaglerMessage(new SPacketSetServerCookieV4EAG(data, expiresAfterSec, revokeQuerySupported, clientSaveCookieToDisk));
 		}else {
 			playerLogger.warn("Attempted to set cookie while cookies are disabled");
