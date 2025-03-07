@@ -1,9 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.bungee.event;
 
-import java.net.SocketAddress;
-
-import net.lax1dude.eaglercraft.backend.server.adapter.event.IWebSocketOpenDelegate;
-import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftWebSocketOpenEvent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -12,11 +9,11 @@ class BungeeWebSocketOpenEventImpl extends EaglercraftWebSocketOpenEvent {
 
 	private final IEaglerXServerAPI<ProxiedPlayer> api;
 	private boolean cancelled;
-	private final IWebSocketOpenDelegate delegate;
+	private final IEaglerConnection connection;
 
-	BungeeWebSocketOpenEventImpl(IEaglerXServerAPI<ProxiedPlayer> api, IWebSocketOpenDelegate delegate) {
+	BungeeWebSocketOpenEventImpl(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerConnection connection) {
 		this.api = api;
-		this.delegate = delegate;
+		this.connection = connection;
 	}
 
 	@Override
@@ -35,18 +32,8 @@ class BungeeWebSocketOpenEventImpl extends EaglercraftWebSocketOpenEvent {
 	}
 
 	@Override
-	public String getHeader(EnumWebSocketHeader header) {
-		return delegate.getWebSocketHeader(header);
-	}
-
-	@Override
-	public SocketAddress getSocketAddress() {
-		return delegate.getSocketAddress();
-	}
-
-	@Override
-	public String getRealIP() {
-		return delegate.getRealAddress();
+	public IEaglerConnection getConnection() {
+		return connection;
 	}
 
 }

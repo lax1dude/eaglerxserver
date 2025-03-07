@@ -1,9 +1,9 @@
 package net.lax1dude.eaglercraft.backend.server.adapter;
 
-public interface IPlatformTask {
+import net.lax1dude.eaglercraft.backend.server.api.ITask;
+
+public interface IPlatformTask extends ITask {
 
 	Runnable getTask();
-
-	void cancel();
 
 }

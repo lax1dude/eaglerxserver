@@ -19,7 +19,7 @@ public class RevokeSessionQueryHandler implements IQueryHandler {
 				response.addProperty("code", EnumSessionRevokeStatus.FAILED_NOT_FOUND.code);
 				response.addProperty("delete", false);
 				conn.sendResponse("revoke_session_token", response);
-				conn.close();
+				conn.disconnect();
 				return;
 			}
 			conn.setMaxAge(30000l);
@@ -35,7 +35,7 @@ public class RevokeSessionQueryHandler implements IQueryHandler {
 					response.addProperty("delete", evt.getShouldDeleteCookie());
 				}
 				conn.sendResponse("revoke_session_token", response);
-				conn.close();
+				conn.disconnect();
 			});
 		};
 	}

@@ -1,6 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.api.event;
 
-public interface IEaglercraftClientBrandEvent<PlayerObject, ComponentObject> extends IEaglerXHandshakeEvent<PlayerObject>, ICancellableEvent {
+public interface IEaglercraftClientBrandEvent<PlayerObject, ComponentObject> extends IBaseHandshakeEvent<PlayerObject>, ICancellableEvent {
 
 	ComponentObject getMessage();
 

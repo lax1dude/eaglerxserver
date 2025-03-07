@@ -3,7 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.bukkit.event;
 import org.bukkit.entity.Player;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IRegisterSkinDelegate;
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.EaglercraftRegisterSkinEvent;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
@@ -13,13 +13,13 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 class BukkitRegisterSkinEventImpl extends EaglercraftRegisterSkinEvent {
 
 	private final IEaglerXServerAPI<Player> api;
-	private final IEaglerPendingConnection pendingConnection;
+	private final IEaglerLoginConnection loginConnection;
 	private final IRegisterSkinDelegate delegate;
 
-	BukkitRegisterSkinEventImpl(IEaglerXServerAPI<Player> api, IEaglerPendingConnection pendingConnection,
+	BukkitRegisterSkinEventImpl(IEaglerXServerAPI<Player> api, IEaglerLoginConnection loginConnection,
 			IRegisterSkinDelegate delegate) {
 		this.api = api;
-		this.pendingConnection = pendingConnection;
+		this.loginConnection = loginConnection;
 		this.delegate = delegate;
 	}
 
@@ -29,8 +29,8 @@ class BukkitRegisterSkinEventImpl extends EaglercraftRegisterSkinEvent {
 	}
 
 	@Override
-	public IEaglerPendingConnection getPendingConnection() {
-		return pendingConnection;
+	public IEaglerLoginConnection getLoginConnection() {
+		return loginConnection;
 	}
 
 	@Override

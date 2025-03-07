@@ -1,7 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.bungee.event;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IRegisterSkinDelegate;
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftRegisterSkinEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterSkinEvent;
@@ -14,14 +14,14 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 class BungeeRegisterSkinEventImpl extends EaglercraftRegisterSkinEvent {
 
 	private final IEaglerXServerAPI<ProxiedPlayer> api;
-	private final IEaglerPendingConnection pendingConnection;
+	private final IEaglerLoginConnection loginConnection;
 	private final IRegisterSkinDelegate delegate;
 
-	BungeeRegisterSkinEventImpl(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerPendingConnection pendingConnection,
+	BungeeRegisterSkinEventImpl(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerLoginConnection loginConnection,
 			IRegisterSkinDelegate delegate, Callback<IEaglercraftRegisterSkinEvent<ProxiedPlayer>> cb) {
 		super(cb);
 		this.api = api;
-		this.pendingConnection = pendingConnection;
+		this.loginConnection = loginConnection;
 		this.delegate = delegate;
 	}
 
@@ -31,8 +31,8 @@ class BungeeRegisterSkinEventImpl extends EaglercraftRegisterSkinEvent {
 	}
 
 	@Override
-	public IEaglerPendingConnection getPendingConnection() {
-		return pendingConnection;
+	public IEaglerLoginConnection getLoginConnection() {
+		return loginConnection;
 	}
 
 	@Override

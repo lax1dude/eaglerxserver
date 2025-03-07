@@ -11,7 +11,8 @@ import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchCallback;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IRegisterSkinDelegate;
-import net.lax1dude.eaglercraft.backend.server.adapter.event.IWebSocketOpenDelegate;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
@@ -91,21 +92,21 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter<Playe
 	}
 
 	@Override
-	public void dispatchAuthCookieEvent(IEaglerPendingConnection pendingConnection, byte[] authUsername,
+	public void dispatchAuthCookieEvent(IEaglerLoginConnection loginConnection, byte[] authUsername,
 			boolean cookiesEnabled, byte[] cookieData, String profileUsername, UUID profileUUID, EnumAuthType authType,
 			String authMessage, String authRequestedServer,
 			IEventDispatchCallback<IEaglercraftAuthCookieEvent<Player, Component>> onComplete) {
-		fire(new VelocityAuthCookieEventImpl(api, pendingConnection, authUsername, cookiesEnabled, cookieData,
+		fire(new VelocityAuthCookieEventImpl(api, loginConnection, authUsername, cookiesEnabled, cookieData,
 				profileUsername, profileUUID, authType, authMessage, authRequestedServer), onComplete);
 	}
 
 	@Override
-	public void dispatchAuthPasswordEvent(IEaglerPendingConnection pendingConnection, byte[] authUsername,
+	public void dispatchAuthPasswordEvent(IEaglerLoginConnection loginConnection, byte[] authUsername,
 			byte[] authSaltingData, byte[] authPasswordData, boolean cookiesEnabled, byte[] cookieData,
 			String profileUsername, UUID profileUUID, EnumAuthType authType, String authMessage,
 			String authRequestedServer,
 			IEventDispatchCallback<IEaglercraftAuthPasswordEvent<Player, Component>> onComplete) {
-		fire(new VelocityAuthPasswordEventImpl(api, pendingConnection, authUsername, authSaltingData, authPasswordData,
+		fire(new VelocityAuthPasswordEventImpl(api, loginConnection, authUsername, authSaltingData, authPasswordData,
 				cookiesEnabled, cookieData, profileUsername, profileUUID, authType, authMessage, authRequestedServer),
 				onComplete);
 	}
@@ -135,9 +136,9 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter<Playe
 	}
 
 	@Override
-	public void dispatchRegisterSkinEvent(IEaglerPendingConnection pendingConnection, IRegisterSkinDelegate delegate,
+	public void dispatchRegisterSkinEvent(IEaglerLoginConnection loginConnection, IRegisterSkinDelegate delegate,
 			IEventDispatchCallback<IEaglercraftRegisterSkinEvent<Player>> onComplete) {
-		fire(new VelocityRegisterSkinEventImpl(api, pendingConnection, delegate), onComplete);
+		fire(new VelocityRegisterSkinEventImpl(api, loginConnection, delegate), onComplete);
 	}
 
 	@Override
@@ -155,9 +156,9 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter<Playe
 	}
 
 	@Override
-	public void dispatchWebSocketOpenEvent(IWebSocketOpenDelegate delegate,
+	public void dispatchWebSocketOpenEvent(IEaglerConnection connection,
 			IEventDispatchCallback<IEaglercraftWebSocketOpenEvent<Player>> onComplete) {
-		fire(new VelocityWebSocketOpenEventImpl(api, delegate), onComplete);
+		fire(new VelocityWebSocketOpenEventImpl(api, connection), onComplete);
 	}
 
 	@Override

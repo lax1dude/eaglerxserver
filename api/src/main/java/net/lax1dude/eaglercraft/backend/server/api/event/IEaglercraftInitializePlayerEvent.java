@@ -1,5 +1,5 @@
 package net.lax1dude.eaglercraft.backend.server.api.event;
 
-public interface IEaglercraftInitializePlayerEvent<PlayerObject> extends IEaglerXPlayerEvent<PlayerObject> {
+public interface IEaglercraftInitializePlayerEvent<PlayerObject> extends IBasePlayerEvent<PlayerObject> {
 
 }

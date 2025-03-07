@@ -158,7 +158,7 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 					}
 				}finally {
 					if(maxAge <= 0l) {
-						close();
+						disconnect();
 					}
 					initial = false;
 				}
@@ -184,7 +184,7 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 					return;
 				}finally {
 					if(maxAge <= 0l) {
-						close();
+						disconnect();
 					}
 					initial = false;
 				}
@@ -205,12 +205,12 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 	}
 
 	@Override
-	public boolean isClosed() {
-		return dead || !pipelineData.channel.isActive();
+	public boolean isConnected() {
+		return !dead && pipelineData.channel.isActive();
 	}
 
 	@Override
-	public void close() {
+	public void disconnect() {
 		if(!dead) {
 			dead = true;
 			if(waitingPromiseCount.get() <= 0) {
@@ -220,7 +220,7 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 	}
 
 	@Override
-	public SocketAddress getRemoteAddress() {
+	public SocketAddress getSocketAddress() {
 		return pipelineData.channel.remoteAddress();
 	}
 
@@ -240,7 +240,12 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 	}
 
 	@Override
-	public String getHeader(EnumWebSocketHeader header) {
+	public boolean isWebSocketSecure() {
+		return pipelineData.wss;
+	}
+
+	@Override
+	public String getWebSocketHeader(EnumWebSocketHeader header) {
 		return pipelineData.getWebSocketHeader(header);
 	}
 
@@ -295,13 +300,13 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter implemen
 				if(millis > 0l) {
 					long closeAfter = maxAge - getAge();
 					if(closeAfter > 0l) {
-						closeTask = server.getPlatform().getScheduler().executeAsyncDelayedTask(this::close, closeAfter);
+						closeTask = server.getPlatform().getScheduler().executeAsyncDelayedTask(this::disconnect, closeAfter);
 					}else {
-						close();
+						disconnect();
 					}
 				}else {
 					if(!initial) {
-						close();
+						disconnect();
 					}
 				}
 			}

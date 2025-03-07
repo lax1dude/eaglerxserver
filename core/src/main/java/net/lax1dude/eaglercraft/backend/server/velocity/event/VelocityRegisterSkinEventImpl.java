@@ -3,7 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.velocity.event;
 import com.velocitypowered.api.proxy.Player;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IRegisterSkinDelegate;
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
@@ -13,13 +13,13 @@ import net.lax1dude.eaglercraft.backend.server.api.velocity.event.EaglercraftReg
 class VelocityRegisterSkinEventImpl extends EaglercraftRegisterSkinEvent {
 
 	private final IEaglerXServerAPI<Player> api;
-	private final IEaglerPendingConnection pendingConnection;
+	private final IEaglerLoginConnection loginConnection;
 	private final IRegisterSkinDelegate delegate;
 
-	VelocityRegisterSkinEventImpl(IEaglerXServerAPI<Player> api, IEaglerPendingConnection pendingConnection,
+	VelocityRegisterSkinEventImpl(IEaglerXServerAPI<Player> api, IEaglerLoginConnection loginConnection,
 			IRegisterSkinDelegate delegate) {
 		this.api = api;
-		this.pendingConnection = pendingConnection;
+		this.loginConnection = loginConnection;
 		this.delegate = delegate;
 	}
 
@@ -29,8 +29,8 @@ class VelocityRegisterSkinEventImpl extends EaglercraftRegisterSkinEvent {
 	}
 
 	@Override
-	public IEaglerPendingConnection getPendingConnection() {
-		return pendingConnection;
+	public IEaglerLoginConnection getLoginConnection() {
+		return loginConnection;
 	}
 
 	@Override

@@ -5,7 +5,8 @@ import java.util.UUID;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchCallback;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IRegisterSkinDelegate;
-import net.lax1dude.eaglercraft.backend.server.adapter.event.IWebSocketOpenDelegate;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
@@ -80,22 +81,22 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 	}
 
 	@Override
-	public void dispatchAuthCookieEvent(IEaglerPendingConnection pendingConnection, byte[] authUsername,
+	public void dispatchAuthCookieEvent(IEaglerLoginConnection loginConnection, byte[] authUsername,
 			boolean cookiesEnabled, byte[] cookieData, String profileUsername, UUID profileUUID, EnumAuthType authType,
 			String authMessage, String authRequestedServer,
 			IEventDispatchCallback<IEaglercraftAuthCookieEvent<ProxiedPlayer, BaseComponent>> onComplete) {
-		eventMgr.callEvent(new BungeeAuthCookieEventImpl(api, pendingConnection, authUsername, cookiesEnabled,
+		eventMgr.callEvent(new BungeeAuthCookieEventImpl(api, loginConnection, authUsername, cookiesEnabled,
 				cookieData, profileUsername, profileUUID, authType, authMessage, authRequestedServer,
 				transformCallback(onComplete)));
 	}
 
 	@Override
-	public void dispatchAuthPasswordEvent(IEaglerPendingConnection pendingConnection, byte[] authUsername,
+	public void dispatchAuthPasswordEvent(IEaglerLoginConnection loginConnection, byte[] authUsername,
 			byte[] authSaltingData, byte[] authPasswordData, boolean cookiesEnabled, byte[] cookieData,
 			String profileUsername, UUID profileUUID, EnumAuthType authType, String authMessage,
 			String authRequestedServer,
 			IEventDispatchCallback<IEaglercraftAuthPasswordEvent<ProxiedPlayer, BaseComponent>> onComplete) {
-		eventMgr.callEvent(new BungeeAuthPasswordEventImpl(api, pendingConnection, authUsername, authSaltingData,
+		eventMgr.callEvent(new BungeeAuthPasswordEventImpl(api, loginConnection, authUsername, authSaltingData,
 				authPasswordData, cookiesEnabled, cookieData, profileUsername, profileUUID, authType, authMessage,
 				authRequestedServer, transformCallback(onComplete)));
 	}
@@ -125,10 +126,10 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 	}
 
 	@Override
-	public void dispatchRegisterSkinEvent(IEaglerPendingConnection pendingConnection, IRegisterSkinDelegate delegate,
+	public void dispatchRegisterSkinEvent(IEaglerLoginConnection loginConnection, IRegisterSkinDelegate delegate,
 			IEventDispatchCallback<IEaglercraftRegisterSkinEvent<ProxiedPlayer>> onComplete) {
 		eventMgr.callEvent(
-				new BungeeRegisterSkinEventImpl(api, pendingConnection, delegate, transformCallback(onComplete)));
+				new BungeeRegisterSkinEventImpl(api, loginConnection, delegate, transformCallback(onComplete)));
 	}
 
 	@Override
@@ -147,9 +148,9 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 	}
 
 	@Override
-	public void dispatchWebSocketOpenEvent(IWebSocketOpenDelegate delegate,
+	public void dispatchWebSocketOpenEvent(IEaglerConnection connection,
 			IEventDispatchCallback<IEaglercraftWebSocketOpenEvent<ProxiedPlayer>> onComplete) {
-		fireSync(new BungeeWebSocketOpenEventImpl(api, delegate), onComplete);
+		fireSync(new BungeeWebSocketOpenEventImpl(api, connection), onComplete);
 	}
 
 	@Override

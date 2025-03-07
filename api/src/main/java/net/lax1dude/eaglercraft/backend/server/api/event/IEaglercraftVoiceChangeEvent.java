@@ -5,7 +5,7 @@ import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
 
-public interface IEaglercraftVoiceChangeEvent<PlayerObject> extends IEaglerXPlayerEvent<PlayerObject> {
+public interface IEaglercraftVoiceChangeEvent<PlayerObject> extends IBasePlayerEvent<PlayerObject> {
 
 	default IVoiceManager<PlayerObject> getVoiceManager() {
 		return getPlayer().getVoiceManager();

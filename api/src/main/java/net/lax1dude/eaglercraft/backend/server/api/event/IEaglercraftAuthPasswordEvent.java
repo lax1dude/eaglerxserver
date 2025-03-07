@@ -3,7 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.api.event;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
-public interface IEaglercraftAuthPasswordEvent<PlayerObject, ComponentObject> extends IEaglerXHandshakeEvent<PlayerObject> {
+public interface IEaglercraftAuthPasswordEvent<PlayerObject, ComponentObject> extends IBaseLoginEvent<PlayerObject> {
 
 	public static enum EnumAuthResponse {
 		ALLOW, DENY

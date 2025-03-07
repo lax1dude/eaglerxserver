@@ -5,7 +5,7 @@ import java.util.UUID;
 import com.velocitypowered.api.proxy.Player;
 
 import net.kyori.adventure.text.Component;
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.velocity.event.EaglercraftAuthCookieEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent.EnumAuthType;
@@ -13,7 +13,7 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRe
 class VelocityAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 
 	private final IEaglerXServerAPI<Player> api;
-	private final IEaglerPendingConnection pendingConnection;
+	private final IEaglerLoginConnection loginConnection;
 	private final byte[] authUsername;
 	private final boolean cookiesEnabled;
 	private final byte[] cookieData;
@@ -28,11 +28,11 @@ class VelocityAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 	private String texturesPropertySignature;
 	private boolean forceVanillaSkin;
 
-	VelocityAuthCookieEventImpl(IEaglerXServerAPI<Player> api, IEaglerPendingConnection pendingConnection,
+	VelocityAuthCookieEventImpl(IEaglerXServerAPI<Player> api, IEaglerLoginConnection loginConnection,
 			byte[] authUsername, boolean cookiesEnabled, byte[] cookieData, String profileUsername, UUID profileUUID,
 			EnumAuthType authType, String authMessage, String authRequestedServer) {
 		this.api = api;
-		this.pendingConnection = pendingConnection;
+		this.loginConnection = loginConnection;
 		this.authUsername = authUsername;
 		this.cookiesEnabled = cookiesEnabled;
 		this.cookieData = cookieData;
@@ -49,8 +49,8 @@ class VelocityAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 	}
 
 	@Override
-	public IEaglerPendingConnection getPendingConnection() {
-		return pendingConnection;
+	public IEaglerLoginConnection getLoginConnection() {
+		return loginConnection;
 	}
 
 	@Override

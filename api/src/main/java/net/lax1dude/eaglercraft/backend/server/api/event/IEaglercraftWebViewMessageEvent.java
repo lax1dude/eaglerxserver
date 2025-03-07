@@ -3,7 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.api.event;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewManager;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
 
-public interface IEaglercraftWebViewMessageEvent<PlayerObject> extends IEaglerXPlayerEvent<PlayerObject> {
+public interface IEaglercraftWebViewMessageEvent<PlayerObject> extends IBasePlayerEvent<PlayerObject> {
 
 	public static enum EnumMessageType {
 		STRING, BINARY;

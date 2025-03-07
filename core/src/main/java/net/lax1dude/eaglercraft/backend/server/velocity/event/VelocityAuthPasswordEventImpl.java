@@ -5,7 +5,7 @@ import java.util.UUID;
 import com.velocitypowered.api.proxy.Player;
 
 import net.kyori.adventure.text.Component;
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent.EnumAuthType;
 import net.lax1dude.eaglercraft.backend.server.api.velocity.event.EaglercraftAuthPasswordEvent;
@@ -13,7 +13,7 @@ import net.lax1dude.eaglercraft.backend.server.api.velocity.event.EaglercraftAut
 class VelocityAuthPasswordEventImpl extends EaglercraftAuthPasswordEvent {
 
 	private final IEaglerXServerAPI<Player> api;
-	private final IEaglerPendingConnection pendingConnection;
+	private final IEaglerLoginConnection loginConnection;
 	private final byte[] authUsername;
 	private final byte[] authSaltingData;
 	private final byte[] authPasswordData;
@@ -30,12 +30,12 @@ class VelocityAuthPasswordEventImpl extends EaglercraftAuthPasswordEvent {
 	private String texturesPropertySignature;
 	private boolean forceVanillaSkin;
 
-	VelocityAuthPasswordEventImpl(IEaglerXServerAPI<Player> api, IEaglerPendingConnection pendingConnection,
+	VelocityAuthPasswordEventImpl(IEaglerXServerAPI<Player> api, IEaglerLoginConnection loginConnection,
 			byte[] authUsername, byte[] authSaltingData, byte[] authPasswordData, boolean cookiesEnabled,
 			byte[] cookieData, String profileUsername, UUID profileUUID, EnumAuthType authType, String authMessage,
 			String authRequestedServer) {
 		this.api = api;
-		this.pendingConnection = pendingConnection;
+		this.loginConnection = loginConnection;
 		this.authUsername = authUsername;
 		this.authSaltingData = authSaltingData;
 		this.authPasswordData = authPasswordData;
@@ -54,8 +54,8 @@ class VelocityAuthPasswordEventImpl extends EaglercraftAuthPasswordEvent {
 	}
 
 	@Override
-	public IEaglerPendingConnection getPendingConnection() {
-		return pendingConnection;
+	public IEaglerLoginConnection getLoginConnection() {
+		return loginConnection;
 	}
 
 	@Override

@@ -97,7 +97,7 @@ public class MOTDConnectionWrapper implements IMOTDConnection {
 
 	@Override
 	public void sendToUser() {
-		if(!queryConnection.isClosed()) {
+		if(queryConnection.isConnected()) {
 			JsonObject obj = new JsonObject();
 			if(subType.startsWith("cache.anim")) {
 				obj.addProperty("unsupported", true);
@@ -150,7 +150,7 @@ public class MOTDConnectionWrapper implements IMOTDConnection {
 				iconDirty = false;
 			}
 			if(subType.startsWith("cache")) {
-				close();
+				disconnect();
 			}
 		}
 	}
@@ -166,18 +166,18 @@ public class MOTDConnectionWrapper implements IMOTDConnection {
 	}
 
 	@Override
-	public boolean isClosed() {
-		return queryConnection.isClosed();
+	public boolean isConnected() {
+		return queryConnection.isConnected();
 	}
 
 	@Override
-	public void close() {
-		queryConnection.close();
+	public void disconnect() {
+		queryConnection.disconnect();
 	}
 
 	@Override
-	public SocketAddress getRemoteAddress() {
-		return queryConnection.getRemoteAddress();
+	public SocketAddress getSocketAddress() {
+		return queryConnection.getSocketAddress();
 	}
 
 	@Override
@@ -211,8 +211,13 @@ public class MOTDConnectionWrapper implements IMOTDConnection {
 	}
 
 	@Override
-	public String getHeader(EnumWebSocketHeader header) {
-		return queryConnection.getHeader(header);
+	public boolean isWebSocketSecure() {
+		return queryConnection.isWebSocketSecure();
+	}
+
+	@Override
+	public String getWebSocketHeader(EnumWebSocketHeader header) {
+		return queryConnection.getWebSocketHeader(header);
 	}
 
 	@Override

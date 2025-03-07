@@ -1,6 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.api.event;
 
-public interface IEaglercraftAuthCheckRequiredEvent<PlayerObject, ComponentObject> extends IEaglerXHandshakeEvent<PlayerObject> {
+public interface IEaglercraftAuthCheckRequiredEvent<PlayerObject, ComponentObject> extends IBaseHandshakeEvent<PlayerObject> {
 
 	public static enum EnumAuthResponse {
 		SKIP, REQUIRE, DENY

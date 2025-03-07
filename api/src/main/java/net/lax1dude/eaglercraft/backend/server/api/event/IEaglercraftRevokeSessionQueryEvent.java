@@ -4,7 +4,7 @@ import java.nio.charset.StandardCharsets;
 
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryConnection;
 
-public interface IEaglercraftRevokeSessionQueryEvent<PlayerObject> extends IEaglerXServerEvent<PlayerObject> {
+public interface IEaglercraftRevokeSessionQueryEvent<PlayerObject> extends IBaseServerEvent<PlayerObject> {
 
 	public static enum EnumSessionRevokeStatus {
 		SUCCESS("ok", -1), FAILED_NOT_SUPPORTED("error", 1), FAILED_NOT_ALLOWED("error", 2),

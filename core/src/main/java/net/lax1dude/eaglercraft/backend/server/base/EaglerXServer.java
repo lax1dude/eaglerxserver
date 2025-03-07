@@ -98,7 +98,6 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private RewindService<PlayerObject> rewindService;
 	private PipelineTransformer pipelineTransformer;
 	private SSLCertificateManager certificateManager;
-	private Scheduler scheduler;
 	private String serverListConfirmCode;
 	private Class<?> componentType;
 	private ComponentHelper<?> componentHelper;
@@ -151,7 +150,6 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		rewindService = new RewindService<>(this);
 		pipelineTransformer = new PipelineTransformer(this, rewindService);
 		certificateManager = new SSLCertificateManager(logger());
-		scheduler = new Scheduler(platform.getScheduler());
 		componentType = componentHelper().getComponentType();
 		componentHelper = new ComponentHelper<>(componentHelper());
 		httpClient = new HTTPClient(platform.getWorkerEventLoopGroup(), platform.getChannelFactory(null),
@@ -646,7 +644,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public IScheduler getScheduler() {
-		return scheduler;
+		return platform.getScheduler();
 	}
 
 	@Override
@@ -680,7 +678,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		}else if(!compression && !decompression) {
 			throw new IllegalArgumentException("Compression and decompression are both false");
 		}
-		return new NativeZlibWrapper(platform.createNativeZlib(compression, decompression, compressionLevel));
+		return platform.createNativeZlib(compression, decompression, compressionLevel);
 	}
 
 	@Override

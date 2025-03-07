@@ -1,23 +1,11 @@
 package net.lax1dude.eaglercraft.backend.server.api;
 
-import java.net.SocketAddress;
-
-import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeHolder;
-
-public interface IBasePendingConnection extends INettyChannel, IAttributeHolder {
-
-	SocketAddress getSocketAddress();
-
-	String getRealAddress();
+public interface IBasePendingConnection extends IBaseConnection {
 
 	int getMinecraftProtocol();
 
 	boolean isEaglerPlayer();
 
 	IEaglerPendingConnection asEaglerPlayer();
-
-	boolean isOnlineMode();
-
-	void disconnect();
 
 }

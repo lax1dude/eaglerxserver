@@ -2,7 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.bungee.event;
 
 import java.util.UUID;
 
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftAuthCookieEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCookieEvent;
@@ -15,7 +15,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 class BungeeAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 
 	private final IEaglerXServerAPI<ProxiedPlayer> api;
-	private final IEaglerPendingConnection pendingConnection;
+	private final IEaglerLoginConnection loginConnection;
 	private final byte[] authUsername;
 	private final boolean cookiesEnabled;
 	private final byte[] cookieData;
@@ -30,13 +30,13 @@ class BungeeAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 	private String texturesPropertySignature;
 	private boolean forceVanillaSkin;
 
-	BungeeAuthCookieEventImpl(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerPendingConnection pendingConnection,
+	BungeeAuthCookieEventImpl(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerLoginConnection loginConnection,
 			byte[] authUsername, boolean cookiesEnabled, byte[] cookieData, String profileUsername, UUID profileUUID,
 			EnumAuthType authType, String authMessage, String authRequestedServer,
 			Callback<IEaglercraftAuthCookieEvent<ProxiedPlayer, BaseComponent>> cb) {
 		super(cb);
 		this.api = api;
-		this.pendingConnection = pendingConnection;
+		this.loginConnection = loginConnection;
 		this.authUsername = authUsername;
 		this.cookiesEnabled = cookiesEnabled;
 		this.cookieData = cookieData;
@@ -53,8 +53,8 @@ class BungeeAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 	}
 
 	@Override
-	public IEaglerPendingConnection getPendingConnection() {
-		return pendingConnection;
+	public IEaglerLoginConnection getLoginConnection() {
+		return loginConnection;
 	}
 
 	@Override

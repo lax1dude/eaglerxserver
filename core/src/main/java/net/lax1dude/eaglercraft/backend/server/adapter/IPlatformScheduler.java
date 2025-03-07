@@ -1,12 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.adapter;
 
-public interface IPlatformScheduler {
+import net.lax1dude.eaglercraft.backend.server.api.IScheduler;
 
-	void executeAsync(Runnable runnable);
-
-	void executeDelayed(Runnable runnable, long delay);
-
-	void executeAsyncDelayed(Runnable runnable, long delay);
+public interface IPlatformScheduler extends IScheduler {
 
 	IPlatformTask executeDelayedTask(Runnable runnable, long delay);
 

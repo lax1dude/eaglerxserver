@@ -11,13 +11,9 @@ import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewManager;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 
-public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject>, IEaglerPendingConnection {
+public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject>, IEaglerLoginConnection {
 
 	void sendEaglerMessage(GameMessagePacket packet);
-
-	boolean isRedirectPlayerSupported();
-
-	void redirectPlayerToWebSocket(String webSocketURI);
 
 	boolean isSkinSupported();
 
@@ -34,12 +30,6 @@ public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject>, 
 	boolean isVoiceSupported();
 
 	IVoiceManager<PlayerObject> getVoiceManager();
-
-	boolean isCookieSupported();
-
-	boolean isCookieEnabled();
-
-	byte[] getCookieData();
 
 	default void setCookieData(byte[] data, long expiresAfter, TimeUnit timeUnit) {
 		setCookieData(data, timeUnit.toSeconds(expiresAfter), false, true);
@@ -70,10 +60,6 @@ public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject>, 
 	boolean isWebViewSupported();
 
 	IWebViewManager<PlayerObject> getWebViewManager();
-
-	boolean isUpdateSystemSupported();
-
-	byte[] getUpdateCertificate();
 
 	void sendUpdateCertificate(byte[] certificate);
 

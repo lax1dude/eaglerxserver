@@ -1,29 +1,12 @@
 package net.lax1dude.eaglercraft.backend.server.api.query;
 
-import java.net.SocketAddress;
-
 import com.google.gson.JsonObject;
 
-import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
-import net.lax1dude.eaglercraft.backend.server.api.INettyChannel;
-import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeHolder;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
 
-public interface IQueryConnection extends INettyChannel, IAttributeHolder {
-
-	boolean isClosed();
-
-	void close();
-
-	SocketAddress getRemoteAddress();
-
-	String getRealAddress();
-
-	IEaglerListenerInfo getListenerInfo();
+public interface IQueryConnection extends IEaglerConnection {
 
 	String getAccept();
-
-	String getHeader(EnumWebSocketHeader header);
 
 	void setHandlers(IDuplexBaseHandler compositeHandler);
 

@@ -5,13 +5,9 @@ import java.util.UUID;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistration;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
 
-public interface IBasePlayer<PlayerObject> extends IBasePendingConnection {
+public interface IBasePlayer<PlayerObject> extends IBaseLoginConnection {
 
 	IEaglerXServerAPI<PlayerObject> getServerAPI();
-
-	String getUsername();
-
-	UUID getUniqueId();
 
 	PlayerObject getPlayerObject();
 
@@ -22,10 +18,6 @@ public interface IBasePlayer<PlayerObject> extends IBasePendingConnection {
 	default IBrandRegistration getEaglerBrandDesc() {
 		return getServerAPI().getBrandRegistry().lookupRegisteredBrand(getEaglerBrandUUID());
 	}
-
-	boolean isConnected();
-
-	boolean isOnlineMode();
 
 	IEaglerPlayer<PlayerObject> asEaglerPlayer();
 

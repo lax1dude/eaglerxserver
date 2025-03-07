@@ -2,10 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.bukkit.event;
 
 import org.bukkit.entity.Player;
 
-import java.net.SocketAddress;
-
-import net.lax1dude.eaglercraft.backend.server.adapter.event.IWebSocketOpenDelegate;
-import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.EaglercraftWebSocketOpenEvent;
 
@@ -13,11 +10,11 @@ class BukkitWebSocketOpenEventImpl extends EaglercraftWebSocketOpenEvent {
 
 	private final IEaglerXServerAPI<Player> api;
 	private boolean cancelled;
-	private final IWebSocketOpenDelegate delegate;
+	private final IEaglerConnection connection;
 
-	BukkitWebSocketOpenEventImpl(IEaglerXServerAPI<Player> api, IWebSocketOpenDelegate delegate) {
+	BukkitWebSocketOpenEventImpl(IEaglerXServerAPI<Player> api, IEaglerConnection connection) {
 		this.api = api;
-		this.delegate = delegate;
+		this.connection = connection;
 	}
 
 	@Override
@@ -36,18 +33,8 @@ class BukkitWebSocketOpenEventImpl extends EaglercraftWebSocketOpenEvent {
 	}
 
 	@Override
-	public String getHeader(EnumWebSocketHeader header) {
-		return delegate.getWebSocketHeader(header);
-	}
-
-	@Override
-	public SocketAddress getSocketAddress() {
-		return delegate.getSocketAddress();
-	}
-
-	@Override
-	public String getRealIP() {
-		return delegate.getRealAddress();
+	public IEaglerConnection getConnection() {
+		return connection;
 	}
 
 }

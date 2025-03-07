@@ -2,6 +2,8 @@ package net.lax1dude.eaglercraft.backend.server.adapter.event;
 
 import java.util.UUID;
 
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
@@ -34,12 +36,12 @@ public interface IEventDispatchAdapter<PlayerObject, ComponentObject> {
 			byte[] authUsername,
 			IEventDispatchCallback<IEaglercraftAuthCheckRequiredEvent<PlayerObject, ComponentObject>> onComplete);
 
-	void dispatchAuthCookieEvent(IEaglerPendingConnection pendingConnection, byte[] authUsername,
+	void dispatchAuthCookieEvent(IEaglerLoginConnection pendingConnection, byte[] authUsername,
 			boolean cookiesEnabled, byte[] cookieData, String profileUsername, UUID profileUUID, EnumAuthType authType,
 			String authMessage, String authRequestedServer,
 			IEventDispatchCallback<IEaglercraftAuthCookieEvent<PlayerObject, ComponentObject>> onComplete);
 
-	void dispatchAuthPasswordEvent(IEaglerPendingConnection pendingConnection, byte[] authUsername,
+	void dispatchAuthPasswordEvent(IEaglerLoginConnection pendingConnection, byte[] authUsername,
 			byte[] authSaltingData, byte[] authPasswordData, boolean cookiesEnabled, byte[] cookieData,
 			String profileUsername, UUID profileUUID, EnumAuthType authType, String authMessage,
 			String authRequestedServer,
@@ -57,7 +59,7 @@ public interface IEventDispatchAdapter<PlayerObject, ComponentObject> {
 	void dispatchMOTDEvent(IMOTDConnection connection,
 			IEventDispatchCallback<IEaglercraftMOTDEvent<PlayerObject>> onComplete);
 
-	void dispatchRegisterSkinEvent(IEaglerPendingConnection pendingConnection, IRegisterSkinDelegate delegate,
+	void dispatchRegisterSkinEvent(IEaglerLoginConnection pendingConnection, IRegisterSkinDelegate delegate,
 			IEventDispatchCallback<IEaglercraftRegisterSkinEvent<PlayerObject>> onComplete);
 
 	void dispatchRevokeSessionQueryEvent(IQueryConnection query, byte[] cookieData,
@@ -67,7 +69,7 @@ public interface IEventDispatchAdapter<PlayerObject, ComponentObject> {
 			IVoiceChannel voiceChannelOld, EnumVoiceState voiceStateNew, IVoiceChannel voiceChannelNew,
 			IEventDispatchCallback<IEaglercraftVoiceChangeEvent<PlayerObject>> onComplete);
 
-	void dispatchWebSocketOpenEvent(IWebSocketOpenDelegate delegate,
+	void dispatchWebSocketOpenEvent(IEaglerConnection delegate,
 			IEventDispatchCallback<IEaglercraftWebSocketOpenEvent<PlayerObject>> onComplete);
 
 	void dispatchWebViewChannelEvent(IEaglerPlayer<PlayerObject> player, EnumEventType type, String channel,
