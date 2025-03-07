@@ -7,6 +7,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.SocketAddress;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -18,6 +19,7 @@ import org.bukkit.command.CommandMap;
 import org.bukkit.entity.Player;
 
 import com.google.common.collect.ForwardingList;
+import com.google.common.collect.Multimap;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -115,9 +117,6 @@ public class BukkitUnsafe {
 	private static Class<?> class_LoginListener_maybe = null;
 	private static Method method_LoginListener_disconnect = null;
 	private static Field field_LoginListener_gameProfile = null;
-	private static Class<?> class_GameProfile = null;
-	private static Method method_GameProfile_getId = null;
-	private static Method method_GameProfile_getName = null;
 
 	private static synchronized void bindLoginConnection(Object networkManager) {
 		if(class_NetworkManager != null) {
@@ -141,13 +140,6 @@ public class BukkitUnsafe {
 					break;
 				}
 			}
-			Object gameProfile = field_LoginListener_gameProfile.get(packetListener);
-			if(gameProfile == null) {
-				throw new IllegalStateException("LoginListener.gameProfile is null!");
-			}
-			Class<?> clz3 = gameProfile.getClass();
-			method_GameProfile_getId = clz3.getMethod("getId");
-			method_GameProfile_getName = clz3.getMethod("getName");
 			class_LoginListener_maybe = clz2;
 			class_NetworkManager = clz;
 		}catch(IllegalStateException ex) {
@@ -185,6 +177,7 @@ public class BukkitUnsafe {
 	private static Method method_CraftPlayer_getHandle = null;
 	private static Class<?> class_EntityPlayer = null;
 	private static Field field_EntityPlayer_playerConnection = null;
+	private static Method method_EntityPlayer_getProfile = null;
 	private static Class<?> class_PlayerConnection = null;
 	private static Field field_PlayerConnection_networkManager = null;
 
@@ -204,6 +197,7 @@ public class BukkitUnsafe {
 			Object networkManager = field_PlayerConnection_networkManager.get(playerConnection);
 			Class<?> clz4 = networkManager.getClass();
 			field_NetworkManager_channel = clz4.getField("channel");
+			method_EntityPlayer_getProfile = clz2.getMethod("getProfile");
 			class_NetworkManager = clz4;
 			class_PlayerConnection = clz3;
 			class_EntityPlayer = clz2;
@@ -221,6 +215,96 @@ public class BukkitUnsafe {
 			return (Channel) field_NetworkManager_channel.get(field_PlayerConnection_networkManager
 					.get(field_EntityPlayer_playerConnection.get(method_CraftPlayer_getHandle.invoke(playerObject))));
 		} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+	}
+
+	private static final Method method_Player_getPlayerProfile;
+	private static final Class<?> class_PlayerProfile;
+	private static final Method method_PlayerProfile_getProperties;
+	private static final Class<?> class_ProfileProperty;
+	private static final Method method_ProfileProperty_getName;
+	private static final Method method_ProfileProperty_getValue;
+	private static final boolean paperProfileAPISupport;
+
+	private static final Class<?> class_GameProfile;
+	private static final Method method_GameProfile_getId;
+	private static final Method method_GameProfile_getName;
+	private static final Method method_GameProfile_getProperties;
+	private static final Class<?> class_Property;
+	private static final Method method_Property_getValue;
+
+	static {
+		Method method_Player_getPlayerProfile_ = null;
+		Class<?> class_PlayerProfile_ = null;
+		Method method_PlayerProfile_getProperties_ = null;
+		Class<?> class_ProfileProperty_ = null;
+		Method method_ProfileProperty_getName_ = null;
+		Method method_ProfileProperty_getValue_ = null;
+		boolean paperProfileAPISupport_ = false;
+		try {
+			method_Player_getPlayerProfile_ = Player.class.getMethod("getPlayerProfile");
+			class_PlayerProfile_ = Class.forName("com.destroystokyo.paper.profile.PlayerProfile");
+			method_PlayerProfile_getProperties_ = class_PlayerProfile_.getMethod("getProperties");
+			class_ProfileProperty_ = Class.forName("com.destroystokyo.paper.profile.ProfileProperty");
+			method_ProfileProperty_getName_ = class_ProfileProperty_.getMethod("getName");
+			method_ProfileProperty_getValue_ = class_ProfileProperty_.getMethod("getValue");
+			paperProfileAPISupport_ = true;
+		} catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+			// Paper profile API is unsupported
+		}
+		method_Player_getPlayerProfile = method_Player_getPlayerProfile_;
+		class_PlayerProfile = class_PlayerProfile_;
+		method_PlayerProfile_getProperties = method_PlayerProfile_getProperties_;
+		class_ProfileProperty = class_ProfileProperty_;
+		method_ProfileProperty_getName = method_ProfileProperty_getName_;
+		method_ProfileProperty_getValue = method_ProfileProperty_getValue_;
+		paperProfileAPISupport = paperProfileAPISupport_;
+		try {
+			class_GameProfile = Class.forName("com.mojang.authlib.GameProfile");
+			method_GameProfile_getId = class_GameProfile.getMethod("getId");
+			method_GameProfile_getName = class_GameProfile.getMethod("getName");
+			method_GameProfile_getProperties = class_GameProfile.getMethod("getProperties");
+			class_Property = Class.forName("com.mojang.authlib.properties.Property");
+			method_Property_getValue = class_Property.getMethod("getValue");
+		} catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+	}
+
+	public static String getTexturesProperty(Player player) {
+		if(paperProfileAPISupport) {
+			return getTexturesPropertyPaper(player);
+		}else {
+			if(class_CraftPlayer == null) {
+				bindCraftPlayer(player);
+			}
+			try {
+				Multimap<String, Object> props = (Multimap<String, Object>) method_GameProfile_getProperties
+						.invoke(method_EntityPlayer_getProfile.invoke(method_CraftPlayer_getHandle.invoke(player)));
+				Collection<Object> tex = props.get("textures");
+				if(!tex.isEmpty()) {
+					return (String) method_Property_getValue.invoke(tex.iterator().next());
+				}
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+			return null;
+		}
+	}
+
+	private static String getTexturesPropertyPaper(Player player) {
+		try {
+			Object profile = method_Player_getPlayerProfile.invoke(player);
+			if(profile != null) {
+				for(Object o : (List<Object>) method_PlayerProfile_getProperties.invoke(profile)) {
+					if("textures".equals(method_ProfileProperty_getName.invoke(o))) {
+						return (String) method_ProfileProperty_getValue.invoke(o);
+					}
+				}
+			}
+			return null;
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 	}

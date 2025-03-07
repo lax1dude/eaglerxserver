@@ -267,12 +267,12 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 		UUID targetUUID = new UUID(packet.uuidMost, packet.uuidLeast);
 		BasePlayerInstance<PlayerObject> target = player.getEaglerXServer().getPlayerByUUID(targetUUID);
 		if(target != null) {
-			ISkinManagerBase<PlayerObject> skinMgr = target.getSkinManager();
+			ISkinManagerImpl skinMgr = (ISkinManagerImpl) target.getSkinManager();
 			IEaglerPlayerSkin skin = skinMgr.getPlayerSkinIfLoaded();
 			if(skin != null) {
 				player.sendEaglerMessage(skin.getSkinPacket(packet.uuidMost, packet.uuidLeast, player.getEaglerProtocol()));
 			}else {
-				skinMgr.resolvePlayerSkin((res) -> {
+				((ISkinManagerImpl)skinMgr).resolvePlayerSkinKeyed(player.getUniqueId(), (res) -> {
 					player.sendEaglerMessage(res.getSkinPacket(packet.uuidMost, packet.uuidLeast, player.getEaglerProtocol()));
 				});
 			}
@@ -283,12 +283,12 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 		UUID targetUUID = new UUID(packet.uuidMost, packet.uuidLeast);
 		BasePlayerInstance<PlayerObject> target = player.getEaglerXServer().getPlayerByUUID(targetUUID);
 		if(target != null) {
-			ISkinManagerBase<PlayerObject> skinMgr = target.getSkinManager();
+			ISkinManagerImpl skinMgr = (ISkinManagerImpl) target.getSkinManager();
 			IEaglerPlayerCape skin = skinMgr.getPlayerCapeIfLoaded();
 			if(skin != null) {
 				player.sendEaglerMessage(skin.getCapePacket(packet.uuidMost, packet.uuidLeast, player.getEaglerProtocol()));
 			}else {
-				skinMgr.resolvePlayerCape((res) -> {
+				skinMgr.resolvePlayerCapeKeyed(player.getUniqueId(), (res) -> {
 					player.sendEaglerMessage(res.getCapePacket(packet.uuidMost, packet.uuidLeast, player.getEaglerProtocol()));
 				});
 			}

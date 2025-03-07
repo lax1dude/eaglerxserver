@@ -17,21 +17,37 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 	public void initializePlayer(IPlatformPlayerInitializer<BaseConnectionInstance, BasePlayerInstance<PlayerObject>, PlayerObject> initializer) {
 		if(initializer.getConnectionAttachment().isEaglerPlayer()) {
 			EaglerPlayerInstance<PlayerObject> instance = new EaglerPlayerInstance<>(initializer.getPlayer(), server);
+			initializer.setPlayerAttachment(instance);
 			try {
-				server.registerEaglerPlayer(instance);
+				server.registerEaglerPlayer(instance, () -> {
+					server.eventDispatcher().dispatchInitializePlayerEvent(instance, (evt, err) -> {
+						if(err == null) {
+							initializer.complete();
+						}else {
+							try {
+								server.logger().error("Uncaught exception handling initialize player event", err);
+								initializer.getPlayer().disconnect(
+										server.componentBuilder().buildTextComponent().text("Internal Server Error").end());
+							}finally {
+								initializer.cancel();
+							}
+						}
+					});
+				});
 			}catch(EaglerXServer.RegistrationStateException ex) {
+				initializer.cancel();
 				return;
-			}finally {
-				initializer.setPlayerAttachment(instance);
 			}
-			server.eventDispatcher().dispatchInitializePlayerEvent(instance, null);
 		}else {
 			BasePlayerInstance<PlayerObject> instance = new BasePlayerInstance<>(initializer.getPlayer(), server);
+			initializer.setPlayerAttachment(instance);
 			try {
 				server.registerPlayer(instance);
 			}catch(EaglerXServer.RegistrationStateException ex) {
+				initializer.cancel();
+				return;
 			}
-			initializer.setPlayerAttachment(instance);
+			initializer.complete();
 		}
 	}
 

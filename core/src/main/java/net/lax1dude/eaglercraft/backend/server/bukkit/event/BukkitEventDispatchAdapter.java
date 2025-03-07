@@ -10,7 +10,6 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchCallback;
-import net.lax1dude.eaglercraft.backend.server.adapter.event.IRegisterCapeDelegate;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IRegisterSkinDelegate;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IWebSocketOpenDelegate;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
@@ -24,7 +23,6 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftClientBrand
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftDestroyPlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterCapeEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterSkinEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRevokeSessionQueryEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftVoiceChangeEvent;
@@ -140,12 +138,6 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player,
 	public void dispatchRegisterSkinEvent(IEaglerPendingConnection pendingConnection, IRegisterSkinDelegate delegate,
 			IEventDispatchCallback<IEaglercraftRegisterSkinEvent<Player>> onComplete) {
 		fireAsync(new BukkitRegisterSkinEventImpl(api, pendingConnection, delegate), onComplete);
-	}
-
-	@Override
-	public void dispatchRegisterCapeEvent(IEaglerPendingConnection pendingConnection, IRegisterCapeDelegate delegate,
-			IEventDispatchCallback<IEaglercraftRegisterCapeEvent<Player>> onComplete) {
-		fireAsync(new BukkitRegisterCapeEventImpl(api, pendingConnection, delegate), onComplete);
 	}
 
 	@Override

@@ -560,7 +560,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		});
 	}
 
-	public void initializePlayer(Player player, VelocityConnection connection) {
+	public void initializePlayer(Player player, VelocityConnection connection, Runnable onComplete) {
 		VelocityPlayer p = new VelocityPlayer(player, connection);
 		playerInitializer.initializePlayer(new IPlatformPlayerInitializer<Object, Object, Player>() {
 			@Override
@@ -575,13 +575,21 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			public IPlatformPlayer<Player> getPlayer() {
 				return p;
 			}
+			@Override
+			public void complete() {
+				playerInstanceMap.put(player, p);
+				p.confirmTask = proxy.getScheduler().buildTask(PlatformPluginVelocity.this, () -> {
+					p.confirmTask = null;
+					proxyLogger.warn("Player {} was initialized, but never fired PostLoginEvent, dropping...", p.getUsername());
+					dropPlayer(player);
+				}).delay(5l, TimeUnit.SECONDS).schedule();
+				onComplete.run();
+			}
+			@Override
+			public void cancel() {
+				onComplete.run();
+			}
 		});
-		playerInstanceMap.put(player, p);
-		p.confirmTask = proxy.getScheduler().buildTask(this, () -> {
-			p.confirmTask = null;
-			proxyLogger.warn("Player {} was initialized, but never fired PostLoginEvent, dropping...", p.getUsername());
-			dropPlayer(player);
-		}).delay(5l, TimeUnit.SECONDS).schedule();
 	}
 
 	public void confirmPlayer(Player player) {

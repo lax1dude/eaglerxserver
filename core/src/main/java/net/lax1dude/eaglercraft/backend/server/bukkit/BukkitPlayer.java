@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.bukkit;
 
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
@@ -17,11 +18,13 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 	private final BukkitConnection connection;
 	volatile BukkitTask confirmTask;
 	Object attachment;
+	private String brandString;
 
 	BukkitPlayer(Player player, BukkitConnection connection) {
 		this.player = player;
 		this.connection = connection;
 		this.connection.bindPlayer(player);
+		this.brandString = "vanilla";
 	}
 
 	@Override
@@ -62,7 +65,7 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 
 	@Override
 	public String getMinecraftBrand() {
-		return "vanilla"; // TODO how to get brand?
+		return brandString;
 	}
 
 	@Override
@@ -73,6 +76,11 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 	@Override
 	public void sendDataBackend(String channel, byte[] message) {
 		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public String getTexturesProperty() {
+		return BukkitUnsafe.getTexturesProperty(player);
 	}
 
 	@Override
@@ -108,6 +116,16 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 	@Override
 	public IPlatformPlayer<Player> asPlayer() {
 		return this;
+	}
+
+	void handleMCBrandMessage(byte[] data) {
+		if(data.length > 0) {
+			int len = (int)data[0] & 0xFF;
+			// Brand over 127 chars is probably garbage anyway...
+			if(len < 128 && len == data.length - 1) {
+				brandString = new String(data, 1, len, StandardCharsets.UTF_8);
+			}
+		}
 	}
 
 }

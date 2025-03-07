@@ -293,7 +293,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	public static class RegistrationStateException extends IllegalStateException {
 	}
 
-	public void registerEaglerPlayer(EaglerPlayerInstance<PlayerObject> playerInstance) {
+	public void registerEaglerPlayer(EaglerPlayerInstance<PlayerObject> playerInstance, Runnable onComplete) {
 		if(!eaglerPlayers.add(playerInstance)) {
 			throw new RegistrationStateException();
 		}
@@ -302,12 +302,20 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		NettyPipelineData.ProfileDataHolder profileData = pendingConnection.transferProfileData();
 
 		playerInstance.messageController = MessageControllerFactory.initializePlayer(playerInstance);
-		playerInstance.skinManager = skinService.createEaglerSkinManager(playerInstance, profileData);
-
-		if(pendingConnection.isEaglerXRewindPlayer()) {
-			((IEaglerXRewindProtocol<PlayerObject, Object>) pendingConnection.getRewindProtocol())
-					.handleCreatePlayer(pendingConnection.getRewindAttachment(), playerInstance);
-		}
+		skinService.createEaglerSkinManager(playerInstance, profileData, (mgr) -> {
+			playerInstance.skinManager = mgr;
+			try {
+				if(pendingConnection.isEaglerXRewindPlayer()) {
+					((IEaglerXRewindProtocol<PlayerObject, Object>) pendingConnection.getRewindProtocol())
+							.handleCreatePlayer(pendingConnection.getRewindAttachment(), playerInstance);
+				}
+			}catch(Exception ex) {
+				logger().error("Uncaught exception initializing rewind player", ex);
+				onComplete.run();
+				return;
+			}
+			onComplete.run();
+		});
 	}
 
 	public void unregisterPlayer(BasePlayerInstance<PlayerObject> playerInstance) {

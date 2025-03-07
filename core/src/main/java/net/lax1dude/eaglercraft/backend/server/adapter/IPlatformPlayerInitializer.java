@@ -8,4 +8,8 @@ public interface IPlatformPlayerInitializer<ConnectionAttachment, PlayerAttachme
 
 	void setPlayerAttachment(PlayerAttachment attachment);
 
+	void complete();
+
+	void cancel();
+
 }

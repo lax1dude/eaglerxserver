@@ -225,6 +225,16 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			cmdMap.register("eagler", new BukkitCommand(this, cmd));
 		}
 		Messenger msgr = server.getMessenger();
+		PluginMessageListener ls = (ch, player, data) -> {
+			BukkitPlayer playerInstance = playerInstanceMap.get(player);
+			if(playerInstance != null) {
+				playerInstance.handleMCBrandMessage(data);
+			}
+		};
+		if(!post_v1_13) {
+			msgr.registerIncomingPluginChannel(this, "MC|Brand", ls);
+		}
+		msgr.registerIncomingPluginChannel(this, "minecraft:brand", ls);
 		for(IEaglerXServerMessageChannel<Player> channel : playerChannelsList) {
 			IEaglerXServerMessageHandler<Player> handler = channel.getHandler();
 			msgr.registerOutgoingPluginChannel(this, channel.getModernName());
@@ -232,7 +242,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 				msgr.registerOutgoingPluginChannel(this, channel.getLegacyName());
 			}
 			if(handler != null) {
-				PluginMessageListener ls = (ch, player, data) -> {
+				ls = (ch, player, data) -> {
 					IPlatformPlayer<Player> platformPlayer = getPlayer(player);
 					if(platformPlayer != null) {
 						handler.handle(channel, platformPlayer, data);
@@ -327,6 +337,10 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		}
 		Server server = getServer();
 		Messenger msgr = server.getMessenger();
+		if(!post_v1_13) {
+			msgr.unregisterIncomingPluginChannel(this, "MC|Brand");
+		}
+		msgr.unregisterIncomingPluginChannel(this, "minecraft:brand");
 		for(IEaglerXServerMessageChannel<Player> channel : playerChannelsList) {
 			IEaglerXServerMessageHandler<Player> handler = channel.getHandler();
 			msgr.unregisterOutgoingPluginChannel(this, channel.getModernName());
@@ -547,7 +561,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	}
 
 	public void initializePlayer(Player player, BukkitConnection connection,
-			Consumer<BukkitConnection> setAttr) {
+			Consumer<BukkitConnection> setAttr, Runnable onComplete) {
 		BukkitPlayer p;
 		final BukkitConnection c;
 		if(connection == null) {
@@ -586,13 +600,21 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			public IPlatformPlayer<Player> getPlayer() {
 				return p;
 			}
+			@Override
+			public void complete() {
+				playerInstanceMap.put(player, p);
+				p.confirmTask = getServer().getScheduler().runTaskLaterAsynchronously(PlatformPluginBukkit.this, () -> {
+					p.confirmTask = null;
+					getLogger().warning("Player " + p.getUsername() + " was initialized, but never fired PlayerJoinEvent, dropping...");
+					dropPlayer(player);
+				}, 5000l);
+				onComplete.run();
+			}
+			@Override
+			public void cancel() {
+				onComplete.run();
+			}
 		});
-		playerInstanceMap.put(player, p);
-		p.confirmTask = getServer().getScheduler().runTaskLaterAsynchronously(this, () -> {
-			p.confirmTask = null;
-			getLogger().warning("Player " + p.getUsername() + " was initialized, but never fired PlayerJoinEvent, dropping...");
-			dropPlayer(player);
-		}, 5000l);
 	}
 
 	public void confirmPlayer(Player player) {

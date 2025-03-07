@@ -20,7 +20,6 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftClientBrand
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftDestroyPlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterCapeEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterSkinEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRevokeSessionQueryEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftVoiceChangeEvent;
@@ -60,9 +59,6 @@ public interface IEventDispatchAdapter<PlayerObject, ComponentObject> {
 
 	void dispatchRegisterSkinEvent(IEaglerPendingConnection pendingConnection, IRegisterSkinDelegate delegate,
 			IEventDispatchCallback<IEaglercraftRegisterSkinEvent<PlayerObject>> onComplete);
-
-	void dispatchRegisterCapeEvent(IEaglerPendingConnection pendingConnection, IRegisterCapeDelegate delegate,
-			IEventDispatchCallback<IEaglercraftRegisterCapeEvent<PlayerObject>> onComplete);
 
 	void dispatchRevokeSessionQueryEvent(IQueryConnection query, byte[] cookieData,
 			IEventDispatchCallback<IEaglercraftRevokeSessionQueryEvent<PlayerObject>> onComplete);

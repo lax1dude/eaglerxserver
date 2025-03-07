@@ -5,6 +5,8 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftRegisterSkinEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterSkinEvent;
+import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
+import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.md_5.bungee.api.Callback;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -39,6 +41,26 @@ class BungeeRegisterSkinEventImpl extends EaglercraftRegisterSkinEvent {
 	}
 
 	@Override
+	public IEaglerPlayerCape getEaglerCape() {
+		return delegate.getEaglerCape();
+	}
+
+	@Override
+	public void forceFromVanillaTexturesProperty(String value) {
+		delegate.forceFromVanillaTexturesProperty(value);
+	}
+
+	@Override
+	public void forceFromVanillaLoginProfile() {
+		delegate.forceFromVanillaLoginProfile();
+	}
+
+	@Override
+	public void forceSkinFromURL(String value, EnumSkinModel skinModel) {
+		delegate.forceSkinFromURL(value, skinModel);
+	}
+
+	@Override
 	public void forceSkinFromVanillaTexturesProperty(String value) {
 		delegate.forceSkinFromVanillaTexturesProperty(value);
 	}
@@ -49,8 +71,28 @@ class BungeeRegisterSkinEventImpl extends EaglercraftRegisterSkinEvent {
 	}
 
 	@Override
-	public void forceSkinEagler(IEaglerPlayerSkin cape) {
-		delegate.forceSkinEagler(cape);
+	public void forceCapeFromURL(String value) {
+		delegate.forceCapeFromURL(value);
+	}
+
+	@Override
+	public void forceCapeFromVanillaTexturesProperty(String value) {
+		delegate.forceCapeFromVanillaTexturesProperty(value);
+	}
+
+	@Override
+	public void forceCapeFromVanillaLoginProfile() {
+		delegate.forceCapeFromVanillaLoginProfile();
+	}
+
+	@Override
+	public void forceSkinEagler(IEaglerPlayerSkin skin) {
+		delegate.forceSkinEagler(skin);
+	}
+
+	@Override
+	public void forceCapeEagler(IEaglerPlayerCape cape) {
+		delegate.forceCapeEagler(cape);
 	}
 
 }

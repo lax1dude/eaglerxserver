@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.bungee;
 
+import com.google.common.base.Throwables;
+
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
@@ -42,7 +44,20 @@ class BungeeListener implements Listener {
 		ProxiedPlayer player = event.getPlayer();
 		BungeeConnection conn = BungeeUnsafe.getInitialHandlerChannel(player.getPendingConnection())
 				.attr(PipelineAttributes.<BungeeConnection>connectionData()).get();
-		plugin.initializePlayer(player, conn);
+		event.registerIntent(plugin);
+		try {
+			plugin.initializePlayer(player, conn, () -> {
+				event.completeIntent(plugin);
+			});
+		}catch(Exception ex) {
+			try {
+				event.completeIntent(plugin);
+			}catch(IllegalStateException exx) {
+				return;
+			}
+			Throwables.throwIfUnchecked(ex);
+			throw new RuntimeException("Uncaught exception", ex);
+		}
 	}
 
 	@EventHandler(priority = -128)

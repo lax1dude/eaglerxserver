@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.velocity;
 
+import com.velocitypowered.api.event.Continuation;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.LoginEvent;
@@ -48,12 +49,16 @@ class VelocityListener {
 				channel.attr(PipelineAttributes.<VelocityConnection>connectionData())::set);
 	}
 
-	@Subscribe(priority = Short.MAX_VALUE)
-	public void onLoginEvent(LoginEvent loginEvent) {
+	@Subscribe(priority = Short.MAX_VALUE, async = true)
+	public void onLoginEvent(LoginEvent loginEvent, Continuation cont) {
 		Player player = loginEvent.getPlayer();
 		VelocityConnection conn = VelocityUnsafe.getInboundChannel(player)
 				.attr(PipelineAttributes.<VelocityConnection>connectionData()).get();
-		plugin.initializePlayer(player, conn);
+		try {
+			plugin.initializePlayer(player, conn, cont::resume);
+		}catch(Exception ex) {
+			cont.resumeWithException(ex);
+		}
 	}
 
 	@Subscribe

@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.skins;
 
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
@@ -16,7 +17,9 @@ import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.CustomCapeGeneric;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.CustomCapePlayer;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.CustomSkinGeneric;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.CustomSkinPlayer;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingCape;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingSkin;
 import net.lax1dude.eaglercraft.backend.skin_cache.ISkinCacheService;
@@ -83,12 +86,42 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 		}
 	}
 
+	void loadPlayerSkinFromURL(String skinURL, UUID playerUUID, EnumSkinModel modelId, Consumer<IEaglerPlayerSkin> callback) {
+		if(skinCache != null) {
+			skinCache.resolveSkinByURL(skinURL, (data) -> {
+				if(data != null) {
+					callback.accept(CustomSkinPlayer.createV3(playerUUID.getMostSignificantBits(),
+							playerUUID.getLeastSignificantBits(), modelId.getId(), data));
+				} else {
+					callback.accept(MissingSkin.MISSING_SKIN);
+				}
+			});
+		}else {
+			callback.accept(MissingSkin.MISSING_SKIN);
+		}
+	}
+
 	@Override
 	public void loadCacheCapeFromURL(String capeURL, Consumer<IEaglerPlayerCape> callback) {
 		if(skinCache != null) {
 			skinCache.resolveCapeByURL(capeURL, (data) -> {
 				if(data != null) {
 					callback.accept(new CustomCapeGeneric(data));
+				}else {
+					callback.accept(MissingCape.MISSING_CAPE);
+				}
+			});
+		}else {
+			callback.accept(MissingCape.MISSING_CAPE);
+		}
+	}
+
+	void loadPlayerCapeFromURL(String capeURL, UUID playerUUID, Consumer<IEaglerPlayerCape> callback) {
+		if(skinCache != null) {
+			skinCache.resolveCapeByURL(capeURL, (data) -> {
+				if(data != null) {
+					callback.accept(new CustomCapePlayer(playerUUID.getMostSignificantBits(),
+							playerUUID.getLeastSignificantBits(), data));
 				}else {
 					callback.accept(MissingCape.MISSING_CAPE);
 				}
@@ -128,8 +161,8 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 		return new SkinManagerVanillaOffline<PlayerObject>(playerInstance);
 	}
 
-	public ISkinManagerEagler<PlayerObject> createEaglerSkinManager(EaglerPlayerInstance<PlayerObject> playerInstance,
-			NettyPipelineData.ProfileDataHolder profileData) {
+	public void createEaglerSkinManager(EaglerPlayerInstance<PlayerObject> playerInstance,
+			NettyPipelineData.ProfileDataHolder profileData, Consumer<ISkinManagerEagler<PlayerObject>> onComplete) {
 		IEaglerPlayerSkin skin;
 		if(profileData.skinDataV2Init != null) {
 			skin = SkinHandshake.loadSkinDataV2(playerInstance.getUniqueId(), profileData.skinDataV2Init);
@@ -137,7 +170,31 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 			skin = SkinHandshake.loadSkinDataV1(playerInstance.getUniqueId(), profileData.skinDataV1Init);
 		}
 		IEaglerPlayerCape cape = SkinHandshake.loadCapeDataV1(playerInstance.getUniqueId(), profileData.capeDataInit);
-		return new SkinManagerEagler<>(playerInstance, skin, cape, true);
+		handleRegisterSkin(playerInstance, skin, cape, (skin2, cape2) -> {
+			onComplete.accept(new SkinManagerEagler<>(playerInstance, skin2, cape2, true));
+		});
+	}
+
+	private void handleRegisterSkin(EaglerPlayerInstance<PlayerObject> conn, IEaglerPlayerSkin skin,
+			IEaglerPlayerCape cape, BiConsumer<IEaglerPlayerSkin, IEaglerPlayerCape> onComplete) {
+		RegisterSkinDelegate handle = new RegisterSkinDelegate(skin, cape) {
+			@Override
+			protected String resolveTexturesProperty() {
+				return conn.getPlatformPlayer().getTexturesProperty();
+			}
+		};
+		server.eventDispatcher().dispatchRegisterSkinEvent(conn, handle, (evt, err) -> {
+			if(err != null) {
+				server.logger().error("Uncaught exception in register skin event", err);
+				onComplete.accept(skin, cape);
+			}else {
+				if(handle.skinURL == null && handle.capeURL == null) {
+					onComplete.accept(handle.skin, handle.cape);
+				} else {
+					(new RegisterSkinDownloader(this, conn, handle, onComplete)).run();
+				}
+			}
+		});
 	}
 
 }

@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.bukkit;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -20,12 +22,33 @@ class BukkitListener implements Listener {
 		this.plugin = plugin;
 	}
 
+	private volatile boolean thisIsSafe = false;
+
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onPlayerLogin(PlayerLoginEvent evt) {
 		Player player = evt.getPlayer();
 		Channel channel = BukkitUnsafe.getPlayerChannel(player);
 		Attribute<BukkitConnection> attr = channel.attr(PipelineAttributes.<BukkitConnection>connectionData());
-		plugin.initializePlayer(player, attr.get(), attr::set);
+		CountDownLatch latch = new CountDownLatch(1);
+		thisIsSafe = false;
+		plugin.initializePlayer(player, attr.get(), attr::set, () -> {
+			thisIsSafe = true;
+			latch.countDown();
+		});
+		if(!thisIsSafe) {
+			long now = System.nanoTime();
+			plugin.logger().warn("PlayerLoginEvent is being blocked by EaglerXServer or a "
+					+ "dependant plugin, this will stall the server's main thread and will cause "
+					+ "a deadlock if a dependent plugin attempts to await a non-async task!!!");
+			try {
+				// FUCK! FUCK! FUCK!
+				latch.await();
+			}catch(InterruptedException ex) {
+				plugin.logger().warn("Server thread interrupted");
+			}
+			plugin.logger().warn("Server thread is resuming! (Stalled for "
+					+ ((System.nanoTime() - now) / (50l * 1000000l)) + " ticks)");
+		}
 	}
 
 	@EventHandler

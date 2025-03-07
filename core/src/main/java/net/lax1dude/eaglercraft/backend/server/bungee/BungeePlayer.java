@@ -63,8 +63,8 @@ class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
 		byte[] ret = BungeeUnsafe.getBrandMessage(player.getPendingConnection());
 		if(ret != null && ret.length > 0) {
 			int len = (int)ret[0] & 0xFF;
-			if(len < 128) {
-				return new String(ret, 1, ret.length - 1, StandardCharsets.UTF_8);
+			if(len < 128 && len == ret.length - 1) {
+				return new String(ret, 1, len, StandardCharsets.UTF_8);
 			}else {
 				// Brand over 127 chars is probably garbage anyway...
 				return null;
