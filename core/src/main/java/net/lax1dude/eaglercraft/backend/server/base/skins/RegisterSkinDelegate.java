@@ -4,6 +4,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.event.IRegisterSkinDelega
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
+import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesResult;
 
 abstract class RegisterSkinDelegate implements IRegisterSkinDelegate {
 
@@ -34,18 +35,18 @@ abstract class RegisterSkinDelegate implements IRegisterSkinDelegate {
 
 	@Override
 	public void forceFromVanillaTexturesProperty(String value) {
-		GameProfileUtil profile = GameProfileUtil.extractSkinAndCape(value);
+		TexturesResult profile = GameProfileUtil.extractSkinAndCape(value);
 		if(profile == null) {
 			throw new IllegalArgumentException("Textures property data is invalid!");
 		}
-		if(profile.skinURL != null) {
+		if(profile.getSkinURL() != null) {
 			skin = null;
-			skinModel = "slim".equals(profile.skinModel) ? EnumSkinModel.ALEX : EnumSkinModel.STEVE;
-			skinURL = profile.skinURL;
+			skinModel = profile.getSkinModel();
+			skinURL = profile.getSkinURL();
 		}
-		if(profile.capeURL != null) {
+		if(profile.getCapeURL() != null) {
 			cape = null;
-			capeURL = profile.capeURL;
+			capeURL = profile.getCapeURL();
 		}
 	}
 
@@ -71,14 +72,14 @@ abstract class RegisterSkinDelegate implements IRegisterSkinDelegate {
 
 	@Override
 	public void forceSkinFromVanillaTexturesProperty(String value) {
-		GameProfileUtil profile = GameProfileUtil.extractSkinAndCape(value);
+		TexturesResult profile = GameProfileUtil.extractSkinAndCape(value);
 		if(profile == null) {
 			throw new IllegalArgumentException("Textures property data is invalid!");
 		}
-		if(profile.skinURL != null) {
+		if(profile.getSkinURL() != null) {
 			skin = null;
-			skinModel = "slim".equals(profile.skinModel) ? EnumSkinModel.ALEX : EnumSkinModel.STEVE;
-			skinURL = profile.skinURL;
+			skinModel = profile.getSkinModel();
+			skinURL = profile.getSkinURL();
 		}
 	}
 
@@ -103,13 +104,13 @@ abstract class RegisterSkinDelegate implements IRegisterSkinDelegate {
 
 	@Override
 	public void forceCapeFromVanillaTexturesProperty(String value) {
-		GameProfileUtil profile = GameProfileUtil.extractSkinAndCape(value);
+		TexturesResult profile = GameProfileUtil.extractSkinAndCape(value);
 		if(profile == null) {
 			throw new IllegalArgumentException("Textures property data is invalid!");
 		}
-		if(profile.capeURL != null) {
+		if(profile.getCapeURL() != null) {
 			cape = null;
-			capeURL = profile.capeURL;
+			capeURL = profile.getCapeURL();
 		}
 	}
 

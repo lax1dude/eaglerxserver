@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -52,6 +53,7 @@ import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationSe
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuService;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindService;
+import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesProperty;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
@@ -69,6 +71,7 @@ import net.lax1dude.eaglercraft.backend.server.base.message.MessageControllerFac
 import net.lax1dude.eaglercraft.backend.server.base.message.PlayerChannelHelper;
 import net.lax1dude.eaglercraft.backend.server.base.config.EaglerConfigLoader;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.PipelineTransformer;
+import net.lax1dude.eaglercraft.backend.server.base.skins.ProfileResolver;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinService;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 import net.lax1dude.eaglercraft.backend.skin_cache.HTTPClient;
@@ -87,7 +90,6 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	private boolean hasStartedLoading = false;
 	private IPlatform<PlayerObject> platform;
-	private Class<?> platformClazz;
 	private EnumPlatformType platformType;
 	private Class<PlayerObject> playerClazz;
 	private ConfigDataRoot config;
@@ -104,9 +106,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private IPlatformTask certificateRefreshTask;
 	private String serverListConfirmCode;
 	private Class<?> componentType;
+	private Set<Class<?>> componentTypeSet;
 	private ComponentHelper<?> componentHelper;
 	private HTTPClient httpClient;
 	private BinaryHTTPClient httpClientAPI;
+	private ProfileResolver profileResolver;
+	private TexturesProperty eaglerPlayersVanillaSkin;
 	private SkinService<PlayerObject> skinService;
 	private DeferredStartSkinCache skinCacheService;
 	private Connection skinCacheJDBCHandle;
@@ -122,7 +127,6 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		hasStartedLoading = true;
 		eaglerPlayers = Sets.newConcurrentHashSet();
 		platform = init.getPlatform();
-		platformClazz = platform.getClass();
 		playerClazz = platform.getPlayerClass();
 		switch(platform.getType()) {
 		case BUNGEE: platformType = EnumPlatformType.BUNGEECORD; break;
@@ -155,15 +159,44 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		pipelineTransformer = new PipelineTransformer(this, rewindService);
 		certificateManager = new SSLCertificateManager(logger());
 		componentType = componentHelper().getComponentType();
+		componentTypeSet = Collections.singleton(componentType);
 		componentHelper = new ComponentHelper<>(componentHelper());
 		httpClient = new HTTPClient(platform.getWorkerEventLoopGroup(), platform.getChannelFactory(null),
 				"Mozilla/5.0 " + getServerVersionString());
 		httpClientAPI = new BinaryHTTPClient(httpClient);
+		profileResolver = new ProfileResolver(this, httpClient);
 		if(config.getSettings().getSkinService().isDownloadVanillaSkinsToClients()) {
 			skinCacheService = new DeferredStartSkinCache();
 			skinService = new SkinService<>(this, skinCacheService);
 		}else {
 			skinService = new SkinService<>(this, null);
+		}
+		
+		eaglerPlayersVanillaSkin = null;
+		String vanillaSkin = config.getSettings().getEaglerPlayersVanillaSkin();
+		load_vanilla_skin: if(vanillaSkin != null) {
+			UUID uuid;
+			try {
+				uuid = UUID.fromString(vanillaSkin);
+			}catch (IllegalArgumentException ex) {
+				profileResolver.resolveVanillaTexturesFromUsername(vanillaSkin, (prop) -> {
+					if(prop != null) {
+						logger().info("Loaded vanilla profile: \"" + vanillaSkin + "\"");
+						setEaglerPlayersVanillaSkin(prop);
+					}else {
+						logger().error("Could not load vanilla skin from username \"" + vanillaSkin + "\"");
+					}
+				});
+				break load_vanilla_skin;
+			}
+			profileResolver.resolveVanillaTexturesFromUUID(uuid, (prop) -> {
+				if(prop != null) {
+					logger().info("Loaded vanilla profile: " + uuid);
+					setEaglerPlayersVanillaSkin(prop);
+				}else {
+					logger().error("Could not load vanilla skin from UUID " + uuid);
+				}
+			});
 		}
 		
 		init.setOnServerEnable(this::enableHandler);
@@ -391,36 +424,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public Class<?> getEaglerXServerClass() {
-		return EaglerXServer.class;
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public <ServerImpl> ServerImpl getEaglerXServerInstance(Class<ServerImpl> clazz) {
-		if(!clazz.isAssignableFrom(EaglerXServer.class)) {
-			throw new ClassCastException("Class " + EaglerXServer.class.getName() + " cannot be cast to " + clazz.getName());
-		}
-		return (ServerImpl) this;
-	}
-
-	@Override
 	public EnumPlatformType getPlatformType() {
 		return platformType;
-	}
-
-	@Override
-	public Class<?> getPlatformPluginClass() {
-		return platformClazz;
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public <PluginImpl> PluginImpl getPlatformPluginInstance(Class<PluginImpl> clazz) {
-		if(!clazz.isAssignableFrom(platformClazz)) {
-			throw new ClassCastException("Class " + platformClazz.getName() + " cannot be cast to " + clazz.getName());
-		}
-		return (PluginImpl) platform;
 	}
 
 	@Override
@@ -598,6 +603,16 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
+	public ProfileResolver getProfileResolver() {
+		return profileResolver;
+	}
+
+	@Override
+	public void setEaglerPlayersVanillaSkin(TexturesProperty property) {
+		eaglerPlayersVanillaSkin = property;
+	}
+
+	@Override
 	public SkinService<PlayerObject> getSkinService() {
 		return skinService;
 	}
@@ -667,15 +682,15 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public Class<?> getComponentClass() {
-		return componentType;
+	public Set<Class<?>> getComponentClass() {
+		return componentTypeSet;
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <ComponentObject> IComponentSerializer<ComponentObject> getComponentSerializer(Class<ComponentObject> componentType) {
-		if(!componentType.isAssignableFrom(this.componentType)) {
-			throw new ClassCastException("Class " + this.componentType.getName() + " cannot be cast to " + componentType.getName());
+		if(componentType != this.componentType) {
+			throw new ClassCastException("Component class " + componentType.getName() + " is not supported on this platform!");
 		}
 		return (IComponentSerializer<ComponentObject>) componentHelper;
 	}

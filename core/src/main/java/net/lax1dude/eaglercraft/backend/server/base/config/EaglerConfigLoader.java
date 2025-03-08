@@ -99,10 +99,14 @@ public class EaglerConfigLoader {
 				"eagler_players_vanilla_skin", "",
 				"Default value is '' but was originally 'lax1dude', can be used to set "
 				+ "the skin to apply to EaglercraftX players when a player on Minecraft Java "
-				+ "Edition sees them in game. The value is the username of a premium Minecraft "
-				+ "account to use the skin from. You cannot use a local PNG file due to the "
-				+ "profile signature requirements in vanilla Minecraft clients."
+				+ "Edition sees them in game. The value is the username or (dashed) UUID of "
+				+ "a premium Minecraft account to use the skin from. You cannot use a local "
+				+ "PNG file due to the profile signature requirements in vanilla Minecraft "
+				+ "clients."
 			);
+			if(eaglerPlayersVanillaSkin.length() == 0) {
+				eaglerPlayersVanillaSkin = null;
+			}
 			boolean enableAuthenticationEvents = config.getBoolean(
 				"enable_authentication_events", false,
 				"Default value is false, if the events for hooking into the EaglercraftX client's "

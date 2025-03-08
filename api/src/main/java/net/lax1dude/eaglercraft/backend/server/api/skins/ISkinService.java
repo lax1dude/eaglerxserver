@@ -40,7 +40,9 @@ public interface ISkinService<PlayerObject> extends ISkinResolver {
 		return ret != null ? ret.getSkinManager() : null;
 	}
 
-	void setEaglerPlayersVanillaSkin(String texturesPropertyValue, String texturesPropertySignature);
+	default IProfileResolver getProfileResolver() {
+		return getServerAPI().getProfileResolver();
+	}
 
 	ISkinImageLoader getSkinLoader(boolean cacheEnabled);
 

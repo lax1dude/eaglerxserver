@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.util;
 import java.lang.reflect.InvocationTargetException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.UUID;
 
 public class Util {
 
@@ -54,6 +55,24 @@ public class Util {
 	public static String sanitizeJDBCURIForLogs(String uri) {
 		//TODO
 		return uri;
+	}
+
+	public static UUID createUUIDFromUndashed(String str) {
+		if(str.length() != 32) {
+			throw new IllegalArgumentException("Invalid UUID string length: " + str.length() + " != 32");
+		}
+		return new UUID(Long.parseUnsignedLong(str.substring(0, 16), 16), Long.parseUnsignedLong(str.substring(16), 16));
+	}
+
+	public static CharSequence toUUIDStringUndashed(UUID uuid) {
+		String str = uuid.toString();
+		StringBuilder builder = new StringBuilder(32);
+		builder.append(str, 0, 8);
+		builder.append(str, 9, 13);
+		builder.append(str, 14, 18);
+		builder.append(str, 19, 23);
+		builder.append(str, 24, 36);
+		return builder;
 	}
 
 }

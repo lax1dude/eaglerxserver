@@ -12,6 +12,7 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinImageLoader;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerEagler;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
+import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesResult;
 import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
@@ -137,12 +138,6 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 	}
 
 	@Override
-	public void setEaglerPlayersVanillaSkin(String texturesPropertyValue, String texturesPropertySignature) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	public ISkinImageLoader getSkinLoader(boolean cacheEnabled) {
 		return cacheEnabled ? SkinImageLoaderCacheOn.INSTANCE : SkinImageLoaderCacheOff.INSTANCE;
 	}
@@ -151,10 +146,10 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 		if(skinCache != null) {
 			String prop = playerInstance.getPlatformPlayer().getTexturesProperty();
 			if(prop != null) {
-				GameProfileUtil props = GameProfileUtil.extractSkinAndCape(prop);
+				TexturesResult props = GameProfileUtil.extractSkinAndCape(prop);
 				if(props != null) {
-					return new SkinManagerVanillaOnline<PlayerObject>(playerInstance, props.skinURL,
-							"slim".equals(props.skinModel) ? EnumSkinModel.ALEX : EnumSkinModel.STEVE, props.capeURL);
+					return new SkinManagerVanillaOnline<PlayerObject>(playerInstance, props.getSkinURL(),
+							props.getSkinModel(), props.getCapeURL());
 				}
 			}
 		}

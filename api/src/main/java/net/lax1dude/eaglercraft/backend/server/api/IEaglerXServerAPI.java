@@ -19,7 +19,9 @@ import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationSe
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuService;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryServer;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindService;
+import net.lax1dude.eaglercraft.backend.server.api.skins.IProfileResolver;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
+import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesProperty;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IWebServer;
@@ -48,14 +50,6 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 	IEaglerAPIFactory getFactory();
 
 	EnumPlatformType getPlatformType();
-
-	Class<?> getEaglerXServerClass();
-
-	<ServerImpl> ServerImpl getEaglerXServerInstance(Class<ServerImpl> clazz);
-
-	Class<?> getPlatformPluginClass();
-
-	<PluginImpl> PluginImpl getPlatformPluginInstance(Class<PluginImpl> clazz);
 
 	String getServerBrand();
 
@@ -111,6 +105,10 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	IEaglerListenerInfo getListenerByAddress(SocketAddress address);
 
+	IProfileResolver getProfileResolver();
+
+	void setEaglerPlayersVanillaSkin(TexturesProperty property);
+
 	ISkinService<PlayerObject> getSkinService();
 
 	IVoiceService<PlayerObject> getVoiceService();
@@ -135,7 +133,7 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	IScheduler getScheduler();
 
-	Class<?> getComponentClass();
+	Set<Class<?>> getComponentClass();
 
 	<ComponentObject> IComponentSerializer<ComponentObject> getComponentSerializer(Class<ComponentObject> componentType);
 

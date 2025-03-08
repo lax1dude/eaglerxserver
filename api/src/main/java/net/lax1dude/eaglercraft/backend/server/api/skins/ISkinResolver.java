@@ -27,4 +27,6 @@ public interface ISkinResolver {
 
 	void loadCacheCapeFromURL(String capeURL, Consumer<IEaglerPlayerCape> callback);
 
+	IProfileResolver getProfileResolver();
+
 }

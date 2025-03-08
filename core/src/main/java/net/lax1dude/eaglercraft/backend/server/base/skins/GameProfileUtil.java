@@ -7,20 +7,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
+import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesResult;
+
 public class GameProfileUtil {
 
-	public final String skinURL;
-	public final String skinModel;
-
-	public final String capeURL;
-
-	private GameProfileUtil(String skinURL, String skinModel, String capeURL) {
-		this.skinURL = skinURL;
-		this.skinModel = skinModel;
-		this.capeURL = capeURL;
-	}
-
-	public static GameProfileUtil extractSkinAndCape(String texturesProperty) {
+	public static TexturesResult extractSkinAndCape(String texturesProperty) {
 		try {
 			String skinURL = null;
 			String skinModel = null;
@@ -53,7 +45,7 @@ public class GameProfileUtil {
 			if(skinModel == null) {
 				skinModel = "default";
 			}
-			return new GameProfileUtil(skinURL, skinModel, capeURL);
+			return TexturesResult.create(skinURL, "slim".equals(skinModel) ? EnumSkinModel.ALEX : EnumSkinModel.STEVE, capeURL);
 		}catch(Exception ex) {
 			return null;
 		}
