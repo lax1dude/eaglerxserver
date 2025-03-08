@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.zip.DataFormatException;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 
@@ -34,6 +35,9 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 	private double playerZ = 0;
 	private float playerYaw = 0;
 	private float playerPitch = 0;
+
+	private final Set<Short> enchWindows = new HashSet<>();
+	private final Set<Short> furnWindows = new HashSet<>();
 
 	private static final String[] particleNames = new String[] {
 			"explode",
@@ -574,18 +578,20 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 
 	private void handleOpenWindow(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x64);
-		bb.writeByte(in.readUnsignedByte());
+		short windowUniqueId = in.readUnsignedByte();
+		bb.writeByte(windowUniqueId);
 		String windowType = BufferUtils.readMCString(in, 255);
 		byte windowId = -1;
 		switch (windowType) {
 			case "minecraft:chest":
-			case "EntityHorse":
+			case "EntityHorse": // yeah...
 				windowId = 0;
 				break;
 			case "minecraft:crafting_table":
 				windowId = 1;
 				break;
 			case "minecraft:furnace":
+				furnWindows.add(windowUniqueId);
 				windowId = 2;
 				break;
 			case "minecraft:dispenser":
@@ -593,6 +599,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				windowId = 3;
 				break;
 			case "minecraft:enchanting_table":
+				enchWindows.add(windowUniqueId);
 				windowId = 4;
 				break;
 			case "minecraft:brewing_stand":
@@ -619,6 +626,416 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 		bb.writeBoolean(!windowTitle.isEmpty());
 	}
 
+	private void handleCloseWindow(ByteBuf in, ByteBuf bb) {
+		bb.writeByte(0x65);
+		short windowUniqueId = in.readUnsignedByte();
+		enchWindows.remove(windowUniqueId);
+		furnWindows.remove(windowUniqueId);
+		bb.writeByte(windowUniqueId);
+	}
+
+	private boolean handleSetSlot(ByteBuf in, ByteBuf bb) {
+		bb.writeByte(0x67);
+		byte windowUniqueId = in.readByte();
+		bb.writeByte(windowUniqueId);
+		short slot = in.readShort();
+		if (enchWindows.contains((short) windowUniqueId) && slot > 0) {
+			if (slot == 1) {
+				return false;
+			}
+			bb.writeShort(slot - 1);
+		} else {
+			bb.writeShort(slot);
+		}
+		BufferUtils.convertSlot2Legacy(in, bb);
+		return true;
+	}
+
+	private void handleWindowItems(ByteBuf in, ByteBuf bb) {
+		bb.writeByte(0x68);
+		short windowUniqueId = in.readUnsignedByte();
+		bb.writeByte(windowUniqueId);
+		short numSlots = in.readShort();
+		boolean ench = enchWindows.contains(windowUniqueId);
+		if (ench && numSlots > 1) {
+			bb.writeShort(numSlots - 1);
+		} else {
+			bb.writeShort(numSlots);
+		}
+		for (int ii = 0; ii < numSlots; ++ii) {
+			if (ench && ii == 1) {
+				int here = bb.writerIndex();
+				BufferUtils.convertSlot2Legacy(in, bb);
+				bb.writerIndex(here);
+			} else {
+				BufferUtils.convertSlot2Legacy(in, bb);
+			}
+		}
+	}
+
+	private boolean handleWindowProperty(ByteBuf in, ByteBuf bb) {
+		short grah = in.readUnsignedByte();
+		short uwpProp = in.readShort();
+		if (uwpProp <= 2) {
+			if (furnWindows.contains(grah)) {
+				if (uwpProp == 2) {
+					uwpProp = 0;
+				} else if (uwpProp == 0) {
+					uwpProp = 1;
+				}
+			}
+			bb.writeByte(0x69);
+			bb.writeByte(grah);
+			bb.writeShort(uwpProp);
+			bb.writeShort(in.readShort());
+			return true;
+		}
+		return false;
+	}
+
+	private void handleConfirmTransaction(ByteBuf in, ByteBuf bb) {
+		bb.writeByte(0x6A);
+		bb.writeByte(in.readByte());
+		bb.writeShort(in.readShort());
+		bb.writeBoolean(in.readBoolean());
+	}
+
+	private void handleUpdateSign(ByteBuf in, ByteBuf bb) {
+		bb.writeByte(0x82);
+		long signPos = in.readLong();
+		bb.writeInt(BufferUtils.posX(signPos));
+		bb.writeShort(BufferUtils.posY(signPos));
+		bb.writeInt(BufferUtils.posZ(signPos));
+		for (int ii = 0; ii < 4; ++ii) {
+			BufferUtils.writeLegacyMCString(bb, player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 4095)), 255);
+		}
+	}
+
+	private void handleMap(ByteBuf in, ByteBuf bb) {
+		// todo: all this bullshit (maps)
+		/*
+		bb = ctx.alloc().buffer();
+		bb.writeByte(0x83);
+		int mapId = BufferUtils.readVarInt(in);
+		byte mapScale
+		*/
+	}
+
+	private boolean handleUpdateBlockEntity(ByteBuf in, ByteBuf bb) {
+		long ubePos = in.readLong();
+		short ubeAct = in.readUnsignedByte();
+		if (ubeAct == 1 || ubeAct == 3 || ubeAct == 4 || ubeAct == 5) {
+			bb.writeByte(0x84);
+			bb.writeInt(BufferUtils.posX(ubePos));
+			bb.writeShort(BufferUtils.posY(ubePos));
+			bb.writeInt(BufferUtils.posZ(ubePos));
+			bb.writeByte(ubeAct);
+			BufferUtils.convertNBT2Legacy(in, bb);
+			return true;
+		}
+		return false;
+	}
+
+	private void handleStatistics(ByteBuf in, ByteBufAllocator alloc, List<Object> out) {
+		int numStats = BufferUtils.readVarInt(in);
+		for (int ii = 0; ii < numStats; ++ii) {
+			String statName = BufferUtils.readMCString(in, 255);
+			int statId = -1;
+			if (statName.equals("stat.leaveGame")) {
+				statId = 1004;
+			} else if (statName.equals("stat.playOneMinute")) {
+				statId = 1100;
+			} else if (statName.equals("stat.walkOneCm")) {
+				statId = 2000;
+			} else if (statName.equals("stat.swimOneCm")) {
+				statId = 2001;
+			} else if (statName.equals("stat.fallOneCm")) {
+				statId = 2002;
+			} else if (statName.equals("stat.climbOneCm")) {
+				statId = 2003;
+			} else if (statName.equals("stat.flyOneCm")) {
+				statId = 2004;
+			} else if (statName.equals("stat.diveOneCm")) {
+				statId = 2005;
+			} else if (statName.equals("stat.minecartOneCm")) {
+				statId = 2006;
+			} else if (statName.equals("stat.boatOneCm")) {
+				statId = 2007;
+			} else if (statName.equals("stat.pigOneCm")) {
+				statId = 2008;
+			} else if (statName.equals("stat.jump")) {
+				statId = 2010;
+			} else if (statName.equals("stat.drop")) {
+				statId = 2011;
+			} else if (statName.equals("stat.damageDealt")) {
+				statId = 2020;
+			} else if (statName.equals("stat.damageTaken")) {
+				statId = 2021;
+			} else if (statName.equals("stat.deaths")) {
+				statId = 2022;
+			} else if (statName.equals("stat.mobKills")) {
+				statId = 2023;
+			} else if (statName.equals("stat.playerKills")) {
+				statId = 2024;
+			} else if (statName.equals("stat.fishCaught")) {
+				statId = 2025;
+			} else if (statName.equals("achievement.openInventory")) {
+				statId = 5242880;
+			} else if (statName.equals("achievement.mineWood")) {
+				statId = 5242881;
+			} else if (statName.equals("achievement.buildWorkBench")) {
+				statId = 5242882;
+			} else if (statName.equals("achievement.buildPickaxe")) {
+				statId = 5242883;
+			} else if (statName.equals("achievement.buildFurnace")) {
+				statId = 5242884;
+			} else if (statName.equals("achievement.acquireIron")) {
+				statId = 5242885;
+			} else if (statName.equals("achievement.buildHoe")) {
+				statId = 5242886;
+			} else if (statName.equals("achievement.makeBread")) {
+				statId = 5242887;
+			} else if (statName.equals("achievement.bakeCake")) {
+				statId = 5242888;
+			} else if (statName.equals("achievement.buildBetterPickaxe")) {
+				statId = 5242889;
+			} else if (statName.equals("achievement.cookFish")) {
+				statId = 5242890;
+			} else if (statName.equals("achievement.onARail")) {
+				statId = 5242891;
+			} else if (statName.equals("achievement.buildSword")) {
+				statId = 5242892;
+			} else if (statName.equals("achievement.killEnemy")) {
+				statId = 5242893;
+			} else if (statName.equals("achievement.killCow")) {
+				statId = 5242894;
+			} else if (statName.equals("achievement.flyPig")) {
+				statId = 5242895;
+			} else {
+				statName = null;
+			}
+			if (statName != null) {
+				ByteBuf bb = alloc.buffer();
+				bb.writeByte(0xC8);
+				bb.writeInt(statId);
+				bb.writeByte(1); // guess that it only goes up by 1 lol
+				out.add(bb);
+			}
+		}
+	}
+
+	private void handlePlayerListItem(ByteBuf in, ByteBufAllocator alloc, List<Object> out) {
+		int pliAction = BufferUtils.readVarInt(in);
+		if (pliAction != 1) {
+			int pliNum = BufferUtils.readVarInt(in);
+			for (int ii = 0; ii < pliNum; ++ii) {
+				long plimsb = in.readLong();
+				long plilsb = in.readLong();
+				UUID pliUuid = new UUID(plimsb, plilsb);
+				if (!tabList.containsKey(pliUuid)) {
+					if (pliAction == 0) {
+						String tempName = BufferUtils.readMCString(in, 255);
+						int tempSkip = BufferUtils.readVarInt(in);
+						for (int iii = 0; iii < tempSkip; ++iii) {
+							BufferUtils.readMCString(in, 255);
+							BufferUtils.readMCString(in, 255);
+							if (in.readBoolean()) {
+								BufferUtils.readMCString(in, 255);
+							}
+						}
+						BufferUtils.readVarInt(in);
+						int tbPing = BufferUtils.readVarInt(in);
+						if (in.readBoolean()) {
+							tempName = player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 255));
+						}
+						tabList.put(pliUuid, new TabListItem(tempName, tbPing));
+					} else {
+						tabList.put(pliUuid, new TabListItem(player.getPlayer().getServerAPI().getPlayerByUUID(pliUuid).getUsername(), 0));
+					}
+				}
+				TabListItem pliItem = tabList.get(pliUuid);
+				if (pliAction != 0) {
+					ByteBuf bb = alloc.buffer();
+					bb.writeByte(0xC9);
+					try {
+						BufferUtils.writeLegacyMCString(bb, pliItem.name, 255);
+					} catch (IndexOutOfBoundsException e) {
+						bb.release();
+						throw e;
+					}
+					bb.writeBoolean(false);
+					bb.writeShort(pliItem.ping);
+					out.add(bb);
+				}
+				if (pliAction == 2) {
+					ByteBuf bb = alloc.buffer();
+					bb.writeByte(0xC9);
+					try {
+						BufferUtils.writeLegacyMCString(bb, pliItem.name, 255);
+					} catch (IndexOutOfBoundsException e) {
+						bb.release();
+						throw e;
+					};
+					bb.writeBoolean(true);
+					bb.writeShort(pliItem.ping = BufferUtils.readVarInt(in));
+					out.add(bb);
+				} else if (pliAction == 3) {
+					if (in.readBoolean()) {
+						pliItem.name = player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 255));
+					}
+				}
+				if (pliAction != 4) {
+					ByteBuf bb = alloc.buffer();
+					bb.writeByte(0xC9);
+					try {
+						BufferUtils.writeLegacyMCString(bb, pliItem.name, 255);
+					} catch (IndexOutOfBoundsException e) {
+						bb.release();
+						throw e;
+					}
+					bb.writeBoolean(true);
+					bb.writeShort(pliItem.ping);
+					out.add(bb);
+				} else {
+					tabList.remove(pliUuid);
+				}
+			}
+		}
+	}
+
+	private void handlePlayerAbilities(ByteBuf in, ByteBuf bb) {
+		bb.writeByte(0xCA);
+		byte paFlags = in.readByte();
+		if ((paFlags & 0x01) != ((paFlags & 0x08) >> 3)) {
+			paFlags ^= 0x09;
+		}
+		bb.writeByte(paFlags);
+		bb.writeByte((int) in.readFloat());
+		bb.writeByte((int) in.readFloat());
+	}
+
+	private void handleTabComplete(ByteBuf in, ByteBuf bb) {
+		bb.writeByte(0xCB);
+		int tcCount = BufferUtils.readVarInt(in);
+		StringBuilder tcSb = new StringBuilder();
+		for (int ii = 0; ii < tcCount; ++ii) {
+			tcSb.append(BufferUtils.readMCString(in, 255));
+			if (ii + 1 < tcCount) {
+				tcSb.append("\u0000");
+			}
+		}
+		BufferUtils.writeLegacyMCString(bb, tcSb.toString(), 32767);
+	}
+
+	private void handleScoreboardObjective(ByteBuf in, ByteBuf bb) {
+		bb.writeByte(0xCE);
+		String sboName = BufferUtils.readMCString(in, 255);
+		BufferUtils.writeLegacyMCString(bb, sboName, 255);
+		byte sboMode = in.readByte();
+		if (sboMode == 0) {
+			scoreBoard.put(sboName, new HashMap<>());
+		} else if (sboMode == 1) {
+			scoreBoard.remove(sboName);
+		}
+		BufferUtils.writeLegacyMCString(bb, sboMode == 1 ? "" : BufferUtils.readMCString(in, 255), 255);
+		bb.writeByte(sboMode);
+	}
+
+	private void handleUpdateScore(ByteBuf in, ByteBufAllocator alloc, List<Object> out) {
+		String sbItem = BufferUtils.readMCString(in, 255);
+		byte usAction = in.readByte();
+		String sbName = BufferUtils.readMCString(in, 255);
+		if (scoreBoard.containsKey(sbName)) {
+			if (usAction == 1) {
+				Map<String, Integer> guhhh = scoreBoard.get(sbName);
+				guhhh.remove(sbItem);
+				if (guhhh.isEmpty()) {
+					scoreBoard.remove(sbName);
+				}
+				ByteBuf bb = alloc.buffer();
+				bb.writeByte(0xCF);
+				try {
+					BufferUtils.writeLegacyMCString(bb, sbItem, 255);
+				} catch (IndexOutOfBoundsException e) {
+					bb.release();
+					throw e;
+				}
+				bb.writeByte(1);
+				out.add(bb);
+				for (String s : scoreBoard.keySet()) {
+					Map<String, Integer> argh = scoreBoard.get(s);
+					if (argh.containsKey(sbItem)) {
+						bb = alloc.buffer();
+						bb.writeByte(0xCF);
+						try {
+							BufferUtils.writeLegacyMCString(bb, sbItem, 255);
+							bb.writeByte(0);
+							BufferUtils.writeLegacyMCString(bb, s, 255);
+						} catch (IndexOutOfBoundsException e) {
+							bb.release();
+							throw e;
+						}
+						bb.writeInt(argh.get(sbItem));
+						out.add(bb);
+					}
+				}
+			} else {
+				int sbVal = BufferUtils.readVarInt(in);
+				scoreBoard.get(sbName).put(sbItem, sbVal);
+				ByteBuf bb = alloc.buffer();
+				bb.writeByte(0xCF);
+				try {
+					BufferUtils.writeLegacyMCString(bb, sbItem, 255);
+					bb.writeByte(usAction);
+					BufferUtils.writeLegacyMCString(bb, sbName, 255);
+				} catch (IndexOutOfBoundsException e) {
+					bb.release();
+					throw e;
+				}
+				bb.writeInt(sbVal);
+			}
+		}
+	}
+
+	private void handleDisplayScoreboard(ByteBuf in, ByteBuf bb) {
+		bb.writeByte(0xD0);
+		bb.writeByte(in.readByte());
+		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+	}
+
+	private void handleTeams(ByteBuf in, ByteBuf bb) {
+		bb.writeByte(0xD1);
+		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+		byte teamMode = in.readByte();
+		if (teamMode == 0 || teamMode == 2) {
+			BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+			BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+			BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+			bb.writeByte(in.readByte());
+			BufferUtils.readMCString(in, 255);
+			in.readByte(); // team color, does not exist in 1.5, maybe fake it by appending to display name, prefix, and suffix???
+		}
+		if (teamMode == 0 || teamMode == 3 || teamMode == 4) {
+			int teamPlNum = BufferUtils.readVarInt(in);
+			bb.writeShort(teamPlNum);
+			for (int ii = 0; ii < teamPlNum; ++ii) {
+				BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 40), 40);
+			}
+		}
+	}
+
+	private void handlePluginMessage(ByteBuf in, ByteBuf bb) {
+		bb.writeByte(0xFA);
+		int pmLen = BufferUtils.readVarInt(in);
+		bb.writeShort(pmLen);
+		bb.writeBytes(in, pmLen);
+	}
+
+	private void handleDisconnect(ByteBuf in, ByteBuf bb) {
+		bb.writeByte(0xFF);
+		BufferUtils.writeLegacyMCString(bb, player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767)), 32767);
+	}
+
 	@Override
 	protected void encode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
 		int pktId = BufferUtils.readVarInt(in);
@@ -627,7 +1044,6 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 		ByteBuf bb = ctx.alloc().buffer();
 		ByteBuf bbEx1 = null;
 		ByteBuf bbEx2 = null;
-		ByteBuf bbEx3 = null;
 		try {
 			switch (pktId) {
 				case 0x00:
@@ -786,356 +1202,75 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 					handleOpenWindow(in, bb);
 					break;
 				case 0x2E:
-					// todo: finish removing the below lines and converting to handle... methods!!!!!!
-					bb = ctx.alloc().buffer();
-					bb.writeByte(0x65);
-					bb.writeByte(in.readUnsignedByte());
+					handleCloseWindow(in, bb);
 					break;
 				case 0x2F:
-					bb = ctx.alloc().buffer();
-					bb.writeByte(0x67);
-					bb.writeByte(in.readByte());
-					bb.writeShort(in.readShort());
-					BufferUtils.convertSlot2Legacy(in, bb);
-					break;
-				case 0x30:
-					bb = ctx.alloc().buffer();
-					bb.writeByte(0x68);
-					bb.writeByte(in.readUnsignedByte());
-					short numSlots = in.readShort();
-					bb.writeShort(numSlots);
-					for (int ii = 0; ii < numSlots; ++ii) {
-						BufferUtils.convertSlot2Legacy(in, bb);
-					}
-					break;
-				case 0x31:
-					short grah = in.readUnsignedByte();
-					short uwpProp = in.readShort();
-					// todo: ideally detect furnace vs ench table by tracking window id creation etc etc
-					// for now, 2 --> 0 and 0 --> 1
-					if (uwpProp == 2) {
-						uwpProp = 0;
-					} else if (uwpProp == 0) {
-						uwpProp = 1;
-					}
-					if (uwpProp <= 2) {
-						bb = ctx.alloc().buffer();
-						bb.writeByte(0x69);
-						bb.writeByte(grah);
-						bb.writeShort(uwpProp);
-						bb.writeShort(in.readShort());
-					}
-					break;
-				case 0x32:
-					bb = ctx.alloc().buffer();
-					bb.writeByte(0x6A);
-					bb.writeByte(in.readByte());
-					bb.writeShort(in.readShort());
-					bb.writeBoolean(in.readBoolean());
-					break;
-				case 0x33:
-					bb = ctx.alloc().buffer();
-					bb.writeByte(0x82);
-					long signPos = in.readLong();
-					bb.writeInt(BufferUtils.posX(signPos));
-					bb.writeShort(BufferUtils.posY(signPos));
-					bb.writeInt(BufferUtils.posZ(signPos));
-					for (int ii = 0; ii < 4; ++ii) {
-						BufferUtils.writeLegacyMCString(bb, player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 4095)), 255);
-					}
-					break;
-				case 0x34:
-					// todo: all this bullshit (maps)
-				/*
-				bb = ctx.alloc().buffer();
-				bb.writeByte(0x83);
-				int mapId = BufferUtils.readVarInt(in);
-				byte mapScale
-				*/
-
-					break;
-				case 0x35:
-					long ubePos = in.readLong();
-					short ubeAct = in.readUnsignedByte();
-					if (ubeAct == 1) {
-						bb = ctx.alloc().buffer();
-						bb.writeByte(0x84);
-						bb.writeInt(BufferUtils.posX(ubePos));
-						bb.writeShort(BufferUtils.posY(ubePos));
-						bb.writeInt(BufferUtils.posZ(ubePos));
-						bb.writeByte(ubeAct);
-						BufferUtils.convertNBT2Legacy(in, bb);
-					}
-					break;
-				case 0x37:
-					int numStats = BufferUtils.readVarInt(in);
-					for (int ii = 0; ii < numStats; ++ii) {
-						String statName = BufferUtils.readMCString(in, 255);
-						int statId = -1;
-						if (statName.equals("stat.leaveGame")) {
-							statId = 1004;
-						} else if (statName.equals("stat.playOneMinute")) {
-							statId = 1100;
-						} else if (statName.equals("stat.walkOneCm")) {
-							statId = 2000;
-						} else if (statName.equals("stat.swimOneCm")) {
-							statId = 2001;
-						} else if (statName.equals("stat.fallOneCm")) {
-							statId = 2002;
-						} else if (statName.equals("stat.climbOneCm")) {
-							statId = 2003;
-						} else if (statName.equals("stat.flyOneCm")) {
-							statId = 2004;
-						} else if (statName.equals("stat.diveOneCm")) {
-							statId = 2005;
-						} else if (statName.equals("stat.minecartOneCm")) {
-							statId = 2006;
-						} else if (statName.equals("stat.boatOneCm")) {
-							statId = 2007;
-						} else if (statName.equals("stat.pigOneCm")) {
-							statId = 2008;
-						} else if (statName.equals("stat.jump")) {
-							statId = 2010;
-						} else if (statName.equals("stat.drop")) {
-							statId = 2011;
-						} else if (statName.equals("stat.damageDealt")) {
-							statId = 2020;
-						} else if (statName.equals("stat.damageTaken")) {
-							statId = 2021;
-						} else if (statName.equals("stat.deaths")) {
-							statId = 2022;
-						} else if (statName.equals("stat.mobKills")) {
-							statId = 2023;
-						} else if (statName.equals("stat.playerKills")) {
-							statId = 2024;
-						} else if (statName.equals("stat.fishCaught")) {
-							statId = 2025;
-						} else if (statName.equals("achievement.openInventory")) {
-							statId = 5242880;
-						} else if (statName.equals("achievement.mineWood")) {
-							statId = 5242881;
-						} else if (statName.equals("achievement.buildWorkBench")) {
-							statId = 5242882;
-						} else if (statName.equals("achievement.buildPickaxe")) {
-							statId = 5242883;
-						} else if (statName.equals("achievement.buildFurnace")) {
-							statId = 5242884;
-						} else if (statName.equals("achievement.acquireIron")) {
-							statId = 5242885;
-						} else if (statName.equals("achievement.buildHoe")) {
-							statId = 5242886;
-						} else if (statName.equals("achievement.makeBread")) {
-							statId = 5242887;
-						} else if (statName.equals("achievement.bakeCake")) {
-							statId = 5242888;
-						} else if (statName.equals("achievement.buildBetterPickaxe")) {
-							statId = 5242889;
-						} else if (statName.equals("achievement.cookFish")) {
-							statId = 5242890;
-						} else if (statName.equals("achievement.onARail")) {
-							statId = 5242891;
-						} else if (statName.equals("achievement.buildSword")) {
-							statId = 5242892;
-						} else if (statName.equals("achievement.killEnemy")) {
-							statId = 5242893;
-						} else if (statName.equals("achievement.killCow")) {
-							statId = 5242894;
-						} else if (statName.equals("achievement.flyPig")) {
-							statId = 5242895;
-						} else {
-							statName = null;
-						}
-						if (statName != null) {
-							bb = ctx.alloc().buffer();
-							bb.writeByte(0xC8);
-							bb.writeInt(statId);
-							bb.writeByte(1); // guess that it only goes up by 1 lol
-							out.add(bb);
-						}
-					}
-					bb = null;
-					break;
-				case 0x38:
-					int pliAction = BufferUtils.readVarInt(in);
-					if (pliAction != 1) {
-						int pliNum = BufferUtils.readVarInt(in);
-						for (int ii = 0; ii < pliNum; ++ii) {
-							long plimsb = in.readLong();
-							long plilsb = in.readLong();
-							UUID pliUuid = new UUID(plimsb, plilsb);
-							if (!tabList.containsKey(pliUuid)) {
-								if (pliAction == 0) {
-									String tempName = BufferUtils.readMCString(in, 255);
-									int tempSkip = BufferUtils.readVarInt(in);
-									for (int iii = 0; iii < tempSkip; ++iii) {
-										BufferUtils.readMCString(in, 255);
-										BufferUtils.readMCString(in, 255);
-										if (in.readBoolean()) {
-											BufferUtils.readMCString(in, 255);
-										}
-									}
-									BufferUtils.readVarInt(in);
-									int tbPing = BufferUtils.readVarInt(in);
-									if (in.readBoolean()) {
-										tempName = player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 255));
-									}
-									tabList.put(pliUuid, new TabListItem(tempName, tbPing));
-								} else {
-									tabList.put(pliUuid, new TabListItem(player.getPlayer().getServerAPI().getPlayerByUUID(pliUuid).getUsername(), 0));
-								}
-							}
-							TabListItem pliItem = tabList.get(pliUuid);
-							if (pliAction != 0) {
-								bb = ctx.alloc().buffer();
-								bb.writeByte(0xC9);
-								BufferUtils.writeLegacyMCString(bb, pliItem.name, 255);
-								bb.writeBoolean(false);
-								bb.writeShort(pliItem.ping);
-								out.add(bb);
-							}
-							if (pliAction == 2) {
-								bb = ctx.alloc().buffer();
-								bb.writeByte(0xC9);
-								BufferUtils.writeLegacyMCString(bb, pliItem.name, 255);
-								bb.writeBoolean(true);
-								bb.writeShort(pliItem.ping = BufferUtils.readVarInt(in));
-								out.add(bb);
-							} else if (pliAction == 3) {
-								if (in.readBoolean()) {
-									pliItem.name = player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 255));
-								}
-							}
-							if (pliAction != 4) {
-								bb = ctx.alloc().buffer();
-								bb.writeByte(0xC9);
-								BufferUtils.writeLegacyMCString(bb, pliItem.name, 255);
-								bb.writeBoolean(true);
-								bb.writeShort(pliItem.ping);
-								out.add(bb);
-							} else {
-								tabList.remove(pliUuid);
-							}
-						}
+					if (!handleSetSlot(in, bb)) {
+						bb.release();
 						bb = null;
 					}
 					break;
-				case 0x39:
-					bb = ctx.alloc().buffer();
-					bb.writeByte(0xCA);
-					byte paFlags = in.readByte();
-					if ((paFlags & 0x01) != ((paFlags & 0x08) >> 3)) {
-						paFlags ^= 0x09;
+				case 0x30:
+					handleWindowItems(in, bb);
+					break;
+				case 0x31:
+					if (!handleWindowProperty(in, bb)) {
+						bb.release();
+						bb = null;
 					}
-					bb.writeByte(paFlags);
-					bb.writeByte((int) in.readFloat());
-					bb.writeByte((int) in.readFloat());
+					break;
+				case 0x32:
+					handleConfirmTransaction(in, bb);
+					break;
+				case 0x33:
+					handleUpdateSign(in, bb);
+					break;
+				case 0x34:
+					// handleMap(in, bb);
+					bb.release();
+					bb = null;
+					break;
+				case 0x35:
+					if (!handleUpdateBlockEntity(in, bb)) {
+						bb.release();
+						bb = null;
+					}
+					break;
+				case 0x37:
+					bb.release();
+					bb = null;
+					handleStatistics(in, ctx.alloc(), out);
+					break;
+				case 0x38:
+					bb.release();
+					bb = null;
+					handlePlayerListItem(in, ctx.alloc(), out);
+					break;
+				case 0x39:
+					handlePlayerAbilities(in, bb);
 					break;
 				case 0x3A:
-					bb = ctx.alloc().buffer();
-					bb.writeByte(0xCB);
-					int tcCount = BufferUtils.readVarInt(in);
-					StringBuilder tcSb = new StringBuilder();
-					for (int ii = 0; ii < tcCount; ++ii) {
-						tcSb.append(BufferUtils.readMCString(in, 255));
-						if (ii + 1 < tcCount) {
-							tcSb.append("\u0000");
-						}
-					}
-					BufferUtils.writeLegacyMCString(bb, tcSb.toString(), 32767);
+					handleTabComplete(in, bb);
 					break;
 				case 0x3B:
-					bb = ctx.alloc().buffer();
-					bb.writeByte(0xCE);
-					String sboName = BufferUtils.readMCString(in, 255);
-					BufferUtils.writeLegacyMCString(bb, sboName, 255);
-					byte sboMode = in.readByte();
-					if (sboMode == 0) {
-						scoreBoard.put(sboName, new HashMap<>());
-					} else if (sboMode == 1) {
-						scoreBoard.remove(sboName);
-					}
-					BufferUtils.writeLegacyMCString(bb, sboMode == 1 ? "" : BufferUtils.readMCString(in, 255), 255);
-					bb.writeByte(sboMode);
+					handleScoreboardObjective(in, bb);
 					break;
 				case 0x3C:
-					String sbItem = BufferUtils.readMCString(in, 255);
-					byte usAction = in.readByte();
-					String sbName = BufferUtils.readMCString(in, 255);
-					if (scoreBoard.containsKey(sbName)) {
-						if (usAction == 1) {
-							Map<String, Integer> guhhh = scoreBoard.get(sbName);
-							guhhh.remove(sbItem);
-							if (guhhh.isEmpty()) {
-								scoreBoard.remove(sbName);
-							}
-							bb = ctx.alloc().buffer();
-							bb.writeByte(0xCF);
-							BufferUtils.writeLegacyMCString(bb, sbItem, 255);
-							bb.writeByte(1);
-							out.add(bb);
-							for (String s : scoreBoard.keySet()) {
-								Map<String, Integer> argh = scoreBoard.get(s);
-								if (argh.containsKey(sbItem)) {
-									bb = ctx.alloc().buffer();
-									bb.writeByte(0xCF);
-									BufferUtils.writeLegacyMCString(bb, sbItem, 255);
-									bb.writeByte(0);
-									BufferUtils.writeLegacyMCString(bb, s, 255);
-									bb.writeInt(argh.get(sbItem));
-									out.add(bb);
-								}
-							}
-							bb = null;
-						} else {
-							int sbVal = BufferUtils.readVarInt(in);
-							scoreBoard.get(sbName).put(sbItem, sbVal);
-							bb = ctx.alloc().buffer();
-							bb.writeByte(0xCF);
-							BufferUtils.writeLegacyMCString(bb, sbItem, 255);
-							bb.writeByte(usAction);
-							BufferUtils.writeLegacyMCString(bb, sbName, 255);
-							bb.writeInt(sbVal);
-						}
-					}
+					bb.release();
+					bb = null;
+					handleUpdateScore(in, ctx.alloc(), out);
 					break;
 				case 0x3D:
-					bb = ctx.alloc().buffer();
-					bb.writeByte(0xD0);
-					bb.writeByte(in.readByte());
-					BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+					handleDisplayScoreboard(in, bb);
 					break;
 				case 0x3E:
-					bb = ctx.alloc().buffer();
-					bb.writeByte(0xD1);
-					BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
-					byte teamMode = in.readByte();
-					if (teamMode == 0 || teamMode == 2) {
-						BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
-						BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
-						BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
-						bb.writeByte(in.readByte());
-						BufferUtils.readMCString(in, 255);
-						in.readByte(); // team color, does not exist in 1.5, maybe fake it by appending to display name, prefix, and suffix???
-					}
-					if (teamMode == 0 || teamMode == 3 || teamMode == 4) {
-						int teamPlNum = BufferUtils.readVarInt(in);
-						bb.writeShort(teamPlNum);
-						for (int ii = 0; ii < teamPlNum; ++ii) {
-							BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 40), 40);
-						}
-					}
+					handleTeams(in, bb);
 					break;
 				case 0x3F:
-					bb = ctx.alloc().buffer();
-					bb.writeByte(0xFA);
-					int pmLen = BufferUtils.readVarInt(in);
-					bb.writeShort(pmLen);
-					bb.writeBytes(in, pmLen);
+					handlePluginMessage(in, bb);
 					break;
 				case 0x40:
-					bb = ctx.alloc().buffer();
-					bb.writeByte(0xFF);
-					BufferUtils.writeLegacyMCString(bb, player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767)), 32767);
+					handleDisconnect(in, bb);
 					break;
 			}
 			if (bb != null) {
@@ -1151,9 +1286,6 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 		}
 		if (bbEx2 != null) {
 			bbEx2.release();
-		}
-		if (bbEx3 != null) {
-			bbEx3.release();
 		}
 	}
 
