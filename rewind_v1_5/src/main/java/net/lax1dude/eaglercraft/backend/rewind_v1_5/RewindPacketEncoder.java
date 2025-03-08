@@ -388,22 +388,32 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 		bb.writeShort(BufferUtils.readVarInt(in));
 	}
 
-	private void handleChunkData(ByteBuf in, ByteBuf bb, ByteBuf chunkData, ByteBuf chunkData2) throws DataFormatException {
+	private void handleChunkData(ByteBuf in, ByteBuf bb, ByteBufAllocator alloc) throws DataFormatException {
 		bb.writeByte(0x33);
 		int chunkX = in.readInt();
 		int chunkZ = in.readInt();
 		boolean chunkCont = in.readBoolean();
 		int chunkPbm = in.readUnsignedShort();
 		BufferUtils.readVarInt(in);
-		BufferUtils.convertChunk2Legacy(true, chunkPbm, chunkCont, in, chunkData);
-		bb.writeInt(chunkX);
-		bb.writeInt(chunkZ);
-		bb.writeBoolean(chunkCont);
-		bb.writeShort(chunkPbm);
-		bb.writeShort(0);
-		player.getNativeZlib().netty().deflate(chunkData, chunkData2);
-		bb.writeInt(chunkData2.readableBytes());
-		bb.writeBytes(chunkData2);
+		ByteBuf chunkData = alloc.buffer();
+		try {
+			BufferUtils.convertChunk2Legacy(true, chunkPbm, chunkCont, in, chunkData);
+			bb.writeInt(chunkX);
+			bb.writeInt(chunkZ);
+			bb.writeBoolean(chunkCont);
+			bb.writeShort(chunkPbm);
+			bb.writeShort(0);
+			ByteBuf chunkData2 = alloc.buffer();
+			try {
+				player.getNativeZlib().netty().deflate(chunkData, chunkData2);
+				bb.writeInt(chunkData2.readableBytes());
+				bb.writeBytes(chunkData2);
+			} finally {
+				chunkData2.release();
+			}
+		} finally {
+			chunkData.release();
+		}
 	}
 
 	private void handleMultiBlockChange(ByteBuf in, ByteBuf bb) {
@@ -462,7 +472,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 		bb.writeByte(in.readByte());
 	}
 
-	private void handleMapChunkBulk(ByteBuf in, ByteBuf bb, ByteBuf guhBuf, ByteBuf guhBuf2) throws DataFormatException {
+	private void handleMapChunkBulk(ByteBuf in, ByteBuf bb, ByteBufAllocator alloc) throws DataFormatException {
 		bb.writeByte(0x38);
 		boolean mcbSkyLightSent = in.readBoolean();
 		int mcbCcc = BufferUtils.readVarInt(in);
@@ -474,14 +484,24 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 					in.readUnsignedShort()
 			};
 		}
-		for (int ii = 0; ii < mcbCcc; ++ii) {
-			BufferUtils.convertChunk2Legacy(mcbSkyLightSent, mcbChunkMeta[ii][2], true, in, guhBuf);
+		ByteBuf guhBuf = alloc.buffer();
+		try {
+			for (int ii = 0; ii < mcbCcc; ++ii) {
+				BufferUtils.convertChunk2Legacy(mcbSkyLightSent, mcbChunkMeta[ii][2], true, in, guhBuf);
+			}
+			bb.writeShort(mcbCcc);
+			ByteBuf guhBuf2 = alloc.buffer();
+			try {
+				player.getNativeZlib().netty().deflate(guhBuf, guhBuf2);
+				bb.writeInt(guhBuf2.readableBytes());
+				bb.writeBoolean(mcbSkyLightSent);
+				bb.writeBytes(guhBuf2);
+			} finally {
+				guhBuf2.release();
+			}
+		} finally {
+			guhBuf.release();
 		}
-		bb.writeShort(mcbCcc);
-		player.getNativeZlib().netty().deflate(guhBuf, guhBuf2);
-		bb.writeInt(guhBuf2.readableBytes());
-		bb.writeBoolean(mcbSkyLightSent);
-		bb.writeBytes(guhBuf2);
 		for (int ii = 0; ii < mcbCcc; ++ii) {
 			bb.writeInt(mcbChunkMeta[ii][0]);
 			bb.writeInt(mcbChunkMeta[ii][1]);
@@ -737,6 +757,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 	}
 
 	private void handleStatistics(ByteBuf in, ByteBufAllocator alloc, List<Object> out) {
+		ByteBuf bb;
 		int numStats = BufferUtils.readVarInt(in);
 		for (int ii = 0; ii < numStats; ++ii) {
 			String statName = BufferUtils.readMCString(in, 255);
@@ -815,16 +836,21 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				statName = null;
 			}
 			if (statName != null) {
-				ByteBuf bb = alloc.buffer();
-				bb.writeByte(0xC8);
-				bb.writeInt(statId);
-				bb.writeByte(1); // guess that it only goes up by 1 lol
-				out.add(bb);
+				bb = alloc.buffer();
+				try {
+					bb.writeByte(0xC8);
+					bb.writeInt(statId);
+					bb.writeByte(1); // guess that it only goes up by 1 lol
+					out.add(bb.retain());
+				} finally {
+					bb.release();
+				}
 			}
 		}
 	}
 
 	private void handlePlayerListItem(ByteBuf in, ByteBufAllocator alloc, List<Object> out) {
+		ByteBuf bb;
 		int pliAction = BufferUtils.readVarInt(in);
 		if (pliAction != 1) {
 			int pliNum = BufferUtils.readVarInt(in);
@@ -855,47 +881,44 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				}
 				TabListItem pliItem = tabList.get(pliUuid);
 				if (pliAction != 0) {
-					ByteBuf bb = alloc.buffer();
-					bb.writeByte(0xC9);
+					bb = alloc.buffer();
 					try {
+						bb.writeByte(0xC9);
 						BufferUtils.writeLegacyMCString(bb, pliItem.name, 255);
-					} catch (IndexOutOfBoundsException e) {
+						bb.writeBoolean(false);
+						bb.writeShort(pliItem.ping);
+						out.add(bb.retain());
+					} finally {
 						bb.release();
-						throw e;
 					}
-					bb.writeBoolean(false);
-					bb.writeShort(pliItem.ping);
-					out.add(bb);
 				}
 				if (pliAction == 2) {
-					ByteBuf bb = alloc.buffer();
-					bb.writeByte(0xC9);
+					bb = alloc.buffer();
 					try {
+						bb.writeByte(0xC9);
 						BufferUtils.writeLegacyMCString(bb, pliItem.name, 255);
-					} catch (IndexOutOfBoundsException e) {
+						bb.writeBoolean(true);
+						bb.writeShort(pliItem.ping = BufferUtils.readVarInt(in));
+						out.add(bb.retain());
+					} finally {
 						bb.release();
-						throw e;
-					};
-					bb.writeBoolean(true);
-					bb.writeShort(pliItem.ping = BufferUtils.readVarInt(in));
-					out.add(bb);
+					}
 				} else if (pliAction == 3) {
 					if (in.readBoolean()) {
 						pliItem.name = player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 255));
 					}
 				}
 				if (pliAction != 4) {
-					ByteBuf bb = alloc.buffer();
-					bb.writeByte(0xC9);
+					bb = alloc.buffer();
 					try {
+						bb.writeByte(0xC9);
 						BufferUtils.writeLegacyMCString(bb, pliItem.name, 255);
-					} catch (IndexOutOfBoundsException e) {
+						bb.writeBoolean(true);
+						bb.writeShort(pliItem.ping);
+						out.add(bb.retain());
+					} finally {
 						bb.release();
-						throw e;
 					}
-					bb.writeBoolean(true);
-					bb.writeShort(pliItem.ping);
-					out.add(bb);
 				} else {
 					tabList.remove(pliUuid);
 				}
@@ -942,6 +965,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 	}
 
 	private void handleUpdateScore(ByteBuf in, ByteBufAllocator alloc, List<Object> out) {
+		ByteBuf bb;
 		String sbItem = BufferUtils.readMCString(in, 255);
 		byte usAction = in.readByte();
 		String sbName = BufferUtils.readMCString(in, 255);
@@ -952,47 +976,45 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 				if (guhhh.isEmpty()) {
 					scoreBoard.remove(sbName);
 				}
-				ByteBuf bb = alloc.buffer();
-				bb.writeByte(0xCF);
+				bb = alloc.buffer();
 				try {
+					bb.writeByte(0xCF);
 					BufferUtils.writeLegacyMCString(bb, sbItem, 255);
-				} catch (IndexOutOfBoundsException e) {
+					bb.writeByte(1);
+					out.add(bb.retain());
+				} finally {
 					bb.release();
-					throw e;
 				}
-				bb.writeByte(1);
-				out.add(bb);
 				for (String s : scoreBoard.keySet()) {
 					Map<String, Integer> argh = scoreBoard.get(s);
 					if (argh.containsKey(sbItem)) {
 						bb = alloc.buffer();
-						bb.writeByte(0xCF);
 						try {
+							bb.writeByte(0xCF);
 							BufferUtils.writeLegacyMCString(bb, sbItem, 255);
 							bb.writeByte(0);
 							BufferUtils.writeLegacyMCString(bb, s, 255);
-						} catch (IndexOutOfBoundsException e) {
+							bb.writeInt(argh.get(sbItem));
+							out.add(bb.retain());
+						} finally {
 							bb.release();
-							throw e;
 						}
-						bb.writeInt(argh.get(sbItem));
-						out.add(bb);
 					}
 				}
 			} else {
 				int sbVal = BufferUtils.readVarInt(in);
 				scoreBoard.get(sbName).put(sbItem, sbVal);
-				ByteBuf bb = alloc.buffer();
-				bb.writeByte(0xCF);
+				bb = alloc.buffer();
 				try {
+					bb.writeByte(0xCF);
 					BufferUtils.writeLegacyMCString(bb, sbItem, 255);
 					bb.writeByte(usAction);
 					BufferUtils.writeLegacyMCString(bb, sbName, 255);
-				} catch (IndexOutOfBoundsException e) {
+					bb.writeInt(sbVal);
+					out.add(bb.retain());
+				} finally {
 					bb.release();
-					throw e;
 				}
-				bb.writeInt(sbVal);
 			}
 		}
 	}
@@ -1042,8 +1064,6 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 		//TODO: switch statement translate outbound 1.8 to 1.5
 		// plan: when first handshake packet received, take its data, and turn it into 1.8 handshake. then switch to play mode (once 1.8 confirms?)
 		ByteBuf bb = ctx.alloc().buffer();
-		ByteBuf bbEx1 = null;
-		ByteBuf bbEx2 = null;
 		try {
 			switch (pktId) {
 				case 0x00:
@@ -1153,9 +1173,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 					bb = null;
 					break;
 				case 0x21:
-					bbEx1 = ctx.alloc().buffer();
-					bbEx2 = ctx.alloc().buffer();
-					handleChunkData(in, bb, bbEx1, bbEx2);
+					handleChunkData(in, bb, ctx.alloc());
 					break;
 				case 0x22:
 					handleMultiBlockChange(in, bb);
@@ -1170,9 +1188,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 					handleBlockBreakAnimation(in, bb);
 					break;
 				case 0x26:
-					bbEx1 = ctx.alloc().buffer();
-					bbEx2 = ctx.alloc().buffer();
-					handleMapChunkBulk(in, bb, bbEx1, bbEx2);
+					handleMapChunkBulk(in, bb, ctx.alloc());
 					break;
 				case 0x27:
 					handleExplosion(in, bb);
@@ -1280,12 +1296,6 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 			if (bb != null) {
 				bb.release();
 			}
-		}
-		if (bbEx1 != null) {
-			bbEx1.release();
-		}
-		if (bbEx2 != null) {
-			bbEx2.release();
 		}
 	}
 
