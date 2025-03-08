@@ -50,6 +50,8 @@ class BungeeListener implements Listener {
 			if(connectionData.texturesPropertyValue != null) {
 				injector.injectTexturesProperty(connectionData.texturesPropertyValue,
 						connectionData.texturesPropertySignature);
+				connectionData.texturesPropertyValue = null;
+				connectionData.texturesPropertySignature = null;
 			}
 			if(connectionData.eaglerPlayerProperty) {
 				injector.injectIsEaglerPlayerProperty();

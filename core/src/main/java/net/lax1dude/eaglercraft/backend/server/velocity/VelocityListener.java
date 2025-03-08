@@ -66,7 +66,7 @@ class VelocityListener {
 				.attr(PipelineAttributes.<VelocityConnection>connectionData()).get();
 		GameProfile gameProfile = gameProfileEvent.getGameProfile();
 		boolean changed = false;
-		if(!conn.uuid.equals(gameProfileEvent.getGameProfile().getId())) {
+		if(!conn.uuid.equals(gameProfile.getId())) {
 			gameProfile = gameProfile.withId(conn.uuid);
 			changed = true;
 		}
@@ -76,6 +76,8 @@ class VelocityListener {
 			if(conn.texturesPropertyValue != null) {
 				fixedProps.removeIf(texturesPredicate);
 				fixedProps.add(new Property("textures", conn.texturesPropertyValue, conn.texturesPropertySignature));
+				conn.texturesPropertyValue = null;
+				conn.texturesPropertySignature = null;
 			}
 			if(conn.eaglerPlayerProperty) {
 				fixedProps.removeIf(isEaglerPlayerPredicate);

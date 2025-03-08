@@ -615,6 +615,8 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			BukkitUnsafe.PropertyInjector injector = BukkitUnsafe.propertyInjector(player);
 			if(c.texturesPropertyValue != null) {
 				injector.injectTexturesProperty(c.texturesPropertyValue, c.texturesPropertySignature);
+				c.texturesPropertyValue = null;
+				c.texturesPropertySignature = null;
 			}
 			if(c.eaglerPlayerProperty) {
 				injector.injectIsEaglerPlayerProperty();
