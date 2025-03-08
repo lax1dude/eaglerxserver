@@ -5,7 +5,7 @@ import io.netty.util.ReferenceCountUtil;
 
 public interface INettyChannel {
 
-	NettyUnsafe getNettyUnsafe();
+	NettyUnsafe netty();
 
 	public interface NettyUnsafe {
 

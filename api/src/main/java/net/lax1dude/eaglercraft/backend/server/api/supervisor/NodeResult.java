@@ -17,7 +17,7 @@ import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorDa
  * POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-public class NodeResult<Out extends ISupervisorData> {
+public final class NodeResult<Out extends ISupervisorData> {
 
 	public final int nodeId;
 	public final Out result;

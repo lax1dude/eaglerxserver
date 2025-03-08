@@ -301,8 +301,8 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 	}
 
 	@Override
-	public NettyUnsafe getNettyUnsafe() {
-		return queryConnection.getNettyUnsafe();
+	public NettyUnsafe netty() {
+		return queryConnection.netty();
 	}
 
 }

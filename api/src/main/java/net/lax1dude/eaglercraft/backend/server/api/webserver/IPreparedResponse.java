@@ -4,6 +4,6 @@ public interface IPreparedResponse {
 
 	void retain();
 
-	void release();
+	boolean release();
 
 }

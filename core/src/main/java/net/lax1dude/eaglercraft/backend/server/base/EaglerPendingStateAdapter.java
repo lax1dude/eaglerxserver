@@ -52,7 +52,7 @@ public class EaglerPendingStateAdapter extends IIdentifiedConnection.Base implem
 	}
 
 	@Override
-	public NettyUnsafe getNettyUnsafe() {
+	public NettyUnsafe netty() {
 		return pipelineData;
 	}
 

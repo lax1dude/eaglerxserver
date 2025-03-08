@@ -35,7 +35,7 @@ public class EaglerConfigLoader {
 			throws IOException {
 		ConfigDataSettings settings = root.loadConfig("settings", (config) -> {
 			String serverName = config.getString(
-				"server_name", "EaglercraftXServer (" + mapPlatformName(platform) + ")",
+				"server_name", "EaglercraftXServer",
 				"Sets the name of this EaglercraftX server that is sent with query responses "
 				+ "and used for the default \"404 websocket upgrade failure\" page"
 			);
@@ -91,8 +91,8 @@ public class EaglerConfigLoader {
 				"Default value is 2097151, sets the max size for websocket frames"
 			);
 			int tlsCertRefreshRate = config.getInteger(
-				"tls_certificate_refresh_rate", 30,
-				"Default value is 30, how often in seconds to check if any listener TLS "
+				"tls_certificate_refresh_rate", 60,
+				"Default value is 60, how often in seconds to check if any listener TLS "
 				+ "certificates have been changed and need to be reloaded."
 			);
 			String eaglerPlayersVanillaSkin = config.getString(

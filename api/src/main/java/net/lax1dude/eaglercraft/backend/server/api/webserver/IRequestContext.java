@@ -39,7 +39,7 @@ public interface IRequestContext {
 
 	void setResponseCode(int code);
 
-	NettyUnsafe getNettyUnsafe();
+	NettyUnsafe netty();
 
 	public interface NettyUnsafe {
 

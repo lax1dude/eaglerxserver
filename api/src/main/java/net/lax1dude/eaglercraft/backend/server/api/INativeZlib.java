@@ -12,7 +12,7 @@ public interface INativeZlib {
 
 	void release();
 
-	NettyUnsafe getNettyUnsafe();
+	NettyUnsafe netty();
 
 	public interface NettyUnsafe {
 

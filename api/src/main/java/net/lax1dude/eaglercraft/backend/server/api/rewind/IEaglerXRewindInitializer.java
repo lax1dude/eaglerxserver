@@ -30,7 +30,7 @@ public interface IEaglerXRewindInitializer<Attachment> {
 
 	void cancelDisconnect();
 
-	NettyUnsafe getNettyUnsafe();
+	NettyUnsafe netty();
 
 	public interface NettyUnsafe {
 

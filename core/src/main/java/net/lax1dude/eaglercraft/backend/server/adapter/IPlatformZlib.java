@@ -4,7 +4,7 @@ import net.lax1dude.eaglercraft.backend.server.api.INativeZlib;
 
 public interface IPlatformZlib extends INativeZlib, INativeZlib.NettyUnsafe {
 
-	default NettyUnsafe getNettyUnsafe() {
+	default NettyUnsafe netty() {
 		return this;
 	}
 

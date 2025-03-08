@@ -397,7 +397,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 		bb.writeBoolean(chunkCont);
 		bb.writeShort(chunkPbm);
 		bb.writeShort(0);
-		player.getNativeZlib().getNettyUnsafe().deflate(chunkData, chunkData2);
+		player.getNativeZlib().netty().deflate(chunkData, chunkData2);
 		bb.writeInt(chunkData2.readableBytes());
 		bb.writeBytes(chunkData2);
 	}
@@ -474,7 +474,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 			BufferUtils.convertChunk2Legacy(mcbSkyLightSent, mcbChunkMeta[ii][2], true, in, guhBuf);
 		}
 		bb.writeShort(mcbCcc);
-		player.getNativeZlib().getNettyUnsafe().deflate(guhBuf, guhBuf2);
+		player.getNativeZlib().netty().deflate(guhBuf, guhBuf2);
 		bb.writeInt(guhBuf2.readableBytes());
 		bb.writeBoolean(mcbSkyLightSent);
 		bb.writeBytes(guhBuf2);

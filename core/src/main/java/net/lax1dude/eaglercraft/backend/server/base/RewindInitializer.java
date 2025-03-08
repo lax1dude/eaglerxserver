@@ -164,7 +164,7 @@ public abstract class RewindInitializer<Attachment> implements IEaglerXRewindIni
 	}
 
 	@Override
-	public NettyUnsafe getNettyUnsafe() {
+	public NettyUnsafe netty() {
 		return this;
 	}
 

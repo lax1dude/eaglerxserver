@@ -2,7 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.api.webserver;
 
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 
-public class RouteDesc {
+public final class RouteDesc {
 
 	public static final RouteDesc DEFAULT_404 = new RouteDesc();
 	public static final RouteDesc DEFAULT_429 = new RouteDesc();

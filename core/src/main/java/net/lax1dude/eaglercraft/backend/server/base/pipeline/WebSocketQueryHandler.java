@@ -366,7 +366,7 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 	}
 
 	@Override
-	public NettyUnsafe getNettyUnsafe() {
+	public NettyUnsafe netty() {
 		return this;
 	}
 

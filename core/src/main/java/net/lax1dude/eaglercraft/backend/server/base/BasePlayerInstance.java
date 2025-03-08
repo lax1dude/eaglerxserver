@@ -131,7 +131,7 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 	}
 
 	@Override
-	public NettyUnsafe getNettyUnsafe() {
+	public NettyUnsafe netty() {
 		return this;
 	}
 
