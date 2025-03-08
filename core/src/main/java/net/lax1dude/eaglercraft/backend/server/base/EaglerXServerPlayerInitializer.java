@@ -15,7 +15,11 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 
 	@Override
 	public void initializePlayer(IPlatformPlayerInitializer<BaseConnectionInstance, BasePlayerInstance<PlayerObject>, PlayerObject> initializer) {
-		if(initializer.getConnectionAttachment().isEaglerPlayer()) {
+		BaseConnectionInstance conn = initializer.getConnectionAttachment();
+		if(conn == null) {
+			return;
+		}
+		if(conn.isEaglerPlayer()) {
 			EaglerPlayerInstance<PlayerObject> instance = new EaglerPlayerInstance<>(initializer.getPlayer(), server);
 			initializer.setPlayerAttachment(instance);
 			try {

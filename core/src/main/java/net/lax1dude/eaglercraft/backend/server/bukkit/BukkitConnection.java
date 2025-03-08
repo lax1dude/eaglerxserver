@@ -14,6 +14,9 @@ class BukkitConnection implements IPlatformConnection {
 
 	private final PlatformPluginBukkit plugin;
 	private LoginConnectionHolder loginConnection;
+	String texturesPropertyValue;
+	String texturesPropertySignature;
+	boolean eaglerPlayerProperty;
 	private volatile Player playerInstance;
 	Object attachment;
 

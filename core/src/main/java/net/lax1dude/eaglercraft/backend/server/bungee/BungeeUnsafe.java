@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.bungee;
 
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -7,11 +9,13 @@ import java.lang.reflect.Proxy;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -51,7 +55,10 @@ public class BungeeUnsafe {
 	private static final Method method_PluginMessage_getData;
 	private static final Class<?> class_LoginResult;
 	private static final Method method_LoginResult_getProperties;
+	private static final Method method_LoginResult_setProperties;
 	private static final Class<?> class_Property;
+	private static final Constructor<?> constructor_Property;
+	private static final Object isEaglerPlayerProperty;
 	private static final Method method_Property_getName;
 	private static final Method method_Property_getValue;
 	private static final Class<?> class_BungeeCord;
@@ -81,8 +88,11 @@ public class BungeeUnsafe {
 			class_PluginMessage = Class.forName("net.md_5.bungee.connection.PluginMessage");
 			method_PluginMessage_getData = class_PluginMessage.getMethod("getData");
 			class_LoginResult = Class.forName("net.md_5.bungee.connection.LoginResult");
-			method_LoginResult_getProperties = class_LoginResult.getMethod("getProperties");
 			class_Property = Class.forName("net.md_5.bungee.protocol.Property");
+			method_LoginResult_getProperties = class_LoginResult.getMethod("getProperties");
+			method_LoginResult_setProperties = class_LoginResult.getMethod("setProperties", class_Property.arrayType());
+			constructor_Property = class_Property.getConstructor(String.class, String.class, String.class);
+			isEaglerPlayerProperty = constructor_Property.newInstance("isEaglerPlayer", "true", null);
 			method_Property_getName = class_Property.getMethod("getName");
 			method_Property_getValue = class_Property.getMethod("getValue");
 			class_BungeeCord = Class.forName("net.md_5.bungee.BungeeCord");
@@ -458,6 +468,79 @@ public class BungeeUnsafe {
 				throw Util.propagateReflectThrowable(e);
 			}
 		};
+	}
+
+	private static final Predicate<Object> removeTexturesProperty = (obj) -> {
+		try {
+			return "textures".equals(method_Property_getName.invoke(obj));
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+	};
+
+	private static final Predicate<Object> removeEaglerPlayerProperty = (obj) -> {
+		try {
+			return "isEaglerPlayer".equals(method_Property_getName.invoke(obj));
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+	};
+
+	public static class PropertyInjector {
+
+		private final Object loginResult;
+		private final List<Object> propList;
+
+		protected PropertyInjector(Object loginResult, Object[] propList) {
+			this.loginResult = loginResult;
+			this.propList = new LinkedList<>();
+			if(propList != null) {
+				for(int i = 0; i < propList.length; ++i) {
+					this.propList.add(propList[i]);
+				}
+			}
+		}
+
+		public void injectTexturesProperty(String value, String signature) {
+			Object o;
+			try {
+				o = constructor_Property.newInstance("textures", value, signature);
+			}catch(IllegalAccessException | IllegalArgumentException | InstantiationException | InvocationTargetException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+			propList.removeIf(removeTexturesProperty);
+			propList.add(o);
+		}
+
+		public void injectIsEaglerPlayerProperty() {
+			propList.removeIf(removeEaglerPlayerProperty);
+			propList.add(isEaglerPlayerProperty);
+		}
+
+		public void complete() {
+			try {
+				method_LoginResult_setProperties.invoke(loginResult,
+						propList.toArray((Object[]) Array.newInstance(class_Property, propList.size())));
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
+					| NegativeArraySizeException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+		}
+
+	}
+
+	public static BungeeUnsafe.PropertyInjector propertyInjector(PendingConnection conn) {
+		if(class_InitialHandler.isAssignableFrom(conn.getClass())) {
+			try {
+				Object loginResult = method_InitialHandler_getLoginProfile.invoke(conn);
+				Object[] oldPropertyList = (Object[]) method_LoginResult_getProperties.invoke(loginResult);
+				return new PropertyInjector(loginResult, oldPropertyList);
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+		}else {
+			throw new RuntimeException("PendingConnection is an unknown type: " + conn.getClass().getName());
+		}
 	}
 
 }

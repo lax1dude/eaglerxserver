@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.bukkit;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -232,6 +233,7 @@ public class BukkitUnsafe {
 	private static final Method method_GameProfile_getName;
 	private static final Method method_GameProfile_getProperties;
 	private static final Class<?> class_Property;
+	private static final Constructor<?> constructor_Property;
 	private static final Method method_Property_getValue;
 
 	static {
@@ -243,10 +245,10 @@ public class BukkitUnsafe {
 		Method method_ProfileProperty_getValue_ = null;
 		boolean paperProfileAPISupport_ = false;
 		try {
-			method_Player_getPlayerProfile_ = Player.class.getMethod("getPlayerProfile");
 			class_PlayerProfile_ = Class.forName("com.destroystokyo.paper.profile.PlayerProfile");
-			method_PlayerProfile_getProperties_ = class_PlayerProfile_.getMethod("getProperties");
+			method_Player_getPlayerProfile_ = Player.class.getMethod("getPlayerProfile");
 			class_ProfileProperty_ = Class.forName("com.destroystokyo.paper.profile.ProfileProperty");
+			method_PlayerProfile_getProperties_ = class_PlayerProfile_.getMethod("getProperties");
 			method_ProfileProperty_getName_ = class_ProfileProperty_.getMethod("getName");
 			method_ProfileProperty_getValue_ = class_ProfileProperty_.getMethod("getValue");
 			paperProfileAPISupport_ = true;
@@ -266,6 +268,7 @@ public class BukkitUnsafe {
 			method_GameProfile_getName = class_GameProfile.getMethod("getName");
 			method_GameProfile_getProperties = class_GameProfile.getMethod("getProperties");
 			class_Property = Class.forName("com.mojang.authlib.properties.Property");
+			constructor_Property = class_Property.getConstructor(String.class, String.class, String.class);
 			method_Property_getValue = class_Property.getMethod("getValue");
 		} catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
 			throw Util.propagateReflectThrowable(e);
@@ -306,6 +309,90 @@ public class BukkitUnsafe {
 			return null;
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			throw Util.propagateReflectThrowable(e);
+		}
+	}
+
+	public static interface PropertyInjector {
+
+		void injectTexturesProperty(String texturesPropertyValue, String texturesPropertySignature);
+
+		void injectIsEaglerPlayerProperty();
+
+		void complete();
+
+	}
+
+	private static class PaperPropertyInjector implements PropertyInjector {
+
+		@Override
+		public void injectTexturesProperty(String texturesPropertyValue, String texturesPropertySignature) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void injectIsEaglerPlayerProperty() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void complete() {
+			// TODO Auto-generated method stub
+			
+		}
+
+	}
+
+	private static class BukkitPropertyInjector implements PropertyInjector {
+
+		private final Multimap<String, Object> props;
+
+		protected BukkitPropertyInjector(Multimap<String, Object> props) {
+			this.props = props;
+		}
+
+		@Override
+		public void injectTexturesProperty(String texturesPropertyValue, String texturesPropertySignature) {
+			props.removeAll("textures");
+			try {
+				props.put("textures", constructor_Property.newInstance("textures", texturesPropertyValue, texturesPropertySignature));
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+		}
+
+		@Override
+		public void injectIsEaglerPlayerProperty() {
+			props.removeAll("isEaglerPlayer");
+			try {
+				props.put("isEaglerPlayer", constructor_Property.newInstance("isEaglerPlayer", "true", null));
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+		}
+
+		@Override
+		public void complete() {
+		}
+
+	}
+
+	public static BukkitUnsafe.PropertyInjector propertyInjector(Player player) {
+		if(paperProfileAPISupport) {
+			return null; //TODO: use the actual paper api
+		}else {
+			if(class_CraftPlayer == null) {
+				bindCraftPlayer(player);
+			}
+			try {
+				return new BukkitPropertyInjector((Multimap<String, Object>) method_GameProfile_getProperties
+						.invoke(method_EntityPlayer_getProfile.invoke(method_CraftPlayer_getHandle.invoke(player))));
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
 		}
 	}
 

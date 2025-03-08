@@ -18,6 +18,9 @@ class VelocityConnection implements IPlatformConnection {
 	private final InboundConnection connection;
 	private final String username;
 	UUID uuid;
+	String texturesPropertyValue;
+	String texturesPropertySignature;
+	boolean eaglerPlayerProperty;
 	volatile Player playerInstance;
 	Object attachment;
 

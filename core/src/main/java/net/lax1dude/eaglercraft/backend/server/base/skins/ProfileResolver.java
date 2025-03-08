@@ -42,10 +42,8 @@ public class ProfileResolver implements IProfileResolver {
 			}else {
 				try {
 					if(response.code != 200) {
-						server.logger().error("Recieved code " + response.code + " while looking up UUID of \"" + username + "\"");
 						callback.accept(null);
 					}else if (response.data == null) {
-						server.logger().error("Recieved null payload while looking up UUID of \"" + username + "\"");
 						callback.accept(null);
 					}else {
 						UUID uuid;
@@ -54,7 +52,6 @@ public class ProfileResolver implements IProfileResolver {
 										response.data.readableBytes(), StandardCharsets.UTF_8))).getAsJsonObject();
 							uuid = Util.createUUIDFromUndashed(json.get("id").getAsString());
 						}catch(Exception t) {
-							server.logger().error("Exception processing name to UUID lookup response for \"" + username + "\"!", t);
 							callback.accept(null);
 							return;
 						}
@@ -79,10 +76,8 @@ public class ProfileResolver implements IProfileResolver {
 			}else {
 				try {
 					if(response.code != 200) {
-						server.logger().error("Recieved code " + response.code + " while looking up profile of " + uuid);
 						callback.accept(null);
 					}else if (response.data == null) {
-						server.logger().error("Recieved null payload while looking up profile of " + uuid);
 						callback.accept(null);
 					}else {
 						TexturesProperty result = null;
@@ -114,7 +109,6 @@ public class ProfileResolver implements IProfileResolver {
 								}
 							}
 						}catch(Exception t) {
-							server.logger().error("Exception processing name to UUID lookup response!", t);
 							callback.accept(null);
 							return;
 						}

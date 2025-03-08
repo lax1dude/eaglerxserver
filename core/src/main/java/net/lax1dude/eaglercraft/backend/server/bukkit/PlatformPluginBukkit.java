@@ -560,6 +560,15 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			@Override
 			public void setUniqueId(UUID uuid) {
 			}
+			@Override
+			public void setTexturesProperty(String propertyValue, String propertySignature) {
+				c.texturesPropertyValue = propertyValue;
+				c.texturesPropertySignature = propertySignature;
+			}
+			@Override
+			public void setEaglerPlayerProperty(boolean enable) {
+				c.eaglerPlayerProperty = enable;
+			}
 		});
 	}
 
@@ -588,10 +597,29 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 				@Override
 				public void setUniqueId(UUID uuid) {
 				}
+				@Override
+				public void setTexturesProperty(String propertyValue, String propertySignature) {
+					c.texturesPropertyValue = propertyValue;
+					c.texturesPropertySignature = propertySignature;
+				}
+				@Override
+				public void setEaglerPlayerProperty(boolean enable) {
+					c.eaglerPlayerProperty = enable;
+				}
 			});
 		}else {
 			c = connection;
 			p = new BukkitPlayer(player, c);
+		}
+		if(c.eaglerPlayerProperty || c.texturesPropertyValue != null) {
+			BukkitUnsafe.PropertyInjector injector = BukkitUnsafe.propertyInjector(player);
+			if(c.texturesPropertyValue != null) {
+				injector.injectTexturesProperty(c.texturesPropertyValue, c.texturesPropertySignature);
+			}
+			if(c.eaglerPlayerProperty) {
+				injector.injectIsEaglerPlayerProperty();
+			}
+			injector.complete();
 		}
 		playerInitializer.initializePlayer(new IPlatformPlayerInitializer<Object, Object, Player>() {
 			@Override

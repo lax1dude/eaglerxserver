@@ -13,6 +13,7 @@ import net.md_5.bungee.api.connection.Connection;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.connection.Server;
+import net.md_5.bungee.api.event.LoginEvent;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
@@ -37,6 +38,24 @@ class BungeeListener implements Listener {
 		Object pipelineData = channel.attr(PipelineAttributes.<Object>pipelineData()).getAndSet(null);
 		plugin.initializeConnection(conn, pipelineData,
 				channel.attr(PipelineAttributes.<BungeeConnection>connectionData())::set);
+	}
+
+	@EventHandler
+	public void onLoginEvent(LoginEvent event) {
+		PendingConnection conn = event.getConnection();
+		Channel channel = BungeeUnsafe.getInitialHandlerChannel(conn);
+		BungeeConnection connectionData = channel.attr(PipelineAttributes.<BungeeConnection>connectionData()).get();
+		if(connectionData != null && (connectionData.eaglerPlayerProperty || connectionData.texturesPropertyValue != null)) {
+			BungeeUnsafe.PropertyInjector injector = BungeeUnsafe.propertyInjector(conn);
+			if(connectionData.texturesPropertyValue != null) {
+				injector.injectTexturesProperty(connectionData.texturesPropertyValue,
+						connectionData.texturesPropertySignature);
+			}
+			if(connectionData.eaglerPlayerProperty) {
+				injector.injectIsEaglerPlayerProperty();
+			}
+			injector.complete();
+		}
 	}
 
 	@EventHandler(priority = 127)

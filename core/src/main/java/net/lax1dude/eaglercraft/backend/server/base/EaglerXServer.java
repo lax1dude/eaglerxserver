@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.sql.Connection;
@@ -19,6 +20,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
@@ -72,6 +75,7 @@ import net.lax1dude.eaglercraft.backend.server.base.message.PlayerChannelHelper;
 import net.lax1dude.eaglercraft.backend.server.base.config.EaglerConfigLoader;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.PipelineTransformer;
 import net.lax1dude.eaglercraft.backend.server.base.skins.ProfileResolver;
+import net.lax1dude.eaglercraft.backend.server.base.skins.SimpleProfileCache;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinService;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 import net.lax1dude.eaglercraft.backend.skin_cache.HTTPClient;
@@ -84,6 +88,8 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObject>, IEaglerAPIFactory,
 		IEaglerXServerAPI<PlayerObject>, IEaglerXServerAPI.NettyUnsafe {
+
+	public static final Gson GSON_PRETTY = (new GsonBuilder()).setLenient().setPrettyPrinting().create();
 
 	private final EaglerAttributeManager attributeManager = APIFactoryImpl.INSTANCE.getEaglerAttribManager();
 	private final EaglerAttributeManager.EaglerAttributeHolder attributeHolder = attributeManager.createEaglerHolder();
@@ -112,6 +118,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private BinaryHTTPClient httpClientAPI;
 	private ProfileResolver profileResolver;
 	private TexturesProperty eaglerPlayersVanillaSkin;
+	private boolean isEaglerPlayerProperyEnabled;
 	private SkinService<PlayerObject> skinService;
 	private DeferredStartSkinCache skinCacheService;
 	private Connection skinCacheJDBCHandle;
@@ -172,31 +179,20 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			skinService = new SkinService<>(this, null);
 		}
 		
+		isEaglerPlayerProperyEnabled = config.getSettings().isEnableIsEaglerPlayerProperty();
+		
 		eaglerPlayersVanillaSkin = null;
+		File vanillaSkinCache = new File("eagler_vanilla_skin_cache.json");
 		String vanillaSkin = config.getSettings().getEaglerPlayersVanillaSkin();
-		load_vanilla_skin: if(vanillaSkin != null) {
-			UUID uuid;
-			try {
-				uuid = UUID.fromString(vanillaSkin);
-			}catch (IllegalArgumentException ex) {
-				profileResolver.resolveVanillaTexturesFromUsername(vanillaSkin, (prop) -> {
-					if(prop != null) {
-						logger().info("Loaded vanilla profile: \"" + vanillaSkin + "\"");
-						setEaglerPlayersVanillaSkin(prop);
-					}else {
-						logger().error("Could not load vanilla skin from username \"" + vanillaSkin + "\"");
-					}
-				});
-				break load_vanilla_skin;
-			}
-			profileResolver.resolveVanillaTexturesFromUUID(uuid, (prop) -> {
-				if(prop != null) {
-					logger().info("Loaded vanilla profile: " + uuid);
-					setEaglerPlayersVanillaSkin(prop);
-				}else {
-					logger().error("Could not load vanilla skin from UUID " + uuid);
+		if (vanillaSkin != null) {
+			SimpleProfileCache.loadProfile(this, vanillaSkinCache, vanillaSkin, 7l * 86400000l, (res) -> {
+				if(res != null) {
+					logger().info("Loaded vanilla profile: \"" + vanillaSkin + "\"");
+					eaglerPlayersVanillaSkin = res;
 				}
 			});
+		}else {
+			vanillaSkinCache.delete();
 		}
 		
 		init.setOnServerEnable(this::enableHandler);
@@ -608,8 +604,23 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
+	public TexturesProperty getEaglerPlayersVanillaSkin() {
+		return eaglerPlayersVanillaSkin;
+	}
+
+	@Override
 	public void setEaglerPlayersVanillaSkin(TexturesProperty property) {
 		eaglerPlayersVanillaSkin = property;
+	}
+
+	@Override
+	public boolean isEaglerPlayerPropertyEnabled() {
+		return isEaglerPlayerProperyEnabled;
+	}
+
+	@Override
+	public void setEaglerPlayerProperyEnabled(boolean enable) {
+		isEaglerPlayerProperyEnabled = enable;
 	}
 
 	@Override

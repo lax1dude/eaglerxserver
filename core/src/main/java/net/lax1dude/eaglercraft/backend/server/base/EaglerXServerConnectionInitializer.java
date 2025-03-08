@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.base;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnectionInitializer;
 import net.lax1dude.eaglercraft.backend.server.api.EnumPlatformType;
+import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesProperty;
 
 class EaglerXServerConnectionInitializer<PlayerObject>
 		implements IEaglerXServerConnectionInitializer<NettyPipelineData, BaseConnectionInstance> {
@@ -19,6 +20,13 @@ class EaglerXServerConnectionInitializer<PlayerObject>
 		if(nettyData != null) {
 			if (nettyData.isEaglerPlayer()) {
 				initializer.setConnectionAttachment(new EaglerConnectionInstance(initializer.getConnection(), nettyData));
+				if(server.isEaglerPlayerPropertyEnabled()) {
+					initializer.setEaglerPlayerProperty(true);
+				}
+				TexturesProperty eaglerPlayersSkin = server.getEaglerPlayersVanillaSkin();
+				if(eaglerPlayersSkin != null) {
+					initializer.setTexturesProperty(eaglerPlayersSkin.getValue(), eaglerPlayersSkin.getSignature());
+				}
 				if(server.getPlatformType() != EnumPlatformType.BUKKIT) {
 					initializer.setUniqueId(nettyData.uuid);
 				}

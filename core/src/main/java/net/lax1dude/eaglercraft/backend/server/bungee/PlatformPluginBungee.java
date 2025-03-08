@@ -514,6 +514,15 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			public void setUniqueId(UUID uuid) {
 				conn.setUniqueId(uuid);
 			}
+			@Override
+			public void setTexturesProperty(String propertyValue, String propertySignature) {
+				c.texturesPropertyValue = propertyValue;
+				c.texturesPropertySignature = propertySignature;
+			}
+			@Override
+			public void setEaglerPlayerProperty(boolean enable) {
+				c.eaglerPlayerProperty = enable;
+			}
 		});
 	}
 

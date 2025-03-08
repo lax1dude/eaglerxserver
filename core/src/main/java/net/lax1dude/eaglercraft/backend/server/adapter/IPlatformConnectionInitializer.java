@@ -12,4 +12,8 @@ public interface IPlatformConnectionInitializer<PipelineAttachment, ConnectionAt
 
 	void setUniqueId(UUID uuid);
 
+	void setTexturesProperty(String propertyValue, String propertySignature);
+
+	void setEaglerPlayerProperty(boolean enable);
+
 }

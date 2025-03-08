@@ -95,6 +95,15 @@ public class EaglerConfigLoader {
 				"Default value is 60, how often in seconds to check if any listener TLS "
 				+ "certificates have been changed and need to be reloaded."
 			);
+			boolean enableIsEaglerPlayerProperty = config.getBoolean(
+				"enable_is_eagler_player_property", true,
+				"Default value is true, can be used to control if the isEaglerPlayer GameProfile "
+				+ "property should be added to EaglercraftX players, this property is primarily used "
+				+ "to ensure that EaglercraftX players always only display their custom skins when "
+				+ "viewed by another EaglercraftX players on the server instead of showing the "
+				+ "skin attached to their Java Edition username, but this property has also caused "
+				+ "plugins like ViaVersion to crash."
+			);
 			String eaglerPlayersVanillaSkin = config.getString(
 				"eagler_players_vanilla_skin", "",
 				"Default value is '' but was originally 'lax1dude', can be used to set "
@@ -260,15 +269,6 @@ public class EaglerConfigLoader {
 				+ "denial of service attacks that skids may attempt to perform on the skin "
 				+ "download system, only relevant if download_vanilla_skins_to_clients is enabled."
 			);
-			boolean enableIsEaglerPlayerProperty = skinService.getBoolean(
-				"enable_is_eagler_player_property", true,
-				"Default value is true, can be used to control if the isEaglerPlayer GameProfile "
-				+ "property should be added to EaglercraftX players, this property is used to "
-				+ "ensure that EaglercraftX players always only display their custom skins when "
-				+ "viewed by another EaglercraftX players on the server instead of showing the "
-				+ "skin attached to their Java Edition username, but this property has also caused "
-				+ "plugins like ViaVersion to crash."
-			);
 			boolean enableFNAWSkinModelsGlobal = skinService.getBoolean(
 				"enable_fnaw_skin_models_global", true,
 				"Default value is true, set to false to make the Five Nights At Winston's skins "
@@ -345,7 +345,7 @@ public class EaglerConfigLoader {
 					httpMaxHeaderSize, httpMaxChunkSize, httpMaxContentLength, httpWebSocketCompressionLevel,
 					httpWebSocketFragmentSize, httpWebSocketMaxFrameLength, httpAllowKeepAlive, tlsCertRefreshRate,
 					enableAuthenticationEvents, enableBackendRPCAPI, useModernizedChannelNames,
-					eaglerPlayersVanillaSkin, protocolV4DefragSendDelay,
+					eaglerPlayersVanillaSkin, enableIsEaglerPlayerProperty, protocolV4DefragSendDelay,
 					new ConfigDataSettings.ConfigDataProtocols(minMinecraftProtocol, maxMinecraftProtocol,
 							eaglerXRewindAllowed, protocolLegacyAllowed, protocolV3Allowed, protocolV4Allowed,
 							protocolV5Allowed),
@@ -354,8 +354,8 @@ public class EaglerConfigLoader {
 							skinDownloadRatelimitGlobal, skinCacheDBURI, skinCacheDriverClass, skinCacheDriverPath,
 							skinCacheSQLiteCompatible, skinCacheThreadCount, skinCacheCompressionLevel,
 							skinCacheMemoryKeepSeconds, skinCacheMemoryMaxObjects, skinCacheDiskKeepObjectsDays,
-							skinCacheDiskMaxObjects, skinCacheAntagonistsRatelimit, enableIsEaglerPlayerProperty,
-							enableFNAWSkinModelsGlobal, enableFNAWSkinModelsOnServers),
+							skinCacheDiskMaxObjects, skinCacheAntagonistsRatelimit, enableFNAWSkinModelsGlobal,
+							enableFNAWSkinModelsOnServers),
 					new ConfigDataSettings.ConfigDataVoiceService(enableVoiceChatGlobal, enableVoiceChatOnServers,
 							separateVoiceChannelsPerServer),
 					new ConfigDataSettings.ConfigDataUpdateService(enableUpdateSystem, discardLoginPacketCerts,

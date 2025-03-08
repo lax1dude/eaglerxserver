@@ -561,6 +561,15 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			public void setUniqueId(UUID uuid) {
 				c.uuid = uuid;
 			}
+			@Override
+			public void setTexturesProperty(String propertyValue, String propertySignature) {
+				c.texturesPropertyValue = propertyValue;
+				c.texturesPropertySignature = propertySignature;
+			}
+			@Override
+			public void setEaglerPlayerProperty(boolean enable) {
+				c.eaglerPlayerProperty = enable;
+			}
 		});
 	}
 

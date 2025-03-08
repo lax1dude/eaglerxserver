@@ -107,7 +107,13 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	IProfileResolver getProfileResolver();
 
+	TexturesProperty getEaglerPlayersVanillaSkin();
+
 	void setEaglerPlayersVanillaSkin(TexturesProperty property);
+
+	boolean isEaglerPlayerPropertyEnabled();
+
+	void setEaglerPlayerProperyEnabled(boolean enable);
 
 	ISkinService<PlayerObject> getSkinService();
 

@@ -1,5 +1,9 @@
 package net.lax1dude.eaglercraft.backend.server.velocity;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.Predicate;
+
 import com.velocitypowered.api.event.Continuation;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
@@ -18,6 +22,8 @@ import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.messages.ChannelMessageSink;
 import com.velocitypowered.api.proxy.messages.ChannelMessageSource;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
+import com.velocitypowered.api.util.GameProfile;
+import com.velocitypowered.api.util.GameProfile.Property;
 
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
@@ -29,6 +35,10 @@ import net.lax1dude.eaglercraft.backend.server.velocity.PlatformPluginVelocity.P
 class VelocityListener {
 
 	private final PlatformPluginVelocity plugin;
+
+	private static final Property isEaglerPlayer = new Property("isEaglerPlayer", "true", "");
+	private static final Predicate<Property> isEaglerPlayerPredicate = (prop) -> "isEaglerPlayer".equals(prop.getName());
+	private static final Predicate<Property> texturesPredicate = (prop) -> "textures".equals(prop.getName());
 
 	VelocityListener(PlatformPluginVelocity plugin) {
 		this.plugin = plugin;
@@ -54,8 +64,28 @@ class VelocityListener {
 	public void onGameProfileRequestEvent(GameProfileRequestEvent gameProfileEvent) {
 		VelocityConnection conn = VelocityUnsafe.getInboundChannel(gameProfileEvent.getConnection())
 				.attr(PipelineAttributes.<VelocityConnection>connectionData()).get();
+		GameProfile gameProfile = gameProfileEvent.getGameProfile();
+		boolean changed = false;
 		if(!conn.uuid.equals(gameProfileEvent.getGameProfile().getId())) {
-			gameProfileEvent.setGameProfile(gameProfileEvent.getGameProfile().withId(conn.uuid));
+			gameProfile = gameProfile.withId(conn.uuid);
+			changed = true;
+		}
+		if(conn.texturesPropertyValue != null || conn.eaglerPlayerProperty) {
+			List<GameProfile.Property> props = gameProfile.getProperties();
+			List<GameProfile.Property> fixedProps = new LinkedList<>(props);
+			if(conn.texturesPropertyValue != null) {
+				fixedProps.removeIf(texturesPredicate);
+				fixedProps.add(new Property("textures", conn.texturesPropertyValue, conn.texturesPropertySignature));
+			}
+			if(conn.eaglerPlayerProperty) {
+				fixedProps.removeIf(isEaglerPlayerPredicate);
+				fixedProps.add(isEaglerPlayer);
+			}
+			gameProfile = gameProfile.withProperties(fixedProps);
+			changed = true;
+		}
+		if(changed) {
+			gameProfileEvent.setGameProfile(gameProfile);
 		}
 	}
 

@@ -141,7 +141,6 @@ public class ConfigDataSettings {
 		private final int skinCacheDiskKeepObjectsDays;
 		private final int skinCacheDiskMaxObjects;
 		private final int skinCacheAntagonistsRatelimit;
-		private final boolean enableIsEaglerPlayerProperty;
 		private final boolean enableFNAWSkinModelsGlobal;
 		private final Set<String> enableFNAWSkinModelsOnServers;
 
@@ -150,8 +149,8 @@ public class ConfigDataSettings {
 				String skinCacheDBURI, String skinCacheDriverClass, String skinCacheDriverPath,
 				boolean skinCacheSQLiteCompatible, int skinCacheThreadCount, int skinCacheCompressionLevel,
 				int skinCacheMemoryKeepSeconds, int skinCacheMemoryMaxObjects, int skinCacheDiskKeepObjectsDays,
-				int skinCacheDiskMaxObjects, int skinCacheAntagonistsRatelimit, boolean enableIsEaglerPlayerProperty,
-				boolean enableFNAWSkinModelsGlobal, Set<String> enableFNAWSkinModelsOnServers) {
+				int skinCacheDiskMaxObjects, int skinCacheAntagonistsRatelimit, boolean enableFNAWSkinModelsGlobal,
+				Set<String> enableFNAWSkinModelsOnServers) {
 			this.skinLookupRatelimitPlayer = skinLookupRatelimitPlayer;
 			this.downloadVanillaSkinsToClients = downloadVanillaSkinsToClients;
 			this.validSkinDownloadURLs = validSkinDownloadURLs;
@@ -168,7 +167,6 @@ public class ConfigDataSettings {
 			this.skinCacheDiskKeepObjectsDays = skinCacheDiskKeepObjectsDays;
 			this.skinCacheDiskMaxObjects = skinCacheDiskMaxObjects;
 			this.skinCacheAntagonistsRatelimit = skinCacheAntagonistsRatelimit;
-			this.enableIsEaglerPlayerProperty = enableIsEaglerPlayerProperty;
 			this.enableFNAWSkinModelsGlobal = enableFNAWSkinModelsGlobal;
 			this.enableFNAWSkinModelsOnServers = enableFNAWSkinModelsOnServers;
 		}
@@ -235,10 +233,6 @@ public class ConfigDataSettings {
 
 		public int getSkinCacheAntagonistsRatelimit() {
 			return skinCacheAntagonistsRatelimit;
-		}
-
-		public boolean isEnableIsEaglerPlayerProperty() {
-			return enableIsEaglerPlayerProperty;
 		}
 
 		public boolean isEnableFNAWSkinModelsGlobal() {
@@ -347,6 +341,7 @@ public class ConfigDataSettings {
 	private final boolean enableBackendRPCAPI;
 	private final boolean useModernizedChannelNames;
 	private final String eaglerPlayersVanillaSkin;
+	private final boolean enableIsEaglerPlayerPropery;
 	private final int protocolV4DefragSendDelay;
 	private final ConfigDataProtocols protocols;
 	private final ConfigDataSkinService skinService;
@@ -357,9 +352,9 @@ public class ConfigDataSettings {
 			int httpMaxHeaderSize, int httpMaxChunkSize, int httpMaxContentLength, int httpWebSocketCompressionLevel,
 			int httpWebSocketFragmentSize, int httpWebSocketMaxFrameLength, boolean httpAllowKeepAlive,
 			int tlsCertRefreshRate, boolean enableAuthenticationEvents, boolean enableBackendRPCAPI,
-			boolean useModernizedChannelNames, String eaglerPlayersVanillaSkin, int protocolV4DefragSendDelay,
-			ConfigDataProtocols protocols, ConfigDataSkinService skinService, ConfigDataVoiceService voiceService,
-			ConfigDataUpdateService updateService) {
+			boolean useModernizedChannelNames, String eaglerPlayersVanillaSkin, boolean enableIsEaglerPlayerPropery,
+			int protocolV4DefragSendDelay, ConfigDataProtocols protocols, ConfigDataSkinService skinService,
+			ConfigDataVoiceService voiceService, ConfigDataUpdateService updateService) {
 		this.serverName = serverName;
 		this.serverUUID = serverUUID;
 		this.serverUUIDString = serverUUID.toString();
@@ -377,6 +372,7 @@ public class ConfigDataSettings {
 		this.enableBackendRPCAPI = enableBackendRPCAPI;
 		this.useModernizedChannelNames = useModernizedChannelNames;
 		this.eaglerPlayersVanillaSkin = eaglerPlayersVanillaSkin;
+		this.enableIsEaglerPlayerPropery = enableIsEaglerPlayerPropery;
 		this.protocolV4DefragSendDelay = protocolV4DefragSendDelay;
 		this.protocols = protocols;
 		this.skinService = skinService;
@@ -450,6 +446,10 @@ public class ConfigDataSettings {
 
 	public String getEaglerPlayersVanillaSkin() {
 		return eaglerPlayersVanillaSkin;
+	}
+
+	public boolean isEnableIsEaglerPlayerProperty() {
+		return enableIsEaglerPlayerPropery;
 	}
 
 	public int getProtocolV4DefragSendDelay() {
