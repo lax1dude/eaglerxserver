@@ -38,6 +38,11 @@ class BukkitScheduler implements IPlatformScheduler {
 	}
 
 	@Override
+	public void execute(Runnable runnable) {
+		scheduler.runTask(plugin, runnable);
+	}
+
+	@Override
 	public void executeAsync(Runnable runnable) {
 		scheduler.runTaskAsynchronously(plugin, runnable);
 	}
@@ -60,6 +65,16 @@ class BukkitScheduler implements IPlatformScheduler {
 	@Override
 	public IPlatformTask executeAsyncDelayedTask(Runnable runnable, long delay) {
 		return new Task(scheduler.runTaskLaterAsynchronously(plugin, runnable, delay), runnable);
+	}
+
+	@Override
+	public IPlatformTask executeRepeatingTask(Runnable runnable, long delay, long interval) {
+		return new Task(scheduler.runTaskTimer(plugin, runnable, delay, interval), runnable);
+	}
+
+	@Override
+	public IPlatformTask executeAsyncRepeatingTask(Runnable runnable, long delay, long interval) {
+		return new Task(scheduler.runTaskTimerAsynchronously(plugin, runnable, delay, interval), runnable);
 	}
 
 }

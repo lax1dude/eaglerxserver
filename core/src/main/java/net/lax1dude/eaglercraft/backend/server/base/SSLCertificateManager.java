@@ -106,6 +106,10 @@ public class SSLCertificateManager {
 		}
 	}
 
+	public synchronized boolean hasRefreshableFiles() {
+		return !refreshableFiles.isEmpty();
+	}
+
 	public synchronized void update() {
 		if(refreshableFiles.isEmpty()) {
 			return;

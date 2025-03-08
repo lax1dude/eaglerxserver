@@ -31,6 +31,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.api.EnumPlatformType;
 import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
@@ -100,6 +101,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private RewindService<PlayerObject> rewindService;
 	private PipelineTransformer pipelineTransformer;
 	private SSLCertificateManager certificateManager;
+	private IPlatformTask certificateRefreshTask;
 	private String serverListConfirmCode;
 	private Class<?> componentType;
 	private ComponentHelper<?> componentHelper;
@@ -243,6 +245,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private void enableHandler() {
 		logger().info("Enabling " + getServerBrand() + " " + getServerVersion() + "...");
 
+		if(certificateManager.hasRefreshableFiles()) {
+			long refreshRate = Math.max(config.getSettings().getTLSCertRefreshRate(), 1) * 1000l;
+			certificateRefreshTask = platform.getScheduler().executeAsyncRepeatingTask(certificateManager::update,
+					refreshRate, refreshRate);
+		}
+
 		if(skinCacheService != null) {
 			ConfigDataSkinService skinConf = config.getSettings().getSkinService();
 			logger().info("Connecting to skin cache database \"" + Util.sanitizeJDBCURIForLogs(skinConf.getSkinCacheDBURI()) + "\"...");
@@ -273,6 +281,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	private void disableHandler() {
 		logger().info("Disabling " + getServerBrand() + " " + getServerVersion() + "...");
+
+		if(certificateRefreshTask != null) {
+			certificateRefreshTask.cancel();
+			certificateRefreshTask = null;
+		}
+
 		if(skinCacheService != null) {
 			if(skinCacheJDBCHandle != null) {
 				logger().info("Disconnecting from skin cache database \""
@@ -692,7 +706,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public NettyUnsafe getNettyUnsafe() {
+	public NettyUnsafe netty() {
 		return this;
 	}
 

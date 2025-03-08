@@ -147,7 +147,7 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	IAttributeManager getAttributeManager();
 
-	NettyUnsafe getNettyUnsafe();
+	NettyUnsafe netty();
 
 	public interface NettyUnsafe {
 

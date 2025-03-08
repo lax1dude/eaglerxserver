@@ -5,10 +5,10 @@ import java.util.concurrent.TimeUnit;
 import com.velocitypowered.api.scheduler.ScheduledTask;
 import com.velocitypowered.api.scheduler.Scheduler;
 
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformScheduler;
+import net.lax1dude.eaglercraft.backend.server.adapter.AbstractScheduler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
 
-class VelocityScheduler implements IPlatformScheduler {
+class VelocityScheduler extends AbstractScheduler {
 
 	private final PlatformPluginVelocity plugin;
 	private final Scheduler scheduler;
@@ -38,6 +38,11 @@ class VelocityScheduler implements IPlatformScheduler {
 	VelocityScheduler(PlatformPluginVelocity plugin, Scheduler scheduler) {
 		this.plugin = plugin;
 		this.scheduler = scheduler;
+	}
+
+	@Override
+	public void execute(Runnable runnable) {
+		scheduler.buildTask(plugin, runnable).schedule();
 	}
 
 	@Override

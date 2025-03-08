@@ -2,12 +2,12 @@ package net.lax1dude.eaglercraft.backend.server.bungee;
 
 import java.util.concurrent.TimeUnit;
 
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformScheduler;
+import net.lax1dude.eaglercraft.backend.server.adapter.AbstractScheduler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
 import net.md_5.bungee.api.scheduler.ScheduledTask;
 import net.md_5.bungee.api.scheduler.TaskScheduler;
 
-class BungeeScheduler implements IPlatformScheduler {
+class BungeeScheduler extends AbstractScheduler {
 
 	private final PlatformPluginBungee plugin;
 	private final TaskScheduler scheduler;
@@ -35,6 +35,11 @@ class BungeeScheduler implements IPlatformScheduler {
 	BungeeScheduler(PlatformPluginBungee plugin, TaskScheduler scheduler) {
 		this.plugin = plugin;
 		this.scheduler = scheduler;
+	}
+
+	@Override
+	public void execute(Runnable runnable) {
+		scheduler.runAsync(plugin, runnable);
 	}
 
 	@Override
