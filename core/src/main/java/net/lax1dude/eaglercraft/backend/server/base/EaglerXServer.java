@@ -369,7 +369,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> IEaglerXServerAPI<T> createAPI(Class<T> playerClass) {
-		if(playerClazz != playerClass) {
+		if(!playerClass.isAssignableFrom(playerClazz)) {
 			throw new ClassCastException("Class " + playerClazz.getName() + " cannot be cast to " + playerClass.getName());
 		}
 		return (IEaglerXServerAPI<T>) this;
@@ -398,7 +398,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	@SuppressWarnings("unchecked")
 	public <ServerImpl> ServerImpl getEaglerXServerInstance(Class<ServerImpl> clazz) {
-		if(EaglerXServer.class != clazz) {
+		if(!clazz.isAssignableFrom(EaglerXServer.class)) {
 			throw new ClassCastException("Class " + EaglerXServer.class.getName() + " cannot be cast to " + clazz.getName());
 		}
 		return (ServerImpl) this;
@@ -417,7 +417,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	@SuppressWarnings("unchecked")
 	public <PluginImpl> PluginImpl getPlatformPluginInstance(Class<PluginImpl> clazz) {
-		if(platformClazz != clazz) {
+		if(!clazz.isAssignableFrom(platformClazz)) {
 			throw new ClassCastException("Class " + platformClazz.getName() + " cannot be cast to " + clazz.getName());
 		}
 		return (PluginImpl) platform;
@@ -674,7 +674,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	@SuppressWarnings("unchecked")
 	public <ComponentObject> IComponentSerializer<ComponentObject> getComponentSerializer(Class<ComponentObject> componentType) {
-		if(this.componentType != componentType) {
+		if(!componentType.isAssignableFrom(this.componentType)) {
 			throw new ClassCastException("Class " + this.componentType.getName() + " cannot be cast to " + componentType.getName());
 		}
 		return (IComponentSerializer<ComponentObject>) componentHelper;
@@ -693,7 +693,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	public INativeZlib createNativeZlib(boolean compression, boolean decompression, int compressionLevel) {
 		if(compressionLevel < 0 || compressionLevel > 9) {
-			throw new IllegalArgumentException("Compression level is invalid, must be between 1 and 9");
+			throw new IllegalArgumentException("Compression level is invalid, must be between 0 and 9");
 		}else if(!compression && !decompression) {
 			throw new IllegalArgumentException("Compression and decompression are both false");
 		}

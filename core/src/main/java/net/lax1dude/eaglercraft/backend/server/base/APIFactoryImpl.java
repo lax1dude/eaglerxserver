@@ -40,8 +40,8 @@ class APIFactoryImpl extends EaglerXServerAPIFactory {
 		if(handle == null) {
 			throw new IllegalStateException("EaglerXServer has not been initialized yet!");
 		}
-		if(playerClass != this.playerClass) {
-			throw new ClassCastException("Class \"" + playerClass.getName() + "\" cannot be cast to \"" + this.playerClass.getName() + "\"");
+		if(!playerClass.isAssignableFrom(this.playerClass)) {
+			throw new ClassCastException("Class \"" + this.playerClass.getName() + "\" cannot be cast to \"" + playerClass.getName() + "\"");
 		}
 		return (IEaglerXServerAPI<T>) handle;
 	}
