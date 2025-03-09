@@ -1,0 +1,18 @@
+
+plugins {
+	id "java"
+	id "eclipse"
+}
+
+dependencies {
+	compileOnly(libs.bundles.netty.api)
+	compileOnly(libs.gson)
+	compileOnly(libs.guava)
+	implementation project(":protocol-game")
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_11
+	targetCompatibility = JavaVersion.VERSION_11
+}
+

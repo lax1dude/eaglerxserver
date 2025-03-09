@@ -6,7 +6,7 @@ import java.io.InputStream;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.BufferUtils;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.BufferUtils;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketInputBuffer;
 
 public class ByteBufInputWrapper implements GamePacketInputBuffer {

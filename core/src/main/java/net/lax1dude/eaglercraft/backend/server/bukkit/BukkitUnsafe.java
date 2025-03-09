@@ -1,6 +1,5 @@
 package net.lax1dude.eaglercraft.backend.server.bukkit;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -19,8 +18,12 @@ import org.bukkit.Server;
 import org.bukkit.command.CommandMap;
 import org.bukkit.entity.Player;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
 import com.google.common.collect.ForwardingList;
 import com.google.common.collect.Multimap;
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -40,15 +43,15 @@ public class BukkitUnsafe {
 
 		public final Object networkManager;
 		public final Object loginListener;
-		public final Object gameProfile;
+		public final GameProfile gameProfile;
 
-		protected LoginConnectionHolder(Object networkManager, Object loginListener, Object gameProfile) {
+		protected LoginConnectionHolder(Object networkManager, Object loginListener, GameProfile gameProfile) {
 			this.networkManager = networkManager;
 			this.loginListener = loginListener;
 			this.gameProfile = gameProfile;
 		}
 
-		public Object getGameProfile() {
+		public GameProfile getGameProfile() {
 			return gameProfile;
 		}
 
@@ -62,19 +65,11 @@ public class BukkitUnsafe {
 		}
 
 		public UUID getUniqueId() {
-			try {
-				return (UUID) method_GameProfile_getId.invoke(gameProfile);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw Util.propagateReflectThrowable(e);
-			}
+			return gameProfile.getId();
 		}
 
 		public String getUsername() {
-			try {
-				return (String) method_GameProfile_getName.invoke(gameProfile);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw Util.propagateReflectThrowable(e);
-			}
+			return gameProfile.getName();
 		}
 
 		public boolean isConnected() {
@@ -164,7 +159,7 @@ public class BukkitUnsafe {
 				throw new IllegalStateException("PacketListener class is not LoginListener: "
 						+ packetListener.getClass().getName() + " != " + class_LoginListener_maybe.getName());
 			}
-			Object gameProfile = field_LoginListener_gameProfile.get(packetListener);
+			GameProfile gameProfile = (GameProfile) field_LoginListener_gameProfile.get(packetListener);
 			if(gameProfile == null) {
 				throw new IllegalStateException("LoginListener.gameProfile is null!");
 			}
@@ -220,59 +215,17 @@ public class BukkitUnsafe {
 		}
 	}
 
-	private static final Method method_Player_getPlayerProfile;
-	private static final Class<?> class_PlayerProfile;
-	private static final Method method_PlayerProfile_getProperties;
-	private static final Class<?> class_ProfileProperty;
-	private static final Method method_ProfileProperty_getName;
-	private static final Method method_ProfileProperty_getValue;
 	private static final boolean paperProfileAPISupport;
 
-	private static final Class<?> class_GameProfile;
-	private static final Method method_GameProfile_getId;
-	private static final Method method_GameProfile_getName;
-	private static final Method method_GameProfile_getProperties;
-	private static final Class<?> class_Property;
-	private static final Constructor<?> constructor_Property;
-	private static final Method method_Property_getValue;
-
 	static {
-		Method method_Player_getPlayerProfile_ = null;
-		Class<?> class_PlayerProfile_ = null;
-		Method method_PlayerProfile_getProperties_ = null;
-		Class<?> class_ProfileProperty_ = null;
-		Method method_ProfileProperty_getName_ = null;
-		Method method_ProfileProperty_getValue_ = null;
 		boolean paperProfileAPISupport_ = false;
 		try {
-			class_PlayerProfile_ = Class.forName("com.destroystokyo.paper.profile.PlayerProfile");
-			method_Player_getPlayerProfile_ = Player.class.getMethod("getPlayerProfile");
-			class_ProfileProperty_ = Class.forName("com.destroystokyo.paper.profile.ProfileProperty");
-			method_PlayerProfile_getProperties_ = class_PlayerProfile_.getMethod("getProperties");
-			method_ProfileProperty_getName_ = class_ProfileProperty_.getMethod("getName");
-			method_ProfileProperty_getValue_ = class_ProfileProperty_.getMethod("getValue");
+			Class.forName("com.destroystokyo.paper.profile.PlayerProfile");
 			paperProfileAPISupport_ = true;
-		} catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+		} catch (ClassNotFoundException e) {
 			// Paper profile API is unsupported
 		}
-		method_Player_getPlayerProfile = method_Player_getPlayerProfile_;
-		class_PlayerProfile = class_PlayerProfile_;
-		method_PlayerProfile_getProperties = method_PlayerProfile_getProperties_;
-		class_ProfileProperty = class_ProfileProperty_;
-		method_ProfileProperty_getName = method_ProfileProperty_getName_;
-		method_ProfileProperty_getValue = method_ProfileProperty_getValue_;
 		paperProfileAPISupport = paperProfileAPISupport_;
-		try {
-			class_GameProfile = Class.forName("com.mojang.authlib.GameProfile");
-			method_GameProfile_getId = class_GameProfile.getMethod("getId");
-			method_GameProfile_getName = class_GameProfile.getMethod("getName");
-			method_GameProfile_getProperties = class_GameProfile.getMethod("getProperties");
-			class_Property = Class.forName("com.mojang.authlib.properties.Property");
-			constructor_Property = class_Property.getConstructor(String.class, String.class, String.class);
-			method_Property_getValue = class_Property.getMethod("getValue");
-		} catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
-			throw Util.propagateReflectThrowable(e);
-		}
 	}
 
 	public static String getTexturesProperty(Player player) {
@@ -283,11 +236,11 @@ public class BukkitUnsafe {
 				bindCraftPlayer(player);
 			}
 			try {
-				Multimap<String, Object> props = (Multimap<String, Object>) method_GameProfile_getProperties
-						.invoke(method_EntityPlayer_getProfile.invoke(method_CraftPlayer_getHandle.invoke(player)));
-				Collection<Object> tex = props.get("textures");
+				Multimap<String, Property> props = ((GameProfile) method_EntityPlayer_getProfile
+						.invoke(method_CraftPlayer_getHandle.invoke(player))).getProperties();
+				Collection<Property> tex = props.get("textures");
 				if(!tex.isEmpty()) {
-					return (String) method_Property_getValue.invoke(tex.iterator().next());
+					return tex.iterator().next().getValue();
 				}
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				throw Util.propagateReflectThrowable(e);
@@ -297,19 +250,15 @@ public class BukkitUnsafe {
 	}
 
 	private static String getTexturesPropertyPaper(Player player) {
-		try {
-			Object profile = method_Player_getPlayerProfile.invoke(player);
-			if(profile != null) {
-				for(Object o : (List<Object>) method_PlayerProfile_getProperties.invoke(profile)) {
-					if("textures".equals(method_ProfileProperty_getName.invoke(o))) {
-						return (String) method_ProfileProperty_getValue.invoke(o);
-					}
+		PlayerProfile profile = player.getPlayerProfile();
+		if(profile != null) {
+			for(ProfileProperty o : profile.getProperties()) {
+				if("textures".equals(o.getName())) {
+					return o.getValue();
 				}
 			}
-			return null;
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			throw Util.propagateReflectThrowable(e);
 		}
+		return null;
 	}
 
 	public static interface PropertyInjector {
@@ -322,56 +271,55 @@ public class BukkitUnsafe {
 
 	}
 
+	private static final Property isEaglerPlayerProperty = new Property("isEaglerPlayer", "true", null);
+
 	private static class PaperPropertyInjector implements PropertyInjector {
+
+		private static final ProfileProperty isEaglerPlayerPaperProperty = new ProfileProperty("isEaglerPlayer", "true");
+
+		private final Player player;
+		private final PlayerProfile profile;
+
+		protected PaperPropertyInjector(Player player, PlayerProfile profile) {
+			this.player = player;
+			this.profile = profile;
+		}
 
 		@Override
 		public void injectTexturesProperty(String texturesPropertyValue, String texturesPropertySignature) {
-			// TODO Auto-generated method stub
-			
+			profile.setProperty(new ProfileProperty("textures", texturesPropertyValue, texturesPropertySignature));
 		}
 
 		@Override
 		public void injectIsEaglerPlayerProperty() {
-			// TODO Auto-generated method stub
-			
+			profile.setProperty(isEaglerPlayerPaperProperty);
 		}
 
 		@Override
 		public void complete() {
-			// TODO Auto-generated method stub
-			
+			player.setPlayerProfile(profile);
 		}
 
 	}
 
 	private static class BukkitPropertyInjector implements PropertyInjector {
 
-		private final Multimap<String, Object> props;
+		private final Multimap<String, Property> props;
 
-		protected BukkitPropertyInjector(Multimap<String, Object> props) {
+		protected BukkitPropertyInjector(Multimap<String, Property> props) {
 			this.props = props;
 		}
 
 		@Override
 		public void injectTexturesProperty(String texturesPropertyValue, String texturesPropertySignature) {
 			props.removeAll("textures");
-			try {
-				props.put("textures", constructor_Property.newInstance("textures", texturesPropertyValue, texturesPropertySignature));
-			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-					| InvocationTargetException e) {
-				throw Util.propagateReflectThrowable(e);
-			}
+			props.put("textures", new Property("textures", texturesPropertyValue, texturesPropertySignature));
 		}
 
 		@Override
 		public void injectIsEaglerPlayerProperty() {
 			props.removeAll("isEaglerPlayer");
-			try {
-				props.put("isEaglerPlayer", constructor_Property.newInstance("isEaglerPlayer", "true", null));
-			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-					| InvocationTargetException e) {
-				throw Util.propagateReflectThrowable(e);
-			}
+			props.put("isEaglerPlayer", isEaglerPlayerProperty);
 		}
 
 		@Override
@@ -388,8 +336,8 @@ public class BukkitUnsafe {
 				bindCraftPlayer(player);
 			}
 			try {
-				return new BukkitPropertyInjector((Multimap<String, Object>) method_GameProfile_getProperties
-						.invoke(method_EntityPlayer_getProfile.invoke(method_CraftPlayer_getHandle.invoke(player))));
+				return new BukkitPropertyInjector(((GameProfile) method_EntityPlayer_getProfile
+						.invoke(method_CraftPlayer_getHandle.invoke(player))).getProperties());
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				throw Util.propagateReflectThrowable(e);
 			}

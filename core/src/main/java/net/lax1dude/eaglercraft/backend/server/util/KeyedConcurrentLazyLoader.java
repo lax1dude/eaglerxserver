@@ -17,14 +17,13 @@
 package net.lax1dude.eaglercraft.backend.server.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 public abstract class KeyedConcurrentLazyLoader<K, T> {
 
@@ -32,17 +31,16 @@ public abstract class KeyedConcurrentLazyLoader<K, T> {
 
 	public static class KeyedConsumerList<K, T> {
 
-		private final Object2IntMap<K> map = new Object2IntOpenHashMap<>();
+		private final Map<K, Integer> map = new HashMap<>();
 		private final List<Consumer<T>> list = new ArrayList<>();
 
 		public KeyedConsumerList() {
-			map.defaultReturnValue(-1);
 		}
 
 		public void add(K key, Consumer<T> value) {
 			if(key != null) {
-				int old = map.putIfAbsent(key, list.size());
-				if(old != -1) {
+				Integer old = map.putIfAbsent(key, list.size());
+				if(old != null) {
 					list.set(old, value);
 					return;
 				}

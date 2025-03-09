@@ -1,0 +1,36 @@
+[versions]
+bungeecord = "1.21-R0.1-SNAPSHOT"
+velocity = "3.4.0-SNAPSHOT"
+velocity-adventure = "4.19.0"
+paper = "1.12.2-R0.1-SNAPSHOT"
+netty = "4.1.119.Final"
+
+[libraries]
+bungeecord-api = { module = "net.md-5:bungeecord-api", version.ref = "bungeecord" }
+velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity" }
+velocity-nightconfig = "com.electronwill.night-config:toml:3.6.7"
+velocity-legacy-serializer = { module = "net.kyori:adventure-text-serializer-json-legacy-impl", version.ref = "velocity-adventure" }
+paper-api = { module = "com.destroystokyo.paper:paper-api", version.ref = "paper" }
+netty-handler = { module = "io.netty:netty-handler", version.ref = "netty" }
+netty-codec = { module = "io.netty:netty-codec", version.ref = "netty" }
+netty-codec-http = { module = "io.netty:netty-codec-http", version.ref = "netty" }
+netty-codec-haproxy = { module = "io.netty:netty-codec-haproxy", version.ref = "netty" }
+netty-transport-epoll = { module = "io.netty:netty-transport-native-epoll", version.ref = "netty" }
+guava = "com.google.guava:guava:21.0"
+gson = "com.google.code.gson:gson:2.8.0"
+slf4j = "org.slf4j:slf4j-api:2.0.12"
+
+[bundles]
+netty-all = [
+	"netty-handler",
+	"netty-codec",
+	"netty-codec-http",
+	"netty-codec-haproxy",
+	"netty-codec-haproxy",
+	"netty-transport-epoll"
+]
+netty-api = [
+	"netty-handler",
+	"netty-codec",
+	"netty-codec-http"
+]

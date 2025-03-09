@@ -1,0 +1,17 @@
+
+plugins {
+	id "java"
+	id "eclipse"
+}
+
+dependencies {
+	compileOnly(libs.slf4j)
+	compileOnly(libs.guava)
+	compileOnly(libs.bundles.netty.all)
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_11
+	targetCompatibility = JavaVersion.VERSION_11
+}
+

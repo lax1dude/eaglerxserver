@@ -1,0 +1,17 @@
+
+plugins {
+	id "java"
+	id "eclipse"
+}
+
+dependencies {
+	compileOnly(libs.velocity.api)
+	compileOnly(libs.bungeecord.api)
+	compileOnly(libs.bundles.netty.all)
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_11
+	targetCompatibility = JavaVersion.VERSION_11
+}
+
