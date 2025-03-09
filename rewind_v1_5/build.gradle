@@ -5,9 +5,11 @@ plugins {
 }
 
 dependencies {
-	implementation project(":api-bukkit")
-	implementation project(":api-bungee")
-	implementation project(":api-velocity")
+	compileOnly project(":protocol-game")
+	compileOnly project(":api")
+	compileOnly project(":api-bukkit")
+	compileOnly project(":api-bungee")
+	compileOnly project(":api-velocity")
 	compileOnly(libs.bungeecord.api)
 	compileOnly(libs.velocity.api)
 	compileOnly(libs.paper.api)

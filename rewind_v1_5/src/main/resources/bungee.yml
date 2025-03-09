@@ -1,0 +1,7 @@
+name: EaglercraftXRewind-1.5
+version: 1.0.0
+main: net.lax1dude.eaglercraft.backend.rewind_v1_5.bungee.PlatformPluginBungee
+description: Official Eaglercraft 1.5 compatibility plugin for EaglercraftXServer
+author: ayunami2000
+depends:
+- EaglercraftXServer

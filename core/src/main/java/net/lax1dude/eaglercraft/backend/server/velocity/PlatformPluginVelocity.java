@@ -71,6 +71,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformZlib;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
+import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServerVersion;
 import net.lax1dude.eaglercraft.backend.server.base.ListenerInitList;
@@ -90,7 +91,7 @@ import net.lax1dude.eaglercraft.backend.server.velocity.event.VelocityEventDispa
 )
 public class PlatformPluginVelocity implements IPlatform<Player> {
 
-	public static final String PLUGIN_ID = EaglerXServerVersion.VELOCITY_PLUGIN_ID;
+	public static final String PLUGIN_ID = EaglerXServerAPI.PLUGIN_ID;
 	public static final String PLUGIN_NAME = EaglerXServerVersion.BRAND;
 	public static final String PLUGIN_AUTHOR = EaglerXServerVersion.AUTHOR;
 	public static final String PLUGIN_VERSION = EaglerXServerVersion.VERSION;
