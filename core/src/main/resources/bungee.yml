@@ -1,0 +1,5 @@
+name: EaglercraftXServer
+version: 1.0.0
+main: net.lax1dude.eaglercraft.backend.server.bungee.PlatformPluginBungee
+description: Official EaglercraftX plugin for BungeeCord and Waterfall servers
+author: lax1dude

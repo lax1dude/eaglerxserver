@@ -25,6 +25,7 @@ import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
+import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.Player;
@@ -78,6 +79,15 @@ import net.lax1dude.eaglercraft.backend.server.util.FallbackJava11Zlib;
 import net.lax1dude.eaglercraft.backend.server.velocity.chat.VelocityComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.velocity.event.VelocityEventDispatchAdapter;
 
+@Plugin(
+	id = PlatformPluginVelocity.PLUGIN_ID,
+	name = PlatformPluginVelocity.PLUGIN_NAME,
+	version = PlatformPluginVelocity.PLUGIN_VERSION,
+	description = "Official EaglercraftX plugin for Velocity servers",
+	authors = {
+		PlatformPluginVelocity.PLUGIN_AUTHOR
+	}
+)
 public class PlatformPluginVelocity implements IPlatform<Player> {
 
 	public static final String PLUGIN_ID = EaglerXServerVersion.VELOCITY_PLUGIN_ID;
