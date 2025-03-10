@@ -1,12 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.api.supervisor;
 
-import java.util.UUID;
-
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
-import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandResolver;
-import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinResolver;
 
-public interface ISupervisorService<PlayerObject> extends IBrandResolver, ISkinResolver {
+public interface ISupervisorService<PlayerObject> {
 
 	IEaglerXServerAPI<PlayerObject> getServerAPI();
 
@@ -24,8 +20,8 @@ public interface ISupervisorService<PlayerObject> extends IBrandResolver, ISkinR
 
 	ISupervisorRPCHandler getRPCHandler();
 
-	boolean isPlayerKnown(UUID playerUUID);
+	ISupervisorResolver getPlayerResolver();
 
-	int getCachedNodeId(UUID playerUUID);
+	ISupervisorResolver getRemoteOnlyResolver();
 
 }

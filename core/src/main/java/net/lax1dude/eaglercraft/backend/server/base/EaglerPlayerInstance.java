@@ -16,6 +16,7 @@ import net.lax1dude.eaglercraft.backend.server.base.message.MessageController;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinManagerEagler;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherPlayerClientUUIDV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketRedirectClientV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketSetServerCookieV4EAG;
 
@@ -236,6 +237,19 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	public MessageController getMessageController() {
 		return messageController;
+	}
+
+	public void handlePacketGetOtherClientUUID(long playerUUIDMost, long playerUUIDLeast, int requestId) {
+		UUID uuid = new UUID(playerUUIDMost, playerUUIDLeast);
+		BasePlayerInstance<PlayerObject> player = server.getPlayerByUUID(uuid);
+		if(player != null) {
+			UUID brandUUID = player.getEaglerBrandUUID();
+			sendEaglerMessage(new SPacketOtherPlayerClientUUIDV4EAG(requestId, brandUUID.getMostSignificantBits(),
+					brandUUID.getLeastSignificantBits()));
+		} else {
+			sendEaglerMessage(new SPacketOtherPlayerClientUUIDV4EAG(requestId, 0l, 0l));
+			//TODO: supervisor
+		}
 	}
 
 }

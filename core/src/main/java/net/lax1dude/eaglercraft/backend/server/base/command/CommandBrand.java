@@ -75,7 +75,7 @@ public class CommandBrand<PlayerObject> extends EaglerCommand<PlayerObject> {
 		}
 		if(uuid) {
 			UUID brandUUID = player.getEaglerBrandUUID();
-			IBrandRegistration registeredBrand = getServer().getBrandRegistry().lookupRegisteredBrand(brandUUID);
+			IBrandRegistration registeredBrand = getServer().getBrandService().lookupRegisteredBrand(brandUUID);
 			if(registeredBrand != null) {
 				sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.AQUA).end()
 						.text("Eagler Client UUID: ").appendTextComponent().beginStyle().color(EnumChatColor.GOLD).end()

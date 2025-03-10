@@ -16,7 +16,7 @@ public interface IBasePlayer<PlayerObject> extends IBaseLoginConnection {
 	UUID getEaglerBrandUUID();
 
 	default IBrandRegistration getEaglerBrandDesc() {
-		return getServerAPI().getBrandRegistry().lookupRegisteredBrand(getEaglerBrandUUID());
+		return getServerAPI().getBrandService().lookupRegisteredBrand(getEaglerBrandUUID());
 	}
 
 	IEaglerPlayer<PlayerObject> asEaglerPlayer();

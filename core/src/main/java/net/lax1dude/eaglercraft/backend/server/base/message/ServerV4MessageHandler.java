@@ -23,7 +23,7 @@ public class ServerV4MessageHandler extends ServerV3MessageHandler {
 	}
 
 	public void handleClient(CPacketGetOtherClientUUIDV4EAG packet) {
-		
+		eaglerHandle.handlePacketGetOtherClientUUID(packet.playerUUIDMost, packet.playerUUIDLeast, packet.requestId);
 	}
 
 	public void handleClient(CPacketRequestServerInfoV4EAG packet) {

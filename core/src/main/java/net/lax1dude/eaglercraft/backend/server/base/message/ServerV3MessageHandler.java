@@ -10,15 +10,15 @@ public class ServerV3MessageHandler extends ServerMessageHandler {
 	}
 
 	public void handleClient(CPacketGetOtherCapeEAG packet) {
-		eaglerHandle.getSkinManager().handlePacketGetOtherCape(packet);
+		eaglerHandle.getSkinManager().handlePacketGetOtherCape(packet.uuidMost, packet.uuidLeast);
 	}
 
 	public void handleClient(CPacketGetOtherSkinEAG packet) {
-		eaglerHandle.getSkinManager().handlePacketGetOtherSkin(packet);
+		eaglerHandle.getSkinManager().handlePacketGetOtherSkin(packet.uuidMost, packet.uuidLeast);
 	}
 
 	public void handleClient(CPacketGetSkinByURLEAG packet) {
-		eaglerHandle.getSkinManager().handlePacketGetSkinByURL(packet);
+		eaglerHandle.getSkinManager().handlePacketGetSkinByURL(packet.uuidMost, packet.uuidLeast, packet.url);
 	}
 
 	public void handleClient(CPacketVoiceSignalConnectEAG packet) {

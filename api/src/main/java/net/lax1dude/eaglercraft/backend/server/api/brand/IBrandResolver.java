@@ -1,12 +1,13 @@
 package net.lax1dude.eaglercraft.backend.server.api.brand;
 
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public interface IBrandResolver {
 
-	void resolveEaglerPlayerBrand(UUID playerUUID, Consumer<UUID> callback);
+	void resolvePlayerBrand(UUID playerUUID, Consumer<UUID> callback);
 
-	void resolveEaglerPlayerRegisteredBrand(UUID playerUUID, Consumer<IBrandRegistration> callback);
+	void resolvePlayerRegisteredBrand(UUID playerUUID, BiConsumer<UUID, IBrandRegistration> callback);
 
 }

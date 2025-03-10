@@ -207,12 +207,12 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 			if(uuid != null && uuid.length == 16) {
 				ByteBuf buf = Unpooled.wrappedBuffer(uuid);
 				UUID ret = new UUID(buf.readLong(), buf.readLong());
-				if (!server.getBrandRegistry().sanitizeUUID(ret)) {
+				if (server.getBrandService().sanitizeUUID(ret)) {
 					return ret;
 				}
 			}
 		}
-		return server.getBrandRegistry().getBrandUUIDClientLegacy(eaglerBrandString);
+		return server.getBrandService().getBrandUUIDClientLegacy(eaglerBrandString);
 	}
 
 	public ProfileDataHolder profileDataHelper() {

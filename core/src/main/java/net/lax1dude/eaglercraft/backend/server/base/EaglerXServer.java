@@ -101,7 +101,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private ConfigDataRoot config;
 	private IEventDispatchAdapter<PlayerObject, ?> eventDispatcher;
 	private Set<EaglerPlayerInstance<PlayerObject>> eaglerPlayers;
-	private BrandRegistry brandRegistry;
+	private BrandService<PlayerObject> brandRegistry;
 	private Map<String, EaglerListener> listeners;
 	private Map<SocketAddress, EaglerListener> listenersByAddress;
 	private QueryServer queryServer;
@@ -159,7 +159,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		
 		logger().info("Server Name: \"" + config.getSettings().getServerName() + "\"");
 		
-		brandRegistry = new BrandRegistry();
+		brandRegistry = new BrandService<>(this);
 		queryServer = new QueryServer(this);
 		webServer = new WebServer(this);
 		rewindService = new RewindService<>(this);
@@ -473,11 +473,6 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public BrandRegistry getBrandRegistry() {
-		return brandRegistry;
-	}
-
-	@Override
 	public BasePlayerInstance<PlayerObject> getPlayer(PlayerObject player) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
 		return platformPlayer != null ? platformPlayer.getPlayerAttachment() : null;
@@ -636,6 +631,11 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	public IVoiceService<PlayerObject> getVoiceService() {
 		// TODO
 		return null;
+	}
+
+	@Override
+	public BrandService<PlayerObject> getBrandService() {
+		return brandRegistry;
 	}
 
 	@Override

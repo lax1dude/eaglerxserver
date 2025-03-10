@@ -263,41 +263,41 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 		resetEaglerSkinAndCape0(notifyOthers, true);
 	}
 
-	public void handlePacketGetOtherSkin(CPacketGetOtherSkinEAG packet) {
-		UUID targetUUID = new UUID(packet.uuidMost, packet.uuidLeast);
+	public void handlePacketGetOtherSkin(long uuidMost, long uuidLeast) {
+		UUID targetUUID = new UUID(uuidMost, uuidLeast);
 		BasePlayerInstance<PlayerObject> target = player.getEaglerXServer().getPlayerByUUID(targetUUID);
 		if(target != null) {
 			ISkinManagerImpl skinMgr = (ISkinManagerImpl) target.getSkinManager();
 			IEaglerPlayerSkin skin = skinMgr.getPlayerSkinIfLoaded();
 			if(skin != null) {
-				player.sendEaglerMessage(skin.getSkinPacket(packet.uuidMost, packet.uuidLeast, player.getEaglerProtocol()));
+				player.sendEaglerMessage(skin.getSkinPacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
 			}else {
 				((ISkinManagerImpl)skinMgr).resolvePlayerSkinKeyed(player.getUniqueId(), (res) -> {
-					player.sendEaglerMessage(res.getSkinPacket(packet.uuidMost, packet.uuidLeast, player.getEaglerProtocol()));
+					player.sendEaglerMessage(res.getSkinPacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
 				});
 			}
 		}
 	}
 
-	public void handlePacketGetOtherCape(CPacketGetOtherCapeEAG packet) {
-		UUID targetUUID = new UUID(packet.uuidMost, packet.uuidLeast);
+	public void handlePacketGetOtherCape(long uuidMost, long uuidLeast) {
+		UUID targetUUID = new UUID(uuidMost, uuidLeast);
 		BasePlayerInstance<PlayerObject> target = player.getEaglerXServer().getPlayerByUUID(targetUUID);
 		if(target != null) {
 			ISkinManagerImpl skinMgr = (ISkinManagerImpl) target.getSkinManager();
 			IEaglerPlayerCape skin = skinMgr.getPlayerCapeIfLoaded();
 			if(skin != null) {
-				player.sendEaglerMessage(skin.getCapePacket(packet.uuidMost, packet.uuidLeast, player.getEaglerProtocol()));
+				player.sendEaglerMessage(skin.getCapePacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
 			}else {
 				skinMgr.resolvePlayerCapeKeyed(player.getUniqueId(), (res) -> {
-					player.sendEaglerMessage(res.getCapePacket(packet.uuidMost, packet.uuidLeast, player.getEaglerProtocol()));
+					player.sendEaglerMessage(res.getCapePacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
 				});
 			}
 		}
 	}
 
-	public void handlePacketGetSkinByURL(CPacketGetSkinByURLEAG packet) {
-		skinService.loadCacheSkinFromURL(packet.url, EnumSkinModel.STEVE, (res) -> {
-			player.sendEaglerMessage(res.getSkinPacket(packet.uuidMost, packet.uuidLeast, player.getEaglerProtocol()));
+	public void handlePacketGetSkinByURL(long uuidMost, long uuidLeast, String url) {
+		skinService.loadCacheSkinFromURL(url, EnumSkinModel.STEVE, (res) -> {
+			player.sendEaglerMessage(res.getSkinPacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
 		});
 	}
 

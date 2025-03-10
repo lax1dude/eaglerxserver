@@ -12,7 +12,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeHolder;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
-import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistry;
+import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandService;
 import net.lax1dude.eaglercraft.backend.server.api.internal.factory.EaglerXServerAPIFactory;
 import net.lax1dude.eaglercraft.backend.server.api.internal.factory.IEaglerAPIFactory;
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationService;
@@ -67,8 +67,6 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	boolean isMinecraftProtocolSupported(int vers);
 
-	IBrandRegistry getBrandRegistry();
-
 	IBasePlayer<PlayerObject> getPlayer(PlayerObject player);
 
 	IBasePlayer<PlayerObject> getPlayerByName(String playerName);
@@ -118,6 +116,8 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 	ISkinService<PlayerObject> getSkinService();
 
 	IVoiceService<PlayerObject> getVoiceService();
+
+	IBrandService<PlayerObject> getBrandService();
 
 	INotificationService<PlayerObject> getNotificationService();
 

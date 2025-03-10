@@ -7,13 +7,16 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import com.google.common.collect.ImmutableSet;
 
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistration;
-import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistry;
+import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandService;
 
-public class BrandRegistry implements IBrandRegistry {
+public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 
 	private static class BrandRegistrationVanilla implements IBrandRegistration {
 
@@ -163,6 +166,7 @@ public class BrandRegistry implements IBrandRegistry {
 
 	}
 
+	private final EaglerXServer<PlayerObject> server;
 	private final ReadWriteLock mapLock;
 	private final Map<UUID, IBrandRegistration> map;
 
@@ -178,12 +182,41 @@ public class BrandRegistry implements IBrandRegistry {
 			.add(new UUID(0xEEEEA64771094C4EL, 0x86E55B81D17E67EBL))
 			.build();
 
-	public BrandRegistry() {
+	public BrandService(EaglerXServer<PlayerObject> serverIn) {
+		server = serverIn;
 		mapLock = new ReentrantReadWriteLock();
 		map = new HashMap<>();
 		map.put(BRAND_VANILLA, new BrandRegistrationVanilla());
 		map.put(BRAND_EAGLERCRAFTX_V4, new BrandRegistrationEaglerV4());
-		map.put(BRAND_EAGLERCRAFTX_LEGACY, new BrandRegistrationVanilla());
+		map.put(BRAND_EAGLERCRAFTX_LEGACY, new BrandRegistrationEaglerOld());
+	}
+
+	@Override
+	public IEaglerXServerAPI<PlayerObject> getServerAPI() {
+		return server;
+	}
+
+	@Override
+	public void resolvePlayerBrand(UUID playerUUID, Consumer<UUID> callback) {
+		BasePlayerInstance<PlayerObject> player = server.getPlayerByUUID(playerUUID);
+		if(player != null) {
+			callback.accept(player.getEaglerBrandUUID());
+		}else {
+			callback.accept(null);
+			//TODO: supervisor
+		}
+	}
+
+	@Override
+	public void resolvePlayerRegisteredBrand(UUID playerUUID, BiConsumer<UUID, IBrandRegistration> callback) {
+		BasePlayerInstance<PlayerObject> player = server.getPlayerByUUID(playerUUID);
+		if(player != null) {
+			UUID uuid = player.getEaglerBrandUUID();
+			callback.accept(uuid, lookupRegisteredBrand(uuid));
+		}else {
+			callback.accept(null, null);
+			//TODO: supervisor
+		}
 	}
 
 	@Override
