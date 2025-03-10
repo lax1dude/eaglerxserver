@@ -14,6 +14,8 @@ public interface IEaglercraftAuthCookieEvent<PlayerObject, ComponentObject> exte
 
 	byte[] getAuthUsername();
 
+	boolean isNicknameSelectionEnabled();
+
 	boolean getCookiesEnabled();
 
 	byte[] getCookieData();
@@ -22,6 +24,8 @@ public interface IEaglercraftAuthCookieEvent<PlayerObject, ComponentObject> exte
 		byte[] ret = getCookieData();
 		return ret != null ? new String(ret, StandardCharsets.UTF_8) : null;
 	}
+
+	String getRequestedNickname();
 
 	String getProfileUsername();
 

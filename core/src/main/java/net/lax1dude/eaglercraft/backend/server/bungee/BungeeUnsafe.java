@@ -90,7 +90,8 @@ public class BungeeUnsafe {
 			class_LoginResult = Class.forName("net.md_5.bungee.connection.LoginResult");
 			class_Property = Class.forName("net.md_5.bungee.protocol.Property");
 			method_LoginResult_getProperties = class_LoginResult.getMethod("getProperties");
-			method_LoginResult_setProperties = class_LoginResult.getMethod("setProperties", class_Property.arrayType());
+			method_LoginResult_setProperties = class_LoginResult.getMethod("setProperties",
+					Array.newInstance(class_Property, 0).getClass());
 			constructor_Property = class_Property.getConstructor(String.class, String.class, String.class);
 			isEaglerPlayerProperty = constructor_Property.newInstance("isEaglerPlayer", "true", null);
 			method_Property_getName = class_Property.getMethod("getName");

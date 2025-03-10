@@ -14,6 +14,8 @@ public interface IEaglercraftAuthPasswordEvent<PlayerObject, ComponentObject> ex
 
 	byte[] getAuthUsername();
 
+	boolean isNicknameSelectionEnabled();
+
 	byte[] getAuthSaltingData();
 
 	boolean getCookiesEnabled();
@@ -26,6 +28,8 @@ public interface IEaglercraftAuthPasswordEvent<PlayerObject, ComponentObject> ex
 	}
 
 	byte[] getAuthPasswordDataResponse();
+
+	String getRequestedNickname();
 
 	String getProfileUsername();
 

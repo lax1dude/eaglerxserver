@@ -37,14 +37,15 @@ public interface IEventDispatchAdapter<PlayerObject, ComponentObject> {
 			IEventDispatchCallback<IEaglercraftAuthCheckRequiredEvent<PlayerObject, ComponentObject>> onComplete);
 
 	void dispatchAuthCookieEvent(IEaglerLoginConnection pendingConnection, byte[] authUsername,
-			boolean cookiesEnabled, byte[] cookieData, String profileUsername, UUID profileUUID, EnumAuthType authType,
-			String authMessage, String authRequestedServer,
+			boolean nicknameSelectionEnabled, boolean cookiesEnabled, byte[] cookieData, String requestedUsername,
+			String profileUsername, UUID profileUUID, EnumAuthType authType, String authMessage,
+			String authRequestedServer,
 			IEventDispatchCallback<IEaglercraftAuthCookieEvent<PlayerObject, ComponentObject>> onComplete);
 
 	void dispatchAuthPasswordEvent(IEaglerLoginConnection pendingConnection, byte[] authUsername,
-			byte[] authSaltingData, byte[] authPasswordData, boolean cookiesEnabled, byte[] cookieData,
-			String profileUsername, UUID profileUUID, EnumAuthType authType, String authMessage,
-			String authRequestedServer,
+			boolean nicknameSelectionEnabled, byte[] authSaltingData, byte[] authPasswordData, boolean cookiesEnabled,
+			byte[] cookieData, String requestedUsername, String profileUsername, UUID profileUUID,
+			EnumAuthType authType, String authMessage, String authRequestedServer,
 			IEventDispatchCallback<IEaglercraftAuthPasswordEvent<PlayerObject, ComponentObject>> onComplete);
 
 	void dispatchClientBrandEvent(IEaglerPendingConnection pendingConnection,

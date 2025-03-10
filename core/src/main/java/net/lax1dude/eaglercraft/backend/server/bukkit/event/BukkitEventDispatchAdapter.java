@@ -95,21 +95,24 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player,
 
 	@Override
 	public void dispatchAuthCookieEvent(IEaglerLoginConnection loginConnection, byte[] authUsername,
-			boolean cookiesEnabled, byte[] cookieData, String profileUsername, UUID profileUUID, EnumAuthType authType,
-			String authMessage, String authRequestedServer,
+			boolean nicknameSelectionEnabled, boolean cookiesEnabled, byte[] cookieData, String requestedUsername,
+			String profileUsername, UUID profileUUID, EnumAuthType authType, String authMessage,
+			String authRequestedServer,
 			IEventDispatchCallback<IEaglercraftAuthCookieEvent<Player, BaseComponent>> onComplete) {
-		fireAsync(new BukkitAuthCookieEventImpl(api, loginConnection, authUsername, cookiesEnabled,
-				cookieData, profileUsername, profileUUID, authType, authMessage, authRequestedServer), onComplete);
+		fireAsync(new BukkitAuthCookieEventImpl(api, loginConnection, authUsername, nicknameSelectionEnabled,
+				cookiesEnabled, cookieData, requestedUsername, profileUsername, profileUUID, authType, authMessage,
+				authRequestedServer), onComplete);
 	}
 
 	@Override
 	public void dispatchAuthPasswordEvent(IEaglerLoginConnection loginConnection, byte[] authUsername,
-			byte[] authSaltingData, byte[] authPasswordData, boolean cookiesEnabled, byte[] cookieData,
-			String profileUsername, UUID profileUUID, EnumAuthType authType, String authMessage,
-			String authRequestedServer, IEventDispatchCallback<IEaglercraftAuthPasswordEvent<Player, BaseComponent>> onComplete) {
-		fireAsync(new BukkitAuthPasswordEventImpl(api, loginConnection, authUsername, authSaltingData,
-				authPasswordData, cookiesEnabled, cookieData, profileUsername, profileUUID, authType, authMessage,
-				authRequestedServer), onComplete);
+			boolean nicknameSelectionEnabled, byte[] authSaltingData, byte[] authPasswordData, boolean cookiesEnabled,
+			byte[] cookieData, String requestedUsername, String profileUsername, UUID profileUUID,
+			EnumAuthType authType, String authMessage, String authRequestedServer,
+			IEventDispatchCallback<IEaglercraftAuthPasswordEvent<Player, BaseComponent>> onComplete) {
+		fireAsync(new BukkitAuthPasswordEventImpl(api, loginConnection, authUsername, nicknameSelectionEnabled,
+				authSaltingData, authPasswordData, cookiesEnabled, cookieData, requestedUsername, profileUsername,
+				profileUUID, authType, authMessage, authRequestedServer), onComplete);
 	}
 
 	@Override

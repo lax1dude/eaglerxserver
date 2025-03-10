@@ -16,8 +16,10 @@ class BukkitAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 	private final IEaglerXServerAPI<Player> api;
 	private final IEaglerLoginConnection loginConnection;
 	private final byte[] authUsername;
+	private final boolean nicknameSelectionEnabled;
 	private final boolean cookiesEnabled;
 	private final byte[] cookieData;
+	private final String requestedUsername;
 	private String profileUsername;
 	private UUID profileUUID;
 	private final EnumAuthType authType;
@@ -30,13 +32,16 @@ class BukkitAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 	private boolean forceVanillaSkin;
 
 	BukkitAuthCookieEventImpl(IEaglerXServerAPI<Player> api, IEaglerLoginConnection loginConnection,
-			byte[] authUsername, boolean cookiesEnabled, byte[] cookieData, String profileUsername, UUID profileUUID,
-			EnumAuthType authType, String authMessage, String authRequestedServer) {
+			byte[] authUsername, boolean nicknameSelectionEnabled, boolean cookiesEnabled, byte[] cookieData,
+			String requestedUsername, String profileUsername, UUID profileUUID, EnumAuthType authType,
+			String authMessage, String authRequestedServer) {
 		this.api = api;
 		this.loginConnection = loginConnection;
 		this.authUsername = authUsername;
+		this.nicknameSelectionEnabled = nicknameSelectionEnabled;
 		this.cookiesEnabled = cookiesEnabled;
 		this.cookieData = cookieData;
+		this.requestedUsername = requestedUsername;
 		this.profileUsername = profileUsername;
 		this.profileUUID = profileUUID;
 		this.authType = authType;
@@ -60,6 +65,11 @@ class BukkitAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 	}
 
 	@Override
+	public boolean isNicknameSelectionEnabled() {
+		return nicknameSelectionEnabled;
+	}
+
+	@Override
 	public boolean getCookiesEnabled() {
 		return cookiesEnabled;
 	}
@@ -67,6 +77,11 @@ class BukkitAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 	@Override
 	public byte[] getCookieData() {
 		return cookieData;
+	}
+
+	@Override
+	public String getRequestedNickname() {
+		return requestedUsername;
 	}
 
 	@Override

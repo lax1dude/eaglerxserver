@@ -15,6 +15,7 @@ class BungeeAuthCheckRequiredEventImpl extends EaglercraftAuthCheckRequiredEvent
 	private final IEaglerPendingConnection pendingConnection;
 	private final boolean clientSolicitingPassword;
 	private final byte[] authUsername;
+	private boolean nicknameSelectionEnabled;
 	private byte[] saltingData;
 	private EnumAuthType authType;
 	private EnumAuthResponse authRequired;
@@ -50,6 +51,16 @@ class BungeeAuthCheckRequiredEventImpl extends EaglercraftAuthCheckRequiredEvent
 	@Override
 	public byte[] getAuthUsername() {
 		return authUsername;
+	}
+
+	@Override
+	public boolean isNicknameSelectionEnabled() {
+		return nicknameSelectionEnabled;
+	}
+
+	@Override
+	public void setNicknameSelectionEnabled(boolean enable) {
+		nicknameSelectionEnabled = enable;
 	}
 
 	@Override

@@ -81,7 +81,7 @@ public abstract class HandshakerInstance {
 
 	private void continueHandshakeInit(ChannelHandlerContext ctx) {
 		if(server.isAuthenticationEventsEnabled()) {
-			if(getVersion() <= 1) {
+			if(getVersion() <= 1 || pipelineData.handshakeAuthUsername == null) {
 				inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE,
 						"Outdated Client (Authentication Required)");
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
@@ -99,6 +99,7 @@ public abstract class HandshakerInstance {
 						state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 						pipelineData.connectionLogger.error("Auth required check event was not handled");
 					}else {
+						pipelineData.nicknameSelectionEnabled = evt.isNicknameSelectionEnabled();
 						pipelineData.cookieAuthEventEnabled = evt.getEnableCookieAuth();
 						pipelineData.authType = evt.getUseAuthType();
 						pipelineData.authMessage = evt.getAuthMessage();
@@ -166,25 +167,36 @@ public abstract class HandshakerInstance {
 			int selectedMinecraftProtocol, String serverBrand, String serverVersion,
 			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData);
 
-	protected void handlePacketRequestLogin(ChannelHandlerContext ctx, String username, String requestedServer,
+	protected void handlePacketRequestLogin(ChannelHandlerContext ctx, String requestedUsername, String requestedServer,
 			byte[] authPassword, boolean enableCookie, byte[] authCookie) {
 		if(state == HandshakePacketTypes.STATE_CLIENT_VERSION) {
 			state = HandshakePacketTypes.STATE_STALLING;
-			
+
+			String username;
+
+			byte[] b = pipelineData.handshakeAuthUsername;
+			if(b == null) {
+				// This shouldn't be null unless auth events are disabled anyway
+				int strlen = requestedUsername.length();
+				b = new byte[strlen];
+				for(int i = 0; i < strlen; ++i) {
+					b[i] = (byte)requestedUsername.charAt(i);
+				}
+				pipelineData.handshakeAuthUsername = b;
+				username = requestedUsername;
+			}else {
+				if(pipelineData.nicknameSelectionEnabled) {
+					username = requestedUsername;
+					b = requestedUsername.getBytes(StandardCharsets.US_ASCII);
+				}else {
+					username = new String(b, StandardCharsets.US_ASCII);
+				}
+			}
+
 			if(!USERNAME_REGEX.matcher(username).matches()) {
 				inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE, "Invalid Username");
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 				return;
-			}
-			
-			byte[] b = pipelineData.handshakeAuthUsername;
-			if(b == null) {
-				int strlen = username.length();
-				b = new byte[strlen];
-				for(int i = 0; i < strlen; ++i) {
-					b[i] = (byte)username.charAt(i);
-				}
-				pipelineData.handshakeAuthUsername = b;
 			}
 
 			pipelineData.requestedServer = requestedServer;
@@ -201,16 +213,16 @@ public abstract class HandshakerInstance {
 			
 			if(pipelineData.authEventEnabled) {
 				if(authPassword.length > 0) {
-					continueLoginPasswordAuth(ctx, authPassword);
+					continueLoginPasswordAuth(ctx, requestedUsername, authPassword);
 				}else if(pipelineData.cookieAuthEventEnabled) {
-					continueLoginCookieAuth(ctx);
+					continueLoginCookieAuth(ctx, requestedUsername);
 				}else {
 					inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_WRONG_PACKET,
 							"Missing Login Packet Password");
 					state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 				}
 			}else if(pipelineData.cookieAuthEventEnabled) {
-				continueLoginCookieAuth(ctx);
+				continueLoginCookieAuth(ctx, requestedUsername);
 			}else {
 				continueLoginNoAuth(ctx);
 			}
@@ -222,21 +234,16 @@ public abstract class HandshakerInstance {
 	}
 
 	private void continueLoginNoAuth(ChannelHandlerContext ctx) {
-		if(pipelineData.username.equals(new String(pipelineData.handshakeAuthUsername, StandardCharsets.US_ASCII))) {
-			sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid);
-			state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
-		}else {
-			inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE,
-					"Nickname selection is disabled");
-			state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
-		}
+		sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid);
+		state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
 	}
 
-	private void continueLoginPasswordAuth(ChannelHandlerContext ctx, byte[] authPassword) {
+	private void continueLoginPasswordAuth(ChannelHandlerContext ctx, String requestedUsername, byte[] authPassword) {
 		server.eventDispatcher().dispatchAuthPasswordEvent(pipelineData.asLoginConnection(),
-				pipelineData.handshakeAuthUsername, pipelineData.authSalt, authPassword, pipelineData.cookieEnabled,
-				pipelineData.cookieData, pipelineData.username, pipelineData.uuid, pipelineData.authType,
-				pipelineData.authMessage, pipelineData.requestedServer, (evt, err) -> {
+				pipelineData.handshakeAuthUsername, pipelineData.nicknameSelectionEnabled, pipelineData.authSalt,
+				authPassword, pipelineData.cookieEnabled, pipelineData.cookieData, requestedUsername,
+				pipelineData.username, pipelineData.uuid, pipelineData.authType, pipelineData.authMessage,
+				pipelineData.requestedServer, (evt, err) -> {
 			IEaglercraftAuthPasswordEvent.EnumAuthResponse response = evt.getAuthResponse();
 			if(response == null) {
 				inboundHandler.terminateInternalError(ctx, getVersion());
@@ -259,19 +266,16 @@ public abstract class HandshakerInstance {
 		});
 	}
 
-	private void continueLoginCookieAuth(ChannelHandlerContext ctx) {
+	private void continueLoginCookieAuth(ChannelHandlerContext ctx, String requestedUsername) {
 		server.eventDispatcher().dispatchAuthCookieEvent(pipelineData.asLoginConnection(),
-				pipelineData.handshakeAuthUsername, pipelineData.cookieEnabled, pipelineData.cookieData,
-				pipelineData.username, pipelineData.uuid, pipelineData.authType, pipelineData.authMessage,
-				pipelineData.requestedServer, (evt, err) -> {
-			pipelineData.username = evt.getProfileUsername();
-			pipelineData.uuid = evt.getProfileUUID();
-			pipelineData.requestedServer = evt.getAuthRequestedServer();
+				pipelineData.handshakeAuthUsername, pipelineData.nicknameSelectionEnabled, pipelineData.cookieEnabled,
+				pipelineData.cookieData, requestedUsername, pipelineData.username, pipelineData.uuid,
+				pipelineData.authType, pipelineData.authMessage, pipelineData.requestedServer, (evt, err) -> {
 			IEaglercraftAuthCookieEvent.EnumAuthResponse response = evt.getAuthResponse();
 			if(response == null) {
 				inboundHandler.terminateInternalError(ctx, getVersion());
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
-				pipelineData.connectionLogger.error("Auth password event was not handled");
+				pipelineData.connectionLogger.error("Auth cookie event was not handled");
 				return;
 			}
 			switch(response) {

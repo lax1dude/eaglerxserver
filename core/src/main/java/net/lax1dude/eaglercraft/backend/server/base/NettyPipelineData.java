@@ -78,6 +78,7 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	public boolean authEventEnabled;
 	public IEaglercraftAuthCheckRequiredEvent.EnumAuthType authType;
 	public String authMessage;
+	public boolean nicknameSelectionEnabled;
 	public byte[] authSalt;
 	public boolean cookieEnabled;
 	public boolean cookieAuthEventEnabled;

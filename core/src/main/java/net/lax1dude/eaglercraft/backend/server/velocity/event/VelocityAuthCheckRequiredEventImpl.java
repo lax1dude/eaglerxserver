@@ -13,6 +13,7 @@ class VelocityAuthCheckRequiredEventImpl extends EaglercraftAuthCheckRequiredEve
 	private final IEaglerPendingConnection pendingConnection;
 	private final boolean clientSolicitingPassword;
 	private final byte[] authUsername;
+	private boolean nicknameSelectionEnabled;
 	private byte[] saltingData;
 	private EnumAuthType authType;
 	private EnumAuthResponse authRequired;
@@ -46,6 +47,16 @@ class VelocityAuthCheckRequiredEventImpl extends EaglercraftAuthCheckRequiredEve
 	@Override
 	public byte[] getAuthUsername() {
 		return authUsername;
+	}
+
+	@Override
+	public boolean isNicknameSelectionEnabled() {
+		return nicknameSelectionEnabled;
+	}
+
+	@Override
+	public void setNicknameSelectionEnabled(boolean enable) {
+		nicknameSelectionEnabled = enable;
 	}
 
 	@Override

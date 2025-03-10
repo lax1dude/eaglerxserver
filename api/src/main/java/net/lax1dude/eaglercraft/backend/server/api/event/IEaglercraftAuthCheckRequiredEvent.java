@@ -14,6 +14,10 @@ public interface IEaglercraftAuthCheckRequiredEvent<PlayerObject, ComponentObjec
 
 	byte[] getAuthUsername();
 
+	boolean isNicknameSelectionEnabled();
+
+	void setNicknameSelectionEnabled(boolean enable);
+
 	byte[] getSaltingData();
 
 	void setSaltingData(byte[] saltingData);
