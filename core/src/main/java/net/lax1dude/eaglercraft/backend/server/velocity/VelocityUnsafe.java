@@ -190,6 +190,7 @@ public class VelocityUnsafe {
 					}
 				}
 			});
+			method_ServerChannelInitializerHolder_set.invoke(holder, impl);
 			return () -> {
 				impl.impl = (ch) -> {
 					try {
