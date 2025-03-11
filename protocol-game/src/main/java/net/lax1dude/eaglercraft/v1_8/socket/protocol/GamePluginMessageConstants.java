@@ -32,7 +32,7 @@ public class GamePluginMessageConstants {
 
 	public static String getModernName(String channel) {
 		if(channel.startsWith("EAG|")) {
-			return "eagler:" + channel.substring(4).toLowerCase(Locale.US);
+			return "eagler:" + channel.substring(4).toLowerCase(Locale.US).replace('.', '-');
 		}else {
 			throw new IllegalArgumentException();
 		}
