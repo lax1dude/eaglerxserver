@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.base;
+package net.lax1dude.eaglercraft.backend.server.base.query;
 
 import com.google.gson.JsonObject;
 
@@ -6,12 +6,14 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRevokeSessi
 import net.lax1dude.eaglercraft.backend.server.api.query.IDuplexBinaryHandler;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryConnection;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryHandler;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerListener;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 
-public class RevokeSessionQueryHandler implements IQueryHandler {
+public class QueryHandlerRevoke implements IQueryHandler {
 
 	private final IDuplexBinaryHandler packetHandler;
 
-	public RevokeSessionQueryHandler(EaglerXServer<?> server) {
+	public QueryHandlerRevoke(EaglerXServer<?> server) {
 		this.packetHandler = (conn, bytes) -> {
 			if(bytes.length > 255) {
 				JsonObject response = new JsonObject();

@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.base;
+package net.lax1dude.eaglercraft.backend.server.base.query;
 
 import java.net.SocketAddress;
 import java.util.ArrayList;
@@ -15,6 +15,10 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.query.IMOTDConnection;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerListener;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
+import net.lax1dude.eaglercraft.backend.server.base.IIdentifiedConnection;
+import net.lax1dude.eaglercraft.backend.server.base.IIdentifiedConnection.Base;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketQueryHandler;
 

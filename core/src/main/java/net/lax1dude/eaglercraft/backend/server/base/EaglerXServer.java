@@ -74,6 +74,7 @@ import net.lax1dude.eaglercraft.backend.server.base.message.MessageControllerFac
 import net.lax1dude.eaglercraft.backend.server.base.message.PlayerChannelHelper;
 import net.lax1dude.eaglercraft.backend.server.base.config.EaglerConfigLoader;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.PipelineTransformer;
+import net.lax1dude.eaglercraft.backend.server.base.query.QueryServer;
 import net.lax1dude.eaglercraft.backend.server.base.skins.ProfileResolver;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SimpleProfileCache;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinService;

@@ -1,17 +1,18 @@
-package net.lax1dude.eaglercraft.backend.server.base;
+package net.lax1dude.eaglercraft.backend.server.base.query;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryConnection;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryHandler;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings.ConfigDataProtocols;
 
-public class VersionQueryHandler implements IQueryHandler {
+public class QueryHandlerVersion implements IQueryHandler {
 
 	private final EaglerXServer<?> server;
 
-	public VersionQueryHandler(EaglerXServer<?> server) {
+	public QueryHandlerVersion(EaglerXServer<?> server) {
 		this.server = server;
 	}
 

@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.base;
+package net.lax1dude.eaglercraft.backend.server.base.query;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -10,6 +10,7 @@ import com.google.gson.JsonObject;
 
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryHandler;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryServer;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 
 public class QueryServer implements IQueryServer {
 
@@ -21,8 +22,8 @@ public class QueryServer implements IQueryServer {
 		this.server = server;
 		this.registeredQueriesLock = new ReentrantReadWriteLock();
 		this.registeredQueries = new HashMap<>();
-		this.registeredQueries.put("version", new VersionQueryHandler(server));
-		this.registeredQueries.put("revoke_session_token", new RevokeSessionQueryHandler(server));
+		this.registeredQueries.put("version", new QueryHandlerVersion(server));
+		this.registeredQueries.put("revoke_session_token", new QueryHandlerRevoke(server));
 	}
 
 	public IQueryHandler getHandlerFor(String queryType) {

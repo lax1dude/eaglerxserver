@@ -32,8 +32,8 @@ import net.lax1dude.eaglercraft.backend.server.api.query.IQueryHandler;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerListener;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.IIdentifiedConnection;
-import net.lax1dude.eaglercraft.backend.server.base.MOTDConnectionWrapper;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
+import net.lax1dude.eaglercraft.backend.server.base.query.MOTDConnectionWrapper;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 
 public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
