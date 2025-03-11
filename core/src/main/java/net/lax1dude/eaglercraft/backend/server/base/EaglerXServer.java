@@ -78,6 +78,7 @@ import net.lax1dude.eaglercraft.backend.server.base.query.QueryServer;
 import net.lax1dude.eaglercraft.backend.server.base.skins.ProfileResolver;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SimpleProfileCache;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinService;
+import net.lax1dude.eaglercraft.backend.server.base.webserver.WebServer;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 import net.lax1dude.eaglercraft.backend.skin_cache.HTTPClient;
 import net.lax1dude.eaglercraft.backend.skin_cache.ISkinCacheService;
@@ -275,6 +276,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private void enableHandler() {
 		logger().info("Enabling " + getServerBrand() + " " + getServerVersion() + "...");
 
+		webServer.provisionBuiltinPages();
+
 		if(certificateManager.hasRefreshableFiles()) {
 			long refreshRate = Math.max(config.getSettings().getTLSCertRefreshRate(), 1) * 1000l;
 			certificateRefreshTask = platform.getScheduler().executeAsyncRepeatingTask(certificateManager::update,
@@ -311,6 +314,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	private void disableHandler() {
 		logger().info("Disabling " + getServerBrand() + " " + getServerVersion() + "...");
+
+		webServer.releaseBuiltinPages();
 
 		if(certificateRefreshTask != null) {
 			certificateRefreshTask.cancel();
