@@ -9,8 +9,13 @@ import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfig;
 
 public class GSONConfigBase implements IEaglerConfig {
 
+	final File file;
 	GSONConfigSection root;
 	boolean modified;
+
+	GSONConfigBase(File file) {
+		this.file = file;
+	}
 
 	@Override
 	public EnumConfigFormat getFormat() {
@@ -28,7 +33,7 @@ public class GSONConfigBase implements IEaglerConfig {
 	}
 
 	@Override
-	public boolean saveIfModified(File file) throws IOException {
+	public boolean saveIfModified() throws IOException {
 		if(modified) {
 			GSONConfigLoader.writeConfigFile(root.json, file);
 			return true;

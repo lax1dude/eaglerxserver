@@ -41,7 +41,7 @@ public class NightConfigSection implements IEaglerConfSection {
 	@Override
 	public void setComment(String comment) {
 		if(commentSetter != null) {
-			commentSetter.accept(comment);
+			commentSetter.accept(NightConfigLoader.createComment(comment));
 			owner.modified = true;
 		}
 	}
@@ -95,7 +95,7 @@ public class NightConfigSection implements IEaglerConfSection {
 	public IEaglerConfList getList(String name) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		if(o instanceof CommentedConfig) {
+		if(o instanceof List) {
 			return new NightConfigList(owner, (List<Object>) o, bindListContext(k), true);
 		} else {
 			List<Object> sub = new ArrayList<>();
@@ -134,7 +134,7 @@ public class NightConfigSection implements IEaglerConfSection {
 		}else {
 			config.set(k, defaultValue);
 			if(comment != null) {
-				config.setComment(k, comment);
+				config.setComment(k, NightConfigLoader.createComment(comment));
 			}
 			owner.modified = true;
 			initialized = true;
@@ -152,7 +152,7 @@ public class NightConfigSection implements IEaglerConfSection {
 			Boolean d = defaultValue.get();
 			config.set(k, d);
 			if(comment != null) {
-				config.setComment(k, comment);
+				config.setComment(k, NightConfigLoader.createComment(comment));
 			}
 			owner.modified = true;
 			initialized = true;
@@ -176,7 +176,7 @@ public class NightConfigSection implements IEaglerConfSection {
 		}else {
 			config.set(k, defaultValue);
 			if(comment != null) {
-				config.setComment(k, comment);
+				config.setComment(k, NightConfigLoader.createComment(comment));
 			}
 			owner.modified = true;
 			initialized = true;
@@ -194,7 +194,7 @@ public class NightConfigSection implements IEaglerConfSection {
 			Integer d = defaultValue.get();
 			config.set(k, d);
 			if(comment != null) {
-				config.setComment(k, comment);
+				config.setComment(k, NightConfigLoader.createComment(comment));
 			}
 			owner.modified = true;
 			initialized = true;
@@ -225,7 +225,7 @@ public class NightConfigSection implements IEaglerConfSection {
 		}else {
 			config.set(k, defaultValue);
 			if(comment != null) {
-				config.setComment(k, comment);
+				config.setComment(k, NightConfigLoader.createComment(comment));
 			}
 			owner.modified = true;
 			initialized = true;
@@ -243,7 +243,7 @@ public class NightConfigSection implements IEaglerConfSection {
 			String d = defaultValue.get();
 			config.set(k, d);
 			if(comment != null) {
-				config.setComment(k, comment);
+				config.setComment(k, NightConfigLoader.createComment(comment));
 			}
 			owner.modified = true;
 			initialized = true;

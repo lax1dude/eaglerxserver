@@ -9,8 +9,13 @@ import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfig;
 
 public class YAMLConfigBase implements IEaglerConfig {
 
+	final File file;
 	YAMLConfigSection root;
 	boolean modified;
+
+	YAMLConfigBase(File file) {
+		this.file = file;
+	}
 
 	@Override
 	public EnumConfigFormat getFormat() {
@@ -28,7 +33,7 @@ public class YAMLConfigBase implements IEaglerConfig {
 	}
 
 	@Override
-	public boolean saveIfModified(File file) throws IOException {
+	public boolean saveIfModified() throws IOException {
 		if(modified) {
 			YAMLConfigLoader.writeConfigFile(root.yaml, file);
 			return true;

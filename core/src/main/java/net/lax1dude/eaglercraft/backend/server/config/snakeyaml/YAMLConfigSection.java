@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
@@ -14,6 +15,7 @@ import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.ScalarNode;
 import org.yaml.snakeyaml.nodes.SequenceNode;
+import org.yaml.snakeyaml.nodes.Tag;
 
 import com.google.common.collect.ImmutableList;
 
@@ -24,13 +26,16 @@ public class YAMLConfigSection implements IEaglerConfSection {
 
 	private final YAMLConfigBase owner;
 	final MappingNode yaml;
+	private final Consumer<String> commentSetter;
 	final Map<String, NodeTuple> accelerator = new HashMap<>();
 	private final boolean exists;
 	private boolean initialized;
 
-	protected YAMLConfigSection(YAMLConfigBase owner, MappingNode yaml, boolean exists) {
+	protected YAMLConfigSection(YAMLConfigBase owner, MappingNode yaml, Consumer<String> commentSetter,
+			boolean exists) {
 		this.owner = owner;
 		this.yaml = yaml;
+		this.commentSetter = commentSetter;
 		this.exists = this.initialized = exists;
 		rehash();
 	}
@@ -57,22 +62,20 @@ public class YAMLConfigSection implements IEaglerConfSection {
 
 	@Override
 	public void setComment(String comment) {
-		List<CommentLine> lst = yaml.getBlockComments();
-		if(lst == null) {
-			lst = new ArrayList<>();
-			yaml.setBlockComments(lst);
-		}else {
-			lst.clear();
+		if(commentSetter != null) {
+			commentSetter.accept(comment);
 		}
-		YAMLConfigLoader.createComment(comment, lst);
-		owner.modified = true;
+		
 	}
 
 	@Override
 	public IEaglerConfSection getIfSection(String name) {
 		NodeTuple t = accelerator.get(name);
 		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof MappingNode)) {
-			return new YAMLConfigSection(owner, (MappingNode) t.getValueNode(), true);
+			return new YAMLConfigSection(owner, (MappingNode) t.getValueNode(), (comment) -> {
+				YAMLConfigLoader.createCommentHelper(comment, (ScalarNode) t.getKeyNode());
+				owner.modified = true;
+			}, true);
 		}else {
 			return null;
 		}
@@ -82,15 +85,22 @@ public class YAMLConfigSection implements IEaglerConfSection {
 	public IEaglerConfSection getSection(String name) {
 		NodeTuple t = accelerator.get(name);
 		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof MappingNode)) {
-			return new YAMLConfigSection(owner, (MappingNode) t.getValueNode(), true);
+			return new YAMLConfigSection(owner, (MappingNode) t.getValueNode(), (comment) -> {
+				YAMLConfigLoader.createCommentHelper(comment, (ScalarNode) t.getKeyNode());
+				owner.modified = true;
+			}, true);
 		}else {
-			MappingNode obj = new MappingNode(null, new ArrayList<>(), FlowStyle.BLOCK);
-			t = new NodeTuple(new ScalarNode(null, name, null, null, ScalarStyle.PLAIN), obj);
-			accelerator.put(name, t);
-			yaml.getValue().add(t);
+			ScalarNode key = new ScalarNode(Tag.STR, name, null, null, ScalarStyle.PLAIN);
+			MappingNode obj = new MappingNode(Tag.MAP, new ArrayList<>(), FlowStyle.BLOCK);
+			NodeTuple tt = new NodeTuple(key, obj);
+			accelerator.put(name, tt);
+			yaml.getValue().add(tt);
 			owner.modified = true;
 			initialized = true;
-			return new YAMLConfigSection(owner, obj, false);
+			return new YAMLConfigSection(owner, obj, (comment) -> {
+				YAMLConfigLoader.createCommentHelper(comment, key);
+				owner.modified = true;
+			}, false);
 		}
 	}
 
@@ -98,7 +108,10 @@ public class YAMLConfigSection implements IEaglerConfSection {
 	public IEaglerConfList getIfList(String name) {
 		NodeTuple t = accelerator.get(name);
 		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof SequenceNode)) {
-			return new YAMLConfigList(owner, (SequenceNode) t.getValueNode(), true);
+			return new YAMLConfigList(owner, (SequenceNode) t.getValueNode(), (comment) -> {
+				YAMLConfigLoader.createCommentHelper(comment, (ScalarNode) t.getKeyNode());
+				owner.modified = true;
+			}, true);
 		}else {
 			return null;
 		}
@@ -108,15 +121,22 @@ public class YAMLConfigSection implements IEaglerConfSection {
 	public IEaglerConfList getList(String name) {
 		NodeTuple t = accelerator.get(name);
 		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof SequenceNode)) {
-			return new YAMLConfigList(owner, (SequenceNode) t.getValueNode(), true);
+			return new YAMLConfigList(owner, (SequenceNode) t.getValueNode(), (comment) -> {
+				YAMLConfigLoader.createCommentHelper(comment, (ScalarNode) t.getKeyNode());
+				owner.modified = true;
+			}, true);
 		}else {
-			SequenceNode obj = new SequenceNode(null, new ArrayList<>(), FlowStyle.BLOCK);
-			t = new NodeTuple(new ScalarNode(null, name, null, null, ScalarStyle.PLAIN), obj);
-			accelerator.put(name, t);
-			yaml.getValue().add(t);
+			ScalarNode key = new ScalarNode(Tag.STR, name, null, null, ScalarStyle.PLAIN);
+			SequenceNode obj = new SequenceNode(Tag.SEQ, new ArrayList<>(), FlowStyle.BLOCK);
+			NodeTuple tt = new NodeTuple(key, obj);
+			accelerator.put(name, tt);
+			yaml.getValue().add(tt);
 			owner.modified = true;
 			initialized = true;
-			return new YAMLConfigList(owner, obj, false);
+			return new YAMLConfigList(owner, obj, (comment) -> {
+				YAMLConfigLoader.createCommentHelper(comment, key);
+				owner.modified = true;
+			}, false);
 		}
 	}
 
@@ -160,13 +180,14 @@ public class YAMLConfigSection implements IEaglerConfSection {
 				return b;
 			}
 		}
-		ScalarNode node = new ScalarNode(null, Boolean.toString(defaultValue), null, null, ScalarStyle.PLAIN);
+		ScalarNode key = new ScalarNode(Tag.STR, name, null, null, ScalarStyle.PLAIN);
 		if(comment != null) {
 			List<CommentLine> lst = new ArrayList<>();
 			YAMLConfigLoader.createComment(comment, lst);
-			node.setBlockComments(lst);
+			key.setBlockComments(lst);
 		}
-		t = new NodeTuple(new ScalarNode(null, name, null, null, ScalarStyle.PLAIN), node);
+		ScalarNode node = new ScalarNode(Tag.BOOL, Boolean.toString(defaultValue), null, null, ScalarStyle.PLAIN);
+		t = new NodeTuple(key, node);
 		accelerator.put(name, t);
 		yaml.getValue().add(t);
 		owner.modified = true;
@@ -185,13 +206,14 @@ public class YAMLConfigSection implements IEaglerConfSection {
 			}
 		}
 		boolean b = defaultValue.get();
-		ScalarNode node = new ScalarNode(null, Boolean.toString(b), null, null, ScalarStyle.PLAIN);
+		ScalarNode key = new ScalarNode(Tag.STR, name, null, null, ScalarStyle.PLAIN);
 		if(comment != null) {
 			List<CommentLine> lst = new ArrayList<>();
 			YAMLConfigLoader.createComment(comment, lst);
-			node.setBlockComments(lst);
+			key.setBlockComments(lst);
 		}
-		t = new NodeTuple(new ScalarNode(null, name, null, null, ScalarStyle.PLAIN), node);
+		ScalarNode node = new ScalarNode(Tag.BOOL, Boolean.toString(b), null, null, ScalarStyle.PLAIN);
+		t = new NodeTuple(key, node);
 		accelerator.put(name, t);
 		yaml.getValue().add(t);
 		owner.modified = true;
@@ -222,13 +244,14 @@ public class YAMLConfigSection implements IEaglerConfSection {
 			}catch(NumberFormatException ex) {
 			}
 		}
-		ScalarNode node = new ScalarNode(null, Integer.toString(defaultValue), null, null, ScalarStyle.PLAIN);
+		ScalarNode key = new ScalarNode(Tag.STR, name, null, null, ScalarStyle.PLAIN);
 		if(comment != null) {
 			List<CommentLine> lst = new ArrayList<>();
 			YAMLConfigLoader.createComment(comment, lst);
-			node.setBlockComments(lst);
+			key.setBlockComments(lst);
 		}
-		t = new NodeTuple(new ScalarNode(null, name, null, null, ScalarStyle.PLAIN), node);
+		ScalarNode node = new ScalarNode(Tag.INT, Integer.toString(defaultValue), null, null, ScalarStyle.PLAIN);
+		t = new NodeTuple(key, node);
 		accelerator.put(name, t);
 		yaml.getValue().add(t);
 		owner.modified = true;
@@ -246,13 +269,14 @@ public class YAMLConfigSection implements IEaglerConfSection {
 			}
 		}
 		int i = defaultValue.get();
-		ScalarNode node = new ScalarNode(null, Integer.toString(i), null, null, ScalarStyle.PLAIN);
+		ScalarNode key = new ScalarNode(Tag.STR, name, null, null, ScalarStyle.PLAIN);
 		if(comment != null) {
 			List<CommentLine> lst = new ArrayList<>();
 			YAMLConfigLoader.createComment(comment, lst);
-			node.setBlockComments(lst);
+			key.setBlockComments(lst);
 		}
-		t = new NodeTuple(new ScalarNode(null, name, null, null, ScalarStyle.PLAIN), node);
+		ScalarNode node = new ScalarNode(Tag.INT, Integer.toString(i), null, null, ScalarStyle.PLAIN);
+		t = new NodeTuple(key, node);
 		accelerator.put(name, t);
 		yaml.getValue().add(t);
 		owner.modified = true;
@@ -284,13 +308,14 @@ public class YAMLConfigSection implements IEaglerConfSection {
 		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode)) {
 			return ((ScalarNode) t.getValueNode()).getValue();
 		}
-		ScalarNode node = new ScalarNode(null, defaultValue, null, null, ScalarStyle.PLAIN);
+		ScalarNode key = new ScalarNode(Tag.STR, name, null, null, ScalarStyle.PLAIN);
 		if(comment != null) {
 			List<CommentLine> lst = new ArrayList<>();
 			YAMLConfigLoader.createComment(comment, lst);
-			node.setBlockComments(lst);
+			key.setBlockComments(lst);
 		}
-		t = new NodeTuple(new ScalarNode(null, name, null, null, ScalarStyle.PLAIN), node);
+		ScalarNode node = new ScalarNode(Tag.STR, defaultValue, null, null, ScalarStyle.SINGLE_QUOTED);
+		t = new NodeTuple(key, node);
 		accelerator.put(name, t);
 		yaml.getValue().add(t);
 		owner.modified = true;
@@ -305,13 +330,14 @@ public class YAMLConfigSection implements IEaglerConfSection {
 			return ((ScalarNode) t.getValueNode()).getValue();
 		}
 		String str = defaultValue.get();
-		ScalarNode node = new ScalarNode(null, str, null, null, ScalarStyle.PLAIN);
+		ScalarNode key = new ScalarNode(Tag.STR, name, null, null, ScalarStyle.PLAIN);
 		if(comment != null) {
 			List<CommentLine> lst = new ArrayList<>();
 			YAMLConfigLoader.createComment(comment, lst);
-			node.setBlockComments(lst);
+			key.setBlockComments(lst);
 		}
-		t = new NodeTuple(new ScalarNode(null, name, null, null, ScalarStyle.PLAIN), node);
+		ScalarNode node = new ScalarNode(Tag.STR, str, null, null, ScalarStyle.SINGLE_QUOTED);
+		t = new NodeTuple(key, node);
 		accelerator.put(name, t);
 		yaml.getValue().add(t);
 		owner.modified = true;

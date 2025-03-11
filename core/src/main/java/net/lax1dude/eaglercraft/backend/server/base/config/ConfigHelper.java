@@ -81,7 +81,7 @@ public class ConfigHelper {
 					return func.call(conf.getRoot().getSection(fileName));
 				}
 			});
-			if(conf.saveIfModified(f)) {
+			if(conf.saveIfModified()) {
 				platform.logger().info("Config file was updated: " + f.getAbsolutePath());
 			}
 			return result;
@@ -108,7 +108,7 @@ public class ConfigHelper {
 					}
 					IEaglerConfig conf = fmt.getConfigFile(f);
 					V ret = func.call(conf.getRoot());
-					if(conf.saveIfModified(f)) {
+					if(conf.saveIfModified()) {
 						platform.logger().info("Config file was updated: " + f.getAbsolutePath());
 					}
 					return ret;

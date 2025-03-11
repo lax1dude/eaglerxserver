@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.config.gson;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -25,19 +26,25 @@ public class GSONConfigLoader {
 		JsonObject obj;
 		try(Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
 			obj = GSON.fromJson(reader, JsonObject.class);
+		}catch(FileNotFoundException ex) {
+			obj = new JsonObject();
 		}catch(JsonParseException ex) {
 			throw new IOException("JSON config file has a syntax error: " + file.getAbsolutePath(), ex);
 		}
-		return getConfigFile(obj);
+		return getConfigFile(file, obj);
 	}
 
-	public static IEaglerConfig getConfigFile(JsonObject jsonObject) throws IOException {
-		GSONConfigBase base = new GSONConfigBase();
+	public static IEaglerConfig getConfigFile(File file, JsonObject jsonObject) throws IOException {
+		GSONConfigBase base = new GSONConfigBase(file);
 		base.root = new GSONConfigSection(base, jsonObject, jsonObject.size() > 0);
 		return base;
 	}
 
 	public static void writeConfigFile(JsonObject configIn, File file) throws IOException {
+		File p = file.getAbsoluteFile().getParentFile();
+		if(p != null && !p.isDirectory() && !p.mkdirs()) {
+			throw new IOException("Could not create directory: " + p.getAbsolutePath());
+		}
 		try(Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
 			GSON.toJson(configIn, writer);
 		}

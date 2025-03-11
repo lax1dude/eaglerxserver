@@ -3,6 +3,8 @@ package net.lax1dude.eaglercraft.backend.server.config.nightconfig;
 import java.io.File;
 import java.io.IOException;
 
+import com.electronwill.nightconfig.core.file.CommentedFileConfig;
+
 import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfSection;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfig;
@@ -28,9 +30,9 @@ public class NightConfigBase implements IEaglerConfig {
 	}
 
 	@Override
-	public boolean saveIfModified(File file) throws IOException {
+	public boolean saveIfModified() throws IOException {
 		if(modified) {
-			NightConfigLoader.writeConfigFile(root.config, file);
+			NightConfigLoader.writeConfigFile((CommentedFileConfig)root.config);
 			modified = false;
 			return true;
 		}else {

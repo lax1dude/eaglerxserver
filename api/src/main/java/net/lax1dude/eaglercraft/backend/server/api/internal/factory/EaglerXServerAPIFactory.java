@@ -13,7 +13,7 @@ public abstract class EaglerXServerAPIFactory implements IEaglerAPIFactory {
 	static {
 		try {
 			Class<?> clz = Class.forName("net.lax1dude.eaglercraft.backend.server.base.APIFactoryImpl");
-			Method meth = clz.getMethod("createFactory");
+			Method meth = clz.getDeclaredMethod("createFactory");
 			meth.setAccessible(true);
 			INSTANCE = (EaglerXServerAPIFactory) meth.invoke(null);
 		} catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException

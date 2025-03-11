@@ -58,7 +58,7 @@ public class GSONConfigSection implements IEaglerConfSection {
 			json.add(name, obj);
 			owner.modified = true;
 			initialized = true;
-			return new GSONConfigSection(owner, el.getAsJsonObject(), false);
+			return new GSONConfigSection(owner, obj, false);
 		}
 	}
 
@@ -82,7 +82,7 @@ public class GSONConfigSection implements IEaglerConfSection {
 			json.add(name, obj);
 			owner.modified = true;
 			initialized = true;
-			return new GSONConfigList(owner, el.getAsJsonArray(), false);
+			return new GSONConfigList(owner, obj, false);
 		}
 	}
 

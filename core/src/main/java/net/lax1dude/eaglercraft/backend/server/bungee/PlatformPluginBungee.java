@@ -46,6 +46,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitialize
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformScheduler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformZlib;
+import net.lax1dude.eaglercraft.backend.server.adapter.JavaLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
@@ -115,6 +116,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	@Override
 	public void onLoad() {
 		ProxyServer proxy = getProxy();
+		loggerImpl = new JavaLogger(getLogger());
 		eventDispatcherImpl = new BungeeEventDispatchAdapter(proxy.getPluginManager());
 		schedulerImpl = new BungeeScheduler(this, proxy.getScheduler());
 		componentHelperImpl = new BungeeComponentHelper();

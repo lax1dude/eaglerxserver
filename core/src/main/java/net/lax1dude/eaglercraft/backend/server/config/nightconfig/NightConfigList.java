@@ -40,7 +40,7 @@ public class NightConfigList implements IEaglerConfList {
 
 	@Override
 	public void setComment(String comment) {
-		commentSetter.setComment(comment);
+		commentSetter.setComment(NightConfigLoader.createComment(comment));
 		owner.modified = true;
 		initialized = true;
 	}

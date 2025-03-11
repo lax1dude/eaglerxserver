@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.config.snakeyaml;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -9,21 +10,34 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.comments.CommentLine;
 import org.yaml.snakeyaml.comments.CommentType;
 import org.yaml.snakeyaml.error.YAMLException;
+import org.yaml.snakeyaml.nodes.MappingNode;
 import org.yaml.snakeyaml.nodes.Node;
+import org.yaml.snakeyaml.nodes.ScalarNode;
+import org.yaml.snakeyaml.nodes.Tag;
 
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfig;
+import net.lax1dude.eaglercraft.backend.server.config.WrapUtil;
 
 public class YAMLConfigLoader {
 
-	private static final Yaml YAML = new Yaml();
+	private static final Yaml YAML;
+
+	static {
+		DumperOptions opts = new DumperOptions();
+		opts.setPrettyFlow(true);
+		opts.setDefaultFlowStyle(FlowStyle.FLOW);
+		opts.setProcessComments(true);
+		YAML = new Yaml(opts);
+	}
 
 	public static final int YAML_COMMENT_WRAP = 80;
 
@@ -31,103 +45,51 @@ public class YAMLConfigLoader {
 		Node obj;
 		try(Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
 			obj = YAML.compose(reader);
+		}catch(FileNotFoundException ex) {
+			obj = new MappingNode(Tag.MAP, new ArrayList<>(), FlowStyle.BLOCK);
 		}catch(YAMLException ex) {
 			throw new IOException("YAML config file has a syntax error: " + file.getAbsolutePath(), ex);
 		}
-		return getConfigFile(obj);
+		if(!(obj instanceof MappingNode)) {
+			throw new IOException("Root node " + obj.getClass().getSimpleName() + " is not a map!");
+		}
+		return getConfigFile(file, (MappingNode) obj);
 	}
 
-	public static IEaglerConfig getConfigFile(Node node) throws IOException {
-		return null;
+	public static IEaglerConfig getConfigFile(File file, MappingNode node) throws IOException {
+		YAMLConfigBase base = new YAMLConfigBase(file);
+		base.root = new YAMLConfigSection(base, node, null, node.getValue().size() > 0);
+		return base;
 	}
 
 	public static void writeConfigFile(Node configIn, File file) throws IOException {
+		File p = file.getAbsoluteFile().getParentFile();
+		if(p != null && !p.isDirectory() && !p.mkdirs()) {
+			throw new IOException("Could not create directory: " + p.getAbsolutePath());
+		}
 		try(Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-			YAML.dump(file, writer);
+			YAML.serialize(configIn, writer);
 		}
 	}
 
 	public static void createComment(String text, List<CommentLine> ret) {
 		if(text != null) {
-			String[] lines = wrap(text, YAML_COMMENT_WRAP, "\n", false, " ").split("\n");
+			String[] lines = WrapUtil.wrap(text, YAML_COMMENT_WRAP, "\n", false, " ").split("\n");
 			for(int i = 0; i < lines.length; ++i) {
-				ret.add(new CommentLine(null, null, lines[i], CommentType.BLOCK));
+				ret.add(new CommentLine(null, null, " " + lines[i], CommentType.BLOCK));
 			}
 		}
 	}
 
-	// From an old version of apache commons lang3
-	private static String wrap(final String str, int wrapLength, String newLineStr, final boolean wrapLongWords,
-			String wrapOn) {
-		if (str == null) {
-			return null;
+	public static void createCommentHelper(String text, ScalarNode ret) {
+		List<CommentLine> lst = ret.getBlockComments();
+		if(lst == null) {
+			lst = new ArrayList<>();
+			ret.setBlockComments(lst);
+		}else {
+			lst.clear();
 		}
-		if (newLineStr == null) {
-			newLineStr = System.lineSeparator();
-		}
-		if (wrapLength < 1) {
-			wrapLength = 1;
-		}
-		final Pattern patternToWrapOn = Pattern.compile(wrapOn);
-		final int inputLineLength = str.length();
-		int offset = 0;
-		final StringBuilder wrappedLine = new StringBuilder(inputLineLength + 32);
-
-		while (offset < inputLineLength) {
-			int spaceToWrapAt = -1;
-			Matcher matcher = patternToWrapOn.matcher(str.substring(offset,
-					Math.min((int) Math.min(Integer.MAX_VALUE, offset + wrapLength + 1L), inputLineLength)));
-			if (matcher.find()) {
-				if (matcher.start() == 0) {
-					offset += matcher.end();
-					continue;
-				}
-				spaceToWrapAt = matcher.start() + offset;
-			}
-
-			// only last line without leading spaces is left
-			if (inputLineLength - offset <= wrapLength) {
-				break;
-			}
-
-			while (matcher.find()) {
-				spaceToWrapAt = matcher.start() + offset;
-			}
-
-			if (spaceToWrapAt >= offset) {
-				// normal case
-				wrappedLine.append(str, offset, spaceToWrapAt);
-				wrappedLine.append(newLineStr);
-				offset = spaceToWrapAt + 1;
-
-			} else // really long word or URL
-			if (wrapLongWords) {
-				// wrap really long word one line at a time
-				wrappedLine.append(str, offset, wrapLength + offset);
-				wrappedLine.append(newLineStr);
-				offset += wrapLength;
-			} else {
-				// do not wrap really long word, just extend beyond limit
-				matcher = patternToWrapOn.matcher(str.substring(offset + wrapLength));
-				if (matcher.find()) {
-					spaceToWrapAt = matcher.start() + offset + wrapLength;
-				}
-
-				if (spaceToWrapAt >= 0) {
-					wrappedLine.append(str, offset, spaceToWrapAt);
-					wrappedLine.append(newLineStr);
-					offset = spaceToWrapAt + 1;
-				} else {
-					wrappedLine.append(str, offset, str.length());
-					offset = inputLineLength;
-				}
-			}
-		}
-
-		// Whatever is left in line is short enough to just pass through
-		wrappedLine.append(str, offset, str.length());
-
-		return wrappedLine.toString();
+		createComment(text, lst);
 	}
 
 }

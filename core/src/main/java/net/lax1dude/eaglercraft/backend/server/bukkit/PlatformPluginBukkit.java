@@ -62,6 +62,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitialize
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformScheduler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformZlib;
+import net.lax1dude.eaglercraft.backend.server.adapter.JavaLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
@@ -118,6 +119,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	public void onLoad() {
 		post_v1_13 = isPost_v1_13();
 		Server server = getServer();
+		loggerImpl = new JavaLogger(getLogger());
 		eventDispatcherImpl = new BukkitEventDispatchAdapter(this, server.getPluginManager(), server.getScheduler());
 		schedulerImpl = new BukkitScheduler(this, server.getScheduler());
 		componentHelperImpl = new BungeeComponentHelper();

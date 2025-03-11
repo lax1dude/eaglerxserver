@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -287,7 +288,7 @@ public class EaglerConfigLoader {
 				"enable_voice_service_global", false,
 				"Default value is false, if voice chat should be enabled on all servers"
 			);
-			IEaglerConfList enableVoiceChatOnServersConf = skinService.getList("enable_voice_service_servers");
+			IEaglerConfList enableVoiceChatOnServersConf = voiceService.getList("enable_voice_service_servers");
 			if(!enableVoiceChatOnServersConf.exists()) {
 				enableVoiceChatOnServersConf.setComment("If enable_voice_service_global is false, "
 						+ "sets the list of servers (by name) where voice chat should be enabled");
@@ -369,14 +370,28 @@ public class EaglerConfigLoader {
 			});
 		}else {
 			listeners = root.loadConfig("listeners", (config) -> {
-				if(!config.exists()) {
-					config.getSection("listener0");
+				IEaglerConfList list = config.getList("listener_list");
+				if(!list.exists()) {
+					list.setComment("Defines the list of listeners to enable Eaglercraft support on, "
+							+ "each listener's address must be the address of a listener you've also configured in the base "
+							+ "BungeeCord/Velocity server.");
+					list.appendSection().getString("listener_name", "listener0");
 				}
-				ImmutableMap.Builder<String, ConfigDataListener> builder = ImmutableMap.builder();
-				for(String key : config.getKeys()) {
-					builder.put(key, loadListener(config.getSection(key), key, platform));
+				Map<String, ConfigDataListener> map = new HashMap<>();
+				for(int i = 0; i < list.getLength(); ++i) {
+					IEaglerConfSection section = list.getIfSection(i);
+					if(section == null) {
+						continue;
+					}
+					String key = section.getString("listener_name", "listener" + i);
+					int j = 0;
+					while(map.containsKey(key)) {
+						key = "_" + ++j;
+					}
+					map.put(key, loadListener(section, key, platform));
+					
 				}
-				return builder.build();
+				return ImmutableMap.copyOf(map);
 			});
 		}
 		ConfigDataSupervisor supervisor = root.loadConfig("supervisor", (config) -> {
@@ -440,20 +455,20 @@ public class EaglerConfigLoader {
 				builder.add(new ConfigDataICEServer(str));
 			}
 			IEaglerConfList passwdList = config.getList("ice_servers_passwd");
-			if(!noPasswdList.exists()) {
-				noPasswdList.setComment("Defines a set of STUN/TURN server URIs to use that do require a "
+			if(!passwdList.exists()) {
+				passwdList.setComment("Defines a set of STUN/TURN server URIs to use that do require a "
 						+ "username and password, along with the username and password to use with each one. "
 						+ "Note that these 'openrelay' TURN servers are no longer working as of 2024, and are "
 						+ "only provided as an example");
-				IEaglerConfSection section = noPasswdList.appendSection();
+				IEaglerConfSection section = passwdList.appendSection();
 				section.getString("url", "turn:openrelay.metered.ca:80");
 				section.getString("username", "openrelayproject");
 				section.getString("password", "openrelayproject");
-				section = noPasswdList.appendSection();
+				section = passwdList.appendSection();
 				section.getString("url", "turn:openrelay.metered.ca:443");
 				section.getString("username", "openrelayproject");
 				section.getString("password", "openrelayproject");
-				section = noPasswdList.appendSection();
+				section = passwdList.appendSection();
 				section.getString("url", "turn:openrelay.metered.ca:443?transport=tcp");
 				section.getString("username", "openrelayproject");
 				section.getString("password", "openrelayproject");

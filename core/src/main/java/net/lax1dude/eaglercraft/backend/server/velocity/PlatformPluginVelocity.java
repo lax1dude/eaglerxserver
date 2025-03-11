@@ -69,6 +69,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformScheduler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformZlib;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
+import net.lax1dude.eaglercraft.backend.server.adapter.SLF4JLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
@@ -154,6 +155,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		proxyLogger = loggerIn;
 		dataDir = dataDirIn;
 		dataDirFile = dataDirIn.toFile();
+		loggerImpl = new SLF4JLogger(loggerIn);
 		eventDispatcherImpl = new VelocityEventDispatchAdapter(proxy.getEventManager());
     	schedulerImpl = new VelocityScheduler(this, proxyIn.getScheduler());
     	componentHelperImpl = new VelocityComponentHelper();
