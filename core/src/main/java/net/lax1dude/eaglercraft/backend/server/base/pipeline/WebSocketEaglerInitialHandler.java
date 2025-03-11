@@ -131,12 +131,14 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 
 	public void terminateErrorCode(ChannelHandlerContext ctx, int handshakeProtocol, int errorCode, String errorMessage) {
 		terminated = true;
-		sendErrorCode(ctx, handshakeProtocol, errorCode, errorMessage).addListener(ChannelFutureListener.CLOSE);
+		ctx.channel().eventLoop().execute(() -> sendErrorCode(ctx, handshakeProtocol, errorCode, errorMessage)
+				.addListener(ChannelFutureListener.CLOSE));
 	}
 
 	public void terminateErrorCode(ChannelHandlerContext ctx, int handshakeProtocol, int errorCode, Object errorComponent) {
 		terminated = true;
-		sendErrorCode(ctx, handshakeProtocol, errorCode, errorComponent).addListener(ChannelFutureListener.CLOSE);
+		ctx.channel().eventLoop().execute(() -> sendErrorCode(ctx, handshakeProtocol, errorCode, errorComponent)
+				.addListener(ChannelFutureListener.CLOSE));
 	}
 
 	@Override

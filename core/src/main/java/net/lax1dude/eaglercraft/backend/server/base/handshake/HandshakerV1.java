@@ -11,11 +11,10 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRe
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
-import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler.IHandshaker;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
-public class HandshakerV1 extends HandshakerInstance implements IHandshaker {
+public class HandshakerV1 extends HandshakerInstance {
 
 	public HandshakerV1(EaglerXServer<?> server, NettyPipelineData pipelineData,
 			WebSocketEaglerInitialHandler inboundHandler) {

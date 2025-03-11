@@ -23,16 +23,19 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 
 	public static final HTTPInitialInboundHandler INSTANCE = new HTTPInitialInboundHandler();
 
+	private boolean stalled = false;
+
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msgRaw) throws Exception {
 		try {
-			if(msgRaw instanceof FullHttpRequest) {
+			if(!stalled && (msgRaw instanceof FullHttpRequest)) {
 				FullHttpRequest msg = (FullHttpRequest) msgRaw;
 				HttpHeaders headers = msg.headers();
 				String connection = headers.get(HttpHeaderNames.CONNECTION);
 				if(connection != null && "upgrade".equalsIgnoreCase(connection)) {
 					String upgrade = headers.get(HttpHeaderNames.UPGRADE);
 					if(upgrade != null && "websocket".equalsIgnoreCase(upgrade)) {
+						stalled = true;
 						handleWebSocket(ctx, msg);
 						return;
 					}
@@ -68,22 +71,24 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 		IEventDispatchAdapter<?, ?> dispatch = pipelineData.server.eventDispatcher();
 		msg.retain();
 		dispatch.dispatchWebSocketOpenEvent(pipelineData, (evt, err) -> {
-			try {
-				if(err == null) {
-					if(ctx.channel().isActive()) {
-						if(!evt.isCancelled()) {
-							handshakeWebSocket(ctx, pipelineData, msg, settings.getHTTPWebSocketMaxFrameLength());
-						}else {
-							ctx.close();
+			ctx.channel().eventLoop().execute(() -> {
+				try {
+					if(err == null) {
+						if(ctx.channel().isActive()) {
+							if(!evt.isCancelled()) {
+								handshakeWebSocket(ctx, pipelineData, msg, settings.getHTTPWebSocketMaxFrameLength());
+							}else {
+								ctx.close();
+							}
 						}
+					}else {
+						pipelineData.connectionLogger.error("Exception thrown while handling web socket open event", err);
+						ctx.close();
 					}
-				}else {
-					pipelineData.connectionLogger.error("Exception thrown while handling web socket open event", err);
-					ctx.close();
+				}finally {
+					msg.release();
 				}
-			}finally {
-				msg.release();
-			}
+			});
 		});
 	}
 

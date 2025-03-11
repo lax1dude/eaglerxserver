@@ -14,9 +14,10 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthPasswor
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler.IHandshaker;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
-public abstract class HandshakerInstance {
+public abstract class HandshakerInstance implements IHandshaker {
 
 	private static final Pattern USERNAME_REGEX = Pattern.compile("^[A-Za-z0-9_]{3,16}$");
 	private static final byte[] OFFLINE_PLAYER_BYTES = "OfflinePlayer:".getBytes(StandardCharsets.US_ASCII);
@@ -118,7 +119,8 @@ public abstract class HandshakerInstance {
 							}
 							if(!pipelineData.handshakeAuthEnabled && (getVersion() < 4 || !pipelineData.cookieAuthEventEnabled)) {
 								inboundHandler.terminated = true;
-								sendPacketAuthRequired(ctx, pipelineData.authType, evt.getAuthMessage()).addListener(ChannelFutureListener.CLOSE);
+								ctx.channel().eventLoop().execute(() -> sendPacketAuthRequired(ctx, pipelineData.authType,
+										evt.getAuthMessage()).addListener(ChannelFutureListener.CLOSE));
 								state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 								break;
 							}
@@ -234,7 +236,7 @@ public abstract class HandshakerInstance {
 	}
 
 	private void continueLoginNoAuth(ChannelHandlerContext ctx) {
-		sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid);
+		ctx.channel().eventLoop().execute(() -> sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid));
 		state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
 	}
 
@@ -250,17 +252,20 @@ public abstract class HandshakerInstance {
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 				pipelineData.connectionLogger.error("Auth password event was not handled");
 			}else if(response == IEaglercraftAuthPasswordEvent.EnumAuthResponse.ALLOW) {
-				pipelineData.username = evt.getProfileUsername();
-				pipelineData.uuid = evt.getProfileUUID();
-				pipelineData.requestedServer = evt.getAuthRequestedServer();
-				sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid);
+				ctx.channel().eventLoop().execute(() -> {
+					pipelineData.username = evt.getProfileUsername();
+					pipelineData.uuid = evt.getProfileUUID();
+					pipelineData.requestedServer = evt.getAuthRequestedServer();
+					sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid);
+				});
 				state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
 			}else {
 				Object obj = evt.getKickMessage();
 				if(obj == null) {
 					obj = server.componentBuilder().buildTranslationComponent().translation("disconnect.closed").end();
 				}
-				inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE, obj);
+				final Object obj2 = obj;
+				ctx.channel().eventLoop().execute(() -> sendPacketDenyLogin(ctx, obj2));
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 			}
 		});
@@ -280,10 +285,12 @@ public abstract class HandshakerInstance {
 			}
 			switch(response) {
 			case ALLOW:
-				pipelineData.username = evt.getProfileUsername();
-				pipelineData.uuid = evt.getProfileUUID();
-				pipelineData.requestedServer = evt.getAuthRequestedServer();
-				sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid);
+				ctx.channel().eventLoop().execute(() -> {
+					pipelineData.username = evt.getProfileUsername();
+					pipelineData.uuid = evt.getProfileUUID();
+					pipelineData.requestedServer = evt.getAuthRequestedServer();
+					sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid);
+				});
 				state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
 				break;
 			case DENY:
@@ -291,12 +298,14 @@ public abstract class HandshakerInstance {
 				if(obj == null) {
 					obj = server.componentBuilder().buildTranslationComponent().translation("disconnect.closed").end();
 				}
-				inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE, obj);
+				final Object obj2 = obj;
+				ctx.channel().eventLoop().execute(() -> sendPacketDenyLogin(ctx, obj2));
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 				break;
 			case REQUIRE_AUTH:
 				inboundHandler.terminated = true;
-				sendPacketAuthRequired(ctx, pipelineData.authType, evt.getAuthMessage()).addListener(ChannelFutureListener.CLOSE);
+				ctx.channel().eventLoop().execute(() -> sendPacketAuthRequired(ctx, pipelineData.authType, evt.getAuthMessage())
+						.addListener(ChannelFutureListener.CLOSE));
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 				break;
 			}

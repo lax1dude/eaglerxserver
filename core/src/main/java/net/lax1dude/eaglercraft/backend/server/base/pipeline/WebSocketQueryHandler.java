@@ -339,7 +339,8 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 	public void send(String string) {
 		if(!dead) {
 			waitingPromiseCount.incrementAndGet();
-			pipelineData.channel.writeAndFlush(new TextWebSocketFrame(string)).addListener(writeListener);
+			pipelineData.channel.eventLoop().execute(() -> pipelineData.channel
+					.writeAndFlush(new TextWebSocketFrame(string)).addListener(writeListener));
 		}
 	}
 
@@ -347,21 +348,28 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 	public void send(byte[] bytes) {
 		if(!dead) {
 			waitingPromiseCount.incrementAndGet();
-			pipelineData.channel.writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(bytes))).addListener(writeListener);
+			pipelineData.channel.eventLoop().execute(() -> pipelineData.channel
+					.writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(bytes))).addListener(writeListener));
 		}
 	}
 
 	@Override
 	public void sendResponse(String type, String str) {
 		if(!dead) {
-			send(server.getQueryServer().createStringResponse(type, str).toString());
+			waitingPromiseCount.incrementAndGet();
+			pipelineData.channel.eventLoop().execute(() -> pipelineData.channel
+					.writeAndFlush(new TextWebSocketFrame(server.getQueryServer().createStringResponse(type, str).toString()))
+					.addListener(writeListener));
 		}
 	}
 
 	@Override
 	public void sendResponse(String type, JsonObject jsonObject) {
 		if(!dead) {
-			send(server.getQueryServer().createJsonObjectResponse(type, jsonObject).toString());
+			waitingPromiseCount.incrementAndGet();
+			pipelineData.channel.eventLoop().execute(() -> pipelineData.channel
+					.writeAndFlush(new TextWebSocketFrame(server.getQueryServer().createJsonObjectResponse(type, jsonObject).toString()))
+					.addListener(writeListener));
 		}
 	}
 
