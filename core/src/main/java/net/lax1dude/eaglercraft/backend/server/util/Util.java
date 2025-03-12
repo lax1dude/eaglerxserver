@@ -106,7 +106,7 @@ public class Util {
 					builderB = new StringBuilder();
 				}
 			}
-			if(!builderA.isEmpty()) {
+			if(builderA.length() > 0) {
 				System.out.println(builderA + "  " + builderB);
 			}
 		}finally {
