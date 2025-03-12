@@ -29,8 +29,4 @@ public class MinecraftConnection extends ChannelInboundHandlerAdapter {
 		
 	}
 
-	public void setCompressionThreshold(int threshold) {
-
-	}
-
 }

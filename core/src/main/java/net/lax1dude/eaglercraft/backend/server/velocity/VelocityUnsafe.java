@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.velocity;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -20,7 +21,6 @@ import com.velocitypowered.proxy.protocol.packet.PluginMessagePacket;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
@@ -28,6 +28,7 @@ import io.netty.util.AttributeKey;
 import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.base.ListenerInitList;
+import net.lax1dude.eaglercraft.backend.server.util.ClassProxy;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 
 public class VelocityUnsafe {
@@ -35,6 +36,7 @@ public class VelocityUnsafe {
 	private static final Class<?> class_LoginInboundConnection;
 	private static final Method method_LoginInboundConnection_delegatedConnection;
 	private static final Class<?> class_MinecraftConnection;
+	private static final Constructor<?> ctor_MinecraftConnection;
 	private static final Method method_MinecraftConnection_getState;
 	private static final Field field_MinecraftConnection_activeSessionHandler;
 	private static final Class<?> class_AuthSessionHandler;
@@ -64,10 +66,12 @@ public class VelocityUnsafe {
 
 	static {
 		try {
+			class_VelocityServer = Class.forName("com.velocitypowered.proxy.VelocityServer");
 			class_LoginInboundConnection = Class.forName("com.velocitypowered.proxy.connection.client.LoginInboundConnection");
 			method_LoginInboundConnection_delegatedConnection = class_LoginInboundConnection.getDeclaredMethod("delegatedConnection");
 			method_LoginInboundConnection_delegatedConnection.setAccessible(true);
 			class_MinecraftConnection = Class.forName("com.velocitypowered.proxy.connection.MinecraftConnection");
+			ctor_MinecraftConnection = class_MinecraftConnection.getConstructor(Channel.class, class_VelocityServer);
 			method_MinecraftConnection_getState = class_MinecraftConnection.getMethod("getState");
 			field_MinecraftConnection_activeSessionHandler = class_MinecraftConnection.getDeclaredField("activeSessionHandler");
 			field_MinecraftConnection_activeSessionHandler.setAccessible(true);
@@ -77,7 +81,6 @@ public class VelocityUnsafe {
 			class_DisconnectPacket = Class.forName("com.velocitypowered.proxy.protocol.packet.DisconnectPacket");
 			class_StateRegistry = Class.forName("com.velocitypowered.proxy.protocol.StateRegistry");
 			method_DisconnectPacket_create = class_DisconnectPacket.getMethod("create", Component.class, ProtocolVersion.class, class_StateRegistry);
-			class_VelocityServer = Class.forName("com.velocitypowered.proxy.VelocityServer");
 			field_VelocityServer_cm = class_VelocityServer.getDeclaredField("cm");
 			field_VelocityServer_cm.setAccessible(true);
 			class_ConnectionManager = Class.forName("com.velocitypowered.proxy.network.ConnectionManager");
@@ -246,22 +249,23 @@ public class VelocityUnsafe {
 		}
 	}
 
-	public static void disableCompression(ChannelHandler handler) {
-		if(handler instanceof MinecraftConnection) {
-			((MinecraftConnection) handler).setCompressionThreshold(-1);
-		}else {
-			throw new RuntimeException("Unknown MinecraftConnection type: " + handler.getClass().getName());
-		}
-	}
-
-	public static void injectCompressionDisable(Player p) {
+	public static void injectCompressionDisable(ProxyServer server, Player player) {
 		// Note: This does not affect the MinecraftConnection in the pipeline or player object
 		// therefore performance is not a concern
 		try {
-			Object o = field_MinecraftConnection_activeSessionHandler.get(getMinecraftConnection(p));
+			Object o = field_MinecraftConnection_activeSessionHandler.get(getMinecraftConnection(player));
 			if(class_AuthSessionHandler.isAssignableFrom(o.getClass())) {
-				Object parent = field_AuthSessionHandler_mcConnection.get(o);
-				//TODO
+				final MinecraftConnection parent = (MinecraftConnection) field_AuthSessionHandler_mcConnection.get(o);
+				field_AuthSessionHandler_mcConnection.set(o, ClassProxy.createProxy(VelocityUnsafe.class.getClassLoader(),
+						(Class<MinecraftConnection>) class_MinecraftConnection,
+						(Constructor<MinecraftConnection>) ctor_MinecraftConnection, new Object[] { parent, player },
+						(obj, meth, args) -> {
+					if ("setCompressionThreshold".equals(meth.getName())) {
+						// FUCK YOU!
+						return null;
+					}
+					return meth.invoke(parent, args);
+				}));
 			}else {
 				throw new RuntimeException("Unexpected session handler type: " + o.getClass().getName());
 			}
