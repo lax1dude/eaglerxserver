@@ -188,14 +188,12 @@ public class EaglerConfigLoader {
 				+ "send to all EaglercraftX clients on the server that attempt to render them."
 			);
 			IEaglerConfList validSkinDownloadURLsConf = skinService.getList("valid_skin_download_urls");
-			if(!validSkinDownloadURLsConf.exists()) {
-				validSkinDownloadURLsConf.setComment("List of strings, default includes only "
-						+ "'textures.minecraft.net', sets the allowed domains to download "
-						+ "custom skulls and skins from that are requested by EaglercraftX "
-						+ "clients, only relevant if download_vanilla_skins_to_clients is enabled.");
-			}
 			Set<String> validSkinDownloadURLs = ImmutableSet
-					.copyOf(validSkinDownloadURLsConf.getAsStringList(() -> Arrays.asList("textures.minecraft.net")));
+					.copyOf(validSkinDownloadURLsConf.getAsStringList(() -> Arrays.asList("textures.minecraft.net"),
+							"List of strings, default includes only 'textures.minecraft.net', "
+							+ "sets the allowed domains to download custom skulls and skins from "
+							+ "that are requested by EaglercraftX clients, only relevant if "
+							+ "download_vanilla_skins_to_clients is enabled."));
 			int skinDownloadRatelimit = skinService.getInteger(
 				"skin_download_ratelimit_player", 250,
 				"Default value is 250, limit of how many texture downloads a single player "
@@ -375,7 +373,7 @@ public class EaglerConfigLoader {
 					list.setComment("Defines the list of listeners to enable Eaglercraft support on, "
 							+ "each listener's address must be the address of a listener you've also configured in the base "
 							+ "BungeeCord/Velocity server.");
-					list.appendSection().getString("listener_name", "listener0");
+					list.appendSection().getString("listener_name", "listener0", "The unique name to use when identifying this listener");
 				}
 				Map<String, ConfigDataListener> map = new HashMap<>();
 				for(int i = 0; i < list.getLength(); ++i) {
@@ -383,7 +381,7 @@ public class EaglerConfigLoader {
 					if(section == null) {
 						continue;
 					}
-					String key = section.getString("listener_name", "listener" + i);
+					String key = section.getString("listener_name", "listener" + i, "The unique name to use when identifying this listener");
 					int j = 0;
 					while(map.containsKey(key)) {
 						key = "_" + ++j;
@@ -842,15 +840,13 @@ public class EaglerConfigLoader {
 			"lockout_duration", lockoutDuration,
 			"Sets the total number of seconds a \"lock out\" should last on this limiter."
 		);
-		IEaglerConfList exceptionsConf = limitCfg.getList("server_motd");
-		if(!exceptionsConf.exists()) {
-			exceptionsConf.setComment("List of up to 2 strings, default value is '&6An "
-					+ "EaglercraftX server', sets the contents of the listener's MOTD, which is "
-					+ "the text displayed along with the server_icon when players add this "
-					+ "server's listener address to their client's Multiplayer menu server list.");
-		}
+		IEaglerConfList exceptionsConf = limitCfg.getList("exceptions_list");
 		List<String> exceptionsConfList = ImmutableList
-				.copyOf(exceptionsConf.getAsStringList(() -> Arrays.asList("127.*", "0:0:0:0:0:0:0:1")));
+				.copyOf(exceptionsConf.getAsStringList(() -> Arrays.asList("127.0.0.0/8", "::1/128"), 
+						"List of IPv4 and IPv6 addresses to disable ratelimiting for, use CIDR notation to specify "
+						+ "entire subnets, default value includes localhost to ensure ratelimiting is disabled by "
+						+ "default when EaglerXServer is used with nginx and caddy. If forward_ip is true, the "
+						+ "ratelimits will be applied based on the forwarded address instead of the raw socket address."));
 		return new ConfigDataListener.ConfigRateLimit(enableConf, periodConf, limitConf, limitLockoutConf,
 				lockoutDurationConf, exceptionsConfList);
 	}

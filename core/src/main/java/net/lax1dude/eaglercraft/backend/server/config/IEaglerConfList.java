@@ -68,6 +68,14 @@ public interface IEaglerConfList {
 		return getAsIntegerList();
 	}
 
+	default List<Integer> getAsIntegerList(Supplier<List<Integer>> defaultContents, String comment) {
+		if(!initialized()) {
+			setComment(comment);
+			appendIntegers(defaultContents.get());
+		}
+		return getAsIntegerList();
+	}
+
 	default List<String> getAsStringList() {
 		int len = getLength();
 		List<String> ret = new ArrayList<>(len);
@@ -82,6 +90,14 @@ public interface IEaglerConfList {
 
 	default List<String> getAsStringList(Supplier<List<String>> defaultContents) {
 		if(!initialized()) {
+			appendStrings(defaultContents.get());
+		}
+		return getAsStringList();
+	}
+
+	default List<String> getAsStringList(Supplier<List<String>> defaultContents, String comment) {
+		if(!initialized()) {
+			setComment(comment);
 			appendStrings(defaultContents.get());
 		}
 		return getAsStringList();
