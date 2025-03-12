@@ -42,12 +42,14 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		String str = "Outdated Client";
 		int len = str.length();
 		ByteBuf buf = Unpooled.wrappedBuffer(LEGACY_KICK = new byte[3 + len * 2]);
+		buf.writerIndex(0);
 		buf.writeByte(0xFF);
 		buf.writeShort(len);
 		for(int i = 0; i < len; ++i) {
 			buf.writeChar(str.charAt(i));
 		}
 		buf = Unpooled.wrappedBuffer(LEGACY_REDIRECT = new byte[13]);
+		buf.writerIndex(0);
 		buf.writeByte(0x01);
 		buf.writeInt(0);
 		buf.writeShort(0);

@@ -14,6 +14,7 @@ class EaglerXServerNettyPipelineInitializer<PlayerObject> implements IEaglerXSer
 	@Override
 	public void initialize(IPlatformNettyPipelineInitializer<NettyPipelineData> initializer) {
 		EaglerListener eagListener = (EaglerListener) initializer.getListener();
+		System.out.println("New channel: " + initializer.getChannel());
 		NettyPipelineData attachment = new NettyPipelineData(initializer.getChannel(), server, eagListener,
 				server.getEaglerAttribManager().createEaglerHolder());
 		initializer.setAttachment(attachment);

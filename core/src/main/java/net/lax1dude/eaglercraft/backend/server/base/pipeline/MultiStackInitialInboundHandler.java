@@ -10,6 +10,7 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerListener;
 import net.lax1dude.eaglercraft.backend.server.base.ISSLContextProvider;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
+import net.lax1dude.eaglercraft.backend.server.util.Util;
 
 public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 
@@ -197,17 +198,20 @@ public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 	}
 
 	private int isValidHTTPRequestLinePart2(ByteBuf buffer) {
+		int maxLineLen = pipelineData.server.getConfig().getSettings().getHTTPMaxInitialLineLength();
 		
-		// this is a ring buffer
 		char[] requestLineEnd = new char[9];
 		
 		int i = 0;
 		for(;;) {
+			if(i > maxLineLen) {
+				return 3;
+			}
 			if(!buffer.isReadable()) {
 				return 0;
 			}
 			char c = (char) buffer.readUnsignedByte();
-			if(c == '\n') {
+			if(c == '\r' || c == '\n') {
 				break;
 			}
 			requestLineEnd[i++ % 9] = c;

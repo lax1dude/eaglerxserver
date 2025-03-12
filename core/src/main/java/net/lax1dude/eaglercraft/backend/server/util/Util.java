@@ -5,6 +5,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
+import io.netty.buffer.ByteBuf;
+
 public class Util {
 
 	public static final byte[] ZERO_BYTES = new byte[0];
@@ -73,6 +75,43 @@ public class Util {
 		builder.append(str, 19, 23);
 		builder.append(str, 24, 36);
 		return builder;
+	}
+
+	public static void dumpByteBuf(ByteBuf buf, int maxLen) {
+		buf.markReaderIndex();
+		try {
+			StringBuilder builderA = new StringBuilder();
+			StringBuilder builderB = new StringBuilder();
+			int i = 0;
+			while(i < maxLen && buf.isReadable()) {
+				int val = buf.readUnsignedByte();
+				builderA.append(hex.charAt(val >>> 4));
+				builderA.append(hex.charAt(val & 0xF));
+				builderA.append(' ');
+				if(val == 0) {
+					builderB.append("\\0 ");
+				}else if(val == '\n') {
+					builderB.append("\\n ");
+				}else if(val == '\r') {
+					builderB.append("\\r ");
+				}else if(val == '\t') {
+					builderB.append("\\t ");
+				}else {
+					builderB.append((char)val);
+					builderB.append(' ');
+				}
+				if(++i % 8 == 0) {
+					System.out.println(builderA + "  " + builderB);
+					builderA = new StringBuilder();
+					builderB = new StringBuilder();
+				}
+			}
+			if(!builderA.isEmpty()) {
+				System.out.println(builderA + "  " + builderB);
+			}
+		}finally {
+			buf.resetReaderIndex();
+		}
 	}
 
 }

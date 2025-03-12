@@ -52,6 +52,7 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	public final Channel channel;
 	public final EaglerXServer<?> server;
 	public final EaglerAttributeManager.EaglerAttributeHolder attributeHolder;
+	public boolean initStall;
 
 	public EaglerListener listenerInfo;
 	public String eaglerBrandString;

@@ -23,24 +23,23 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 
 	public static final HTTPInitialInboundHandler INSTANCE = new HTTPInitialInboundHandler();
 
-	private boolean stalled = false;
-
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msgRaw) throws Exception {
 		try {
-			if(!stalled && (msgRaw instanceof FullHttpRequest)) {
+			NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
+			if(!pipelineData.initStall && (msgRaw instanceof FullHttpRequest)) {
 				FullHttpRequest msg = (FullHttpRequest) msgRaw;
 				HttpHeaders headers = msg.headers();
 				String connection = headers.get(HttpHeaderNames.CONNECTION);
 				if(connection != null && "upgrade".equalsIgnoreCase(connection)) {
 					String upgrade = headers.get(HttpHeaderNames.UPGRADE);
 					if(upgrade != null && "websocket".equalsIgnoreCase(upgrade)) {
-						stalled = true;
-						handleWebSocket(ctx, msg);
+						pipelineData.initStall = true;
+						handleWebSocket(ctx, pipelineData, msg);
 						return;
 					}
 				}
-				handleHTTP(ctx, msg);
+				handleHTTP(ctx, pipelineData, msg);
 			}else {
 				ctx.close();
 			}
@@ -49,8 +48,7 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 		}
 	}
 
-	private void handleWebSocket(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
-		NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
+	private void handleWebSocket(ChannelHandlerContext ctx, NettyPipelineData pipelineData, FullHttpRequest msg) throws Exception {
 		HttpHeaders headers = msg.headers();
 		pipelineData.headerHost = headers.get(HttpHeaderNames.HOST);
 		pipelineData.headerOrigin = headers.get(HttpHeaderNames.ORIGIN);
@@ -111,8 +109,7 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 		}
 	}
 
-	private void handleHTTP(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
-		NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
+	private void handleHTTP(ChannelHandlerContext ctx, NettyPipelineData pipelineData, FullHttpRequest msg) throws Exception {
 		ChannelPipeline pipeline = ctx.pipeline();
 		pipelineData.server.getPipelineTransformer().removeVanillaHandlers(pipeline);
 		pipeline.addAfter(PipelineTransformer.HANDLER_HTTP_INITIAL, PipelineTransformer.HANDLER_HTTP,

@@ -26,7 +26,7 @@ abstract class DefaultHandler implements IRequestHandler {
 		}
 	}
 
-	void provision(WebServer webServer) {
+	void allocate(WebServer webServer) {
 		release();
 		response = webServer.prepareResponse(getContents(server), StandardCharsets.UTF_8);
 	}

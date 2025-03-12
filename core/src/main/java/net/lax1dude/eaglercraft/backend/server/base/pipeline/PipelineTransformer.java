@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import io.netty.channel.Channel;
@@ -100,7 +101,7 @@ public class PipelineTransformer {
 		}else {
 			initializeHTTPHandler(pipelineData, null, pipeline, first);
 		}
-		channel.pipeline().addLast(HANDLER_OUTBOUND_THROW, new OutboundPacketThrowHandler());
+		channel.pipeline().addLast(HANDLER_OUTBOUND_THROW, OutboundPacketThrowHandler.INSTANCE);
 	}
 
 	public void injectDualStack(List<IPipelineComponent> components, Channel channel, NettyPipelineData pipelineData) {
@@ -119,6 +120,7 @@ public class PipelineTransformer {
 			return;
 		}
 		channel.pipeline().addBefore(first, HANDLER_MULTI_STACK_INITIAL, new MultiStackInitialInboundHandler(this, pipelineData, toRemove));
+		channel.pipeline().addLast(HANDLER_OUTBOUND_THROW, OutboundPacketThrowHandler.INSTANCE);
 	}
 
 	protected void initializeHTTPHandler(NettyPipelineData pipelineData, ISSLContextProvider context, ChannelPipeline pipeline,
@@ -170,7 +172,10 @@ public class PipelineTransformer {
 					nm = keyItr.next();
 					ChannelHandler handler = pipeline.get(nm);
 					if (!(handler instanceof ReadTimeoutHandler)) {
-						pipeline.remove(nm);
+						try {
+							pipeline.remove(nm);
+						}catch(NoSuchElementException ex) {
+						}
 					}
 				}
 			}

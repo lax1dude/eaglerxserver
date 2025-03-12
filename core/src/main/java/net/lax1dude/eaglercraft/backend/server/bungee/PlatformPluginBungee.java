@@ -250,46 +250,39 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			
 			List<IPipelineComponent> pipelineList = new ArrayList<>();
 			
-			eag: for(;;) {
-				ChannelPipeline pipeline = channel.pipeline();
-				for(String str : pipeline.names()) {
-					ChannelHandler handler = pipeline.get(str);
-					if(handler != null) {
-						pipelineList.add(new IPipelineComponent() {
+			ChannelPipeline pipeline = channel.pipeline();
+			for(String str : pipeline.names()) {
+				ChannelHandler handler = pipeline.get(str);
+				if(handler != null) {
+					pipelineList.add(new IPipelineComponent() {
 
-							private EnumPipelineComponent type = null;
+						private EnumPipelineComponent type = null;
 
-							@Override
-							public EnumPipelineComponent getIdentifiedType() {
-								if(type == null) {
-									type = PIPELINE_COMPONENTS_MAP.getOrDefault(str, EnumPipelineComponent.UNIDENTIFIED);
-									if (type == EnumPipelineComponent.UNIDENTIFIED
-											&& "io.netty.handler.codec.haproxy.HAProxyMessageDecoder"
-													.equals(handler.getClass().getName())) {
-										type = EnumPipelineComponent.HAPROXY_HANDLER;
-									}
+						@Override
+						public EnumPipelineComponent getIdentifiedType() {
+							if(type == null) {
+								type = PIPELINE_COMPONENTS_MAP.getOrDefault(str, EnumPipelineComponent.UNIDENTIFIED);
+								if (type == EnumPipelineComponent.UNIDENTIFIED
+										&& "io.netty.handler.codec.haproxy.HAProxyMessageDecoder"
+												.equals(handler.getClass().getName())) {
+									type = EnumPipelineComponent.HAPROXY_HANDLER;
 								}
-								return type;
 							}
+							return type;
+						}
 
-							@Override
-							public String getName() {
-								return str;
-							}
+						@Override
+						public String getName() {
+							return str;
+						}
 
-							@Override
-							public ChannelHandler getHandle() {
-								return handler;
-							}
+						@Override
+						public ChannelHandler getHandle() {
+							return handler;
+						}
 
-						});
-					}else {
-						// pipeline changed
-						pipelineList.clear();
-						continue eag;
-					}
+					});
 				}
-				break eag;
 			}
 			
 			pipelineInitializer.initialize(new IPlatformNettyPipelineInitializer<Object>() {

@@ -44,7 +44,10 @@ public class HandshakerV1 extends HandshakerInstance {
 				break;
 			}
 		}catch(IndexOutOfBoundsException ex) {
+			ex.printStackTrace();
 			handleInvalidData(ctx);
+		}catch(Throwable ex) {
+			ex.printStackTrace();
 		}
 	}
 

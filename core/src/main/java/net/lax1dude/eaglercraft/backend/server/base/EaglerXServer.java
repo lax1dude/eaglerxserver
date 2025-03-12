@@ -277,7 +277,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private void enableHandler() {
 		logger().info("Enabling " + getServerBrand() + " " + getServerVersion() + "...");
 
-		webServer.provisionBuiltinPages();
+		webServer.refreshBuiltinPages();
 
 		if(certificateManager.hasRefreshableFiles()) {
 			long refreshRate = Math.max(config.getSettings().getTLSCertRefreshRate(), 1) * 1000l;

@@ -28,7 +28,7 @@ public class VanillaInitializer {
 		this.inboundHandler = inboundHandler;
 	}
 
-	public VanillaInitializer init(ChannelHandlerContext ctx) {		
+	public VanillaInitializer init(ChannelHandlerContext ctx) {
 		// C00Handshake
 		ByteBuf buffer = ctx.alloc().buffer();
 		try {

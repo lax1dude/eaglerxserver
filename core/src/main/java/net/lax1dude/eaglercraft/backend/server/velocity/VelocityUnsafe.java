@@ -32,8 +32,13 @@ import net.lax1dude.eaglercraft.backend.server.util.Util;
 
 public class VelocityUnsafe {
 
+	private static final Class<?> class_LoginInboundConnection;
+	private static final Method method_LoginInboundConnection_delegatedConnection;
 	private static final Class<?> class_MinecraftConnection;
 	private static final Method method_MinecraftConnection_getState;
+	private static final Field field_MinecraftConnection_activeSessionHandler;
+	private static final Class<?> class_AuthSessionHandler;
+	private static final Field field_AuthSessionHandler_mcConnection;
 	private static final Class<?> class_DisconnectPacket;
 	private static final Class<?> class_StateRegistry;
 	private static final Method method_DisconnectPacket_create;
@@ -59,8 +64,16 @@ public class VelocityUnsafe {
 
 	static {
 		try {
+			class_LoginInboundConnection = Class.forName("com.velocitypowered.proxy.connection.client.LoginInboundConnection");
+			method_LoginInboundConnection_delegatedConnection = class_LoginInboundConnection.getDeclaredMethod("delegatedConnection");
+			method_LoginInboundConnection_delegatedConnection.setAccessible(true);
 			class_MinecraftConnection = Class.forName("com.velocitypowered.proxy.connection.MinecraftConnection");
 			method_MinecraftConnection_getState = class_MinecraftConnection.getMethod("getState");
+			field_MinecraftConnection_activeSessionHandler = class_MinecraftConnection.getDeclaredField("activeSessionHandler");
+			field_MinecraftConnection_activeSessionHandler.setAccessible(true);
+			class_AuthSessionHandler = Class.forName("com.velocitypowered.proxy.connection.client.AuthSessionHandler");
+			field_AuthSessionHandler_mcConnection = class_AuthSessionHandler.getDeclaredField("mcConnection");
+			field_AuthSessionHandler_mcConnection.setAccessible(true);
 			class_DisconnectPacket = Class.forName("com.velocitypowered.proxy.protocol.packet.DisconnectPacket");
 			class_StateRegistry = Class.forName("com.velocitypowered.proxy.protocol.StateRegistry");
 			method_DisconnectPacket_create = class_DisconnectPacket.getMethod("create", Component.class, ProtocolVersion.class, class_StateRegistry);
@@ -99,6 +112,12 @@ public class VelocityUnsafe {
 	private static MinecraftConnection getMinecraftConnection(InboundConnection connection) {
 		if(connection instanceof VelocityInboundConnection) {
 			return ((VelocityInboundConnection) connection).getConnection();
+		}else if(class_LoginInboundConnection.isAssignableFrom(connection.getClass())) {
+			try {
+				return (MinecraftConnection) method_LoginInboundConnection_delegatedConnection.invoke(connection);
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
 		}else {
 			throw new RuntimeException("Unknown InboundConnection type: " + connection.getClass().getName());
 		}
@@ -139,11 +158,7 @@ public class VelocityUnsafe {
 	}
 
 	public static Channel getInboundChannel(InboundConnection connection) {
-		if(connection instanceof VelocityInboundConnection) {
-			return ((VelocityInboundConnection) connection).getConnection().getChannel();
-		}else {
-			throw new RuntimeException("Unknown InboundConnection type: " + connection.getClass().getName());
-		}
+		return getMinecraftConnection(connection).getChannel();
 	}
 
 	public static boolean isCompressionEnableEvent(Object event) {
@@ -236,6 +251,22 @@ public class VelocityUnsafe {
 			((MinecraftConnection) handler).setCompressionThreshold(-1);
 		}else {
 			throw new RuntimeException("Unknown MinecraftConnection type: " + handler.getClass().getName());
+		}
+	}
+
+	public static void injectCompressionDisable(Player p) {
+		// Note: This does not affect the MinecraftConnection in the pipeline or player object
+		// therefore performance is not a concern
+		try {
+			Object o = field_MinecraftConnection_activeSessionHandler.get(getMinecraftConnection(p));
+			if(class_AuthSessionHandler.isAssignableFrom(o.getClass())) {
+				Object parent = field_AuthSessionHandler_mcConnection.get(o);
+				//TODO
+			}else {
+				throw new RuntimeException("Unexpected session handler type: " + o.getClass().getName());
+			}
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			throw Util.propagateReflectThrowable(e);
 		}
 	}
 

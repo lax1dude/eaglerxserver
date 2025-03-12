@@ -30,10 +30,10 @@ public class WebServer implements IWebServer {
 		this.handler500 = this.default500 = new Default500(server);
 	}
 
-	public void provisionBuiltinPages() {
-		default404.provision(this);
-		default429.provision(this);
-		default500.provision(this);
+	public void refreshBuiltinPages() {
+		default404.allocate(this);
+		default429.allocate(this);
+		default500.allocate(this);
 	}
 
 	public void releaseBuiltinPages() {

@@ -46,6 +46,37 @@ public class HandshakerV2 extends HandshakerV1 {
 	}
 
 	@Override
+	protected ChannelFuture sendPacketVersionNoAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
+			int selectedMinecraftProtocol, String serverBrand, String serverVersion) {
+		ByteBuf buffer = ctx.alloc().buffer();
+		
+		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
+		buffer.writeShort(selectedEaglerProtocol);
+		buffer.writeShort(selectedMinecraftProtocol);
+		
+		int len = serverBrand.length();
+		if(len > 255) {
+			serverBrand = serverBrand.substring(0, 255);
+			len = 255;
+		}
+		buffer.writeByte(len);
+		buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
+		
+		len = serverVersion.length();
+		if(len > 255) {
+			serverVersion = serverVersion.substring(0, 255);
+			len = 255;
+		}
+		buffer.writeByte(len);
+		buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
+
+		buffer.writeByte(0);
+		buffer.writeShort(0);
+
+		return ctx.writeAndFlush(new BinaryWebSocketFrame(buffer));
+	}
+
+	@Override
 	protected ChannelFuture sendPacketVersionAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
 			int selectedMinecraftProtocol, String serverBrand, String serverVersion,
 			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData) {
@@ -60,7 +91,8 @@ public class HandshakerV2 extends HandshakerV1 {
 		ByteBuf buffer = ctx.alloc().buffer();
 		
 		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
-		buffer.writeByte(1);
+		buffer.writeShort(selectedEaglerProtocol);
+		buffer.writeShort(selectedMinecraftProtocol);
 		
 		int len = serverBrand.length();
 		if(len > 255) {
