@@ -275,12 +275,10 @@ public class EaglerConfigLoader {
 				+ "complaining about hitboxes"
 			);
 			IEaglerConfList enableFNAWSkinsOnServersConf = skinService.getList("enable_fnaw_skin_models_servers");
-			if(!enableFNAWSkinsOnServersConf.exists()) {
-				enableFNAWSkinsOnServersConf.setComment("If enable_fnaw_skin_models_global is false, "
-						+ "sets the list of servers (by name) where the FNAW should be enabled");
-			}
 			Set<String> enableFNAWSkinModelsOnServers = ImmutableSet
-					.copyOf(enableFNAWSkinsOnServersConf.getAsStringList(() -> Collections.emptyList()));
+					.copyOf(enableFNAWSkinsOnServersConf.getAsStringList(() -> Collections.emptyList(),
+				"If enable_fnaw_skin_models_global is false, sets the list of servers (by name) "
+				+ "where the FNAW should be enabled"));
 			IEaglerConfSection voiceService = config.getSection("voice_service");
 			boolean enableVoiceChatGlobal = voiceService.getBoolean(
 				"enable_voice_service_global", false,
@@ -724,16 +722,13 @@ public class EaglerConfigLoader {
 			+ "as this listener's server icon, relative to the working directory."
 		);
 		IEaglerConfList serverMOTDConf = listener.getList("server_motd");
-		if(!serverMOTDConf.exists()) {
-			serverMOTDConf.setComment("List of up to 2 strings, default value is '&6An "
-					+ "EaglercraftX server', sets the contents of the listener's MOTD, which is "
-					+ "the text displayed along with the server_icon when players add this "
-					+ "server's listener address to their client's Multiplayer menu server list.");
-		}
 		List<String> serverMOTD = ImmutableList
 				.copyOf(serverMOTDConf.getAsStringList(() -> Arrays.asList(
 						"&6An EaglercraftX server"
-					)));
+					), "List of up to 2 strings, default value is '&6An EaglercraftX server', "
+					+ "sets the contents of the listener's MOTD, which is the text displayed along "
+					+ "with the server_icon when players add this server's listener address to "
+					+ "their client's Multiplayer menu server list."));
 		boolean allowMOTD = listener.getBoolean(
 			"allow_motd", true,
 			"Default value is true, is this listener should respond to MOTD queries or not"

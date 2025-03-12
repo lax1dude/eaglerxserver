@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -287,11 +288,15 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		if(skinCacheService != null) {
 			ConfigDataSkinService skinConf = config.getSettings().getSkinService();
 			logger().info("Connecting to skin cache database \"" + Util.sanitizeJDBCURIForLogs(skinConf.getSkinCacheDBURI()) + "\"...");
+			int threadCount = skinConf.getSkinCacheThreadCount();
+			if(threadCount <= 0) {
+				threadCount = Runtime.getRuntime().availableProcessors();
+			}
 			SkinCacheDatastore datastore;
 			try {
 				skinCacheJDBCHandle = EaglerDrivers.connectToDatabase(skinConf.getSkinCacheDBURI(),
-						skinConf.getSkinCacheDriverClass(), skinConf.getSkinCacheDriverPath(), null);
-				datastore = new SkinCacheDatastore(skinCacheJDBCHandle, skinConf.getSkinCacheThreadCount(),
+						skinConf.getSkinCacheDriverClass(), skinConf.getSkinCacheDriverPath(), new Properties());
+				datastore = new SkinCacheDatastore(skinCacheJDBCHandle, threadCount,
 						skinConf.getSkinCacheDiskKeepObjectsDays(), skinConf.getSkinCacheDiskMaxObjects(),
 						Math.min(skinConf.getSkinCacheCompressionLevel(), 9), skinConf.isSkinCacheSQLiteCompatible());
 				logger().info("Connected to skin cache database successfully");

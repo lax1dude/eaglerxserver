@@ -139,7 +139,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 			@Override
 			public void setOnServerDisable(Runnable disable) {
-				onServerEnable = disable;
+				onServerDisable = disable;
 			}
 
 			@Override

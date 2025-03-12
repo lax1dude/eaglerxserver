@@ -141,7 +141,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 
 			@Override
 			public void setOnServerDisable(Runnable disable) {
-				onServerEnable = disable;
+				onServerDisable = disable;
 			}
 
 			@Override
