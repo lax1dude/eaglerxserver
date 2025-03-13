@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.base.webserver;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class RouteMap<L, T> {
 
@@ -34,7 +35,7 @@ public class RouteMap<L, T> {
 						return r.find(tokens, dir);
 					}
 				}
-				if(defaultChild != null && tokens.hasNext()) {
+				if(defaultChild != null) {
 					RouteTreeNode<L, T> r = defaultChild.find(tokens, dir);
 					if(r != null) {
 						return r;
@@ -374,7 +375,7 @@ public class RouteMap<L, T> {
 					}
 				}
 			}
-			deleteNode(endpointNode);
+			deleteNode(parent);
 		}
 	}
 
@@ -418,6 +419,32 @@ public class RouteMap<L, T> {
 			result.directory = isDir;
 		}else {
 			result.result = null;
+		}
+	}
+
+	public void dump(Consumer<String> printer) {
+		dumpNode(rootNode, "", printer);
+	}
+
+	private void dumpNode(RouteTreeNode<L, T> node, String indent, Consumer<String> printer) {
+		printer.accept(indent + "endpoint: " + node.endpoint);
+		printer.accept(indent + "endpointDir: " + node.endpointDir);
+		printer.accept(indent + "parent: " + node.parent);
+		printer.accept(indent + "isDefaultChild: " + node.isDefaultChild);
+		printer.accept(indent + "defaultChild:");
+		if(node.defaultChild != null) {
+			dumpNode(node.defaultChild, indent + "  ", printer);
+		}else {
+			printer.accept(indent + "  (none)");
+		}
+		printer.accept(indent + "children:");
+		if(node.children != null) {
+			for(Map.Entry<String, RouteTreeNode<L, T>> etr : node.children.entrySet()) {
+				printer.accept(indent + "  \"" + etr.getKey() + "\":");
+				dumpNode(etr.getValue(), indent + "    ", printer);
+			}
+		}else {
+			printer.accept(indent + "  (none)");
 		}
 	}
 

@@ -26,6 +26,60 @@ public class RouteProcessor extends RouteMap.Result<Object> implements Iterator<
 		}
 	};
 
+	public <L, T> boolean register(CharSequence url, L listener, int method, RouteMap<L, T> routeMap, T value) {
+		int len = url.length();
+		if(len == 0) {
+			return routeMap.register(NOP_ITERATOR, false, listener, method, value);
+		}else if(len == 1 && url.charAt(0) == SEPARATOR) {
+			return routeMap.register(NOP_ITERATOR, true, listener, method, value);
+		}else {
+			try {
+				this.url = url;
+				this.index = 0;
+				this.nextIndex = -2;
+				this.end = len;
+				while(index < len && url.charAt(index) == SEPARATOR) {
+					++index;
+				}
+				boolean dir = false;
+				while(end > 0 && url.charAt(end - 1) == SEPARATOR) {
+					dir = true;
+					--end;
+				}
+				return routeMap.register(this, dir, listener, method, value);
+			}finally {
+				this.url = null;
+			}
+		}
+	}
+
+	public <L, T> boolean remove(CharSequence url, L listener, int method, RouteMap<L, T> routeMap, T value) {
+		int len = url.length();
+		if(len == 0) {
+			return routeMap.remove(NOP_ITERATOR, false, listener, method, value);
+		}else if(len == 1 && url.charAt(0) == SEPARATOR) {
+			return routeMap.remove(NOP_ITERATOR, true, listener, method, value);
+		}else {
+			try {
+				this.url = url;
+				this.index = 0;
+				this.nextIndex = -2;
+				this.end = len;
+				while(index < len && url.charAt(index) == SEPARATOR) {
+					++index;
+				}
+				boolean dir = false;
+				while(end > 0 && url.charAt(end - 1) == SEPARATOR) {
+					dir = true;
+					--end;
+				}
+				return routeMap.remove(this, dir, listener, method, value);
+			}finally {
+				this.url = null;
+			}
+		}
+	}
+
 	public <L, T> RouteMap.Result<T> find(CharSequence url, L listener, int method, RouteMap<L, T> routeMap) {
 		this.result = null;
 		RouteMap.Result<T> ret = (RouteMap.Result<T>) this;
@@ -40,8 +94,11 @@ public class RouteProcessor extends RouteMap.Result<Object> implements Iterator<
 				this.index = 0;
 				this.nextIndex = -2;
 				this.end = len;
+				while(index < len && url.charAt(index) == SEPARATOR) {
+					++index;
+				}
 				boolean dir = false;
-				while(end > 0 && url.charAt(end) == SEPARATOR) {
+				while(end > 0 && url.charAt(end - 1) == SEPARATOR) {
 					dir = true;
 					--end;
 				}
@@ -92,6 +149,7 @@ public class RouteProcessor extends RouteMap.Result<Object> implements Iterator<
 		CharSequence ret = subsequence.set(url, index, nextIndex - index);
 		nextIndex = -2;
 		index = nextIndexEnd + 1;
+		System.out.println(": " + ret);
 		return ret;
 	}
 
