@@ -145,7 +145,7 @@ public class ClassProxy {
 
 	private static Class<?> bindProxy(ClassLoader loader, Class<?> parent, Constructor<?>[] ctors, Method[] methods) throws Exception {
 		String parentName = Type.getInternalName(parent);
-		String randomName = "ClassProxy" + System.nanoTime();
+		String randomName = "EaglerClassProxy" + System.nanoTime();
 		String proxyName = parentName + "/" + randomName;
 		ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 		classWriter.visit(V1_8, ACC_PUBLIC | ACC_SUPER, proxyName, null, parentName, new String[] { Type.getInternalName(IClassProxy.class) });
@@ -202,7 +202,7 @@ public class ClassProxy {
 					methodVisitor.visitInsn(DUP);
 					Parameter p = params[j];
 					visitICONST(methodVisitor, j);
-					methodVisitor.visitVarInsn(ALOAD, 1 + j);
+					loadParam(methodVisitor, 1 + j, p.getType());
 					visitWrap(methodVisitor, p.getType());
 					methodVisitor.visitInsn(AASTORE);
 				}
@@ -252,8 +252,20 @@ public class ClassProxy {
 		case 3:
 			methodVisitor.visitInsn(ICONST_3);
 			break;
+		case 4:
+			methodVisitor.visitInsn(ICONST_4);
+			break;
+		case 5:
+			methodVisitor.visitInsn(ICONST_5);
+			break;
 		default:
-			methodVisitor.visitIntInsn(BIPUSH, i);
+			if(i < -128 || i > 127) {
+				methodVisitor.visitIntInsn(SIPUSH, i);
+			}else if(i == -1) {
+				methodVisitor.visitInsn(ICONST_M1);
+			}else {
+				methodVisitor.visitIntInsn(BIPUSH, i);
+			}
 			break;
 		}
 	}
@@ -302,6 +314,8 @@ public class ClassProxy {
 		}else if(clz == double.class) {
 			methodVisitor.visitTypeInsn(CHECKCAST, "java/lang/Double");
 			methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Double", "doubleValue", "()D", false);
+		}else if(clz != Object.class) {
+			methodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(clz));
 		}
 	}
 
