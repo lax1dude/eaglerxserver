@@ -7,20 +7,26 @@ import io.netty.channel.ChannelHandlerContext;
 
 public class RewindHandshakeClientCodec<PlayerObject> extends RewindChannelHandler.Codec<PlayerObject> {
 
+	protected String username;
+
+	protected RewindHandshakeClientCodec<PlayerObject> begin(RewindHandshakeServerCodec<PlayerObject> clientHandshake) {
+		
+		return this;
+	}
+
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	protected void encode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
-		// TODO Auto-generated method stub
-		
+		throw new IllegalStateException("Received an unexpected packet before the handshake was completed");
 	}
 
-	protected void initBackendConnection() {
-		handler().setCodec(new RewindHandshakeServerCodec<PlayerObject>().begin(this));
+	protected void enterPlayState(ChannelHandlerContext ctx) {
+		handler().setEncoder(new RewindPacketEncoder<>());
+		handler().setDecoder(new RewindPacketDecoder<>());
 	}
 
 }
