@@ -25,11 +25,11 @@ public class RouteMap<L, T> {
 		protected IRouteEndpoint<L, T> endpoint;
 		protected IRouteEndpoint<L, T> endpointDir;
 
-		protected RouteTreeNode<L, T> find(Iterator<String> tokens, boolean dir) {
+		protected RouteTreeNode<L, T> find(Iterator<CharSequence> tokens, boolean dir) {
 			if(tokens.hasNext()) {
-				String n = tokens.next();
+				CharSequence n = tokens.next();
 				if(children != null) {
-					RouteTreeNode<L, T> r = children.get(n);
+					RouteTreeNode<L, T> r = children.get(n.toString());
 					if(r != null) {
 						return r.find(tokens, dir);
 					}
@@ -183,10 +183,10 @@ public class RouteMap<L, T> {
 
 	}
 
-	public boolean register(Iterator<String> tokens, boolean dir, L listener, int methId, T value) {
+	public boolean register(Iterator<CharSequence> tokens, boolean dir, L listener, int methId, T value) {
 		RouteTreeNode<L, T> path = rootNode;
 		while(tokens.hasNext()) {
-			path = path.getOrCreateChild(tokens.next());
+			path = path.getOrCreateChild(tokens.next().toString());
 		}
 		IRouteEndpoint<L, T> endpoint = path.getEndpoint(dir);
 		if(listener == null) {
@@ -257,7 +257,7 @@ public class RouteMap<L, T> {
 		}
 	}
 
-	public boolean remove(Iterator<String> tokens, boolean dir, L listener, int methId, T value) {
+	public boolean remove(Iterator<CharSequence> tokens, boolean dir, L listener, int methId, T value) {
 		RouteTreeNode<L, T> endpointNode = rootNode.find(tokens, dir);
 		if(endpointNode == null) {
 			return false;
@@ -378,7 +378,7 @@ public class RouteMap<L, T> {
 		}
 	}
 
-	public void get(Iterator<String> tokens, boolean dir, L listener, int methId, Result<T> result) {
+	public void get(Iterator<CharSequence> tokens, boolean dir, L listener, int methId, Result<T> result) {
 		RouteTreeNode<L, T> endpointNode = rootNode.find(tokens, dir);
 		if(endpointNode == null) {
 			result.result = null;
