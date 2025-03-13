@@ -12,10 +12,12 @@ import com.velocitypowered.api.event.connection.PluginMessageEvent;
 import com.velocitypowered.api.event.connection.PluginMessageEvent.ForwardResult;
 import com.velocitypowered.api.event.connection.PostLoginEvent;
 import com.velocitypowered.api.event.connection.PreLoginEvent;
+import com.velocitypowered.api.event.permission.PermissionsSetupEvent;
 import com.velocitypowered.api.event.player.GameProfileRequestEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
 import com.velocitypowered.api.network.ListenerType;
+import com.velocitypowered.api.permission.PermissionSubject;
 import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ServerConnection;
@@ -88,6 +90,15 @@ class VelocityListener {
 		}
 		if(changed) {
 			gameProfileEvent.setGameProfile(gameProfile);
+		}
+	}
+
+	@Subscribe
+	public void onPermissionsSetupEvent(PermissionsSetupEvent permissionsSetupEvent) {
+		// Fired right before compression is enabled
+		PermissionSubject p = permissionsSetupEvent.getSubject();
+		if(p instanceof Player) {
+			VelocityUnsafe.injectCompressionDisable(plugin.proxy(), (Player)p);
 		}
 	}
 
