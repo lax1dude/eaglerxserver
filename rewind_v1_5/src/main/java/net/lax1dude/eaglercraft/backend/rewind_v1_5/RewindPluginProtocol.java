@@ -40,10 +40,10 @@ public class RewindPluginProtocol<PlayerObject> implements IEaglerXRewindProtoco
 	@Override
 	public void initializeConnection(int legacyProtocol, IEaglerXRewindInitializer<PlayerInstance<PlayerObject>> initializer) {
 		PlayerInstance<PlayerObject> attachment = new PlayerInstance<>(this);
-		IPacket2ClientProtocol legacyHandshake = initializer.getLegacyHandshake();
 		initializer.setAttachment(attachment);
-		initializer.netty().injectNettyHandlers(new RewindPacketEncoder<PlayerObject>(attachment),
-				new RewindPacketDecoder<PlayerObject>(attachment));
+		initializer.netty().injectNettyHandlers((new RewindChannelHandler<PlayerObject>(attachment))
+				.setCodec(new RewindHandshakeClientCodec<>()));
+		IPacket2ClientProtocol legacyHandshake = initializer.getLegacyHandshake();
 		initializer.rewriteInitialHandshakeV2(3, 47, "EaglerXRewind", "1.5.2", false,
 				legacyHandshake.getUsername().getBytes(StandardCharsets.US_ASCII));
 	}

@@ -6,15 +6,8 @@ import java.util.zip.DataFormatException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageEncoder;
 
-public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<ByteBuf> {
-
-	private final PlayerInstance<PlayerObject> player;
-
-	public RewindPacketEncoder(PlayerInstance<PlayerObject> player) {
-		this.player = player;
-	}
+public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Encoder<PlayerObject> {
 
 	private static final class TabListItem {
 		public String name;
@@ -107,7 +100,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 
 	private void handleChatMessage(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x03);
-		BufferUtils.writeLegacyMCString(bb, player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767)), 32767);
+		BufferUtils.writeLegacyMCString(bb, serverAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767)), 32767);
 	}
 
 	private void handleTimeUpdate(ByteBuf in, ByteBuf bb) {
@@ -204,7 +197,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 	private void handleSpawnPlayer(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x14);
 		bb.writeInt(BufferUtils.readVarInt(in));
-		BufferUtils.writeLegacyMCString(bb, player.getPlayer().getServerAPI().getPlayerByUUID(new UUID(in.readLong(), in.readLong())).getUsername(), 255);
+		BufferUtils.writeLegacyMCString(bb, serverAPI().getPlayerByUUID(new UUID(in.readLong(), in.readLong())).getUsername(), 255);
 		bb.writeInt(in.readInt());
 		bb.writeInt(in.readInt());
 		bb.writeInt(in.readInt());
@@ -405,7 +398,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 			bb.writeShort(0);
 			ByteBuf chunkData2 = alloc.buffer();
 			try {
-				player.getNativeZlib().netty().deflate(chunkData, chunkData2);
+				player().getNativeZlib().netty().deflate(chunkData, chunkData2);
 				bb.writeInt(chunkData2.readableBytes());
 				bb.writeBytes(chunkData2);
 			} finally {
@@ -492,7 +485,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 			bb.writeShort(mcbCcc);
 			ByteBuf guhBuf2 = alloc.buffer();
 			try {
-				player.getNativeZlib().netty().deflate(guhBuf, guhBuf2);
+				player().getNativeZlib().netty().deflate(guhBuf, guhBuf2);
 				bb.writeInt(guhBuf2.readableBytes());
 				bb.writeBoolean(mcbSkyLightSent);
 				bb.writeBytes(guhBuf2);
@@ -640,7 +633,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 		}
 		bb.writeByte(windowId);
 		String windowTitle = BufferUtils.readMCString(in, 4095);
-		windowTitle = player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(windowTitle);
+		windowTitle = serverAPI().getComponentHelper().convertJSONToLegacySection(windowTitle);
 		BufferUtils.writeLegacyMCString(bb, windowTitle, 255);
 		bb.writeByte(in.readUnsignedByte());
 		bb.writeBoolean(!windowTitle.isEmpty());
@@ -727,7 +720,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 		bb.writeShort(BufferUtils.posY(signPos));
 		bb.writeInt(BufferUtils.posZ(signPos));
 		for (int ii = 0; ii < 4; ++ii) {
-			BufferUtils.writeLegacyMCString(bb, player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 4095)), 255);
+			BufferUtils.writeLegacyMCString(bb, serverAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 4095)), 255);
 		}
 	}
 
@@ -872,11 +865,11 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 						BufferUtils.readVarInt(in);
 						int tbPing = BufferUtils.readVarInt(in);
 						if (in.readBoolean()) {
-							tempName = player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 255));
+							tempName = serverAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 255));
 						}
 						tabList.put(pliUuid, new TabListItem(tempName, tbPing));
 					} else {
-						tabList.put(pliUuid, new TabListItem(player.getPlayer().getServerAPI().getPlayerByUUID(pliUuid).getUsername(), 0));
+						tabList.put(pliUuid, new TabListItem(serverAPI().getPlayerByUUID(pliUuid).getUsername(), 0));
 					}
 				}
 				TabListItem pliItem = tabList.get(pliUuid);
@@ -905,7 +898,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 					}
 				} else if (pliAction == 3) {
 					if (in.readBoolean()) {
-						pliItem.name = player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 255));
+						pliItem.name = serverAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 255));
 					}
 				}
 				if (pliAction != 4) {
@@ -1055,7 +1048,7 @@ public class RewindPacketEncoder<PlayerObject> extends MessageToMessageEncoder<B
 
 	private void handleDisconnect(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0xFF);
-		BufferUtils.writeLegacyMCString(bb, player.getPlayer().getServerAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767)), 32767);
+		BufferUtils.writeLegacyMCString(bb, serverAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767)), 32767);
 	}
 
 	@Override
