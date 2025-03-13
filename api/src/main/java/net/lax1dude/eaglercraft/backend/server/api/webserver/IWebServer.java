@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 
 public interface IWebServer {
 
@@ -13,7 +14,7 @@ public interface IWebServer {
 
 	void unregisterRoutes(Object plugin);
 
-	IRequestHandler resolve(String listenerName, EnumRequestMethod method, String path);
+	IRequestHandler resolve(IEaglerListenerInfo listener, EnumRequestMethod method, CharSequence path);
 
 	IRequestHandler getDefault404Handler();
 
@@ -31,6 +32,6 @@ public interface IWebServer {
 
 	IPreparedResponse prepareResponse(byte[] data);
 
-	IPreparedResponse prepareResponse(String data, Charset binaryCharset);
+	IPreparedResponse prepareResponse(CharSequence data, Charset binaryCharset);
 
 }

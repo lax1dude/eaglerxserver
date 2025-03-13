@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IPreparedResponse;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestHandler;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IWebServer;
@@ -128,7 +129,7 @@ public class WebServer implements IWebServer {
 	}
 
 	@Override
-	public IRequestHandler resolve(String listenerName, EnumRequestMethod method, String path) {
+	public IRequestHandler resolve(IEaglerListenerInfo listenerName, EnumRequestMethod method, CharSequence path) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -176,7 +177,7 @@ public class WebServer implements IWebServer {
 	}
 
 	@Override
-	public IPreparedResponse prepareResponse(String data, Charset binaryCharset) {
+	public IPreparedResponse prepareResponse(CharSequence data, Charset binaryCharset) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -7,6 +7,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 
 public interface IRequestContext {
@@ -21,21 +22,21 @@ public interface IRequestContext {
 
 	String getHost();
 
-	String getPath();
+	CharSequence getPath();
 
-	String getQuery();
+	CharSequence getQuery();
 
-	String getHeader(String name);
+	CharSequence getHeader(String name);
 
 	void setResponseBody(IPreparedResponse preparedResponse);
 
 	void setResponseBody(byte[] response);
 
-	void setResponseBody(String response, Charset binaryCharset);
+	void setResponseBody(CharSequence response, Charset binaryCharset);
 
 	void setResponseBodyEmpty();
 
-	void setResponseHeader(String name, String value);
+	void setResponseHeader(String name, Object value);
 
 	void setResponseCode(int code);
 
@@ -45,13 +46,15 @@ public interface IRequestContext {
 
 		void setResponseBodyByteBuf(ByteBuf byteBuf);
 
-		void setRequestHandled();
+		void setResponseBodyHttpResponse(FullHttpResponse response);
+
+		void setResponseSent();
 
 		Channel getChannel();
 
 		ChannelHandlerContext getChannelHandlerContext();
 
-		FullHttpRequest getFullHttpRequest();
+		FullHttpRequest getHttpRequest();
 
 	}
 
