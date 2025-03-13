@@ -61,8 +61,6 @@ public class VelocityUnsafe {
 	private static final Method method_ServerChannelInitializerHolder_get;
 	private static final Method method_ServerChannelInitializerHolder_set;
 	private static final Method method_ChannelInitializer_initChannel;
-	private static final Class<?> class_VelocityConnectionEvent;
-	private static final Object enum_VelocityConnectionEvent_COMPRESSION_ENABLED;
 
 	static {
 		try {
@@ -105,8 +103,6 @@ public class VelocityUnsafe {
 			method_ServerChannelInitializerHolder_set = class_ServerChannelInitializerHolder.getMethod("set", ChannelInitializer.class);
 			method_ChannelInitializer_initChannel = ChannelInitializer.class.getDeclaredMethod("initChannel", Channel.class);
 			method_ChannelInitializer_initChannel.setAccessible(true);
-			class_VelocityConnectionEvent = Class.forName("com.velocitypowered.proxy.protocol.VelocityConnectionEvent");
-			enum_VelocityConnectionEvent_COMPRESSION_ENABLED = class_VelocityConnectionEvent.getField("COMPRESSION_ENABLED").get(null);
 		}catch(Exception ex) {
 			throw Util.propagateReflectThrowable(ex);
 		}
@@ -162,10 +158,6 @@ public class VelocityUnsafe {
 
 	public static Channel getInboundChannel(InboundConnection connection) {
 		return getMinecraftConnection(connection).getChannel();
-	}
-
-	public static boolean isCompressionEnableEvent(Object event) {
-		return event == enum_VelocityConnectionEvent_COMPRESSION_ENABLED;
 	}
 
 	public interface IListenerInitHandler {
@@ -258,7 +250,7 @@ public class VelocityUnsafe {
 				final MinecraftConnection parent = (MinecraftConnection) field_AuthSessionHandler_mcConnection.get(o);
 				field_AuthSessionHandler_mcConnection.set(o, ClassProxy.createProxy(VelocityUnsafe.class.getClassLoader(),
 						(Class<MinecraftConnection>) class_MinecraftConnection,
-						(Constructor<MinecraftConnection>) ctor_MinecraftConnection, new Object[] { parent, player },
+						(Constructor<MinecraftConnection>) ctor_MinecraftConnection, new Object[] { parent.getChannel(), server },
 						(obj, meth, args) -> {
 					if ("setCompressionThreshold".equals(meth.getName())) {
 						// FUCK YOU!

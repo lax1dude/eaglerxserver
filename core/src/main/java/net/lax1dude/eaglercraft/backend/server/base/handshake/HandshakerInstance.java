@@ -236,6 +236,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 	}
 
 	private void continueLoginNoAuth(ChannelHandlerContext ctx) {
+		updateLoggerName();
 		ctx.channel().eventLoop().execute(() -> sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid));
 		state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
 	}
@@ -256,6 +257,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 					pipelineData.username = evt.getProfileUsername();
 					pipelineData.uuid = evt.getProfileUUID();
 					pipelineData.requestedServer = evt.getAuthRequestedServer();
+					updateLoggerName();
 					sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid);
 				});
 				state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
@@ -289,6 +291,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 					pipelineData.username = evt.getProfileUsername();
 					pipelineData.uuid = evt.getProfileUUID();
 					pipelineData.requestedServer = evt.getAuthRequestedServer();
+					updateLoggerName();
 					sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid);
 				});
 				state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
@@ -310,6 +313,10 @@ public abstract class HandshakerInstance implements IHandshaker {
 				break;
 			}
 		});
+	}
+
+	private void updateLoggerName() {
+		pipelineData.connectionLogger = pipelineData.connectionLogger.createSubLogger(pipelineData.username);
 	}
 
 	protected abstract ChannelFuture sendPacketAllowLogin(ChannelHandlerContext ctx, String setUsername, UUID setUUID);

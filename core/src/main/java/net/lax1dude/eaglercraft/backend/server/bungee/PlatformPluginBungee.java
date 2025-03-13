@@ -530,7 +530,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			}
 			@Override
 			public Object getConnectionAttachment() {
-				return connection;
+				return connection.attachment;
 			}
 			@Override
 			public IPlatformPlayer<ProxiedPlayer> getPlayer() {

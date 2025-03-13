@@ -103,6 +103,7 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 		this.server = server;
 		this.listenerInfo = listenerInfo;
 		this.attributeHolder = attributeHolder;
+		this.connectionLogger = server.logger().createSubLogger("" + channel.remoteAddress());
 	}
 
 	@Override

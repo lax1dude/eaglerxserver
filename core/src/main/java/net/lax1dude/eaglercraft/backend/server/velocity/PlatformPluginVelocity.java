@@ -585,7 +585,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			}
 			@Override
 			public Object getConnectionAttachment() {
-				return connection;
+				return connection.attachment;
 			}
 			@Override
 			public IPlatformPlayer<Player> getPlayer() {

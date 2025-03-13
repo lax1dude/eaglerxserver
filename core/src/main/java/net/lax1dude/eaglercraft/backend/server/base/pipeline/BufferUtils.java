@@ -101,7 +101,7 @@ public class BufferUtils {
 
 	public static String readMCString(ByteBuf buffer, int maxLen) {
 		int len = BufferUtils.readVarInt(buffer, 5);
-		if(len * 4 > maxLen) {
+		if(len > maxLen * 4) {
 			throw new IndexOutOfBoundsException();
 		}
 		CharSequence ret = buffer.readCharSequence(len, StandardCharsets.UTF_8);

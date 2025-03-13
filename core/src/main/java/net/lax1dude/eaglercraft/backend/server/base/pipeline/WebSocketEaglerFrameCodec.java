@@ -17,7 +17,7 @@ public class WebSocketEaglerFrameCodec extends ChannelDuplexHandler {
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		if(msg instanceof WebSocketFrame) {
 			if(msg instanceof BinaryWebSocketFrame) {
-				ctx.fireChannelRead(((BinaryWebSocketFrame)msg).content().retain());
+				ctx.fireChannelRead(((BinaryWebSocketFrame)msg).content());
 			}else {
 				// Text or close frames
 				((WebSocketFrame)msg).release();

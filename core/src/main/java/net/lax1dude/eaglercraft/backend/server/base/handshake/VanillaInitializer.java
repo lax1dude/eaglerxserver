@@ -72,7 +72,14 @@ public class VanillaInitializer {
 			if(connectionState == STATE_SENT_LOGIN) {
 				if(pktId == 0x02) {
 					// S02PacketLoginSuccess
-					UUID playerUUID = new UUID(msg.readLong(), msg.readLong());
+					UUID playerUUID;
+					String uuidStr = BufferUtils.readMCString(msg, 36);
+					try {
+						playerUUID = UUID.fromString(uuidStr);
+					}catch(IllegalArgumentException ex) {
+						inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
+						return;
+					}
 					if(!playerUUID.equals(pipelineData.uuid)) {
 						inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
 						pipelineData.connectionLogger.error("Disconnecting, platform assigned UUID to client that does not match the UUID the EaglerXServer sent to the client during the handshake");
@@ -108,6 +115,7 @@ public class VanillaInitializer {
 				inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
 			}
 		}catch(IndexOutOfBoundsException ex) {
+			ex.printStackTrace();
 			inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
 		}
 	}

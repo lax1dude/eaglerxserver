@@ -625,7 +625,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 			@Override
 			public Object getConnectionAttachment() {
-				return c;
+				return c.attachment;
 			}
 			@Override
 			public IPlatformPlayer<Player> getPlayer() {
