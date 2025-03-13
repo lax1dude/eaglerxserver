@@ -121,9 +121,9 @@ public class VanillaInitializer {
 	}
 
 	private void handleKickPacket(ChannelHandlerContext ctx, ByteBuf data) {
-		//Note: Very old clients (protocol v2, from 2022) will not handle this JSON correctly
+		String pkt = BufferUtils.readMCString(data, 32767);
 		inboundHandler.terminateErrorCode(ctx, pipelineData.handshakeProtocol,
-				HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE, BufferUtils.readMCString(data, 65535));
+				HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE, pkt);
 		connectionState = STATE_COMPLETE;
 	}
 

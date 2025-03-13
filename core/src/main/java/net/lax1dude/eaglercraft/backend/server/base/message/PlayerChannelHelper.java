@@ -16,7 +16,7 @@ public class PlayerChannelHelper {
 
 	public static <PlayerObject> Collection<IEaglerXServerMessageChannel<PlayerObject>> getPlayerChannels(EaglerXServer<PlayerObject> server) {
 		IEaglerXServerMessageHandler<PlayerObject> handler = (ch, player, data) -> {
-			BasePlayerInstance<PlayerObject> basePlayer = player.<BasePlayerInstance<PlayerObject>>getConnectionAttachment();
+			BasePlayerInstance<PlayerObject> basePlayer = player.<BasePlayerInstance<PlayerObject>>getPlayerAttachment();
 			if(basePlayer.isEaglerPlayer()) {
 				MessageController msgController = basePlayer.asEaglerPlayer().getMessageController();
 				if(msgController instanceof LegacyMessageController) {

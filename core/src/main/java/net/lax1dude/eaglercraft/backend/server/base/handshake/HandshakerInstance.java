@@ -329,6 +329,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 		if(state == HandshakePacketTypes.STATE_CLIENT_LOGIN) {
 			if(pipelineData.profileDatas == null) {
 				pipelineData.profileDatas = new HashMap<>(4);
+				pipelineData.profileDatas.put(key, value);
 			}else if(pipelineData.profileDatas.size() >= 8) {
 				inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_EXCESSIVE_PROFILE_DATA,
 						"Too Many Profile Datas");

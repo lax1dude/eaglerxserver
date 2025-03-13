@@ -83,7 +83,6 @@ public class SkinHandshake {
 				}
 				byte[] pixels = new byte[1173];
 				System.arraycopy(data, 1, pixels, 0, pixels.length);
-				setAlphaForChestV4(pixels);
 				return new CustomCapePlayer(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(), pixels);
 			default:
 				break;

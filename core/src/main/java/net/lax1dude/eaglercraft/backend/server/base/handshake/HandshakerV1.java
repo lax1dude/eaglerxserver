@@ -21,8 +21,8 @@ public class HandshakerV1 extends HandshakerInstance {
 		super(server, pipelineData, inboundHandler);
 	}
 
-	public void init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString) {
-		handlePacketInit(ctx, eaglerBrand, eaglerVersionString, 47, false, null);
+	public void init(ChannelHandlerContext ctx, int minecraftProtocol, String eaglerBrand, String eaglerVersionString) {
+		handlePacketInit(ctx, eaglerBrand, eaglerVersionString, minecraftProtocol, false, null);
 	}
 
 	@Override

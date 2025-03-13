@@ -84,6 +84,12 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 			buf.writeShort(msg.length);
 			buf.writeBytes(msg);
 		}else {
+			if(errorMessage.startsWith("{")) {
+				try {
+					errorMessage = server.getComponentHelper().convertJSONToLegacySection(errorMessage);
+				}catch(Exception ex) {
+				}
+			}
 			if(errorMessage.length() > 255) {
 				errorMessage = errorMessage.substring(0, 255);
 			}
@@ -133,14 +139,12 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 
 	public void terminateErrorCode(ChannelHandlerContext ctx, int handshakeProtocol, int errorCode, String errorMessage) {
 		terminated = true;
-		ctx.channel().eventLoop().execute(() -> sendErrorCode(ctx, handshakeProtocol, errorCode, errorMessage)
-				.addListener(ChannelFutureListener.CLOSE));
+		sendErrorCode(ctx, handshakeProtocol, errorCode, errorMessage).addListener(ChannelFutureListener.CLOSE);
 	}
 
 	public void terminateErrorCode(ChannelHandlerContext ctx, int handshakeProtocol, int errorCode, Object errorComponent) {
 		terminated = true;
-		ctx.channel().eventLoop().execute(() -> sendErrorCode(ctx, handshakeProtocol, errorCode, errorComponent)
-				.addListener(ChannelFutureListener.CLOSE));
+		sendErrorCode(ctx, handshakeProtocol, errorCode, errorComponent).addListener(ChannelFutureListener.CLOSE);
 	}
 
 	@Override
@@ -343,6 +347,7 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 	}
 
 	private void handleEaglerLegacyConnection(ChannelHandlerContext ctx, ByteBuf binaryMsg) {
+		int minecraftProtocol = binaryMsg.readUnsignedByte();
 		int strlen;
 		String eaglerBrand, eaglerVersionString;
 		try {
@@ -359,7 +364,7 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		}
 		HandshakerV1 hs = new HandshakerV1(server, pipelineData, this);
 		handshaker = hs;
-		hs.init(ctx, eaglerBrand, eaglerVersionString);
+		hs.init(ctx, minecraftProtocol, eaglerBrand, eaglerVersionString);
 	}
 
 	private void handleRewindConnection(ChannelHandlerContext ctx, int protocolVers, ByteBuf binaryMsg) {
@@ -425,7 +430,7 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 			if(protocols.isProtocolLegacyAllowed()) {
 				HandshakerV1 hs = new HandshakerV1(server, pipelineData, this);
 				handshaker = hs;
-				hs.init(ctx, initializer.getEaglerClientBrand(), initializer.getEaglerClientVersion());
+				hs.init(ctx, initializer.getMinecraftProtocol(), initializer.getEaglerClientBrand(), initializer.getEaglerClientVersion());
 			}
 			break;
 		case 2:

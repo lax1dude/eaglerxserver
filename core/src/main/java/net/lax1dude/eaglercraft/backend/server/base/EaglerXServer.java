@@ -540,19 +540,19 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	public boolean isEaglerPlayer(PlayerObject player) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
-		return platformPlayer != null && platformPlayer.<IBasePlayer<PlayerObject>>getConnectionAttachment().isEaglerPlayer();
+		return platformPlayer != null && platformPlayer.<IBasePlayer<PlayerObject>>getPlayerAttachment().isEaglerPlayer();
 	}
 
 	@Override
 	public boolean isEaglerPlayerByName(String playerName) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
-		return platformPlayer != null && platformPlayer.<IBasePlayer<PlayerObject>>getConnectionAttachment().isEaglerPlayer();
+		return platformPlayer != null && platformPlayer.<IBasePlayer<PlayerObject>>getPlayerAttachment().isEaglerPlayer();
 	}
 
 	@Override
 	public boolean isEaglerPlayerByUUID(UUID playerUUID) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
-		return platformPlayer != null && platformPlayer.<IBasePlayer<PlayerObject>>getConnectionAttachment().isEaglerPlayer();
+		return platformPlayer != null && platformPlayer.<IBasePlayer<PlayerObject>>getPlayerAttachment().isEaglerPlayer();
 	}
 
 	@Override
@@ -570,7 +570,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	public Collection<IBasePlayer<PlayerObject>> getAllPlayers() {
 		return Collections2.transform(platform.getAllPlayers(),
-				IPlatformPlayer<PlayerObject>::<IBasePlayer<PlayerObject>>getConnectionAttachment);
+				IPlatformPlayer<PlayerObject>::<IBasePlayer<PlayerObject>>getPlayerAttachment);
 	}
 
 	@Override

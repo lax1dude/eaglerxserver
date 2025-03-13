@@ -10,7 +10,6 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerListener;
 import net.lax1dude.eaglercraft.backend.server.base.ISSLContextProvider;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
-import net.lax1dude.eaglercraft.backend.server.util.Util;
 
 public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 
