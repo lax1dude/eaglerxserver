@@ -34,18 +34,23 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
-		if(state != STATE_COMPLETED && buf.readableBytes() >= 1) {
-			int type = buf.readUnsignedByte();
-			switch(type) {
-			case 0xCD: // Packet205ClientCommand
-				handleClientClientCommand(ctx, buf, out);
-				break;
-			case 0xFA: // Packet250CustomPayload
-				handleClientCustomPayload(ctx, buf);
-				break;
-			default:
-				handleUnexpectedClientPacket(ctx, type);
-				break;
+		if(state != STATE_COMPLETED) {
+			try {
+				int type = buf.readUnsignedByte();
+				switch(type) {
+				case 0xCD: // Packet205ClientCommand
+					handleClientClientCommand(ctx, buf, out);
+					break;
+				case 0xFA: // Packet250CustomPayload
+					handleClientCustomPayload(ctx, buf);
+					break;
+				default:
+					handleUnexpectedClientPacket(ctx, type);
+					break;
+				}
+			}catch(IndexOutOfBoundsException ex) {
+				state = STATE_COMPLETED;
+				ctx.close();
 			}
 		}
 	}
@@ -143,29 +148,35 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 	@Override
 	protected void encode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
 		if(state != STATE_COMPLETED && buf.readableBytes() >= 1) {
-			int type = buf.readUnsignedByte();
-			switch(type) {
-			case 0x02: // PROTOCOL_SERVER_VERISON
-				handleServerVersion(ctx, buf);
-				break;
-			case 0x03: // PROTOCOL_VERISON_MISMATCH
-				handleServerVersionMismatch(ctx, buf);
-				break;
-			case 0x05: // PROTOCOL_SERVER_ALLOW_LOGIN
-				handleServerAllowLogin(ctx, buf, out);
-				break;
-			case 0x06: // PROTOCOL_SERVER_DENY_LOGIN
-				handleServerDenyLogin(ctx, buf);
-				break;
-			case 0x09: // PROTOCOL_SERVER_FINISH_LOGIN
-				handleServerFinishLogin(ctx, buf);
-				break;
-			case 0xFF: // PROTOCOL_SERVER_ERROR
-				handleServerError(ctx, buf);
-				break;
-			default:
-				handleUnexpectedServerPacket(ctx, type);
-				break;
+			try {
+				int type = buf.readUnsignedByte();
+				switch(type) {
+				case 0x02: // PROTOCOL_SERVER_VERISON
+					handleServerVersion(ctx, buf);
+					break;
+				case 0x03: // PROTOCOL_VERISON_MISMATCH
+					handleServerVersionMismatch(ctx, buf);
+					break;
+				case 0x05: // PROTOCOL_SERVER_ALLOW_LOGIN
+					handleServerAllowLogin(ctx, buf, out);
+					break;
+				case 0x06: // PROTOCOL_SERVER_DENY_LOGIN
+					handleServerDenyLogin(ctx, buf);
+					break;
+				case 0x09: // PROTOCOL_SERVER_FINISH_LOGIN
+					handleServerFinishLogin(ctx, buf);
+					break;
+				case 0xFF: // PROTOCOL_SERVER_ERROR
+					handleServerError(ctx, buf);
+					break;
+				default:
+					handleUnexpectedServerPacket(ctx, type);
+					break;
+				}
+			}catch(IndexOutOfBoundsException ex) {
+				state = STATE_COMPLETED;
+				ctx.close();
+				logger().error("Failed to decode response from backend", ex);
 			}
 		}
 		if(out.isEmpty()) {
