@@ -1,7 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.api;
 
 public enum EnumRequestMethod {
-	GET(1), HEAD(2), PUT(4), DELETE(8), POST(16), PATCH(32);
+	GET(0, 1), HEAD(1, 2), PUT(2, 4), DELETE(3, 8), POST(4, 16), PATCH(5, 32);
 
 	public static final int bits = 63;
 
@@ -14,10 +14,16 @@ public enum EnumRequestMethod {
 		}
 	}
 
+	private final int id;
 	private final int bit;
 
-	private EnumRequestMethod(int bit) {
+	private EnumRequestMethod(int id, int bit) {
+		this.id = id;
 		this.bit = bit;
+	}
+
+	public int id() {
+		return id;
 	}
 
 	public int bit() {

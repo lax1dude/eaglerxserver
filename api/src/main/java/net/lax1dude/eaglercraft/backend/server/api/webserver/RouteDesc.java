@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.api.webserver;
 
+import java.util.Objects;
+
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 
 public final class RouteDesc {
@@ -46,6 +48,10 @@ public final class RouteDesc {
 		this.methods = methods;
 	}
 
+	public boolean isAllListeners() {
+		return listenerName == null;
+	}
+
 	public String getListenerName() {
 		return listenerName;
 	}
@@ -60,6 +66,25 @@ public final class RouteDesc {
 
 	public boolean isMethod(EnumRequestMethod meth) {
 		return (methods & meth.bit()) != 0;
+	}
+
+	public boolean isAllMethods() {
+		return methods == EnumRequestMethod.bits;
+	}
+
+	public int hashCode() {
+		int i = 0;
+		if(listenerName != null) i += listenerName.hashCode();
+		i *= 31;
+		if(pattern != null) i += pattern.hashCode();
+		i *= 31;
+		return i + methods;
+	}
+
+	public boolean equals(Object obj) {
+		RouteDesc r;
+		return this == obj || ((obj instanceof RouteDesc) && Objects.equals((r = (RouteDesc) obj).pattern, pattern)
+				&& Objects.equals(r.listenerName, listenerName) && r.methods == methods);
 	}
 
 }

@@ -30,7 +30,7 @@ public class RouteMap<L, T> {
 			if(tokens.hasNext()) {
 				CharSequence n = tokens.next();
 				if(children != null) {
-					RouteTreeNode<L, T> r = children.get(n.toString());
+					RouteTreeNode<L, T> r = children.get(n);
 					if(r != null) {
 						return r.find(tokens, dir);
 					}

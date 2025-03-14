@@ -149,7 +149,6 @@ public class RouteProcessor extends RouteMap.Result<Object> implements Iterator<
 		CharSequence ret = subsequence.set(url, index, nextIndex - index);
 		nextIndex = -2;
 		index = nextIndexEnd + 1;
-		System.out.println(": " + ret);
 		return ret;
 	}
 

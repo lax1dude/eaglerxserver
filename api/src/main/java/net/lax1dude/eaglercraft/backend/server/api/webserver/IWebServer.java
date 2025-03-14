@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.api.webserver;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
@@ -28,7 +29,7 @@ public interface IWebServer {
 
 	IRequestHandler get500Handler();
 
-	IPreparedResponse prepareResponse(InputStream data);
+	IPreparedResponse prepareResponse(InputStream data) throws IOException;
 
 	IPreparedResponse prepareResponse(byte[] data);
 
