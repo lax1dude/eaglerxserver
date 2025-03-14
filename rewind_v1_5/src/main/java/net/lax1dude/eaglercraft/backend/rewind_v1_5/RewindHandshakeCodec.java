@@ -1,0 +1,357 @@
+package net.lax1dude.eaglercraft.backend.rewind_v1_5;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IPacket2ClientProtocol;
+
+public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Codec<PlayerObject> {
+
+	private static final byte[] REWIND_STR = "rewind".getBytes(StandardCharsets.US_ASCII);
+	private static final byte[] SKIN_V1_STR = "skin_v1".getBytes(StandardCharsets.US_ASCII);
+	private static final byte[] CAPE_V1_STR = "cape_v1".getBytes(StandardCharsets.US_ASCII);
+	private static final byte[] ERR = new byte[0];
+
+	protected static final int STATE_STALLING = 0;
+	protected static final int STATE_SENT_HANDSHAKE = 1;
+	protected static final int STATE_SENT_REQUESTED_LOGIN = 2;
+	protected static final int STATE_SENT_RECEIVED_ALLOW_LOGIN = 3;
+	protected static final int STATE_SENT_FINISH_LOGIN = 4;
+	protected static final int STATE_COMPLETED = 5;
+
+	protected int state = STATE_SENT_HANDSHAKE;
+	protected String username;
+	protected byte[] skinData;
+	protected byte[] capeData;
+
+	public RewindHandshakeCodec(IPacket2ClientProtocol firstPacket) {
+		this.username = firstPacket.getUsername();
+	}
+
+	@Override
+	protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
+		if(state != STATE_COMPLETED && buf.readableBytes() >= 1) {
+			int type = buf.readUnsignedByte();
+			switch(type) {
+			case 0xCD: // Packet205ClientCommand
+				handleClientClientCommand(ctx, buf, out);
+				break;
+			case 0xFA: // Packet250CustomPayload
+				handleClientCustomPayload(ctx, buf);
+				break;
+			default:
+				handleUnexpectedClientPacket(ctx, type);
+				break;
+			}
+		}
+	}
+
+	private void handleClientClientCommand(ChannelHandlerContext ctx, ByteBuf buf, List<Object> output) {
+		if(state == STATE_SENT_RECEIVED_ALLOW_LOGIN) {
+			state = STATE_STALLING;
+			if(skinData != null && skinData != ERR) {
+				ByteBuf packet = ctx.alloc().buffer();
+				try {
+					// PROTOCOL_CLIENT_PROFILE_DATA
+					packet.writeByte(0x07);
+					packet.writeByte(SKIN_V1_STR.length);
+					packet.writeBytes(SKIN_V1_STR);
+					packet.writeShort(skinData.length);
+					packet.writeBytes(skinData);
+					output.add(packet.retain());
+				}finally {
+					packet.release();
+					skinData = null;
+				}
+			}
+			if(capeData != null && capeData != ERR) {
+				ByteBuf packet = ctx.alloc().buffer();
+				try {
+					// PROTOCOL_CLIENT_PROFILE_DATA
+					packet.writeByte(0x07);
+					packet.writeByte(CAPE_V1_STR.length);
+					packet.writeBytes(CAPE_V1_STR);
+					packet.writeShort(capeData.length);
+					packet.writeBytes(capeData);
+					output.add(packet.retain());
+				}finally {
+					packet.release();
+					capeData = null;
+				}
+			}
+			ByteBuf packet = ctx.alloc().buffer();
+			try {
+				// PROTOCOL_CLIENT_FINISH_LOGIN
+				packet.writeByte(0x08);
+				state = STATE_SENT_FINISH_LOGIN;
+				output.add(packet.retain());
+			}finally {
+				packet.release();
+			}
+		}else {
+			handleUnexpectedClientPacket(ctx, 0xCD);
+		}
+	}
+
+	private void handleClientCustomPayload(ChannelHandlerContext ctx, ByteBuf buf) {
+		if(state == STATE_SENT_HANDSHAKE || state == STATE_SENT_REQUESTED_LOGIN || state == STATE_SENT_RECEIVED_ALLOW_LOGIN) {
+			String channelName = BufferUtils.readLegacyMCString(buf, 20);
+			if("EAG|MySkin".equals(channelName)) {
+				int len = buf.readShort();
+				if(len > 0 && len < 32767) {
+					handleEagMySkin(ctx, buf.readSlice(len));
+				}
+			}else if("EAG|MyCape".equals(channelName)) {
+				int len = buf.readShort();
+				if(len > 0 && len < 32767) {
+					handleEagMyCape(ctx, buf.readSlice(len));
+				}
+			}else {
+				handleUnexpectedClientPacket(ctx, 0xCD);
+			}
+		}else {
+			handleUnexpectedClientPacket(ctx, 0xCD);
+		}
+	}
+
+	private void handleEagMySkin(ChannelHandlerContext ctx, ByteBuf data) {
+		if(skinData != null) {
+			handleUnexpectedClientPacket(ctx, 0xCD);
+			return;
+		}
+		skinData = SkinPacketUtils.rewriteLegacyHandshakeSkinToV1(data);
+		if(skinData == null) {
+			skinData = ERR;
+		}
+	}
+
+	private void handleEagMyCape(ChannelHandlerContext ctx, ByteBuf data) {
+		if(capeData != null) {
+			handleUnexpectedClientPacket(ctx, 0xCD);
+			return;
+		}
+		capeData = SkinPacketUtils.rewriteLegacyHandshakeCapeToV1(data);
+		if(capeData == null) {
+			capeData = ERR;
+		}
+	}
+
+	@Override
+	protected void encode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
+		if(state != STATE_COMPLETED && buf.readableBytes() >= 1) {
+			int type = buf.readUnsignedByte();
+			switch(type) {
+			case 0x02: // PROTOCOL_SERVER_VERISON
+				handleServerVersion(ctx, buf);
+				break;
+			case 0x03: // PROTOCOL_VERISON_MISMATCH
+				handleServerVersionMismatch(ctx, buf);
+				break;
+			case 0x05: // PROTOCOL_SERVER_ALLOW_LOGIN
+				handleServerAllowLogin(ctx, buf, out);
+				break;
+			case 0x06: // PROTOCOL_SERVER_DENY_LOGIN
+				handleServerDenyLogin(ctx, buf);
+				break;
+			case 0x09: // PROTOCOL_SERVER_FINISH_LOGIN
+				handleServerFinishLogin(ctx, buf);
+				break;
+			case 0xFF: // PROTOCOL_SERVER_ERROR
+				handleServerError(ctx, buf);
+				break;
+			default:
+				handleUnexpectedServerPacket(ctx, type);
+				break;
+			}
+		}
+		if(out.isEmpty()) {
+			out.add(Unpooled.EMPTY_BUFFER); // :(
+		}
+	}
+
+	private void kickClient(ChannelHandlerContext ctx) {
+		ByteBuf packet = ctx.alloc().buffer();
+		try {
+			// Packet255KickDisconnect
+			packet.writeByte(0xFF);
+			BufferUtils.writeLegacyMCString(packet, "Internal Error", 256);
+			ctx.writeAndFlush(packet.retain()).addListener(ChannelFutureListener.CLOSE);
+		}finally {
+			packet.release();
+		}
+	}
+
+	private void handleServerVersion(ChannelHandlerContext ctx, ByteBuf buf) {
+		if(state == STATE_SENT_HANDSHAKE) {
+			state = STATE_STALLING;
+			int protocolVers = buf.readUnsignedShort();
+			int gameVers = buf.readUnsignedShort();
+			if(protocolVers != 3 || gameVers != 47) {
+				state = STATE_COMPLETED;
+				kickClient(ctx);
+				logger().error("Backend response does not match the requested protocol: V" + protocolVers + ", mc" + gameVers);
+				return;
+			}
+			ByteBuf packet = ctx.alloc().buffer();
+			try {
+				// PROTOCOL_CLIENT_REQUEST_LOGIN
+				packet.writeByte(0x04);
+				packet.writeByte(username.length());
+				packet.writeCharSequence(username, StandardCharsets.US_ASCII);
+				packet.writeByte(REWIND_STR.length);
+				packet.writeBytes(REWIND_STR);
+				packet.writeByte(0);
+				state = STATE_SENT_REQUESTED_LOGIN;
+				ctx.fireChannelRead(packet.retain());
+			}finally {
+				packet.release();
+			}
+		}else {
+			handleUnexpectedServerPacket(ctx, 0x02);
+		}
+	}
+
+	private void handleServerVersionMismatch(ChannelHandlerContext ctx, ByteBuf buf) {
+		if(state == STATE_SENT_HANDSHAKE) {
+			state = STATE_COMPLETED;
+			kickClient(ctx);
+			logger().error("Backend responded with PROTOCOL_VERISON_MISMATCH to requested protocol: V3, mc47");
+		}else {
+			handleUnexpectedServerPacket(ctx, 0x03);
+		}
+	}
+
+	private void handleServerAllowLogin(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) {
+		if(state == STATE_SENT_REQUESTED_LOGIN) {
+			state = STATE_STALLING;
+			
+			int usernameLen = buf.readUnsignedByte();
+			if(!charSeqEqual(buf.readCharSequence(usernameLen, StandardCharsets.US_ASCII), username)) {
+				state = STATE_COMPLETED;
+				kickClient(ctx);
+				logger().error("Backend assigned an unexpected username");
+				return;
+			}
+			
+			buf.skipBytes(16); // skip uuid
+			
+			ByteBuf packet = ctx.alloc().buffer();
+			try {
+				// Packet252SharedKey
+				packet.writeByte(0xFC);
+				packet.writeShort(0);
+				packet.writeShort(0);
+				out.add(packet.retain());
+				state = STATE_SENT_RECEIVED_ALLOW_LOGIN;
+			}finally {
+				packet.release();
+			}
+		}else {
+			handleUnexpectedServerPacket(ctx, 0x05);
+		}
+	}
+
+	private boolean charSeqEqual(CharSequence seq1, String seq2) {
+		int l = seq1.length();
+		if(l != seq2.length()) {
+			return false;
+		}
+		for(int i = 0; i < l; ++i) {
+			if(seq1.charAt(i) != seq2.charAt(i)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private void handleServerDenyLogin(ChannelHandlerContext ctx, ByteBuf buf) {
+		if(state == STATE_SENT_REQUESTED_LOGIN) {
+			state = STATE_STALLING;
+			int len = buf.readUnsignedShort();
+			String json = buf.readCharSequence(len, StandardCharsets.UTF_8).toString();
+			if(json.startsWith("{")) {
+				try {
+					json = serverAPI().getComponentHelper().convertJSONToLegacySection(json);
+				}catch(Exception ex) {
+				}
+			}
+			if(json.length() > 256) {
+				json = json.substring(0, 256);
+			}
+			ByteBuf packet = ctx.alloc().buffer();
+			try {
+				// Packet255KickDisconnect
+				packet.writeByte(0xFF);
+				BufferUtils.writeLegacyMCString(packet, json, 256);
+				state = STATE_COMPLETED;
+				ctx.writeAndFlush(packet.retain()).addListener(ChannelFutureListener.CLOSE);
+			}finally {
+				packet.release();
+			}
+		}else {
+			handleUnexpectedServerPacket(ctx, 0x06);
+		}
+	}
+
+	private void handleServerFinishLogin(ChannelHandlerContext ctx, ByteBuf buf) {
+		if(state == STATE_SENT_FINISH_LOGIN) {
+			state = STATE_COMPLETED;
+			enterPlayState();
+		}else {
+			handleUnexpectedServerPacket(ctx, 0x09);
+		}
+	}
+
+	private void handleServerError(ChannelHandlerContext ctx, ByteBuf buf) {
+		state = STATE_COMPLETED;
+		int errorCode = buf.readUnsignedByte();
+		int stringLen = buf.readUnsignedShort();
+		String str = buf.readCharSequence(stringLen, StandardCharsets.UTF_8).toString();
+		if(errorCode == 0x08) {
+			// SERVER_ERROR_CUSTOM_MESSAGE
+			String str2 = str;
+			if(str2.startsWith("{")) {
+				try {
+					str2 = serverAPI().getComponentHelper().convertJSONToLegacySection(str2);
+				}catch(Exception ex) {
+				}
+			}
+			ByteBuf packet = ctx.alloc().buffer();
+			try {
+				// Packet255KickDisconnect
+				packet.writeByte(0xFF);
+				BufferUtils.writeLegacyMCString(packet, str2, 256);
+				ctx.writeAndFlush(packet.retain()).addListener(ChannelFutureListener.CLOSE);
+			}finally {
+				packet.release();
+			}
+		}else {
+			kickClient(ctx);
+		}
+		logger().error("Received error code " + errorCode + " from server: \"" + str + "\"");
+	}
+
+	private void handleUnexpectedClientPacket(ChannelHandlerContext ctx, int type) {
+		int oldState = state;
+		state = STATE_COMPLETED;
+		kickClient(ctx);
+		logger().error("Unexpected packet type " + type + " received from client in state " + oldState);
+	}
+
+	private void handleUnexpectedServerPacket(ChannelHandlerContext ctx, int type) {
+		int oldState = state;
+		state = STATE_COMPLETED;
+		kickClient(ctx);
+		logger().error("Unexpected packet type " + type + " received from server in state " + oldState);
+	}
+
+	private void enterPlayState() {
+		handler().setEncoder(new RewindPacketEncoder<>());
+		handler().setDecoder(new RewindPacketDecoder<>());
+	}
+
+}

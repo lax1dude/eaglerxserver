@@ -101,6 +101,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private IPlatform<PlayerObject> platform;
 	private EnumPlatformType platformType;
 	private Class<PlayerObject> playerClazz;
+	private Set<Class<?>> playerClassSet;
 	private ConfigDataRoot config;
 	private IEventDispatchAdapter<PlayerObject, ?> eventDispatcher;
 	private Set<EaglerPlayerInstance<PlayerObject>> eaglerPlayers;
@@ -138,6 +139,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		eaglerPlayers = Sets.newConcurrentHashSet();
 		platform = init.getPlatform();
 		playerClazz = platform.getPlayerClass();
+		playerClassSet = Collections.singleton(playerClazz);
 		switch(platform.getType()) {
 		case BUNGEE: platformType = EnumPlatformType.BUNGEECORD; break;
 		case BUKKIT: platformType = EnumPlatformType.BUKKIT; break;
@@ -393,8 +395,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public Class<PlayerObject> getPlayerClass() {
-		return playerClazz;
+	public Set<Class<?>> getPlayerTypes() {
+		return playerClassSet;
 	}
 
 	@Override
@@ -408,11 +410,16 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> IEaglerXServerAPI<T> createAPI(Class<T> playerClass) {
+	public <T> IEaglerXServerAPI<T> getAPI(Class<T> playerClass) {
 		if(!playerClass.isAssignableFrom(playerClazz)) {
 			throw new ClassCastException("Class " + playerClazz.getName() + " cannot be cast to " + playerClass.getName());
 		}
 		return (IEaglerXServerAPI<T>) this;
+	}
+
+	@Override
+	public IEaglerXServerAPI<?> getDefaultAPI() {
+		return this;
 	}
 
 	@Override

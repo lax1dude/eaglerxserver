@@ -111,6 +111,18 @@ public class BufferUtils {
 		return ret.toString();
 	}
 
+	public static CharSequence readMCCharSequence(ByteBuf buffer, int maxLen) {
+		int len = BufferUtils.readVarInt(buffer, 5);
+		if(len > maxLen * 4) {
+			throw new IndexOutOfBoundsException();
+		}
+		CharSequence ret = buffer.readCharSequence(len, StandardCharsets.UTF_8);
+		if(ret.length() > maxLen) {
+			throw new IndexOutOfBoundsException();
+		}
+		return ret;
+	}
+
 	public static void writeMCString(ByteBuf buffer, String value, int maxLen) {
 		if(value.length() > maxLen) {
 			throw new IndexOutOfBoundsException();
@@ -120,5 +132,17 @@ public class BufferUtils {
 		buffer.writeBytes(bytes);
 	}
 
+	public static boolean charSeqEqual(CharSequence seq1, CharSequence seq2) {
+		int l = seq1.length();
+		if(l != seq2.length()) {
+			return false;
+		}
+		for(int i = 0; i < l; ++i) {
+			if(seq1.charAt(i) != seq2.charAt(i)) {
+				return false;
+			}
+		}
+		return true;
+	}
 
 }

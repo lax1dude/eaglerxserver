@@ -1,12 +1,10 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
-import java.net.SocketAddress;
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelOutboundHandler;
-import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindInitializer;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IPacket2ClientProtocol;
 
@@ -79,38 +77,13 @@ public abstract class RewindInitializer<Attachment> implements IEaglerXRewindIni
 	}
 
 	@Override
+	public IEaglerConnection getConnection() {
+		return pipelineData;
+	}
+
+	@Override
 	public void setAttachment(Attachment obj) {
 		pipelineData.rewindAttachment = obj;
-	}
-
-	@Override
-	public SocketAddress getSocketAddress() {
-		return channel.remoteAddress();
-	}
-
-	@Override
-	public String getRealAddress() {
-		return pipelineData.realAddress != null ? pipelineData.realAddress : channel.remoteAddress().toString();
-	}
-
-	@Override
-	public String getWebSocketHeader(EnumWebSocketHeader header) {
-		switch(header) {
-		case HEADER_ORIGIN:
-			return pipelineData.headerOrigin;
-		case HEADER_USER_AGENT:
-			return pipelineData.headerUserAgent;
-		case HEADER_HOST:
-			return pipelineData.headerHost;
-		case HEADER_COOKIE:
-			return pipelineData.headerCookie;
-		case HEADER_AUTHORIZATION:
-			return pipelineData.headerAuthorization;
-		case REQUEST_PATH:
-			return pipelineData.requestPath;
-		default:
-			return null;
-		}
 	}
 
 	@Override
@@ -182,7 +155,7 @@ public abstract class RewindInitializer<Attachment> implements IEaglerXRewindIni
 		injectNettyHandlers0(nettyEncoder, nettyDecoder);
 	}
 
-	protected abstract void injectNettyHandlers0(Object nettyEncoder, Object nettyDecoder);
+	protected abstract void injectNettyHandlers0(ChannelOutboundHandler nettyEncoder, ChannelInboundHandler nettyDecoder);
 
 	@Override
 	public void injectNettyHandlers(ChannelHandler nettyCodec) {
@@ -193,7 +166,7 @@ public abstract class RewindInitializer<Attachment> implements IEaglerXRewindIni
 		injectNettyHandlers0(nettyCodec);
 	}
 
-	protected abstract void injectNettyHandlers0(Object nettyCodec);
+	protected abstract void injectNettyHandlers0(ChannelHandler nettyCodec);
 
 	public boolean isCanceled() {
 		return canceled;

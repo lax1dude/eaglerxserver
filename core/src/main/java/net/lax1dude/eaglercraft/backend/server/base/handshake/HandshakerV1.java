@@ -6,7 +6,6 @@ import java.util.UUID;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
@@ -121,7 +120,7 @@ public class HandshakerV1 extends HandshakerInstance {
 		buffer.writeByte(0);
 		buffer.writeShort(0);
 		
-		return ctx.writeAndFlush(new BinaryWebSocketFrame(buffer));
+		return ctx.writeAndFlush(buffer);
 	}
 
 	@Override
@@ -139,7 +138,7 @@ public class HandshakerV1 extends HandshakerInstance {
 		buffer.writeCharSequence(setUsername, StandardCharsets.US_ASCII);
 		buffer.writeLong(setUUID.getMostSignificantBits());
 		buffer.writeLong(setUUID.getLeastSignificantBits());
-		return ctx.writeAndFlush(new BinaryWebSocketFrame(buffer));
+		return ctx.writeAndFlush(buffer);
 	}
 
 	@Override
@@ -161,14 +160,14 @@ public class HandshakerV1 extends HandshakerInstance {
 		}
 		buffer.writeByte(len);
 		buffer.writeBytes(msg, 0, len);
-		return ctx.writeAndFlush(new BinaryWebSocketFrame(buffer));
+		return ctx.writeAndFlush(buffer);
 	}
 
 	@Override
 	protected ChannelFuture sendPacketFinishLogin(ChannelHandlerContext ctx) {
 		ByteBuf buffer = ctx.alloc().buffer();
 		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_FINISH_LOGIN);
-		return ctx.writeAndFlush(new BinaryWebSocketFrame(buffer));
+		return ctx.writeAndFlush(buffer);
 	}
 
 }

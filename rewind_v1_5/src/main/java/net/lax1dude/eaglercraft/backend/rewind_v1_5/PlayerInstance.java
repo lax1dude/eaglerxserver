@@ -1,7 +1,6 @@
 package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.INativeZlib;
 
 public class PlayerInstance<PlayerObject> {
@@ -10,14 +9,19 @@ public class PlayerInstance<PlayerObject> {
 	private IEaglerPlayer<PlayerObject> eaglerPlayer;
 
 	private INativeZlib nativeZlib;
+	private IRewindLogger logger;
 
-	public PlayerInstance(RewindPluginProtocol<PlayerObject> rewind) {
+	public PlayerInstance(RewindPluginProtocol<PlayerObject> rewind, String logName) {
 		this.rewind = rewind;
-		this.nativeZlib = rewind.getServerAPI().createNativeZlib(true, false, 6);
+		this.logger = rewind.logger().createSubLogger(logName);
 	}
 
 	public RewindPluginProtocol<PlayerObject> getRewind() {
 		return rewind;
+	}
+
+	public IRewindLogger logger() {
+		return logger;
 	}
 
 	public IEaglerPlayer<PlayerObject> getPlayer() {
@@ -25,17 +29,25 @@ public class PlayerInstance<PlayerObject> {
 	}
 
 	public INativeZlib getNativeZlib() {
-		return nativeZlib;
+		if(this.nativeZlib == null) {
+			this.nativeZlib = rewind.getServerAPI().createNativeZlib(true, false, 6);
+		}
+		return this.nativeZlib;
 	}
 
-	public void handleCreate(IEaglerPlayer<PlayerObject> eaglerPlayer) {
+	public void handlePlayerCreate(IEaglerPlayer<PlayerObject> eaglerPlayer) {
 		this.eaglerPlayer = eaglerPlayer;
 	}
 
-	public void handleDestroy() {
-		// todo: later bc netty is async!!!
-		this.nativeZlib.release();
-		this.nativeZlib = null;
+	public void handlePlayerDestroy() {
+
+	}
+
+	public void releaseNatives() {
+		if(this.nativeZlib != null) {
+			this.nativeZlib.release();
+			this.nativeZlib = null;
+		}
 	}
 
 }

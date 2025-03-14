@@ -1,22 +1,16 @@
 package net.lax1dude.eaglercraft.backend.server.api.rewind;
 
-import java.net.SocketAddress;
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelOutboundHandler;
-import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
 
 public interface IEaglerXRewindInitializer<Attachment> {
 
+	IEaglerConnection getConnection();
+
 	void setAttachment(Attachment obj);
-
-	SocketAddress getSocketAddress();
-
-	String getRealAddress();
-
-	String getWebSocketHeader(EnumWebSocketHeader header);
 
 	default int getLegacyMinecraftProtocol() {
 		return getLegacyHandshake().getProtocolVersion();

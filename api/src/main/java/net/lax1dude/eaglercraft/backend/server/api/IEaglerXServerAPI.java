@@ -31,16 +31,15 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	public static <PlayerObject> IEaglerXServerAPI<PlayerObject> instance(Class<PlayerObject> playerObj) {
-		return EaglerXServerAPIFactory.INSTANCE.createAPI(playerObj);
+		return EaglerXServerAPIFactory.INSTANCE.getAPI(playerObj);
 	}
 
 	public static IEaglerXServerAPI<?> instance() {
-		EaglerXServerAPIFactory factory = EaglerXServerAPIFactory.INSTANCE;
-		return factory.createAPI(factory.getPlayerClass());
+		return EaglerXServerAPIFactory.INSTANCE.getDefaultAPI();
 	}
 
-	public static Class<?> getPlayerClass() {
-		return EaglerXServerAPIFactory.INSTANCE.getPlayerClass();
+	public static Set<Class<?>> getPlayerTypes() {
+		return EaglerXServerAPIFactory.INSTANCE.getPlayerTypes();
 	}
 
 	public static IEaglerAPIFactory getFactoryInstance() {

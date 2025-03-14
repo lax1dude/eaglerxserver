@@ -19,7 +19,7 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public abstract class HandshakerInstance implements IHandshaker {
 
-	private static final Pattern USERNAME_REGEX = Pattern.compile("^[A-Za-z0-9_]{3,16}$");
+	public static final Pattern USERNAME_REGEX = Pattern.compile("^[A-Za-z0-9_]{3,16}$");
 	private static final byte[] OFFLINE_PLAYER_BYTES = "OfflinePlayer:".getBytes(StandardCharsets.US_ASCII);
 
 	protected final EaglerXServer<?> server;
@@ -64,12 +64,12 @@ public abstract class HandshakerInstance implements IHandshaker {
 						if(obj == null) {
 							obj = server.componentBuilder().buildTranslationComponent().translation("disconnect.closed").end();
 						}
-						inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE, obj);
 						state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
+						inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE, obj);
 					}
 				}else {
-					inboundHandler.terminateInternalError(ctx, getVersion());
 					state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
+					inboundHandler.terminateInternalError(ctx, getVersion());
 					pipelineData.connectionLogger.error("Caught exception dispatching client brand event", err);
 				}
 			});
@@ -96,8 +96,8 @@ public abstract class HandshakerInstance implements IHandshaker {
 				if(err == null) {
 					IEaglercraftAuthCheckRequiredEvent.EnumAuthResponse response = evt.getAuthRequired();
 					if(response == null) {
-						inboundHandler.terminateInternalError(ctx, getVersion());
 						state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
+						inboundHandler.terminateInternalError(ctx, getVersion());
 						pipelineData.connectionLogger.error("Auth required check event was not handled");
 					}else {
 						pipelineData.nicknameSelectionEnabled = evt.isNicknameSelectionEnabled();
@@ -106,29 +106,28 @@ public abstract class HandshakerInstance implements IHandshaker {
 						pipelineData.authMessage = evt.getAuthMessage();
 						switch(response) {
 						case SKIP:
+							state = HandshakePacketTypes.STATE_CLIENT_VERSION;
 							sendPacketVersionNoAuth(ctx, pipelineData.handshakeProtocol, pipelineData.minecraftProtocol,
 									server.getServerBrand(), server.getServerVersion());
-							state = HandshakePacketTypes.STATE_CLIENT_VERSION;
 							break;
 						case REQUIRE:
 							if(pipelineData.authType == null) {
-								inboundHandler.terminateInternalError(ctx, getVersion());
 								state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
+								inboundHandler.terminateInternalError(ctx, getVersion());
 								pipelineData.connectionLogger.error("Auth required check event handler did not provide auth type");
 								break;
 							}
 							if(!pipelineData.handshakeAuthEnabled && (getVersion() < 4 || !pipelineData.cookieAuthEventEnabled)) {
 								inboundHandler.terminated = true;
+								state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 								ctx.channel().eventLoop().execute(() -> sendPacketAuthRequired(ctx, pipelineData.authType,
 										evt.getAuthMessage()).addListener(ChannelFutureListener.CLOSE));
-								state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 								break;
 							}
 							pipelineData.authEventEnabled = true;
+							state = HandshakePacketTypes.STATE_CLIENT_VERSION;
 							if(sendPacketVersionAuth(ctx, pipelineData.handshakeProtocol, pipelineData.minecraftProtocol,
-									server.getServerBrand(), server.getServerVersion(), pipelineData.authType, evt.getSaltingData()) != null) {
-								state = HandshakePacketTypes.STATE_CLIENT_VERSION;
-							}else {
+									server.getServerBrand(), server.getServerVersion(), pipelineData.authType, evt.getSaltingData()) == null) {
 								state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 							}
 							break;
@@ -137,21 +136,21 @@ public abstract class HandshakerInstance implements IHandshaker {
 							if(obj == null) {
 								obj = server.componentBuilder().buildTranslationComponent().translation("disconnect.closed").end();
 							}
-							inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE, obj);
 							state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
+							inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE, obj);
 							break;
 						}
 					}
 				}else {
-					inboundHandler.terminateInternalError(ctx, getVersion());
 					state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
+					inboundHandler.terminateInternalError(ctx, getVersion());
 					pipelineData.connectionLogger.error("Caught exception dispatching auth required check event", err);
 				}
 			});
 		}else {
+			state = HandshakePacketTypes.STATE_CLIENT_VERSION;
 			sendPacketVersionNoAuth(ctx, pipelineData.handshakeProtocol, pipelineData.minecraftProtocol,
 					server.getServerBrand(), server.getServerVersion());
-			state = HandshakePacketTypes.STATE_CLIENT_VERSION;
 		}
 	}
 
@@ -196,8 +195,8 @@ public abstract class HandshakerInstance implements IHandshaker {
 			}
 
 			if(!USERNAME_REGEX.matcher(username).matches()) {
-				inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE, "Invalid Username");
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
+				inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE, "Invalid Username");
 				return;
 			}
 
@@ -219,9 +218,9 @@ public abstract class HandshakerInstance implements IHandshaker {
 				}else if(pipelineData.cookieAuthEventEnabled) {
 					continueLoginCookieAuth(ctx, requestedUsername);
 				}else {
+					state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 					inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_WRONG_PACKET,
 							"Missing Login Packet Password");
-					state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 				}
 			}else if(pipelineData.cookieAuthEventEnabled) {
 				continueLoginCookieAuth(ctx, requestedUsername);
@@ -229,16 +228,18 @@ public abstract class HandshakerInstance implements IHandshaker {
 				continueLoginNoAuth(ctx);
 			}
 		}else {
+			state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 			inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_WRONG_PACKET,
 					"Wrong Request Login Packet");
-			state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 		}
 	}
 
 	private void continueLoginNoAuth(ChannelHandlerContext ctx) {
 		updateLoggerName();
-		ctx.channel().eventLoop().execute(() -> sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid));
-		state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
+		ctx.channel().eventLoop().execute(() -> {
+			state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
+			sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid);
+		});
 	}
 
 	private void continueLoginPasswordAuth(ChannelHandlerContext ctx, String requestedUsername, byte[] authPassword) {
@@ -249,8 +250,8 @@ public abstract class HandshakerInstance implements IHandshaker {
 				pipelineData.requestedServer, (evt, err) -> {
 			IEaglercraftAuthPasswordEvent.EnumAuthResponse response = evt.getAuthResponse();
 			if(response == null) {
-				inboundHandler.terminateInternalError(ctx, getVersion());
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
+				inboundHandler.terminateInternalError(ctx, getVersion());
 				pipelineData.connectionLogger.error("Auth password event was not handled");
 			}else if(response == IEaglercraftAuthPasswordEvent.EnumAuthResponse.ALLOW) {
 				ctx.channel().eventLoop().execute(() -> {
@@ -258,17 +259,17 @@ public abstract class HandshakerInstance implements IHandshaker {
 					pipelineData.uuid = evt.getProfileUUID();
 					pipelineData.requestedServer = evt.getAuthRequestedServer();
 					updateLoggerName();
+					state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
 					sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid);
 				});
-				state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
 			}else {
 				Object obj = evt.getKickMessage();
 				if(obj == null) {
 					obj = server.componentBuilder().buildTranslationComponent().translation("disconnect.closed").end();
 				}
 				final Object obj2 = obj;
-				ctx.channel().eventLoop().execute(() -> sendPacketDenyLogin(ctx, obj2));
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
+				ctx.channel().eventLoop().execute(() -> sendPacketDenyLogin(ctx, obj2));
 			}
 		});
 	}
@@ -280,8 +281,8 @@ public abstract class HandshakerInstance implements IHandshaker {
 				pipelineData.authType, pipelineData.authMessage, pipelineData.requestedServer, (evt, err) -> {
 			IEaglercraftAuthCookieEvent.EnumAuthResponse response = evt.getAuthResponse();
 			if(response == null) {
-				inboundHandler.terminateInternalError(ctx, getVersion());
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
+				inboundHandler.terminateInternalError(ctx, getVersion());
 				pipelineData.connectionLogger.error("Auth cookie event was not handled");
 				return;
 			}
@@ -292,9 +293,9 @@ public abstract class HandshakerInstance implements IHandshaker {
 					pipelineData.uuid = evt.getProfileUUID();
 					pipelineData.requestedServer = evt.getAuthRequestedServer();
 					updateLoggerName();
+					state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
 					sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid);
 				});
-				state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
 				break;
 			case DENY:
 				Object obj = evt.getKickMessage();
@@ -302,14 +303,14 @@ public abstract class HandshakerInstance implements IHandshaker {
 					obj = server.componentBuilder().buildTranslationComponent().translation("disconnect.closed").end();
 				}
 				final Object obj2 = obj;
-				ctx.channel().eventLoop().execute(() -> sendPacketDenyLogin(ctx, obj2));
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
+				ctx.channel().eventLoop().execute(() -> sendPacketDenyLogin(ctx, obj2));
 				break;
 			case REQUIRE_AUTH:
 				inboundHandler.terminated = true;
+				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 				ctx.channel().eventLoop().execute(() -> sendPacketAuthRequired(ctx, pipelineData.authType, evt.getAuthMessage())
 						.addListener(ChannelFutureListener.CLOSE));
-				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 				break;
 			}
 		});
@@ -331,18 +332,18 @@ public abstract class HandshakerInstance implements IHandshaker {
 				pipelineData.profileDatas = new HashMap<>(4);
 				pipelineData.profileDatas.put(key, value);
 			}else if(pipelineData.profileDatas.size() >= 8) {
+				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 				inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_EXCESSIVE_PROFILE_DATA,
 						"Too Many Profile Datas");
-				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 			}else if(pipelineData.profileDatas.putIfAbsent(key, value) != null) {
+				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 				inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_DUPLICATE_PROFILE_DATA,
 						"Duplicate Profile Data");
-				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 			}
 		}else {
+			state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 			inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_WRONG_PACKET,
 					"Wrong Profile Data Packet");
-			state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 		}
 	}
 
@@ -351,17 +352,17 @@ public abstract class HandshakerInstance implements IHandshaker {
 			state = HandshakePacketTypes.STATE_STALLING;
 			inboundHandler.finishLogin(ctx);
 		}else {
+			state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 			inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_WRONG_PACKET,
 					"Wrong Finish Login Packet");
-			state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 		}
 	}
 
 	protected abstract ChannelFuture sendPacketFinishLogin(ChannelHandlerContext ctx);
 
 	public void finish(ChannelHandlerContext ctx) {
-		sendPacketFinishLogin(ctx);
 		state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
+		sendPacketFinishLogin(ctx);
 	}
 
 }

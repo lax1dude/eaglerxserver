@@ -33,6 +33,10 @@ public class RewindChannelHandler<PlayerObject> extends MessageToMessageCodec<By
 			return codec.player.getRewind();
 		}
 
+		protected final IRewindLogger logger() {
+			return codec.player.logger();
+		}
+
 		protected final IEaglerXServerAPI<PlayerObject> serverAPI() {
 			return codec.player.getRewind().getServerAPI();
 		}
@@ -86,6 +90,11 @@ public class RewindChannelHandler<PlayerObject> extends MessageToMessageCodec<By
 	@Override
 	protected void encode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
 		encoder.encode(ctx, buf, out);
+	}
+
+	@Override
+	public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+		player.releaseNatives();
 	}
 
 }

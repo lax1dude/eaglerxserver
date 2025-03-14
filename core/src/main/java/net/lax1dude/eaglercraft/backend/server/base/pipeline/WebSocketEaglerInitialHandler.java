@@ -9,6 +9,8 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandler;
+import io.netty.channel.ChannelOutboundHandler;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.MessageToMessageCodec;
 import net.lax1dude.eaglercraft.backend.server.api.EnumPipelineEvent;
@@ -18,6 +20,7 @@ import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.RewindInitializer;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings.ConfigDataProtocols;
 import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakePacketTypes;
+import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakerV1;
 import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakerV2;
 import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakerV3;
@@ -389,20 +392,36 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 			kickLegacy(ctx, protocolVers);
 			return;
 		}
+		if(!HandshakerInstance.USERNAME_REGEX.matcher(username).matches()) {
+			ByteBuf legacyKickPacket = ctx.alloc().buffer();
+			try {
+				String msg = "Invalid Username";
+				int len = msg.length();
+				legacyKickPacket.writeByte(0xFF);
+				legacyKickPacket.writeShort(len);
+				for(int i = 0; i < len; ++i) {
+					legacyKickPacket.writeChar(msg.charAt(i));
+				}
+				ctx.writeAndFlush(legacyKickPacket.retain()).addListener(ChannelFutureListener.CLOSE);
+				return;
+			}finally {
+				legacyKickPacket.release();
+			}
+		}
 		RewindInitializer<Object> initializer = new RewindInitializer<Object>(ctx.channel(), pipelineData, protocolVers, username, serverHost, serverPort) {
 
 			@Override
-			public void injectNettyHandlers0(Object nettyEncoder, Object nettyDecoder) {
+			public void injectNettyHandlers0(ChannelOutboundHandler nettyEncoder, ChannelInboundHandler nettyDecoder) {
 				ChannelPipeline pipeline = ctx.pipeline();
-				pipeline.addBefore(PipelineTransformer.HANDLER_HANDSHAKE, PipelineTransformer.HANDLER_REWIND_DECODER, (ChannelHandler) nettyDecoder);
-				pipeline.addBefore(PipelineTransformer.HANDLER_HANDSHAKE, PipelineTransformer.HANDLER_REWIND_ENCODER, (ChannelHandler) nettyEncoder);
+				pipeline.addBefore(PipelineTransformer.HANDLER_HANDSHAKE, PipelineTransformer.HANDLER_REWIND_DECODER, nettyDecoder);
+				pipeline.addBefore(PipelineTransformer.HANDLER_HANDSHAKE, PipelineTransformer.HANDLER_REWIND_ENCODER, nettyEncoder);
 				pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_INJECTED_REWIND_HANDLERS);
 			}
 
 			@Override
-			public void injectNettyHandlers0(Object nettyCodec) {
+			public void injectNettyHandlers0(ChannelHandler nettyCodec) {
 				ChannelPipeline pipeline = ctx.pipeline();
-				pipeline.addBefore(PipelineTransformer.HANDLER_HANDSHAKE, PipelineTransformer.HANDLER_REWIND_CODEC, (ChannelHandler) nettyCodec);
+				pipeline.addBefore(PipelineTransformer.HANDLER_HANDSHAKE, PipelineTransformer.HANDLER_REWIND_CODEC, nettyCodec);
 				pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_INJECTED_REWIND_HANDLERS);
 			}
 
@@ -489,10 +508,10 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 			ByteBuf buf = ctx.alloc().buffer();
 			buf.writeBytes(LEGACY_REDIRECT);
 			buf.writeBytes(pipelineData.listenerInfo.getLegacyRedirectAddressBuf());
-			ctx.write(buf).addListener(ChannelFutureListener.CLOSE);
+			ctx.writeAndFlush(buf).addListener(ChannelFutureListener.CLOSE);
 		} else {
 			terminated = true;
-			ctx.write(Unpooled.wrappedBuffer(LEGACY_KICK)).addListener(ChannelFutureListener.CLOSE);
+			ctx.writeAndFlush(Unpooled.wrappedBuffer(LEGACY_KICK)).addListener(ChannelFutureListener.CLOSE);
 		}
 	}
 

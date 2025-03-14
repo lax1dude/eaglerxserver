@@ -3,11 +3,12 @@ package net.lax1dude.eaglercraft.backend.server.api.bukkit;
 import org.bukkit.entity.Player;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.internal.factory.EaglerXServerAPIFactory;
 
 public class EaglerXServerAPI {
 
 	public static IEaglerXServerAPI<Player> instance() {
-		return IEaglerXServerAPI.instance(Player.class);
+		return EaglerXServerAPIFactory.INSTANCE.getAPI(Player.class);
 	}
 
 }

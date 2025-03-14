@@ -14,6 +14,7 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.IRewindLogger;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.IRewindPlatform;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.RewindPluginProtocol;
 import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
@@ -41,12 +42,14 @@ public class PlatformPluginVelocity implements IRewindPlatform<Player> {
 
 	private final ProxyServer proxy;
 	private final Logger logger;
+	private final SLF4JLogger rewindLogger;
 	private final RewindPluginProtocol<Player> protocol;
 
 	@Inject
 	public PlatformPluginVelocity(ProxyServer proxyIn, Logger loggerIn, @DataDirectory Path dataDirIn) {
 		proxy = proxyIn;
 		logger = loggerIn;
+		rewindLogger = new SLF4JLogger(loggerIn);
 		protocol = new RewindPluginProtocol<Player>(this);
 	}
 
@@ -58,6 +61,11 @@ public class PlatformPluginVelocity implements IRewindPlatform<Player> {
 	@Subscribe
     public void onProxyShutdown(ProxyShutdownEvent e) {
 		EaglerXServerAPI.instance().getEaglerXRewindService().unregisterLegacyProtocol(protocol);
+	}
+
+	@Override
+	public IRewindLogger logger() {
+		return rewindLogger;
 	}
 
 }

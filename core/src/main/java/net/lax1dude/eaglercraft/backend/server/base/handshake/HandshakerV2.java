@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
@@ -73,7 +72,7 @@ public class HandshakerV2 extends HandshakerV1 {
 		buffer.writeByte(0);
 		buffer.writeShort(0);
 
-		return ctx.writeAndFlush(new BinaryWebSocketFrame(buffer));
+		return ctx.writeAndFlush(buffer);
 	}
 
 	@Override
@@ -118,7 +117,7 @@ public class HandshakerV2 extends HandshakerV1 {
 			buffer.writeShort(0);
 		}
 		
-		return ctx.writeAndFlush(new BinaryWebSocketFrame(buffer));
+		return ctx.writeAndFlush(buffer);
 	}
 
 	protected int getAuthTypeId(IEaglercraftAuthCheckRequiredEvent.EnumAuthType meth) {

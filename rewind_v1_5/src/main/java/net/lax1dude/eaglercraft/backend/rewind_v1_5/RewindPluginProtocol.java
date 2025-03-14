@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
 import java.nio.charset.StandardCharsets;
 
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindInitializer;
@@ -26,36 +27,51 @@ public class RewindPluginProtocol<PlayerObject> implements IEaglerXRewindProtoco
 		return server;
 	}
 
+	public IRewindLogger logger() {
+		return platform.logger();
+	}
+
 	@Override
 	public void handleRegistered(IEaglerXServerAPI<PlayerObject> server) {
 		// On startup
+		logger().info("EaglerXRewind protocol for Eaglercraft 1.5.2 has been registered");
 		this.server = server;
 	}
 
 	@Override
 	public void handleUnregistered(IEaglerXServerAPI<PlayerObject> server) {
 		// On shutdown
+		logger().info("EaglerXRewind protocol for Eaglercraft 1.5.2 has been unregistered");
 	}
 
 	@Override
 	public void initializeConnection(int legacyProtocol, IEaglerXRewindInitializer<PlayerInstance<PlayerObject>> initializer) {
-		PlayerInstance<PlayerObject> attachment = new PlayerInstance<>(this);
-		initializer.setAttachment(attachment);
-		initializer.netty().injectNettyHandlers((new RewindChannelHandler<PlayerObject>(attachment))
-				.setCodec(new RewindHandshakeServerCodec<>()));
+		IEaglerConnection eaglerConnection = initializer.getConnection();
 		IPacket2ClientProtocol legacyHandshake = initializer.getLegacyHandshake();
+		
+		String realAddr = eaglerConnection.getRealAddress();
+		if(realAddr == null) {
+			realAddr = eaglerConnection.getSocketAddress().toString();
+		}
+		
+		PlayerInstance<PlayerObject> attachment = new PlayerInstance<>(this, realAddr + "|" + legacyHandshake.getUsername());
+		initializer.setAttachment(attachment);
+		
+		initializer.netty().injectNettyHandlers((new RewindChannelHandler<PlayerObject>(attachment))
+				.setCodec(new RewindHandshakeCodec<>(legacyHandshake)));
+		
 		initializer.rewriteInitialHandshakeV2(3, 47, "EaglerXRewind", "1.5.2", false,
 				legacyHandshake.getUsername().getBytes(StandardCharsets.US_ASCII));
 	}
 
 	@Override
 	public void handleCreatePlayer(PlayerInstance<PlayerObject> attachment, IEaglerPlayer<PlayerObject> playerObj) {
-		attachment.handleCreate(playerObj);
+		attachment.handlePlayerCreate(playerObj);
 	}
 
 	@Override
 	public void handleDestroyPlayer(PlayerInstance<PlayerObject> attachment) {
-		attachment.handleDestroy();
+		attachment.handlePlayerDestroy();
 	}
 
 	@Override

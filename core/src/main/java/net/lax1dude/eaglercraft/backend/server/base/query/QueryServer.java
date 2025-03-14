@@ -22,6 +22,7 @@ public class QueryServer implements IQueryServer {
 		this.server = server;
 		this.registeredQueriesLock = new ReentrantReadWriteLock();
 		this.registeredQueries = new HashMap<>();
+		this.registeredQueries.put("eagler", new QueryHandlerEagler());
 		this.registeredQueries.put("version", new QueryHandlerVersion(server));
 		this.registeredQueries.put("revoke_session_token", new QueryHandlerRevoke(server));
 	}
