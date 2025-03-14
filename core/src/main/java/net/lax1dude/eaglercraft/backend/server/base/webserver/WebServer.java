@@ -320,9 +320,7 @@ public class WebServer implements IWebServer {
 
 	@Override
 	public IPreparedResponse prepareResponse(byte[] data) {
-		ByteBuf buf = Unpooled.buffer(data.length, data.length);
-		buf.writeBytes(data);
-		return new PreparedResponse(buf.retain());
+		return new PreparedResponse(Unpooled.wrappedBuffer(data));
 	}
 
 	@Override

@@ -12,8 +12,9 @@ public class PreparedResponse implements IPreparedResponse {
 	}
 
 	@Override
-	public void retain() {
+	public IPreparedResponse retain() {
 		buffer.retain();
+		return this;
 	}
 
 	@Override

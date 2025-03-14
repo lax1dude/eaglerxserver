@@ -20,13 +20,15 @@ public interface IRequestContext {
 
 	String getRealAddress();
 
+	String getRawPath();
+
+	String getPath();
+
+	String getQuery();
+
+	String getHeader(String name);
+
 	String getHost();
-
-	CharSequence getPath();
-
-	CharSequence getQuery();
-
-	CharSequence getHeader(String name);
 
 	void setResponseBody(IPreparedResponse preparedResponse);
 
