@@ -20,7 +20,7 @@ abstract class DefaultHandler implements IRequestHandler {
 	public void handleRequest(IRequestContext requestContext) {
 		requestContext.setResponseCode(getCode());
 		if(response != null) {
-			requestContext.setResponseBody(response);
+			requestContext.setResponseBody(response.retain());
 		}else {
 			requestContext.setResponseBody(getContents(server), StandardCharsets.UTF_8);
 		}

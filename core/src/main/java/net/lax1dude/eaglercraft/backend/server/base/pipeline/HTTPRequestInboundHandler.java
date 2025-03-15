@@ -278,7 +278,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 				handleRequest(context, server.getWebServer().get500Handler(), true);
 				break;
 			case RequestContext.RESPONSE_PREPARED:
-				context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, context.responsePrepared.buffer), context).retain());
+				context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, Unpooled.wrappedBuffer(context.responsePrepared.buffer)), context).retain());
 				break;
 			case RequestContext.RESPONSE_BYTE_ARRAY:
 				context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, Unpooled.wrappedBuffer(context.responseData)), context));
@@ -293,7 +293,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 				}
 				break;
 			case RequestContext.RESPONSE_EMPTY:
-				context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, Unpooled.wrappedBuffer(context.responseData)), context));
+				context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, null), context));
 				break;
 			case RequestContext.RESPONSE_UNSAFE_BUF:
 				context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, context.responseUnsafeByteBuf), context).retain());
