@@ -15,7 +15,7 @@ class Default500 extends DefaultHandler {
 
 	@Override
 	protected String getContents(EaglerXServer<?> server) {
-		return "<h1>HTTP Error 500</h1></h3>(Internal error)</h3>";
+		return "<h1>HTTP Error 500</h1><h3>(Internal error)</h3>";
 	}
 
 }
