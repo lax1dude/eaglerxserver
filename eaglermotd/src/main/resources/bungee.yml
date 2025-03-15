@@ -1,0 +1,7 @@
+name: EaglerMOTD-Reborn
+version: 1.0.0
+main: net.lax1dude.eaglercraft.backend.eaglermotd.bungee.PlatformPluginBungee
+description: Official EaglerMOTD plugin for EaglercraftXServer
+author: lax1dude
+depends:
+- EaglercraftXServer
