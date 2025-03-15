@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -263,6 +264,15 @@ public class WebServer implements IWebServer {
 			res.directory = isDir(path);
 			res.result = handler404;
 			return res;
+		}finally {
+			routeMapLock.readLock().unlock();
+		}
+	}
+
+	public RouteMap.Result<List<EnumRequestMethod>> optionsInternal(IEaglerListenerInfo listener, CharSequence path, RouteProcessor routeProcessor) {
+		routeMapLock.readLock().lock();
+		try {
+			return routeProcessor.options(path, listener, routeMap);
 		}finally {
 			routeMapLock.readLock().unlock();
 		}

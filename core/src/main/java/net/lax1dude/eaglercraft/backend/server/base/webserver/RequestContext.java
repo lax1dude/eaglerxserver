@@ -8,12 +8,15 @@ import java.util.List;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.EventLoop;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchCallback;
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IPreparedResponse;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestContext;
+import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestHandler;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IWebServer;
 
 public class RequestContext implements IRequestContext, IRequestContext.NettyUnsafe {
@@ -25,15 +28,17 @@ public class RequestContext implements IRequestContext, IRequestContext.NettyUns
 	public String query;
 	public ChannelHandlerContext ctx;
 	public FullHttpRequest request;
+	public IRequestHandler requestHandlerInternal;
+	public boolean failing;
 
-	private static final int RESPONSE_NONE = 0;
-	private static final int RESPONSE_PREPARED = 1;
-	private static final int RESPONSE_BYTE_ARRAY = 2;
-	private static final int RESPONSE_CHARS = 3;
-	private static final int RESPONSE_EMPTY = 4;
-	private static final int RESPONSE_UNSAFE_BUF = 5;
-	private static final int RESPONSE_UNSAFE_FULL = 6;
-	private static final int RESPONSE_UNSAFE_SENT = 7;
+	public static final int RESPONSE_NONE = 0;
+	public static final int RESPONSE_PREPARED = 1;
+	public static final int RESPONSE_BYTE_ARRAY = 2;
+	public static final int RESPONSE_CHARS = 3;
+	public static final int RESPONSE_EMPTY = 4;
+	public static final int RESPONSE_UNSAFE_BUF = 5;
+	public static final int RESPONSE_UNSAFE_FULL = 6;
+	public static final int RESPONSE_UNSAFE_SENT = 7;
 
 	public int responseCode = -1;
 	public List<Object> responseHeaders = null;
@@ -45,6 +50,9 @@ public class RequestContext implements IRequestContext, IRequestContext.NettyUns
 	public Charset responseCharsCharset;
 	public ByteBuf responseUnsafeByteBuf;
 	public FullHttpResponse responseUnsafeFull;
+
+	public boolean suspendable = false;
+	public ContextPromise contextPromise;
 
 	public RequestContext(WebServer webServer) {
 		this.webServer = webServer;
@@ -138,12 +146,56 @@ public class RequestContext implements IRequestContext, IRequestContext.NettyUns
 	}
 
 	@Override
+	public Iterable<String> getHeaders(String name) {
+		return request.headers().getAll(name);
+	}
+
+	@Override
 	public String getHost() {
 		return request.headers().get(HttpHeaderNames.HOST);
 	}
 
 	@Override
+	public int getRequestBodyLength() {
+		return request.content().readableBytes();
+	}
+
+	@Override
+	public byte[] getRequestBodyByteArray() {
+		ByteBuf buf = request.content();
+		int len = buf.readableBytes();
+		if(len == 0) {
+			throw new UnsupportedOperationException("Request does not have a body");
+		}
+		byte[] ret = new byte[len];
+		buf.getBytes(buf.readerIndex(), ret);
+		return ret;
+	}
+
+	@Override
+	public CharSequence getRequestBodyCharSequence(Charset charset) {
+		ByteBuf buf = request.content();
+		int len = buf.readableBytes();
+		if(len == 0) {
+			throw new UnsupportedOperationException("Request does not have a body");
+		}
+		return buf.getCharSequence(buf.readerIndex(), len, charset);
+	}
+
+	@Override
+	public void getRequestBodyByteArray(int srcOffset, byte[] dest, int dstOffset, int length) {
+		ByteBuf buf = request.content();
+		if(buf.readableBytes() == 0) {
+			throw new UnsupportedOperationException("Request does not have a body");
+		}
+		buf.getBytes(buf.readerIndex() + srcOffset, dest, dstOffset, length);
+	}
+
+	@Override
 	public void setResponseBody(IPreparedResponse preparedResponse) {
+		if(preparedResponse == null) {
+			throw new NullPointerException("response body is null");
+		}
 		clearResult();
 		this.response = RESPONSE_PREPARED;
 		this.responsePrepared = (PreparedResponse) preparedResponse;
@@ -151,6 +203,9 @@ public class RequestContext implements IRequestContext, IRequestContext.NettyUns
 
 	@Override
 	public void setResponseBody(byte[] response) {
+		if(response == null) {
+			throw new NullPointerException("response body is null");
+		}
 		clearResult();
 		this.response = RESPONSE_BYTE_ARRAY;
 		this.responseData = response;
@@ -158,6 +213,12 @@ public class RequestContext implements IRequestContext, IRequestContext.NettyUns
 
 	@Override
 	public void setResponseBody(CharSequence response, Charset binaryCharset) {
+		if(response == null) {
+			throw new NullPointerException("response body is null");
+		}
+		if(binaryCharset == null) {
+			throw new NullPointerException("response charset is null");
+		}
 		clearResult();
 		this.response = RESPONSE_CHARS;
 		this.responseChars = response;
@@ -171,7 +232,13 @@ public class RequestContext implements IRequestContext, IRequestContext.NettyUns
 	}
 
 	@Override
-	public void setResponseHeader(String name, Object value) {
+	public void addResponseHeader(String name, Object value) {
+		if(name == null) {
+			throw new NullPointerException("header name is null");
+		}
+		if(value == null) {
+			throw new NullPointerException("header value is null");
+		}
 		if(responseHeaders == null) {
 			responseHeaders = new ArrayList<>();
 		}
@@ -180,8 +247,40 @@ public class RequestContext implements IRequestContext, IRequestContext.NettyUns
 	}
 
 	@Override
+	public void addResponseHeaders(String name, Iterable<?> values) {
+		if(name == null) {
+			throw new NullPointerException("header name is null");
+		}
+		if(values == null) {
+			throw new NullPointerException("header values is null");
+		}
+		if(responseHeaders == null) {
+			responseHeaders = new ArrayList<>();
+		}
+		for(Object val : values) {
+			responseHeaders.add(name);
+			responseHeaders.add(val);
+		}
+	}
+
+	@Override
 	public void setResponseCode(int code) {
 		this.responseCode = code;
+	}
+
+	@Override
+	public IContextPromise suspendContext() {
+		if(!ctx.channel().eventLoop().inEventLoop()) {
+			throw new IllegalStateException("Cannot suspend context outside of the channel's event loop");
+		}
+		if(!suspendable) {
+			throw new IllegalStateException("Context was suspended after the request was already handled");
+		}
+		if(contextPromise != null) {
+			throw new IllegalStateException("Context has already been suspended");
+		}
+		request.retain();
+		return contextPromise = new ContextPromise();
 	}
 
 	@Override
@@ -191,6 +290,9 @@ public class RequestContext implements IRequestContext, IRequestContext.NettyUns
 
 	@Override
 	public void setResponseBodyByteBuf(ByteBuf byteBuf) {
+		if(byteBuf == null) {
+			throw new NullPointerException("response ByteBuf is null");
+		}
 		clearResult();
 		this.response = RESPONSE_UNSAFE_BUF;
 		this.responseUnsafeByteBuf = byteBuf;
@@ -198,6 +300,9 @@ public class RequestContext implements IRequestContext, IRequestContext.NettyUns
 
 	@Override
 	public void setResponseBodyHttpResponse(FullHttpResponse response) {
+		if(response == null) {
+			throw new NullPointerException("response FullHttpResponse is null");
+		}
 		clearResult();
 		this.response = RESPONSE_UNSAFE_FULL;
 		this.responseUnsafeFull = response;
@@ -222,6 +327,82 @@ public class RequestContext implements IRequestContext, IRequestContext.NettyUns
 	@Override
 	public FullHttpRequest getHttpRequest() {
 		return request;
+	}
+
+	@Override
+	public ByteBuf getRequestBodyByteBuf() {
+		return request.content();
+	}
+
+	public class ContextPromise implements IContextPromise {
+
+		private IEventDispatchCallback<RequestContext> consumer;
+		private boolean complete;
+		private Throwable error;
+
+		@Override
+		public void complete() {
+			IEventDispatchCallback<RequestContext> cb;
+			synchronized(this) {
+				if(complete) {
+					return;
+				}
+				complete = true;
+				error = null;
+				cb = consumer;
+			}
+			if(cb != null) {
+				EventLoop el = ctx.channel().eventLoop();
+				if(el.inEventLoop()) {
+					cb.complete(RequestContext.this, null);
+				}else {
+					el.execute(() -> {
+						cb.complete(RequestContext.this, null);
+					});
+				}
+			}
+		}
+
+		@Override
+		public void complete(Throwable err) {
+			IEventDispatchCallback<RequestContext> cb;
+			synchronized(this) {
+				if(complete) {
+					return;
+				}
+				complete = true;
+				error = err;
+				cb = consumer;
+			}
+			if(cb != null) {
+				EventLoop el = ctx.channel().eventLoop();
+				if(el.inEventLoop()) {
+					cb.complete(RequestContext.this, err);
+				}else {
+					el.execute(() -> {
+						cb.complete(RequestContext.this, err);
+					});
+				}
+			}
+		}
+
+		@Override
+		public IRequestContext context() {
+			return RequestContext.this;
+		}
+
+		public void onResumeInternal(IEventDispatchCallback<RequestContext> cs) {
+			Throwable err;
+			synchronized(this) {
+				if(!complete) {
+					consumer = cs;
+					return;
+				}
+				err = error;
+			}
+			cs.complete(RequestContext.this, err);
+		}
+
 	}
 
 }

@@ -28,7 +28,29 @@ public interface IRequestContext {
 
 	String getHeader(String name);
 
+	Iterable<String> getHeaders(String name);
+
 	String getHost();
+
+	int getRequestBodyLength();
+
+	default boolean hasRequestBody() {
+		return getRequestBodyLength() > 0;
+	}
+
+	byte[] getRequestBodyByteArray();
+
+	CharSequence getRequestBodyCharSequence(Charset charset);
+
+	default String getRequestBodyString(Charset charset) {
+		return getRequestBodyCharSequence(charset).toString();
+	}
+
+	default void getRequestBodyByteArray(byte[] dest) {
+		getRequestBodyByteArray(0, dest, 0, dest.length);
+	}
+
+	void getRequestBodyByteArray(int srcOffset, byte[] dest, int dstOffset, int length);
 
 	void setResponseBody(IPreparedResponse preparedResponse);
 
@@ -38,13 +60,25 @@ public interface IRequestContext {
 
 	void setResponseBodyEmpty();
 
-	void setResponseHeader(String name, Object value);
+	void addResponseHeader(String name, Object value);
+
+	void addResponseHeaders(String name, Iterable<?> value);
 
 	void setResponseCode(int code);
+
+	IContextPromise suspendContext();
 
 	NettyUnsafe netty();
 
 	public interface NettyUnsafe {
+
+		Channel getChannel();
+
+		ChannelHandlerContext getChannelHandlerContext();
+
+		FullHttpRequest getHttpRequest();
+
+		ByteBuf getRequestBodyByteBuf();
 
 		void setResponseBodyByteBuf(ByteBuf byteBuf);
 
@@ -52,11 +86,15 @@ public interface IRequestContext {
 
 		void setResponseSent();
 
-		Channel getChannel();
+	}
 
-		ChannelHandlerContext getChannelHandlerContext();
+	public interface IContextPromise {
 
-		FullHttpRequest getHttpRequest();
+		IRequestContext context();
+
+		void complete();
+
+		void complete(Throwable err);
 
 	}
 

@@ -1,9 +1,16 @@
 package net.lax1dude.eaglercraft.backend.server.base.webserver;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+
+import com.google.common.collect.ImmutableList;
+
+import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 
 public class RouteMap<L, T> {
 
@@ -419,6 +426,63 @@ public class RouteMap<L, T> {
 			result.directory = isDir;
 		}else {
 			result.result = null;
+		}
+	}
+
+	public static final List<EnumRequestMethod> allMethods = ImmutableList.copyOf(EnumRequestMethod.values());
+
+	public void getOptions(Iterator<CharSequence> tokens, boolean dir, L listener, Result<List<EnumRequestMethod>> result) {
+		RouteTreeNode<L, T> endpointNode = rootNode.find(tokens, dir);
+		if(endpointNode == null) {
+			result.result = null;
+			return;
+		}
+		IRouteEndpoint<L, T> endpoint;
+		boolean isDir;
+		if(dir) {
+			endpoint = endpointNode.endpointDir;
+			if(endpoint == null) {
+				endpoint = endpointNode.endpoint;
+				isDir = false;
+			}else {
+				isDir = true;
+			}
+		}else {
+			endpoint = endpointNode.endpoint;
+			if(endpoint == null) {
+				endpoint = endpointNode.endpointDir;
+				isDir = true;
+			}else {
+				isDir = false;
+			}
+		}
+		if(endpoint == null) {
+			result.result = null;
+			return;
+		}
+		IRouteMethods<T> methods = endpoint.getForListener(listener);
+		if(methods == null) {
+			result.result = null;
+			return;
+		}
+		result.directory = isDir;
+		if(methods instanceof RouteMethodPerMethod) {
+			if(dir == isDir) {
+				RouteMethodPerMethod<T> perMethod = (RouteMethodPerMethod<T>) methods;
+				List<EnumRequestMethod> meths = new ArrayList<>(numMeths);
+				Object[] objArr = perMethod.obj;
+				for(int i = 0, j = perMethod.count; i < numMeths && j > 0; ++i) {
+					if(objArr[i] != null) {
+						meths.add(EnumRequestMethod.fromId(i));
+						--j;
+					}
+				}
+				result.result = meths;
+			}else {
+				result.result = Collections.emptyList();
+			}
+		}else {
+			result.result = allMethods;
 		}
 	}
 

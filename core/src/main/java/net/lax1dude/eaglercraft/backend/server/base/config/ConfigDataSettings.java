@@ -335,7 +335,6 @@ public class ConfigDataSettings {
 	private final int httpWebSocketCompressionLevel;
 	private final int httpWebSocketFragmentSize;
 	private final int httpWebSocketMaxFrameLength;
-	private final boolean httpAllowKeepAlive;
 	private final int tlsCertRefreshRate;
 	private final boolean enableAuthenticationEvents;
 	private final boolean enableBackendRPCAPI;
@@ -350,11 +349,11 @@ public class ConfigDataSettings {
 
 	public ConfigDataSettings(String serverName, UUID serverUUID, int eaglerLoginTimeout, int httpMaxInitialLineLength,
 			int httpMaxHeaderSize, int httpMaxChunkSize, int httpMaxContentLength, int httpWebSocketCompressionLevel,
-			int httpWebSocketFragmentSize, int httpWebSocketMaxFrameLength, boolean httpAllowKeepAlive,
-			int tlsCertRefreshRate, boolean enableAuthenticationEvents, boolean enableBackendRPCAPI,
-			boolean useModernizedChannelNames, String eaglerPlayersVanillaSkin, boolean enableIsEaglerPlayerPropery,
-			int protocolV4DefragSendDelay, ConfigDataProtocols protocols, ConfigDataSkinService skinService,
-			ConfigDataVoiceService voiceService, ConfigDataUpdateService updateService) {
+			int httpWebSocketFragmentSize, int httpWebSocketMaxFrameLength, int tlsCertRefreshRate,
+			boolean enableAuthenticationEvents, boolean enableBackendRPCAPI, boolean useModernizedChannelNames,
+			String eaglerPlayersVanillaSkin, boolean enableIsEaglerPlayerPropery, int protocolV4DefragSendDelay,
+			ConfigDataProtocols protocols, ConfigDataSkinService skinService, ConfigDataVoiceService voiceService,
+			ConfigDataUpdateService updateService) {
 		this.serverName = serverName;
 		this.serverUUID = serverUUID;
 		this.serverUUIDString = serverUUID.toString();
@@ -366,7 +365,6 @@ public class ConfigDataSettings {
 		this.httpWebSocketCompressionLevel = httpWebSocketCompressionLevel;
 		this.httpWebSocketFragmentSize = httpWebSocketFragmentSize;
 		this.httpWebSocketMaxFrameLength = httpWebSocketMaxFrameLength;
-		this.httpAllowKeepAlive = httpAllowKeepAlive;
 		this.tlsCertRefreshRate = tlsCertRefreshRate;
 		this.enableAuthenticationEvents = enableAuthenticationEvents;
 		this.enableBackendRPCAPI = enableBackendRPCAPI;
@@ -422,10 +420,6 @@ public class ConfigDataSettings {
 
 	public int getHTTPWebSocketMaxFrameLength() {
 		return httpWebSocketMaxFrameLength;
-	}
-
-	public boolean isHTTPAllowKeepAlive() {
-		return httpAllowKeepAlive;
 	}
 
 	public int getTLSCertRefreshRate() {

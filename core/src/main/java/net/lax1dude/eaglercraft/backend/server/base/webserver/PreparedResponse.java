@@ -5,7 +5,7 @@ import net.lax1dude.eaglercraft.backend.server.api.webserver.IPreparedResponse;
 
 public class PreparedResponse implements IPreparedResponse {
 
-	protected final ByteBuf buffer;
+	public final ByteBuf buffer;
 
 	PreparedResponse(ByteBuf buffer) {
 		this.buffer = buffer;

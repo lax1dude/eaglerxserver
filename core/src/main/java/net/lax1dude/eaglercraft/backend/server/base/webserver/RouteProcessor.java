@@ -1,7 +1,10 @@
 package net.lax1dude.eaglercraft.backend.server.base.webserver;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
+
+import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 
 public class RouteProcessor extends RouteMap.Result<Object> implements Iterator<CharSequence> {
 
@@ -26,6 +29,18 @@ public class RouteProcessor extends RouteMap.Result<Object> implements Iterator<
 		}
 	};
 
+	private boolean adjustBounds() {
+		while(index < end && url.charAt(index) == SEPARATOR) {
+			++index;
+		}
+		boolean dir = false;
+		while(end > 0 && url.charAt(end - 1) == SEPARATOR) {
+			dir = true;
+			--end;
+		}
+		return dir;
+	}
+
 	public <L, T> boolean register(CharSequence url, L listener, int method, RouteMap<L, T> routeMap, T value) {
 		int len = url.length();
 		if(len == 0) {
@@ -38,15 +53,7 @@ public class RouteProcessor extends RouteMap.Result<Object> implements Iterator<
 				this.index = 0;
 				this.nextIndex = -2;
 				this.end = len;
-				while(index < len && url.charAt(index) == SEPARATOR) {
-					++index;
-				}
-				boolean dir = false;
-				while(end > 0 && url.charAt(end - 1) == SEPARATOR) {
-					dir = true;
-					--end;
-				}
-				return routeMap.register(this, dir, listener, method, value);
+				return routeMap.register(this, adjustBounds(), listener, method, value);
 			}finally {
 				this.url = null;
 			}
@@ -65,15 +72,7 @@ public class RouteProcessor extends RouteMap.Result<Object> implements Iterator<
 				this.index = 0;
 				this.nextIndex = -2;
 				this.end = len;
-				while(index < len && url.charAt(index) == SEPARATOR) {
-					++index;
-				}
-				boolean dir = false;
-				while(end > 0 && url.charAt(end - 1) == SEPARATOR) {
-					dir = true;
-					--end;
-				}
-				return routeMap.remove(this, dir, listener, method, value);
+				return routeMap.remove(this, adjustBounds(), listener, method, value);
 			}finally {
 				this.url = null;
 			}
@@ -94,15 +93,29 @@ public class RouteProcessor extends RouteMap.Result<Object> implements Iterator<
 				this.index = 0;
 				this.nextIndex = -2;
 				this.end = len;
-				while(index < len && url.charAt(index) == SEPARATOR) {
-					++index;
-				}
-				boolean dir = false;
-				while(end > 0 && url.charAt(end - 1) == SEPARATOR) {
-					dir = true;
-					--end;
-				}
-				routeMap.get(this, dir, listener, method, ret);
+				routeMap.get(this, adjustBounds(), listener, method, ret);
+			}finally {
+				this.url = null;
+			}
+		}
+		return ret;
+	}
+
+	public <L, T> RouteMap.Result<List<EnumRequestMethod>> options(CharSequence url, L listener, RouteMap<L, T> routeMap) {
+		this.result = null;
+		RouteMap.Result<List<EnumRequestMethod>> ret = (RouteMap.Result<List<EnumRequestMethod>>) (Object) this;
+		int len = url.length();
+		if(len == 0) {
+			routeMap.getOptions(NOP_ITERATOR, false, listener, ret);
+		}else if(len == 1 && url.charAt(0) == SEPARATOR) {
+			routeMap.getOptions(NOP_ITERATOR, true, listener, ret);
+		}else {
+			try {
+				this.url = url;
+				this.index = 0;
+				this.nextIndex = -2;
+				this.end = len;
+				routeMap.getOptions(this, adjustBounds(), listener, ret);
 			}finally {
 				this.url = null;
 			}

@@ -68,13 +68,6 @@ public class EaglerConfigLoader {
 				"http_max_content_length", 65536,
 				"Default value is 65536, sets the maximum total length of an incoming request body"
 			);
-			boolean httpAllowKeepAlive = config.getBoolean(
-				"http_allow_keep_alive", false,
-				"Default value is false, set to true to allow the server to keep non-WebSocket "
-				+ "HTTP connections alive for multiple requests, so that the browser can reuse "
-				+ "the same channel for efficiency. Ignore if you are using EaglerXServer for "
-				+ "WebSockets only."
-			);
 			int httpWebSocketCompressionLevel = config.getInteger(
 				"http_websocket_compression_level", 6,
 				"Default value is 6, sets the ZLIB compression level (0-9) to use for "
@@ -340,7 +333,7 @@ public class EaglerConfigLoader {
 			);
 			return new ConfigDataSettings(serverName, serverUUID, eaglerLoginTimeout, httpMaxInitialLineLength,
 					httpMaxHeaderSize, httpMaxChunkSize, httpMaxContentLength, httpWebSocketCompressionLevel,
-					httpWebSocketFragmentSize, httpWebSocketMaxFrameLength, httpAllowKeepAlive, tlsCertRefreshRate,
+					httpWebSocketFragmentSize, httpWebSocketMaxFrameLength, tlsCertRefreshRate,
 					enableAuthenticationEvents, enableBackendRPCAPI, useModernizedChannelNames,
 					eaglerPlayersVanillaSkin, enableIsEaglerPlayerProperty, protocolV4DefragSendDelay,
 					new ConfigDataSettings.ConfigDataProtocols(minMinecraftProtocol, maxMinecraftProtocol,

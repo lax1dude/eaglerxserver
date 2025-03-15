@@ -50,4 +50,8 @@ public enum EnumRequestMethod {
 		return ret;
 	}
 
+	public static EnumRequestMethod fromId(int id) {
+		return id >= 0 && id < VALUES.length ? VALUES[id] : null;
+	}
+
 }
