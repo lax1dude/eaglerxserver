@@ -234,6 +234,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 				eagListener = new EaglerListener(this, listener);
 			}catch(SSLException ex) {
 				throw new AbortLoadException("TLS configuration is invalid!", ex);
+			}catch(IOException ex) {
+				throw new AbortLoadException("Could not load server icon!", ex);
 			}
 			listenersBuilder.put(listener.getListenerName(), eagListener);
 			listenersByAddressBuilder.put(listener.getInjectAddress(), eagListener);
@@ -253,6 +255,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 					config.getListeners().values().iterator().next());
 		}catch(SSLException ex) {
 			throw new AbortLoadException("TLS configuration is invalid!", ex);
+		}catch(IOException ex) {
+			throw new AbortLoadException("Could not load server icon!", ex);
 		}
 		listeners = ImmutableMap.of("default", eagListener);
 		listenersByAddress = ImmutableMap.of(init.getListenerAddress(), eagListener);
@@ -747,6 +751,11 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	public IAttributeManager getAttributeManager() {
 		return attributeManager;
+	}
+
+	@Override
+	public boolean isNettyPlatform() {
+		return true;
 	}
 
 	@Override

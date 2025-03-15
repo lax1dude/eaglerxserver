@@ -18,7 +18,6 @@ import net.lax1dude.eaglercraft.backend.server.api.query.IMOTDConnection;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerListener;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.IIdentifiedConnection;
-import net.lax1dude.eaglercraft.backend.server.base.IIdentifiedConnection.Base;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketQueryHandler;
 
@@ -40,6 +39,9 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 		this.queryConnection = queryConnection;
 	}
 
+	private static class EaglerPlayerListException extends RuntimeException {
+	}
+
 	private static class EaglerArrayList extends ArrayList<String> implements Consumer<IEaglerPlayer<Object>> {
 
 		private int maxLen;
@@ -53,7 +55,7 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 		public void accept(IEaglerPlayer<Object> t) {
 			add(t.getUsername());
 			if(--maxLen == 0) {
-				throw new RuntimeException();
+				throw new EaglerPlayerListException();
 			}
 		}
 
@@ -69,7 +71,7 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 			playerList = new EaglerArrayList(10);
 			try {
 				((EaglerXServer<Object>)server).forEachEaglerPlayer((EaglerArrayList)playerList);
-			}catch(RuntimeException ex) {
+			}catch(EaglerPlayerListException ex) {
 			}
 			int more = playerTotal - playerList.size();
 			if(more > 0) {
@@ -95,19 +97,21 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 		}
 		iconCloned = icon == null;
 		hasIcon = iconDirty = icon != null;
+		returnType = "motd";
 	}
 
 	private static final JsonArray EMPTY_LIST = new JsonArray();
 
 	@Override
 	public void sendToUser() {
+		try {
 		if(queryConnection.isConnected()) {
 			JsonObject obj = new JsonObject();
-			if(subType.startsWith("cache.anim")) {
+			if(subType != null && subType.startsWith("cache.anim")) {
 				obj.addProperty("unsupported", true);
 				queryConnection.sendResponse(returnType, obj);
 				return;
-			}else if(subType.startsWith("cache")) {
+			}else if(subType != null && subType.startsWith("cache")) {
 				JsonArray cacheControl = new JsonArray();
 				ConfigDataListener cc = queryConnection.getListenerInfo().getConfigData();
 				if(cc.isMotdCacheAnimation()) {
@@ -127,7 +131,7 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 			}else {
 				obj.addProperty("cache", queryConnection.getListenerInfo().getConfigData().isMotdCacheAny());
 			}
-			boolean noIcon = subType.startsWith("noicon") || subType.startsWith("cache.noicon");
+			boolean noIcon = subType != null && (subType.startsWith("noicon") || subType.startsWith("cache.noicon"));
 			JsonArray motd = new JsonArray(this.motd.size());
 			for(int i = 0; i < 2; ++i) {
 				if(i >= this.motd.size()) break;
@@ -153,9 +157,9 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 				queryConnection.send(icon);
 				iconDirty = false;
 			}
-			if(subType.startsWith("cache")) {
-				disconnect();
-			}
+		}
+		}catch(Throwable t) {
+			t.printStackTrace();
 		}
 	}
 

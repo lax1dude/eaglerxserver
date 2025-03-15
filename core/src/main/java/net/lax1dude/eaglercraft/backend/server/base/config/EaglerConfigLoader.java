@@ -715,13 +715,13 @@ public class EaglerConfigLoader {
 			+ "as this listener's server icon, relative to the working directory."
 		);
 		IEaglerConfList serverMOTDConf = listener.getList("server_motd");
-		List<String> serverMOTD = ImmutableList
-				.copyOf(serverMOTDConf.getAsStringList(() -> Arrays.asList(
-						"&6An EaglercraftX server"
-					), "List of up to 2 strings, default value is '&6An EaglercraftX server', "
-					+ "sets the contents of the listener's MOTD, which is the text displayed along "
-					+ "with the server_icon when players add this server's listener address to "
-					+ "their client's Multiplayer menu server list."));
+		List<String> serverMOTD = ImmutableList.copyOf(serverMOTDConf
+				.getAsStringList(() -> Arrays.asList("&6An EaglercraftX server"),
+						"List of up to 2 strings, default value is '&6An EaglercraftX server', "
+								+ "sets the contents of the listener's MOTD, which is the text displayed along "
+								+ "with the server_icon when players add this server's listener address to "
+								+ "their client's Multiplayer menu server list.")
+				.stream().map((str) -> ChatColor.translateAlternateColorCodes('&', str)).iterator());
 		boolean allowMOTD = listener.getBoolean(
 			"allow_motd", true,
 			"Default value is true, is this listener should respond to MOTD queries or not"

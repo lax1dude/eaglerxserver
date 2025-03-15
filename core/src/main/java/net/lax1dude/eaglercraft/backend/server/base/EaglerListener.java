@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.List;
@@ -30,11 +31,11 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 	private byte[] cachedServerIcon;
 	private List<String> cachedServerMOTD;
 
-	EaglerListener(EaglerXServer<?> server, ConfigDataListener listenerConf) throws SSLException {
+	EaglerListener(EaglerXServer<?> server, ConfigDataListener listenerConf) throws SSLException, IOException {
 		this(server, listenerConf.getInjectAddress(), listenerConf);
 	}
 
-	EaglerListener(EaglerXServer<?> server, SocketAddress address, ConfigDataListener listenerConf) throws SSLException {
+	EaglerListener(EaglerXServer<?> server, SocketAddress address, ConfigDataListener listenerConf) throws SSLException, IOException {
 		this.server = server;
 		this.address = address;
 		this.listenerConf = listenerConf;
@@ -56,6 +57,13 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 			this.legacyRedirectAddressBuf = WebSocketEaglerInitialHandler.prepareRedirectAddr(listenerConf.getRedirectLegacyClientsTo());
 		}else {
 			this.legacyRedirectAddressBuf = null;
+		}
+		cachedServerMOTD = listenerConf.getServerMOTD();
+		String iconName = listenerConf.getServerIcon();
+		if(iconName != null && !iconName.isEmpty()) {
+			cachedServerIcon = server.getServerIconLoader().loadServerIcon(new File(iconName));
+		}else {
+			cachedServerIcon = null;
 		}
 	}
 
@@ -134,7 +142,7 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 
 	@Override
 	public void setServerMOTD(List<String> motd) {
-		if(motd.size() == 0) {
+		if(motd == null || motd.size() == 0) {
 			cachedServerMOTD = Collections.emptyList();
 		}else if(motd.size() == 1) {
 			cachedServerMOTD = ImmutableList.of(motd.get(0));

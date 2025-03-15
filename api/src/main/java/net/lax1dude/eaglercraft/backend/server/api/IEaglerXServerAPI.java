@@ -150,6 +150,8 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	IAttributeManager getAttributeManager();
 
+	boolean isNettyPlatform();
+
 	NettyUnsafe netty();
 
 	public interface NettyUnsafe {

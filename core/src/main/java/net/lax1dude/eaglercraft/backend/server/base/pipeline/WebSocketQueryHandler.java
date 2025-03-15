@@ -79,7 +79,7 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 						if(accept.length() < 128) {
 							accept = accept.toLowerCase(Locale.US);
 							if(accept.startsWith("accept: ")) {
-								accept = accept.substring(8).trim();
+								accept = accept.substring(7).trim();
 								if(accept.length() > 0) {
 									if("motd".equals(accept) || accept.startsWith("motd.")) {
 										acceptMOTD(ctx, accept);
