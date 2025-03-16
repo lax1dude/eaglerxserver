@@ -1,6 +1,8 @@
 package net.lax1dude.eaglercraft.backend.eaglermotd.velocity;
 
+import java.io.File;
 import java.nio.file.Path;
+import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 
@@ -14,9 +16,10 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 
-import net.lax1dude.eaglercraft.backend.eaglermotd.EaglerMOTD;
-import net.lax1dude.eaglercraft.backend.eaglermotd.IEaglerMOTDLogger;
-import net.lax1dude.eaglercraft.backend.eaglermotd.IEaglerMOTDPlatform;
+import net.lax1dude.eaglercraft.backend.eaglermotd.base.EaglerMOTD;
+import net.lax1dude.eaglercraft.backend.eaglermotd.base.IEaglerMOTDLogger;
+import net.lax1dude.eaglercraft.backend.eaglermotd.base.IEaglerMOTDPlatform;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
 
 @Plugin(
@@ -41,30 +44,45 @@ public class PlatformPluginVelocity implements IEaglerMOTDPlatform<Player> {
 
 	private final ProxyServer proxy;
 	private final Logger logger;
+	private final File dataDir;
 	private final SLF4JLogger rewindLogger;
 	private final EaglerMOTD<Player> eaglermotd;
+	Consumer<IEaglercraftMOTDEvent<Player>> onMOTDHandler;
 
 	@Inject
 	public PlatformPluginVelocity(ProxyServer proxyIn, Logger loggerIn, @DataDirectory Path dataDirIn) {
 		proxy = proxyIn;
 		logger = loggerIn;
+		dataDir = dataDirIn.toFile();
 		rewindLogger = new SLF4JLogger(loggerIn);
 		eaglermotd = new EaglerMOTD<Player>(this);
 	}
 
     @Subscribe
     public void onProxyInit(ProxyInitializeEvent e) {
+    	proxy.getEventManager().register(this, new VelocityListener(this));
     	eaglermotd.onEnable(EaglerXServerAPI.instance());
 	}
 
 	@Subscribe
     public void onProxyShutdown(ProxyShutdownEvent e) {
+		proxy.getEventManager().unregisterListeners(this);
 		eaglermotd.onDisable(EaglerXServerAPI.instance());
 	}
 
 	@Override
 	public IEaglerMOTDLogger logger() {
 		return rewindLogger;
+	}
+
+	@Override
+	public void setOnMOTD(Consumer<IEaglercraftMOTDEvent<Player>> handler) {
+		this.onMOTDHandler = handler;
+	}
+
+	@Override
+	public File getDataFolder() {
+		return dataDir;
 	}
 
 }

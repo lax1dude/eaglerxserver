@@ -26,17 +26,25 @@ public interface IMOTDConnection extends IEaglerConnection {
 		return getMaxAge() > 0l;
 	}
 
+	byte[] getDefaultServerIcon();
+
 	byte[] getServerIcon();
 
 	void setServerIcon(byte[] bitmap);
+
+	List<String> getDefaultServerMOTD();
 
 	List<String> getServerMOTD();
 
 	void setServerMOTD(List<String> motd);
 
+	int getDefaultPlayerTotal();
+
 	int getPlayerTotal();
 
 	void setPlayerTotal(int total);
+
+	int getDefaultPlayerMax();
 
 	int getPlayerMax();
 
@@ -45,6 +53,8 @@ public interface IMOTDConnection extends IEaglerConnection {
 	default void setPlayerUnlimited() {
 		setPlayerMax(-1);
 	}
+
+	List<String> getDefaultPlayerList();
 
 	List<String> getPlayerList();
 

@@ -6,4 +6,6 @@ public interface IComponentHelper {
 
 	String convertJSONToPlainText(String json) throws IllegalArgumentException;
 
+	String translateAlternateColorCodes(char altColorChar, String textToTranslate);
+
 }

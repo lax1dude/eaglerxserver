@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.base;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IComponentSerializer;
+import net.lax1dude.eaglercraft.backend.server.base.config.ChatColor;
 
 public class ComponentHelper<ComponentType> implements IComponentSerializer<ComponentType> {
 
@@ -62,6 +63,11 @@ public class ComponentHelper<ComponentType> implements IComponentSerializer<Comp
 	@Override
 	public String convertJSONToPlainText(String json) throws IllegalArgumentException {
 		return platformImpl.serializePlainText(platformImpl.parseGenericJSON(json));
+	}
+
+	@Override
+	public String translateAlternateColorCodes(char altColorChar, String textToTranslate) {
+		return ChatColor.translateAlternateColorCodes(altColorChar, textToTranslate);
 	}
 
 }

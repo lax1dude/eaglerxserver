@@ -26,14 +26,20 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 	private final WebSocketQueryHandler queryConnection;
 	private String subType;
 	private String returnType;
+	private byte[] defaultIcon;
+	private boolean defaultIconCloned;
 	private byte[] icon;
 	private boolean iconCloned;
 	private boolean hasIcon;
 	private boolean iconDirty;
 	private List<String> motd;
+	private List<String> defaultMotd;
+	private int defaultPlayerTotal;
 	private int playerTotal;
+	private int defaultPlayerMax;
 	private int playerMax;
 	private List<String> playerList;
+	private List<String> defaultPlayerList;
 
 	public MOTDConnectionWrapper(WebSocketQueryHandler queryConnection) {
 		this.queryConnection = queryConnection;
@@ -63,12 +69,12 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 
 	public void setDefaults(EaglerXServer<?> server) {
 		EaglerListener listener = queryConnection.getListenerInfo();
-		motd = listener.getServerMOTD();
+		motd = defaultMotd = listener.getServerMOTD();
 		IPlatform<?> platform = server.getPlatform();
-		playerTotal = platform.getPlayerTotal();
-		playerMax = platform.getPlayerMax();
+		playerTotal = defaultPlayerTotal = platform.getPlayerTotal();
+		playerMax = defaultPlayerMax = platform.getPlayerMax();
 		if(listener.isShowMOTDPlayerList()) {
-			playerList = new EaglerArrayList(10);
+			playerList = defaultPlayerList = new EaglerArrayList(10);
 			try {
 				((EaglerXServer<Object>)server).forEachEaglerPlayer((EaglerArrayList)playerList);
 			}catch(EaglerPlayerListException ex) {
@@ -78,7 +84,7 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 				playerList.add("\u00A77\u00A7o(" + more + " more)");
 			}
 		}else {
-			playerList = Collections.emptyList();
+			playerList = defaultPlayerList = Collections.emptyList();
 		}
 		String queryType = queryConnection.getAccept();
 		int i = queryType.indexOf('.');
@@ -91,11 +97,11 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 			subType = null;
 		}
 		if(subType == null || (!subType.startsWith("noicon") && !subType.startsWith("cache.noicon"))) {
-			icon = listener.getServerIcon();
+			icon = defaultIcon = listener.getServerIcon();
 		}else {
-			icon = null;
+			icon = defaultIcon = null;
 		}
-		iconCloned = icon == null;
+		iconCloned = defaultIconCloned = icon == null;
 		hasIcon = iconDirty = icon != null;
 		returnType = "motd";
 	}
@@ -249,11 +255,32 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 	}
 
 	@Override
+	public byte[] getDefaultServerIcon() {
+		if(defaultIcon == null) return null;
+		if(!defaultIconCloned) {
+			defaultIconCloned = true;
+			if(defaultIcon == icon) {
+				iconCloned = true;
+				return defaultIcon = icon = defaultIcon.clone();
+			}else {
+				return defaultIcon = defaultIcon.clone();
+			}
+		}else {
+			return defaultIcon;
+		}
+	}
+
+	@Override
 	public byte[] getServerIcon() {
 		if(icon == null) return null;
 		if(!iconCloned) {
 			iconCloned = true;
-			return icon = icon.clone();
+			if(defaultIcon == icon) {
+				defaultIconCloned = true;
+				return defaultIcon = icon = icon.clone();
+			}else {
+				return icon = icon.clone();
+			}
 		}else {
 			return icon;
 		}
@@ -269,6 +296,11 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 	}
 
 	@Override
+	public List<String> getDefaultServerMOTD() {
+		return defaultMotd;
+	}
+
+	@Override
 	public List<String> getServerMOTD() {
 		return motd;
 	}
@@ -276,6 +308,11 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 	@Override
 	public void setServerMOTD(List<String> motd) {
 		this.motd = motd;
+	}
+
+	@Override
+	public int getDefaultPlayerTotal() {
+		return defaultPlayerTotal;
 	}
 
 	@Override
@@ -289,6 +326,11 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 	}
 
 	@Override
+	public int getDefaultPlayerMax() {
+		return defaultPlayerMax;
+	}
+
+	@Override
 	public int getPlayerMax() {
 		return playerMax;
 	}
@@ -296,6 +338,11 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 	@Override
 	public void setPlayerMax(int total) {
 		playerMax = total;
+	}
+
+	@Override
+	public List<String> getDefaultPlayerList() {
+		return defaultPlayerList;
 	}
 
 	@Override

@@ -2,7 +2,7 @@ package net.lax1dude.eaglercraft.backend.eaglermotd.velocity;
 
 import org.slf4j.Logger;
 
-import net.lax1dude.eaglercraft.backend.eaglermotd.IEaglerMOTDLogger;
+import net.lax1dude.eaglercraft.backend.eaglermotd.base.IEaglerMOTDLogger;
 
 public class SLF4JLogger implements IEaglerMOTDLogger {
 

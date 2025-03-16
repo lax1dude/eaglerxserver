@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.eaglermotd;
+package net.lax1dude.eaglercraft.backend.eaglermotd.base;
 
 public interface IEaglerMOTDLogger {
 

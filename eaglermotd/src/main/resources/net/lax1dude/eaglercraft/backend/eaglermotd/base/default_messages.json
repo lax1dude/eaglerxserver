@@ -1,0 +1,22 @@
+{
+	"close_socket_after": 1200,
+	"max_sockets_per_ip": 10,
+	"max_total_sockets": 256,
+	"messages": {
+		"all": [
+			{
+				"name": "default",
+				"frames": [ 
+					"frames.frame1",
+					"frames.frame2",
+					"frames.frame3",
+					"frames.frame4"
+				],
+				"interval": 8,
+				"timeout": 500,
+				"weight": 1.0,
+				"next": "any"
+			}
+		]
+	}
+}

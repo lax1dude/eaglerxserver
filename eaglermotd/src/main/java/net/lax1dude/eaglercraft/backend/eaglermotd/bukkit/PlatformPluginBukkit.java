@@ -1,18 +1,23 @@
 package net.lax1dude.eaglercraft.backend.eaglermotd.bukkit;
 
+import java.io.File;
+import java.util.function.Consumer;
+
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import net.lax1dude.eaglercraft.backend.eaglermotd.EaglerMOTD;
-import net.lax1dude.eaglercraft.backend.eaglermotd.IEaglerMOTDLogger;
-import net.lax1dude.eaglercraft.backend.eaglermotd.IEaglerMOTDPlatform;
+import net.lax1dude.eaglercraft.backend.eaglermotd.base.EaglerMOTD;
+import net.lax1dude.eaglercraft.backend.eaglermotd.base.IEaglerMOTDLogger;
+import net.lax1dude.eaglercraft.backend.eaglermotd.base.IEaglerMOTDPlatform;
 import net.lax1dude.eaglercraft.backend.eaglermotd.bungee.JavaLogger;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.EaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 
 public class PlatformPluginBukkit extends JavaPlugin implements IEaglerMOTDPlatform<Player> {
 
 	private JavaLogger logger;
 	private EaglerMOTD<Player> protocol;
+	Consumer<IEaglercraftMOTDEvent<Player>> onMOTDHandler;
 
 	@Override
 	public void onLoad() {
@@ -22,6 +27,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IEaglerMOTDPlatf
 
 	@Override
 	public void onEnable() {
+		getServer().getPluginManager().registerEvents(new BukkitListener(this), this);
 		protocol.onEnable(EaglerXServerAPI.instance());
 	}
 
@@ -33,6 +39,11 @@ public class PlatformPluginBukkit extends JavaPlugin implements IEaglerMOTDPlatf
 	@Override
 	public IEaglerMOTDLogger logger() {
 		return logger;
+	}
+
+	@Override
+	public void setOnMOTD(Consumer<IEaglercraftMOTDEvent<Player>> handler) {
+		this.onMOTDHandler = handler;
 	}
 
 }

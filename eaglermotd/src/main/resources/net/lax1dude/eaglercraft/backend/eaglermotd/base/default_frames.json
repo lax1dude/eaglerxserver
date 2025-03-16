@@ -1,0 +1,44 @@
+{
+	"frame1": { 
+		"icon": "server-animation.png",
+		"icon_spriteX": 0,
+		"icon_spriteY": 0,
+		"online": "default",
+		"max": "default",
+		"players": "default",
+		"text0": "&7An Eaglercraft server",
+		"text1": "&0!!!!&8Running EaglerMOTD plugin"
+	},
+	"frame2": { 
+		"icon": "server-animation.png",
+		"icon_spriteX": 1,
+		"icon_spriteY": 0,
+		"icon_color": [ 1.0, 0.0, 0.0, 0.15 ],
+		"online": 10,
+		"players": [ "fake player 1", "fake player 2" ],
+		"text0": "&6&nAn&r &7Eaglercraft server",
+		"text1": "&0!!&8!&0!&8Running EaglerMOTD plugin"
+	},
+	"frame3": { 
+		"icon": "server-animation.png",
+		"icon_spriteX": 2,
+		"icon_spriteY": 0,
+		"icon_color": [ 1.0, 0.0, 0.0, 0.15 ],
+		"icon_tint": [ 0.8, 0.8, 1.0 ],
+		"online": 20,
+		"players": [],
+		"text0": "&7An &6&nEaglercraft&r &7server",
+		"text1": "&0!&8!!&0!&8Running EaglerMOTD plugin"
+	},
+	"frame4": { 
+		"icon": "server-animation.png",
+		"icon_spriteX": 3,
+		"icon_spriteY": 0,
+		"icon_color": [ 1.0, 1.0, 0.0, 0.15 ],
+		"icon_tint": [ 0.8, 0.8, 1.0, 0.8 ],
+		"online": 30,
+		"players": "default",
+		"text0": "&7An Eaglercraft &6&nserver&r",
+		"text1": "&8!!!&0!&8Running EaglerMOTD plugin"
+	}
+}

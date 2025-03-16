@@ -1,0 +1,37 @@
+{
+	"queries": { 
+		"ExampleQuery1": { 
+			"type": "ExampleQuery1_result",
+			"string": "This is a string"
+		},
+		"ExampleQuery2": { 
+			"type": "ExampleQuery2_result",
+			"txt": "query2.txt"
+		},
+		"ExampleQuery3": { 
+			"type": "ExampleQuery3_result",
+			"string": "This query returns binary",
+			"file": "binary.dat"
+		},
+		"ExampleQuery4": { 
+			"type": "ExampleQuery4_result",
+			"json": "query4.json"
+		},
+		"ExampleQuery5": { 
+			"type": "ExampleQuery5_result",
+			"json": {
+				"key1": "value1",
+				"key2": "value2"
+			}
+		},
+		"ExampleQuery6": { 
+			"type": "ExampleQuery6_result",
+			"json": {
+				"desc": "This query returns JSON and a file",
+				"filename": "test_file.dat",
+				"size": 69
+			},
+			"file": "test_file.dat"
+		}
+	}
+}

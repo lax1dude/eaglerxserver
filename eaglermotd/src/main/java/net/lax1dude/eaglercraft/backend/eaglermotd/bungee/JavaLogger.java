@@ -3,7 +3,7 @@ package net.lax1dude.eaglercraft.backend.eaglermotd.bungee;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.lax1dude.eaglercraft.backend.eaglermotd.IEaglerMOTDLogger;
+import net.lax1dude.eaglercraft.backend.eaglermotd.base.IEaglerMOTDLogger;
 
 public class JavaLogger implements IEaglerMOTDLogger {
 
