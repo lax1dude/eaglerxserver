@@ -1,0 +1,8 @@
+name: EaglerFilter
+version: 1.0.0
+main: net.lax1dude.eaglercraft.backend.eaglerfilter.bukkit.PlatformPluginBukkit
+description: Official EaglerFilter plugin for EaglercraftXServer
+authors:
+- lax1dude
+depend:
+- EaglercraftXServer

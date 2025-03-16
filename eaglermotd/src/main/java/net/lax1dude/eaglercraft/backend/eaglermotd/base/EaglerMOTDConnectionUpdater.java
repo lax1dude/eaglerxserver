@@ -89,8 +89,9 @@ public class EaglerMOTDConnectionUpdater {
 				messageTimeTimer = 0;
 				messageIntervalTimer = 0;
 				currentFrame = 0;
-				currentMessage.frames.get(currentFrame).update(motd);
-				motd.sendToUser();
+				if(currentMessage.frames.get(currentFrame).update(motd)) {
+					motd.sendToUser();
+				}
 				if(currentMessage.next == null && currentMessage.interval <= 0) {
 					motd.disconnect();
 					return false;
