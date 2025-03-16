@@ -28,7 +28,7 @@ import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
 	id = PlatformPluginVelocity.PLUGIN_ID,
 	name = PlatformPluginVelocity.PLUGIN_NAME,
 	authors = {
-		"lax1dude"
+		PlatformPluginVelocity.PLUGIN_AUTHOR
 	},
 	version = PlatformPluginVelocity.PLUGIN_VERSION,
 	description = PlatformPluginVelocity.PLUGIN_DESC,
@@ -38,11 +38,11 @@ import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
 )
 public class PlatformPluginVelocity implements IEaglerFilterPlatform<Player, Component> {
 
-	public static final String PLUGIN_ID = "eaglermotd-reborn";
-	public static final String PLUGIN_NAME = "EaglerMOTD-Reborn";
+	public static final String PLUGIN_ID = "eaglerfilter";
+	public static final String PLUGIN_NAME = "EaglerFilter";
 	public static final String PLUGIN_AUTHOR = "lax1dude";
 	public static final String PLUGIN_VERSION = "1.0.0";
-	public static final String PLUGIN_DESC = "Official EaglerMOTD plugin for EaglercraftXServer";
+	public static final String PLUGIN_DESC = "Official EaglerFilter plugin for EaglercraftXServer";
 
 	private final ProxyServer proxy;
 	private final Logger logger;

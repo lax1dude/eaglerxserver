@@ -13,25 +13,25 @@ import net.md_5.bungee.api.plugin.Plugin;
 public class PlatformPluginBungee extends Plugin implements IEaglerMOTDPlatform<ProxiedPlayer> {
 
 	private JavaLogger logger;
-	private EaglerMOTD<ProxiedPlayer> protocol;
+	private EaglerMOTD<ProxiedPlayer> eaglermotd;
 	Consumer<IEaglercraftMOTDEvent<ProxiedPlayer>> onMOTDHandler;
 
 	@Override
 	public void onLoad() {
 		logger = new JavaLogger(getLogger());
-		protocol = new EaglerMOTD<ProxiedPlayer>(this);
+		eaglermotd = new EaglerMOTD<ProxiedPlayer>(this);
 	}
 
 	@Override
 	public void onEnable() {
 		getProxy().getPluginManager().registerListener(this, new BungeeListener(this));
-		protocol.onEnable(EaglerXServerAPI.instance());
+		eaglermotd.onEnable(EaglerXServerAPI.instance());
 	}
 
 	@Override
 	public void onDisable() {
 		getProxy().getPluginManager().unregisterListeners(this);
-		protocol.onDisable(EaglerXServerAPI.instance());
+		eaglermotd.onDisable(EaglerXServerAPI.instance());
 	}
 
 	@Override

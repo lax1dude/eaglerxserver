@@ -1,6 +1,5 @@
 package net.lax1dude.eaglercraft.backend.eaglermotd.bukkit;
 
-import java.io.File;
 import java.util.function.Consumer;
 
 import org.bukkit.entity.Player;
@@ -16,24 +15,24 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 public class PlatformPluginBukkit extends JavaPlugin implements IEaglerMOTDPlatform<Player> {
 
 	private JavaLogger logger;
-	private EaglerMOTD<Player> protocol;
+	private EaglerMOTD<Player> eaglermotd;
 	Consumer<IEaglercraftMOTDEvent<Player>> onMOTDHandler;
 
 	@Override
 	public void onLoad() {
 		logger = new JavaLogger(getLogger());
-		protocol = new EaglerMOTD<Player>(this);
+		eaglermotd = new EaglerMOTD<Player>(this);
 	}
 
 	@Override
 	public void onEnable() {
 		getServer().getPluginManager().registerEvents(new BukkitListener(this), this);
-		protocol.onEnable(EaglerXServerAPI.instance());
+		eaglermotd.onEnable(EaglerXServerAPI.instance());
 	}
 
 	@Override
 	public void onDisable() {
-		protocol.onDisable(EaglerXServerAPI.instance());
+		eaglermotd.onDisable(EaglerXServerAPI.instance());
 	}
 
 	@Override

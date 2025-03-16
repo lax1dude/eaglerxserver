@@ -26,7 +26,7 @@ import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
 	id = PlatformPluginVelocity.PLUGIN_ID,
 	name = PlatformPluginVelocity.PLUGIN_NAME,
 	authors = {
-		"lax1dude"
+		PlatformPluginVelocity.PLUGIN_AUTHOR
 	},
 	version = PlatformPluginVelocity.PLUGIN_VERSION,
 	description = PlatformPluginVelocity.PLUGIN_DESC,
