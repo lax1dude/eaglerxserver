@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Throwables;
@@ -46,6 +47,9 @@ public class EaglerMOTD<PlayerObject> {
 		}
 		this.motdUpdateTask = server.getScheduler().executeAsyncRepeatingTask(this::updateMOTDs, 50l, 50l);
 		platform.setOnMOTD(this::onMOTD);
+		for(Entry<String, QueryType> etr : config.queryTypes.entrySet()) {
+			server.getQueryServer().registerQueryType(this, etr.getKey(), etr.getValue()::doQuery);
+		}
 	}
 
 	public void onDisable(IEaglerXServerAPI<PlayerObject> server) {
@@ -54,6 +58,9 @@ public class EaglerMOTD<PlayerObject> {
 			motdUpdateTask = null;
 		}
 		platform.setOnMOTD(null);
+		for(String etr : config.queryTypes.keySet()) {
+			server.getQueryServer().unregisterQueryType(this, etr);
+		}
 	}
 
 	public void onMOTD(IEaglercraftMOTDEvent<PlayerObject> event) {

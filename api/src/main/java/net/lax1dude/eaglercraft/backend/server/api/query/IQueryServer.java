@@ -4,8 +4,8 @@ public interface IQueryServer {
 
 	boolean isQueryType(String queryType);
 
-	void registerQueryType(String queryType, IQueryHandler handler);
+	void registerQueryType(Object plugin, String queryType, IQueryHandler handler);
 
-	void unregisterQueryType(String queryType);
+	void unregisterQueryType(Object plugin, String queryType);
 
 }

@@ -3,6 +3,8 @@ package net.lax1dude.eaglercraft.backend.eaglermotd.base;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
@@ -103,15 +105,8 @@ public class QueryCache {
 			synchronized(this) {
 				if(needsReload()) {
 					if(file.exists()) {
-						try(FileInputStream fis = new FileInputStream(file)) {
-							ByteArrayOutputStream read = new ByteArrayOutputStream(fis.available());
-							byte[] d = new byte[8192];
-							int i;
-							while((i = fis.read(d)) != -1) {
-								read.write(d, 0, i);
-							}
-							lastRescan = lastReload = System.currentTimeMillis();
-							json = JsonParser.parseString(new String(read.toByteArray(), StandardCharsets.UTF_8)).getAsJsonObject();
+						try(Reader fis = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
+							json = JsonParser.parseReader(fis).getAsJsonObject();
 						}catch(Throwable t) {
 							json = null;
 							System.err.println("[EaglerMOTD] Failed to load json: " + name);

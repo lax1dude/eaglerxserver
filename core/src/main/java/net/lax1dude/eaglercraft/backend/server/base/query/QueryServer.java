@@ -16,21 +16,22 @@ public class QueryServer implements IQueryServer {
 
 	private final EaglerXServer<?> server;
 	private final ReadWriteLock registeredQueriesLock;
-	private final Map<String, IQueryHandler> registeredQueries;
+	private final Map<String, QueryEntry> registeredQueries;
 
 	public QueryServer(EaglerXServer<?> server) {
 		this.server = server;
 		this.registeredQueriesLock = new ReentrantReadWriteLock();
 		this.registeredQueries = new HashMap<>();
-		this.registeredQueries.put("eagler", new QueryHandlerEagler());
-		this.registeredQueries.put("version", new QueryHandlerVersion(server));
-		this.registeredQueries.put("revoke_session_token", new QueryHandlerRevoke(server));
+		this.registeredQueries.put("eagler", new QueryEntry(server, new QueryHandlerEagler()));
+		this.registeredQueries.put("version", new QueryEntry(server, new QueryHandlerVersion(server)));
+		this.registeredQueries.put("revoke_session_token", new QueryEntry(server, new QueryHandlerRevoke(server)));
 	}
 
 	public IQueryHandler getHandlerFor(String queryType) {
 		registeredQueriesLock.readLock().lock();
 		try {
-			return registeredQueries.get(queryType);
+			QueryEntry etr = registeredQueries.get(queryType);
+			return etr != null ? etr.handler : null;
 		}finally {
 			registeredQueriesLock.readLock().unlock();
 		}
@@ -72,32 +73,56 @@ public class QueryServer implements IQueryServer {
 	}
 
 	@Override
-	public void registerQueryType(String queryType, IQueryHandler handler) {
+	public void registerQueryType(Object plugin, String queryType, IQueryHandler handler) {
+		if(plugin == null) {
+			throw new NullPointerException("Plugin cannot be null!");
+		}
 		queryType = queryType.toLowerCase(Locale.US);
 		if("motd".equals(queryType) || queryType.startsWith("motd.")) {
 			throw new UnsupportedOperationException("Cannot replace the default MOTD handler");
 		}
-		boolean warn;
 		registeredQueriesLock.writeLock().lock();
 		try {
-			warn = registeredQueries.put(queryType, handler) != null;
+			QueryEntry etr = registeredQueries.get(queryType);
+			if(etr != null) {
+				throw new IllegalStateException("Query type \"" + queryType + "\" is already registered by: " + etr.plugin);
+			}
+			registeredQueries.put(queryType, new QueryEntry(plugin, handler));
 		}finally {
 			registeredQueriesLock.writeLock().unlock();
-		}
-		if (warn) {
-			server.logger().warn("Query type \"" + queryType + "\" was registered multiple times!",
-					new RuntimeException("Stack trace"));
 		}
 	}
 
 	@Override
-	public void unregisterQueryType(String queryType) {
+	public void unregisterQueryType(Object plugin, String queryType) {
+		if(plugin == null) {
+			throw new NullPointerException("Plugin cannot be null!");
+		}
 		registeredQueriesLock.writeLock().lock();
 		try {
-			registeredQueries.remove(queryType.toLowerCase(Locale.US));
+			queryType = queryType.toLowerCase(Locale.US);
+			QueryEntry etr = registeredQueries.get(queryType);
+			if(etr != null) {
+				if(etr.plugin != plugin) {
+					throw new IllegalStateException("Query type is registered by a different plugin: " + etr.plugin);
+				}
+				registeredQueries.remove(queryType);
+			}
 		}finally {
 			registeredQueriesLock.writeLock().unlock();
 		}
+	}
+
+	private static class QueryEntry {
+
+		protected final Object plugin;
+		protected final IQueryHandler handler;
+
+		protected QueryEntry(Object plugin, IQueryHandler handler) {
+			this.plugin = plugin;
+			this.handler = handler;
+		}
+
 	}
 
 }
