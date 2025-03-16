@@ -9,13 +9,16 @@ import net.lax1dude.eaglercraft.backend.server.api.webserver.RouteDesc;
 public class EaglerWeb<PlayerObject> implements IRequestHandler {
 
 	private final IEaglerWebPlatform<PlayerObject> platform;
+	private IEaglerXServerAPI<PlayerObject> server;
 	private EaglerWebIndex handler;
+	private boolean corsEnabled;
 
 	public EaglerWeb(IEaglerWebPlatform<PlayerObject> platform) {
 		this.platform = platform;
 	}
 
 	public void onEnable(IEaglerXServerAPI<PlayerObject> server) {
+		this.server = server;
 		platform.logger().info("Indexing pages, please wait...");
 		int cnt = handleRefreshIndex();
 		platform.logger().info("Indexed " + cnt + " pages total!");
@@ -27,6 +30,14 @@ public class EaglerWeb<PlayerObject> implements IRequestHandler {
 		platform.setHandleRefresh(null);
 		server.getWebServer().unregisterRoute(this, RouteDesc.DEFAULT_404);
 		setIndex(null);
+	}
+
+	public IEaglerWebPlatform<PlayerObject> getPlatform() {
+		return platform;
+	}
+
+	public IEaglerXServerAPI<PlayerObject> getServer() {
+		return server;
 	}
 
 	public int handleRefreshIndex() {
@@ -48,7 +59,7 @@ public class EaglerWeb<PlayerObject> implements IRequestHandler {
 
 	@Override
 	public void handleRequest(IRequestContext requestContext) {
-		IRequestHandler handler = this.handler;
+		EaglerWebIndex handler = this.handler;
 		if(handler != null) {
 			handler.handleRequest(requestContext);
 		}else {
@@ -58,12 +69,12 @@ public class EaglerWeb<PlayerObject> implements IRequestHandler {
 
 	@Override
 	public boolean isEnableCORS() {
-		return false;
+		return corsEnabled;
 	}
 
 	@Override
 	public boolean handleCORSAllowOrigin(String origin, EnumRequestMethod method, String path, String query) {
-		return false;
+		return corsEnabled;
 	}
 
 }
