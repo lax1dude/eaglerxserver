@@ -1,0 +1,7 @@
+name: EaglerWeb
+version: 1.0.0
+main: net.lax1dude.eaglercraft.backend.eaglerweb.bungee.PlatformPluginBungee
+description: Official EaglerWeb plugin for EaglercraftXServer
+author: lax1dude
+depends:
+- EaglercraftXServer
