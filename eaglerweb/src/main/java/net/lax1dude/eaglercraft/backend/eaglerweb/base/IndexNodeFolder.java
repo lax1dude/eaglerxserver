@@ -1,9 +1,10 @@
 package net.lax1dude.eaglercraft.backend.eaglerweb.base;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-class IndexNodeFolder extends IndexNode {
+class IndexNodeFolder extends IndexNode implements Iterable<IndexNode> {
 
 	private final Map<String, IndexNode> children;
 
@@ -35,6 +36,11 @@ class IndexNodeFolder extends IndexNode {
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public Iterator<IndexNode> iterator() {
+		return children.values().iterator();
 	}
 
 }

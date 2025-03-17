@@ -6,6 +6,15 @@ import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestContext;
 
 class DefaultHandlers {
 
+	private static final String AUTOINDEX_CSS = 
+			"<style type=\"text/css\">"
+			+ "th { text-align: left; } "
+			+ ".ar { text-align: right; }"
+			+ ".icn-none { display: inline-block; width: 1em; height: 1em; margin:2px; vertical-align: middle; }"
+			+ ".icn-folder { display: inline-block; width: 1em; height: 1em; margin:2px; background: no-repeat center / contain url(\"data:image/gif;base64,R0lGODlhFAAWAMIAAP/////Mmcz//5lmMzMzMwAAAAAAAAAAACH+TlRoaXMgYXJ0IGlzIGluIHRoZSBwdWJsaWMgZG9tYWluLiBLZXZpbiBIdWdoZXMsIGtldmluaEBlaXQuY29tLCBTZXB0ZW1iZXIgMTk5NQAh+QQBAAACACwAAAAAFAAWAAADVCi63P4wyklZufjOErrvRcR9ZKYpxUB6aokGQyzHKxyO9RoTV54PPJyPBewNSUXhcWc8soJOIjTaSVJhVphWxd3CeILUbDwmgMPmtHrNIyxM8Iw7AQA7\"); vertical-align: middle; }"
+			+ ".icn-file { display: inline-block; width: 1em; height: 1em; margin:2px; background: no-repeat center / contain url(\"data:image/gif;base64,R0lGODlhFAAWAMIAAP///8z//5mZmTMzMwAAAAAAAAAAAAAAACH+TlRoaXMgYXJ0IGlzIGluIHRoZSBwdWJsaWMgZG9tYWluLiBLZXZpbiBIdWdoZXMsIGtldmluaEBlaXQuY29tLCBTZXB0ZW1iZXIgMTk5NQAh+QQBAAABACwAAAAAFAAWAAADWDi6vPEwDECrnSO+aTvPEddVIriN1wVxROtSxBDPJwq7bo23luALhJqt8gtKbrsXBSgcEo2spBLAPDp7UKT02bxWRdrp94rtbpdZMrrr/A5+8LhPFpHajQkAOw==\"); vertical-align: middle; }"
+			+ "</style>";
+
 	private final String brandString;
 	private final String serverName;
 	private final boolean enableCORS;
@@ -50,7 +59,34 @@ class DefaultHandlers {
 	}
 
 	void handleAutoIndex(IRequestContext ctx, IndexNodeFolder dir) {
-		
+		String dirStr = ctx.getPath();
+		StringBuilder pageBuilder = new StringBuilder(4096);
+		pageBuilder.append("<!DOCTYPE html><html><head><title>Index Of: ");
+		htmlEntities(dirStr, pageBuilder);
+		pageBuilder.append(" - ");
+		pageBuilder.append(serverName);
+		pageBuilder.append("</title>");
+		pageBuilder.append(AUTOINDEX_CSS);
+		pageBuilder.append("</head><body style=\"font-family:sans-serif;\"><p style=\"font-size:2em;\">Index Of: <span style=\"font-weight:bold;\">");
+		htmlEntities(dirStr, pageBuilder);
+		pageBuilder.append("</span></p><hr><table style=\"font-size:1.2em;\">");
+		pageBuilder.append("<thead><tr><tr><th><span class=\"icn-none\"></span></th><th>Name</th><th>&ensp;Last Modified</th><th class=\"ar\">&ensp;Size</th></tr></thead><tbody>");
+		if(!"/".equals(dirStr) && dirStr.length() > 0) {
+			pageBuilder.append("<tr><td><span class=\"icn-folder\"></span></td><td><a href=\"../\">../</a></td><td>&ensp;-</td><td class=\"ar\">&ensp;-</td></tr>");
+		}
+		for(IndexNode idx : dir) {
+			if(idx.isDirectory()) {
+				//TODO
+			}
+		}
+		for(IndexNode idx : dir) {
+			if(!idx.isDirectory()) {
+				//TODO
+			}
+		}
+		pageBuilder.append("</tbody></table><hr><p style=\"font-style:italic;\">");
+		pageBuilder.append(brandString);
+		pageBuilder.append("</p></body></html>");
 	}
 
 	void handle404(IRequestContext ctx) {
