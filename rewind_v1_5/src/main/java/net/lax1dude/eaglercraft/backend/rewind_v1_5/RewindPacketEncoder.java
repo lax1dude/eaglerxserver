@@ -1041,7 +1041,8 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private void handlePluginMessage(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0xFA);
-		int pmLen = BufferUtils.readVarInt(in);
+		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+		int pmLen = in.readableBytes();
 		bb.writeShort(pmLen);
 		bb.writeBytes(in, pmLen);
 	}
@@ -1054,8 +1055,6 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 	@Override
 	protected void encode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
 		int pktId = BufferUtils.readVarInt(in);
-		//TODO: switch statement translate outbound 1.8 to 1.5
-		// plan: when first handshake packet received, take its data, and turn it into 1.8 handshake. then switch to play mode (once 1.8 confirms?)
 		ByteBuf bb = ctx.alloc().buffer();
 		try {
 			switch (pktId) {

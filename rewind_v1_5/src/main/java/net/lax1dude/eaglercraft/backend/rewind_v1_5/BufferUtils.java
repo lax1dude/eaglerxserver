@@ -248,6 +248,10 @@ public class BufferUtils {
 		return (int)(position << 38l >>> 38l);
 	}
 
+	public static long createPosition(int x, int y, int z) {
+		return (((long)x) << 38) | (((long)(y & 0xFFF)) << 26) | ((long)(z & 0x3FFFFFF));
+	}
+
 	public static void convertMetadata2Legacy(ByteBuf buffer, ByteBuf bb) {
 		while (true) {
 			short item = buffer.readUnsignedByte();
@@ -281,5 +285,9 @@ public class BufferUtils {
 		type = convertType2Legacy(type);
 		// todo: map meta
 		return (type << 4) | meta;
+	}
+
+	public static String stringToChat(String str) {
+		return "\"" + str.replaceAll("\"","\\\\\"") + "\"";
 	}
 }
