@@ -15,16 +15,18 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchCallback;
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
+import net.lax1dude.eaglercraft.backend.server.api.webserver.IPreflightContext;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IPreparedResponse;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestContext;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestHandler;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IWebServer;
 
-public class RequestContext implements IRequestContext, IRequestContext.NettyUnsafe {
+public class RequestContext implements IPreflightContext, IRequestContext.NettyUnsafe {
 
 	private final WebServer webServer;
 	public IEaglerListenerInfo listener;
 	public EnumRequestMethod meth;
+	public EnumRequestMethod pfMeth;
 	public String uri;
 	public String path;
 	public String query;
@@ -60,10 +62,11 @@ public class RequestContext implements IRequestContext, IRequestContext.NettyUns
 		this.webServer = webServer;
 	}
 
-	public void setContext(IEaglerListenerInfo listener, EnumRequestMethod meth, String uri, String path, String query,
-			ChannelHandlerContext ctx, FullHttpRequest request) {
+	public void setContext(IEaglerListenerInfo listener, EnumRequestMethod meth, EnumRequestMethod pfMeth, String uri,
+			String path, String query, ChannelHandlerContext ctx, FullHttpRequest request) {
 		this.listener = listener;
 		this.meth = meth;
+		this.pfMeth = pfMeth;
 		this.uri = uri;
 		this.path = path;
 		this.query = query;
@@ -161,6 +164,11 @@ public class RequestContext implements IRequestContext, IRequestContext.NettyUns
 	@Override
 	public String getHost() {
 		return request.headers().get(HttpHeaderNames.HOST);
+	}
+
+	@Override
+	public String getOrigin() {
+		return request.headers().get(HttpHeaderNames.ORIGIN);
 	}
 
 	@Override
@@ -289,6 +297,16 @@ public class RequestContext implements IRequestContext, IRequestContext.NettyUns
 		}
 		request.retain();
 		return contextPromise = new ContextPromise();
+	}
+
+	@Override
+	public EnumRequestMethod getRequestedMethod() {
+		return pfMeth;
+	}
+
+	@Override
+	public Iterable<String> getRequestedHeaders() {
+		return request.headers().getAll(HttpHeaderNames.ACCESS_CONTROL_REQUEST_HEADERS);
 	}
 
 	@Override

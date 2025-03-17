@@ -429,7 +429,9 @@ public class RouteMap<L, T> {
 		}
 	}
 
-	public static final List<EnumRequestMethod> allMethods = ImmutableList.copyOf(EnumRequestMethod.values());
+	public static final List<EnumRequestMethod> allMethods = ImmutableList.of(EnumRequestMethod.GET,
+			EnumRequestMethod.HEAD, EnumRequestMethod.PUT, EnumRequestMethod.DELETE, EnumRequestMethod.POST,
+			EnumRequestMethod.PATCH);
 
 	public void getOptions(Iterator<CharSequence> tokens, boolean dir, L listener, Result<List<EnumRequestMethod>> result) {
 		RouteTreeNode<L, T> endpointNode = rootNode.find(tokens, dir);

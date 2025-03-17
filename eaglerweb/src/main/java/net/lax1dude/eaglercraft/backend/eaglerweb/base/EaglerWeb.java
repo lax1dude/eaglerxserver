@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import com.google.gson.JsonParseException;
 
-import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.webserver.IPreflightContext;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestContext;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestHandler;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.RouteDesc;
@@ -121,15 +121,20 @@ public class EaglerWeb<PlayerObject> {
 	private abstract class HandlerBase implements IRequestHandler {
 
 		@Override
-		public boolean isEnableCORS() {
+		public boolean enablePreflight() {
 			EaglerWebHandler handler = EaglerWeb.this.handler;
-			return handler != null && handler.isEnableCORS();
+			return handler != null && handler.enablePreflight();
 		}
 
 		@Override
-		public boolean handleCORSAllowOrigin(String origin, EnumRequestMethod method, String path, String query) {
+		public void handlePreflight(IPreflightContext context) {
 			EaglerWebHandler handler = EaglerWeb.this.handler;
-			return handler != null && handler.handleCORSAllowOrigin(origin, method, path, query);
+			if(handler != null && handler.enablePreflight()) {
+				handler.handlePreflight(context);
+			}else {
+				context.setResponseCode(403);
+				context.setResponseBodyEmpty();
+			}
 		}
 
 	}

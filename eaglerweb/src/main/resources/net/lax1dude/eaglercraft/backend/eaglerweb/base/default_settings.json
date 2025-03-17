@@ -1,0 +1,19 @@
+{
+	"memory_cache_expires_after": 300,
+	"memory_cache_max_files": 128,
+	"file_io_thread_count": 4,
+	"enable_cors_support": false,
+	"listeners": {
+		"*": {
+			"document_root": "web",
+			"page_index": [
+				"index.html",
+				"index.htm"
+			],
+			"page_404": null,
+			"page_429": null,
+			"page_500": null,
+			"autoindex": false
+		}
+	}
+}

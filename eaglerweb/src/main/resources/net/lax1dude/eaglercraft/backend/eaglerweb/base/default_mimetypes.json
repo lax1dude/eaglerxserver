@@ -1,0 +1,180 @@
+{
+	"text/html": {
+		"files": [ "html", "htm", "shtml" ],
+		"expires": 3600,
+		"charset": "utf-8"
+	},
+	"application/javascript": {
+		"files": [ "js" ],
+		"expires": 3600,
+		"charset": "utf-8"
+	},
+	"application/octet-stream": {
+		"files": [ "epk" ],
+		"expires": 14400
+	},
+	"text/css": {
+		"files": [ "css" ],
+		"expires": 14400,
+		"charset": "utf-8"
+	},
+	"text/xml": {
+		"files": [ "xml" ],
+		"expires": 3600,
+		"charset": "utf-8"
+	},
+	"text/plain": {
+		"files": [ "txt" ],
+		"expires": 3600,
+		"charset": "utf-8"
+	},
+	"image/png": {
+		"files": [ "png" ],
+		"expires": 14400
+	},
+	"image/jpeg": {
+		"files": [ "jpeg", "jpg", "jfif" ],
+		"expires": 14400
+	},
+	"image/gif": {
+		"files": [ "gif" ],
+		"expires": 14400
+	},
+	"image/webp": {
+		"files": [ "webp" ],
+		"expires": 14400
+	},
+	"image/svg+xml": {
+		"files": [ "svg", "svgz" ],
+		"expires": 14400,
+		"charset": "utf-8"
+	},
+	"image/tiff": {
+		"files": [ "tiff", "tif" ],
+		"expires": 14400
+	},
+	"image/avif": {
+		"files": [ "avif" ],
+		"expires": 14400
+	},
+	"image/x-ms-bmp": {
+		"files": [ "bmp" ],
+		"expires": 14400
+	},
+	"image/x-icon": {
+		"files": [ "ico" ],
+		"expires": 14400
+	},
+	"image/woff": {
+		"files": [ "woff" ],
+		"expires": 43200
+	},
+	"image/woff2": {
+		"files": [ "woff2" ],
+		"expires": 43200
+	},
+	"application/json": {
+		"files": [ "json" ],
+		"expires": 3600,
+		"charset": "utf-8"
+	},
+	"application/pdf": {
+		"files": [ "pdf" ],
+		"expires": 14400
+	},
+	"application/rtf": {
+		"files": [ "rtf" ],
+		"expires": 14400
+	},
+	"application/java-archive": {
+		"files": [ "jar", "war", "ear" ],
+		"expires": 14400
+	},
+	"application/wasm": {
+		"files": [ "wasm" ],
+		"expires": 3600
+	},
+	"application/xhtml+xml": {
+		"files": [ "xhtml" ],
+		"expires": 3600,
+		"charset": "utf-8"
+	},
+	"application/zip": {
+		"files": [ "zip" ],
+		"expires": 14400
+	},
+	"audio/midi": {
+		"files": [ "mid", "midi", "kar" ],
+		"expires": 43200
+	},
+	"audio/mpeg": {
+		"files": [ "mp3" ],
+		"expires": 43200
+	},
+	"audio/ogg": {
+		"files": [ "ogg" ],
+		"expires": 43200
+	},
+	"audio/x-m4a": {
+		"files": [ "m4a" ],
+		"expires": 43200
+	},
+	"application/atom+xml": {
+		"files": [ "atom" ],
+		"expires": 3600,
+		"charset": "utf-8"
+	},
+	"application/rss+xml": {
+		"files": [ "rss" ],
+		"expires": 3600,
+		"charset": "utf-8"
+	},
+	"application/x-shockwave-flash": {
+		"files": [ "swf" ],
+		"expires": 43200
+	},
+	"video/3gpp": {
+		"files": [ "3gpp", "3gp" ],
+		"expires": 43200
+	},
+	"video/mp4": {
+		"files": [ "mp4" ],
+		"expires": 43200
+	},
+	"video/mpeg": {
+		"files": [ "mpeg", "mpg" ],
+		"expires": 43200
+	},
+	"video/quicktime": {
+		"files": [ "mov" ],
+		"expires": 43200
+	},
+	"video/webm": {
+		"files": [ "webm" ],
+		"expires": 43200
+	},
+	"video/x-motion-jpeg": {
+		"files": [ "mjpg" ],
+		"expires": 14400
+	},
+	"video/x-flv": {
+		"files": [ "flv" ],
+		"expires": 43200
+	},
+	"video/x-m4v": {
+		"files": [ "m4v" ],
+		"expires": 43200
+	},
+	"video/x-mng": {
+		"files": [ "3mng" ],
+		"expires": 43200
+	},
+	"video/x-ms-wmv": {
+		"files": [ "wmv" ],
+		"expires": 43200
+	},
+	"video/x-msvideo": {
+		"files": [ "avi" ],
+		"expires": 43200
+	}
+}

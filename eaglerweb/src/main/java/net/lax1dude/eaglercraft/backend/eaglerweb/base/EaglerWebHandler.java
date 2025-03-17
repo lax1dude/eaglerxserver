@@ -4,15 +4,19 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
+import net.lax1dude.eaglercraft.backend.eaglerweb.base.EaglerWebConfig.ConfigDataMIMEType;
 import net.lax1dude.eaglercraft.backend.eaglerweb.base.EaglerWebConfig.ConfigDataSettings;
 import net.lax1dude.eaglercraft.backend.eaglerweb.base.PathProcessor.RedirectDirException;
 import net.lax1dude.eaglercraft.backend.eaglerweb.base.ResponseCache.ResponseLoader;
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
+import net.lax1dude.eaglercraft.backend.server.api.webserver.IPreflightContext;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestContext;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestContext.IContextPromise;
 
@@ -48,7 +52,16 @@ public class EaglerWebHandler {
 	public static EaglerWebHandler build(EaglerWeb<?> eaglerWeb) throws IOException {
 		EaglerWebConfig config = eaglerWeb.getConfig();
 		ResponseCacheBuilder cacheBuilder = new ResponseCacheBuilder(config.getMemoryCacheExpiresAfter(),
-				config.getMemoryCacheMaxFiles(), config.getFileIOThreadCount(), eaglerWeb.logger());
+				config.getMemoryCacheMaxFiles(), config.getFileIOThreadCount(), eaglerWeb.logger(), (f) -> {
+			String name = f.getName();
+			int i = name.lastIndexOf('.');
+			if (i != -1) {
+				return config.getMimeTypes().getOrDefault(name.substring(i + 1).toLowerCase(Locale.US),
+						EaglerWebConfig.DEFAULT_MIME);
+			}else {
+				return EaglerWebConfig.DEFAULT_MIME;
+			}
+		});
 		ImmutableMap.Builder<IEaglerListenerInfo, ListenerContext> builder = ImmutableMap.builder();
 		ListenerContext defaultListener = null;
 		Map<File, IndexNodeFolder> documentRoots = new HashMap<>();
@@ -167,12 +180,13 @@ public class EaglerWebHandler {
 				if(data == ResponseCache.ERROR) {
 					break eagler;
 				}
-				completeRequest(requestContext, code, data);
+				completeRequest(requestContext, code, cacheKey.getType(), data);
 			}else {
 				IContextPromise promise = requestContext.suspendContext();
+				ConfigDataMIMEType cacheKeyType = cacheKey.getType();
 				loader.loadResponse((data0) -> {
 					if(data0 != ResponseCache.ERROR) {
-						completeRequest(requestContext, code, data0);
+						completeRequest(requestContext, code, cacheKeyType, data0);
 						promise.complete();
 					}else {
 						try {
@@ -203,12 +217,12 @@ public class EaglerWebHandler {
 				if(data == ResponseCache.ERROR) {
 					break eagler;
 				}
-				completeRequest(requestContext, 429, data);
+				completeRequest(requestContext, 429, ctx.page429.getType(), data);
 			}else {
 				IContextPromise promise = requestContext.suspendContext();
 				loader.loadResponse((data0) -> {
 					if(data0 != ResponseCache.ERROR) {
-						completeRequest(requestContext, 429, data0);
+						completeRequest(requestContext, 429, ctx.page429.getType(), data0);
 						promise.complete();
 					}else {
 						try {
@@ -235,12 +249,12 @@ public class EaglerWebHandler {
 				if(data == ResponseCache.ERROR) {
 					break eagler;
 				}
-				completeRequest(requestContext, 500, data);
+				completeRequest(requestContext, 500, ctx.page500.getType(), data);
 			}else {
 				IContextPromise promise = requestContext.suspendContext();
 				loader.loadResponse((data0) -> {
 					if(data0 != ResponseCache.ERROR) {
-						completeRequest(requestContext, 500, data0);
+						completeRequest(requestContext, 500, ctx.page500.getType(), data0);
 						promise.complete();
 					}else {
 						try {
@@ -258,17 +272,37 @@ public class EaglerWebHandler {
 		requestContext.getServer().getDefault500Handler().handleRequest(requestContext);
 	}
 
-	private void completeRequest(IRequestContext context, int code, byte[] data) {
+	private void completeRequest(IRequestContext context, int code, ConfigDataMIMEType contentType, byte[] data) {
+		if(enableCORS) {
+			context.addResponseHeader("access-control-allow-origin", "*");
+		}
+		if(contentType != null) {
+			context.addResponseHeader("content-type", contentType.getContentTypeHeader());
+			context.addResponseHeader("cache-control", contentType.getCacheControlHeader());
+		}
 		context.setResponseCode(code);
 		context.setResponseBody(data);
 	}
 
-	public boolean isEnableCORS() {
+	private static final List<EnumRequestMethod> allowMethods = ImmutableList.of(EnumRequestMethod.GET,
+			EnumRequestMethod.HEAD, EnumRequestMethod.OPTIONS);
+
+	public boolean enablePreflight() {
 		return enableCORS;
 	}
 
-	public boolean handleCORSAllowOrigin(String origin, EnumRequestMethod method, String path, String query) {
-		return enableCORS;
+	public void handlePreflight(IPreflightContext context) {
+		if(enableCORS) {
+			context.setResponseCode(200);
+			context.addResponseHeader("access-control-allow-origin", "*");
+			context.addResponseHeaders("access-control-allow-methods", allowMethods);
+			context.addResponseHeaders("access-control-allow-headers",
+					context.getHeaders("access-control-request-headers"));
+			context.setResponseBodyEmpty();
+		}else {
+			context.setResponseCode(403);
+			context.setResponseBodyEmpty();
+		}
 	}
 
 	public void release() {

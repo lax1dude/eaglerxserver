@@ -1,18 +1,12 @@
 package net.lax1dude.eaglercraft.backend.server.api;
 
 public enum EnumRequestMethod {
-	GET(0, 1), HEAD(1, 2), PUT(2, 4), DELETE(3, 8), POST(4, 16), PATCH(5, 32);
+	GET(0, 1), HEAD(1, 2), PUT(2, 4), DELETE(3, 8), POST(4, 16), PATCH(5, 32), OPTIONS(6, -1);
 
 	public static final int bits = 63;
 
-	private static final EnumRequestMethod[] VALUES = values();
-
-	static {
-		for(int i = 0; i < VALUES.length; ++i) {
-			if((1 << i) != VALUES[i].bit)
-				throw new IllegalStateException();
-		}
-	}
+	private static final EnumRequestMethod[] VALUES = new EnumRequestMethod[] { GET, HEAD, PUT, DELETE, POST, PATCH, OPTIONS };
+	private static final EnumRequestMethod[] BIT_LOOKUP = new EnumRequestMethod[] { GET, HEAD, PUT, DELETE, POST, PATCH };
 
 	private final int id;
 	private final int bit;
@@ -31,9 +25,13 @@ public enum EnumRequestMethod {
 	}
 
 	public static int toBits(EnumRequestMethod[] methods) {
-		int r = 0;
+		int r = 0, j;
 		for(int i = 0; i < methods.length; ++i) {
-			r |= methods[i].bit;
+			j = methods[i].bit;
+			if(j == -1) {
+				throw new IllegalArgumentException("Cannot have OPTIONS in bitfield!");
+			}
+			r |= j;
 		}
 		return r;
 	}
@@ -44,7 +42,7 @@ public enum EnumRequestMethod {
 		EnumRequestMethod[] ret = new EnumRequestMethod[cnt];
 		for(int i = 0; i < cnt; ++i) {
 			int j = Integer.numberOfTrailingZeros(bits);
-			ret[i] = VALUES[j];
+			ret[i] = BIT_LOOKUP[j];
 			bits &= ((EnumRequestMethod.bits - 1) << j);
 		}
 		return ret;

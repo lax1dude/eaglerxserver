@@ -82,6 +82,9 @@ public class RouteProcessor extends RouteMap.Result<Object> implements Iterator<
 	public <L, T> RouteMap.Result<T> find(CharSequence url, L listener, int method, RouteMap<L, T> routeMap) {
 		this.result = null;
 		RouteMap.Result<T> ret = (RouteMap.Result<T>) this;
+		if(method >= 6) {
+			return ret;
+		}
 		int len = url.length();
 		if(len == 0) {
 			routeMap.get(NOP_ITERATOR, false, listener, method, ret);

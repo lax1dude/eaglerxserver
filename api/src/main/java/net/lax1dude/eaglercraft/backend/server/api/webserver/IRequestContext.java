@@ -35,6 +35,8 @@ public interface IRequestContext {
 
 	String getHost();
 
+	String getOrigin();
+
 	int getRequestBodyLength();
 
 	default boolean hasRequestBody() {

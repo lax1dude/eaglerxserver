@@ -1,11 +1,14 @@
 package net.lax1dude.eaglercraft.backend.server.base.pipeline;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 
 import com.google.common.collect.ImmutableMap;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -89,7 +92,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 				EnumRequestMethod meth = methodLookup.get(method);
 				if(meth == null) {
 					if(method == HttpMethod.OPTIONS) {
-						handleOptions(ctx, path, query, msg);
+						handleOptions(ctx, uri, path, query, msg);
 					}else {
 						handleUnexpectedMeth(ctx, method);
 					}
@@ -101,13 +104,13 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 				
 				boolean dir = path.endsWith("/");
 				if(dir != handlerResult.directory) {
-					FullHttpResponse res = createResponse(HttpResponseStatus.PERMANENT_REDIRECT, null);
+					FullHttpResponse res = createResponse(HttpResponseStatus.PERMANENT_REDIRECT, null, 0);
 					res.headers().add(HttpHeaderNames.LOCATION, redirDir(path, query, dir));
 					ctx.writeAndFlush(res);
 					return;
 				}
 				
-				handleRequest(ctx, msg, meth, uri, path, query, handlerResult.result, false);
+				handleRequest(ctx, msg, meth, null, uri, path, query, handlerResult.result, false);
 			}
 		}finally {
 			ReferenceCountUtil.release(msgRaw);
@@ -132,11 +135,10 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 		}
 	}
 
-	private void handleOptions(ChannelHandlerContext ctx, String path, String query, FullHttpRequest msg) {
+	private void handleOptions(ChannelHandlerContext ctx, String uri, String path, String query, FullHttpRequest msg) {
 		HttpHeaders headers = msg.headers();
 		String reqMethod = headers.get(HttpHeaderNames.ACCESS_CONTROL_REQUEST_METHOD);
 
-		String origin = headers.get(HttpHeaderNames.ORIGIN);
 		if(reqMethod != null) {
 			EnumRequestMethod corsMethod;
 			try {
@@ -144,48 +146,28 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 			}catch(IllegalArgumentException ex) {
 				corsMethod = null;
 			}
-			if(origin != null && corsMethod != null) {
+			
+			if(corsMethod != null && corsMethod != EnumRequestMethod.OPTIONS && headers.contains(HttpHeaderNames.ORIGIN)) {
 				RouteMap.Result<IRequestHandler> handlerResult = server.getWebServer()
 						.resolveInternal(pipelineData.listenerInfo, corsMethod.id(), path, processor());
 
 				boolean dir = path.endsWith("/");
 				if(dir != handlerResult.directory) {
-					FullHttpResponse res = createResponse(HttpResponseStatus.PERMANENT_REDIRECT, null);
+					FullHttpResponse res = createResponse(HttpResponseStatus.PERMANENT_REDIRECT, null, 0);
 					res.headers().add(HttpHeaderNames.LOCATION, redirDir(path, query, dir));
 					ctx.writeAndFlush(res);
 					return;
 				}
 
-				IRequestHandler result = handlerResult.result;
-				boolean allow;
-				try {
-					allow = result.isEnableCORS() && result.handleCORSAllowOrigin(origin, corsMethod, path, query);
-				}catch(Throwable err) {
-					pipelineData.connectionLogger.error("Request handler " + context.requestHandlerInternal
-							+ " raised an exception while handling CORS preflight for \"" + context.uri + "\"", err);
-					ctx.writeAndFlush(createResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR, null));
-					return;
-				}
-				
-				if(allow) {
-					FullHttpResponse res = createResponse(HttpResponseStatus.OK, null);
-					HttpHeaders resHeaders = res.headers();
-					resHeaders.add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
-					resHeaders.add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, corsMethod);
-					resHeaders.add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS,
-							headers.getAll(HttpHeaderNames.ACCESS_CONTROL_REQUEST_HEADERS));
-					ctx.writeAndFlush(res);
-				}else {
-					ctx.writeAndFlush(createResponse(HttpResponseStatus.NOT_FOUND, null));
-				}
+				handleRequest(ctx, msg, EnumRequestMethod.OPTIONS, corsMethod, uri, path, query, handlerResult.result, false);
 			}else {
-				ctx.writeAndFlush(createResponse(HttpResponseStatus.BAD_REQUEST, null));
+				ctx.writeAndFlush(createResponse(HttpResponseStatus.BAD_REQUEST, null, 0));
 			}
 			return;
 		}
 		
 		if("*".equals(path) && query.isEmpty()) {
-			FullHttpResponse res = createResponse(HttpResponseStatus.OK, null);
+			FullHttpResponse res = createResponse(HttpResponseStatus.OK, null, 0);
 			res.headers().add(HttpHeaderNames.ALLOW, RouteMap.allMethods);
 			ctx.writeAndFlush(res);
 			return;
@@ -196,37 +178,46 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 		if(optionsResult.result != null) {
 			boolean dir = path.endsWith("/");
 			if(dir != optionsResult.directory) {
-				FullHttpResponse res = createResponse(HttpResponseStatus.PERMANENT_REDIRECT, null);
+				FullHttpResponse res = createResponse(HttpResponseStatus.PERMANENT_REDIRECT, null, 0);
 				res.headers().add(HttpHeaderNames.LOCATION, redirDir(path, query, dir));
 				ctx.writeAndFlush(res);
 				return;
 			}
 			if(!optionsResult.result.isEmpty()) {
-				FullHttpResponse res = createResponse(HttpResponseStatus.OK, null);
+				FullHttpResponse res = createResponse(HttpResponseStatus.OK, null, 0);
 				res.headers().add(HttpHeaderNames.ALLOW, optionsResult.result);
 				ctx.writeAndFlush(res);
 				return;
 			}
 		}
 		
-		ctx.writeAndFlush(createResponse(HttpResponseStatus.NOT_FOUND, null));
+		ctx.writeAndFlush(createResponse(HttpResponseStatus.FORBIDDEN, null, 0));
 	}
 
 	private void handleRequest(RequestContext oldContext, IRequestHandler requestHandler, boolean isFailing) {
-		handleRequest(oldContext.ctx, oldContext.request, oldContext.meth, oldContext.uri, oldContext.path,
-				oldContext.query, requestHandler, isFailing);
+		handleRequest(oldContext.ctx, oldContext.request, oldContext.meth, oldContext.pfMeth, oldContext.uri,
+				oldContext.path, oldContext.query, requestHandler, isFailing);
 	}
 
-	private void handleRequest(ChannelHandlerContext ctx, FullHttpRequest msg, EnumRequestMethod meth, String uri,
-			String path, String query, IRequestHandler requestHandler, boolean isFailing) {
+	private void handleRequest(ChannelHandlerContext ctx, FullHttpRequest msg, EnumRequestMethod meth,
+			EnumRequestMethod pfMeth, String uri, String path, String query, IRequestHandler requestHandler,
+			boolean isFailing) {
+		if(pfMeth != null && !requestHandler.enablePreflight()) {
+			context.ctx.writeAndFlush(createResponse(HttpResponseStatus.FORBIDDEN, null, 0));
+			return;
+		}
 		RequestContext context = context();
 		context.failing = isFailing;
-		context.setContext(pipelineData.listenerInfo, meth, uri, path, query, ctx, msg);
+		context.setContext(pipelineData.listenerInfo, meth, pfMeth, uri, path, query, ctx, msg);
 		try {
 			context.requestHandlerInternal = requestHandler;
 			context.suspendable = true;
 			try {
-				requestHandler.handleRequest(context);
+				if(pfMeth != null) {
+					requestHandler.handlePreflight(context);
+				}else {
+					requestHandler.handleRequest(context);
+				}
 			}finally {
 				context.suspendable = false;
 			}
@@ -255,7 +246,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 				if(!context.failing) {
 					handleRequest(context, server.getWebServer().get500Handler(), true);
 				}else {
-					context.ctx.writeAndFlush(createResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR, null));
+					context.ctx.writeAndFlush(createResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR, null, 0));
 				}
 				return;
 			}
@@ -265,7 +256,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 				if(!context.failing) {
 					handleRequest(context, server.getWebServer().get500Handler(), true);
 				}else {
-					context.ctx.writeAndFlush(createResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR, null));
+					context.ctx.writeAndFlush(createResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR, null, 0));
 				}
 				return;
 			}
@@ -278,25 +269,42 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 				handleRequest(context, server.getWebServer().get500Handler(), true);
 				break;
 			case RequestContext.RESPONSE_PREPARED:
-				context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, Unpooled.wrappedBuffer(context.responsePrepared.buffer)), context).retain());
+				if(context.meth == EnumRequestMethod.HEAD) {
+					context.ctx.writeAndFlush(populateHeadersFrom(
+							createResponse(status, null, context.responsePrepared.buffer.readableBytes()), context));
+				}else {
+					context.ctx.writeAndFlush(populateHeadersFrom(
+							createResponse(status, Unpooled.wrappedBuffer(context.responsePrepared.buffer), 0), context).retain());
+				}
 				break;
 			case RequestContext.RESPONSE_BYTE_ARRAY:
-				context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, Unpooled.wrappedBuffer(context.responseData)), context));
+				if(context.meth == EnumRequestMethod.HEAD) {
+					context.ctx.writeAndFlush(populateHeadersFrom(
+							createResponse(status, null, context.responseData.length), context));
+				}else {
+					context.ctx.writeAndFlush(populateHeadersFrom(
+							createResponse(status, Unpooled.wrappedBuffer(context.responseData), 0), context));
+				}
 				break;
 			case RequestContext.RESPONSE_CHARS:
-				ByteBuf buf = context.ctx.alloc().buffer();
-				try {
-					buf.writeCharSequence(context.responseChars, context.responseCharsCharset);
-					context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, buf), context).retain());
-				}finally {
-					buf.release();
+				if(context.meth == EnumRequestMethod.HEAD) {
+					context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, null,
+							stringByteLength(context.responseChars, context.responseCharsCharset)), context));
+				}else {
+					ByteBuf buf = context.ctx.alloc().buffer();
+					try {
+						buf.writeCharSequence(context.responseChars, context.responseCharsCharset);
+						context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, buf, 0), context).retain());
+					}finally {
+						buf.release();
+					}
 				}
 				break;
 			case RequestContext.RESPONSE_EMPTY:
-				context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, null), context));
+				context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, null, 0), context));
 				break;
 			case RequestContext.RESPONSE_UNSAFE_BUF:
-				context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, context.responseUnsafeByteBuf), context).retain());
+				context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, context.responseUnsafeByteBuf, 0), context).retain());
 				break;
 			case RequestContext.RESPONSE_UNSAFE_FULL:
 				context.ctx.writeAndFlush(context.responseUnsafeFull.retain());
@@ -315,7 +323,19 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 		}
 	}
 
-	private FullHttpResponse createResponse(HttpResponseStatus code, ByteBuf body) {
+	private int stringByteLength(CharSequence chars, Charset charset) {
+		if(charset == StandardCharsets.UTF_8) {
+			return ByteBufUtil.utf8Bytes(chars);
+		}else if(charset == StandardCharsets.US_ASCII || charset == StandardCharsets.ISO_8859_1) {
+			return chars.length();
+		}else if(charset == StandardCharsets.UTF_16 || charset == StandardCharsets.UTF_16LE || charset == StandardCharsets.UTF_16BE) {
+			return chars.length() * 2;
+		}else {
+			return chars.toString().getBytes(charset).length; // RIP
+		}
+	}
+
+	private FullHttpResponse createResponse(HttpResponseStatus code, ByteBuf body, int len) {
 		FullHttpResponse ret;
 		if(body != null) {
 			ret = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, code, body);
@@ -329,7 +349,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 		if(body != null) {
 			headers.set(HttpHeaderNames.CONTENT_LENGTH, body.readableBytes());
 		}else {
-			headers.set(HttpHeaderNames.CONTENT_LENGTH, 0);
+			headers.set(HttpHeaderNames.CONTENT_LENGTH, len);
 		}
 		return ret;
 	}
@@ -349,7 +369,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 	}
 
 	private void handleUnexpectedMeth(ChannelHandlerContext ctx, HttpMethod method) {
-		ctx.writeAndFlush(createResponse(HttpResponseStatus.METHOD_NOT_ALLOWED, null));
+		ctx.writeAndFlush(createResponse(HttpResponseStatus.METHOD_NOT_ALLOWED, null, 0));
 	}
 
 	@Override

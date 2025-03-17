@@ -63,7 +63,7 @@ public class EaglerWebConfig {
 		long memoryCacheExpiresAfter = obj.getAsJsonPrimitive("memory_cache_expires_after").getAsLong() * 1000l;
 		int memoryCacheMaxFiles = obj.getAsJsonPrimitive("memory_cache_max_files").getAsInt();
 		int fileIOThreadCount = obj.getAsJsonPrimitive("file_io_thread_count").getAsInt();
-		boolean enableCORS = obj.getAsJsonPrimitive("enable_cors").getAsBoolean();
+		boolean enableCORS = obj.getAsJsonPrimitive("enable_cors_support").getAsBoolean();
 		
 		for(Entry<String, JsonElement> etr : obj.getAsJsonObject("listeners").entrySet()) {
 			ConfigDataSettings setting = parseSettings(pluginDir, etr.getValue().getAsJsonObject());
@@ -134,6 +134,9 @@ public class EaglerWebConfig {
 			mimeBuilder.put(jsonArray.get(i).getAsString().toLowerCase(Locale.US), mimeType);
 		}
 	}
+
+	static final ConfigDataMIMEType DEFAULT_MIME = new ConfigDataMIMEType("application/octet-stream", null,
+			"application/octet-stream", "no-cache", 0l);
 
 	private final long memoryCacheExpiresAfter;
 	private final int memoryCacheMaxFiles;
