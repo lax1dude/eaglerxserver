@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.eaglerweb.bukkit;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.bukkit.command.Command;
@@ -33,7 +34,19 @@ class CommandEaglerWeb extends Command {
 			BaseComponent comp = new TextComponent("Indexing pages, please wait...");
 			comp.setColor(ChatColor.AQUA);
 			sender.sendMessage(comp);
-			int cnt = handler.refresh();
+			int cnt;
+			try {
+				cnt = handler.refresh();
+			}catch(IOException ex) {
+				plugin.logger().error("Failed to index pages!", ex);
+				comp = new TextComponent("Failed to index pages! (Check Server Log)");
+				comp.setColor(ChatColor.RED);
+				sender.sendMessage(comp);
+				comp = new TextComponent(ex.toString());
+				comp.setColor(ChatColor.RED);
+				sender.sendMessage(comp);
+				return true;
+			}
 			comp = new TextComponent("Indexed " + cnt + " pages total!");
 			comp.setColor(ChatColor.AQUA);
 			sender.sendMessage(comp);

@@ -14,6 +14,7 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchCallback;
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IPreparedResponse;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestContext;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestHandler;
@@ -22,6 +23,7 @@ import net.lax1dude.eaglercraft.backend.server.api.webserver.IWebServer;
 public class RequestContext implements IRequestContext, IRequestContext.NettyUnsafe {
 
 	private final WebServer webServer;
+	public IEaglerListenerInfo listener;
 	public EnumRequestMethod meth;
 	public String uri;
 	public String path;
@@ -58,8 +60,9 @@ public class RequestContext implements IRequestContext, IRequestContext.NettyUns
 		this.webServer = webServer;
 	}
 
-	public void setContext(EnumRequestMethod meth, String uri, String path, String query, ChannelHandlerContext ctx,
-			FullHttpRequest request) {
+	public void setContext(IEaglerListenerInfo listener, EnumRequestMethod meth, String uri, String path, String query,
+			ChannelHandlerContext ctx, FullHttpRequest request) {
+		this.listener = listener;
 		this.meth = meth;
 		this.uri = uri;
 		this.path = path;
@@ -107,6 +110,11 @@ public class RequestContext implements IRequestContext, IRequestContext.NettyUns
 	@Override
 	public IWebServer getServer() {
 		return webServer;
+	}
+
+	@Override
+	public IEaglerListenerInfo getListener() {
+		return listener;
 	}
 
 	@Override

@@ -9,10 +9,13 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 
 public interface IRequestContext {
 
 	IWebServer getServer();
+
+	IEaglerListenerInfo getListener();
 
 	EnumRequestMethod getMethod();
 

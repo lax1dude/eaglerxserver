@@ -221,7 +221,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 			String path, String query, IRequestHandler requestHandler, boolean isFailing) {
 		RequestContext context = context();
 		context.failing = isFailing;
-		context.setContext(meth, uri, path, query, ctx, msg);
+		context.setContext(pipelineData.listenerInfo, meth, uri, path, query, ctx, msg);
 		try {
 			context.requestHandlerInternal = requestHandler;
 			context.suspendable = true;

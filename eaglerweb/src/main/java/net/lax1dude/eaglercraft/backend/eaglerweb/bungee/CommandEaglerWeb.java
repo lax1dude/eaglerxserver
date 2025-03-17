@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.eaglerweb.bungee;
 
+import java.io.IOException;
+
 import net.lax1dude.eaglercraft.backend.eaglerweb.base.IEaglerWebPlatform;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -29,7 +31,19 @@ class CommandEaglerWeb extends Command {
 			BaseComponent comp = new TextComponent("Indexing pages, please wait...");
 			comp.setColor(ChatColor.AQUA);
 			sender.sendMessage(comp);
-			int cnt = handler.refresh();
+			int cnt;
+			try {
+				cnt = handler.refresh();
+			}catch(IOException ex) {
+				plugin.logger().error("Failed to index pages!", ex);
+				comp = new TextComponent("Failed to index pages! (Check Proxy Log)");
+				comp.setColor(ChatColor.RED);
+				sender.sendMessage(comp);
+				comp = new TextComponent(ex.toString());
+				comp.setColor(ChatColor.RED);
+				sender.sendMessage(comp);
+				return;
+			}
 			comp = new TextComponent("Indexed " + cnt + " pages total!");
 			comp.setColor(ChatColor.AQUA);
 			sender.sendMessage(comp);

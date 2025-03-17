@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.eaglerweb.velocity;
 
+import java.io.IOException;
+
 import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.command.SimpleCommand;
@@ -31,7 +33,15 @@ class CommandEaglerWeb implements SimpleCommand {
 				return;
 			}
 			invocation.source().sendMessage(Component.text("Indexing pages, please wait...", NamedTextColor.AQUA));
-			int cnt = handler.refresh();
+			int cnt;
+			try {
+				cnt = handler.refresh();
+			}catch(IOException ex) {
+				plugin.logger().error("Failed to index pages!", ex);
+				invocation.source().sendMessage(Component.text("Failed to index pages! (Check Proxy Log)", NamedTextColor.RED));
+				invocation.source().sendMessage(Component.text(ex.toString(), NamedTextColor.RED));
+				return;
+			}
 			invocation.source().sendMessage(Component.text("Indexed " + cnt + " pages total!", NamedTextColor.AQUA));
 		}else {
 			invocation.source().sendMessage(Component.text("Usage: /eaglerweb refresh", NamedTextColor.RED));
