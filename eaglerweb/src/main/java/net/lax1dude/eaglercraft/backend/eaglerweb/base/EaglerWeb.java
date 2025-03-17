@@ -16,6 +16,7 @@ public class EaglerWeb<PlayerObject> {
 	private IEaglerXServerAPI<PlayerObject> server;
 	private EaglerWebConfig config;
 	private EaglerWebHandler handler;
+	private DefaultHandlers defaultHandlers;
 	private boolean registered;
 
 	public EaglerWeb(IEaglerWebPlatform<PlayerObject> platform) {
@@ -31,6 +32,7 @@ public class EaglerWeb<PlayerObject> {
 			platform.logger().info("Loading config files...");
 			return;
 		}
+		defaultHandlers = new DefaultHandlers(this);
 		platform.logger().info("Indexing pages, please wait...");
 		int cnt;
 		try {
@@ -99,6 +101,10 @@ public class EaglerWeb<PlayerObject> {
 
 	public EaglerWebConfig getConfig() {
 		return config;
+	}
+
+	public DefaultHandlers getDefaultHandlers() {
+		return defaultHandlers;
 	}
 
 	public int handleRefreshIndex() throws IOException {

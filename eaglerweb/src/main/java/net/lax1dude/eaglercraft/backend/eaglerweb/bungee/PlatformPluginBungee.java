@@ -6,6 +6,7 @@ import net.lax1dude.eaglercraft.backend.eaglerweb.base.IEaglerWebPlatform;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.EaglerXServerAPI;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.api.plugin.PluginDescription;
 
 public class PlatformPluginBungee extends Plugin implements IEaglerWebPlatform<ProxiedPlayer> {
 
@@ -34,6 +35,12 @@ public class PlatformPluginBungee extends Plugin implements IEaglerWebPlatform<P
 	@Override
 	public IEaglerWebLogger logger() {
 		return logger;
+	}
+
+	@Override
+	public String getVersionString() {
+		PluginDescription desc = getDescription();
+		return desc.getName() + "/" + desc.getVersion();
 	}
 
 	@Override

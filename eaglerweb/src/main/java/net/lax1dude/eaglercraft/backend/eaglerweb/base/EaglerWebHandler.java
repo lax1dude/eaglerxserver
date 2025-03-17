@@ -26,6 +26,7 @@ public class EaglerWebHandler {
 	private final Map<IEaglerListenerInfo, ListenerContext> listeners;
 	private final ListenerContext defaultListener;
 	private final boolean enableCORS;
+	private final DefaultHandlers defaults;
 	private final int totalIndexed;
 
 	private static class ListenerContext {
@@ -78,7 +79,8 @@ public class EaglerWebHandler {
 				eaglerWeb.logger().error("Listener does not exist: " + etr.getKey());
 			}
 		}
-		return new EaglerWebHandler(cacheBuilder.build(), builder.build(), defaultListener, config.getEnableCORS(), counter[0]);
+		return new EaglerWebHandler(cacheBuilder.build(), builder.build(), defaultListener, config.getEnableCORS(),
+				eaglerWeb.getDefaultHandlers(), counter[0]);
 	}
 
 	private static ListenerContext buildContext(ConfigDataSettings settings, ResponseCacheBuilder cacheBuilder,
@@ -122,11 +124,12 @@ public class EaglerWebHandler {
 	}
 
 	private EaglerWebHandler(ResponseCache responseCache, Map<IEaglerListenerInfo, ListenerContext> listeners,
-			ListenerContext defaultListener, boolean enableCORS, int totalIndexed) {
+			ListenerContext defaultListener, boolean enableCORS, DefaultHandlers defaults, int totalIndexed) {
 		this.responseCache = responseCache;
 		this.listeners = listeners;
 		this.defaultListener = defaultListener;
 		this.enableCORS = enableCORS;
+		this.defaults = defaults;
 		this.totalIndexed = totalIndexed;
 	}
 
@@ -151,7 +154,7 @@ public class EaglerWebHandler {
 				cacheKey = resolvePath(ctx.root, ctx.pageIndexNames, ctx.autoindex, requestContext.getPath());
 			} catch (RedirectDirException e) {
 				if(e.autoIndex != null) {
-					handleAutoIndex(requestContext, e.autoIndex);
+					defaults.handleAutoIndex(requestContext, e.autoIndex);
 					return;
 				}
 				requestContext.setResponseCode(308);
@@ -190,7 +193,7 @@ public class EaglerWebHandler {
 						promise.complete();
 					}else {
 						try {
-							promise.context().getServer().get404Handler().handleRequest(requestContext);
+							defaults.handle404(requestContext);
 						}catch(Exception ex) {
 							promise.complete(ex);
 							return;
@@ -201,11 +204,7 @@ public class EaglerWebHandler {
 			}
 			return;
 		}
-		requestContext.getServer().getDefault404Handler().handleRequest(requestContext);
-	}
-
-	private void handleAutoIndex(IRequestContext requestContext, IndexNodeFolder autoIndex) {
-		//TODO
+		defaults.handle404(requestContext);
 	}
 
 	public void handle429(IRequestContext requestContext) {
@@ -226,7 +225,7 @@ public class EaglerWebHandler {
 						promise.complete();
 					}else {
 						try {
-							promise.context().getServer().get429Handler().handleRequest(requestContext);
+							defaults.handle429(requestContext);
 						}catch(Exception ex) {
 							promise.complete(ex);
 							return;
@@ -237,7 +236,7 @@ public class EaglerWebHandler {
 			}
 			return;
 		}
-		requestContext.getServer().getDefault429Handler().handleRequest(requestContext);
+		defaults.handle429(requestContext);
 	}
 
 	public void handle500(IRequestContext requestContext) {
@@ -258,7 +257,7 @@ public class EaglerWebHandler {
 						promise.complete();
 					}else {
 						try {
-							promise.context().getServer().get500Handler().handleRequest(requestContext);
+							defaults.handle500(requestContext);
 						}catch(Exception ex) {
 							promise.complete(ex);
 							return;
@@ -269,7 +268,7 @@ public class EaglerWebHandler {
 			}
 			return;
 		}
-		requestContext.getServer().getDefault500Handler().handleRequest(requestContext);
+		defaults.handle500(requestContext);
 	}
 
 	private void completeRequest(IRequestContext context, int code, ConfigDataMIMEType contentType, byte[] data) {

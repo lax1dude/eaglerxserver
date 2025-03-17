@@ -24,6 +24,7 @@ abstract class DefaultHandler implements IRequestHandler {
 		}else {
 			requestContext.setResponseBody(getContents(server), StandardCharsets.UTF_8);
 		}
+		requestContext.addResponseHeader("content-type", "text/html; charset=utf-8");
 	}
 
 	void allocate(WebServer webServer) {
@@ -36,6 +37,10 @@ abstract class DefaultHandler implements IRequestHandler {
 			response.release();
 			response = null;
 		}
+	}
+
+	protected static String htmlEntities(String input) {
+		return input.replace("<", "&lt;").replace(">", "&gt;");
 	}
 
 	protected abstract int getCode();

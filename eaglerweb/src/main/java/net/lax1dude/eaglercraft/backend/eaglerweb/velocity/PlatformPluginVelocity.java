@@ -83,6 +83,11 @@ public class PlatformPluginVelocity implements IEaglerWebPlatform<Player> {
 	}
 
 	@Override
+	public String getVersionString() {
+		return PLUGIN_NAME + "/" + PLUGIN_VERSION;
+	}
+
+	@Override
 	public File getDataFolder() {
 		return dataDir;
 	}

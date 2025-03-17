@@ -7,6 +7,8 @@ public interface IEaglerWebPlatform<PlayerObject> {
 
 	IEaglerWebLogger logger();
 
+	String getVersionString();
+
 	File getDataFolder();
 
 	void setHandleRefresh(IHandleRefresh handleRefresh);

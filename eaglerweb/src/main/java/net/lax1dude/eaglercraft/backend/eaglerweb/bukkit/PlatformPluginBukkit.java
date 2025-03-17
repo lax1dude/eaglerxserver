@@ -11,7 +11,6 @@ import net.lax1dude.eaglercraft.backend.eaglerweb.base.IEaglerWebLogger;
 import net.lax1dude.eaglercraft.backend.eaglerweb.base.IEaglerWebPlatform;
 import net.lax1dude.eaglercraft.backend.eaglerweb.bungee.JavaLogger;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.EaglerXServerAPI;
-import net.md_5.bungee.api.connection.Server;
 
 public class PlatformPluginBukkit extends JavaPlugin implements IEaglerWebPlatform<Player> {
 
@@ -47,6 +46,12 @@ public class PlatformPluginBukkit extends JavaPlugin implements IEaglerWebPlatfo
 	@Override
 	public IEaglerWebLogger logger() {
 		return logger;
+	}
+
+	@Override
+	public String getVersionString() {
+		PluginDescription desc = getDescription();
+		return desc.getName() + "/" + desc.getVersion();
 	}
 
 	@Override

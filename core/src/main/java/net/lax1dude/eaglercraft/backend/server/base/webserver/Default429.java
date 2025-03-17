@@ -15,7 +15,7 @@ class Default429 extends DefaultHandler {
 
 	@Override
 	protected String getContents(EaglerXServer<?> server) {
-		return "<h1>HTTP Error 429</h1></h3>(Too many requests!)</h3>";
+		return "<h1>HTTP Error 429</h1><h3>(Too many requests!)</h3>";
 	}
 
 }
