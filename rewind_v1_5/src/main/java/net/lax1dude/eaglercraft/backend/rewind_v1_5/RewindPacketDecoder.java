@@ -189,6 +189,10 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 				bb.release();
 			}
 		}
+		// in.skipBytes(in.readableBytes());
+		if (out.isEmpty()) {
+			out.add(ctx.alloc().buffer());
+		}
 	}
 
 }

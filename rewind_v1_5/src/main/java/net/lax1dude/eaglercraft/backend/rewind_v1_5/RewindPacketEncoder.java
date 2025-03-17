@@ -772,7 +772,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private ByteBuf handleUpdateBlockEntity(ByteBuf in, ByteBufAllocator alloc) {
 		long ubePos = in.readLong();
-		short ubeAct = in.readUnsignedByte();
+		short ubeAct = in.readShort();
 		if (ubeAct == 1 || ubeAct == 3 || ubeAct == 4 || ubeAct == 5) {
 			ByteBuf bb = alloc.buffer();
 			try {
@@ -1356,6 +1356,10 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			if (bb != null) {
 				bb.release();
 			}
+		}
+		// in.skipBytes(in.readableBytes());
+		if (out.isEmpty()) {
+			out.add(ctx.alloc().buffer());
 		}
 	}
 

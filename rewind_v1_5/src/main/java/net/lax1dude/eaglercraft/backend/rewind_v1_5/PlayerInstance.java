@@ -30,7 +30,7 @@ public class PlayerInstance<PlayerObject> {
 
 	public INativeZlib getNativeZlib() {
 		if(this.nativeZlib == null) {
-			this.nativeZlib = rewind.getServerAPI().createNativeZlib(true, false, 6);
+			this.nativeZlib = rewind.getServerAPI().createNativeZlib(true, false, 0);
 		}
 		return this.nativeZlib;
 	}

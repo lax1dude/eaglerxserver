@@ -140,11 +140,6 @@ public class BufferUtils {
 		short itemDamage = buffer.readShort();
 		bb.writeByte(itemCount);
 		bb.writeShort(itemDamage);
-		byte test = buffer.getByte(0);
-		if (test == 0x00) {
-			bb.writeShort(-1);
-			return;
-		}
 		convertNBT2Legacy(buffer, bb);
 	}
 
@@ -159,15 +154,15 @@ public class BufferUtils {
 		short itemDamage = buffer.readShort();
 		bb.writeByte(itemCount);
 		bb.writeShort(itemDamage);
-		short len = buffer.readShort();
-		if (len == -1) {
-			bb.writeByte(0);
-			return;
-		}
 		convertLegacyNBT(buffer, bb);
 	}
 
 	public static void convertNBT2Legacy(ByteBuf buffer, ByteBuf bb) {
+		if (buffer.readByte() == 0) {
+			bb.writeShort(-1);
+			return;
+		}
+		buffer.readerIndex(buffer.readerIndex() - 1);
 		byte[] inputBytes = new byte[buffer.readableBytes()];
 		buffer.readBytes(inputBytes);
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -186,7 +181,12 @@ public class BufferUtils {
 	}
 
 	public static void convertLegacyNBT(ByteBuf buffer, ByteBuf bb) {
-		byte[] compressedBytes = new byte[buffer.readableBytes()];
+		short len1 = buffer.readShort();
+		if (len1 == -1) {
+			bb.writeByte(0);
+			return;
+		}
+		byte[] compressedBytes = new byte[len1];
 		buffer.readBytes(compressedBytes);
 		try (ByteArrayInputStream bais = new ByteArrayInputStream(compressedBytes);
 			 GZIPInputStream gzipIs = new GZIPInputStream(bais);
@@ -205,9 +205,6 @@ public class BufferUtils {
             throw new RuntimeException(e);
         }
 	}
-
-	// "also use an Inflater and Deflater not an InflaterInputStream/DeflaterOutputStream"
-	// lax: USE THE NATIVE BYTEBUF ONE FROM EAGLERXSERVER
 
 	public static void convertChunk2Legacy(boolean skyLightSent, int sbm, boolean guc, ByteBuf buffer, ByteBuf bb) {
 		for (int i = 0; i < 16; ++i) {
@@ -237,46 +234,72 @@ public class BufferUtils {
 	}
 
 	public static int posX(long position) {
-		return (int)(position >>> 38l);
+		return (int)(position >> 38);
 	}
 
 	public static int posY(long position) {
-		return (int)((position >>> 26l) & 0xFFFl);
+		return (int)((position >> 26) & 0xFFF);
 	}
 
 	public static int posZ(long position) {
-		return (int)(position << 38l >>> 38l);
+		return (int)(position << 38 >> 38);
 	}
 
 	public static long createPosition(int x, int y, int z) {
-		return (((long)x) << 38) | (((long)(y & 0xFFF)) << 26) | ((long)(z & 0x3FFFFFF));
+		return ((long) (x & 0x3FFFFFF) << 38) | ((long) (y & 0xFFF) << 26) | (z & 0x3FFFFFF);
 	}
 
 	public static void convertMetadata2Legacy(ByteBuf buffer, ByteBuf bb) {
+		boolean allDumb = true;
 		while (true) {
 			short item = buffer.readUnsignedByte();
 			if (item == 127) {
 				break;
 			}
 			int type = (item & 224) >> 5;
-			if (type == 7) { // may need to send 0xFF if ALL items are this
+			if (type == 7) {
 				buffer.readFloat();
 				buffer.readFloat();
 				buffer.readFloat();
 				continue;
 			}
+			allDumb = false;
 			bb.writeByte(item);
-			if (type == 4) {
-				BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(buffer, 32767), 32767);
-			} else if (type == 5) {
-				BufferUtils.convertSlot2Legacy(buffer, bb);
+			switch (type) {
+				case 0:
+					bb.writeByte(buffer.readByte());
+					break;
+				case 1:
+					bb.writeShort(buffer.readShort());
+					break;
+				case 2:
+					bb.writeInt(buffer.readInt());
+					break;
+				case 3:
+					bb.writeFloat(buffer.readFloat());
+					break;
+				case 4:
+					BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(buffer, 32767), 32767);
+					break;
+				case 5:
+					BufferUtils.convertSlot2Legacy(buffer, bb);
+					break;
+				case 6:
+					bb.writeInt(buffer.readInt());
+					bb.writeInt(buffer.readInt());
+					bb.writeInt(buffer.readInt());
+					break;
 			}
+		}
+		if (allDumb) {
+			bb.writeByte(0xFF);
 		}
 	}
 
 	public static int convertType2Legacy(int type) {
 		// todo: map type
-		return type;
+		// return type;
+		return 1;
 	}
 
 	public static int convertTypeMeta2Legacy(int typeMeta) {
@@ -284,6 +307,7 @@ public class BufferUtils {
 		int meta = typeMeta & 15;
 		type = convertType2Legacy(type);
 		// todo: map meta
+		meta = 0;
 		return (type << 4) | meta;
 	}
 
