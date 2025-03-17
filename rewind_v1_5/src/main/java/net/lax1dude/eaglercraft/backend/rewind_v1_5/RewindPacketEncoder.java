@@ -182,16 +182,22 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeInt(BufferUtils.posZ(bxyz));
 	}
 
-	private boolean handleAnimation(ByteBuf in, ByteBuf bb) {
+	private ByteBuf handleAnimation(ByteBuf in, ByteBufAllocator alloc) {
 		int aeid = BufferUtils.readVarInt(in);
 		short animation = in.readUnsignedByte();
 		if (animation >= 0 && animation <= 3) {
-			bb.writeByte(0x12);
-			bb.writeInt(aeid);
-			bb.writeByte(animation + 1);
-			return true;
+			ByteBuf bb = alloc.buffer();
+			try {
+				bb.writeByte(0x12);
+				bb.writeInt(aeid);
+				bb.writeByte(animation + 1);
+				bb.retain();
+			} finally {
+				bb.release();
+			}
+			return bb;
 		}
-		return false;
+		return null;
 	}
 
 	private void handleSpawnPlayer(ByteBuf in, ByteBuf bb) {
@@ -335,17 +341,23 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeByte(in.readByte());
 	}
 
-	private boolean handleEntityStatus(ByteBuf in, ByteBuf bb) {
+	private ByteBuf handleEntityStatus(ByteBuf in, ByteBufAllocator alloc) {
 		// todo: make sure invalid entity statuses dont make 1.5 explode, e.g. guardian stuff+
 		int i = in.readInt();
 		byte b = in.readByte();
 		if (b <= 17) {
-			bb.writeByte(0x26);
-			bb.writeInt(i);
-			bb.writeByte(b);
-			return true;
+			ByteBuf bb = alloc.buffer();
+			try {
+				bb.writeByte(0x26);
+				bb.writeInt(i);
+				bb.writeByte(b);
+				bb.retain();
+			} finally {
+				bb.release();
+			}
+			return bb;
 		}
-		return false;
+		return null;
 	}
 
 	private void handleAttachEntity(ByteBuf in, ByteBuf bb) {
@@ -538,46 +550,58 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeByte(in.readUnsignedByte());
 	}
 
-	private boolean handleParticle(ByteBuf in, ByteBuf bb) {
+	private ByteBuf handleParticle(ByteBuf in, ByteBufAllocator alloc) {
 		int pId = in.readInt();
 		String pName = particleNames[pId];
 		if (!pName.isEmpty()) {
-			bb.writeByte(0x3F);
-			in.readBoolean();
-			float[] pFloats = new float[]{
-					in.readFloat(),
-					in.readFloat(),
-					in.readFloat(),
-					in.readFloat(),
-					in.readFloat(),
-					in.readFloat(),
-					in.readFloat()
-			};
-			int pInt = in.readInt();
-			while (pName.contains("*")) {
-				pName = pName.replaceFirst("\\*", "" + BufferUtils.readVarInt(in));
+			ByteBuf bb = alloc.buffer();
+			try {
+				bb.writeByte(0x3F);
+				in.readBoolean();
+				float[] pFloats = new float[]{
+						in.readFloat(),
+						in.readFloat(),
+						in.readFloat(),
+						in.readFloat(),
+						in.readFloat(),
+						in.readFloat(),
+						in.readFloat()
+				};
+				int pInt = in.readInt();
+				while (pName.contains("*")) {
+					pName = pName.replaceFirst("\\*", "" + BufferUtils.readVarInt(in));
+				}
+				BufferUtils.writeLegacyMCString(bb, pName, 255);
+				for (float pFloat : pFloats) {
+					bb.writeFloat(pFloat);
+				}
+				bb.writeInt(pInt);
+				bb.retain();
+			} finally {
+				bb.release();
 			}
-			BufferUtils.writeLegacyMCString(bb, pName, 255);
-			for (float pFloat : pFloats) {
-				bb.writeFloat(pFloat);
-			}
-			bb.writeInt(pInt);
-			return true;
+			return bb;
 		}
-		return false;
+		return null;
 	}
 
-	private boolean handleChangeGameState(ByteBuf in, ByteBuf bb) {
+	private ByteBuf handleChangeGameState(ByteBuf in, ByteBufAllocator alloc) {
 		short cgsReason = in.readUnsignedByte();
 		if (cgsReason >= 0 && cgsReason <= 4) {
-			bb.writeByte(0x46);
-			bb.writeByte(cgsReason);
-			float cgsValue = in.readFloat();
-			if (cgsValue > 1) cgsValue = 0;
-			bb.writeByte((int) cgsValue);
-			return true;
+			ByteBuf bb = alloc.buffer();
+			try {
+				bb.writeByte(0x46);
+				bb.writeByte(cgsReason);
+				float cgsValue = in.readFloat();
+				if (cgsValue > 1) cgsValue = 0;
+				bb.writeByte((int) cgsValue);
+				bb.retain();
+			} finally {
+				bb.release();
+			}
+			return bb;
 		}
-		return false;
+		return null;
 	}
 
 	private void handleSpawnGlobalEntity(ByteBuf in, ByteBuf bb) {
@@ -647,21 +671,27 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeByte(windowUniqueId);
 	}
 
-	private boolean handleSetSlot(ByteBuf in, ByteBuf bb) {
-		bb.writeByte(0x67);
-		byte windowUniqueId = in.readByte();
-		bb.writeByte(windowUniqueId);
-		short slot = in.readShort();
-		if (enchWindows.contains((short) windowUniqueId) && slot > 0) {
-			if (slot == 1) {
-				return false;
+	private ByteBuf handleSetSlot(ByteBuf in, ByteBufAllocator alloc) {
+		ByteBuf bb = alloc.buffer();
+		try {
+			bb.writeByte(0x67);
+			byte windowUniqueId = in.readByte();
+			bb.writeByte(windowUniqueId);
+			short slot = in.readShort();
+			if (enchWindows.contains((short) windowUniqueId) && slot > 0) {
+				if (slot == 1) {
+					return null;
+				}
+				bb.writeShort(slot - 1);
+			} else {
+				bb.writeShort(slot);
 			}
-			bb.writeShort(slot - 1);
-		} else {
-			bb.writeShort(slot);
+			BufferUtils.convertSlot2Legacy(in, bb);
+			bb.retain();
+		} finally {
+			bb.release();
 		}
-		BufferUtils.convertSlot2Legacy(in, bb);
-		return true;
+		return bb;
 	}
 
 	private void handleWindowItems(ByteBuf in, ByteBuf bb) {
@@ -686,7 +716,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		}
 	}
 
-	private boolean handleWindowProperty(ByteBuf in, ByteBuf bb) {
+	private ByteBuf handleWindowProperty(ByteBuf in, ByteBufAllocator alloc) {
 		short grah = in.readUnsignedByte();
 		short uwpProp = in.readShort();
 		if (uwpProp <= 2) {
@@ -697,13 +727,19 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					uwpProp = 1;
 				}
 			}
-			bb.writeByte(0x69);
-			bb.writeByte(grah);
-			bb.writeShort(uwpProp);
-			bb.writeShort(in.readShort());
-			return true;
+			ByteBuf bb = alloc.buffer();
+			try {
+				bb.writeByte(0x69);
+				bb.writeByte(grah);
+				bb.writeShort(uwpProp);
+				bb.writeShort(in.readShort());
+				bb.retain();
+			} finally {
+				bb.release();
+			}
+			return bb;
 		}
-		return false;
+		return null;
 	}
 
 	private void handleConfirmTransaction(ByteBuf in, ByteBuf bb) {
@@ -734,19 +770,25 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		*/
 	}
 
-	private boolean handleUpdateBlockEntity(ByteBuf in, ByteBuf bb) {
+	private ByteBuf handleUpdateBlockEntity(ByteBuf in, ByteBufAllocator alloc) {
 		long ubePos = in.readLong();
 		short ubeAct = in.readUnsignedByte();
 		if (ubeAct == 1 || ubeAct == 3 || ubeAct == 4 || ubeAct == 5) {
-			bb.writeByte(0x84);
-			bb.writeInt(BufferUtils.posX(ubePos));
-			bb.writeShort(BufferUtils.posY(ubePos));
-			bb.writeInt(BufferUtils.posZ(ubePos));
-			bb.writeByte(ubeAct);
-			BufferUtils.convertNBT2Legacy(in, bb);
-			return true;
+			ByteBuf bb = alloc.buffer();
+			try {
+				bb.writeByte(0x84);
+				bb.writeInt(BufferUtils.posX(ubePos));
+				bb.writeShort(BufferUtils.posY(ubePos));
+				bb.writeInt(BufferUtils.posZ(ubePos));
+				bb.writeByte(ubeAct);
+				BufferUtils.convertNBT2Legacy(in, bb);
+				bb.retain();
+			} finally {
+				bb.release();
+			}
+			return bb;
 		}
-		return false;
+		return null;
 	}
 
 	private void handleStatistics(ByteBuf in, ByteBufAllocator alloc, List<Object> out) {
@@ -1055,229 +1097,255 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 	@Override
 	protected void encode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
 		int pktId = BufferUtils.readVarInt(in);
-		ByteBuf bb = ctx.alloc().buffer();
+		ByteBuf bb = null;
 		try {
 			switch (pktId) {
 				case 0x00:
+					bb = ctx.alloc().buffer();
 					handleKeepAlive(in, bb);
 					break;
 				case 0x01:
+					bb = ctx.alloc().buffer();
 					handleJoinGame(in, bb);
 					break;
 				case 0x02:
+					bb = ctx.alloc().buffer();
 					handleChatMessage(in, bb);
 					break;
 				case 0x03:
+					bb = ctx.alloc().buffer();
 					handleTimeUpdate(in, bb);
 					break;
 				case 0x04:
+					bb = ctx.alloc().buffer();
 					handleEntityEquipment(in, bb);
 					break;
 				case 0x05:
+					bb = ctx.alloc().buffer();
 					handleSpawnPosition(in, bb);
 					break;
 				case 0x06:
+					bb = ctx.alloc().buffer();
 					handleUpdateHealth(in, bb);
 					break;
 				case 0x07:
+					bb = ctx.alloc().buffer();
 					handleRespawn(in, bb);
 					break;
 				case 0x08:
+					bb = ctx.alloc().buffer();
 					handlePlayerPositionAndLook(in, bb);
 					break;
 				case 0x09:
+					bb = ctx.alloc().buffer();
 					handleHeldItemChange(in, bb);
 					break;
 				case 0x0A:
+					bb = ctx.alloc().buffer();
 					handleUseBed(in, bb);
 					break;
 				case 0x0B:
-					if (!handleAnimation(in, bb)) {
-						bb.release();
-						bb = null;
-					}
+					bb = handleAnimation(in, ctx.alloc());
 					break;
 				case 0x0C:
+					bb = ctx.alloc().buffer();
 					handleSpawnPlayer(in, bb);
 					break;
 				case 0x0D:
+					bb = ctx.alloc().buffer();
 					handleCollectItem(in, bb);
 					break;
 				case 0x0E:
+					bb = ctx.alloc().buffer();
 					handleSpawnObject(in, bb);
 					break;
 				case 0x0F:
+					bb = ctx.alloc().buffer();
 					handleSpawnMob(in, bb);
 					break;
 				case 0x10:
+					bb = ctx.alloc().buffer();
 					handleSpawnPainting(in, bb);
 					break;
 				case 0x11:
+					bb = ctx.alloc().buffer();
 					handleSpawnExperienceOrb(in, bb);
 					break;
 				case 0x12:
+					bb = ctx.alloc().buffer();
 					handleEntityVelocity(in, bb);
 					break;
 				case 0x13:
+					bb = ctx.alloc().buffer();
 					handleDestroyEntities(in, bb);
 					break;
 				case 0x14:
+					bb = ctx.alloc().buffer();
 					handleEntity(in, bb);
 					break;
 				case 0x15:
+					bb = ctx.alloc().buffer();
 					handleEntityRelativeMove(in, bb);
 					break;
 				case 0x16:
+					bb = ctx.alloc().buffer();
 					handleEntityLook(in, bb);
 					break;
 				case 0x17:
+					bb = ctx.alloc().buffer();
 					handleEntityLookAndRelativeMove(in, bb);
 					break;
 				case 0x18:
+					bb = ctx.alloc().buffer();
 					handleEntityTeleport(in, bb);
 					break;
 				case 0x19:
+					bb = ctx.alloc().buffer();
 					handleEntityHeadLook(in, bb);
 					break;
 				case 0x1A:
-					if (!handleEntityStatus(in, bb)) {
-						bb.release();
-						bb = null;
-					}
+					bb = handleEntityStatus(in, ctx.alloc());
 					break;
 				case 0x1B:
+					bb = ctx.alloc().buffer();
 					handleAttachEntity(in, bb);
 					break;
 				case 0x1C:
+					bb = ctx.alloc().buffer();
 					handleEntityMetadata(in, bb);
 					break;
 				case 0x1D:
+					bb = ctx.alloc().buffer();
 					handleEntityEffect(in, bb);
 					break;
 				case 0x1E:
+					bb = ctx.alloc().buffer();
 					handleRemoveEntityEffect(in, bb);
 					break;
 				case 0x1F:
+					bb = ctx.alloc().buffer();
 					handleSetExperience(in, bb);
 					break;
+				/*
 				case 0x20:
-					bb.release();
-					bb = null;
 					break;
+				*/
 				case 0x21:
+					bb = ctx.alloc().buffer();
 					handleChunkData(in, bb, ctx.alloc());
 					break;
 				case 0x22:
+					bb = ctx.alloc().buffer();
 					handleMultiBlockChange(in, bb);
 					break;
 				case 0x23:
+					bb = ctx.alloc().buffer();
 					handleBlockChange(in, bb);
 					break;
 				case 0x24:
+					bb = ctx.alloc().buffer();
 					handleBlockAction(in, bb);
 					break;
 				case 0x25:
+					bb = ctx.alloc().buffer();
 					handleBlockBreakAnimation(in, bb);
 					break;
 				case 0x26:
+					bb = ctx.alloc().buffer();
 					handleMapChunkBulk(in, bb, ctx.alloc());
 					break;
 				case 0x27:
+					bb = ctx.alloc().buffer();
 					handleExplosion(in, bb);
 					break;
 				case 0x28:
+					bb = ctx.alloc().buffer();
 					handleEffect(in, bb);
 					break;
 				case 0x29:
+					bb = ctx.alloc().buffer();
 					handleSoundEffect(in, bb);
 					break;
 				case 0x2A:
-					if (!handleParticle(in, bb)) {
-						bb.release();
-						bb = null;
-					}
+					bb = handleParticle(in, ctx.alloc());
 					break;
 				case 0x2B:
-					if (!handleChangeGameState(in, bb)) {
-						bb.release();
-						bb = null;
-					}
+					bb = handleChangeGameState(in, ctx.alloc());
 					break;
 				case 0x2C:
+					bb = ctx.alloc().buffer();
 					handleSpawnGlobalEntity(in, bb);
 					break;
 				case 0x2D:
+					bb = ctx.alloc().buffer();
 					handleOpenWindow(in, bb);
 					break;
 				case 0x2E:
+					bb = ctx.alloc().buffer();
 					handleCloseWindow(in, bb);
 					break;
 				case 0x2F:
-					if (!handleSetSlot(in, bb)) {
-						bb.release();
-						bb = null;
-					}
+					bb = handleSetSlot(in, ctx.alloc());
 					break;
 				case 0x30:
+					bb = ctx.alloc().buffer();
 					handleWindowItems(in, bb);
 					break;
 				case 0x31:
-					if (!handleWindowProperty(in, bb)) {
-						bb.release();
-						bb = null;
-					}
+					bb = handleWindowProperty(in, ctx.alloc());
 					break;
 				case 0x32:
+					bb = ctx.alloc().buffer();
 					handleConfirmTransaction(in, bb);
 					break;
 				case 0x33:
+					bb = ctx.alloc().buffer();
 					handleUpdateSign(in, bb);
 					break;
 				case 0x34:
+					// bb = ctx.alloc().buffer();
 					// handleMap(in, bb);
-					bb.release();
-					bb = null;
+					// bb.release();
+					// bb = null;
 					break;
 				case 0x35:
-					if (!handleUpdateBlockEntity(in, bb)) {
-						bb.release();
-						bb = null;
-					}
+					bb = handleUpdateBlockEntity(in, ctx.alloc());
 					break;
 				case 0x37:
-					bb.release();
-					bb = null;
 					handleStatistics(in, ctx.alloc(), out);
 					break;
 				case 0x38:
-					bb.release();
-					bb = null;
 					handlePlayerListItem(in, ctx.alloc(), out);
 					break;
 				case 0x39:
+					bb = ctx.alloc().buffer();
 					handlePlayerAbilities(in, bb);
 					break;
 				case 0x3A:
+					bb = ctx.alloc().buffer();
 					handleTabComplete(in, bb);
 					break;
 				case 0x3B:
+					bb = ctx.alloc().buffer();
 					handleScoreboardObjective(in, bb);
 					break;
 				case 0x3C:
-					bb.release();
-					bb = null;
 					handleUpdateScore(in, ctx.alloc(), out);
 					break;
 				case 0x3D:
+					bb = ctx.alloc().buffer();
 					handleDisplayScoreboard(in, bb);
 					break;
 				case 0x3E:
+					bb = ctx.alloc().buffer();
 					handleTeams(in, bb);
 					break;
 				case 0x3F:
+					bb = ctx.alloc().buffer();
 					handlePluginMessage(in, bb);
 					break;
 				case 0x40:
+					bb = ctx.alloc().buffer();
 					handleDisconnect(in, bb);
 					break;
 			}
