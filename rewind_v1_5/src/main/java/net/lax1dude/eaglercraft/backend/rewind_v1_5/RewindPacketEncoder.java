@@ -163,8 +163,8 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		playerYaw = plyaw + ((flags & 0x10) != 0 ? playerYaw : 0);
 		playerPitch = plpitch + ((flags & 0x08) != 0 ? playerPitch : 0);
 		bb.writeDouble(playerX);
-		bb.writeDouble(playerY);
-		bb.writeDouble(playerY);
+		bb.writeDouble(playerY + 1.65);
+		bb.writeDouble(playerY + 1.65);
 		bb.writeDouble(playerZ);
 		bb.writeFloat(plyaw);
 		bb.writeFloat(plpitch);
@@ -944,15 +944,15 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 						int tempSkip = BufferUtils.readVarInt(in);
 						for (int iii = 0; iii < tempSkip; ++iii) {
 							BufferUtils.readMCString(in, 255);
-							BufferUtils.readMCString(in, 255);
+							BufferUtils.readMCString(in, Integer.MAX_VALUE);
 							if (in.readBoolean()) {
-								BufferUtils.readMCString(in, 255);
+								BufferUtils.readMCString(in, Integer.MAX_VALUE);
 							}
 						}
 						BufferUtils.readVarInt(in);
 						int tbPing = BufferUtils.readVarInt(in);
 						if (in.readBoolean()) {
-							tempName = serverAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 255));
+							tempName = serverAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767));
 						}
 						tabList.put(pliUuid, new TabListItem(tempName, tbPing));
 					} else {

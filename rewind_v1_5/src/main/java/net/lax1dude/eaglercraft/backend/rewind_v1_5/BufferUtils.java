@@ -217,8 +217,6 @@ public class BufferUtils {
 	}
 
 	public static void convertChunk2Legacy(int bitmap, int data18len, ByteBuf data18, ByteBuf bb) {
-		// long startTime = System.currentTimeMillis();
-
 		int absInd = data18.readerIndex();
 		int absWInd = bb.writerIndex();
 		int count = Integer.bitCount(bitmap);
@@ -227,18 +225,12 @@ public class BufferUtils {
 		int guh2 = count * (4096 + 2048);
 		bb.ensureWritable(guh2 + guh);
 
-		int tIndex = 0;
-		int mIndex = absWInd + count * 4096;
-
 		for (int i = 0; i < (8192 * count); i += 4) {
 			int stateA = data18.getUnsignedShortLE(absInd + i);
 			int stateB = data18.getUnsignedShortLE(absInd + i + 2);
 
-			bb.setShortLE(absWInd + tIndex, convertType2Legacy(stateA >> 4) | (convertType2Legacy(stateB >> 4) << 8));
-			bb.setByte(mIndex, (byte)(((stateA & 0xF) & 0xF) | (((stateB & 0xF) & 0xF) << 4)));
-
-			tIndex += 2;
-			mIndex++;
+			bb.setShortLE(absWInd + (i >> 1), convertType2Legacy(stateA >> 4) | (convertType2Legacy(stateB >> 4) << 8));
+			bb.setByte(absWInd + count * 4096 + (i >> 2), (byte)((stateA & 0xF) | ((stateB & 0xF) << 4)));
 		}
 
 		if (guh == 256 && data18.readableBytes() - (absInd + guh1) < 256) {
@@ -249,8 +241,6 @@ public class BufferUtils {
 			data18.skipBytes(data18len);
 		}
 		bb.writerIndex(absWInd + guh2 + guh);
-
-		// System.out.println(System.currentTimeMillis() - startTime);
 	}
 
 	public static int posX(long position) {
@@ -485,7 +475,7 @@ public class BufferUtils {
 	public static String getUsernameOrElse(IEaglerXServerAPI<?> api, UUID uuid) {
 		IBasePlayer<?> guh = api.getPlayerByUUID(uuid);
 		if (guh == null) {
-			return uuid.toString();
+			return "" + uuid.hashCode();
 		}
 		return guh.getUsername();
 	}
