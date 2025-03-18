@@ -124,9 +124,12 @@ class ResponseCache {
 						if(len >= (Integer.MAX_VALUE >> 1)) {
 							throw new IOException("File is too large: " + file.getAbsolutePath());
 						}
-						len <<= 1;
-						buf = new byte[len];
-						if(len <= MAX_BUFFER_SIZE) {
+						int newLen = (len << 1);
+						byte[] newBuf = new byte[newLen];
+						System.arraycopy(buf, 0, newBuf, 0, len);
+						buf = newBuf;
+						len = newLen;
+						if(newLen <= MAX_BUFFER_SIZE) {
 							loaderBuffer = buf;
 						}
 					}

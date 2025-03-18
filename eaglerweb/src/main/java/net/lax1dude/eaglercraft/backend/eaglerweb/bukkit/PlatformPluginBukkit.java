@@ -2,8 +2,10 @@ package net.lax1dude.eaglercraft.backend.eaglerweb.bukkit;
 
 import java.lang.reflect.InvocationTargetException;
 
+import org.bukkit.Server;
 import org.bukkit.command.CommandMap;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import net.lax1dude.eaglercraft.backend.eaglerweb.base.EaglerWeb;
@@ -50,7 +52,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IEaglerWebPlatfo
 
 	@Override
 	public String getVersionString() {
-		PluginDescription desc = getDescription();
+		PluginDescriptionFile desc = getDescription();
 		return desc.getName() + "/" + desc.getVersion();
 	}
 

@@ -103,10 +103,20 @@ public class EaglerWebConfig {
 				? new File(rootFolder, object.getAsJsonPrimitive("page_429").getAsString()).getAbsoluteFile() : null;
 		File page500InternalError = object.has("page_500") && object.get("page_500").isJsonPrimitive()
 				? new File(rootFolder, object.getAsJsonPrimitive("page_500").getAsString()).getAbsoluteFile() : null;
-		boolean enableAutoIndex = object.has("autoindex") && object.get("autoindex").isJsonPrimitive()
-				&& object.get("autoindex").getAsBoolean();
+		boolean enableAutoIndex;
+		String dateFormat;
+		if(object.has("autoindex")) {
+			JsonObject autoindex = object.getAsJsonObject("autoindex");
+			enableAutoIndex = autoindex.has("enable") && autoindex.get("enable").isJsonPrimitive()
+					&& autoindex.get("enable").getAsBoolean();
+			dateFormat = autoindex.has("date_format") && autoindex.get("date_format").isJsonPrimitive()
+					? autoindex.getAsJsonPrimitive("date_format").getAsString() : null;
+		}else {
+			enableAutoIndex = false;
+			dateFormat = null;
+		}
 		return new ConfigDataSettings(rootFolder, pageIndexNames, page404NotFound, page429RateLimit,
-				page500InternalError, enableAutoIndex);
+				page500InternalError, enableAutoIndex, dateFormat);
 	}
 
 	private static void parseMIMEType(String key, JsonObject object, ImmutableMap.Builder<String, ConfigDataMIMEType> mimeBuilder) {
@@ -194,15 +204,17 @@ public class EaglerWebConfig {
 		private final File page429RateLimit;
 		private final File page500InternalError;
 		private final boolean enableAutoIndex;
+		private final String dateFormat;
 
 		protected ConfigDataSettings(File rootFolder, List<String> pageIndexNames, File page404NotFound,
-				File page429RateLimit, File page500InternalError, boolean enableAutoIndex) {
+				File page429RateLimit, File page500InternalError, boolean enableAutoIndex, String dateFormat) {
 			this.rootFolder = rootFolder;
 			this.pageIndexNames = pageIndexNames;
 			this.page404NotFound = page404NotFound;
 			this.page429RateLimit = page429RateLimit;
 			this.page500InternalError = page500InternalError;
 			this.enableAutoIndex = enableAutoIndex;
+			this.dateFormat = dateFormat;
 		}
 
 		public File getRootFolder() {
@@ -227,6 +239,10 @@ public class EaglerWebConfig {
 
 		public boolean isEnableAutoIndex() {
 			return enableAutoIndex;
+		}
+
+		public String getDateFormat() {
+			return dateFormat;
 		}
 
 	}

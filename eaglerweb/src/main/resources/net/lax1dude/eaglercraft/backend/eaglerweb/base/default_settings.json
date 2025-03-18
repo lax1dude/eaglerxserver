@@ -13,7 +13,10 @@
 			"page_404": null,
 			"page_429": null,
 			"page_500": null,
-			"autoindex": false
+			"autoindex": {
+				"enable": false,
+				"date_format": "dd-MMM-YYYY hh:mm aa"
+			}
 		}
 	}
 }

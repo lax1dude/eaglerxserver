@@ -2,6 +2,8 @@ package net.lax1dude.eaglercraft.backend.eaglerweb.base;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -37,15 +39,17 @@ public class EaglerWebHandler {
 		protected final ResponseCacheKey page429;
 		protected final ResponseCacheKey page500;
 		protected final boolean autoindex;
+		protected final DateFormat dateformat;
 
 		protected ListenerContext(IndexNode root, List<String> pageIndexNames, ResponseCacheKey page404,
-				ResponseCacheKey page429, ResponseCacheKey page500, boolean autoindex) {
+				ResponseCacheKey page429, ResponseCacheKey page500, boolean autoindex, DateFormat dateformat) {
 			this.root = root;
 			this.pageIndexNames = pageIndexNames;
 			this.page404 = page404;
 			this.page429 = page429;
 			this.page500 = page500;
 			this.autoindex = autoindex;
+			this.dateformat = dateformat;
 		}
 
 	}
@@ -85,13 +89,13 @@ public class EaglerWebHandler {
 
 	private static ListenerContext buildContext(ConfigDataSettings settings, ResponseCacheBuilder cacheBuilder,
 			Map<File, IndexNodeFolder> documentRoots, int[] counter) throws IOException {
-		return new ListenerContext(
-				index(documentRoots, settings.getRootFolder(), cacheBuilder, counter),
+		return new ListenerContext(index(documentRoots, settings.getRootFolder(), cacheBuilder, counter),
 				settings.getPageIndexNames(),
 				settings.getPage404NotFound() != null ? cacheBuilder.createEntry(settings.getPage404NotFound()) : null,
 				settings.getPage429RateLimit() != null ? cacheBuilder.createEntry(settings.getPage429RateLimit()) : null,
 				settings.getPage500InternalError() != null ? cacheBuilder.createEntry(settings.getPage500InternalError()) : null,
-				settings.isEnableAutoIndex());
+				settings.isEnableAutoIndex(),
+				settings.getDateFormat() != null ? new SimpleDateFormat(settings.getDateFormat()) : null);
 	}
 
 	private static IndexNodeFolder index(Map<File, IndexNodeFolder> documentRoots, File file,
@@ -111,16 +115,21 @@ public class EaglerWebHandler {
 		}
 		for(File child : files) {
 			if(child.isDirectory()) {
-				IndexNodeFolder folder = indexDir(file, cacheBuilder, counter);
+				IndexNodeFolder folder = indexDir(child, cacheBuilder, counter);
 				if(!folder.isEmpty()) {
 					directoryIndex.put(child.getName(), folder);
 				}
 			}else if(child.isFile()) {
-				directoryIndex.put(child.getName(), new IndexNodeFile(cacheBuilder.createEntry(file)));
+				directoryIndex.put(child.getName(), new IndexNodeFile(cacheBuilder.createEntry(child)));
 				++counter[0];
 			}
 		}
-		return new IndexNodeFolder(directoryIndex.build());
+		Map<String, IndexNode> map = directoryIndex.build();
+		IndexNodeFolder ret = new IndexNodeFolder(file.lastModified(), file.getName(), map);
+		for(IndexNode node : map.values()) {
+			node.parent = ret;
+		}
+		return ret;
 	}
 
 	private EaglerWebHandler(ResponseCache responseCache, Map<IEaglerListenerInfo, ListenerContext> listeners,
@@ -154,10 +163,11 @@ public class EaglerWebHandler {
 				cacheKey = resolvePath(ctx.root, ctx.pageIndexNames, ctx.autoindex, requestContext.getPath());
 			} catch (RedirectDirException e) {
 				if(e.autoIndex != null) {
-					defaults.handleAutoIndex(requestContext, e.autoIndex);
+					defaults.handleAutoIndex(requestContext, ctx.dateformat, e.autoIndex);
 					return;
 				}
 				requestContext.setResponseCode(308);
+				requestContext.setResponseBodyEmpty();
 				String path = requestContext.getPath();
 				if(path.endsWith("/")) {
 					int i = path.length();
@@ -173,6 +183,9 @@ public class EaglerWebHandler {
 			final int code;
 			if(cacheKey == null) {
 				cacheKey = ctx.page404;
+				if(cacheKey == null) {
+					break eagler;
+				}
 				code = 404;
 			}else {
 				code = 200;

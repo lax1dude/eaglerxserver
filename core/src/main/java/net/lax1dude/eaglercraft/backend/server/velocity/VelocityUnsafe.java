@@ -5,9 +5,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.util.Collection;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import com.google.common.collect.Multimap;
 import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.Player;
@@ -226,8 +228,18 @@ public class VelocityUnsafe {
 	public static void injectListenerAttr(ProxyServer server, InetSocketAddress address, ListenerInitList listenersToInit) {
 		try {
 			Object cm = field_VelocityServer_cm.get(server);
-			Map<InetSocketAddress, Object> map = (Map<InetSocketAddress, Object>) field_ConnectionManager_endpoints.get(cm);
-			Object endpoint = map.get(address);
+			Object obj = field_ConnectionManager_endpoints.get(cm);
+			Object endpoint;
+			if(obj instanceof Multimap) {
+				Collection<Object> endpoints = ((Multimap<InetSocketAddress, Object>) obj).get(address);
+				if(!endpoints.isEmpty()) {
+					endpoint = endpoints.iterator().next();
+				}else {
+					endpoint = null;
+				}
+			}else {
+				endpoint = ((Map<InetSocketAddress, Object>) obj).get(address);
+			}
 			if(endpoint != null) {
 				IEaglerXServerListener listener = listenersToInit.offer(address);
 				if(listener != null) {

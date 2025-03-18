@@ -1,6 +1,8 @@
 package net.lax1dude.eaglercraft.backend.eaglerweb.base;
 
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.util.Date;
 
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestContext;
 
@@ -31,7 +33,7 @@ class DefaultHandlers {
 		pageBuilder.append("<!DOCTYPE html><html><head><title>");
 		pageBuilder.append(serverName);
 		pageBuilder.append("</title></head><body style=\"font-family:sans-serif;text-align:center;\"><h1>429 Too Many Requests</h1><hr>");
-		pageBuilder.append("<p style=\"font-size:1.2em;\">Try again later!</p><p>");
+		pageBuilder.append("<p style=\"font-size:1.2em;\">Try again later</p><p>");
 		pageBuilder.append(brandString);
 		pageBuilder.append("</p></body></html>");
 		this.default429 = pageBuilder.toString().getBytes(StandardCharsets.UTF_8);
@@ -39,7 +41,7 @@ class DefaultHandlers {
 		pageBuilder.append("<!DOCTYPE html><html><head><title>");
 		pageBuilder.append(serverName);
 		pageBuilder.append("</title></head><body style=\"font-family:sans-serif;text-align:center;\"><h1>500 Internal Error</h1><hr>");
-		pageBuilder.append("<p style=\"font-size:1.2em;\">Contact the server owner!</p><p>");
+		pageBuilder.append("<p style=\"font-size:1.2em;\">Contact the server owner</p><p>");
 		pageBuilder.append(brandString);
 		pageBuilder.append("</p></body></html>");
 		this.default500 = pageBuilder.toString().getBytes(StandardCharsets.UTF_8);
@@ -48,17 +50,27 @@ class DefaultHandlers {
 	protected static void htmlEntities(CharSequence input, StringBuilder result) {
 		for(int i = 0, l = input.length(); i < l; ++i) {
 			char c = input.charAt(i);
-			if(c == '<') {
+			switch(c) {
+			case '<':
 				result.append("&lt;");
-			}else if(c == '>') {
+				break;
+			case '>':
 				result.append("&gt;");
-			}else {
+				break;
+			case '\"':
+				result.append("&quot;");
+				break;
+			case '&':
+				result.append("&amp;");
+				break;
+			default:
 				result.append(c);
+				break;
 			}
 		}
 	}
 
-	void handleAutoIndex(IRequestContext ctx, IndexNodeFolder dir) {
+	void handleAutoIndex(IRequestContext ctx, DateFormat dateFormat, IndexNodeFolder dir) {
 		String dirStr = ctx.getPath();
 		StringBuilder pageBuilder = new StringBuilder(4096);
 		pageBuilder.append("<!DOCTYPE html><html><head><title>Index Of: ");
@@ -67,26 +79,86 @@ class DefaultHandlers {
 		pageBuilder.append(serverName);
 		pageBuilder.append("</title>");
 		pageBuilder.append(AUTOINDEX_CSS);
-		pageBuilder.append("</head><body style=\"font-family:sans-serif;\"><p style=\"font-size:2em;\">Index Of: <span style=\"font-weight:bold;\">");
+		pageBuilder.append("</head><body style=\"font-family:sans-serif;\"><p style=\"line-height:1.75em;\"><span style=\"font-size:2em;\">Index Of: <span style=\"font-weight:bold;\">");
 		htmlEntities(dirStr, pageBuilder);
-		pageBuilder.append("</span></p><hr><table style=\"font-size:1.2em;\">");
+		pageBuilder.append("</span></span><br>&nbsp;");
+		int totalFile = 0, totalFolder = 0;
+		for(IndexNode idx : dir) {
+			if(idx.isDirectory()) {
+				++totalFolder;
+			}else {
+				++totalFile;
+			}
+		}
+		if(totalFolder > 0) {
+			pageBuilder.append(totalFolder);
+			pageBuilder.append(totalFolder == 1 ? " folder, " : " folders, ");
+		}
+		pageBuilder.append(totalFile);
+		pageBuilder.append(totalFile == 1 ? " file" : " files");
+		pageBuilder.append(" total.</p><hr><table style=\"font-size:1.2em;\">");
 		pageBuilder.append("<thead><tr><tr><th><span class=\"icn-none\"></span></th><th>Name</th><th>&ensp;Last Modified</th><th class=\"ar\">&ensp;Size</th></tr></thead><tbody>");
-		if(!"/".equals(dirStr) && dirStr.length() > 0) {
-			pageBuilder.append("<tr><td><span class=\"icn-folder\"></span></td><td><a href=\"../\">../</a></td><td>&ensp;-</td><td class=\"ar\">&ensp;-</td></tr>");
+		IndexNode parent = dir.getParent();
+		if(parent != null) {
+			pageBuilder.append("<tr><td><span class=\"icn-folder\"></span></td><td><a href=\"../\">../</a></td><td>&ensp;");
+			pageBuilder.append(formatDate(dateFormat, parent.lastModified()));
+			pageBuilder.append("</td><td class=\"ar\">&ensp;-</td></tr>");
 		}
 		for(IndexNode idx : dir) {
 			if(idx.isDirectory()) {
-				//TODO
+				String name = idx.getName();
+				pageBuilder.append("<tr><td><span class=\"icn-folder\"></span></td><td><a href=\"");
+				htmlEntities(name, pageBuilder);
+				pageBuilder.append("/\">");
+				htmlEntities(name, pageBuilder);
+				pageBuilder.append("/</a></td><td>&ensp;");
+				pageBuilder.append(formatDate(dateFormat, idx.lastModified()));
+				pageBuilder.append("</td><td class=\"ar\">&ensp;-</td></tr>");
 			}
 		}
 		for(IndexNode idx : dir) {
 			if(!idx.isDirectory()) {
-				//TODO
+				String name = idx.getName();
+				pageBuilder.append("<tr><td><span class=\"icn-file\"></span></td><td><a href=\"");
+				htmlEntities(name, pageBuilder);
+				pageBuilder.append("/\">");
+				htmlEntities(name, pageBuilder);
+				pageBuilder.append("</a></td><td>&ensp;");
+				pageBuilder.append(formatDate(dateFormat, idx.lastModified()));
+				pageBuilder.append("</td><td class=\"ar\">&ensp;");
+				formatSize(idx.getSize(), pageBuilder);
+				pageBuilder.append("</td></tr>");
 			}
 		}
 		pageBuilder.append("</tbody></table><hr><p style=\"font-style:italic;\">");
 		pageBuilder.append(brandString);
 		pageBuilder.append("</p></body></html>");
+		ctx.setResponseCode(200);
+		ctx.setResponseBody(pageBuilder, StandardCharsets.UTF_8);
+		ctx.addResponseHeader("content-type", "text/html; charset=utf-8");
+		if(enableCORS) {
+			ctx.addResponseHeader("access-control-allow-origin", "*");
+		}
+	}
+
+	private static String formatDate(DateFormat dateFormat, Date date) {
+		return dateFormat != null ? dateFormat.format(date) : date.toString();
+	}
+
+	private void formatSize(long size, StringBuilder pageBuilder) {
+		if(size > 1024l * 1024l * 1024l) {
+			pageBuilder.append(String.format("%.02f", (size / (1024l * 1024l)) / 1024.0));
+			pageBuilder.append(" GiB");
+		}else if(size > 1024l * 1024l) {
+			pageBuilder.append(String.format("%.02f", (size / 1024l) / 1024.0));
+			pageBuilder.append(" MiB");
+		}else if(size > 1024l) {
+			pageBuilder.append(String.format("%.02f", size / 1024.0));
+			pageBuilder.append(" KiB");
+		}else {
+			pageBuilder.append(size);
+			pageBuilder.append(" B");
+		}
 	}
 
 	void handle404(IRequestContext ctx) {
@@ -96,7 +168,7 @@ class DefaultHandlers {
 		page404Builder.append("</title></head><body style=\"font-family:sans-serif;text-align:center;\"><h1>404 Not Found</h1><hr>");
 		page404Builder.append("<p style=\"font-size:1.2em;\">The requested resource <span id=\"addr\" style=\"font-family:monospace;font-weight:bold;background-color:#EEEEEE;padding:3px 4px;\">");
 		htmlEntities(ctx.getPath(), page404Builder);
-		page404Builder.append("</span> could not be found on this server!</p><p>");
+		page404Builder.append("</span> could not be found on this server</p><p>");
 		page404Builder.append(brandString);
 		page404Builder.append("</p></body></html>");
 		ctx.setResponseCode(404);

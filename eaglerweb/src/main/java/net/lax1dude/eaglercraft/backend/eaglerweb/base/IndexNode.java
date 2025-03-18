@@ -1,13 +1,26 @@
 package net.lax1dude.eaglercraft.backend.eaglerweb.base;
 
+import java.util.Date;
 import java.util.List;
 
 abstract class IndexNode {
 
-	protected abstract IndexNode find(CharSequence charSeq);
+	protected IndexNode parent;
 
-	protected abstract boolean isDirectory();
+	abstract IndexNode find(CharSequence charSeq);
 
-	protected abstract ResponseCacheKey getResponse(List<String> index);
+	abstract boolean isDirectory();
+
+	abstract Date lastModified();
+
+	abstract ResponseCacheKey getResponse(List<String> index);
+
+	abstract String getName();
+
+	abstract long getSize();
+
+	IndexNode getParent() {
+		return parent;
+	}
 
 }
