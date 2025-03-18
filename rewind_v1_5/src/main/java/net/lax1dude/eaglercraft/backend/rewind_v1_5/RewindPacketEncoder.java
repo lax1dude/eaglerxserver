@@ -1,7 +1,6 @@
 package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
 import java.util.*;
-import java.util.zip.DataFormatException;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -397,7 +396,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeShort(BufferUtils.readVarInt(in));
 	}
 
-	private void handleChunkData(ByteBuf in, ByteBuf bb, ByteBufAllocator alloc) throws DataFormatException {
+	private void handleChunkData(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x33);
 		int chunkX = in.readInt();
 		int chunkZ = in.readInt();
@@ -1276,7 +1275,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					break;
 				case 0x21:
 					bb = ctx.alloc().buffer();
-					handleChunkData(in, bb, ctx.alloc());
+					handleChunkData(in, bb);
 					break;
 				case 0x22:
 					bb = ctx.alloc().buffer();

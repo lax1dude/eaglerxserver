@@ -217,6 +217,8 @@ public class BufferUtils {
 	}
 
 	public static void convertChunk2Legacy(int bitmap, int data18len, ByteBuf data18, ByteBuf bb) {
+		// long startTime = System.currentTimeMillis();
+
 		int absInd = data18.readerIndex();
 		int absWInd = bb.writerIndex();
 		int count = Integer.bitCount(bitmap);
@@ -224,13 +226,21 @@ public class BufferUtils {
 		int guh = data18len - guh1;
 		int guh2 = count * (4096 + 2048);
 		bb.ensureWritable(guh2 + guh);
-		int mIndex = count * 4096;
-		for (int i = 0, l = 8192 * count; i < l; i += 4) {
+
+		int tIndex = 0;
+		int mIndex = absWInd + count * 4096;
+
+		for (int i = 0; i < (8192 * count); i += 4) {
 			int stateA = data18.getUnsignedShortLE(absInd + i);
 			int stateB = data18.getUnsignedShortLE(absInd + i + 2);
-			bb.setShortLE(absWInd + (i >> 1), convertType2Legacy(stateA >> 4) | (convertType2Legacy(stateB >> 4) << 8));
-			bb.setByte(absWInd + mIndex + (i >> 2), ((stateA & 0xF) << 4) | (stateB & 0xF));
+
+			bb.setShortLE(absWInd + tIndex, convertType2Legacy(stateA >> 4) | (convertType2Legacy(stateB >> 4) << 8));
+			bb.setByte(mIndex, (byte)(((stateA & 0xF) & 0xF) | (((stateB & 0xF) & 0xF) << 4)));
+
+			tIndex += 2;
+			mIndex++;
 		}
+
 		if (guh == 256 && data18.readableBytes() - (absInd + guh1) < 256) {
 			bb.setZero(absWInd + guh2, 256);
 			data18.skipBytes(data18len - 256);
@@ -239,6 +249,8 @@ public class BufferUtils {
 			data18.skipBytes(data18len);
 		}
 		bb.writerIndex(absWInd + guh2 + guh);
+
+		// System.out.println(System.currentTimeMillis() - startTime);
 	}
 
 	public static int posX(long position) {
