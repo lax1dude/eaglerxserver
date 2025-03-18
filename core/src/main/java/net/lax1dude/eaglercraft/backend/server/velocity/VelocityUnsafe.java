@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -41,6 +42,7 @@ public class VelocityUnsafe {
 	private static final Constructor<?> ctor_MinecraftConnection;
 	private static final Method method_MinecraftConnection_getState;
 	private static final Field field_MinecraftConnection_activeSessionHandler;
+	private static final Field field_MinecraftConnection_remoteAddress;
 	private static final Class<?> class_AuthSessionHandler;
 	private static final Field field_AuthSessionHandler_mcConnection;
 	private static final Class<?> class_DisconnectPacket;
@@ -75,6 +77,8 @@ public class VelocityUnsafe {
 			method_MinecraftConnection_getState = class_MinecraftConnection.getMethod("getState");
 			field_MinecraftConnection_activeSessionHandler = class_MinecraftConnection.getDeclaredField("activeSessionHandler");
 			field_MinecraftConnection_activeSessionHandler.setAccessible(true);
+			field_MinecraftConnection_remoteAddress = class_MinecraftConnection.getDeclaredField("remoteAddress");
+			field_MinecraftConnection_remoteAddress.setAccessible(true);
 			class_AuthSessionHandler = Class.forName("com.velocitypowered.proxy.connection.client.AuthSessionHandler");
 			field_AuthSessionHandler_mcConnection = class_AuthSessionHandler.getDeclaredField("mcConnection");
 			field_AuthSessionHandler_mcConnection.setAccessible(true);
@@ -160,6 +164,16 @@ public class VelocityUnsafe {
 
 	public static Channel getInboundChannel(InboundConnection connection) {
 		return getMinecraftConnection(connection).getChannel();
+	}
+
+	public static void updateRealAddress(Object o, SocketAddress addr) {
+		if(o instanceof MinecraftConnection) {
+			try {
+				field_MinecraftConnection_remoteAddress.set(o, addr);
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+		}
 	}
 
 	public interface IListenerInitHandler {

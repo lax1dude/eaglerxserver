@@ -299,6 +299,15 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 					return listener;
 				}
 				@Override
+				public Consumer<SocketAddress> realAddressHandle() {
+					return (addr) -> {
+						Object o = channel.pipeline().get("handler-boss");
+						if(o != null) {
+							BungeeUnsafe.updateRealAddress(o, addr);
+						}
+					};
+				}
+				@Override
 				public Channel getChannel() {
 					return channel;
 				}

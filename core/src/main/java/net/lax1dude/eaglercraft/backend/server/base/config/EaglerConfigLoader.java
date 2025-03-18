@@ -1,10 +1,15 @@
 package net.lax1dude.eaglercraft.backend.server.base.config;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -20,6 +26,7 @@ import com.google.common.collect.ImmutableSet;
 import io.netty.channel.unix.DomainSocketAddress;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfList;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfSection;
 
@@ -28,12 +35,12 @@ public class EaglerConfigLoader {
 	public static ConfigDataRoot loadConfig(IPlatform<?> platform) throws IOException {
 		ConfigHelper helper = new ConfigHelper(platform);
 		return helper.getConfigDirectory(platform, (val) -> {
-			return loadConfig(val, platform.getType());
+			return loadConfig(val, platform.getType(), platform.logger());
 		});
 	}
 
-	public static ConfigDataRoot loadConfig(IConfigDirectory root, EnumAdapterPlatformType platform)
-			throws IOException {
+	public static ConfigDataRoot loadConfig(IConfigDirectory root, EnumAdapterPlatformType platform,
+			IPlatformLogger logger) throws IOException {
 		ConfigDataSettings settings = root.loadConfig("settings", (config) -> {
 			String serverName = config.getString(
 				"server_name", "EaglercraftXServer",
@@ -352,10 +359,42 @@ public class EaglerConfigLoader {
 							certPacketDataRateLimit, enableEagcertFolder, downloadLatestCerts, downloadCertsFrom,
 							checkForUpdateEvery));
 		});
+		Map<File, String> secrets = new HashMap<>();
+		Function<String, String> secretLoader = (str) -> {
+			return secrets.computeIfAbsent((new File(str)).getAbsoluteFile(), (file) -> {
+				String line;
+				try (BufferedReader reader = new BufferedReader(
+						new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+					while((line = reader.readLine()) != null) {
+						line = line.trim();
+						if(line.isEmpty()) {
+							line = null;
+						}else {
+							String l2;
+							while((l2 = reader.readLine()) != null) {
+								if(l2.trim().length() > 0) {
+									logger.warn("Forwarding secret file \"" + file.getAbsolutePath()
+										+ "\" contains multiple lines, using the first line and discarding the rest");
+									break;
+								}
+							}
+							break;
+						}
+					}
+					if(line == null) {
+						logger.error("Forwarding secret file was empty: " + file.getAbsolutePath());
+					}
+				}catch(IOException ex) {
+					logger.error("Failed to read forwarding secret file: " + file.getAbsolutePath(), ex);
+					line = null;
+				}
+				return line;
+			});
+		};
 		Map<String, ConfigDataListener> listeners;
 		if(platform == EnumAdapterPlatformType.BUKKIT) {
 			listeners = root.loadConfig("listener", (config) -> {
-				return ImmutableMap.of("default", loadListener(config, "default", platform));
+				return ImmutableMap.of("default", loadListener(config, "default", platform, secretLoader));
 			});
 		}else {
 			listeners = root.loadConfig("listeners", (config) -> {
@@ -377,7 +416,7 @@ public class EaglerConfigLoader {
 					while(map.containsKey(key)) {
 						key = "_" + ++j;
 					}
-					map.put(key, loadListener(section, key, platform));
+					map.put(key, loadListener(section, key, platform, secretLoader));
 					
 				}
 				return ImmutableMap.copyOf(map);
@@ -632,7 +671,8 @@ public class EaglerConfigLoader {
 		return new ConfigDataRoot(settings, listeners, supervisor, iceServers, pauseMenu);
 	}
 
-	private static ConfigDataListener loadListener(IEaglerConfSection listener, String name, EnumAdapterPlatformType platform) {
+	private static ConfigDataListener loadListener(IEaglerConfSection listener, String name,
+			EnumAdapterPlatformType platform, Function<String, String> secretLoader) {
 		SocketAddress injectAddress = null;
 		if(platform != EnumAdapterPlatformType.BUKKIT) {
 			injectAddress = getAddr(listener.getString(
@@ -662,6 +702,39 @@ public class EaglerConfigLoader {
 			"Default value is 'X-Real-IP', sets the name of the request header that contains "
 			+ "the player's real IP address if the forward_ip option is enabled. This option "
 			+ "is commonly set to X-Forwarded-For or CF-Connecting-IP for a lot of server setups."
+		);
+		boolean forwardSecret = listener.getBoolean(
+			"forward_secret", false,
+			"Default value is false, sets if HTTP and WebSocket connections to this listener "
+			+ "require a header with a secret to be accepted, can be used to prevent someone "
+			+ "from bypassing CloudFlare or nginx or whatever and connecting directly to the "
+			+ "EaglerXServer listener with a fake forward IP header."
+		);
+		String forwardSecretHeader = listener.getString(
+			"forward_secret_header", "X-Eagler-Secret",
+			"Default value is 'X-Eagler-Secret', sets the name of the request header that "
+			+ "contains the sectet if the forward_secret option is enabled."
+		);
+		String forwardSecretFile = listener.getString(
+			"forward_secret_file", "eagler_forwarding.secret",
+			"Default value is 'eagler_forwarding.secret', sets the name of the file that "
+			+ "contains the secret if the forward_secret option is enabled, relative to "
+			+ "the server's working directory."
+		);
+		String forwardSecretValue = null;
+		if(forwardSecret) {
+			forwardSecretValue = secretLoader.apply(forwardSecretFile);
+			if(forwardSecretValue == null) {
+				throw new IllegalStateException("Forwarding secret could not be loaded: " + forwardSecretFile);
+			}
+		}
+		boolean spoofPlayerAddressForwarded = listener.getBoolean(
+			"spoof_player_address_forwarded", true,
+			"Default value is true, if the effective remote addresses of Eaglercraft "
+			+ "connections in the underlying server should be spoofed to the address "
+			+ "received via the forward_ip header. Has no effect if forward_ip is not "
+			+ "true, if false then plugins will need to use the EaglerXServer API to "
+			+ "determine the forwarded IP address of an Eaglercraft player."
 		);
 		IEaglerConfSection tlsConfigSection = listener.getSection("tls_config");
 		if(!tlsConfigSection.exists()) {
@@ -795,8 +868,9 @@ public class EaglerConfigLoader {
 			ratelimitConf, "http", 30, 10, 20, 300,
 			"Sets ratelimit on non-WebSocket HTTP connections."
 		);
-		return new ConfigDataListener(name, injectAddress, dualStack, forwardIp, forwardIPHeader, enableTLS, requireTLS,
-				tlsManagedByExternalPlugin, tlsPublicChainFile, tlsPrivateKeyFile, tlsPrivateKeyPassword,
+		return new ConfigDataListener(name, injectAddress, dualStack, forwardIp, forwardIPHeader, forwardSecret,
+				forwardSecretHeader, forwardSecretFile, forwardSecretValue, spoofPlayerAddressForwarded, enableTLS,
+				requireTLS, tlsManagedByExternalPlugin, tlsPublicChainFile, tlsPrivateKeyFile, tlsPrivateKeyPassword,
 				tlsAutoRefreshCert, redirectLegacyClientsTo, serverIcon, serverMOTD, allowMOTD, allowQuery,
 				showMOTDPlayerList, allowCookieRevokeQuery, motdCacheTTL, motdCacheAnimation, motdCacheResults,
 				motdCacheTrending, motdCachePortfolios, limitIP, limitLogin, limitMOTD, limitQuery, limitHTTP);

@@ -208,7 +208,8 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 		}
 		RequestContext context = context();
 		context.failing = isFailing;
-		context.setContext(pipelineData.listenerInfo, meth, pfMeth, uri, path, query, ctx, msg);
+		context.setContext(pipelineData.listenerInfo, meth, pfMeth, uri, path, query, ctx, msg,
+				pipelineData.realAddress);
 		try {
 			context.requestHandlerInternal = requestHandler;
 			context.suspendable = true;

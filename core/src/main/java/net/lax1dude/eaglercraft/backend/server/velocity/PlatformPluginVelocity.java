@@ -338,6 +338,15 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 					return listenerConf;
 				}
 				@Override
+				public Consumer<SocketAddress> realAddressHandle() {
+					return (addr) -> {
+						Object o = channel.pipeline().get("handler");
+						if(o != null) {
+							VelocityUnsafe.updateRealAddress(o, addr);
+						}
+					};
+				}
+				@Override
 				public Channel getChannel() {
 					return channel;
 				}

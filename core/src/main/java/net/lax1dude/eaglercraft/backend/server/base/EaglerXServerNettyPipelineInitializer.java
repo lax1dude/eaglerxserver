@@ -1,5 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
+import java.net.SocketAddress;
+import java.util.function.Consumer;
+
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipelineInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformNettyPipelineInitializer;
 
@@ -15,8 +18,12 @@ class EaglerXServerNettyPipelineInitializer<PlayerObject> implements IEaglerXSer
 	public void initialize(IPlatformNettyPipelineInitializer<NettyPipelineData> initializer) {
 		EaglerListener eagListener = (EaglerListener) initializer.getListener();
 		System.out.println("New channel: " + initializer.getChannel());
+		Consumer<SocketAddress> realAddressHandle = null;
+		if(eagListener.isForwardIP() && eagListener.getConfigData().isSpoofPlayerAddressForwarded()) {
+			realAddressHandle = initializer.realAddressHandle();
+		}
 		NettyPipelineData attachment = new NettyPipelineData(initializer.getChannel(), server, eagListener,
-				server.getEaglerAttribManager().createEaglerHolder());
+				server.getEaglerAttribManager().createEaglerHolder(), realAddressHandle);
 		initializer.setAttachment(attachment);
 		if (eagListener.isDualStack()) {
 			server.getPipelineTransformer().injectDualStack(initializer.getPipeline(), initializer.getChannel(),

@@ -32,6 +32,7 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 	public String query;
 	public ChannelHandlerContext ctx;
 	public FullHttpRequest request;
+	public String realAddress;
 	public IRequestHandler requestHandlerInternal;
 	public boolean failing;
 
@@ -63,7 +64,7 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 	}
 
 	public void setContext(IEaglerListenerInfo listener, EnumRequestMethod meth, EnumRequestMethod pfMeth, String uri,
-			String path, String query, ChannelHandlerContext ctx, FullHttpRequest request) {
+			String path, String query, ChannelHandlerContext ctx, FullHttpRequest request, String realAddress) {
 		this.listener = listener;
 		this.meth = meth;
 		this.pfMeth = pfMeth;
@@ -72,6 +73,7 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 		this.query = query;
 		this.ctx = ctx;
 		this.request = request;
+		this.realAddress = realAddress;
 		clearResult();
 		this.response = RESPONSE_NONE;
 		this.responseCode = -1;
@@ -132,8 +134,7 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	@Override
 	public String getRealAddress() {
-		// TODO
-		return null;
+		return realAddress;
 	}
 
 	@Override

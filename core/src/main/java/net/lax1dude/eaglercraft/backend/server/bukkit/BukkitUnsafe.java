@@ -344,6 +344,39 @@ public class BukkitUnsafe {
 		}
 	}
 
+	private static volatile Class<?> class_realAddr_NetworkManager = null;
+	private static Field field_realAddr_NetworkManager_address = null;
+
+	private static synchronized void bindRealAddress(Object networkManager) {
+		if(class_realAddr_NetworkManager != null) {
+			return;
+		}
+		class_realAddr_NetworkManager =  networkManager.getClass();
+		for(Field field : class_realAddr_NetworkManager.getDeclaredFields()) {
+			if(SocketAddress.class.isAssignableFrom(field.getType())) {
+				field.setAccessible(true);
+				field_realAddr_NetworkManager_address = field;
+				return;
+			}
+		}
+		System.err.println("Could not find SocketAddress field in class " + networkManager.getClass().getName());
+		System.err.println("Use Spigot if you want EaglerXServer to forward player IPs");
+	}
+
+	public static void updateRealAddress(Object networkManager, SocketAddress address) {
+		if(class_realAddr_NetworkManager == null) {
+			bindRealAddress(networkManager);
+		}
+		if (field_realAddr_NetworkManager_address != null
+				&& class_realAddr_NetworkManager.isAssignableFrom(networkManager.getClass())) {
+			try {
+				field_realAddr_NetworkManager_address.set(networkManager, address);
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
+		}
+	}
+
 	private static class CleanupList implements Consumer<ChannelInitializerHijacker>, Runnable {
 
 		protected List<ChannelInitializerHijacker> cleanup = new ArrayList<>();

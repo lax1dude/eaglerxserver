@@ -1,10 +1,14 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -52,6 +56,7 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	public final Channel channel;
 	public final EaglerXServer<?> server;
 	public final EaglerAttributeManager.EaglerAttributeHolder attributeHolder;
+	public final Consumer<SocketAddress> realAddressHandle;
 	public boolean initStall;
 
 	public EaglerListener listenerInfo;
@@ -98,11 +103,12 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	private volatile IPlatformTask disconnectTask = null;
 
 	public NettyPipelineData(Channel channel, EaglerXServer<?> server, EaglerListener listenerInfo,
-			EaglerAttributeManager.EaglerAttributeHolder attributeHolder) {
+			EaglerAttributeManager.EaglerAttributeHolder attributeHolder, Consumer<SocketAddress> realAddressHandle) {
 		this.channel = channel;
 		this.server = server;
 		this.listenerInfo = listenerInfo;
 		this.attributeHolder = attributeHolder;
+		this.realAddressHandle = realAddressHandle;
 		this.connectionLogger = server.logger().createSubLogger("" + channel.remoteAddress());
 	}
 
@@ -272,6 +278,29 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 			pendingConnection = null;
 			return loginConnection;
 		}
+	}
+
+	public boolean processRealAddress() {
+		if(realAddress != null) {
+			Consumer<SocketAddress> handle = realAddressHandle;
+			if(handle != null) {
+				InetAddress addr;
+				try {
+					addr = InetAddress.getByName(realAddress);
+				} catch (UnknownHostException ex) {
+					connectionLogger.error("Connected with an invalid \""
+							+ listenerInfo.getConfigData().getForwardIPHeader() + "\" header, disconnecting...", ex);
+					return false;
+				}
+				int port = 65535;
+				SocketAddress addr2 = channel.remoteAddress();
+				if((addr2 instanceof InetSocketAddress)) {
+					port = ((InetSocketAddress)addr2).getPort();
+				}
+				handle.accept(new InetSocketAddress(addr, port));
+			}
+		}
+		return true;
 	}
 
 }

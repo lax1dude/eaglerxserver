@@ -48,9 +48,9 @@ public class BungeeUnsafe {
 	private static final Method method_InitialHandler_getLoginProfile;
 	private static final Field field_InitialHandler_ch;
 	private static final Class<?> class_ChannelWrapper;
-	private static final Method method_ChannelWrapper_getHandle;
 	private static final Method method_ChannelWrapper_isClosing;
 	private static final Method method_ChannelWrapper_close;
+	private static final Method method_ChannelWrapper_setRemoteAddress;
 	private static final Class<?> class_PluginMessage;
 	private static final Method method_PluginMessage_getData;
 	private static final Class<?> class_LoginResult;
@@ -73,6 +73,8 @@ public class BungeeUnsafe {
 	private static final Class<?> class_PipelineUtils;
 	private static final Method method_PipelineUtils_getChannel;
 	private static final Method method_PipelineUtils_getServerChannel;
+	private static final Class<?> class_HandlerBoss;
+	private static final Field field_HandlerBoss_channel;
 
 	static {
 		try {
@@ -82,9 +84,9 @@ public class BungeeUnsafe {
 			field_InitialHandler_ch = class_InitialHandler.getDeclaredField("ch");
 			field_InitialHandler_ch.setAccessible(true);
 			class_ChannelWrapper = Class.forName("net.md_5.bungee.netty.ChannelWrapper");
-			method_ChannelWrapper_getHandle = class_ChannelWrapper.getMethod("getHandle");
 			method_ChannelWrapper_isClosing = class_ChannelWrapper.getMethod("isClosing");
 			method_ChannelWrapper_close = class_ChannelWrapper.getMethod("close");
+			method_ChannelWrapper_setRemoteAddress = class_ChannelWrapper.getMethod("setRemoteAddress", SocketAddress.class);
 			class_PluginMessage = Class.forName("net.md_5.bungee.connection.PluginMessage");
 			method_PluginMessage_getData = class_PluginMessage.getMethod("getData");
 			class_LoginResult = Class.forName("net.md_5.bungee.connection.LoginResult");
@@ -117,6 +119,9 @@ public class BungeeUnsafe {
 			class_PipelineUtils = Class.forName("net.md_5.bungee.netty.PipelineUtils");
 			method_PipelineUtils_getChannel = class_PipelineUtils.getMethod("getChannel", SocketAddress.class);
 			method_PipelineUtils_getServerChannel = class_PipelineUtils.getMethod("getServerChannel", SocketAddress.class);
+			class_HandlerBoss = Class.forName("net.md_5.bungee.netty.HandlerBoss");
+			field_HandlerBoss_channel = class_HandlerBoss.getDeclaredField("channel");
+			field_HandlerBoss_channel.setAccessible(true);
 		}catch(Exception ex) {
 			throw Util.propagateReflectThrowable(ex);
 		}
@@ -141,8 +146,8 @@ public class BungeeUnsafe {
 	public static Channel getInitialHandlerChannel(PendingConnection pendingConnection) {
 		if(class_InitialHandler.isAssignableFrom(pendingConnection.getClass())) {
 			try {
-				return (Channel) method_ChannelWrapper_getHandle.invoke(field_InitialHandler_ch.get(pendingConnection));
-			} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException ex) {
+				return ((ChannelWrapper)field_InitialHandler_ch.get(pendingConnection)).getHandle();
+			} catch (IllegalArgumentException | IllegalAccessException ex) {
 				throw Util.propagateReflectThrowable(ex);
 			}
 		}else {
@@ -190,8 +195,8 @@ public class BungeeUnsafe {
 	public static void injectCompressionDisable(PendingConnection conn) {
 		if(class_InitialHandler.isAssignableFrom(conn.getClass())) {
 			try {
-				Object ch = field_InitialHandler_ch.get(conn);
-				if(!(Boolean) method_ChannelWrapper_isClosing.invoke(ch)) {
+				ChannelWrapper ch = (ChannelWrapper) field_InitialHandler_ch.get(conn);
+				if(!ch.isClosing()) {
 					if(ch.getClass() != class_ChannelWrapper && !hasShownChannelWrapperWarning) {
 						hasShownChannelWrapperWarning = true;
 						System.err.println("ERROR: ChannelWrapper is unknown class \"" + ch.getClass().getName()
@@ -202,7 +207,7 @@ public class BungeeUnsafe {
 							BungeeUnsafe.class.getClassLoader(), new Class[] { ChannelHandlerContext.class },
 							(proxy, meth, args) -> {
 						if ("channel".equals(meth.getName())) {
-							return method_ChannelWrapper_getHandle.invoke(ch);
+							return ch.getHandle();
 						}
 						throw new IllegalStateException();
 					})) {
@@ -212,7 +217,7 @@ public class BungeeUnsafe {
 						}
 					});
 				}
-			} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+			} catch (IllegalArgumentException | IllegalAccessException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		}else {
@@ -241,6 +246,16 @@ public class BungeeUnsafe {
 			}
 		}else {
 			throw new RuntimeException("PendingConnection is an unknown type: " + conn.getClass().getName());
+		}
+	}
+
+	public static void updateRealAddress(Object handler, SocketAddress addr) {
+		if(class_HandlerBoss.isAssignableFrom(handler.getClass())) {
+			try {
+				((ChannelWrapper) field_HandlerBoss_channel.get(handler)).setRemoteAddress(addr);
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				throw Util.propagateReflectThrowable(e);
+			}
 		}
 	}
 

@@ -15,7 +15,9 @@ import io.netty.util.ReferenceCountUtil;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.api.EnumPipelineEvent;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerListener;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
+import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings;
 
 @ChannelHandler.Sharable
@@ -26,10 +28,38 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msgRaw) throws Exception {
 		try {
+			if(!ctx.channel().isActive()) {
+				return;
+			}
 			NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
 			if(!pipelineData.initStall && (msgRaw instanceof FullHttpRequest)) {
 				FullHttpRequest msg = (FullHttpRequest) msgRaw;
 				HttpHeaders headers = msg.headers();
+				
+				EaglerListener listener = pipelineData.listenerInfo;
+				ConfigDataListener conf = listener.getConfigData();
+				
+				if(conf.isForwardSecret()) {
+					if(!conf.getForwardSecretValue().equals(headers.get(conf.getForwardSecretHeader()))) {
+						pipelineData.initStall = true;
+						ctx.close();
+						return;
+					}
+				}
+				
+				if(conf.isForwardIP()) {
+					String forwardedIP = headers.get(conf.getForwardIPHeader());
+					if(forwardedIP != null) {
+						pipelineData.realAddress = forwardedIP;
+					}else {
+						pipelineData.connectionLogger.error(
+								"Connected without a \"" + conf.getForwardIPHeader() + "\" header, disconnecting...");
+						pipelineData.initStall = true;
+						ctx.close();
+						return;
+					}
+				}
+				
 				String connection = headers.get(HttpHeaderNames.CONNECTION);
 				if(connection != null && "upgrade".equalsIgnoreCase(connection)) {
 					String upgrade = headers.get(HttpHeaderNames.UPGRADE);
@@ -39,6 +69,7 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 						return;
 					}
 				}
+				
 				handleHTTP(ctx, pipelineData, msg);
 			}else {
 				ctx.close();

@@ -307,6 +307,15 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 					return listenerConf;
 				}
 				@Override
+				public Consumer<SocketAddress> realAddressHandle() {
+					return (addr) -> {
+						Object o = channel.pipeline().get("packet_handler");
+						if(o != null) {
+							BukkitUnsafe.updateRealAddress(o, addr);
+						}
+					};
+				}
+				@Override
 				public Channel getChannel() {
 					return channel;
 				}

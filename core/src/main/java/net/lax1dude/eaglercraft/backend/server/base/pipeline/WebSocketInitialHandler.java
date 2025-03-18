@@ -19,8 +19,15 @@ public class WebSocketInitialHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		try {
+			if(!ctx.channel().isActive()) {
+				return;
+			}
 			if(msg instanceof BinaryWebSocketFrame) {
 				NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
+				if(!pipelineData.processRealAddress()) {
+					ctx.close();
+					return;
+				}
 				ChannelPipeline pipeline = ctx.pipeline();
 				pipeline.addAfter(PipelineTransformer.HANDLER_WS_INITIAL, PipelineTransformer.HANDLER_HANDSHAKE,
 						new WebSocketEaglerInitialHandler(pipelineData.server, pipelineData));
