@@ -224,21 +224,12 @@ public class BufferUtils {
 		int guh = data18len - guh1;
 		int guh2 = count * (4096 + 2048);
 		bb.ensureWritable(guh2 + guh);
-		int tIndex = 0;
 		int mIndex = count * 4096;
-		for (int i = 0; i < (8192 * count); i += 2) {
-			int state = ((data18.getByte(absInd + i + 1) & 0xFF) << 8) | (data18.getByte(absInd + i) & 0xFF);
-			bb.setByte(absWInd + tIndex, (byte) convertType2Legacy(state >> 4));
-			byte data = (byte) (state & 0xF);
-			if ((tIndex & 1) == 0) {
-				bb.setByte(absWInd + mIndex, data);
-			} else {
-				bb.setByte(absWInd + mIndex, bb.getByte(absWInd + mIndex) | (data << 4));
-			}
-			if ((tIndex & 1) == 1) {
-				mIndex++;
-			}
-			tIndex++;
+		for (int i = 0, l = 8192 * count; i < l; i += 4) {
+			int stateA = data18.getUnsignedShortLE(absInd + i);
+			int stateB = data18.getUnsignedShortLE(absInd + i + 2);
+			bb.setShortLE(absWInd + (i >> 1), convertType2Legacy(stateA >> 4) | (convertType2Legacy(stateB >> 4) << 8));
+			bb.setByte(absWInd + mIndex + (i >> 2), ((stateA & 0xF) << 4) | (stateB & 0xF));
 		}
 		if (guh == 256 && data18.readableBytes() - (absInd + guh1) < 256) {
 			bb.setZero(absWInd + guh2, 256);
