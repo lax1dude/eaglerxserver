@@ -4,10 +4,13 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import io.netty.buffer.ByteBuf;
+import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 
 public class BufferUtils {
 
@@ -130,8 +133,8 @@ public class BufferUtils {
 	}
 
 	public static void convertSlot2Legacy(ByteBuf buffer, ByteBuf bb) {
-		// todo: convert 1.8 items to 1.5
 		short blockId = buffer.readShort();
+		blockId = (short) convertItem2Legacy(blockId);
 		bb.writeShort(blockId);
 		if (blockId == -1) {
 			return;
@@ -144,7 +147,6 @@ public class BufferUtils {
 	}
 
 	public static void convertLegacySlot(ByteBuf buffer, ByteBuf bb) {
-		// todo: convert 1.5 items to 1.8
 		short blockId = buffer.readShort();
 		bb.writeShort(blockId);
 		if (blockId == -1) {
@@ -206,31 +208,46 @@ public class BufferUtils {
         }
 	}
 
-	public static void convertChunk2Legacy(boolean skyLightSent, int sbm, boolean guc, ByteBuf buffer, ByteBuf bb) {
-		for (int i = 0; i < 16; ++i) {
-			if ((sbm & (1 << i)) != 0) {
-				int ind1 = bb.writerIndex();
+	public static int calcChunkDataSize(final int count, final boolean light, final boolean sendBiomes) {
+		int idlength = count * 2 * 16 * 16 * 16;
+		int blocklightlength = (count * 16 * 16 * 16) / 2;
+		int skylightlength = light ? ((count * 16 * 16 * 16) / 2) : 0;
+		int biomeslength = sendBiomes ? 256 : 0;
+		return idlength + blocklightlength + skylightlength + biomeslength;
+	}
 
-				for (int ii = 0; ii < 2048; ++ii) {
-					short data1 = buffer.readShort();
-					data1 = (short) BufferUtils.convertTypeMeta2Legacy(data1);
-					byte type1 = (byte) (data1 >> 4);
-					byte metadata1 = (byte) (data1 & 15);
-					short data2 = buffer.readShort();
-					data2 = (short) BufferUtils.convertTypeMeta2Legacy(data2);
-					byte type2 = (byte) (data2 >> 4);
-					byte metadata2 = (byte) (data2 & 15);
-					bb.writeByte(type1);
-					bb.writeByte(type2);
-					bb.setByte(ind1 + 4096 + (ii / 2), (metadata1 << 4) | (metadata2 & 15));
-				}
-				bb.writerIndex(ind1 + 6144);
-				bb.writeBytes(buffer, skyLightSent ? 4096 : 2048);
+	public static void convertChunk2Legacy(int bitmap, int data18len, ByteBuf data18, ByteBuf bb) {
+		int absInd = data18.readerIndex();
+		int absWInd = bb.writerIndex();
+		int count = Integer.bitCount(bitmap);
+		int guh1 = 8192 * count;
+		int guh = data18len - guh1;
+		int guh2 = count * (4096 + 2048);
+		bb.ensureWritable(guh2 + guh);
+		int tIndex = 0;
+		int mIndex = count * 4096;
+		for (int i = 0; i < (8192 * count); i += 2) {
+			int state = ((data18.getByte(absInd + i + 1) & 0xFF) << 8) | (data18.getByte(absInd + i) & 0xFF);
+			bb.setByte(absWInd + tIndex, (byte) convertType2Legacy(state >> 4));
+			byte data = (byte) (state & 0xF);
+			if ((tIndex & 1) == 0) {
+				bb.setByte(absWInd + mIndex, data);
+			} else {
+				bb.setByte(absWInd + mIndex, bb.getByte(absWInd + mIndex) | (data << 4));
 			}
+			if ((tIndex & 1) == 1) {
+				mIndex++;
+			}
+			tIndex++;
 		}
-		if (guc) {
-			bb.writeBytes(buffer, 256);
+		if (guh == 256 && data18.readableBytes() - (absInd + guh1) < 256) {
+			bb.setZero(absWInd + guh2, 256);
+			data18.skipBytes(data18len - 256);
+		} else {
+			data18.getBytes(absInd + guh1, bb, absWInd + guh2, guh);
+			data18.skipBytes(data18len);
 		}
+		bb.writerIndex(absWInd + guh2 + guh);
 	}
 
 	public static int posX(long position) {
@@ -250,10 +267,14 @@ public class BufferUtils {
 	}
 
 	public static void convertMetadata2Legacy(ByteBuf buffer, ByteBuf bb) {
+		// todo: AAA
+		bb.writeByte(127);
+		if (true) return;
 		boolean allDumb = true;
 		while (true) {
 			short item = buffer.readUnsignedByte();
 			if (item == 127) {
+				bb.writeByte(item);
 				break;
 			}
 			int type = (item & 224) >> 5;
@@ -292,26 +313,177 @@ public class BufferUtils {
 			}
 		}
 		if (allDumb) {
-			bb.writeByte(0xFF);
+			bb.writeByte(127);
 		}
 	}
 
+	public static int convertItem2Legacy(int item) {
+		item = convertType2Legacy(item);
+		switch (item) {
+			case 409:
+				return 318;
+			case 410:
+				return 289;
+			case 411:
+				return 365;
+			case 412:
+			case 423:
+			case 424:
+				return 366;
+			case 413:
+				return 282;
+			case 414:
+				return 376;
+			case 415:
+				return 334;
+			case 416:
+			case 420:
+			case 421:
+				return 280;
+			case 425:
+				return 323;
+			case 427:
+			case 428:
+			case 429:
+			case 430:
+			case 431:
+				return 324;
+			case 422:
+				return 328;
+			case 417:
+			case 418:
+			case 419:
+				return 329;
+		}
+		return item;
+	}
+
 	public static int convertType2Legacy(int type) {
-		// todo: map type
-		// return type;
-		return 1;
+		switch (type) {
+			case 165:
+				return 133;
+			case 166:
+			case 95:
+				return 20;
+			case 167:
+				return 96;
+			case 168:
+				return 48;
+			case 169:
+				return 89;
+			case 176:
+				return 63;
+			case 177:
+				return 68;
+			case 179:
+				return 24;
+			case 180:
+				return 128;
+			case 181:
+				return 43;
+			case 182:
+				return 44;
+			case 183:
+			case 184:
+			case 185:
+			case 186:
+			case 187:
+				return 107;
+			case 188:
+			case 189:
+			case 190:
+			case 191:
+			case 192:
+				return 85;
+			case 193:
+			case 194:
+			case 195:
+			case 196:
+			case 197:
+				return 64;
+			case 178:
+				return 151;
+			case 160:
+				return 102;
+			case 161:
+				return 18;
+			case 162:
+				return 17;
+			case 163:
+			case 164:
+				return 53;
+			case 174:
+				return 80;
+			case 175:
+				return 38;
+			case 159:
+				return 82;
+			case 170:
+				return 1;
+			case 171:
+				return 70;
+			case 172:
+				return 82;
+			case 173:
+				return 1;
+		}
+		return type;
+	}
+
+	public static byte convertMapColor2Legacy(byte color) {
+		switch (color) {
+			case 14:
+				return 8;
+			case 15:
+			case 26:
+			case 34:
+			case 36:
+				return 10;
+			case 16:
+			case 17:
+			case 23:
+			case 24:
+			case 25:
+			case 31:
+			case 32:
+				return 5;
+			case 18:
+			case 30:
+				return 2;
+			case 19:
+				return 1;
+			case 20:
+			case 28:
+			case 35:
+				return 4;
+			case 21:
+			case 22:
+			case 29:
+				return 11;
+			case 27:
+			case 33:
+				return 7;
+
+		}
+		return color;
 	}
 
 	public static int convertTypeMeta2Legacy(int typeMeta) {
 		int type = typeMeta >> 4;
 		int meta = typeMeta & 15;
 		type = convertType2Legacy(type);
-		// todo: map meta
-		meta = 0;
 		return (type << 4) | meta;
 	}
 
 	public static String stringToChat(String str) {
 		return "\"" + str.replaceAll("\"","\\\\\"") + "\"";
+	}
+
+	public static String getUsernameOrElse(IEaglerXServerAPI<?> api, UUID uuid) {
+		IBasePlayer<?> guh = api.getPlayerByUUID(uuid);
+		if (guh == null) {
+			return uuid.toString();
+		}
+		return guh.getUsername();
 	}
 }

@@ -5,6 +5,7 @@ import java.util.zip.DataFormatException;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 
 public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Encoder<PlayerObject> {
@@ -28,6 +29,8 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 	private double playerZ = 0;
 	private float playerYaw = 0;
 	private float playerPitch = 0;
+
+	private byte playerDimension = 0;
 
 	private final Set<Short> enchWindows = new HashSet<>();
 	private final Set<Short> furnWindows = new HashSet<>();
@@ -87,6 +90,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeInt(in.readInt());
 		short gamemode = in.readUnsignedByte();
 		byte dimension = in.readByte();
+		playerDimension = dimension;
 		short difficulty = in.readUnsignedByte();
 		short maxPlayers = in.readUnsignedByte();
 		String levelType = BufferUtils.readMCString(in, 255);
@@ -138,11 +142,12 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private void handleRespawn(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x09);
-		bb.writeInt(in.readInt());
+		playerDimension = (byte) in.readInt();
+		bb.writeInt(playerDimension);
 		bb.writeByte(in.readUnsignedByte());
 		bb.writeByte(in.readUnsignedByte());
 		bb.writeShort(256);
-		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 16), 16);
 	}
 
 	private void handlePlayerPositionAndLook(ByteBuf in, ByteBuf bb) {
@@ -203,7 +208,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 	private void handleSpawnPlayer(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x14);
 		bb.writeInt(BufferUtils.readVarInt(in));
-		BufferUtils.writeLegacyMCString(bb, serverAPI().getPlayerByUUID(new UUID(in.readLong(), in.readLong())).getUsername(), 255);
+		BufferUtils.writeLegacyMCString(bb, BufferUtils.getUsernameOrElse(serverAPI(), new UUID(in.readLong(), in.readLong())), 255);
 		bb.writeInt(in.readInt());
 		bb.writeInt(in.readInt());
 		bb.writeInt(in.readInt());
@@ -230,8 +235,8 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeByte(in.readByte());
 		bb.writeByte(in.readByte());
 		int odata = in.readInt();
-		bb.writeByte(odata);
-		if (odata != 0) {
+		bb.writeInt(odata);
+		if (odata > 0) {
 			bb.writeShort(in.readShort());
 			bb.writeShort(in.readShort());
 			bb.writeShort(in.readShort());
@@ -330,7 +335,6 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeInt(in.readInt());
 		bb.writeInt(in.readInt());
 		bb.writeInt(in.readInt());
-		bb.writeInt(in.readInt());
 		bb.writeByte(in.readByte());
 		bb.writeByte(in.readByte());
 	}
@@ -400,25 +404,22 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		boolean chunkCont = in.readBoolean();
 		int chunkPbm = in.readUnsignedShort();
 		BufferUtils.readVarInt(in);
-		ByteBuf chunkData = alloc.buffer();
-		try {
-			BufferUtils.convertChunk2Legacy(true, chunkPbm, chunkCont, in, chunkData);
-			bb.writeInt(chunkX);
-			bb.writeInt(chunkZ);
-			bb.writeBoolean(chunkCont);
-			bb.writeShort(chunkPbm);
-			bb.writeShort(0);
-			ByteBuf chunkData2 = alloc.buffer();
-			try {
-				player().getNativeZlib().netty().deflate(chunkData, chunkData2);
-				bb.writeInt(chunkData2.readableBytes());
-				bb.writeBytes(chunkData2);
-			} finally {
-				chunkData2.release();
-			}
-		} finally {
-			chunkData.release();
-		}
+		int aaaa = bb.writerIndex();
+		bb.writerIndex(aaaa + 17);
+		int size = BufferUtils.calcChunkDataSize(Integer.bitCount(chunkPbm), playerDimension == 0, chunkCont);
+		BufferUtils.convertChunk2Legacy(chunkPbm, size, in, bb);
+		bb.setInt(aaaa, chunkX);
+		aaaa += 4;
+		bb.setInt(aaaa, chunkZ);
+		aaaa += 4;
+		bb.setBoolean(aaaa, chunkCont);
+		aaaa += 1;
+		bb.setShort(aaaa, chunkPbm);
+		aaaa += 2;
+		bb.setShort(aaaa, 0);
+		aaaa += 2;
+		bb.setInt(aaaa, (bb.writerIndex() - (aaaa + 4)) | 0x10000000);
+		// aaaa += 4;
 	}
 
 	private void handleMultiBlockChange(ByteBuf in, ByteBuf bb) {
@@ -477,40 +478,34 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeByte(in.readByte());
 	}
 
-	private void handleMapChunkBulk(ByteBuf in, ByteBuf bb, ByteBufAllocator alloc) throws DataFormatException {
+	private void handleMapChunkBulk(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x38);
 		boolean mcbSkyLightSent = in.readBoolean();
 		int mcbCcc = BufferUtils.readVarInt(in);
-		int[][] mcbChunkMeta = new int[mcbCcc][];
+		int[] chunkX = new int[mcbCcc];
+		int[] chunkZ = new int[mcbCcc];
+		int[] bitmap = new int[mcbCcc];
 		for (int ii = 0; ii < mcbCcc; ++ii) {
-			mcbChunkMeta[ii] = new int[]{
-					in.readInt(),
-					in.readInt(),
-					in.readUnsignedShort()
-			};
+			chunkX[ii] = in.readInt();
+			chunkZ[ii] = in.readInt();
+			bitmap[ii] = in.readUnsignedShort();
 		}
-		ByteBuf guhBuf = alloc.buffer();
-		try {
-			for (int ii = 0; ii < mcbCcc; ++ii) {
-				BufferUtils.convertChunk2Legacy(mcbSkyLightSent, mcbChunkMeta[ii][2], true, in, guhBuf);
-			}
-			bb.writeShort(mcbCcc);
-			ByteBuf guhBuf2 = alloc.buffer();
-			try {
-				player().getNativeZlib().netty().deflate(guhBuf, guhBuf2);
-				bb.writeInt(guhBuf2.readableBytes());
-				bb.writeBoolean(mcbSkyLightSent);
-				bb.writeBytes(guhBuf2);
-			} finally {
-				guhBuf2.release();
-			}
-		} finally {
-			guhBuf.release();
-		}
+		int aaaa = bb.writerIndex();
+		bb.writerIndex(aaaa + 7);
 		for (int ii = 0; ii < mcbCcc; ++ii) {
-			bb.writeInt(mcbChunkMeta[ii][0]);
-			bb.writeInt(mcbChunkMeta[ii][1]);
-			bb.writeShort(mcbChunkMeta[ii][2]);
+			int size = BufferUtils.calcChunkDataSize(Integer.bitCount(bitmap[ii]), mcbSkyLightSent, true);
+			BufferUtils.convertChunk2Legacy(bitmap[ii], size, in, bb);
+		}
+		bb.setShort(aaaa, mcbCcc);
+		aaaa += 2;
+		bb.setInt(aaaa, (bb.writerIndex() - (aaaa + (4 + 1))) | 0x10000000);
+		aaaa += 4;
+		bb.setBoolean(aaaa, mcbSkyLightSent);
+		// aaaa += 1;
+		for (int ii = 0; ii < mcbCcc; ++ii) {
+			bb.writeInt(chunkX[ii]);
+			bb.writeInt(chunkZ[ii]);
+			bb.writeShort(bitmap[ii]);
 			bb.writeShort(0);
 		}
 	}
@@ -760,14 +755,65 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		}
 	}
 
-	private void handleMap(ByteBuf in, ByteBuf bb) {
-		// todo: all this bullshit (maps)
-		/*
-		bb = ctx.alloc().buffer();
-		bb.writeByte(0x83);
+	private void handleMap(ByteBuf in, ByteBufAllocator alloc, List<Object> out) {
 		int mapId = BufferUtils.readVarInt(in);
-		byte mapScale
-		*/
+		in.skipBytes(1);
+		int iconNum = BufferUtils.readVarInt(in);
+		in.skipBytes(3 * iconNum);
+		short columns = in.readUnsignedByte();
+		if (columns == 0) {
+			return;
+		}
+		short rows = in.readUnsignedByte();
+		short xstart = in.readUnsignedByte();
+		short zstart = in.readUnsignedByte();
+		int dataLen = BufferUtils.readVarInt(in);
+
+		int absInd = in.readerIndex();
+		ByteBuf colors = alloc.buffer(16384);
+		try {
+			int columnStart;
+			int columnEnd;
+			int rowStart;
+			int rowEnd;
+			for (int column = 0; column < columns; ++column) {
+				for (int row = 0; row < rows; ++row) {
+					colors.setByte(xstart + column + (zstart + row) * 128, in.getByte(absInd + column + row * columns));
+				}
+			}
+			columnStart = xstart;
+			columnEnd = xstart + columns;
+			rowStart = zstart;
+			rowEnd = zstart + rows;
+
+			int theGuh = rowEnd - rowStart;
+
+			for (int column = columnStart; column < columnEnd; column++) {
+				ByteBuf bb = alloc.buffer();
+				try {
+					bb.writeByte(0x83);
+					bb.writeShort(358);
+					bb.writeShort(mapId);
+					bb.writeShort(2 + theGuh);
+					bb.writeByte(0);
+					bb.writeByte(column);
+					bb.writeByte(rowStart);
+					bb.ensureWritable(theGuh);
+					int absWInd = bb.writerIndex();
+					for (int row = rowStart; row < rowEnd; row++) {
+						bb.setByte(absWInd + (row - rowStart), BufferUtils.convertMapColor2Legacy(colors.getByte(row * 128 + column)));
+					}
+					bb.writerIndex(absWInd + theGuh);
+					out.add(bb.retain());
+				} finally {
+					bb.release();
+				}
+			}
+		} finally {
+			colors.release();
+		}
+
+		// in.skipBytes(dataLen);
 	}
 
 	private ByteBuf handleUpdateBlockEntity(ByteBuf in, ByteBufAllocator alloc) {
@@ -911,7 +957,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 						}
 						tabList.put(pliUuid, new TabListItem(tempName, tbPing));
 					} else {
-						tabList.put(pliUuid, new TabListItem(serverAPI().getPlayerByUUID(pliUuid).getUsername(), 0));
+						tabList.put(pliUuid, new TabListItem(BufferUtils.getUsernameOrElse(serverAPI(), pliUuid), 0));
 					}
 				}
 				TabListItem pliItem = tabList.get(pliUuid);
@@ -968,8 +1014,10 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			paFlags ^= 0x09;
 		}
 		bb.writeByte(paFlags);
-		bb.writeByte((int) in.readFloat());
-		bb.writeByte((int) in.readFloat());
+		float speed1 = in.readFloat() * 256;
+		float speed2 = in.readFloat() * 256;
+		bb.writeByte((int) speed1);
+		bb.writeByte((int) speed2);
 	}
 
 	private void handleTabComplete(ByteBuf in, ByteBuf bb) {
@@ -1226,10 +1274,6 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					bb = ctx.alloc().buffer();
 					handleSetExperience(in, bb);
 					break;
-				/*
-				case 0x20:
-					break;
-				*/
 				case 0x21:
 					bb = ctx.alloc().buffer();
 					handleChunkData(in, bb, ctx.alloc());
@@ -1252,7 +1296,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					break;
 				case 0x26:
 					bb = ctx.alloc().buffer();
-					handleMapChunkBulk(in, bb, ctx.alloc());
+					handleMapChunkBulk(in, bb);
 					break;
 				case 0x27:
 					bb = ctx.alloc().buffer();
@@ -1303,10 +1347,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					handleUpdateSign(in, bb);
 					break;
 				case 0x34:
-					// bb = ctx.alloc().buffer();
-					// handleMap(in, bb);
-					// bb.release();
-					// bb = null;
+					handleMap(in, ctx.alloc(), out);
 					break;
 				case 0x35:
 					bb = handleUpdateBlockEntity(in, ctx.alloc());
@@ -1353,13 +1394,14 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				out.add(bb);
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			if (bb != null) {
 				bb.release();
 			}
 		}
 		// in.skipBytes(in.readableBytes());
 		if (out.isEmpty()) {
-			out.add(ctx.alloc().buffer());
+			out.add(Unpooled.EMPTY_BUFFER);
 		}
 	}
 

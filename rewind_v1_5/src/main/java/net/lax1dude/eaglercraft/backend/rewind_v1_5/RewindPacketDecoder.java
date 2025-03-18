@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 import java.util.List;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 
 public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Decoder<PlayerObject> {
@@ -185,13 +186,14 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 				out.add(bb);
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			if (bb != null) {
 				bb.release();
 			}
 		}
 		// in.skipBytes(in.readableBytes());
 		if (out.isEmpty()) {
-			out.add(ctx.alloc().buffer());
+			out.add(Unpooled.EMPTY_BUFFER);
 		}
 	}
 
