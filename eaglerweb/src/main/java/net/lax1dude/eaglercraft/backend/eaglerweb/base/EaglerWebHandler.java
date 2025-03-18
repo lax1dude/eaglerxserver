@@ -167,6 +167,7 @@ public class EaglerWebHandler {
 					return;
 				}
 				requestContext.setResponseCode(308);
+				addCORSHeader(requestContext);
 				requestContext.setResponseBodyEmpty();
 				String path = requestContext.getPath();
 				if(path.endsWith("/")) {
@@ -284,10 +285,14 @@ public class EaglerWebHandler {
 		defaults.handle500(requestContext);
 	}
 
-	private void completeRequest(IRequestContext context, int code, ConfigDataMIMEType contentType, byte[] data) {
+	private void addCORSHeader(IRequestContext context) {
 		if(enableCORS) {
 			context.addResponseHeader("access-control-allow-origin", "*");
 		}
+	}
+
+	private void completeRequest(IRequestContext context, int code, ConfigDataMIMEType contentType, byte[] data) {
+		addCORSHeader(context);
 		if(contentType != null) {
 			context.addResponseHeader("content-type", contentType.getContentTypeHeader());
 			context.addResponseHeader("cache-control", contentType.getCacheControlHeader());
