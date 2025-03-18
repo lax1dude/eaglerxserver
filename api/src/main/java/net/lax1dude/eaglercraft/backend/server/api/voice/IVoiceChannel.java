@@ -4,4 +4,6 @@ public interface IVoiceChannel {
 
 	boolean isManaged();
 
+	boolean isDisabled();
+
 }

@@ -112,6 +112,10 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	void setEaglerPlayerProperyEnabled(boolean enable);
 
+	Collection<ICEServerEntry> getICEServers();
+
+	void setICEServers(Collection<ICEServerEntry> servers);
+
 	ISkinService<PlayerObject> getSkinService();
 
 	IVoiceService<PlayerObject> getVoiceService();

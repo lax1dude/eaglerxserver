@@ -3,16 +3,18 @@ package net.lax1dude.eaglercraft.backend.server.base.config;
 import java.util.List;
 import java.util.Map;
 
+import net.lax1dude.eaglercraft.backend.server.api.ICEServerEntry;
+
 public class ConfigDataRoot {
 
 	private final ConfigDataSettings settings;
 	private final Map<String, ConfigDataListener> listeners;
 	private final ConfigDataSupervisor supervisor;
-	private final List<ConfigDataICEServer> iceServers;
+	private final List<ICEServerEntry> iceServers;
 	private final ConfigDataPauseMenu pauseMenu;
 
 	public ConfigDataRoot(ConfigDataSettings settings, Map<String, ConfigDataListener> listeners,
-			ConfigDataSupervisor supervisor, List<ConfigDataICEServer> iceServers,
+			ConfigDataSupervisor supervisor, List<ICEServerEntry> iceServers,
 			ConfigDataPauseMenu pauseMenu) {
 		this.settings = settings;
 		this.listeners = listeners;
@@ -33,7 +35,7 @@ public class ConfigDataRoot {
 		return supervisor;
 	}
 
-	public List<ConfigDataICEServer> getICEServers() {
+	public List<ICEServerEntry> getICEServers() {
 		return iceServers;
 	}
 

@@ -20,12 +20,18 @@ public interface IVoiceService<PlayerObject> {
 
 	boolean isBackendRelayMode();
 
-	boolean isManagedPerServer();
+	boolean isVoiceEnabledAllServers();
+
+	boolean isVoiceEnabledOnServer(String serverName);
+
+	boolean isSeparateServerChannels();
 
 	IVoiceChannel createVoiceChannel();
 
 	IVoiceChannel getGlobalVoiceChannel();
 
 	IVoiceChannel getServerVoiceChannel(String serverName);
+
+	IVoiceChannel getDisabledVoiceChannel();
 
 }

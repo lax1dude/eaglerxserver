@@ -27,6 +27,7 @@ import io.netty.channel.unix.DomainSocketAddress;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
+import net.lax1dude.eaglercraft.backend.server.api.ICEServerEntry;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfList;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfSection;
 
@@ -280,19 +281,23 @@ public class EaglerConfigLoader {
 				"If enable_fnaw_skin_models_global is false, sets the list of servers (by name) "
 				+ "where the FNAW should be enabled"));
 			IEaglerConfSection voiceService = config.getSection("voice_service");
-			boolean enableVoiceChatGlobal = voiceService.getBoolean(
-				"enable_voice_service_global", false,
-				"Default value is false, if voice chat should be enabled on all servers"
+			boolean enableVoiceService = voiceService.getBoolean(
+				"enable_voice_service", false,
+				"Default value is false, if the voice service should be enabled"
 			);
-			IEaglerConfList enableVoiceChatOnServersConf = voiceService.getList("enable_voice_service_servers");
+			boolean enableVoiceChatAllServers = voiceService.getBoolean(
+				"enable_voice_all_servers", true,
+				"Default value is true, if voice chat should be enabled on all servers"
+			);
+			IEaglerConfList enableVoiceChatOnServersConf = voiceService.getList("enable_voice_on_servers");
 			if(!enableVoiceChatOnServersConf.exists()) {
-				enableVoiceChatOnServersConf.setComment("If enable_voice_service_global is false, "
+				enableVoiceChatOnServersConf.setComment("If enable_voice_all_servers is false, "
 						+ "sets the list of servers (by name) where voice chat should be enabled");
 			}
 			Set<String> enableVoiceChatOnServers = ImmutableSet
 					.copyOf(enableVoiceChatOnServersConf.getAsStringList(() -> Collections.emptyList()));
 			boolean separateVoiceChannelsPerServer = voiceService.getBoolean(
-				"separate_voice_channels_per_server", true,
+				"separate_server_voice_channels", true,
 				"Default value is true, if each server should get its own global voice channel, or "
 				+ "if players on all servers should share the same global voice channel"
 			);
@@ -353,8 +358,8 @@ public class EaglerConfigLoader {
 							skinCacheMemoryKeepSeconds, skinCacheMemoryMaxObjects, skinCacheDiskKeepObjectsDays,
 							skinCacheDiskMaxObjects, skinCacheAntagonistsRatelimit, enableFNAWSkinModelsGlobal,
 							enableFNAWSkinModelsOnServers),
-					new ConfigDataSettings.ConfigDataVoiceService(enableVoiceChatGlobal, enableVoiceChatOnServers,
-							separateVoiceChannelsPerServer),
+					new ConfigDataSettings.ConfigDataVoiceService(enableVoiceService, enableVoiceChatAllServers,
+							enableVoiceChatOnServers, separateVoiceChannelsPerServer),
 					new ConfigDataSettings.ConfigDataUpdateService(enableUpdateSystem, discardLoginPacketCerts,
 							certPacketDataRateLimit, enableEagcertFolder, downloadLatestCerts, downloadCertsFrom,
 							checkForUpdateEvery));
@@ -468,8 +473,8 @@ public class EaglerConfigLoader {
 					supervisorSkinAntagonistsRatelimit, supervisorBrandAntagonistsRatelimit,
 					supervisorLookupIgnoreV2UUID);
 		});
-		List<ConfigDataICEServer> iceServers = root.loadConfig("ice_servers", (config) -> {
-			ImmutableList.Builder<ConfigDataICEServer> builder = ImmutableList.builder();
+		List<ICEServerEntry> iceServers = root.loadConfig("ice_servers", (config) -> {
+			ImmutableList.Builder<ICEServerEntry> builder = ImmutableList.builder();
 			IEaglerConfList noPasswdList = config.getList("ice_servers_no_passwd");
 			if(!noPasswdList.exists()) {
 				noPasswdList.setComment("Defines a set of STUN/TURN server URIs to use that don't require a username and password.");
@@ -480,7 +485,7 @@ public class EaglerConfigLoader {
 				noPasswdList.appendString("stun:stun4.l.google.com:19302");
 			}
 			for(String str : noPasswdList.getAsStringList()) {
-				builder.add(new ConfigDataICEServer(str));
+				builder.add(ICEServerEntry.create(str));
 			}
 			IEaglerConfList passwdList = config.getList("ice_servers_passwd");
 			if(!passwdList.exists()) {
@@ -509,7 +514,7 @@ public class EaglerConfigLoader {
 					String password = section.getIfString("password");
 					if (url != null && username != null && password != null
 							&& !url.startsWith("turn:openrelay.metered.ca")) {
-						builder.add(new ConfigDataICEServer(url, username, password));
+						builder.add(ICEServerEntry.create(url, username, password));
 					}
 				}
 			}

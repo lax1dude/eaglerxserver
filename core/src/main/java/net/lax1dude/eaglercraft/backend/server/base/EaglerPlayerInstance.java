@@ -14,6 +14,7 @@ import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewManager;
 import net.lax1dude.eaglercraft.backend.server.base.message.MessageController;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinManagerEagler;
+import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceManager;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherPlayerClientUUIDV4EAG;
@@ -26,6 +27,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	private final EaglerConnectionInstance connectionInstance;
 	private final IPlatformSubLogger playerLogger;
 	MessageController messageController;
+	VoiceManager<PlayerObject> voiceManager;
 
 	public EaglerPlayerInstance(IPlatformPlayer<PlayerObject> player,
 			EaglerXServer<PlayerObject> server) {
@@ -142,13 +144,15 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	@Override
 	public boolean isVoiceSupported() {
 		// TODO
-		return false;
+		return voiceManager != null;
 	}
 
 	@Override
 	public IVoiceManager<PlayerObject> getVoiceManager() {
-		// TODO
-		return null;
+		if(voiceManager == null) {
+			throw new IllegalStateException("Voice service is not enabled!");
+		}
+		return voiceManager;
 	}
 
 	@Override

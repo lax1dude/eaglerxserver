@@ -247,23 +247,29 @@ public class ConfigDataSettings {
 
 	public static class ConfigDataVoiceService {
 
-		private final boolean enableVoiceChatGlobal;
-		private final Set<String> enableFNAWSkinsOnServers;
+		private final boolean enableVoiceService;
+		private final boolean enableVoiceChatAllServers;
+		private final Set<String> enableVoiceChatOnServers;
 		private final boolean separateVoiceChannelsPerServer;
 
-		public ConfigDataVoiceService(boolean enableVoiceChatGlobal, Set<String> enableFNAWSkinsOnServers,
-				boolean separateVoiceChannelsPerServer) {
-			this.enableVoiceChatGlobal = enableVoiceChatGlobal;
-			this.enableFNAWSkinsOnServers = enableFNAWSkinsOnServers;
+		public ConfigDataVoiceService(boolean enableVoiceService, boolean enableVoiceChatAllServers,
+				Set<String> enableVoiceChatOnServers, boolean separateVoiceChannelsPerServer) {
+			this.enableVoiceService = enableVoiceService;
+			this.enableVoiceChatAllServers = enableVoiceChatAllServers;
+			this.enableVoiceChatOnServers = enableVoiceChatOnServers;
 			this.separateVoiceChannelsPerServer = separateVoiceChannelsPerServer;
 		}
 
-		public boolean isEnableVoiceChatGlobal() {
-			return enableVoiceChatGlobal;
+		public boolean isEnableVoiceService() {
+			return enableVoiceService;
 		}
 
-		public Set<String> getEnableFNAWSkinsOnServers() {
-			return enableFNAWSkinsOnServers;
+		public boolean isEnableVoiceChatAllServers() {
+			return enableVoiceChatAllServers;
+		}
+
+		public Set<String> getEnableVoiceChatOnServers() {
+			return enableVoiceChatOnServers;
 		}
 
 		public boolean isSeparateVoiceChannelsPerServer() {
