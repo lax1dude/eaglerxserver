@@ -1,9 +1,9 @@
 package net.lax1dude.eaglercraft.backend.server.base.voice;
 
-class ManagedChannel extends VoiceChannel {
+class ManagedChannel<PlayerObject> extends VoiceChannel<PlayerObject> {
 
-	ManagedChannel() {
-		
+	ManagedChannel(VoiceService<PlayerObject> owner) {
+		super(owner);
 	}
 
 	@Override

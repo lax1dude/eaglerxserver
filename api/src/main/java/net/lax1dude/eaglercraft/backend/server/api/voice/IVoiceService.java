@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.api.voice;
 
+import java.util.Collection;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 
@@ -33,5 +35,7 @@ public interface IVoiceService<PlayerObject> {
 	IVoiceChannel getServerVoiceChannel(String serverName);
 
 	IVoiceChannel getDisabledVoiceChannel();
+
+	Collection<IEaglerPlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel);
 
 }

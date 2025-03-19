@@ -9,6 +9,7 @@ import java.util.Set;
 import com.google.common.collect.ImmutableMap;
 
 import net.lax1dude.eaglercraft.backend.server.api.ICEServerEntry;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
@@ -52,12 +53,12 @@ public class VoiceService<PlayerObject> implements IVoiceService<PlayerObject> {
 					}
 				}
 			}
-			this.globalChannel = new ManagedChannel();
+			this.globalChannel = new ManagedChannel(this);
 			ImmutableMap.Builder<String, IVoiceChannel> builder = ImmutableMap.builder();
 			if(config.isSeparateVoiceChannelsPerServer()) {
 				this.separateServer = true;
 				for(String str : toEnable) {
-					builder.put(str, new ManagedChannel());
+					builder.put(str, new ManagedChannel(this));
 				}
 			}else {
 				this.separateServer = false;
@@ -126,7 +127,7 @@ public class VoiceService<PlayerObject> implements IVoiceService<PlayerObject> {
 
 	@Override
 	public IVoiceChannel createVoiceChannel() {
-		return new VoiceChannel();
+		return new VoiceChannel<>(this);
 	}
 
 	@Override
@@ -145,7 +146,21 @@ public class VoiceService<PlayerObject> implements IVoiceService<PlayerObject> {
 	}
 
 	public VoiceManager<PlayerObject> createVoiceManager(EaglerPlayerInstance<PlayerObject> player) {
-		return enabled ? new VoiceManager<PlayerObject>(player, this) : null;
+		return enabled ? new VoiceManager<>(player, this) : null;
+	}
+
+	@Override
+	public Collection<IEaglerPlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel) {
+		if(channel == null) {
+			throw new NullPointerException("Voice channel cannot be null!");
+		}
+		if(channel == DisabledChannel.INSTANCE) {
+			throw new UnsupportedOperationException("Cannot list players connected to the disabled channel");
+		}
+		if(!(channel instanceof VoiceChannel) || ((VoiceChannel)channel).owner != this) {
+			throw new IllegalArgumentException("Unknown voice channel");
+		}
+		return ((VoiceChannel<PlayerObject>)channel).listConnectedPlayers();
 	}
 
 }

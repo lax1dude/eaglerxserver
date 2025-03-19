@@ -117,12 +117,6 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
-	public boolean isSkinSupported() {
-		// TODO
-		return true;
-	}
-
-	@Override
 	public SkinManagerEagler<PlayerObject> getSkinManager() {
 		return (SkinManagerEagler<PlayerObject>) skinManager;
 	}
@@ -152,6 +146,10 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 		if(voiceManager == null) {
 			throw new IllegalStateException("Voice service is not enabled!");
 		}
+		return voiceManager;
+	}
+
+	public VoiceManager<PlayerObject> getVoiceManagerInternal() {
 		return voiceManager;
 	}
 

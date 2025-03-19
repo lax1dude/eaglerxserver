@@ -1,7 +1,9 @@
 package net.lax1dude.eaglercraft.backend.server.base.message;
 
+import java.util.UUID;
+
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.WrongPacketException;
+import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceManager;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.*;
 
 public class ServerV4MessageHandler extends ServerV3MessageHandler {
@@ -11,15 +13,25 @@ public class ServerV4MessageHandler extends ServerV3MessageHandler {
 	}
 
 	public void handleClient(CPacketVoiceSignalDisconnectV3EAG packet) {
-		throw new WrongPacketException();
+		throw wrongPacket();
 	}
 
 	public void handleClient(CPacketVoiceSignalDisconnectV4EAG packet) {
-		
+		VoiceManager<?> mgr = eaglerHandle.getVoiceManagerInternal();
+		if(mgr != null) {
+			mgr.handleVoiceSignalPacketTypeDisconnect();
+		}else {
+			throw notCapable();
+		}
 	}
 
 	public void handleClient(CPacketVoiceSignalDisconnectPeerV4EAG packet) {
-		
+		VoiceManager<?> mgr = eaglerHandle.getVoiceManagerInternal();
+		if(mgr != null) {
+			mgr.handleVoiceSignalPacketTypeDisconnectPeer(new UUID(packet.uuidMost, packet.uuidLeast));
+		}else {
+			throw notCapable();
+		}
 	}
 
 	public void handleClient(CPacketGetOtherClientUUIDV4EAG packet) {

@@ -1,6 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.base.voice;
 
-import io.netty.channel.EventLoop;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel;
@@ -11,12 +13,14 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSign
 
 public class VoiceManager<PlayerObject> implements IVoiceManager<PlayerObject> {
 
-	private final EaglerPlayerInstance<PlayerObject> player;
-	private final VoiceService<PlayerObject> voice;
+	final EaglerPlayerInstance<PlayerObject> player;
+	final VoiceService<PlayerObject> voice;
+
+	volatile VoiceChannel<PlayerObject>.Context activeChannel = null;
+
 	private boolean isAlive = true;
 	private IVoiceChannel currentVoiceChannel = DisabledChannel.INSTANCE;
-
-	private boolean isServerEnable = false;
+	private AtomicBoolean isServerEnable = new AtomicBoolean(false);
 
 	VoiceManager(EaglerPlayerInstance<PlayerObject> player, VoiceService<PlayerObject> voice) {
 		this.player = player;
@@ -57,6 +61,10 @@ public class VoiceManager<PlayerObject> implements IVoiceManager<PlayerObject> {
 		if(channel == null) {
 			throw new NullPointerException("Voice channel cannot be null!");
 		}
+		if (channel != DisabledChannel.INSTANCE
+				&& (!(channel instanceof VoiceChannel) || ((VoiceChannel<?>) channel).owner != voice)) {
+			throw new IllegalArgumentException("Unknown voice channel");
+		}
 		IVoiceChannel oldChannel;
 		synchronized(this) {
 			if(!isAlive) {
@@ -68,14 +76,7 @@ public class VoiceManager<PlayerObject> implements IVoiceManager<PlayerObject> {
 			}
 			currentVoiceChannel = channel;
 		}
-		EventLoop eventLoop = player.getChannel().eventLoop();
-		if(eventLoop.inEventLoop()) {
-			switchChannels(oldChannel, channel);
-		}else {
-			eventLoop.execute(() -> {
-				switchChannels(oldChannel, channel);
-			});
-		}
+		switchChannels(oldChannel, channel);
 	}
 
 	public void destroyVoiceManager() {
@@ -91,42 +92,74 @@ public class VoiceManager<PlayerObject> implements IVoiceManager<PlayerObject> {
 			}
 			currentVoiceChannel = DisabledChannel.INSTANCE;
 		}
-		removeFromChannel(oldChannel);
+		((VoiceChannel<PlayerObject>) oldChannel).removeFromChannel(this);
 	}
 
 	private void switchChannels(IVoiceChannel oldChannel, IVoiceChannel newChannel) {
 		if(oldChannel != DisabledChannel.INSTANCE) {
-			removeFromChannel(oldChannel);
+			((VoiceChannel<PlayerObject>) oldChannel).removeFromChannel(this);
 		}else {
 			enableVoice();
 		}
 		if(newChannel != DisabledChannel.INSTANCE) {
-			addToChannel(newChannel);
+			((VoiceChannel<PlayerObject>) newChannel).addToChannel(this);
 		}else {
 			disableVoice();
 		}
 	}
 
 	private void enableVoice() {
-		if(!isServerEnable) {
-			isServerEnable = true;
+		if(isServerEnable.compareAndExchange(false, true)) {
 			player.sendEaglerMessage(new SPacketVoiceSignalAllowedEAG(true, voice.getICEServers()));
 		}
 	}
 
 	private void disableVoice() {
-		if(isServerEnable) {
-			isServerEnable = false;
+		if(isServerEnable.compareAndExchange(true, false)) {
 			player.sendEaglerMessage(new SPacketVoiceSignalAllowedEAG(false, null));
 		}
 	}
 
-	private void addToChannel(IVoiceChannel channel) {
-		//TODO
+	public void handleVoiceSignalPacketTypeConnect() {
+		VoiceChannel<PlayerObject>.Context ch = activeChannel;
+		if(ch != null) {
+			ch.handleVoiceSignalPacketTypeConnect();
+		}
 	}
 
-	private void removeFromChannel(IVoiceChannel channel) {
-		//TODO
+	public void handleVoiceSignalPacketTypeRequest(UUID player) {
+		VoiceChannel<PlayerObject>.Context ch = activeChannel;
+		if(ch != null) {
+			ch.handleVoiceSignalPacketTypeRequest(player);
+		}
+	}
+
+	public void handleVoiceSignalPacketTypeICE(UUID player, byte[] str) {
+		VoiceChannel<PlayerObject>.Context ch = activeChannel;
+		if(ch != null) {
+			ch.handleVoiceSignalPacketTypeICE(player, str);
+		}
+	}
+
+	public void handleVoiceSignalPacketTypeDesc(UUID player, byte[] str) {
+		VoiceChannel<PlayerObject>.Context ch = activeChannel;
+		if(ch != null) {
+			ch.handleVoiceSignalPacketTypeDesc(player, str);
+		}
+	}
+
+	public void handleVoiceSignalPacketTypeDisconnectPeer(UUID player) {
+		VoiceChannel<PlayerObject>.Context ch = activeChannel;
+		if(ch != null) {
+			ch.handleVoiceSignalPacketTypeDisconnectPeer(player);
+		}
+	}
+
+	public void handleVoiceSignalPacketTypeDisconnect() {
+		VoiceChannel<PlayerObject>.Context ch = activeChannel;
+		if(ch != null) {
+			ch.handleVoiceSignalPacketTypeDisconnect();
+		}
 	}
 
 }

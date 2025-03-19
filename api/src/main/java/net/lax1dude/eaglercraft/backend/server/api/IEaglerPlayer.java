@@ -16,8 +16,6 @@ public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject>, 
 
 	void sendEaglerMessage(GameMessagePacket packet);
 
-	boolean isSkinSupported();
-
 	ISkinManagerEagler<PlayerObject> getSkinManager();
 
 	default IEaglerPlayerSkin getEaglerSkin() {
