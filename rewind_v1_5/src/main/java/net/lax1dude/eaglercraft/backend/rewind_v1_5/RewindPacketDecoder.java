@@ -172,14 +172,22 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					break;
 				case 0xFA:
 					String name = BufferUtils.readLegacyMCString(in, 255);
-					short pmLen = in.readShort();
+					int pmLen = in.readShort();
 					if (name.equals("MC|AdvCdm")) {
 						int ri = in.readerIndex();
-						in.skipBytes(12);
-						String s1 = BufferUtils.readLegacyMCString(in, 32767);
+						int cmdX = in.readInt();
+						int cmdY = in.readInt();
+						int cmdZ = in.readInt();
+						String cmd = BufferUtils.readLegacyMCString(in, 32767);
 						in.readerIndex(ri);
-						in.writerIndex(ri + 12);
-						BufferUtils.writeMCString(in, s1, 32767);
+						in.writerIndex(ri);
+						in.writeByte(0);
+						in.writeInt(cmdX);
+						in.writeInt(cmdY);
+						in.writeInt(cmdZ);
+						BufferUtils.writeMCString(in, cmd, 32767);
+						in.writeBoolean(true);
+						pmLen = in.writerIndex() - ri;
 					}
 					bb = ctx.alloc().buffer();
 					BufferUtils.writeVarInt(bb, 0x17);
