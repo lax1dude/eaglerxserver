@@ -266,12 +266,12 @@ public class BufferUtils {
 		String playerNameWowie = null;
 
 		if (entityType == -1) {
-			bb.writeByte(127);
+			bb.writeByte(0x7F);
 			return null;
 		}
 		boolean allDumb = true;
 		while (true) {
-			int item = buffer.readUnsignedByte();
+			int item = buffer.isReadable() ? buffer.readUnsignedByte() : 0x7F;
 			if (item == 0x7F) {
 				bb.writeByte(item);
 				break;
@@ -326,8 +326,8 @@ public class BufferUtils {
 				allDumb = false;
 			}
 		}
-		if (allDumb || bb.getByte(bb.writerIndex() - 1) != 127) {
-			bb.writeByte(127);
+		if (allDumb || bb.getByte(bb.writerIndex() - 1) != 0x7F) {
+			bb.writeByte(0x7F);
 		}
 
 		return playerNameWowie;
