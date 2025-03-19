@@ -50,4 +50,6 @@ public interface ISkinService<PlayerObject> extends ISkinResolver {
 		return getSkinLoader(true);
 	}
 
+	boolean isFNAWSkinsEnabledOnServer(String serverName);
+
 }

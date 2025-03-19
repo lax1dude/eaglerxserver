@@ -44,6 +44,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerCommandType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerJoinListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageChannel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
@@ -90,6 +91,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	protected IEaglerXServerNettyPipelineInitializer<Object> pipelineInitializer;
 	protected IEaglerXServerConnectionInitializer<Object, Object> connectionInitializer;
 	protected IEaglerXServerPlayerInitializer<Object, Object, Player> playerInitializer;
+	protected IEaglerXServerJoinListener<Player> serverJoinListener;
 	protected Collection<IEaglerXServerCommandType<Player>> commandsList;
 	protected IEaglerXServerListener listenerConf;
 	protected Collection<IEaglerXServerMessageChannel<Player>> playerChannelsList;
@@ -155,6 +157,11 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			@Override
 			public void setPlayerInitializer(IEaglerXServerPlayerInitializer<?, ?, Player> initializer) {
 				playerInitializer = (IEaglerXServerPlayerInitializer<Object, Object, Player>) initializer;
+			}
+
+			@Override
+			public void setServerJoinListener(IEaglerXServerJoinListener<Player> listener) {
+				serverJoinListener = listener;
 			}
 
 			@Override
@@ -664,6 +671,10 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			if(conf != null) {
 				p.confirmTask = null;
 				conf.cancel();
+			}
+			IEaglerXServerJoinListener<Player> listener = serverJoinListener;
+			if(listener != null) {
+				listener.handle(p, this);
 			}
 		}
 	}

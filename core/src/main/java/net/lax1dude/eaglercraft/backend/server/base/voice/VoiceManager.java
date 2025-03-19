@@ -19,6 +19,7 @@ public class VoiceManager<PlayerObject> implements IVoiceManager<PlayerObject> {
 	volatile VoiceChannel<PlayerObject>.Context activeChannel = null;
 
 	private boolean isAlive = true;
+	private boolean isManaged = true;
 	private IVoiceChannel currentVoiceChannel = DisabledChannel.INSTANCE;
 	private AtomicBoolean isServerEnable = new AtomicBoolean(false);
 
@@ -44,11 +45,13 @@ public class VoiceManager<PlayerObject> implements IVoiceManager<PlayerObject> {
 
 	@Override
 	public EnumVoiceState getVoiceState() {
-		if(currentVoiceChannel == DisabledChannel.INSTANCE) {
-			return EnumVoiceState.SERVER_DISABLE;
-		}else {
-			return null; //TODO
+		if(currentVoiceChannel != DisabledChannel.INSTANCE) {
+			VoiceChannel<PlayerObject>.Context ch = activeChannel;
+			if(ch != null) {
+				return ch.isConnected() ? EnumVoiceState.ENABLED : EnumVoiceState.DISABLED;
+			}
 		}
+		return EnumVoiceState.SERVER_DISABLE;
 	}
 
 	@Override
@@ -79,6 +82,22 @@ public class VoiceManager<PlayerObject> implements IVoiceManager<PlayerObject> {
 		switchChannels(oldChannel, channel);
 	}
 
+	@Override
+	public boolean isServerManaged() {
+		return isManaged;
+	}
+
+	@Override
+	public void setServerManaged(boolean managed) {
+		isManaged = managed;
+	}
+
+	public void handleServerChanged(String serverName) {
+		if(isManaged) {
+			setVoiceChannel(voice.getServerVoiceChannel(serverName));
+		}
+	}
+
 	public void destroyVoiceManager() {
 		IVoiceChannel oldChannel;
 		synchronized(this) {
@@ -92,12 +111,12 @@ public class VoiceManager<PlayerObject> implements IVoiceManager<PlayerObject> {
 			}
 			currentVoiceChannel = DisabledChannel.INSTANCE;
 		}
-		((VoiceChannel<PlayerObject>) oldChannel).removeFromChannel(this);
+		((VoiceChannel<PlayerObject>) oldChannel).removeFromChannel(this, true);
 	}
 
 	private void switchChannels(IVoiceChannel oldChannel, IVoiceChannel newChannel) {
 		if(oldChannel != DisabledChannel.INSTANCE) {
-			((VoiceChannel<PlayerObject>) oldChannel).removeFromChannel(this);
+			((VoiceChannel<PlayerObject>) oldChannel).removeFromChannel(this, newChannel == DisabledChannel.INSTANCE);
 		}else {
 			enableVoice();
 		}

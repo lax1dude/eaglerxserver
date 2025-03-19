@@ -16,4 +16,8 @@ public interface IVoiceManager<PlayerObject> {
 
 	void setVoiceChannel(IVoiceChannel channel);
 
+	boolean isServerManaged();
+
+	void setServerManaged(boolean managed);
+
 }

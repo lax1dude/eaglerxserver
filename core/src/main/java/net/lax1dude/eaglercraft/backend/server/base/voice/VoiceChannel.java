@@ -1,9 +1,11 @@
 package net.lax1dude.eaglercraft.backend.server.base.voice;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -16,6 +18,7 @@ import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalConnectAnnounceV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalConnectV3EAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalConnectV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalDescEAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalDisconnectPeerEAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalGlobalEAG;
@@ -36,18 +39,18 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 		Context oldContext = mgr.activeChannel;
 		if(oldContext != null) {
 			mgr.activeChannel = null;
-			oldContext.finish();
+			oldContext.finish(false);
 		}
 		Context newContext = new Context(mgr);
 		newContext.init();
 		mgr.activeChannel = newContext;
 	}
 
-	void removeFromChannel(VoiceManager<PlayerObject> mgr) {
+	void removeFromChannel(VoiceManager<PlayerObject> mgr, boolean dead) {
 		Context oldContext = mgr.activeChannel;
 		if(oldContext != null) {
 			mgr.activeChannel = null;
-			oldContext.finish();
+			oldContext.finish(dead);
 		}
 	}
 
@@ -167,7 +170,40 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 		void handleVoiceSignalPacketTypeRequest(UUID player) {
 			Context other = connectedPlayers.get(player);
 			if(other != null && other != this) {
-				//TODO
+				IVoiceState newState = null;
+				synchronized(other) {
+					IVoiceState otherState = other.checkState(this);
+					if(otherState == ESTABLISHED) {
+						return;
+					}else if(otherState != null) {
+						newState = ESTABLISHED;
+						other.put(this, newState);
+					}
+				}
+				synchronized(this) {
+					if(newState == null) {
+						putRequest(other);
+						return;
+					}else {
+						put(other, newState);
+					}
+				}
+				EaglerPlayerInstance<PlayerObject> otherPlayer = other.mgr.player;
+				if (otherPlayer.getEaglerProtocol().ver <= 3) {
+					otherPlayer.sendEaglerMessage(new SPacketVoiceSignalConnectV3EAG(
+							selfUUID.getMostSignificantBits(), selfUUID.getLeastSignificantBits(), false, false));
+				} else {
+					otherPlayer.sendEaglerMessage(new SPacketVoiceSignalConnectV4EAG(
+							selfUUID.getMostSignificantBits(), selfUUID.getLeastSignificantBits(), false));
+				}
+				EaglerPlayerInstance<PlayerObject> self = mgr.player;
+				if (self.getEaglerProtocol().ver <= 3) {
+					self.sendEaglerMessage(new SPacketVoiceSignalConnectV3EAG(
+							player.getMostSignificantBits(), player.getLeastSignificantBits(), false, true));
+				} else {
+					self.sendEaglerMessage(new SPacketVoiceSignalConnectV4EAG(
+							player.getMostSignificantBits(), player.getLeastSignificantBits(), true));
+				}
 			}
 		}
 
@@ -214,15 +250,48 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 		}
 
 		void handleVoiceSignalPacketTypeDisconnect() {
-			if(connectedPlayers.remove(mgr.player.getUniqueId()) == null) {
-				return;
-			}
-			
-			//TODO
+			handleRemove(true);
 		}
 
-		void finish() {
-			//TODO
+		void finish(boolean dead) {
+			handleRemove(dead);
+		}
+
+		private void handleRemove(boolean dead) {
+			if(connectedPlayers.remove(selfUUID) == null) {
+				return;
+			}
+			List<Context> toNotify = new ArrayList<>();
+			synchronized(this) {
+				for(Entry<Context, IVoiceState> etr : entrySet()) {
+					if(etr.getValue() == ESTABLISHED) {
+						toNotify.add(etr.getKey());
+					}
+				}
+				clear();
+				expirable = false;
+			}
+			if(!toNotify.isEmpty()) {
+				GameMessagePacket pkt = new SPacketVoiceSignalDisconnectPeerEAG(selfUUID.getMostSignificantBits(),
+						selfUUID.getLeastSignificantBits());
+				for(Context ctx : toNotify) {
+					if(!dead) {
+						UUID uuid = ctx.selfUUID;
+						mgr.player.sendEaglerMessage(new SPacketVoiceSignalDisconnectPeerEAG(uuid.getMostSignificantBits(),
+								uuid.getLeastSignificantBits()));
+					}
+					synchronized(ctx) {
+						if(ctx.remove(this) == null) {
+							continue;
+						}
+					}
+					ctx.mgr.player.sendEaglerMessage(pkt);
+				}
+			}
+		}
+
+		boolean isConnected() {
+			return connectedPlayers.containsKey(selfUUID);
 		}
 
 		@Override

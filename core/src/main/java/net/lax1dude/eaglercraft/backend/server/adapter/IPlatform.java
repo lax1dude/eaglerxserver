@@ -32,6 +32,8 @@ public interface IPlatform<PlayerObject> {
 
 		void setPlayerInitializer(IEaglerXServerPlayerInitializer<?, ?, PlayerObject> initializer);
 
+		void setServerJoinListener(IEaglerXServerJoinListener<PlayerObject> listener);
+
 		void setCommandRegistry(Collection<IEaglerXServerCommandType<PlayerObject>> commands);
 
 		IPlatform<PlayerObject> getPlatform();

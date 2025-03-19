@@ -36,6 +36,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.api.EnumPlatformType;
@@ -181,11 +182,13 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 				"Mozilla/5.0 " + getServerVersionString());
 		httpClientAPI = new BinaryHTTPClient(httpClient);
 		profileResolver = new ProfileResolver(this, httpClient);
-		if(config.getSettings().getSkinService().isDownloadVanillaSkinsToClients()) {
+		
+		ConfigDataSkinService skinSvcConf = config.getSettings().getSkinService();
+		if(skinSvcConf.isDownloadVanillaSkinsToClients()) {
 			skinCacheService = new DeferredStartSkinCache();
-			skinService = new SkinService<>(this, skinCacheService);
+			skinService = new SkinService<>(this, skinCacheService, skinSvcConf.getFNAWSkinsPredicate());
 		}else {
-			skinService = new SkinService<>(this, null);
+			skinService = new SkinService<>(this, null, skinSvcConf.getFNAWSkinsPredicate());
 		}
 		
 		isEaglerPlayerProperyEnabled = config.getSettings().isEnableIsEaglerPlayerProperty();
@@ -212,6 +215,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		init.setPipelineInitializer(new EaglerXServerNettyPipelineInitializer<>(this));
 		init.setConnectionInitializer(new EaglerXServerConnectionInitializer<>(this));
 		init.setPlayerInitializer(new EaglerXServerPlayerInitializer<>(this));
+		init.setServerJoinListener(this::handleServerJoin);
 		init.setCommandRegistry(Arrays.asList(
 				new CommandVersion<>(this),
 				new CommandBrand<>(this),
@@ -410,6 +414,18 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		if(pendingConnection.isEaglerXRewindPlayer()) {
 			((IEaglerXRewindProtocol<PlayerObject, Object>) pendingConnection.getRewindProtocol())
 					.handleDestroyPlayer(pendingConnection.getRewindAttachment());
+		}
+	}
+
+	private void handleServerJoin(IPlatformPlayer<PlayerObject> player, IPlatformServer<PlayerObject> server) {
+		BasePlayerInstance<PlayerObject> playerInstance = player.getPlayerAttachment();
+		if(playerInstance != null && server != null && playerInstance.isEaglerPlayer()) {
+			String serverName = server.getServerConfName();
+			EaglerPlayerInstance<PlayerObject> eaglerPlayer = playerInstance.asEaglerPlayer();
+			eaglerPlayer.getSkinManager().handleServerChanged(serverName);
+			if(eaglerPlayer.voiceManager != null) {
+				eaglerPlayer.voiceManager.handleServerChanged(serverName);
+			}
 		}
 	}
 

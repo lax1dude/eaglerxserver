@@ -129,8 +129,9 @@ class VelocityListener {
 		IPlatformPlayer<Player> platformPlayer = plugin.getPlayer(connectEvent.getPlayer());
 		if(platformPlayer != null) {
 			RegisteredServer server = connectEvent.getServer();
+			IPlatformServer<Player> platformServer = null;
 			if(server != null) {
-				IPlatformServer<Player> platformServer = plugin.getRegisteredServers().get(server.getServerInfo().getName());
+				platformServer = plugin.getRegisteredServers().get(server.getServerInfo().getName());
 				if(platformServer == null) {
 					platformServer = new VelocityServer(plugin, server, false);
 				}
@@ -138,6 +139,7 @@ class VelocityListener {
 			}else {
 				((VelocityPlayer)platformPlayer).server = null;
 			}
+			plugin.handleServerJoin(platformPlayer, platformServer);
 		}
 	}
 

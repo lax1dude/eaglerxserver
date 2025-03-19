@@ -88,27 +88,29 @@ class BungeeListener implements Listener {
 
 	@EventHandler(priority = 127)
 	public void onServerConnected(ServerConnectedEvent event) {
-		ServerInfo info = event.getServer().getInfo();
-		if(info != null) {
-			IPlatformServer<ProxiedPlayer> server = plugin.registeredServers.get(info.getName());
-			if(server == null) {
-				server = new BungeeServer(plugin, info, false);
-			}
-			IPlatformPlayer<ProxiedPlayer> player = plugin.getPlayer(event.getPlayer());
-			if(player != null) {
+		IPlatformPlayer<ProxiedPlayer> player = plugin.getPlayer(event.getPlayer());
+		if(player != null) {
+			ServerInfo info = event.getServer().getInfo();
+			IPlatformServer<ProxiedPlayer> server = null;
+			if(info != null) {
+				server = plugin.registeredServers.get(info.getName());
+				if(server == null) {
+					server = new BungeeServer(plugin, info, false);
+				}
 				((BungeePlayer)player).server = server;
-			}
-		}else {
-			IPlatformPlayer<ProxiedPlayer> player = plugin.getPlayer(event.getPlayer());
-			if(player != null) {
+			}else {
 				((BungeePlayer)player).server = null;
 			}
+			plugin.handleServerJoin(player, server);
 		}
 	}
 
 	@EventHandler(priority = -128)
 	public void onServerDisconnected(ServerDisconnectEvent event) {
-		((BungeePlayer)plugin.getPlayer(event.getPlayer())).server = null;
+		IPlatformPlayer<ProxiedPlayer> player = plugin.getPlayer(event.getPlayer());
+		if(player != null) {
+			((BungeePlayer)player).server = null;
+		}
 	}
 
 	@EventHandler

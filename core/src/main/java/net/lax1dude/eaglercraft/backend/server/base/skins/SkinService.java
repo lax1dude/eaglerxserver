@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.base.skins;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
@@ -29,10 +30,13 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 
 	private final EaglerXServer<PlayerObject> server;
 	private final ISkinCacheService skinCache;
+	private final Predicate<String> fnawSkinsEnabled;
 
-	public SkinService(EaglerXServer<PlayerObject> server, ISkinCacheService skinCache) {
+	public SkinService(EaglerXServer<PlayerObject> server, ISkinCacheService skinCache,
+			Predicate<String> fnawSkinsEnabled) {
 		this.server = server;
 		this.skinCache = skinCache;
+		this.fnawSkinsEnabled = fnawSkinsEnabled;
 	}
 
 	@Override
@@ -140,6 +144,10 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 	@Override
 	public ISkinImageLoader getSkinLoader(boolean cacheEnabled) {
 		return cacheEnabled ? SkinImageLoaderCacheOn.INSTANCE : SkinImageLoaderCacheOff.INSTANCE;
+	}
+
+	public boolean isFNAWSkinsEnabledOnServer(String serverName) {
+		return fnawSkinsEnabled.test(serverName);
 	}
 
 	public ISkinManagerBase<PlayerObject> createVanillaSkinManager(BasePlayerInstance<PlayerObject> playerInstance) {

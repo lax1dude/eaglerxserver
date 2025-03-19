@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.base.config;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 public class ConfigDataSettings {
 
@@ -241,6 +242,16 @@ public class ConfigDataSettings {
 
 		public Set<String> getEnableFNAWSkinModelsOnServers() {
 			return enableFNAWSkinModelsOnServers;
+		}
+
+		public Predicate<String> getFNAWSkinsPredicate() {
+			if(enableFNAWSkinModelsGlobal) {
+				return (str) -> true;
+			}else if(!enableFNAWSkinModelsOnServers.isEmpty()) {
+				return enableFNAWSkinModelsOnServers::contains;
+			}else {
+				return (str) -> false;
+			}
 		}
 
 	}

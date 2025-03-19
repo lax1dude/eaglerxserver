@@ -50,6 +50,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerCommandType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerJoinListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageChannel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
@@ -110,6 +111,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	protected IEaglerXServerNettyPipelineInitializer<Object> pipelineInitializer;
 	protected IEaglerXServerConnectionInitializer<Object, Object> connectionInitializer;
 	protected IEaglerXServerPlayerInitializer<Object, Object, Player> playerInitializer;
+	protected IEaglerXServerJoinListener<Player> serverJoinListener;
 	protected Collection<IEaglerXServerCommandType<Player>> commandsList;
 	protected Collection<CommandMeta> registeredCommandsList;
 	protected Collection<IEaglerXServerListener> listenersList;
@@ -203,6 +205,11 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			@Override
 			public void setPlayerInitializer(IEaglerXServerPlayerInitializer<?, ?, Player> initializer) {
 				playerInitializer = (IEaglerXServerPlayerInitializer<Object, Object, Player>) initializer;
+			}
+
+			@Override
+			public void setServerJoinListener(IEaglerXServerJoinListener<Player> listener) {
+				serverJoinListener = listener;
 			}
 
 			@Override
@@ -625,6 +632,13 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 				p.confirmTask = null;
 				conf.cancel();
 			}
+		}
+	}
+
+	public void handleServerJoin(IPlatformPlayer<Player> player, IPlatformServer<Player> server) {
+		IEaglerXServerJoinListener<Player> listener = serverJoinListener;
+		if(listener != null) {
+			listener.handle(player, server);
 		}
 	}
 

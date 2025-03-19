@@ -28,6 +28,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerCommandType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerJoinListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageChannel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
@@ -77,6 +78,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	protected IEaglerXServerNettyPipelineInitializer<Object> pipelineInitializer;
 	protected IEaglerXServerConnectionInitializer<Object, Object> connectionInitializer;
 	protected IEaglerXServerPlayerInitializer<Object, Object, ProxiedPlayer> playerInitializer;
+	protected IEaglerXServerJoinListener<ProxiedPlayer> serverJoinListener;
 	protected Collection<IEaglerXServerCommandType<ProxiedPlayer>> commandsList;
 	protected Collection<IEaglerXServerListener> listenersList;
 	protected Collection<IEaglerXServerMessageChannel<ProxiedPlayer>> playerChannelsList;
@@ -162,6 +164,11 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			@Override
 			public void setPlayerInitializer(IEaglerXServerPlayerInitializer<?, ?, ProxiedPlayer> initializer) {
 				playerInitializer = (IEaglerXServerPlayerInitializer<Object, Object, ProxiedPlayer>) initializer;
+			}
+
+			@Override
+			public void setServerJoinListener(IEaglerXServerJoinListener<ProxiedPlayer> listener) {
+				serverJoinListener = listener;
 			}
 
 			@Override
@@ -555,6 +562,13 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 				onComplete.run();
 			}
 		});
+	}
+
+	public void handleServerJoin(IPlatformPlayer<ProxiedPlayer> player, IPlatformServer<ProxiedPlayer> server) {
+		IEaglerXServerJoinListener<ProxiedPlayer> listener = serverJoinListener;
+		if(listener != null) {
+			listener.handle(player, server);
+		}
 	}
 
 	public void dropPlayer(ProxiedPlayer player) {

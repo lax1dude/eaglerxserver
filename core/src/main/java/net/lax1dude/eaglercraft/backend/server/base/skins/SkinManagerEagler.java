@@ -4,6 +4,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
+import net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumPresetCapes;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumPresetSkins;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
@@ -26,8 +27,8 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 	private IEaglerPlayerCape cape;
 	private final IEaglerPlayerSkin oldSkin;
 	private final IEaglerPlayerCape oldCape;
-	private boolean fnawSkinsEnabled;
-	private boolean fnawSkinsForced;
+	private EnumEnableFNAW fnawSkinsEnabled;
+	private boolean fnawSkinsManaged = true;
 
 	SkinManagerEagler(EaglerPlayerInstance<PlayerObject> player, IEaglerPlayerSkin skin, IEaglerPlayerCape cape,
 			boolean fnawSkinsEnabled) {
@@ -35,8 +36,7 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 		this.skinService = player.getEaglerXServer().getSkinService();
 		this.skin = oldSkin = skin;
 		this.cape = oldCape = cape;
-		this.fnawSkinsEnabled = fnawSkinsEnabled;
-		this.fnawSkinsForced = false;
+		this.fnawSkinsEnabled = fnawSkinsEnabled ? EnumEnableFNAW.ENABLED : EnumEnableFNAW.DISABLED;
 	}
 
 	@Override
@@ -173,10 +173,6 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	@Override
 	public void resetEaglerSkinAndCape(boolean notifyOthers) {
-		resetEaglerSkinAndCape0(notifyOthers, false);
-	}
-
-	private void resetEaglerSkinAndCape0(boolean notifyOthers, boolean fnaw) {
 		boolean s = !skin.equals(oldSkin), c = !cape.equals(oldCape);
 		if(s || c) {
 			if(s) {
@@ -186,15 +182,7 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 				cape = oldCape;
 			}
 			if(player.getEaglerProtocol().ver >= 4) {
-				if(fnaw && fnawSkinsForced) {
-					fnawSkinsForced = false;
-					player.sendEaglerMessage(new SPacketUnforceClientV4EAG(s, c, true));
-				}else {
-					player.sendEaglerMessage(new SPacketUnforceClientV4EAG(s, c, false));
-				}
-			}else if(fnaw && fnawSkinsForced) {
-				fnawSkinsForced = false;
-				player.sendEaglerMessage(new SPacketEnableFNAWSkinsEAG(fnawSkinsEnabled, false));
+				player.sendEaglerMessage(new SPacketUnforceClientV4EAG(s, c, false));
 			}
 			if(notifyOthers) {
 				UUID uuid = player.getUniqueId();
@@ -208,55 +196,44 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 					}
 				});
 			}
-		}else if(fnaw && fnawSkinsForced) {
-			fnawSkinsForced = false;
-			player.sendEaglerMessage(new SPacketEnableFNAWSkinsEAG(fnawSkinsEnabled, false));
 		}
 	}
 
 	@Override
-	public boolean isClientFNAWSkinsEnabled() {
+	public EnumEnableFNAW getEnableFNAWSkins() {
 		return fnawSkinsEnabled;
 	}
 
 	@Override
-	public boolean isClientFNAWSkinsForced() {
-		return fnawSkinsForced;
-	}
-
-	@Override
-	public void setClientFNAWSkinsEnabled(boolean enabled) {
-		if(enabled != fnawSkinsEnabled) {
+	public void setEnableFNAWSkins(EnumEnableFNAW enabled) {
+		EnumEnableFNAW oldState = fnawSkinsEnabled;
+		if(oldState != enabled) {
 			fnawSkinsEnabled = enabled;
-			player.sendEaglerMessage(new SPacketEnableFNAWSkinsEAG(enabled, fnawSkinsForced));
+			player.sendEaglerMessage(new SPacketEnableFNAWSkinsEAG(enabled != EnumEnableFNAW.DISABLED,
+					enabled == EnumEnableFNAW.FORCED));
 		}
 	}
 
 	@Override
-	public void setClientFNAWSkinsForced(boolean forced) {
-		if(forced != fnawSkinsForced) {
-			fnawSkinsForced = forced;
-			player.sendEaglerMessage(new SPacketEnableFNAWSkinsEAG(fnawSkinsEnabled, forced));
+	public void resetEnableFNAWSkins() {
+		setEnableFNAWSkins(EnumEnableFNAW.ENABLED);
+	}
+
+	@Override
+	public boolean isFNAWSkinsServerManaged() {
+		return fnawSkinsManaged;
+	}
+
+	@Override
+	public void setFNAWSkinsServerManaged(boolean managed) {
+		fnawSkinsManaged = managed;
+	}
+
+	public void handleServerChanged(String serverName) {
+		if(fnawSkinsManaged) {
+			setEnableFNAWSkins(skinService.isFNAWSkinsEnabledOnServer(serverName) ? EnumEnableFNAW.ENABLED
+					: EnumEnableFNAW.DISABLED);
 		}
-	}
-
-	@Override
-	public void setClientFNAWSkinsEnabledForced(boolean enabled, boolean forced) {
-		if(enabled != fnawSkinsEnabled || forced != fnawSkinsForced) {
-			fnawSkinsEnabled = enabled;
-			fnawSkinsForced = forced;
-			player.sendEaglerMessage(new SPacketEnableFNAWSkinsEAG(enabled, forced));
-		}
-	}
-
-	@Override
-	public void resetClientFNAWSkinsForced() {
-		setClientFNAWSkinsForced(false);
-	}
-
-	@Override
-	public void resetEaglerSkinAndCapeAndClientFNAWSkinsForced(boolean notifyOthers) {
-		resetEaglerSkinAndCape0(notifyOthers, true);
 	}
 
 	public void handlePacketGetOtherSkin(long uuidMost, long uuidLeast) {
