@@ -35,6 +35,8 @@ public interface INotificationService<PlayerObject> extends IPacketImageLoader {
 
 	void registerNotificationIcons(Map<UUID, PacketImageData> icons);
 
+	void registerNotificationIcons(Collection<IconDef> icons);
+
 	void releaseNotificationIcon(UUID iconUUID);
 
 	void releaseNotificationIcons(Collection<UUID> iconUUIDs);
@@ -42,7 +44,5 @@ public interface INotificationService<PlayerObject> extends IPacketImageLoader {
 	void showNotificationBadge(INotificationBuilder<?> builder);
 
 	void showNotificationBadge(SPacketNotifBadgeShowV4EAG packet);
-
-	void hideNotificationBadge(UUID badgeUUID);
 
 }

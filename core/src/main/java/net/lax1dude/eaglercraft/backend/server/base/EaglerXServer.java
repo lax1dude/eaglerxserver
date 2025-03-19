@@ -75,6 +75,7 @@ import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataRoot;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings.ConfigDataSkinService;
 import net.lax1dude.eaglercraft.backend.server.base.message.MessageControllerFactory;
 import net.lax1dude.eaglercraft.backend.server.base.message.PlayerChannelHelper;
+import net.lax1dude.eaglercraft.backend.server.base.notifications.NotificationService;
 import net.lax1dude.eaglercraft.backend.server.base.config.EaglerConfigLoader;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.PipelineTransformer;
 import net.lax1dude.eaglercraft.backend.server.base.query.QueryServer;
@@ -131,6 +132,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private Connection skinCacheJDBCHandle;
 	private VoiceService<PlayerObject> voiceService;
 	private Collection<ICEServerEntry> iceServers;
+	private NotificationService<PlayerObject> notificationService;
 
 	public EaglerXServer() {
 	}
@@ -209,6 +211,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		
 		voiceService = new VoiceService<>(this, config.getSettings().getVoiceService());
 		voiceService.handleICEServerUpdate(iceServers);
+		
+		notificationService = new NotificationService<>(this);
 		
 		init.setOnServerEnable(this::enableHandler);
 		init.setOnServerDisable(this::disableHandler);
@@ -609,14 +613,27 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		eaglerPlayers.forEach(callback);
 	}
 
+	public void forEachEaglerPlayerInternal(Consumer<EaglerPlayerInstance<PlayerObject>> callback) {
+		eaglerPlayers.forEach(callback);
+	}
+
 	@Override
 	public Collection<IBasePlayer<PlayerObject>> getAllPlayers() {
 		return Collections2.transform(platform.getAllPlayers(),
 				IPlatformPlayer<PlayerObject>::<IBasePlayer<PlayerObject>>getPlayerAttachment);
 	}
 
+	public Collection<BasePlayerInstance<PlayerObject>> getAllPlayersInternal() {
+		return Collections2.transform(platform.getAllPlayers(),
+				IPlatformPlayer<PlayerObject>::<BasePlayerInstance<PlayerObject>>getPlayerAttachment);
+	}
+
 	@Override
 	public Set<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers() {
+		return ImmutableSet.copyOf(eaglerPlayers);
+	}
+
+	public Set<EaglerPlayerInstance<PlayerObject>> getAllEaglerPlayersInternal() {
 		return ImmutableSet.copyOf(eaglerPlayers);
 	}
 
@@ -703,8 +720,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public INotificationService<PlayerObject> getNotificationService() {
-		// TODO
-		return null;
+		return notificationService;
 	}
 
 	@Override

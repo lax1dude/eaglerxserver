@@ -25,7 +25,7 @@ public class ServerV3MessageHandler extends ServerMessageHandler {
 	}
 
 	public void handleClient(CPacketVoiceSignalConnectEAG packet) {
-		VoiceManager<?> mgr = eaglerHandle.getVoiceManagerInternal();
+		VoiceManager<?> mgr = eaglerHandle.getVoiceManagerOrNull();
 		if(mgr != null) {
 			mgr.handleVoiceSignalPacketTypeConnect();
 		}else {
@@ -34,7 +34,7 @@ public class ServerV3MessageHandler extends ServerMessageHandler {
 	}
 
 	public void handleClient(CPacketVoiceSignalDescEAG packet) {
-		VoiceManager<?> mgr = eaglerHandle.getVoiceManagerInternal();
+		VoiceManager<?> mgr = eaglerHandle.getVoiceManagerOrNull();
 		if(mgr != null) {
 			mgr.handleVoiceSignalPacketTypeDesc(new UUID(packet.uuidMost, packet.uuidLeast), packet.desc);
 		}else {
@@ -43,7 +43,7 @@ public class ServerV3MessageHandler extends ServerMessageHandler {
 	}
 
 	public void handleClient(CPacketVoiceSignalDisconnectV3EAG packet) {
-		VoiceManager<?> mgr = eaglerHandle.getVoiceManagerInternal();
+		VoiceManager<?> mgr = eaglerHandle.getVoiceManagerOrNull();
 		if(mgr != null) {
 			if(packet.isPeerType) {
 				mgr.handleVoiceSignalPacketTypeDisconnectPeer(new UUID(packet.uuidMost, packet.uuidLeast));
@@ -56,7 +56,7 @@ public class ServerV3MessageHandler extends ServerMessageHandler {
 	}
 
 	public void handleClient(CPacketVoiceSignalICEEAG packet) {
-		VoiceManager<?> mgr = eaglerHandle.getVoiceManagerInternal();
+		VoiceManager<?> mgr = eaglerHandle.getVoiceManagerOrNull();
 		if(mgr != null) {
 			mgr.handleVoiceSignalPacketTypeICE(new UUID(packet.uuidMost, packet.uuidLeast), packet.ice);
 		}else {
@@ -65,7 +65,7 @@ public class ServerV3MessageHandler extends ServerMessageHandler {
 	}
 
 	public void handleClient(CPacketVoiceSignalRequestEAG packet) {
-		VoiceManager<?> mgr = eaglerHandle.getVoiceManagerInternal();
+		VoiceManager<?> mgr = eaglerHandle.getVoiceManagerOrNull();
 		if(mgr != null) {
 			mgr.handleVoiceSignalPacketTypeRequest(new UUID(packet.uuidMost, packet.uuidLeast));
 		}else {

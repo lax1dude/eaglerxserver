@@ -8,11 +8,10 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformSubLogger;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
-import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationManager;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuManager;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewManager;
 import net.lax1dude.eaglercraft.backend.server.base.message.MessageController;
+import net.lax1dude.eaglercraft.backend.server.base.notifications.NotificationManagerPlayer;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinManagerEagler;
 import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceManager;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
@@ -28,6 +27,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	private final IPlatformSubLogger playerLogger;
 	MessageController messageController;
 	VoiceManager<PlayerObject> voiceManager;
+	NotificationManagerPlayer<PlayerObject> notifManager;
 
 	public EaglerPlayerInstance(IPlatformPlayer<PlayerObject> player,
 			EaglerXServer<PlayerObject> server) {
@@ -142,14 +142,15 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
-	public IVoiceManager<PlayerObject> getVoiceManager() {
+	public VoiceManager<PlayerObject> getVoiceManager() {
 		if(voiceManager == null) {
 			throw new IllegalStateException("Voice service is not enabled!");
 		}
 		return voiceManager;
 	}
 
-	public VoiceManager<PlayerObject> getVoiceManagerInternal() {
+	@Override
+	public VoiceManager<PlayerObject> getVoiceManagerOrNull() {
 		return voiceManager;
 	}
 
@@ -181,13 +182,20 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public boolean isNotificationSupported() {
-		return connectionInstance.getEaglerProtocol().ver >= 4;
+		return notifManager != null;
 	}
 
 	@Override
-	public INotificationManager<PlayerObject> getNotificationManager() {
-		// TODO
-		return null;
+	public NotificationManagerPlayer<PlayerObject> getNotificationManager() {
+		if(notifManager == null) {
+			throw new IllegalStateException("Notification service is not supported!");
+		}
+		return notifManager;
+	}
+
+	@Override
+	public NotificationManagerPlayer<PlayerObject> getNotificationManagerOrNull() {
+		return notifManager;
 	}
 
 	@Override
@@ -202,12 +210,24 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
+	public IPauseMenuManager<PlayerObject> getPauseMenuManagerOrNull() {
+		// TODO
+		return null;
+	}
+
+	@Override
 	public boolean isWebViewSupported() {
 		return connectionInstance.getEaglerProtocol().ver >= 4;
 	}
 
 	@Override
 	public IWebViewManager<PlayerObject> getWebViewManager() {
+		// TODO
+		return null;
+	}
+
+	@Override
+	public IWebViewManager<PlayerObject> getWebViewManagerOrNull() {
 		// TODO
 		return null;
 	}

@@ -30,6 +30,8 @@ public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject>, 
 
 	IVoiceManager<PlayerObject> getVoiceManager();
 
+	IVoiceManager<PlayerObject> getVoiceManagerOrNull();
+
 	default void setCookieData(byte[] data, long expiresAfter, TimeUnit timeUnit) {
 		setCookieData(data, timeUnit.toSeconds(expiresAfter), false, true);
 	}
@@ -56,13 +58,19 @@ public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject>, 
 
 	INotificationManager<PlayerObject> getNotificationManager();
 
+	INotificationManager<PlayerObject> getNotificationManagerOrNull();
+
 	boolean isPauseMenuSupported();
 
 	IPauseMenuManager<PlayerObject> getPauseMenuManager();
 
+	IPauseMenuManager<PlayerObject> getPauseMenuManagerOrNull();
+
 	boolean isWebViewSupported();
 
 	IWebViewManager<PlayerObject> getWebViewManager();
+
+	IWebViewManager<PlayerObject> getWebViewManagerOrNull();
 
 	boolean isUpdateSystemSupported();
 

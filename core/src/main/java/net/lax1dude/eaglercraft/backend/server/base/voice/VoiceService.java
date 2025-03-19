@@ -53,12 +53,12 @@ public class VoiceService<PlayerObject> implements IVoiceService<PlayerObject> {
 					}
 				}
 			}
-			this.globalChannel = new ManagedChannel(this);
+			this.globalChannel = new ManagedChannel<>(this);
 			ImmutableMap.Builder<String, IVoiceChannel> builder = ImmutableMap.builder();
 			if(config.isSeparateVoiceChannelsPerServer()) {
 				this.separateServer = true;
 				for(String str : toEnable) {
-					builder.put(str, new ManagedChannel(this));
+					builder.put(str, new ManagedChannel<>(this));
 				}
 			}else {
 				this.separateServer = false;
@@ -157,7 +157,7 @@ public class VoiceService<PlayerObject> implements IVoiceService<PlayerObject> {
 		if(channel == DisabledChannel.INSTANCE) {
 			throw new UnsupportedOperationException("Cannot list players connected to the disabled channel");
 		}
-		if(!(channel instanceof VoiceChannel) || ((VoiceChannel)channel).owner != this) {
+		if(!(channel instanceof VoiceChannel) || ((VoiceChannel<?>)channel).owner != this) {
 			throw new IllegalArgumentException("Unknown voice channel");
 		}
 		return ((VoiceChannel<PlayerObject>)channel).listConnectedPlayers();
