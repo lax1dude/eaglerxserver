@@ -214,6 +214,10 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 		}
 
 		void handleVoiceSignalPacketTypeDisconnect() {
+			if(connectedPlayers.remove(mgr.player.getUniqueId()) == null) {
+				return;
+			}
+			
 			//TODO
 		}
 
@@ -231,13 +235,6 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 			return this == o;
 		}
 
-	}
-
-	void handleVoiceSignalPacketTypeDisconnect(VoiceManager<PlayerObject> mgr) {
-		if(connectedPlayers.remove(mgr.player.getUniqueId()) == null) {
-			return;
-		}
-		
 	}
 
 	Collection<IEaglerPlayer<PlayerObject>> listConnectedPlayers() {
