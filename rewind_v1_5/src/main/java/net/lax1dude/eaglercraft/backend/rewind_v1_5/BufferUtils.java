@@ -103,7 +103,9 @@ public class BufferUtils {
 	public static void writeLegacyMCString(ByteBuf buffer, String value, int maxLen) {
 		int len = value.length();
 		if(len > maxLen) {
-			throw new IndexOutOfBoundsException();
+			value = value.substring(0, maxLen);
+			len = maxLen;
+			// throw new IndexOutOfBoundsException();
 		}
 		buffer.writeShort(len);
 		for(int i = 0; i < len; ++i) {
@@ -424,14 +426,17 @@ public class BufferUtils {
 	}
 
 	public static byte convertMapColor2Legacy(byte color) {
-		switch (color) {
+		int realColor = (color & 0xFF) >> 2;
+		switch (realColor) {
 			case 14:
-				return 8;
+				realColor = 8;
+				break;
 			case 15:
 			case 26:
 			case 34:
 			case 36:
-				return 10;
+				realColor = 10;
+				break;
 			case 16:
 			case 17:
 			case 23:
@@ -439,26 +444,30 @@ public class BufferUtils {
 			case 25:
 			case 31:
 			case 32:
-				return 5;
+				realColor = 5;
+				break;
 			case 18:
 			case 30:
-				return 2;
+				realColor = 2;
+				break;
 			case 19:
-				return 1;
+				realColor = 1;
+				break;
 			case 20:
 			case 28:
 			case 35:
-				return 4;
+				realColor = 4;
+				break;
 			case 21:
 			case 22:
 			case 29:
-				return 11;
+				realColor = 11;
+				break;
 			case 27:
 			case 33:
-				return 7;
-
+				realColor = 7;
 		}
-		return color;
+		return (byte) ((realColor << 2) + (color & 0b11));
 	}
 
 	public static int convertTypeMeta2Legacy(int typeMeta) {

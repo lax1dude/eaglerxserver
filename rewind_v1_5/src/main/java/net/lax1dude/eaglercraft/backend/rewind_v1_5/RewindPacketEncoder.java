@@ -146,7 +146,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeByte(in.readUnsignedByte());
 		bb.writeByte(in.readUnsignedByte());
 		bb.writeShort(256);
-		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 16), 16);
+		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
 	}
 
 	private void handlePlayerPositionAndLook(ByteBuf in, ByteBuf bb) {
@@ -536,7 +536,38 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private void handleSoundEffect(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x3E);
-		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+		String sound = BufferUtils.readMCString(in, 255);
+		switch (sound) {
+			case "game.player.hurt.fall.big":
+			case "game.neutral.hurt.fall.big":
+			case "game.hostile.hurt.fall.big":
+				sound = "damage.fallbig";
+				break;
+			case "game.player.hurt.fall.small":
+			case "game.neutral.hurt.fall.small":
+			case "game.hostile.hurt.fall.small":
+				sound = "damage.fallsmall";
+				break;
+			case "game.player.hurt":
+			case "game.player.die":
+			case "game.neutral.hurt":
+			case "game.neutral.die":
+			case "game.hostile.hurt":
+			case "game.hostile.die":
+				sound = "damage.hit";
+				break;
+			case "game.player.swim":
+			case "game.neutral.swim":
+			case "game.hostile.swim":
+				sound = "liquid.swim";
+				break;
+			case "game.player.swim.splash":
+			case "game.neutral.swim.splash":
+			case "game.hostile.swim.splash":
+				sound = "liquid.splash";
+				break;
+		}
+		BufferUtils.writeLegacyMCString(bb, sound, 255);
 		bb.writeInt(in.readInt());
 		bb.writeInt(in.readInt());
 		bb.writeInt(in.readInt());
@@ -615,7 +646,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		byte windowId = -1;
 		switch (windowType) {
 			case "minecraft:chest":
-			case "EntityHorse": // yeah...
+			case "minecraft:container":
 				windowId = 0;
 				break;
 			case "minecraft:crafting_table":
@@ -626,7 +657,6 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				windowId = 2;
 				break;
 			case "minecraft:dispenser":
-			case "minecraft:dropper":
 				windowId = 3;
 				break;
 			case "minecraft:enchanting_table":
@@ -648,6 +678,13 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			case "minecraft:hopper":
 				windowId = 9;
 				break;
+			case "minecraft:dropper":
+				windowId = 10;
+				break;
+			case "EntityHorse": {
+				windowId = 11;
+				break;
+			}
 		}
 		bb.writeByte(windowId);
 		String windowTitle = BufferUtils.readMCString(in, 4095);
@@ -700,6 +737,10 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			bb.writeShort(numSlots);
 		}
 		for (int ii = 0; ii < numSlots; ++ii) {
+			if (!in.isReadable()) {
+				bb.clear();
+				return;
+			}
 			if (ench && ii == 1) {
 				int here = bb.writerIndex();
 				BufferUtils.convertSlot2Legacy(in, bb);
@@ -758,7 +799,20 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		int mapId = BufferUtils.readVarInt(in);
 		in.skipBytes(1);
 		int iconNum = BufferUtils.readVarInt(in);
-		in.skipBytes(3 * iconNum);
+		if (iconNum > 0) {
+			ByteBuf bb = alloc.buffer();
+			try {
+				bb.writeByte(0x83);
+				bb.writeShort(358);
+				bb.writeShort(mapId);
+				bb.writeShort(3 * iconNum + 1);
+				bb.writeByte((byte) 1);
+				bb.writeBytes(in, 3 * iconNum);
+				out.add(bb.retain());
+			} finally {
+				bb.release();
+			}
+		}
 		short columns = in.readUnsignedByte();
 		if (columns == 0) {
 			return;
@@ -793,8 +847,8 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					bb.writeByte(0x83);
 					bb.writeShort(358);
 					bb.writeShort(mapId);
-					bb.writeShort(2 + theGuh);
-					bb.writeByte(0);
+					bb.writeShort(3 + theGuh);
+					bb.writeByte((byte) 0);
 					bb.writeByte(column);
 					bb.writeByte(rowStart);
 					bb.ensureWritable(theGuh);
@@ -964,7 +1018,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					bb = alloc.buffer();
 					try {
 						bb.writeByte(0xC9);
-						BufferUtils.writeLegacyMCString(bb, pliItem.name, 255);
+						BufferUtils.writeLegacyMCString(bb, pliItem.name, 16);
 						bb.writeBoolean(false);
 						bb.writeShort(pliItem.ping);
 						out.add(bb.retain());
@@ -976,7 +1030,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					bb = alloc.buffer();
 					try {
 						bb.writeByte(0xC9);
-						BufferUtils.writeLegacyMCString(bb, pliItem.name, 255);
+						BufferUtils.writeLegacyMCString(bb, pliItem.name, 16);
 						bb.writeBoolean(true);
 						bb.writeShort(pliItem.ping = BufferUtils.readVarInt(in));
 						out.add(bb.retain());
@@ -985,14 +1039,14 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					}
 				} else if (pliAction == 3) {
 					if (in.readBoolean()) {
-						pliItem.name = serverAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 255));
+						pliItem.name = serverAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767));
 					}
 				}
 				if (pliAction != 4) {
 					bb = alloc.buffer();
 					try {
 						bb.writeByte(0xC9);
-						BufferUtils.writeLegacyMCString(bb, pliItem.name, 255);
+						BufferUtils.writeLegacyMCString(bb, pliItem.name, 16);
 						bb.writeBoolean(true);
 						bb.writeShort(pliItem.ping);
 						out.add(bb.retain());
@@ -1061,7 +1115,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				bb = alloc.buffer();
 				try {
 					bb.writeByte(0xCF);
-					BufferUtils.writeLegacyMCString(bb, sbItem, 255);
+					BufferUtils.writeLegacyMCString(bb, sbItem, 16);
 					bb.writeByte(1);
 					out.add(bb.retain());
 				} finally {
@@ -1073,9 +1127,9 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 						bb = alloc.buffer();
 						try {
 							bb.writeByte(0xCF);
-							BufferUtils.writeLegacyMCString(bb, sbItem, 255);
+							BufferUtils.writeLegacyMCString(bb, sbItem, 16);
 							bb.writeByte(0);
-							BufferUtils.writeLegacyMCString(bb, s, 255);
+							BufferUtils.writeLegacyMCString(bb, s, 16);
 							bb.writeInt(argh.get(sbItem));
 							out.add(bb.retain());
 						} finally {
@@ -1089,9 +1143,9 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				bb = alloc.buffer();
 				try {
 					bb.writeByte(0xCF);
-					BufferUtils.writeLegacyMCString(bb, sbItem, 255);
+					BufferUtils.writeLegacyMCString(bb, sbItem, 16);
 					bb.writeByte(usAction);
-					BufferUtils.writeLegacyMCString(bb, sbName, 255);
+					BufferUtils.writeLegacyMCString(bb, sbName, 16);
 					bb.writeInt(sbVal);
 					out.add(bb.retain());
 				} finally {
@@ -1103,18 +1157,24 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private void handleDisplayScoreboard(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0xD0);
-		bb.writeByte(in.readByte());
-		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+		short b = in.readUnsignedByte();
+		if (b > 3) {
+			bb.clear();
+			return;
+		}
+		bb.writeByte(b);
+		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 16);
 	}
 
 	private void handleTeams(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0xD1);
-		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
-		byte teamMode = in.readByte();
+		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 16);
+		short teamMode = in.readUnsignedByte();
+		bb.writeByte(teamMode);
 		if (teamMode == 0 || teamMode == 2) {
-			BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
-			BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
-			BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+			BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 32);
+			BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 16);
+			BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 16);
 			bb.writeByte(in.readByte());
 			BufferUtils.readMCString(in, 255);
 			in.readByte(); // team color, does not exist in 1.5, maybe fake it by appending to display name, prefix, and suffix???
@@ -1123,7 +1183,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			int teamPlNum = BufferUtils.readVarInt(in);
 			bb.writeShort(teamPlNum);
 			for (int ii = 0; ii < teamPlNum; ++ii) {
-				BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 40), 40);
+				BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 16);
 			}
 		}
 	}
@@ -1398,7 +1458,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				bb.release();
 			}
 		}
-		// in.skipBytes(in.readableBytes());
+		in.skipBytes(in.readableBytes());
 		if (out.isEmpty()) {
 			out.add(Unpooled.EMPTY_BUFFER);
 		}

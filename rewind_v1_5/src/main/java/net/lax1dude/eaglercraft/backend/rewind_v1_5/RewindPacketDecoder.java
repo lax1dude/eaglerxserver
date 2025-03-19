@@ -191,7 +191,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 				bb.release();
 			}
 		}
-		// in.skipBytes(in.readableBytes());
+		in.skipBytes(in.readableBytes());
 		if (out.isEmpty()) {
 			out.add(Unpooled.EMPTY_BUFFER);
 		}
