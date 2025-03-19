@@ -9,6 +9,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 
@@ -261,54 +262,183 @@ public class BufferUtils {
 		return ((long) (x & 0x3FFFFFF) << 38) | ((long) (y & 0xFFF) << 26) | (z & 0x3FFFFFF);
 	}
 
-	public static void convertMetadata2Legacy(ByteBuf buffer, ByteBuf bb) {
-		// todo: AAA
-		bb.writeByte(127);
-		if (true) return;
+	public static String convertMetadata2Legacy(ByteBuf buffer, ByteBuf bb, int entityType, ByteBufAllocator alloc) {
+		String playerNameWowie = null;
+
+		if (entityType == -1) {
+			bb.writeByte(127);
+			return null;
+		}
 		boolean allDumb = true;
 		while (true) {
-			short item = buffer.readUnsignedByte();
-			if (item == 127) {
+			int item = buffer.readUnsignedByte();
+			if (item == 0x7F) {
 				bb.writeByte(item);
 				break;
 			}
-			int type = (item & 224) >> 5;
+			int index = item & 0x1F;
+			int type = item >> 5;
 			if (type == 7) {
 				buffer.readFloat();
 				buffer.readFloat();
 				buffer.readFloat();
 				continue;
 			}
-			allDumb = false;
-			bb.writeByte(item);
+			int ind = bb.writerIndex();
 			switch (type) {
 				case 0:
-					bb.writeByte(buffer.readByte());
+					remapMeta(entityType, index, type, bb, buffer.readByte());
 					break;
 				case 1:
-					bb.writeShort(buffer.readShort());
+					remapMeta(entityType, index, type, bb, buffer.readShort());
 					break;
 				case 2:
-					bb.writeInt(buffer.readInt());
+					remapMeta(entityType, index, type, bb, buffer.readInt());
 					break;
 				case 3:
-					bb.writeFloat(buffer.readFloat());
+					remapMeta(entityType, index, type, bb, buffer.readFloat());
 					break;
 				case 4:
-					BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(buffer, 32767), 32767);
+					PlayerNameHolder playerNameHolder = entityType == 300 ? new PlayerNameHolder() : null;
+					remapMeta(entityType, index, type, bb, BufferUtils.readMCString(buffer, 32767), playerNameHolder);
+					if (playerNameHolder != null) {
+						playerNameWowie = playerNameHolder.name;
+					}
 					break;
 				case 5:
-					BufferUtils.convertSlot2Legacy(buffer, bb);
+					ByteBuf tmp = alloc.buffer();
+					try {
+						BufferUtils.convertSlot2Legacy(buffer, tmp);
+						remapMeta(entityType, index, type, bb, tmp);
+					} finally {
+						tmp.release();
+					}
 					break;
 				case 6:
-					bb.writeInt(buffer.readInt());
-					bb.writeInt(buffer.readInt());
-					bb.writeInt(buffer.readInt());
+					remapMeta(entityType, index, type, bb, new int[] {
+							buffer.readInt(),
+							buffer.readInt(),
+							buffer.readInt()
+					});
 					break;
 			}
+			if (bb.writerIndex() != ind) {
+				allDumb = false;
+			}
 		}
-		if (allDumb) {
+		if (allDumb || bb.getByte(bb.writerIndex() - 1) != 127) {
 			bb.writeByte(127);
+		}
+
+		return playerNameWowie;
+	}
+
+	private static final class PlayerNameHolder {
+		public String name;
+	}
+
+	private static void remapMeta(int entityType, int index, int entryType, ByteBuf bb, Object entryValue) {
+		remapMeta(entityType, index, entryType, bb, entryValue, null);
+	}
+
+	private static void remapMeta(int entityType, int index, int entryType, ByteBuf bb, Object entryValue, PlayerNameHolder playerNameHolder) {
+		boolean mobNotObject = entityType >= 100 && entityType <= 300;
+		if (entityType >= 300) {
+			entityType -= 300;
+		} else if (entityType >= 100) {
+			entityType -= 100;
+		}
+		/**
+		 * If Object:
+		 * 91 = Painting
+		 * 92 = Experience orb
+		 * 93 = Lightning Bolt
+		 * If Mob:
+		 * 0 = Player
+		 * All else follows wiki.vg
+		 */
+		if (index == 2 && entryType == 4) {
+			index = 5;
+		} else if (index == 3 && entryType == 0) {
+			index = 6;
+		} else if (index == 7 && entryType == 2) {
+			index = 8;
+		} else if (index == 8 && entryType == 0) {
+			index = 9;
+		} else if (!mobNotObject && entityType != 71 && (index == 9 || index == 15) && entryType == 0) {
+			return;
+		} else if (index == 12 && entryType == 0) {
+			entryType = 2;
+			entryValue = (int) (byte) entryValue;
+		} else if (mobNotObject) {
+			if (entityType == 0 && (((index == 10 || index == 16) && entryType == 0) || (index == 17 && entryType == 3))) {
+				return;
+			} else if (entityType == 0 && index == 18 && entryType == 2) {
+				return;
+			} else if (entityType == 0 && index == 5 && entryType == 4 && playerNameHolder != null) {
+				playerNameHolder.name = (String) entryValue;
+			} else if (entityType == 54 && index == 14 && entryType == 0) {
+				return;
+			} else if (entityType == 58 && index == 16 && entryType == 1) {
+				entryType = 0;
+				entryValue = (byte) (short) entryValue;
+			} else if (entityType == 60 || entityType == 94) {
+				return;
+			} else if ((entityType == 63 || entityType == 64) && index == 6 && entryType == 3) {
+				index = 16;
+				entryType = 2;
+				entryValue = (int) (float) entryValue;
+			} else if (entityType == 66 && index == 21 && entryType == 0) {
+				return;
+			} else if (entityType == 95 && (index == 18 || index == 6) && entryType == 3) {
+				index = 18;
+				entryType = 2;
+				entryValue = (int) (float) entryValue;
+			}
+		} else {
+			if ((entityType == 1 || entityType == 10 || entityType == 11 || entityType == 12) && index == 19 && entryType == 3) {
+				entryType = 2;
+				entryValue = (int) (float) entryValue;
+			} else if (entityType == 51 && index == 8 && entryType == 2) {
+				return;
+			} else if (entityType == 60 && index == 16 && entryType == 0) {
+				entryValue = (byte) 0;
+			} else if (entityType == 71 && index == 8 && entryType == 5) {
+				index = 2;
+			} else if (entityType == 71 && index == 9 && entryType == 0) {
+				index = 3;
+				entryValue = (byte) (((byte) entryValue) / 2);
+			} else if (entityType == 77 || entityType == 78 || entityType == 90) {
+				return;
+			}
+		}
+
+		bb.writeByte((entryType << 5) | index);
+		switch (entryType) {
+			case 0:
+				bb.writeByte((byte) entryValue);
+				break;
+			case 1:
+				bb.writeShort((short) entryValue);
+				break;
+			case 2:
+				bb.writeInt((int) entryValue);
+				break;
+			case 3:
+				bb.writeFloat((float) entryValue);
+				break;
+			case 4:
+				BufferUtils.writeLegacyMCString(bb, (String) entryValue, 32767);
+				break;
+			case 5:
+				bb.writeBytes((ByteBuf) entryValue);
+				break;
+			case 6:
+				int[] fard = (int[]) entryValue;
+				bb.writeInt(fard[0]);
+				bb.writeInt(fard[1]);
+				bb.writeInt(fard[2]);
+				break;
 		}
 	}
 

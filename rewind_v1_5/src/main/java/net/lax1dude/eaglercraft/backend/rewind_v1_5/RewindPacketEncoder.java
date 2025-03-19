@@ -34,6 +34,17 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 	private final Set<Short> enchWindows = new HashSet<>();
 	private final Set<Short> furnWindows = new HashSet<>();
 
+	private final Map<Integer, Integer> entityIdToType = new HashMap<>();
+
+	/**
+	 * Objects = no offset
+	 * Mobs = + 100
+	 * 300 = Player
+	 * 391 = Painting
+	 * 392 = Experience Orb
+	 * 393 = Lightning Bolt
+	 */
+
 	private static final String[] particleNames = new String[] {
 			"explode",
 			"largeexplosion",
@@ -86,7 +97,9 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private void handleJoinGame(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x01);
-		bb.writeInt(in.readInt());
+		int eid = in.readInt();
+		bb.writeInt(eid);
+		entityIdToType.put(eid, 300);
 		short gamemode = in.readUnsignedByte();
 		byte dimension = in.readByte();
 		playerDimension = dimension;
@@ -163,8 +176,8 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		playerYaw = plyaw + ((flags & 0x10) != 0 ? playerYaw : 0);
 		playerPitch = plpitch + ((flags & 0x08) != 0 ? playerPitch : 0);
 		bb.writeDouble(playerX);
-		bb.writeDouble(playerY + 1.65);
-		bb.writeDouble(playerY + 1.65);
+		bb.writeDouble(playerY + 1.6200000047683716D);
+		bb.writeDouble(playerY + 1.6200000047683716D);
 		bb.writeDouble(playerZ);
 		bb.writeFloat(plyaw);
 		bb.writeFloat(plpitch);
@@ -204,17 +217,29 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		return null;
 	}
 
-	private void handleSpawnPlayer(ByteBuf in, ByteBuf bb) {
+	private void handleSpawnPlayer(ByteBuf in, ByteBuf bb, ByteBufAllocator alloc) {
 		bb.writeByte(0x14);
-		bb.writeInt(BufferUtils.readVarInt(in));
-		BufferUtils.writeLegacyMCString(bb, BufferUtils.getUsernameOrElse(serverAPI(), new UUID(in.readLong(), in.readLong())), 255);
-		bb.writeInt(in.readInt());
-		bb.writeInt(in.readInt());
-		bb.writeInt(in.readInt());
-		bb.writeByte(in.readByte());
-		bb.writeByte(in.readByte());
-		bb.writeShort(in.readShort());
-		BufferUtils.convertMetadata2Legacy(in, bb);
+		int eid = BufferUtils.readVarInt(in);
+		bb.writeInt(eid);
+		entityIdToType.put(eid, 300);
+		UUID uuid = new UUID(in.readLong(), in.readLong());
+		ByteBuf tmp = alloc.buffer();
+		try {
+			tmp.writeInt(in.readInt());
+			tmp.writeInt(in.readInt());
+			tmp.writeInt(in.readInt());
+			tmp.writeByte(in.readByte());
+			tmp.writeByte(in.readByte());
+			tmp.writeShort(in.readShort());
+			String playerName = BufferUtils.convertMetadata2Legacy(in, tmp, 300, alloc);
+			if (playerName == null) {
+				playerName = BufferUtils.getUsernameOrElse(serverAPI(), uuid);
+			}
+			BufferUtils.writeLegacyMCString(bb, playerName, 255);
+			bb.writeBytes(tmp);
+		} finally {
+			tmp.release();
+		}
 	}
 
 	private void handleCollectItem(ByteBuf in, ByteBuf bb) {
@@ -225,15 +250,48 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private void handleSpawnObject(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x17);
-		bb.writeInt(BufferUtils.readVarInt(in));
+		int eid = BufferUtils.readVarInt(in);
+		bb.writeInt(eid);
 		int otype = in.readByte();
 		bb.writeByte(otype);
-		bb.writeInt(in.readInt());
-		bb.writeInt(in.readInt());
-		bb.writeInt(in.readInt());
-		bb.writeByte(in.readByte());
-		bb.writeByte(in.readByte());
+		entityIdToType.put(eid, otype);
+		int x = in.readInt();
+		int y = in.readInt();
+		int z = in.readInt();
+		int pitch = in.readByte();
+		int yaw = in.readByte();
 		int odata = in.readInt();
+		if (otype == 71) {
+			switch (odata) {
+				case 0:
+					z -= 32;
+					yaw = 128;
+					break;
+				case 1:
+					x += 32;
+					yaw = 64;
+					break;
+				case 2:
+					z += 32;
+					yaw = 0;
+					break;
+				case 3:
+					x -= 32;
+					yaw = 192;
+					break;
+			}
+		} else if (otype == 70) {
+			int id = BufferUtils.convertType2Legacy(odata & 4095);
+			int data = (odata >> 12) & 0xF;
+			odata = (id | (data << 16));
+		} else if (otype == 50 || otype == 70 || otype == 74) {
+			y += 16;
+		}
+		bb.writeInt(x);
+		bb.writeInt(y);
+		bb.writeInt(z);
+		bb.writeByte(pitch);
+		bb.writeByte(yaw);
 		bb.writeInt(odata);
 		if (odata > 0) {
 			bb.writeShort(in.readShort());
@@ -242,10 +300,20 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		}
 	}
 
-	private void handleSpawnMob(ByteBuf in, ByteBuf bb) {
+	private void handleSpawnMob(ByteBuf in, ByteBuf bb, ByteBufAllocator alloc) {
 		bb.writeByte(0x18);
-		bb.writeInt(BufferUtils.readVarInt(in));
-		bb.writeByte(in.readUnsignedByte());
+		int eid = BufferUtils.readVarInt(in);
+		bb.writeInt(eid);
+		short mtype = in.readUnsignedByte();
+		if (mtype == 67 || mtype == 101) {
+			mtype = 60;
+		} else if (mtype == 100) {
+			mtype = 90;
+		} else if (mtype == 68) {
+			mtype = 94;
+		}
+		bb.writeByte(mtype);
+		entityIdToType.put(eid, (int) mtype + 100);
 		bb.writeInt(in.readInt());
 		bb.writeInt(in.readInt());
 		bb.writeInt(in.readInt());
@@ -258,23 +326,44 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeShort(in.readShort());
 		bb.writeShort(in.readShort());
 		bb.writeShort(in.readShort());
-		BufferUtils.convertMetadata2Legacy(in, bb);
+		BufferUtils.convertMetadata2Legacy(in, bb, mtype + 100, alloc);
 	}
 
 	private void handleSpawnPainting(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x19);
-		bb.writeInt(BufferUtils.readVarInt(in));
-		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 13), 13);
+		int eid = BufferUtils.readVarInt(in);
+		bb.writeInt(eid);
+		entityIdToType.put(eid, 391);
+		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
 		long paintxyz = in.readLong();
-		bb.writeInt(BufferUtils.posX(paintxyz));
+		int x = BufferUtils.posX(paintxyz);
+		int z = BufferUtils.posZ(paintxyz);
+		short dir = in.readUnsignedByte();
+		switch (dir) {
+			case 0:
+				--z;
+				break;
+			case 1:
+				++x;
+				break;
+			case 2:
+				++z;
+				break;
+			case 3:
+				--x;
+				break;
+		}
+		bb.writeInt(x);
 		bb.writeInt(BufferUtils.posY(paintxyz));
-		bb.writeInt(BufferUtils.posZ(paintxyz));
-		bb.writeInt(in.readUnsignedByte());
+		bb.writeInt(z);
+		bb.writeInt(dir);
 	}
 
 	private void handleSpawnExperienceOrb(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x1A);
-		bb.writeInt(BufferUtils.readVarInt(in));
+		int eid = BufferUtils.readVarInt(in);
+		bb.writeInt(eid);
+		entityIdToType.put(eid, 392);
 		bb.writeInt(in.readInt());
 		bb.writeInt(in.readInt());
 		bb.writeInt(in.readInt());
@@ -294,7 +383,9 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		int c = BufferUtils.readVarInt(in);
 		bb.writeByte(c);
 		for (int i = 0; i < c; ++i) {
-			bb.writeInt(BufferUtils.readVarInt(in));
+			int eid = BufferUtils.readVarInt(in);
+			entityIdToType.remove(eid);
+			bb.writeInt(eid);
 		}
 	}
 
@@ -330,10 +421,18 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private void handleEntityTeleport(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x22);
-		bb.writeInt(BufferUtils.readVarInt(in));
-		bb.writeInt(in.readInt());
-		bb.writeInt(in.readInt());
-		bb.writeInt(in.readInt());
+		int eid = BufferUtils.readVarInt(in);
+		bb.writeInt(eid);
+		int x = in.readInt();
+		int y = in.readInt();
+		int z = in.readInt();
+		int xd = entityIdToType.getOrDefault(eid, -1);
+		if (xd != -1 && (xd == 50 || xd == 70 || xd == 74)) {
+			y += 16;
+		}
+		bb.writeInt(x);
+		bb.writeInt(y);
+		bb.writeInt(z);
 		bb.writeByte(in.readByte());
 		bb.writeByte(in.readByte());
 	}
@@ -369,10 +468,11 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeInt(in.readInt());
 	}
 
-	private void handleEntityMetadata(ByteBuf in, ByteBuf bb) {
+	private void handleEntityMetadata(ByteBuf in, ByteBuf bb, ByteBufAllocator alloc) {
 		bb.writeByte(0x28);
-		bb.writeInt(BufferUtils.readVarInt(in));
-		BufferUtils.convertMetadata2Legacy(in, bb);
+		int eid = BufferUtils.readVarInt(in);
+		bb.writeInt(eid);
+		BufferUtils.convertMetadata2Legacy(in, bb, entityIdToType.getOrDefault(eid, -1), alloc);
 	}
 
 	private void handleEntityEffect(ByteBuf in, ByteBuf bb) {
@@ -631,7 +731,9 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private void handleSpawnGlobalEntity(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x47);
-		bb.writeInt(BufferUtils.readVarInt(in));
+		int eid = BufferUtils.readVarInt(in);
+		bb.writeInt(eid);
+		entityIdToType.put(eid, 393);
 		bb.writeByte(in.readByte());
 		bb.writeInt(in.readInt());
 		bb.writeInt(in.readInt());
@@ -1291,7 +1393,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					break;
 				case 0x0C:
 					bb = ctx.alloc().buffer();
-					handleSpawnPlayer(in, bb);
+					handleSpawnPlayer(in, bb, ctx.alloc());
 					break;
 				case 0x0D:
 					bb = ctx.alloc().buffer();
@@ -1303,7 +1405,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					break;
 				case 0x0F:
 					bb = ctx.alloc().buffer();
-					handleSpawnMob(in, bb);
+					handleSpawnMob(in, bb, ctx.alloc());
 					break;
 				case 0x10:
 					bb = ctx.alloc().buffer();
@@ -1354,7 +1456,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					break;
 				case 0x1C:
 					bb = ctx.alloc().buffer();
-					handleEntityMetadata(in, bb);
+					handleEntityMetadata(in, bb, ctx.alloc());
 					break;
 				case 0x1D:
 					bb = ctx.alloc().buffer();

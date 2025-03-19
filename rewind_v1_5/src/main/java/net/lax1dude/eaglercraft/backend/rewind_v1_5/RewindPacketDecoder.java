@@ -10,6 +10,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 
 	// TODO: look into 0x0C Steer Vehicle
 	// TODO: rewrite to use individual named methods for each packet
+	// TODO: on sneak, if riding, dismount
 
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
@@ -32,7 +33,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					BufferUtils.writeVarInt(bb, 0x02);
 					in.readInt();
 					BufferUtils.writeVarInt(bb, in.readInt());
-					bb.writeByte(in.readBoolean() ? 1 : 0);
+					BufferUtils.writeVarInt(bb, in.readBoolean() ? 1 : 0);
 					break;
 				case 0x0A:
 					bb = ctx.alloc().buffer();
