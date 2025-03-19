@@ -820,7 +820,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		short rows = in.readUnsignedByte();
 		short xstart = in.readUnsignedByte();
 		short zstart = in.readUnsignedByte();
-		int dataLen = BufferUtils.readVarInt(in);
+		/*int dataLen = */BufferUtils.readVarInt(in);
 
 		int absInd = in.readerIndex();
 		ByteBuf colors = alloc.buffer(16384);
@@ -1188,12 +1188,47 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		}
 	}
 
-	private void handlePluginMessage(ByteBuf in, ByteBuf bb) {
-		bb.writeByte(0xFA);
-		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
-		int pmLen = in.readableBytes();
-		bb.writeShort(pmLen);
-		bb.writeBytes(in, pmLen);
+	private ByteBuf handlePluginMessage(ByteBuf in, ByteBufAllocator alloc) {
+		String name = BufferUtils.readMCString(in, 255);
+		switch (name) {
+			case "MC|TPack":
+				return null;
+			case "MC|TrList":
+				int ri = in.readerIndex();
+				in.skipBytes(4);
+				short count = in.readUnsignedByte();
+				ByteBuf tmp = alloc.buffer();
+				try {
+					for (int i = 0; i < count; ++i) {
+						BufferUtils.convertSlot2Legacy(in, tmp);
+						BufferUtils.convertSlot2Legacy(in, tmp);
+						boolean guh = in.readBoolean();
+						tmp.writeBoolean(guh);
+						if (guh) {
+							BufferUtils.convertSlot2Legacy(in, tmp);
+						}
+						tmp.writeBoolean(in.readBoolean());
+						in.skipBytes(8);
+					}
+					in.readerIndex(ri);
+					in.writerIndex(ri + 5);
+					in.writeBytes(tmp);
+				} finally {
+					tmp.release();
+				}
+				break;
+		}
+		ByteBuf bb = alloc.buffer();
+		try {
+			bb.writeByte(0xFA);
+			BufferUtils.writeLegacyMCString(bb, name, 255);
+			int pmLen = in.readableBytes();
+			bb.writeShort(pmLen);
+			bb.writeBytes(in, pmLen);
+			return bb.retain();
+		} finally {
+			bb.release();
+		}
 	}
 
 	private void handleDisconnect(ByteBuf in, ByteBuf bb) {
@@ -1441,8 +1476,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					handleTeams(in, bb);
 					break;
 				case 0x3F:
-					bb = ctx.alloc().buffer();
-					handlePluginMessage(in, bb);
+					bb = handlePluginMessage(in, ctx.alloc());
 					break;
 				case 0x40:
 					bb = ctx.alloc().buffer();

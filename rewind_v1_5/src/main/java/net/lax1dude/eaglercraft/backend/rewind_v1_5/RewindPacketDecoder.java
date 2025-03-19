@@ -171,10 +171,19 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					BufferUtils.writeVarInt(bb, 0);
 					break;
 				case 0xFA:
+					String name = BufferUtils.readLegacyMCString(in, 255);
+					short pmLen = in.readShort();
+					if (name.equals("MC|AdvCdm")) {
+						int ri = in.readerIndex();
+						in.skipBytes(12);
+						String s1 = BufferUtils.readLegacyMCString(in, 32767);
+						in.readerIndex(ri);
+						in.writerIndex(ri + 12);
+						BufferUtils.writeMCString(in, s1, 32767);
+					}
 					bb = ctx.alloc().buffer();
 					BufferUtils.writeVarInt(bb, 0x17);
-					BufferUtils.writeMCString(bb, BufferUtils.readLegacyMCString(in, 255), 255);
-					short pmLen = in.readShort();
+					BufferUtils.writeMCString(bb, name, 255);
 					bb.writeBytes(in, pmLen);
 					break;
 				case 0xFE:
