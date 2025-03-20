@@ -148,6 +148,8 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	IComponentHelper getComponentHelper();
 
+	INBTTransformer getNBTTransformer();
+
 	IBinaryHTTPClient getBinaryHTTPClient();
 
 	INativeZlib createNativeZlib(boolean compression, boolean decompression, int compressionLevel);

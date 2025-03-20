@@ -48,6 +48,7 @@ import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.INBTTransformer;
 import net.lax1dude.eaglercraft.backend.server.api.INativeZlib;
 import net.lax1dude.eaglercraft.backend.server.api.IPacketImageLoader;
 import net.lax1dude.eaglercraft.backend.server.api.IScheduler;
@@ -790,6 +791,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	public IComponentHelper getComponentHelper() {
 		return componentHelper;
+	}
+
+	@Override
+	public INBTTransformer getNBTTransformer() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
