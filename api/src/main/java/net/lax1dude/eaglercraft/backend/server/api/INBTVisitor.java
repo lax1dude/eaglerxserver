@@ -44,6 +44,8 @@ public interface INBTVisitor {
 
 	}
 
+	public static final INBTVisitor NOP = new NOPVisitorImpl();
+
 	INBTVisitor parent();
 
 	default INBTVisitor visitRootTag(EnumTag tagType) throws IOException {
@@ -100,6 +102,48 @@ public interface INBTVisitor {
 
 	default void visitTagEnd() throws IOException {
 		parent().visitTagEnd();
+	}
+
+	static class NOPVisitorImpl implements INBTVisitor {
+		private NOPVisitorImpl() {}
+		@Override
+		public INBTVisitor parent() {
+			throw new IllegalStateException();
+		}
+		@Override
+		public INBTVisitor visitRootTag(EnumTag tagType) throws IOException {
+			return this;
+		}
+		@Override
+		public INBTVisitor visitTag(EnumTag tagType, INBTValue<String> tagName) throws IOException {
+			return this;
+		}
+		@Override
+		public INBTVisitor visitTagList(EnumTag itemType, int length) throws IOException {
+			return this;
+		}
+		@Override
+		public void visitTagByte(byte value) throws IOException { }
+		@Override
+		public void visitTagShort(short value) throws IOException { }
+		@Override
+		public void visitTagInt(int value) throws IOException { }
+		@Override
+		public void visitTagLong(long value) throws IOException { }
+		@Override
+		public void visitTagFloat(float value) throws IOException { }
+		@Override
+		public void visitTagDouble(double value) throws IOException { }
+		@Override
+		public void visitTagString(INBTValue<String> str) throws IOException { }
+		@Override
+		public void visitTagByteArray(INBTValue<byte[]> value) throws IOException { }
+		@Override
+		public void visitTagIntArray(INBTValue<int[]> value) throws IOException { }
+		@Override
+		public void visitTagLongArray(INBTValue<long[]> value) throws IOException { }
+		@Override
+		public void visitTagEnd() throws IOException { }
 	}
 
 }
