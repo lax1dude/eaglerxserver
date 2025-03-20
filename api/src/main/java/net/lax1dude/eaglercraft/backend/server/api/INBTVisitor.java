@@ -44,7 +44,7 @@ public interface INBTVisitor {
 
 	}
 
-	public static final INBTVisitor NOP = new NOPVisitorImpl();
+	public static final INBTVisitor NOP = new NOPVisitor();
 
 	INBTVisitor parent();
 
@@ -104,8 +104,8 @@ public interface INBTVisitor {
 		parent().visitTagEnd();
 	}
 
-	static class NOPVisitorImpl implements INBTVisitor {
-		private NOPVisitorImpl() {}
+	static final class NOPVisitor implements INBTVisitor {
+		private NOPVisitor() {}
 		@Override
 		public INBTVisitor parent() {
 			throw new IllegalStateException();
