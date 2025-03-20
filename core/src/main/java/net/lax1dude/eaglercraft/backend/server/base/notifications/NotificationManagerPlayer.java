@@ -107,6 +107,11 @@ public class NotificationManagerPlayer<PlayerObject> extends NotificationManager
 
 	@Override
 	protected void releaseIcon(UUID uuid) {
+		synchronized(this) {
+			if(!knownIcons.remove(uuid)) {
+				return;
+			}
+		}
 		player.sendEaglerMessage(new SPacketNotifIconsReleaseV4EAG(
 				Collections.singleton(new SPacketNotifIconsReleaseV4EAG.DestroyIcon(uuid.getMostSignificantBits(),
 						uuid.getLeastSignificantBits()))));
@@ -143,7 +148,11 @@ public class NotificationManagerPlayer<PlayerObject> extends NotificationManager
 				UUID n = itr.next();
 				if(uuids.contains(n)) {
 					tmp.add(n);
+					itr.remove();
 				}
+			}
+			if(knownIcons.size() == 0) {
+				knownIcons = null;
 			}
 		}
 		int l = tmp.size();

@@ -1,7 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.api.notifications;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
@@ -33,13 +32,11 @@ public interface INotificationService<PlayerObject> extends IPacketImageLoader {
 
 	void registerNotificationIcon(UUID iconUUID, PacketImageData icon);
 
-	void registerNotificationIcons(Map<UUID, PacketImageData> icons);
-
 	void registerNotificationIcons(Collection<IconDef> icons);
 
-	void releaseNotificationIcon(UUID iconUUID);
+	void unregisterNotificationIcon(UUID iconUUID);
 
-	void releaseNotificationIcons(Collection<UUID> iconUUIDs);
+	void unregisterNotificationIcons(Collection<UUID> iconUUIDs);
 
 	void showNotificationBadge(INotificationBuilder<?> builder);
 

@@ -97,32 +97,44 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 
 	@Override
 	public void registerNotificationIcon(UUID iconUUID, PacketImageData icon) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void registerNotificationIcons(Map<UUID, PacketImageData> icons) {
-		// TODO Auto-generated method stub
-		
+		registeredIconLock.writeLock().lock();
+		try {
+			registeredIcons.put(iconUUID, icon);
+		}finally {
+			registeredIconLock.writeLock().unlock();
+		}
 	}
 
 	@Override
 	public void registerNotificationIcons(Collection<IconDef> icons) {
-		// TODO Auto-generated method stub
-		
+		registeredIconLock.writeLock().lock();
+		try {
+			for(IconDef def : icons) {
+				registeredIcons.put(def.getUUID(), def.getIcon());
+			}
+		}finally {
+			registeredIconLock.writeLock().unlock();
+		}
 	}
 
 	@Override
-	public void releaseNotificationIcon(UUID iconUUID) {
-		// TODO Auto-generated method stub
-		
+	public void unregisterNotificationIcon(UUID iconUUID) {
+		registeredIconLock.writeLock().lock();
+		try {
+			registeredIcons.remove(iconUUID);
+		}finally {
+			registeredIconLock.writeLock().unlock();
+		}
 	}
 
 	@Override
-	public void releaseNotificationIcons(Collection<UUID> iconUUIDs) {
-		// TODO Auto-generated method stub
-		
+	public void unregisterNotificationIcons(Collection<UUID> iconUUIDs) {
+		registeredIconLock.writeLock().lock();
+		try {
+			registeredIcons.keySet().removeAll(iconUUIDs);
+		}finally {
+			registeredIconLock.writeLock().unlock();
+		}
 	}
 
 	final Collection<SPacketNotifIconsRegisterV4EAG.CreateIcon> getRegisteredIcon(UUID iconUUID) {

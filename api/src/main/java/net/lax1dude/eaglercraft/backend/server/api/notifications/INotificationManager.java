@@ -1,7 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.api.notifications;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
@@ -21,8 +20,6 @@ public interface INotificationManager<PlayerObject> {
 	void registerNotificationIcons(Collection<UUID> iconUUIDs);
 
 	void registerUnmanagedNotificationIcon(UUID iconUUID, PacketImageData icon);
-
-	void registerUnmanagedNotificationIcons(Map<UUID, PacketImageData> icons);
 
 	void registerUnmanagedNotificationIcons(Collection<IconDef> icons);
 

@@ -1,7 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.base.notifications;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationBuilder;
@@ -30,10 +29,6 @@ public class NotificationManagerLegacy<PlayerObject> extends NotificationManager
 
 	@Override
 	public void registerUnmanagedNotificationIcon(UUID iconUUID, PacketImageData icon) {
-	}
-
-	@Override
-	public void registerUnmanagedNotificationIcons(Map<UUID, PacketImageData> icons) {
 	}
 
 	@Override

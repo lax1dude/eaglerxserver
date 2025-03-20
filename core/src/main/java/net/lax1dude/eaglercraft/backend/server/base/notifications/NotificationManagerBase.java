@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationBuilder;
@@ -68,25 +67,6 @@ public abstract class NotificationManagerBase<PlayerObject> implements INotifica
 		sendPacket(new SPacketNotifIconsRegisterV4EAG(
 				Collections.singleton(new SPacketNotifIconsRegisterV4EAG.CreateIcon(iconUUID.getMostSignificantBits(),
 						iconUUID.getLeastSignificantBits(), icon))));
-	}
-
-	@Override
-	public void registerUnmanagedNotificationIcons(Map<UUID, PacketImageData> icons) {
-		int l = icons.size();
-		SPacketNotifIconsRegisterV4EAG.CreateIcon[] arr = new SPacketNotifIconsRegisterV4EAG.CreateIcon[l];
-		int i = 0;
-		for(Map.Entry<UUID, PacketImageData> etr : icons.entrySet()) {
-			if(i >= l) {
-				break;
-			}
-			UUID iconUUID = etr.getKey();
-			arr[i] = new SPacketNotifIconsRegisterV4EAG.CreateIcon(iconUUID.getMostSignificantBits(),
-					iconUUID.getLeastSignificantBits(), etr.getValue());
-		}
-		if(i != l) {
-			throw new IllegalStateException();
-		}
-		registerUnmanagedNotificationIconsRaw(Arrays.asList(arr));
 	}
 
 	@Override
