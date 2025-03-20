@@ -28,12 +28,13 @@ public class NBTVisitorReader {
 			}
 			EnumTag typeEnum = parseTag(type);
 			ValueString keyName = new ValueString(dataInput);
+			INBTVisitor visitor2;
 			try {
-				visitor.visitTag(typeEnum, keyName);
+				visitor2 = visitor.visitTag(typeEnum, keyName);
 			}finally {
 				keyName.finish();
 			}
-			readValue(dataInput, lvl, type, visitor);
+			readValue(dataInput, lvl, type, visitor2);
 		}
 		visitor.visitTagEnd();
 	}
@@ -61,12 +62,24 @@ public class NBTVisitorReader {
 		case 6:
 			visitor.visitTagDouble(dataInput.readDouble());
 			break;
-		case 7:
-			visitor.visitTagByteArray(new ValueByteArray(dataInput));
+		case 7: {
+			ValueByteArray val = new ValueByteArray(dataInput);
+			try {
+				visitor.visitTagByteArray(val);
+			}finally {
+				val.finish();
+			}
 			break;
-		case 8:
-			visitor.visitTagString(new ValueString(dataInput));
+		}
+		case 8: {
+			ValueString val = new ValueString(dataInput);
+			try {
+				visitor.visitTagString(val);
+			}finally {
+				val.finish();
+			}
 			break;
+		}
 		case 9: {
 			int listTypeId = dataInput.readUnsignedByte();
 			int len = dataInput.readInt();
@@ -89,14 +102,26 @@ public class NBTVisitorReader {
 		case 10:
 			readCompound(dataInput, lvl + 1, visitor);
 			break;
-		case 11:
-			visitor.visitTagIntArray(new ValueIntArray(dataInput));
+		case 11: {
+			ValueIntArray val = new ValueIntArray(dataInput);
+			try {
+				visitor.visitTagIntArray(val);
+			}finally {
+				val.finish();
+			}
 			break;
-		case 12:
-			visitor.visitTagLongArray(new ValueLongArray(dataInput));
+		}
+		case 12: {
+			ValueLongArray val = new ValueLongArray(dataInput);
+			try {
+				visitor.visitTagLongArray(val);
+			}finally {
+				val.finish();
+			}
 			break;
+		}
 		default:
-			throw new IllegalStateException();
+			throw new IOException("Unknown tag type: " + type);
 		}
 	}
 

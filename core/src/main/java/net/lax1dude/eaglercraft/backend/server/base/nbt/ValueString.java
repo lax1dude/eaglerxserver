@@ -44,7 +44,7 @@ class ValueString implements INBTValue<String> {
 				int j = Math.min(tmp.length, len);
 				dataSource.readFully(tmp, 0, j);
 				dataOutput.write(tmp, 0, j);
-				len -=j;
+				len -= j;
 			}
 		}
 	}
