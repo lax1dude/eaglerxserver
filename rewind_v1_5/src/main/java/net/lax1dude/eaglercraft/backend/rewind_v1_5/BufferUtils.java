@@ -163,7 +163,7 @@ public class BufferUtils {
 	}
 
 	public static void convertNBT2Legacy(ByteBuf buffer, ByteBuf bb) {
-		if (buffer.readByte() == 0) {
+		if (buffer.readUnsignedByte() == 0) {
 			bb.writeShort(-1);
 			return;
 		}
@@ -269,9 +269,8 @@ public class BufferUtils {
 			bb.writeByte(0x7F);
 			return null;
 		}
-		boolean allDumb = true;
 		while (true) {
-			int item = buffer.isReadable() ? buffer.readUnsignedByte() : 0x7F;
+			int item = buffer.readUnsignedByte();
 			if (item == 0x7F) {
 				bb.writeByte(item);
 				break;
@@ -322,11 +321,8 @@ public class BufferUtils {
 					});
 					break;
 			}
-			if (bb.writerIndex() != ind) {
-				allDumb = false;
-			}
 		}
-		if (allDumb || bb.getByte(bb.writerIndex() - 1) != 0x7F) {
+		if (bb.getByte(bb.writerIndex() - 1) != 0x7F) {
 			bb.writeByte(0x7F);
 		}
 
@@ -367,11 +363,13 @@ public class BufferUtils {
 			index = 9;
 		} else if (!mobNotObject && entityType != 71 && (index == 9 || index == 15) && entryType == 0) {
 			return;
-		} else if (index == 12 && entryType == 0) {
+		} else if (entityType != 54 && index == 12 && entryType == 0) {
 			entryType = 2;
 			entryValue = (int) (byte) entryValue;
 		} else if (mobNotObject) {
-			if (entityType == 0 && (((index == 10 || index == 16) && entryType == 0) || (index == 17 && entryType == 3))) {
+			if (entityType == 0 && index == 9 && entryType == 0) {
+				index = 10;
+			} else if (entityType == 0 && (((index == 10 || index == 16) && entryType == 0) || (index == 17 && entryType == 3))) {
 				return;
 			} else if (entityType == 0 && index == 18 && entryType == 2) {
 				return;
@@ -394,6 +392,9 @@ public class BufferUtils {
 				index = 18;
 				entryType = 2;
 				entryValue = (int) (float) entryValue;
+			} else if (index == 16 && entryType == 2) {
+				entryType = 0;
+				entryValue = (byte) (int) entryValue;
 			}
 		} else {
 			if ((entityType == 1 || entityType == 10 || entityType == 11 || entityType == 12) && index == 19 && entryType == 3) {
@@ -428,7 +429,7 @@ public class BufferUtils {
 				bb.writeFloat((float) entryValue);
 				break;
 			case 4:
-				BufferUtils.writeLegacyMCString(bb, (String) entryValue, 32767);
+				BufferUtils.writeLegacyMCString(bb, (String) entryValue, 64);
 				break;
 			case 5:
 				bb.writeBytes((ByteBuf) entryValue);
