@@ -43,6 +43,7 @@ class ValueByteArray implements INBTValue<byte[]> {
 			dataOutput.writeInt(resolved.length);
 			dataOutput.write(resolved);
 		}else {
+			done = true;
 			int len = dataSource.readInt();
 			if(len < 0) {
 				throw new IOException("Invalid length!");
@@ -74,14 +75,16 @@ class ValueByteArray implements INBTValue<byte[]> {
 	}
 
 	void finish() throws IOException {
-		if(resolved == null) {
-			int len = dataSource.readInt();
-			if(len < 0) {
-				throw new IOException("Invalid length!");
+		if(!done) {
+			done = true;
+			if(resolved == null) {
+				int len = dataSource.readInt();
+				if(len < 0) {
+					throw new IOException("Invalid length!");
+				}
+				dataSource.skipBytes(len);
 			}
-			dataSource.skipBytes(len);
 		}
-		done = true;
 	}
 
 }

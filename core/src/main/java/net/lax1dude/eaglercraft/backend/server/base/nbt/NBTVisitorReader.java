@@ -20,9 +20,8 @@ public class NBTVisitorReader {
 	}
 
 	private static void readCompound(DataInput dataInput, int lvl, INBTVisitor visitor) throws IOException {
-		int type;
 		for(;;) {
-			type = dataInput.readUnsignedByte();
+			int type = dataInput.readUnsignedByte();
 			if(type == 0) {
 				break;
 			}

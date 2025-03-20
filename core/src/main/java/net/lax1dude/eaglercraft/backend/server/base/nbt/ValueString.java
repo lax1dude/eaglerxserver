@@ -38,6 +38,7 @@ class ValueString implements INBTValue<String> {
 		if(resolved != null) {
 			dataOutput.writeUTF(resolved);
 		}else {
+			done = true;
 			int len = dataSource.readUnsignedShort();
 			dataOutput.writeShort(len);
 			while(len > 0) {
@@ -61,10 +62,12 @@ class ValueString implements INBTValue<String> {
 	}
 
 	void finish() throws IOException {
-		if(resolved == null) {
-			dataSource.skipBytes(dataSource.readUnsignedShort());
+		if(!done) {
+			done = true;
+			if(resolved == null) {
+				dataSource.skipBytes(dataSource.readUnsignedShort());
+			}
 		}
-		done = true;
 	}
 
 }

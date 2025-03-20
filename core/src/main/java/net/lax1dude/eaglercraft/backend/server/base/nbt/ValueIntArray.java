@@ -44,6 +44,7 @@ class ValueIntArray implements INBTValue<int[]> {
 			dataOutput.writeInt(l);
 			writeInts(dataOutput, resolved, l);
 		}else {
+			done = true;
 			int len = dataSource.readInt();
 			if(len < 0 || len > (Integer.MAX_VALUE >> 2)) {
 				throw new IOException("Invalid length!");
@@ -76,14 +77,16 @@ class ValueIntArray implements INBTValue<int[]> {
 	}
 
 	void finish() throws IOException {
-		if(resolved == null) {
-			int len = dataSource.readInt();
-			if(len < 0 || len > (Integer.MAX_VALUE >> 2)) {
-				throw new IOException("Invalid length!");
+		if(!done) {
+			done = true;
+			if(resolved == null) {
+				int len = dataSource.readInt();
+				if(len < 0 || len > (Integer.MAX_VALUE >> 2)) {
+					throw new IOException("Invalid length!");
+				}
+				dataSource.skipBytes(len << 2);
 			}
-			dataSource.skipBytes(len << 2);
 		}
-		done = true;
 	}
 
 	static void readInts(DataInput input, int[] output, int len) throws IOException {
