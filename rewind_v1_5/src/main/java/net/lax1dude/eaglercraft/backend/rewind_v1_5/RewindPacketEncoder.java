@@ -47,7 +47,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private static final String[] particleNames = new String[] {
 			"explode",
-			"largeexplosion",
+			"largeexplode",
 			"hugeexplosion",
 			"fireworksSpark",
 			"bubble",
@@ -82,9 +82,9 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			"slime",
 			"heart",
 			"", // barrier
-			"iconcrack_*", // iconcrack_(id)
-			"blockcrack_*_*", // blockcrack_(id)_(data)
-			"blockdust_*", // blockdust_(id)
+			"tilecrack_*_*", // iconcrack_(id)_(data)
+			"iconcrack_*", // blockcrack_(id)
+			"iconcrack_*", // blockdust_(id)
 			"", // droplet
 			"", // take
 			"" // mobappearance
@@ -232,10 +232,17 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			tmp.writeByte(in.readByte());
 			tmp.writeShort(in.readShort());
 			String playerName = BufferUtils.convertMetadata2Legacy(in, tmp, 300, alloc, serverAPI().getNBTHelper());
-			if (playerName == null) {
-				playerName = BufferUtils.getUsernameOrElse(serverAPI(), uuid);
+			if (playerName == null || playerName.isEmpty()) {
+				TabListItem tli = tabList.get(uuid);
+				String fb;
+				if (tli == null) {
+					fb = "" + uuid.hashCode();
+				} else {
+					fb = tli.name;
+				}
+				playerName = BufferUtils.getUsernameOrElse(serverAPI(), uuid, fb);
 			}
-			BufferUtils.writeLegacyMCString(bb, playerName, 255);
+			BufferUtils.writeLegacyMCString(bb, playerName, 16);
 			bb.writeBytes(tmp);
 		} finally {
 			tmp.release();
@@ -476,17 +483,27 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 	}
 
 	private void handleEntityEffect(ByteBuf in, ByteBuf bb) {
+		int eid = BufferUtils.readVarInt(in);
+		short guh = in.readUnsignedByte();
+		if (guh > 20) {
+			return;
+		}
 		bb.writeByte(0x29);
-		bb.writeInt(BufferUtils.readVarInt(in));
-		bb.writeByte(in.readByte());
-		bb.writeByte(in.readByte());
+		bb.writeInt(eid);
+		bb.writeByte(guh);
+		bb.writeByte(in.readUnsignedByte());
 		bb.writeShort(BufferUtils.readVarInt(in));
 	}
 
 	private void handleRemoveEntityEffect(ByteBuf in, ByteBuf bb) {
+		int eid = BufferUtils.readVarInt(in);
+		short guh = in.readUnsignedByte();
+		if (guh > 20) {
+			return;
+		}
 		bb.writeByte(0x2A);
-		bb.writeInt(BufferUtils.readVarInt(in));
-		bb.writeByte(in.readByte());
+		bb.writeInt(eid);
+		bb.writeByte(guh);
 	}
 
 	private void handleSetExperience(ByteBuf in, ByteBuf bb) {
@@ -749,6 +766,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		switch (windowType) {
 			case "minecraft:chest":
 			case "minecraft:container":
+			case "EntityHorse":
 				windowId = 0;
 				break;
 			case "minecraft:crafting_table":
@@ -783,10 +801,6 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			case "minecraft:dropper":
 				windowId = 10;
 				break;
-			case "EntityHorse": {
-				windowId = 11;
-				break;
-			}
 		}
 		bb.writeByte(windowId);
 		String windowTitle = BufferUtils.readMCString(in, 4095);
@@ -1112,7 +1126,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 						}
 						tabList.put(pliUuid, new TabListItem(tempName, tbPing));
 					} else {
-						tabList.put(pliUuid, new TabListItem(BufferUtils.getUsernameOrElse(serverAPI(), pliUuid), 0));
+						tabList.put(pliUuid, new TabListItem(BufferUtils.getUsernameOrElse(serverAPI(), pliUuid, "" + pliUuid.hashCode()), 0));
 					}
 				}
 				TabListItem pliItem = tabList.get(pliUuid);

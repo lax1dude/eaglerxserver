@@ -349,6 +349,9 @@ public class BufferUtils {
 		 */
 		if (index == 2 && entryType == 4) {
 			index = 5;
+			if (entityType == 0 && playerNameHolder != null) {
+				playerNameHolder.name = (String) entryValue;
+			}
 		} else if (index == 3 && entryType == 0) {
 			index = 6;
 		} else if (index == 7 && entryType == 2) {
@@ -367,8 +370,6 @@ public class BufferUtils {
 				return;
 			} else if (entityType == 0 && index == 18 && entryType == 2) {
 				return;
-			} else if (entityType == 0 && index == 5 && entryType == 4 && playerNameHolder != null) {
-				playerNameHolder.name = (String) entryValue;
 			} else if (entityType == 54 && index == 14 && entryType == 0) {
 				return;
 			} else if (entityType == 58 && index == 16 && entryType == 1) {
@@ -606,10 +607,10 @@ public class BufferUtils {
 		return "\"" + str.replaceAll("\"","\\\\\"") + "\"";
 	}
 
-	public static String getUsernameOrElse(IEaglerXServerAPI<?> api, UUID uuid) {
+	public static String getUsernameOrElse(IEaglerXServerAPI<?> api, UUID uuid, String fallback) {
 		IBasePlayer<?> guh = api.getPlayerByUUID(uuid);
 		if (guh == null) {
-			return "" + uuid.hashCode();
+			return fallback;
 		}
 		return guh.getUsername();
 	}
