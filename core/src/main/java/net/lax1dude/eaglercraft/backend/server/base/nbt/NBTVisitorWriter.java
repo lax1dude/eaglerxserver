@@ -7,11 +7,21 @@ import net.lax1dude.eaglercraft.backend.server.api.INBTVisitor;
 
 public class NBTVisitorWriter implements INBTVisitor {
 
-	private final DataOutput dataOutput;
+	private DataOutput dataOutput;
 	private byte[] tmp;
 
 	public NBTVisitorWriter(DataOutput dataOutput) {
 		this.dataOutput = dataOutput;
+	}
+
+	public NBTVisitorWriter(DataOutput dataOutput, byte[] tmp) {
+		this.dataOutput = dataOutput;
+		this.tmp = tmp;
+	}
+
+	NBTVisitorWriter bind(DataOutput dataOutput) {
+		this.dataOutput = dataOutput;
+		return this;
 	}
 
 	@Override

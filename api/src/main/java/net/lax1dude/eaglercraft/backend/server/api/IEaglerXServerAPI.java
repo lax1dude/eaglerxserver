@@ -148,7 +148,7 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	IComponentHelper getComponentHelper();
 
-	INBTTransformer getNBTTransformer();
+	INBTHelper getNBTHelper();
 
 	IBinaryHTTPClient getBinaryHTTPClient();
 

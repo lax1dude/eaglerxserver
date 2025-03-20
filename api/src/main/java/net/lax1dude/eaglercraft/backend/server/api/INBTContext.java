@@ -4,7 +4,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public interface INBTTransformer {
+public interface INBTContext {
 
 	void accept(DataInput dataInput, INBTVisitor visitor) throws IOException;
 

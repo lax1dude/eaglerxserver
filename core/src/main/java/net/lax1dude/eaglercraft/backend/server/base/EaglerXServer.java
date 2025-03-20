@@ -48,7 +48,7 @@ import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
-import net.lax1dude.eaglercraft.backend.server.api.INBTTransformer;
+import net.lax1dude.eaglercraft.backend.server.api.INBTHelper;
 import net.lax1dude.eaglercraft.backend.server.api.INativeZlib;
 import net.lax1dude.eaglercraft.backend.server.api.IPacketImageLoader;
 import net.lax1dude.eaglercraft.backend.server.api.IScheduler;
@@ -76,6 +76,7 @@ import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataRoot;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings.ConfigDataSkinService;
 import net.lax1dude.eaglercraft.backend.server.base.message.MessageControllerFactory;
 import net.lax1dude.eaglercraft.backend.server.base.message.PlayerChannelHelper;
+import net.lax1dude.eaglercraft.backend.server.base.nbt.NBTHelper;
 import net.lax1dude.eaglercraft.backend.server.base.notifications.NotificationService;
 import net.lax1dude.eaglercraft.backend.server.base.config.EaglerConfigLoader;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.PipelineTransformer;
@@ -794,9 +795,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public INBTTransformer getNBTTransformer() {
-		// TODO Auto-generated method stub
-		return null;
+	public INBTHelper getNBTHelper() {
+		return NBTHelper.INSTANCE;
 	}
 
 	@Override
