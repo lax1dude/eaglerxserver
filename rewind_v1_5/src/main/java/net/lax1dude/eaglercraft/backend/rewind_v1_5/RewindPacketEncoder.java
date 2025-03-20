@@ -893,7 +893,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeShort(BufferUtils.posY(signPos));
 		bb.writeInt(BufferUtils.posZ(signPos));
 		for (int ii = 0; ii < 4; ++ii) {
-			BufferUtils.writeLegacyMCString(bb, serverAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 4095)), 255);
+			BufferUtils.writeLegacyMCString(bb, serverAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 4095)), 15);
 		}
 	}
 
