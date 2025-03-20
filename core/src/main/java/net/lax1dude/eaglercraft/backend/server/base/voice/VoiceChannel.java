@@ -1,11 +1,9 @@
 package net.lax1dude.eaglercraft.backend.server.base.voice;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -163,6 +161,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 			IVoiceState state = get(other);
 			if(state != null && state.expired(nanos) == 1) {
 				remove(other);
+				return null;
 			}
 			return state;
 		}
@@ -241,6 +240,9 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 					state = remove(other);
 				}
 				if(state == ESTABLISHED) {
+					synchronized(other) {
+						other.remove(this);
+					}
 					other.mgr.player.sendEaglerMessage(new SPacketVoiceSignalDisconnectPeerEAG(
 							selfUUID.getMostSignificantBits(), selfUUID.getLeastSignificantBits()));
 					mgr.player.sendEaglerMessage(new SPacketVoiceSignalDisconnectPeerEAG(
@@ -261,31 +263,48 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 			if(connectedPlayers.remove(selfUUID) == null) {
 				return;
 			}
-			List<Context> toNotify = new ArrayList<>();
+			Object[] allPlayers = connectedPlayers.values().toArray();
+			int len = allPlayers.length;
+			Object[] toNotify;
 			synchronized(this) {
-				for(Entry<Context, IVoiceState> etr : entrySet()) {
-					if(etr.getValue() == ESTABLISHED) {
-						toNotify.add(etr.getKey());
-					}
-				}
+				toNotify = keySet().toArray();
 				clear();
 				expirable = false;
 			}
-			if(!toNotify.isEmpty()) {
+			int cnt = toNotify.length;
+			if(cnt > 0) {
 				GameMessagePacket pkt = new SPacketVoiceSignalDisconnectPeerEAG(selfUUID.getMostSignificantBits(),
 						selfUUID.getLeastSignificantBits());
-				for(Context ctx : toNotify) {
-					if(!dead) {
-						UUID uuid = ctx.selfUUID;
-						mgr.player.sendEaglerMessage(new SPacketVoiceSignalDisconnectPeerEAG(uuid.getMostSignificantBits(),
-								uuid.getLeastSignificantBits()));
-					}
+				for(int i = 0; i < cnt; ++i) {
+					Context ctx = (Context) toNotify[i];
+					IVoiceState voice;
 					synchronized(ctx) {
-						if(ctx.remove(this) == null) {
-							continue;
+						voice = ctx.remove(this);
+					}
+					if(voice != null) {
+						if(!dead) {
+							UUID uuid = ctx.selfUUID;
+							mgr.player.sendEaglerMessage(new SPacketVoiceSignalDisconnectPeerEAG(uuid.getMostSignificantBits(),
+									uuid.getLeastSignificantBits()));
+						}
+						if(voice == ESTABLISHED) {
+							ctx.mgr.player.sendEaglerMessage(pkt);
 						}
 					}
-					ctx.mgr.player.sendEaglerMessage(pkt);
+				}
+			}
+			if(len > 0) {
+				SPacketVoiceSignalGlobalEAG.UserData[] userDatas = new SPacketVoiceSignalGlobalEAG.UserData[len];
+				for(int i = 0; i < len; ++i) {
+					Context ctx = (Context) allPlayers[i];
+					EaglerPlayerInstance<PlayerObject> ctxPlayer = ctx.mgr.player;
+					UUID ctxUUID = ctxPlayer.getUniqueId();
+					userDatas[i] = new SPacketVoiceSignalGlobalEAG.UserData(ctxUUID.getMostSignificantBits(),
+							ctxUUID.getLeastSignificantBits(), ctxPlayer.getUsername());
+				}
+				GameMessagePacket packetToBroadcast = new SPacketVoiceSignalGlobalEAG(Arrays.asList(userDatas));
+				for(int i = 0; i < len; ++i) {
+					((Context) allPlayers[i]).mgr.player.sendEaglerMessage(packetToBroadcast);
 				}
 			}
 		}

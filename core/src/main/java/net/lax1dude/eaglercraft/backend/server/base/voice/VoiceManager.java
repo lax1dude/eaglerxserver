@@ -94,6 +94,7 @@ public class VoiceManager<PlayerObject> implements IVoiceManager<PlayerObject> {
 
 	public void handleServerChanged(String serverName) {
 		if(isManaged) {
+			setVoiceChannel(DisabledChannel.INSTANCE);
 			setVoiceChannel(voice.getServerVoiceChannel(serverName));
 		}
 	}
