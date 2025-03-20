@@ -128,7 +128,7 @@ public class VoiceManager<PlayerObject> implements IVoiceManager<PlayerObject> {
 	}
 
 	private void enableVoice() {
-		if(isServerEnable.compareAndExchange(false, true)) {
+		if(!isServerEnable.compareAndExchange(false, true)) {
 			player.sendEaglerMessage(new SPacketVoiceSignalAllowedEAG(true, voice.getICEServers()));
 		}
 	}

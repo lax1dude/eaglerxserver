@@ -209,6 +209,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			vanillaSkinCache.delete();
 		}
 		
+		iceServers = config.getICEServers();
 		voiceService = new VoiceService<>(this, config.getSettings().getVoiceService());
 		voiceService.handleICEServerUpdate(iceServers);
 		
@@ -425,6 +426,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		BasePlayerInstance<PlayerObject> playerInstance = player.getPlayerAttachment();
 		if(playerInstance != null && server != null && playerInstance.isEaglerPlayer()) {
 			String serverName = server.getServerConfName();
+			System.out.println("server change: " + serverName);
 			EaglerPlayerInstance<PlayerObject> eaglerPlayer = playerInstance.asEaglerPlayer();
 			eaglerPlayer.getSkinManager().handleServerChanged(serverName);
 			if(eaglerPlayer.voiceManager != null) {
