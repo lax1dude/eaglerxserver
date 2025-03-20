@@ -86,13 +86,13 @@ class ValueIntArray implements INBTValue<int[]> {
 		done = true;
 	}
 
-	private static void readInts(DataInput input, int[] output, int len) throws IOException {
+	static void readInts(DataInput input, int[] output, int len) throws IOException {
 		for(int i = 0; i < len; ++i) {
 			output[i] = input.readInt();
 		}
 	}
 
-	private static void writeInts(DataOutput output, int[] input, int len) throws IOException {
+	static void writeInts(DataOutput output, int[] input, int len) throws IOException {
 		for(int i = 0; i < len; ++i) {
 			output.writeInt(input[i]);
 		}

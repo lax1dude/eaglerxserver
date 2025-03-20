@@ -86,13 +86,13 @@ class ValueLongArray implements INBTValue<long[]> {
 		done = true;
 	}
 
-	private static void readLongs(DataInput input, long[] output, int len) throws IOException {
+	static void readLongs(DataInput input, long[] output, int len) throws IOException {
 		for(int i = 0; i < len; ++i) {
 			output[i] = input.readLong();
 		}
 	}
 
-	private static void writeLongs(DataOutput output, long[] input, int len) throws IOException {
+	static void writeLongs(DataOutput output, long[] input, int len) throws IOException {
 		for(int i = 0; i < len; ++i) {
 			output.writeLong(input[i]);
 		}

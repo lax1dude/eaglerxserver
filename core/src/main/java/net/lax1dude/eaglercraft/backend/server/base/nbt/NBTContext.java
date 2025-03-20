@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import net.lax1dude.eaglercraft.backend.server.api.INBTContext;
 import net.lax1dude.eaglercraft.backend.server.api.INBTVisitor;
+import net.lax1dude.eaglercraft.backend.server.api.INBTVisitor.INBTValue;
 
 class NBTContext implements INBTContext {
 
@@ -25,6 +26,26 @@ class NBTContext implements INBTContext {
 	@Override
 	public INBTVisitor createWriter(DataOutput dataOutput) {
 		return writer.bind(dataOutput);
+	}
+
+	@Override
+	public INBTValue<String> wrapValue(String value) {
+		return new WrappedString(value);
+	}
+
+	@Override
+	public INBTValue<byte[]> wrapValue(byte[] value) {
+		return new WrappedByteArray(value);
+	}
+
+	@Override
+	public INBTValue<int[]> wrapValue(int[] value) {
+		return new WrappedIntArray(value);
+	}
+
+	@Override
+	public INBTValue<long[]> wrapValue(long[] value) {
+		return new WrappedLongArray(value);
 	}
 
 }
