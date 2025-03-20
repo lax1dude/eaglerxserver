@@ -131,7 +131,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		short slot = in.readShort();
 		bb.writeInt(eid);
 		bb.writeShort(slot);
-		BufferUtils.convertSlot2Legacy(in, bb);
+		BufferUtils.convertSlot2Legacy(in, bb, serverAPI().getNBTHelper());
 	}
 
 	private void handleSpawnPosition(ByteBuf in, ByteBuf bb) {
@@ -231,7 +231,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			tmp.writeByte(in.readByte());
 			tmp.writeByte(in.readByte());
 			tmp.writeShort(in.readShort());
-			String playerName = BufferUtils.convertMetadata2Legacy(in, tmp, 300, alloc);
+			String playerName = BufferUtils.convertMetadata2Legacy(in, tmp, 300, alloc, serverAPI().getNBTHelper());
 			if (playerName == null) {
 				playerName = BufferUtils.getUsernameOrElse(serverAPI(), uuid);
 			}
@@ -326,7 +326,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeShort(in.readShort());
 		bb.writeShort(in.readShort());
 		bb.writeShort(in.readShort());
-		BufferUtils.convertMetadata2Legacy(in, bb, mtype + 100, alloc);
+		BufferUtils.convertMetadata2Legacy(in, bb, mtype + 100, alloc, serverAPI().getNBTHelper());
 	}
 
 	private void handleSpawnPainting(ByteBuf in, ByteBuf bb) {
@@ -472,7 +472,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeByte(0x28);
 		int eid = BufferUtils.readVarInt(in);
 		bb.writeInt(eid);
-		BufferUtils.convertMetadata2Legacy(in, bb, entityIdToType.getOrDefault(eid, -1), alloc);
+		BufferUtils.convertMetadata2Legacy(in, bb, entityIdToType.getOrDefault(eid, -1), alloc, serverAPI().getNBTHelper());
 	}
 
 	private void handleEntityEffect(ByteBuf in, ByteBuf bb) {
@@ -819,7 +819,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			} else {
 				bb.writeShort(slot);
 			}
-			BufferUtils.convertSlot2Legacy(in, bb);
+			BufferUtils.convertSlot2Legacy(in, bb, serverAPI().getNBTHelper());
 			bb.retain();
 		} finally {
 			bb.release();
@@ -845,10 +845,10 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			}
 			if (ench && ii == 1) {
 				int here = bb.writerIndex();
-				BufferUtils.convertSlot2Legacy(in, bb);
+				BufferUtils.convertSlot2Legacy(in, bb, serverAPI().getNBTHelper());
 				bb.writerIndex(here);
 			} else {
-				BufferUtils.convertSlot2Legacy(in, bb);
+				BufferUtils.convertSlot2Legacy(in, bb, serverAPI().getNBTHelper());
 			}
 		}
 	}
@@ -982,7 +982,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				bb.writeShort(BufferUtils.posY(ubePos));
 				bb.writeInt(BufferUtils.posZ(ubePos));
 				bb.writeByte(ubeAct);
-				BufferUtils.convertNBT2Legacy(in, bb);
+				BufferUtils.convertNBT2Legacy(in, bb, serverAPI().getNBTHelper());
 				bb.retain();
 			} finally {
 				bb.release();
@@ -1302,12 +1302,12 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				ByteBuf tmp = alloc.buffer();
 				try {
 					for (int i = 0; i < count; ++i) {
-						BufferUtils.convertSlot2Legacy(in, tmp);
-						BufferUtils.convertSlot2Legacy(in, tmp);
+						BufferUtils.convertSlot2Legacy(in, tmp, serverAPI().getNBTHelper());
+						BufferUtils.convertSlot2Legacy(in, tmp, serverAPI().getNBTHelper());
 						boolean guh = in.readBoolean();
 						tmp.writeBoolean(guh);
 						if (guh) {
-							BufferUtils.convertSlot2Legacy(in, tmp);
+							BufferUtils.convertSlot2Legacy(in, tmp, serverAPI().getNBTHelper());
 						}
 						tmp.writeBoolean(in.readBoolean());
 						in.skipBytes(8);

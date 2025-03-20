@@ -1,8 +1,6 @@
 package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.zip.GZIPInputStream;
@@ -10,8 +8,9 @@ import java.util.zip.GZIPOutputStream;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.ByteBufOutputStream;
+import net.lax1dude.eaglercraft.backend.server.api.*;
 
 public class BufferUtils {
 
@@ -135,7 +134,7 @@ public class BufferUtils {
 		buffer.writeBytes(bytes);
 	}
 
-	public static void convertSlot2Legacy(ByteBuf buffer, ByteBuf bb) {
+	public static void convertSlot2Legacy(ByteBuf buffer, ByteBuf bb, INBTHelper nbtHelper) {
 		short blockId = buffer.readShort();
 		blockId = (short) convertItem2Legacy(blockId);
 		bb.writeShort(blockId);
@@ -146,7 +145,7 @@ public class BufferUtils {
 		short itemDamage = buffer.readShort();
 		bb.writeByte(itemCount);
 		bb.writeShort(itemDamage);
-		convertNBT2Legacy(buffer, bb);
+		BufferUtils.convertNBT2Legacy(buffer, bb, nbtHelper);
 	}
 
 	public static void convertLegacySlot(ByteBuf buffer, ByteBuf bb) {
@@ -162,24 +161,25 @@ public class BufferUtils {
 		convertLegacyNBT(buffer, bb);
 	}
 
-	public static void convertNBT2Legacy(ByteBuf buffer, ByteBuf bb) {
+	public static void convertNBT2Legacy(ByteBuf buffer, ByteBuf bb, INBTHelper nbtHelper) {
 		if (buffer.readUnsignedByte() == 0) {
 			bb.writeShort(-1);
 			return;
 		}
 		buffer.readerIndex(buffer.readerIndex() - 1);
-		byte[] inputBytes = new byte[buffer.readableBytes()];
-		buffer.readBytes(inputBytes);
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			 GZIPOutputStream gzipOs = new GZIPOutputStream(baos)) {
+		int wi = bb.writerIndex() + 2;
+		bb.writerIndex(wi);
 
-			gzipOs.write(inputBytes);
+		try (ByteBufInputStream bbis = new ByteBufInputStream(buffer);
+			 ByteBufOutputStream bbos = new ByteBufOutputStream(bb);
+			 GZIPOutputStream gzipOs = new GZIPOutputStream(bbos);
+			 DataOutputStream dos = new DataOutputStream(gzipOs)) {
+
+			RewindNBTVisitor.apply(nbtHelper, bbis, dos);
+
 			gzipOs.finish();
 
-			byte[] compressedBytes = baos.toByteArray();
-
-			bb.writeShort(compressedBytes.length);
-			bb.writeBytes(compressedBytes);
+			bb.setShort(wi - 2, bb.writerIndex() - wi);
 		} catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -191,21 +191,15 @@ public class BufferUtils {
 			bb.writeByte(0);
 			return;
 		}
-		byte[] compressedBytes = new byte[len1];
-		buffer.readBytes(compressedBytes);
-		try (ByteArrayInputStream bais = new ByteArrayInputStream(compressedBytes);
-			 GZIPInputStream gzipIs = new GZIPInputStream(bais);
-			 ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+		try (ByteBufInputStream bbis = new ByteBufInputStream(buffer, len1);
+			 GZIPInputStream gzipIs = new GZIPInputStream(bbis);
+			 ByteBufOutputStream bbos = new ByteBufOutputStream(bb)) {
 
 			byte[] buf = new byte[1024];
 			int len;
 			while ((len = gzipIs.read(buf)) > 0) {
-				baos.write(buf, 0, len);
+				bbos.write(buf, 0, len);
 			}
-
-			byte[] decompressedBytes = baos.toByteArray();
-
-			bb.writeBytes(decompressedBytes);
 		} catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -262,7 +256,7 @@ public class BufferUtils {
 		return ((long) (x & 0x3FFFFFF) << 38) | ((long) (y & 0xFFF) << 26) | (z & 0x3FFFFFF);
 	}
 
-	public static String convertMetadata2Legacy(ByteBuf buffer, ByteBuf bb, int entityType, ByteBufAllocator alloc) {
+	public static String convertMetadata2Legacy(ByteBuf buffer, ByteBuf bb, int entityType, ByteBufAllocator alloc, INBTHelper nbtHelper) {
 		String playerNameWowie = null;
 
 		if (entityType == -1) {
@@ -307,7 +301,7 @@ public class BufferUtils {
 				case 5:
 					ByteBuf tmp = alloc.buffer();
 					try {
-						BufferUtils.convertSlot2Legacy(buffer, tmp);
+						BufferUtils.convertSlot2Legacy(buffer, tmp, nbtHelper);
 						remapMeta(entityType, index, type, bb, tmp);
 					} finally {
 						tmp.release();
