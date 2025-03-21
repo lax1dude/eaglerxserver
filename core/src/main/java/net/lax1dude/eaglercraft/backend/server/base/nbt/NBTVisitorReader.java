@@ -76,7 +76,7 @@ public class NBTVisitorReader {
 				if(len != 0) {
 					throw new IOException("Invalid list length for empty list: " + len);
 				}
-				visitor.visitTagList(null, 0);
+				visitor.visitTagList(EnumDataType.NONE, 0);
 				break;
 			}
 			EnumDataType listType = parseTag(listTypeId);
