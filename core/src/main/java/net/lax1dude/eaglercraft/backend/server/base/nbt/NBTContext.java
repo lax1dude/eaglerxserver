@@ -4,23 +4,31 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import net.lax1dude.eaglercraft.backend.server.api.INBTContext;
-import net.lax1dude.eaglercraft.backend.server.api.INBTVisitor;
-import net.lax1dude.eaglercraft.backend.server.api.INBTVisitor.INBTValue;
+import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTContext;
+import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTValue;
+import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTVisitor;
 
-class NBTContext implements INBTContext {
+class NBTContext implements INBTContext, IWrapperFactory {
 
 	private final byte[] buf;
 	private final NBTVisitorWriter writer;
+	private final ValueString stringValue;
+	private final ValueByteArray byteValue;
+	private final ValueIntArray intValue;
+	private final ValueLongArray longValue;
 
 	NBTContext(int bufferSize) {
 		this.buf = new byte[bufferSize];
 		this.writer = new NBTVisitorWriter(null, buf);
+		this.stringValue = new ValueString(null);
+		this.byteValue = new ValueByteArray(null);
+		this.intValue = new ValueIntArray(null);
+		this.longValue = new ValueLongArray(null);
 	}
 
 	@Override
 	public void accept(DataInput dataInput, INBTVisitor visitor) throws IOException {
-		NBTVisitorReader.read(dataInput, visitor);
+		NBTVisitorReader.read(dataInput, visitor, this);
 	}
 
 	@Override
@@ -46,6 +54,30 @@ class NBTContext implements INBTContext {
 	@Override
 	public INBTValue<long[]> wrapValue(long[] value) {
 		return new WrappedLongArray(value);
+	}
+
+	@Override
+	public ValueString wrapStringData(DataInput dataSource) {
+		stringValue.reset(dataSource);
+		return stringValue;
+	}
+
+	@Override
+	public ValueByteArray wrapByteData(DataInput dataSource) {
+		byteValue.reset(dataSource);
+		return byteValue;
+	}
+
+	@Override
+	public ValueIntArray wrapIntData(DataInput dataSource) {
+		intValue.reset(dataSource);
+		return intValue;
+	}
+
+	@Override
+	public ValueLongArray wrapLongData(DataInput dataSource) {
+		longValue.reset(dataSource);
+		return longValue;
 	}
 
 }

@@ -79,7 +79,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					BufferUtils.writeVarInt(bb, 0x08);
 					bb.writeLong(BufferUtils.createPosition(in.readInt(), in.readUnsignedByte(), in.readInt()));
 					bb.writeByte(in.readByte());
-					BufferUtils.convertLegacySlot(in, bb);
+					BufferUtils.convertLegacySlot(in, bb, tempBuffer());
 					bb.writeByte(in.readByte());
 					bb.writeByte(in.readByte());
 					bb.writeByte(in.readByte());
@@ -113,7 +113,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					bb.writeByte(in.readByte());
 					bb.writeShort(in.readShort());
 					bb.writeByte(in.readByte());
-					BufferUtils.convertLegacySlot(in, bb);
+					BufferUtils.convertLegacySlot(in, bb, tempBuffer());
 					break;
 				case 0x6A:
 					bb = ctx.alloc().buffer();
@@ -126,7 +126,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					bb = ctx.alloc().buffer();
 					BufferUtils.writeVarInt(bb, 0x10);
 					bb.writeShort(in.readShort());
-					BufferUtils.convertLegacySlot(in, bb);
+					BufferUtils.convertLegacySlot(in, bb, tempBuffer());
 					break;
 				case 0x6C:
 					bb = ctx.alloc().buffer();

@@ -4,9 +4,11 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import net.lax1dude.eaglercraft.backend.server.api.INBTContext;
-import net.lax1dude.eaglercraft.backend.server.api.INBTVisitor;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.EaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.nbt.EnumDataType;
+import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTContext;
+import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTValue;
+import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTVisitor;
 
 public class RewindNBTVisitor implements INBTVisitor {
 
@@ -28,40 +30,39 @@ public class RewindNBTVisitor implements INBTVisitor {
 	}
 
 	@Override
-	public INBTVisitor visitRootTag(EnumTag tagType) throws IOException {
+	public INBTVisitor visitRootTag(EnumDataType tagType) throws IOException {
 		parent().visitRootTag(tagType);
 		return this;
 	}
 
 	@Override
-	public INBTVisitor visitTagList(EnumTag itemType, int length) throws IOException {
+	public INBTVisitor visitTagList(EnumDataType itemType, int length) throws IOException {
 		parent().visitTagList(itemType, length);
 		return this;
 	}
 
 	@Override
-	public INBTVisitor visitTag(EnumTag tagType, INBTValue<String> tagName) throws IOException {
-		if(tagType == EnumTag.COMPOUND) {
+	public INBTVisitor visitTag(EnumDataType tagType, INBTValue<String> tagName) throws IOException {
+		if(tagType == EnumDataType.COMPOUND) {
 			String name = tagName.value();
-			if("tag".equals(name)) {
+			switch(name) {
+			case "tag":
 				return this;
-			}
-			if("SpawnData".equals(name)) {
+			case "SpawnData":
 				return INBTVisitor.NOP;
-			}
-			if("SkullOwner".equals(name)) {
+			case "SkullOwner":
 				return new SkullOwnerTransformer(false);
-			}
-			if("Owner".equals(name)) {
+			case "Owner":
 				return new SkullOwnerTransformer(true);
 			}
-		} else if(tagType == EnumTag.LIST) {
+		} else if(tagType == EnumDataType.LIST) {
 			String name = tagName.value();
-			if("SpawnPotentials".equals(name)) {
+			switch(name) {
+			case "SpawnPotentials":
 				return INBTVisitor.NOP;
-			} else if("pages".equals(name)) {
+			case "pages":
 				return new PagesTransformer();
-			} else if("ench".equals(name)) {
+			case "ench":
 				return new EnchantmentTransformer();
 			}
 		}
@@ -76,17 +77,17 @@ public class RewindNBTVisitor implements INBTVisitor {
 		}
 
 		@Override
-		public INBTVisitor visitRootTag(EnumTag tagType) {
+		public INBTVisitor visitRootTag(EnumDataType tagType) {
 			return INBTVisitor.NOP;
 		}
 
 		@Override
-		public INBTVisitor visitTagList(EnumTag itemType, int length) {
+		public INBTVisitor visitTagList(EnumDataType itemType, int length) {
 			return INBTVisitor.NOP;
 		}
 
 		@Override
-		public INBTVisitor visitTag(EnumTag tagType, INBTValue<String> tagName) {
+		public INBTVisitor visitTag(EnumDataType tagType, INBTValue<String> tagName) {
 			return INBTVisitor.NOP;
 		}
 
@@ -105,21 +106,21 @@ public class RewindNBTVisitor implements INBTVisitor {
 		}
 
 		@Override
-		public INBTVisitor visitRootTag(EnumTag tagType) {
+		public INBTVisitor visitRootTag(EnumDataType tagType) {
 			return INBTVisitor.NOP;
 		}
 
 		@Override
-		public INBTVisitor visitTagList(EnumTag itemType, int length) {
-			if(itemType == EnumTag.COMPOUND) {
+		public INBTVisitor visitTagList(EnumDataType itemType, int length) {
+			if(itemType == EnumDataType.COMPOUND) {
 				return this;
 			}
 			return INBTVisitor.NOP;
 		}
 
 		@Override
-		public INBTVisitor visitTag(EnumTag tagType, INBTValue<String> tagName) throws IOException {
-			if(tagType == EnumTag.INT && "id".equals(tagName.value())) {
+		public INBTVisitor visitTag(EnumDataType tagType, INBTValue<String> tagName) throws IOException {
+			if(tagType == EnumDataType.INT && "id".equals(tagName.value())) {
 				return this;
 			}
 			return INBTVisitor.NOP;
@@ -131,7 +132,7 @@ public class RewindNBTVisitor implements INBTVisitor {
 			if(guh == 8 || guh == 62 || guh == 61) {
 				value = 0;
 			}
-			parent.visitTag(EnumTag.INT, context.wrapValue("id")).visitTagInt(value);
+			parent.visitTag(EnumDataType.INT, context.wrapValue("id")).visitTagInt(value);
 		}
 	}
 
@@ -149,18 +150,18 @@ public class RewindNBTVisitor implements INBTVisitor {
 		}
 
 		@Override
-		public INBTVisitor visitRootTag(EnumTag tagType) {
+		public INBTVisitor visitRootTag(EnumDataType tagType) {
 			return INBTVisitor.NOP;
 		}
 
 		@Override
-		public INBTVisitor visitTagList(EnumTag itemType, int length) {
+		public INBTVisitor visitTagList(EnumDataType itemType, int length) {
 			return INBTVisitor.NOP;
 		}
 
 		@Override
-		public INBTVisitor visitTag(EnumTag tagType, INBTValue<String> tagName) throws IOException {
-			if(tagType == EnumTag.STRING && "Name".equals(tagName.value())) {
+		public INBTVisitor visitTag(EnumDataType tagType, INBTValue<String> tagName) throws IOException {
+			if(tagType == EnumDataType.STRING && "Name".equals(tagName.value())) {
 				return this;
 			}
 			return INBTVisitor.NOP;
@@ -168,7 +169,7 @@ public class RewindNBTVisitor implements INBTVisitor {
 
 		@Override
 		public void visitTagString(INBTValue<String> str) throws IOException {
-			parent.visitTag(EnumTag.STRING, context.wrapValue(notSkull ? "ExtraType" : "SkullOwner")).visitTagString(str);
+			parent.visitTag(EnumDataType.STRING, context.wrapValue(notSkull ? "ExtraType" : "SkullOwner")).visitTagString(str);
 		}
 
 	}

@@ -3,7 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.base.nbt;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import net.lax1dude.eaglercraft.backend.server.api.INBTVisitor.INBTValue;
+import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTValue;
 
 class WrappedIntArray implements INBTValue<int[]> {
 
@@ -14,7 +14,7 @@ class WrappedIntArray implements INBTValue<int[]> {
 	}
 
 	@Override
-	public void mutate(int[] value) throws IOException {
+	public void mutate(int[] value) {
 		this.value = value;
 	}
 

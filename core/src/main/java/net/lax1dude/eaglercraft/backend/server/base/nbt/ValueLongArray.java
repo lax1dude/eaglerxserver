@@ -4,16 +4,22 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import net.lax1dude.eaglercraft.backend.server.api.INBTVisitor.INBTValue;
+import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTValue;
 
 class ValueLongArray implements INBTValue<long[]> {
 
-	private final DataInput dataSource;
+	private DataInput dataSource;
 	private long[] resolved;
 	private boolean done;
 
 	ValueLongArray(DataInput dataSource) {
 		this.dataSource = dataSource;
+	}
+
+	void reset(DataInput dataSource) {
+		this.dataSource = dataSource;
+		this.resolved = null;
+		this.done = false;
 	}
 
 	@Override

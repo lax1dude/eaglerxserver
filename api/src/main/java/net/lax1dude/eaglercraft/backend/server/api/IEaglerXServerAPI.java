@@ -15,6 +15,7 @@ import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandService;
 import net.lax1dude.eaglercraft.backend.server.api.internal.factory.EaglerXServerAPIFactory;
 import net.lax1dude.eaglercraft.backend.server.api.internal.factory.IEaglerAPIFactory;
+import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTHelper;
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationService;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuService;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryServer;

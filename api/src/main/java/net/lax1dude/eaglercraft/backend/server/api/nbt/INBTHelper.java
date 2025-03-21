@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.api;
+package net.lax1dude.eaglercraft.backend.server.api.nbt;
 
 public interface INBTHelper extends INBTContext {
 

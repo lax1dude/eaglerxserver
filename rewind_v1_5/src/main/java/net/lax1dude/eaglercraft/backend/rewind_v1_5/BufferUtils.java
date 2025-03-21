@@ -11,6 +11,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 import net.lax1dude.eaglercraft.backend.server.api.*;
+import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTContext;
 
 public class BufferUtils {
 
@@ -134,7 +135,7 @@ public class BufferUtils {
 		buffer.writeBytes(bytes);
 	}
 
-	public static void convertSlot2Legacy(ByteBuf buffer, ByteBuf bb, INBTHelper nbtHelper) {
+	public static void convertSlot2Legacy(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper) {
 		short blockId = buffer.readShort();
 		blockId = (short) convertItem2Legacy(blockId);
 		bb.writeShort(blockId);
@@ -148,7 +149,7 @@ public class BufferUtils {
 		BufferUtils.convertNBT2Legacy(buffer, bb, nbtHelper);
 	}
 
-	public static void convertLegacySlot(ByteBuf buffer, ByteBuf bb) {
+	public static void convertLegacySlot(ByteBuf buffer, ByteBuf bb, byte[] buf) {
 		short blockId = buffer.readShort();
 		bb.writeShort(blockId);
 		if (blockId == -1) {
@@ -158,10 +159,10 @@ public class BufferUtils {
 		short itemDamage = buffer.readShort();
 		bb.writeByte(itemCount);
 		bb.writeShort(itemDamage);
-		convertLegacyNBT(buffer, bb);
+		convertLegacyNBT(buffer, bb, buf);
 	}
 
-	public static void convertNBT2Legacy(ByteBuf buffer, ByteBuf bb, INBTHelper nbtHelper) {
+	public static void convertNBT2Legacy(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper) {
 		if (buffer.readUnsignedByte() == 0) {
 			bb.writeShort(-1);
 			return;
@@ -185,7 +186,7 @@ public class BufferUtils {
         }
 	}
 
-	public static void convertLegacyNBT(ByteBuf buffer, ByteBuf bb) {
+	public static void convertLegacyNBT(ByteBuf buffer, ByteBuf bb, byte[] buf) {
 		short len1 = buffer.readShort();
 		if (len1 == -1) {
 			bb.writeByte(0);
@@ -195,7 +196,6 @@ public class BufferUtils {
 			 GZIPInputStream gzipIs = new GZIPInputStream(bbis);
 			 ByteBufOutputStream bbos = new ByteBufOutputStream(bb)) {
 
-			byte[] buf = new byte[1024];
 			int len;
 			while ((len = gzipIs.read(buf)) > 0) {
 				bbos.write(buf, 0, len);
@@ -256,7 +256,7 @@ public class BufferUtils {
 		return ((long) (x & 0x3FFFFFF) << 38) | ((long) (y & 0xFFF) << 26) | (z & 0x3FFFFFF);
 	}
 
-	public static String convertMetadata2Legacy(ByteBuf buffer, ByteBuf bb, int entityType, ByteBufAllocator alloc, INBTHelper nbtHelper) {
+	public static String convertMetadata2Legacy(ByteBuf buffer, ByteBuf bb, int entityType, ByteBufAllocator alloc, INBTContext nbtHelper) {
 		String playerNameWowie = null;
 
 		if (entityType == -1) {

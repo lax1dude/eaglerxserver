@@ -3,7 +3,9 @@ package net.lax1dude.eaglercraft.backend.server.base.nbt;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import net.lax1dude.eaglercraft.backend.server.api.INBTVisitor;
+import net.lax1dude.eaglercraft.backend.server.api.nbt.EnumDataType;
+import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTValue;
+import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTVisitor;
 
 public class NBTVisitorWriter implements INBTVisitor {
 
@@ -30,21 +32,21 @@ public class NBTVisitorWriter implements INBTVisitor {
 	}
 
 	@Override
-	public INBTVisitor visitRootTag(EnumTag tagType) throws IOException {
+	public INBTVisitor visitRootTag(EnumDataType tagType) throws IOException {
 		dataOutput.writeByte(tagType.getId());
 		dataOutput.writeShort(0);
 		return this;
 	}
 
 	@Override
-	public INBTVisitor visitTag(EnumTag tagType, INBTValue<String> tagName) throws IOException {
+	public INBTVisitor visitTag(EnumDataType tagType, INBTValue<String> tagName) throws IOException {
 		dataOutput.writeByte(tagType.getId());
 		handleWriteValue(tagName);
 		return this;
 	}
 
 	@Override
-	public INBTVisitor visitTagList(EnumTag itemType, int length) throws IOException {
+	public INBTVisitor visitTagList(EnumDataType itemType, int length) throws IOException {
 		dataOutput.writeByte(itemType.getId());
 		dataOutput.writeInt(length);
 		return this;

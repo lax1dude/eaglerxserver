@@ -4,16 +4,22 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import net.lax1dude.eaglercraft.backend.server.api.INBTVisitor.INBTValue;
+import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTValue;
 
 class ValueIntArray implements INBTValue<int[]> {
 
-	private final DataInput dataSource;
+	private DataInput dataSource;
 	private int[] resolved;
 	private boolean done;
 
 	ValueIntArray(DataInput dataSource) {
 		this.dataSource = dataSource;
+	}
+
+	void reset(DataInput dataSource) {
+		this.dataSource = dataSource;
+		this.resolved = null;
+		this.done = false;
 	}
 
 	@Override
