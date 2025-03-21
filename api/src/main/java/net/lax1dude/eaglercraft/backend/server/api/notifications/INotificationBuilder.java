@@ -48,11 +48,11 @@ public interface INotificationBuilder<ComponentObject> {
 
 	UUID getMainIconUUID();
 
-	UUID setMainIconUUID(UUID uuid);
+	INotificationBuilder<ComponentObject> setMainIconUUID(UUID uuid);
 
 	UUID getTitleIconUUID();
 
-	UUID setTitleIconUUID(UUID uuid);
+	INotificationBuilder<ComponentObject> setTitleIconUUID(UUID uuid);
 
 	int getHideAfterSec();
 

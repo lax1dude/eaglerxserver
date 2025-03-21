@@ -16,6 +16,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.google.common.collect.ImmutableList;
 
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationBuilder;
@@ -32,14 +33,20 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.PacketImageData;
 public class NotificationService<PlayerObject> implements INotificationService<PlayerObject> {
 
 	final EaglerXServer<PlayerObject> server;
+	final IPlatformComponentHelper componentHelper;
+	final Class<?> componentType;
 
-	private final ReadWriteLock registeredIconLock = new ReentrantReadWriteLock();
-	private final Map<UUID, PacketImageData> registeredIcons = new HashMap<>();
+	private final ReadWriteLock registeredIconLock;
+	private final Map<UUID, PacketImageData> registeredIcons;
 	private final NotificationManagerMultiAll<PlayerObject> allPlayersManager;
 	private final NotificationManagerNOP<PlayerObject> nopPlayersManager;
 
 	public NotificationService(EaglerXServer<PlayerObject> server) {
 		this.server = server;
+		this.componentHelper = server.getPlatform().getComponentHelper();
+		this.componentType = componentHelper.getComponentType();
+		this.registeredIconLock = new ReentrantReadWriteLock();
+		this.registeredIcons = new HashMap<>();
 		this.allPlayersManager = new NotificationManagerMultiAll<>(this);
 		this.nopPlayersManager = new NotificationManagerNOP<>(this);
 	}
@@ -51,9 +58,12 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 
 	@Override
 	public <ComponentObject> INotificationBuilder<ComponentObject> createNotificationBuilder(
-			Class<ComponentObject> componentObj) {
-		// TODO Auto-generated method stub
-		return null;
+			Class<ComponentObject> componentType) {
+		if(componentType == this.componentType) {
+			return new NotificationBuilder<ComponentObject>(componentHelper);
+		}else {
+			throw new ClassCastException("Component class " + componentType.getName() + " is not supported on this platform!");
+		}
 	}
 
 	@Override
