@@ -26,7 +26,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 				case 0x03:
 					bb = ctx.alloc().buffer();
 					BufferUtils.writeVarInt(bb, 0x01);
-					BufferUtils.writeMCString(bb, BufferUtils.readLegacyMCString(in, 100), 100);
+					BufferUtils.convertLegacyMCString(in, bb, 100);
 					break;
 				case 0x07:
 					bb = ctx.alloc().buffer();
@@ -152,13 +152,13 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 				case 0xCB:
 					bb = ctx.alloc().buffer();
 					BufferUtils.writeVarInt(bb, 0x14);
-					BufferUtils.writeMCString(bb, BufferUtils.readLegacyMCString(in, 255), 255);
+					BufferUtils.convertLegacyMCString(in, bb, 255);
 					bb.writeBoolean(false);
 					break;
 				case 0xCC:
 					bb = ctx.alloc().buffer();
 					BufferUtils.writeVarInt(bb, 0x15);
-					BufferUtils.writeMCString(bb, BufferUtils.readLegacyMCString(in, 255), 255);
+					BufferUtils.convertLegacyMCString(in, bb, 255);
 					bb.writeByte(16 >> in.readByte());
 					byte guh = in.readByte();
 					bb.writeByte(guh & 3);

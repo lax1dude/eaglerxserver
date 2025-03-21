@@ -16,7 +16,7 @@ import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTContext;
 public class BufferUtils {
 
 	public static int readVarInt(ByteBuf buffer) {
-		return BufferUtils.readVarInt(buffer, 5);
+		return readVarInt(buffer, 5);
 	}
 
 	public static int readVarInt(ByteBuf buffer, int maxBytes) {
@@ -115,7 +115,7 @@ public class BufferUtils {
 	}
 
 	public static String readMCString(ByteBuf buffer, int maxLen) {
-		int len = BufferUtils.readVarInt(buffer);
+		int len = readVarInt(buffer);
 		if(len * 4 > maxLen) {
 			throw new IndexOutOfBoundsException();
 		}
@@ -131,8 +131,127 @@ public class BufferUtils {
 			throw new IndexOutOfBoundsException();
 		}
 		byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
-		BufferUtils.writeVarInt(buffer, bytes.length);
+		writeVarInt(buffer, bytes.length);
 		buffer.writeBytes(bytes);
+	}
+
+	public static void convertMCString2Legacy(ByteBuf bufferIn, ByteBuf bufferOut, int maxLen) {
+		int len = readVarInt(bufferIn, 5);
+		if(maxLen > 32767) {
+			maxLen = 32767;
+		}
+		if(len < 0 || len * 4 > maxLen) {
+			throw new IndexOutOfBoundsException();
+		}
+		int writeLenAt = bufferOut.writerIndex();
+		bufferOut.writeShort(0);
+		int charsWritten = 0;
+		int cnt = 0;
+		while(cnt < len) {
+			int b = bufferIn.readUnsignedByte();
+			++cnt;
+			if(b < 127) {
+				bufferOut.writeChar(b);
+				++charsWritten;
+			}else {
+				switch((b >> 4) & 0x7) {
+				case 0b100:
+				case 0b101:
+					if(cnt < len) {
+						int b2 = bufferIn.readUnsignedByte();
+						++cnt;
+						bufferOut.writeChar(((b & 0x1F) << 6) | (b2 & 0x3F));
+						++charsWritten;
+					}
+					break;
+				case 0b110:
+					if(cnt + 1 < len) {
+						int b2 = bufferIn.readUnsignedByte();
+						int b3 = bufferIn.readUnsignedByte();
+						cnt += 2;
+						bufferOut.writeChar(((b & 0x0F) << 12) | ((b2 & 0x3F) << 6) | (b3 & 0x3F));
+						++charsWritten;
+					}
+					break;
+				case 0b111:
+					if(cnt + 2 < len) {
+						int b2 = bufferIn.readUnsignedByte();
+						int b3 = bufferIn.readUnsignedByte();
+						int b4 = bufferIn.readUnsignedByte();
+						cnt += 3;
+						int codepoint = (((b & 0x07) << 18) | ((b2 & 0x3F) << 12) | ((b3 & 0x3F) << 6) | (b4 & 0x3F));
+						if(codepoint >= 0xD800 && codepoint <= 0xDFFF) {
+							continue;
+						}else if(codepoint < 0x10000) {
+							bufferOut.writeChar(codepoint);
+							++charsWritten;
+						}else {
+							codepoint -= 0x10000;
+							bufferOut.writeChar(0xD800 | (codepoint >> 10));
+							bufferOut.writeChar(0xDC00 | (codepoint & 0x03FF));
+							charsWritten += 2;
+						}
+					}
+					break;
+				}
+			}
+		}
+		if(charsWritten > maxLen) {
+			throw new IndexOutOfBoundsException();
+		}
+		bufferOut.setShort(writeLenAt, charsWritten);
+	}
+
+	public static void convertLegacyMCString(ByteBuf bufferIn, ByteBuf bufferOut, int maxLen) {
+		int len = bufferIn.readShort();
+		if(len < 0 || len > maxLen) {
+			throw new IndexOutOfBoundsException();
+		}
+		int startAt = bufferIn.readerIndex();
+		int utf8Length = 0;
+		for(int i = 0; i < len; ++i) {
+			char c = bufferIn.getChar(startAt + (i << 1));
+			if(c <= 0x7F) {
+				++utf8Length;
+			}else if(c <= 0x07FF) {
+				utf8Length += 2;
+			}else if(c <= 0xD7FF || c > 0xDFFF) {
+				utf8Length += 3;
+			}else {
+				if(i + 1 < len) {
+					char c2 = bufferIn.getChar(startAt + (++i << 1));
+					if(c2 > 0xD7FF && c <= 0xDFFF && ((c & 0xFC00) == 0xD800) && ((c2 & 0xFC00) == 0xDC00)) {
+						utf8Length += 4;
+					}
+				}
+			}
+		}
+		BufferUtils.writeVarInt(bufferOut, utf8Length);
+		for(int i = 0; i < len; ++i) {
+			char c = bufferIn.getChar(startAt + (i << 1));
+			if(c <= 0x7F) {
+				bufferOut.writeByte(c);
+			}else if(c <= 0x07FF) {
+				bufferOut.writeByte(((c >>> 6) & 0x1F) | 0xC0);
+				bufferOut.writeByte((c & 0x3F) | 0x80);
+			}else if(c <= 0xD7FF || c > 0xDFFF) {
+				bufferOut.writeByte(((c >>> 12) & 0x1F) | 0xC0);
+				bufferOut.writeByte(((c >>> 6) & 0x3F) | 0x80);
+				bufferOut.writeByte((c & 0x3F) | 0x80);
+			}else {
+				if(i + 1 < len) {
+					char c2 = bufferIn.getChar(startAt + (++i << 1));
+					if(c2 > 0xD7FF && c <= 0xDFFF && ((c & 0xFC00) == 0xD800) && ((c2 & 0xFC00) == 0xDC00)) {
+						int codepoint = (((c & 0x03FF) << 8) | (c2 & 0x03FF)) + 0x10000;
+						bufferOut.writeByte(((codepoint >>> 18) & 0x07) | 0xC0);
+						bufferOut.writeByte(((codepoint >>> 12) & 0x3F) | 0x80);
+						bufferOut.writeByte(((codepoint >>> 6) & 0x3F) | 0x80);
+						bufferOut.writeByte((codepoint & 0x3F) | 0x80);
+					}
+				}
+			}
+		}
+		bufferIn.readerIndex(startAt + (len << 1));
 	}
 
 	public static void convertSlot2Legacy(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper, IComponentHelper componentHelper) {
@@ -146,7 +265,7 @@ public class BufferUtils {
 		short itemDamage = buffer.readShort();
 		bb.writeByte(itemCount);
 		bb.writeShort(itemDamage);
-		BufferUtils.convertNBT2Legacy(buffer, bb, nbtHelper, componentHelper);
+		convertNBT2Legacy(buffer, bb, nbtHelper, componentHelper);
 	}
 
 	public static void convertLegacySlot(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper, byte[] buf) {

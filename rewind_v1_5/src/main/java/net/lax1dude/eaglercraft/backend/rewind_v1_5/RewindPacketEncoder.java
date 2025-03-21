@@ -105,8 +105,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		playerDimension = dimension;
 		short difficulty = in.readUnsignedByte();
 		short maxPlayers = in.readUnsignedByte();
-		String levelType = BufferUtils.readMCString(in, 255);
-		BufferUtils.writeLegacyMCString(bb, levelType, 255);
+		BufferUtils.convertMCString2Legacy(in, bb, 255);
 		bb.writeByte(gamemode);
 		bb.writeByte(dimension);
 		bb.writeByte(difficulty);
@@ -159,7 +158,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeByte(in.readUnsignedByte());
 		bb.writeByte(in.readUnsignedByte());
 		bb.writeShort(256);
-		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+		BufferUtils.convertMCString2Legacy(in, bb, 255);
 	}
 
 	private void handlePlayerPositionAndLook(ByteBuf in, ByteBuf bb) {
@@ -341,7 +340,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		int eid = BufferUtils.readVarInt(in);
 		bb.writeInt(eid);
 		entityIdToType.put(eid, 391);
-		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 255);
+		BufferUtils.convertMCString2Legacy(in, bb, 255);
 		long paintxyz = in.readLong();
 		int x = BufferUtils.posX(paintxyz);
 		int z = BufferUtils.posZ(paintxyz);
@@ -1012,78 +1011,115 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		for (int ii = 0; ii < numStats; ++ii) {
 			String statName = BufferUtils.readMCString(in, 255);
 			int statId = -1;
-			if (statName.equals("stat.leaveGame")) {
+			switch(statName) {
+			case "stat.leaveGame":
 				statId = 1004;
-			} else if (statName.equals("stat.playOneMinute")) {
+				break;
+			case "stat.playOneMinute":
 				statId = 1100;
-			} else if (statName.equals("stat.walkOneCm")) {
+				break;
+			case "stat.walkOneCm":
 				statId = 2000;
-			} else if (statName.equals("stat.swimOneCm")) {
+				break;
+			case "stat.swimOneCm":
 				statId = 2001;
-			} else if (statName.equals("stat.fallOneCm")) {
+				break;
+			case "stat.fallOneCm":
 				statId = 2002;
-			} else if (statName.equals("stat.climbOneCm")) {
+				break;
+			case "stat.climbOneCm":
 				statId = 2003;
-			} else if (statName.equals("stat.flyOneCm")) {
+				break;
+			case "stat.flyOneCm":
 				statId = 2004;
-			} else if (statName.equals("stat.diveOneCm")) {
+				break;
+			case "stat.diveOneCm":
 				statId = 2005;
-			} else if (statName.equals("stat.minecartOneCm")) {
+				break;
+			case "stat.minecartOneCm":
 				statId = 2006;
-			} else if (statName.equals("stat.boatOneCm")) {
+				break;
+			case "stat.boatOneCm":
 				statId = 2007;
-			} else if (statName.equals("stat.pigOneCm")) {
+				break;
+			case "stat.pigOneCm":
 				statId = 2008;
-			} else if (statName.equals("stat.jump")) {
+				break;
+			case "stat.jump":
 				statId = 2010;
-			} else if (statName.equals("stat.drop")) {
+				break;
+			case "stat.drop":
 				statId = 2011;
-			} else if (statName.equals("stat.damageDealt")) {
+				break;
+			case "stat.damageDealt":
 				statId = 2020;
-			} else if (statName.equals("stat.damageTaken")) {
+				break;
+			case "stat.damageTaken":
 				statId = 2021;
-			} else if (statName.equals("stat.deaths")) {
+				break;
+			case "stat.deaths":
 				statId = 2022;
-			} else if (statName.equals("stat.mobKills")) {
+				break;
+			case "stat.mobKills":
 				statId = 2023;
-			} else if (statName.equals("stat.playerKills")) {
+				break;
+			case "stat.playerKills":
 				statId = 2024;
-			} else if (statName.equals("stat.fishCaught")) {
+				break;
+			case "stat.fishCaught":
 				statId = 2025;
-			} else if (statName.equals("achievement.openInventory")) {
+				break;
+			case "achievement.openInventory":
 				statId = 5242880;
-			} else if (statName.equals("achievement.mineWood")) {
+				break;
+			case "achievement.mineWood":
 				statId = 5242881;
-			} else if (statName.equals("achievement.buildWorkBench")) {
+				break;
+			case "achievement.buildWorkBench":
 				statId = 5242882;
-			} else if (statName.equals("achievement.buildPickaxe")) {
+				break;
+			case "achievement.buildPickaxe":
 				statId = 5242883;
-			} else if (statName.equals("achievement.buildFurnace")) {
+				break;
+			case "achievement.buildFurnace":
 				statId = 5242884;
-			} else if (statName.equals("achievement.acquireIron")) {
+				break;
+			case "achievement.acquireIron":
 				statId = 5242885;
-			} else if (statName.equals("achievement.buildHoe")) {
+				break;
+			case "achievement.buildHoe":
 				statId = 5242886;
-			} else if (statName.equals("achievement.makeBread")) {
+				break;
+			case "achievement.makeBread":
 				statId = 5242887;
-			} else if (statName.equals("achievement.bakeCake")) {
+				break;
+			case "achievement.bakeCake":
 				statId = 5242888;
-			} else if (statName.equals("achievement.buildBetterPickaxe")) {
+				break;
+			case "achievement.buildBetterPickaxe":
 				statId = 5242889;
-			} else if (statName.equals("achievement.cookFish")) {
+				break;
+			case "achievement.cookFish":
 				statId = 5242890;
-			} else if (statName.equals("achievement.onARail")) {
+				break;
+			case "achievement.onARail":
 				statId = 5242891;
-			} else if (statName.equals("achievement.buildSword")) {
+				break;
+			case "achievement.buildSword":
 				statId = 5242892;
-			} else if (statName.equals("achievement.killEnemy")) {
+				break;
+			case "achievement.killEnemy":
 				statId = 5242893;
-			} else if (statName.equals("achievement.killCow")) {
+				break;
+			case "achievement.killCow":
 				statId = 5242894;
-			} else if (statName.equals("achievement.flyPig")) {
+				break;
+			case "achievement.flyPig":
 				statId = 5242895;
-			} else {
+				break;
+			default:
 				statName = null;
+				break;
 			}
 			if (statName != null) {
 				bb = alloc.buffer();
@@ -1212,7 +1248,11 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		} else if (sboMode == 1) {
 			scoreBoard.remove(sboName);
 		}
-		BufferUtils.writeLegacyMCString(bb, sboMode == 1 ? "" : BufferUtils.readMCString(in, 255), 255);
+		if(sboMode == 1) {
+			bb.writeShort(0);
+		}else {
+			BufferUtils.convertMCString2Legacy(in, bb, 255);
+		}
 		bb.writeByte(sboMode);
 	}
 
@@ -1279,12 +1319,12 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			return;
 		}
 		bb.writeByte(b);
-		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 16);
+		BufferUtils.convertMCString2Legacy(in, bb, 16);
 	}
 
 	private void handleTeams(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0xD1);
-		BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 16);
+		BufferUtils.convertMCString2Legacy(in, bb, 255);
 		short teamMode = in.readUnsignedByte();
 		bb.writeByte(teamMode);
 		if (teamMode == 0 || teamMode == 2) {
@@ -1299,7 +1339,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			int teamPlNum = BufferUtils.readVarInt(in);
 			bb.writeShort(teamPlNum);
 			for (int ii = 0; ii < teamPlNum; ++ii) {
-				BufferUtils.writeLegacyMCString(bb, BufferUtils.readMCString(in, 255), 16);
+				BufferUtils.convertMCString2Legacy(in, bb, 16);
 			}
 		}
 	}
