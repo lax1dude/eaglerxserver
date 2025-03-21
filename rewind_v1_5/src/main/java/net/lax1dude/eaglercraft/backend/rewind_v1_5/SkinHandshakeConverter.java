@@ -4,6 +4,17 @@ import io.netty.buffer.ByteBuf;
 
 class SkinHandshakeConverter {
 
+	static void convertSkinPixels(ByteBuf imageIn, int offsetIn, byte[] imageOut, int offsetOut, int count) {
+		for(int i = 0, j, k, l = count << 2; i < l; i += 4) {
+			j = imageIn.getIntLE(offsetIn + i);
+			k = offsetOut + i;
+			imageOut[k] = (byte)(j >>> 24);
+			imageOut[k + 1] = (byte)(j & 0xFF);
+			imageOut[k + 2] = (byte)(j >>> 8);
+			imageOut[k + 3] = (byte)(j >>> 16);
+		}
+	}
+
 	/**
 	 * Intended for handshake, write a ByteBuf-to-ByteBuf version for play packets!
 	 */
@@ -39,7 +50,7 @@ class SkinHandshakeConverter {
 		int i, j;
 		for (int y = 0; y < height; ++y) {
 			for (int x = 0; x < width; ++x) {
-				i = imageIn.getIntLE((srcY + y) * imgSrcWidth + srcX + x + offsetIn);
+				i = imageIn.getIntLE((((srcY + y) * imgSrcWidth + srcX + x) << 2) + offsetIn);
 				if (flip) {
 					j = (dstY + y) * imgDstWidth + dstX + width - x - 1;
 				} else {
@@ -47,9 +58,9 @@ class SkinHandshakeConverter {
 				}
 				j = (j << 2) + offsetOut;
 				imageOut[j] = (byte) (i >>> 24);
-				imageOut[j + 1] = (byte) (i >>> 16);
+				imageOut[j + 1] = (byte) (i & 0xFF);
 				imageOut[j + 2] = (byte) (i >>> 8);
-				imageOut[j + 3] = (byte) (i & 0xFF);
+				imageOut[j + 3] = (byte) (i >>> 16);
 			}
 		}
 	}

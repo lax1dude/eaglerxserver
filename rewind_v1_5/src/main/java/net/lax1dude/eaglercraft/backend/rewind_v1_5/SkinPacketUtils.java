@@ -117,7 +117,7 @@ public class SkinPacketUtils {
 		byte[] ret = new byte[2 + 16384];
 		ret[0] = 0x02;
 		ret[1] = b ? (byte) 0x01 : (byte) 0x00;
-		data.readBytes(ret, 2, 16384);
+		SkinHandshakeConverter.convertSkinPixels(data, data.readerIndex(), ret, 2, 4096);
 		return ret;
 	}
 
