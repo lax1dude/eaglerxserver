@@ -115,7 +115,7 @@ public class BufferUtils {
 	}
 
 	public static String readMCString(ByteBuf buffer, int maxLen) {
-		int len = readVarInt(buffer);System.out.println(len);
+		int len = readVarInt(buffer);
 		if(len > maxLen * 4) {
 			throw new IndexOutOfBoundsException();
 		}
@@ -140,7 +140,7 @@ public class BufferUtils {
 		if(maxLen > 32767) {
 			maxLen = 32767;
 		}
-		if(len < 0 || len * 4 > maxLen) {
+		if(len < 0 || len > maxLen * 4) {
 			throw new IndexOutOfBoundsException();
 		}
 		int writeLenAt = bufferOut.writerIndex();
@@ -235,15 +235,15 @@ public class BufferUtils {
 				bufferOut.writeByte(((c >>> 6) & 0x1F) | 0xC0);
 				bufferOut.writeByte((c & 0x3F) | 0x80);
 			}else if(c <= 0xD7FF || c > 0xDFFF) {
-				bufferOut.writeByte(((c >>> 12) & 0x1F) | 0xC0);
+				bufferOut.writeByte(((c >>> 12) & 0x0F) | 0xE0);
 				bufferOut.writeByte(((c >>> 6) & 0x3F) | 0x80);
 				bufferOut.writeByte((c & 0x3F) | 0x80);
 			}else {
 				if(i + 1 < len) {
 					char c2 = bufferIn.getChar(startAt + (++i << 1));
 					if(c2 > 0xD7FF && c <= 0xDFFF && ((c & 0xFC00) == 0xD800) && ((c2 & 0xFC00) == 0xDC00)) {
-						int codepoint = (((c & 0x03FF) << 8) | (c2 & 0x03FF)) + 0x10000;
-						bufferOut.writeByte(((codepoint >>> 18) & 0x07) | 0xC0);
+						int codepoint = (((c & 0x03FF) << 10) | (c2 & 0x03FF)) + 0x10000;
+						bufferOut.writeByte(((codepoint >>> 18) & 0x07) | 0xF0);
 						bufferOut.writeByte(((codepoint >>> 12) & 0x3F) | 0x80);
 						bufferOut.writeByte(((codepoint >>> 6) & 0x3F) | 0x80);
 						bufferOut.writeByte((codepoint & 0x3F) | 0x80);
