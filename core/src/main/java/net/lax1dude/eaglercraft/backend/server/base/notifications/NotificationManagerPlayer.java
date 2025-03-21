@@ -108,8 +108,11 @@ public class NotificationManagerPlayer<PlayerObject> extends NotificationManager
 	@Override
 	protected void releaseIcon(UUID uuid) {
 		synchronized(this) {
-			if(!knownIcons.remove(uuid)) {
+			if(knownIcons == null || !knownIcons.remove(uuid)) {
 				return;
+			}
+			if(knownIcons.size() == 0) {
+				knownIcons = null;
 			}
 		}
 		player.sendEaglerMessage(new SPacketNotifIconsReleaseV4EAG(

@@ -240,4 +240,12 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 		return PacketImageLoader.loadPacketImageData(imageFile, maxWidth, maxHeight);
 	}
 
+	public NotificationManagerPlayer<PlayerObject> createPlayerManager(EaglerPlayerInstance<PlayerObject> player) {
+		if(player.getEaglerProtocol().ver >= 4) {
+			return new NotificationManagerPlayer<PlayerObject>(this, player);
+		}else {
+			return null;
+		}
+	}
+
 }

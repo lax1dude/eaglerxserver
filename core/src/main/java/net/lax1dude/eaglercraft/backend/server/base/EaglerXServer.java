@@ -387,6 +387,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			playerInstance.skinManager = mgr;
 			
 			playerInstance.voiceManager = voiceService.createVoiceManager(playerInstance);
+			playerInstance.notifManager = notificationService.createPlayerManager(playerInstance);
 			
 			try {
 				if(pendingConnection.isEaglerXRewindPlayer()) {
