@@ -135,7 +135,7 @@ public class BufferUtils {
 		buffer.writeBytes(bytes);
 	}
 
-	public static void convertSlot2Legacy(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper) {
+	public static void convertSlot2Legacy(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper, IComponentHelper componentHelper) {
 		short blockId = buffer.readShort();
 		blockId = (short) convertItem2Legacy(blockId);
 		bb.writeShort(blockId);
@@ -146,10 +146,10 @@ public class BufferUtils {
 		short itemDamage = buffer.readShort();
 		bb.writeByte(itemCount);
 		bb.writeShort(itemDamage);
-		BufferUtils.convertNBT2Legacy(buffer, bb, nbtHelper);
+		BufferUtils.convertNBT2Legacy(buffer, bb, nbtHelper, componentHelper);
 	}
 
-	public static void convertLegacySlot(ByteBuf buffer, ByteBuf bb, byte[] buf) {
+	public static void convertLegacySlot(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper, byte[] buf) {
 		short blockId = buffer.readShort();
 		bb.writeShort(blockId);
 		if (blockId == -1) {
@@ -159,10 +159,10 @@ public class BufferUtils {
 		short itemDamage = buffer.readShort();
 		bb.writeByte(itemCount);
 		bb.writeShort(itemDamage);
-		convertLegacyNBT(buffer, bb, buf);
+		convertLegacyNBT(buffer, bb, nbtHelper, buf);
 	}
 
-	public static void convertNBT2Legacy(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper) {
+	public static void convertNBT2Legacy(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper, IComponentHelper componentHelper) {
 		if (buffer.readUnsignedByte() == 0) {
 			bb.writeShort(-1);
 			return;
@@ -176,7 +176,7 @@ public class BufferUtils {
 			 GZIPOutputStream gzipOs = new GZIPOutputStream(bbos);
 			 DataOutputStream dos = new DataOutputStream(gzipOs)) {
 
-			RewindNBTVisitor.apply(nbtHelper, bbis, dos);
+			RewindNBTVisitor.apply(nbtHelper, bbis, dos, componentHelper);
 
 			gzipOs.finish();
 
@@ -186,12 +186,14 @@ public class BufferUtils {
         }
 	}
 
-	public static void convertLegacyNBT(ByteBuf buffer, ByteBuf bb, byte[] buf) {
+	public static void convertLegacyNBT(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper, byte[] buf) {
 		short len1 = buffer.readShort();
 		if (len1 == -1) {
 			bb.writeByte(0);
 			return;
 		}
+		int wi = bb.writerIndex();
+		int ri = bb.readerIndex();
 		try (ByteBufInputStream bbis = new ByteBufInputStream(buffer, len1);
 			 GZIPInputStream gzipIs = new GZIPInputStream(bbis);
 			 ByteBufOutputStream bbos = new ByteBufOutputStream(bb)) {
@@ -200,9 +202,21 @@ public class BufferUtils {
 			while ((len = gzipIs.read(buf)) > 0) {
 				bbos.write(buf, 0, len);
 			}
-		} catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
+		bb.readerIndex(wi);
+		try (ByteBufInputStream bbis = new ByteBufInputStream(bb);
+			 ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			 DataOutputStream dos = new DataOutputStream(baos)) {
+			RewindNBTVisitorReverse.apply(nbtHelper, bbis, dos);
+			bb.readerIndex(ri);
+			bb.writerIndex(wi);
+			bb.writeBytes(baos.toByteArray());
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
 	}
 
 	public static int calcChunkDataSize(final int count, final boolean light, final boolean sendBiomes) {
@@ -256,7 +270,7 @@ public class BufferUtils {
 		return ((long) (x & 0x3FFFFFF) << 38) | ((long) (y & 0xFFF) << 26) | (z & 0x3FFFFFF);
 	}
 
-	public static String convertMetadata2Legacy(ByteBuf buffer, ByteBuf bb, int entityType, ByteBufAllocator alloc, INBTContext nbtHelper) {
+	public static String convertMetadata2Legacy(ByteBuf buffer, ByteBuf bb, int entityType, ByteBufAllocator alloc, INBTContext nbtHelper, IComponentHelper componentHelper) {
 		String playerNameWowie = null;
 
 		if (entityType == -1) {
@@ -301,7 +315,7 @@ public class BufferUtils {
 				case 5:
 					ByteBuf tmp = alloc.buffer();
 					try {
-						BufferUtils.convertSlot2Legacy(buffer, tmp, nbtHelper);
+						BufferUtils.convertSlot2Legacy(buffer, tmp, nbtHelper, componentHelper);
 						remapMeta(entityType, index, type, bb, tmp);
 					} finally {
 						tmp.release();
@@ -403,9 +417,13 @@ public class BufferUtils {
 				index = 2;
 			} else if (entityType == 71 && index == 9 && entryType == 0) {
 				index = 3;
-				entryValue = (byte) (((byte) entryValue) / 2);
+				entryValue = (byte) (((int) (byte) entryValue) >> 1);
 			} else if (entityType == 77 || entityType == 78 || entityType == 90) {
 				return;
+			} else if (entityType == 10 && index == 20 && entryType == 2) {
+				int id = ((int) entryValue) & 0xFFFF;
+				int data = ((int) entryValue) >> 12;
+				entryValue = (data << 16) | id;
 			}
 		}
 

@@ -4,7 +4,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import net.lax1dude.eaglercraft.backend.server.api.bukkit.EaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.EnumDataType;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTContext;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTValue;
@@ -12,16 +12,18 @@ import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTVisitor;
 
 public class RewindNBTVisitor implements INBTVisitor {
 
-	public static void apply(INBTContext context, DataInput input, DataOutput output) throws IOException {
-		context.accept(input, new RewindNBTVisitor(context, context.createWriter(output)));
+	public static void apply(INBTContext context, DataInput input, DataOutput output, IComponentHelper componentHelper) throws IOException {
+		context.accept(input, new RewindNBTVisitor(context, context.createWriter(output), componentHelper));
 	}
 
 	private final INBTContext context;
 	private final INBTVisitor parent;
+	private final IComponentHelper componentHelper;
 
-	private RewindNBTVisitor(INBTContext context, INBTVisitor parent) {
+	private RewindNBTVisitor(INBTContext context, INBTVisitor parent, IComponentHelper componentHelper) {
 		this.context = context;
 		this.parent = parent;
+		this.componentHelper = componentHelper;
 	}
 
 	@Override
@@ -47,6 +49,7 @@ public class RewindNBTVisitor implements INBTVisitor {
 			String name = tagName.value();
 			switch(name) {
 			case "tag":
+				parent().visitTag(tagType, tagName);
 				return this;
 			case "SpawnData":
 				return INBTVisitor.NOP;
@@ -61,8 +64,10 @@ public class RewindNBTVisitor implements INBTVisitor {
 			case "SpawnPotentials":
 				return INBTVisitor.NOP;
 			case "pages":
+				parent().visitTag(tagType, tagName);
 				return new PagesTransformer();
 			case "ench":
+				parent().visitTag(tagType, tagName);
 				return new EnchantmentTransformer();
 			}
 		}
@@ -73,66 +78,115 @@ public class RewindNBTVisitor implements INBTVisitor {
 	private class PagesTransformer implements INBTVisitor {
 		@Override
 		public INBTVisitor parent() {
-			return INBTVisitor.NOP;
+			return parent;
+		}
+
+		private int w = 0;
+		private int len = Integer.MAX_VALUE;
+
+		@Override
+		public INBTVisitor visitRootTag(EnumDataType tagType) throws IOException {
+			if (w >= len) {
+				return parent.visitRootTag(tagType);
+			}
+			parent.visitRootTag(tagType);
+			return this;
 		}
 
 		@Override
-		public INBTVisitor visitRootTag(EnumDataType tagType) {
-			return INBTVisitor.NOP;
+		public INBTVisitor visitTagList(EnumDataType itemType, int length) throws IOException {
+			if (w == 0 && len == Integer.MAX_VALUE) {
+				len = length;
+				parent.visitTagList(itemType, length);
+				return this;
+			} else {
+				return parent.visitTagList(itemType, length);
+			}
 		}
 
 		@Override
-		public INBTVisitor visitTagList(EnumDataType itemType, int length) {
-			return INBTVisitor.NOP;
-		}
-
-		@Override
-		public INBTVisitor visitTag(EnumDataType tagType, INBTValue<String> tagName) {
-			return INBTVisitor.NOP;
+		public INBTVisitor visitTag(EnumDataType tagType, INBTValue<String> tagName) throws IOException {
+			if (w >= len) {
+				return parent.visitTag(tagType, tagName);
+			}
+			if(tagType == EnumDataType.STRING) {
+				w++;
+			}
+			parent.visitTag(tagType, tagName);
+			return this;
 		}
 
 		@Override
 		public void visitTagString(INBTValue<String> str) throws IOException {
-			// todo: .instance() BOOOOOOO
-			String transformedText = EaglerXServerAPI.instance().getComponentHelper().convertJSONToLegacySection(str.value());
-			parent().visitTagString(context.wrapValue(transformedText));
+			String transformedText = componentHelper.convertJSONToLegacySection(str.value());
+			parent.visitTagString(context.wrapValue(transformedText));
 		}
 	}
 
 	private class EnchantmentTransformer implements INBTVisitor {
 		@Override
 		public INBTVisitor parent() {
-			return INBTVisitor.NOP;
+			return parent;
 		}
 
-		@Override
-		public INBTVisitor visitRootTag(EnumDataType tagType) {
-			return INBTVisitor.NOP;
-		}
+		private int w = 0;
+		private int len = Integer.MAX_VALUE;
+		private boolean isId = false;
 
 		@Override
-		public INBTVisitor visitTagList(EnumDataType itemType, int length) {
-			if(itemType == EnumDataType.COMPOUND) {
-				return this;
+		public INBTVisitor visitRootTag(EnumDataType tagType) throws IOException {
+			if (w >= len) {
+				return parent.visitRootTag(tagType);
 			}
-			return INBTVisitor.NOP;
+			parent.visitRootTag(tagType);
+			return this;
+		}
+
+		@Override
+		public INBTVisitor visitTagList(EnumDataType itemType, int length) throws IOException {
+			if (w == 0 && len == Integer.MAX_VALUE) {
+				len = length;
+				parent.visitTagList(itemType, length);
+				return this;
+			} else {
+				return parent.visitTagList(itemType, length);
+			}
 		}
 
 		@Override
 		public INBTVisitor visitTag(EnumDataType tagType, INBTValue<String> tagName) throws IOException {
-			if(tagType == EnumDataType.INT && "id".equals(tagName.value())) {
-				return this;
+			if (w >= len) {
+				return parent.visitTag(tagType, tagName);
 			}
-			return INBTVisitor.NOP;
+			if(tagType == EnumDataType.COMPOUND) {
+				w++;
+			} else if(tagType == EnumDataType.SHORT || tagType == EnumDataType.INT) {
+				isId = "id".equals(tagName.value());
+			}
+			parent.visitTag(tagType, tagName);
+			return this;
 		}
 
 		@Override
 		public void visitTagInt(int value) throws IOException {
-			int guh = value & 0xFFFF;
-			if(guh == 8 || guh == 62 || guh == 61) {
-				value = 0;
+			if (isId) {
+				int guh = value & 0xFFFF;
+				if (guh == 8 || guh == 62 || guh == 61) {
+					value = 0;
+				}
 			}
-			parent.visitTag(EnumDataType.INT, context.wrapValue("id")).visitTagInt(value);
+			parent.visitTagInt(value);
+		}
+
+		@Override
+		public void visitTagShort(short value) throws IOException {
+			if (isId) {
+				int guh = value & 0xFFFF;
+				if (guh == 8 || guh == 62 || guh == 61) {
+					value = 0;
+				}
+			}
+			parent.visitTagShort(value);
 		}
 	}
 
