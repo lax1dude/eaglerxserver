@@ -7,6 +7,8 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.PacketImageData;
 
 public interface IPauseMenuBuilder {
 
+	IPauseMenuBuilder copyFrom(IPauseMenuBuilder pauseMenu);
+
 	IPauseMenuBuilder copyFrom(ICustomPauseMenu pauseMenu);
 
 	EnumServerInfoButton getServerInfoButtonMode();
@@ -41,7 +43,11 @@ public interface IPauseMenuBuilder {
 
 	PacketImageData getMenuIcon(EnumPauseMenuIcon icon);
 
+	PacketImageData getMenuIcon(String icon);
+
 	IPauseMenuBuilder setMenuIcon(EnumPauseMenuIcon icon, PacketImageData imageData);
+
+	IPauseMenuBuilder setMenuIcon(String icon, PacketImageData imageData);
 
 	ICustomPauseMenu buildPauseMenu();
 

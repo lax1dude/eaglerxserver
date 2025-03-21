@@ -78,6 +78,7 @@ import net.lax1dude.eaglercraft.backend.server.base.message.MessageControllerFac
 import net.lax1dude.eaglercraft.backend.server.base.message.PlayerChannelHelper;
 import net.lax1dude.eaglercraft.backend.server.base.nbt.NBTHelper;
 import net.lax1dude.eaglercraft.backend.server.base.notifications.NotificationService;
+import net.lax1dude.eaglercraft.backend.server.base.pause_menu.PauseMenuService;
 import net.lax1dude.eaglercraft.backend.server.base.config.EaglerConfigLoader;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.PipelineTransformer;
 import net.lax1dude.eaglercraft.backend.server.base.query.QueryServer;
@@ -135,6 +136,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private VoiceService<PlayerObject> voiceService;
 	private Collection<ICEServerEntry> iceServers;
 	private NotificationService<PlayerObject> notificationService;
+	private PauseMenuService<PlayerObject> pauseMenuService;
 
 	public EaglerXServer() {
 	}
@@ -216,6 +218,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		voiceService.handleICEServerUpdate(iceServers);
 		
 		notificationService = new NotificationService<>(this);
+		pauseMenuService = new PauseMenuService<>(this);
 		
 		init.setOnServerEnable(this::enableHandler);
 		init.setOnServerDisable(this::disableHandler);
@@ -730,8 +733,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public IPauseMenuService<PlayerObject> getPauseMenuService() {
-		// TODO
-		return null;
+		return pauseMenuService;
 	}
 
 	@Override
