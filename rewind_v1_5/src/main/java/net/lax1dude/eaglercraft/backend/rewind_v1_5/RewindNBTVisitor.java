@@ -78,92 +78,92 @@ public class RewindNBTVisitor implements INBTVisitor {
 	private class PagesTransformer implements INBTVisitor {
 		@Override
 		public INBTVisitor parent() {
-			return parent;
+			return RewindNBTVisitor.this;
 		}
 
-		private int w = 0;
+		private int w = Integer.MAX_VALUE;
 		private int len = Integer.MAX_VALUE;
 
 		@Override
 		public INBTVisitor visitRootTag(EnumDataType tagType) throws IOException {
 			if (w >= len) {
-				return parent.visitRootTag(tagType);
+				return parent().visitRootTag(tagType);
 			}
-			parent.visitRootTag(tagType);
+			parent().visitRootTag(tagType);
 			return this;
 		}
 
 		@Override
 		public INBTVisitor visitTagList(EnumDataType itemType, int length) throws IOException {
-			if (w == 0 && len == Integer.MAX_VALUE) {
+			if (length != 0 && w == Integer.MAX_VALUE && len == Integer.MAX_VALUE) {
 				len = length;
-				parent.visitTagList(itemType, length);
+				parent().visitTagList(itemType, length);
 				return this;
 			} else {
-				return parent.visitTagList(itemType, length);
+				return parent().visitTagList(itemType, length);
 			}
 		}
 
 		@Override
 		public INBTVisitor visitTag(EnumDataType tagType, INBTValue<String> tagName) throws IOException {
 			if (w >= len) {
-				return parent.visitTag(tagType, tagName);
+				return parent().visitTag(tagType, tagName);
 			}
 			if(tagType == EnumDataType.STRING) {
 				w++;
 			}
-			parent.visitTag(tagType, tagName);
+			parent().visitTag(tagType, tagName);
 			return this;
 		}
 
 		@Override
 		public void visitTagString(INBTValue<String> str) throws IOException {
 			String transformedText = componentHelper.convertJSONToLegacySection(str.value());
-			parent.visitTagString(context.wrapValue(transformedText));
+			parent().visitTagString(context.wrapValue(transformedText));
 		}
 	}
 
 	private class EnchantmentTransformer implements INBTVisitor {
 		@Override
 		public INBTVisitor parent() {
-			return parent;
+			return RewindNBTVisitor.this;
 		}
 
-		private int w = 0;
+		private int w = Integer.MAX_VALUE;
 		private int len = Integer.MAX_VALUE;
 		private boolean isId = false;
 
 		@Override
 		public INBTVisitor visitRootTag(EnumDataType tagType) throws IOException {
 			if (w >= len) {
-				return parent.visitRootTag(tagType);
+				return parent().visitRootTag(tagType);
 			}
-			parent.visitRootTag(tagType);
+			parent().visitRootTag(tagType);
 			return this;
 		}
 
 		@Override
 		public INBTVisitor visitTagList(EnumDataType itemType, int length) throws IOException {
-			if (w == 0 && len == Integer.MAX_VALUE) {
+			if (length != 0 && w == Integer.MAX_VALUE && len == Integer.MAX_VALUE) {
 				len = length;
-				parent.visitTagList(itemType, length);
+				parent().visitTagList(itemType, length);
 				return this;
 			} else {
-				return parent.visitTagList(itemType, length);
+				return parent().visitTagList(itemType, length);
 			}
 		}
 
 		@Override
 		public INBTVisitor visitTag(EnumDataType tagType, INBTValue<String> tagName) throws IOException {
 			if (w >= len) {
-				return parent.visitTag(tagType, tagName);
+				return parent().visitTag(tagType, tagName);
 			}
 			if(tagType == EnumDataType.COMPOUND) {
 				w++;
 			} else if(tagType == EnumDataType.SHORT || tagType == EnumDataType.INT) {
 				isId = "id".equals(tagName.value());
 			}
-			parent.visitTag(tagType, tagName);
+			parent().visitTag(tagType, tagName);
 			return this;
 		}
 
@@ -175,7 +175,7 @@ public class RewindNBTVisitor implements INBTVisitor {
 					value = 0;
 				}
 			}
-			parent.visitTagInt(value);
+			parent().visitTagInt(value);
 		}
 
 		@Override
@@ -186,7 +186,7 @@ public class RewindNBTVisitor implements INBTVisitor {
 					value = 0;
 				}
 			}
-			parent.visitTagShort(value);
+			parent().visitTagShort(value);
 		}
 	}
 
@@ -200,17 +200,19 @@ public class RewindNBTVisitor implements INBTVisitor {
 
 		@Override
 		public INBTVisitor parent() {
-			return INBTVisitor.NOP;
+			return RewindNBTVisitor.this;
 		}
 
 		@Override
-		public INBTVisitor visitRootTag(EnumDataType tagType) {
-			return INBTVisitor.NOP;
+		public INBTVisitor visitRootTag(EnumDataType tagType) throws IOException {
+			parent().visitRootTag(tagType);
+			return this;
 		}
 
 		@Override
-		public INBTVisitor visitTagList(EnumDataType itemType, int length) {
-			return INBTVisitor.NOP;
+		public INBTVisitor visitTagList(EnumDataType itemType, int length) throws IOException {
+			parent().visitTagList(itemType, length);
+			return this;
 		}
 
 		@Override
@@ -218,12 +220,12 @@ public class RewindNBTVisitor implements INBTVisitor {
 			if(tagType == EnumDataType.STRING && "Name".equals(tagName.value())) {
 				return this;
 			}
-			return INBTVisitor.NOP;
+			return parent().visitTag(tagType, tagName);
 		}
 
 		@Override
 		public void visitTagString(INBTValue<String> str) throws IOException {
-			parent.visitTag(EnumDataType.STRING, context.wrapValue(notSkull ? "ExtraType" : "SkullOwner")).visitTagString(str);
+			parent().visitTag(EnumDataType.STRING, context.wrapValue(notSkull ? "ExtraType" : "SkullOwner")).visitTagString(str);
 		}
 
 	}

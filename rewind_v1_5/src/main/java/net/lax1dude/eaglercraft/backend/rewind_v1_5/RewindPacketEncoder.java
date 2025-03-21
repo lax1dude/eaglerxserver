@@ -906,7 +906,13 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeShort(BufferUtils.posY(signPos));
 		bb.writeInt(BufferUtils.posZ(signPos));
 		for (int ii = 0; ii < 4; ++ii) {
-			BufferUtils.writeLegacyMCString(bb, serverAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 4095)), 15);
+			String line = BufferUtils.readMCString(in, 4095);
+			try {
+				line = serverAPI().getComponentHelper().convertJSONToLegacySection(line);
+			} catch (IllegalArgumentException ignored) {
+				//
+			}
+			BufferUtils.writeLegacyMCString(bb, line, 15);
 		}
 	}
 
@@ -1150,9 +1156,9 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 						int tempSkip = BufferUtils.readVarInt(in);
 						for (int iii = 0; iii < tempSkip; ++iii) {
 							BufferUtils.readMCString(in, 255);
-							BufferUtils.readMCString(in, Integer.MAX_VALUE);
+							BufferUtils.readMCString(in, 32767);
 							if (in.readBoolean()) {
-								BufferUtils.readMCString(in, Integer.MAX_VALUE);
+								BufferUtils.readMCString(in, 32767);
 							}
 						}
 						BufferUtils.readVarInt(in);

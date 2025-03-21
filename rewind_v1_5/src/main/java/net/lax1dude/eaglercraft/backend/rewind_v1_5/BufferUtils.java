@@ -432,7 +432,6 @@ public class BufferUtils {
 				buffer.readFloat();
 				continue;
 			}
-			int ind = bb.writerIndex();
 			switch (type) {
 				case 0:
 					remapMeta(entityType, index, type, bb, buffer.readByte());
@@ -545,6 +544,8 @@ public class BufferUtils {
 			} else if (index == 16 && entryType == 2) {
 				entryType = 0;
 				entryValue = (byte) (int) entryValue;
+			} else if (index == 6 && entryType == 3) {
+				return;
 			}
 		} else {
 			if ((entityType == 1 || entityType == 10 || entityType == 11 || entityType == 12) && index == 19 && entryType == 3) {
