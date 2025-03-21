@@ -140,9 +140,6 @@ public class BufferUtils {
 		if(maxLen > 32767) {
 			maxLen = 32767;
 		}
-		if(len < 0 || len > maxLen * 4) {
-			throw new IndexOutOfBoundsException();
-		}
 		int writeLenAt = bufferOut.writerIndex();
 		bufferOut.writeShort(0);
 		int charsWritten = 0;
@@ -151,8 +148,10 @@ public class BufferUtils {
 			int b = bufferIn.readUnsignedByte();
 			++cnt;
 			if(b < 127) {
-				bufferOut.writeChar(b);
-				++charsWritten;
+				if(charsWritten < maxLen) {
+					bufferOut.writeChar(b);
+					++charsWritten;
+				}
 			}else {
 				switch((b >> 4) & 0x7) {
 				case 0b100:
@@ -160,8 +159,10 @@ public class BufferUtils {
 					if(cnt < len) {
 						int b2 = bufferIn.readUnsignedByte();
 						++cnt;
-						bufferOut.writeChar(((b & 0x1F) << 6) | (b2 & 0x3F));
-						++charsWritten;
+						if(charsWritten < maxLen) {
+							bufferOut.writeChar(((b & 0x1F) << 6) | (b2 & 0x3F));
+							++charsWritten;
+						}
 					}
 					break;
 				case 0b110:
@@ -169,8 +170,10 @@ public class BufferUtils {
 						int b2 = bufferIn.readUnsignedByte();
 						int b3 = bufferIn.readUnsignedByte();
 						cnt += 2;
-						bufferOut.writeChar(((b & 0x0F) << 12) | ((b2 & 0x3F) << 6) | (b3 & 0x3F));
-						++charsWritten;
+						if(charsWritten < maxLen) {
+							bufferOut.writeChar(((b & 0x0F) << 12) | ((b2 & 0x3F) << 6) | (b3 & 0x3F));
+							++charsWritten;
+						}
 					}
 					break;
 				case 0b111:
@@ -183,23 +186,26 @@ public class BufferUtils {
 						if(codepoint >= 0xD800 && codepoint <= 0xDFFF) {
 							continue;
 						}else if(codepoint < 0x10000) {
-							bufferOut.writeChar(codepoint);
-							++charsWritten;
+							if(charsWritten < maxLen) {
+								bufferOut.writeChar(codepoint);
+								++charsWritten;
+							}
 						}else {
-							codepoint -= 0x10000;
-							bufferOut.writeChar(0xD800 | (codepoint >> 10));
-							bufferOut.writeChar(0xDC00 | (codepoint & 0x03FF));
-							charsWritten += 2;
+							if(charsWritten + 1 < maxLen) {
+								codepoint -= 0x10000;
+								bufferOut.writeChar(0xD800 | (codepoint >> 10));
+								bufferOut.writeChar(0xDC00 | (codepoint & 0x03FF));
+								charsWritten += 2;
+							}
 						}
 					}
 					break;
 				}
 			}
 		}
-		if(charsWritten > maxLen) {
-			throw new IndexOutOfBoundsException();
+		if(charsWritten > 0) {
+			bufferOut.setShort(writeLenAt, charsWritten);
 		}
-		bufferOut.setShort(writeLenAt, charsWritten);
 	}
 
 	public static void convertLegacyMCString(ByteBuf bufferIn, ByteBuf bufferOut, int maxLen) {
@@ -751,4 +757,5 @@ public class BufferUtils {
 		}
 		return guh.getUsername();
 	}
+
 }
