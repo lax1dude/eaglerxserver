@@ -136,18 +136,27 @@ public class BufferUtils {
 	}
 
 	public static void convertMCString2Legacy(ByteBuf bufferIn, ByteBuf bufferOut, int maxLen) {
+		convertMCString2Legacy(bufferIn, maxLen, bufferOut, maxLen);
+	}
+
+	public static void convertMCString2Legacy(ByteBuf bufferIn, int maxInputLen, ByteBuf bufferOut, int maxLen) {
 		int len = readVarInt(bufferIn, 5);
 		if(maxLen > 32767) {
 			maxLen = 32767;
 		}
+		if(len > maxInputLen * 4) {
+			throw new IndexOutOfBoundsException();
+		}
 		int writeLenAt = bufferOut.writerIndex();
 		bufferOut.writeShort(0);
+		int charsRead = 0;
 		int charsWritten = 0;
 		int cnt = 0;
-		while(cnt < len) {
+		while(cnt < len && charsRead <= maxInputLen) {
 			int b = bufferIn.readUnsignedByte();
 			++cnt;
 			if(b < 127) {
+				++charsRead;
 				if(charsWritten < maxLen) {
 					bufferOut.writeChar(b);
 					++charsWritten;
@@ -159,6 +168,7 @@ public class BufferUtils {
 					if(cnt < len) {
 						int b2 = bufferIn.readUnsignedByte();
 						++cnt;
+						++charsRead;
 						if(charsWritten < maxLen) {
 							bufferOut.writeChar(((b & 0x1F) << 6) | (b2 & 0x3F));
 							++charsWritten;
@@ -170,6 +180,7 @@ public class BufferUtils {
 						int b2 = bufferIn.readUnsignedByte();
 						int b3 = bufferIn.readUnsignedByte();
 						cnt += 2;
+						++charsRead;
 						if(charsWritten < maxLen) {
 							bufferOut.writeChar(((b & 0x0F) << 12) | ((b2 & 0x3F) << 6) | (b3 & 0x3F));
 							++charsWritten;
@@ -182,6 +193,7 @@ public class BufferUtils {
 						int b3 = bufferIn.readUnsignedByte();
 						int b4 = bufferIn.readUnsignedByte();
 						cnt += 3;
+						++charsRead;
 						int codepoint = (((b & 0x07) << 18) | ((b2 & 0x3F) << 12) | ((b3 & 0x3F) << 6) | (b4 & 0x3F));
 						if(codepoint >= 0xD800 && codepoint <= 0xDFFF) {
 							continue;
@@ -191,6 +203,7 @@ public class BufferUtils {
 								++charsWritten;
 							}
 						}else {
+							++charsRead;
 							if(charsWritten + 1 < maxLen) {
 								codepoint -= 0x10000;
 								bufferOut.writeChar(0xD800 | (codepoint >> 10));
@@ -202,6 +215,9 @@ public class BufferUtils {
 					break;
 				}
 			}
+		}
+		if(charsRead > maxInputLen) {
+			throw new IndexOutOfBoundsException();
 		}
 		if(charsWritten > 0) {
 			bufferOut.setShort(writeLenAt, charsWritten);

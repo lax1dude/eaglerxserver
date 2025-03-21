@@ -1319,7 +1319,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			return;
 		}
 		bb.writeByte(b);
-		BufferUtils.convertMCString2Legacy(in, bb, 16);
+		BufferUtils.convertMCString2Legacy(in, 255, bb, 16);
 	}
 
 	private void handleTeams(ByteBuf in, ByteBuf bb) {
@@ -1339,7 +1339,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			int teamPlNum = BufferUtils.readVarInt(in);
 			bb.writeShort(teamPlNum);
 			for (int ii = 0; ii < teamPlNum; ++ii) {
-				BufferUtils.convertMCString2Legacy(in, bb, 16);
+				BufferUtils.convertMCString2Legacy(in, 255, bb, 16);
 			}
 		}
 	}
