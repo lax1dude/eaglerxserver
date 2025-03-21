@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
+import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.INativeZlib;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTContext;
@@ -12,6 +13,7 @@ public class PlayerInstance<PlayerObject> {
 
 	private INativeZlib nativeZlib;
 	private INBTContext nbtContext;
+	private IComponentHelper componentHelper;
 
 	private byte[] temp;
 
@@ -44,6 +46,13 @@ public class PlayerInstance<PlayerObject> {
 			this.nbtContext = rewind.getServerAPI().getNBTHelper().createThreadContext(512);
 		}
 		return this.nbtContext;
+	}
+
+	public IComponentHelper getComponentHelper() {
+		if(this.componentHelper == null) {
+			this.componentHelper = rewind.getServerAPI().getComponentHelper();
+		}
+		return this.componentHelper;
 	}
 
 	public byte[] getTempBuffer() {

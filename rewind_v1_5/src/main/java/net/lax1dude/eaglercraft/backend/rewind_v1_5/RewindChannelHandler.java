@@ -5,6 +5,7 @@ import java.util.List;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
+import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTContext;
 
@@ -44,6 +45,10 @@ public class RewindChannelHandler<PlayerObject> extends MessageToMessageCodec<By
 
 		protected final INBTContext nbtContext() {
 			return codec.player.getNBTContext();
+		}
+
+		protected final IComponentHelper componentHelper() {
+			return codec.player.getComponentHelper();
 		}
 
 		protected final byte[] tempBuffer() {
