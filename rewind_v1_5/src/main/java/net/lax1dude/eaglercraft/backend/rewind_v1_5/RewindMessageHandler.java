@@ -246,6 +246,7 @@ public class RewindMessageHandler implements GameMessageHandler {
 				BufferUtils.writeLegacyMCString(buf, "EAG|UserSkin", 255);
 				int lengthAt = buf.writerIndex();
 				buf.writeShort(0);
+				buf.writeShort(cookie);
 				if(packet.skinID >= 0) {
 					buf.writeByte(4); // preset skin
 					if(packet.skinID < 256) {

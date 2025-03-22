@@ -160,8 +160,8 @@ public class SkinPacketUtils {
 	public static void rewriteCustomSkinToLegacy(byte[] data, ByteBuf dest) {
 		for(int i = 0, j; i < 4096; ++i) {
 			j = i * 3;
-			dest.writeIntLE(((data[j] & 0xFF) << 16) | ((data[j + 1] & 0xFF) << 24) | ((data[j + 2] & 0x7F) << 9)
-					| ((data[j + 2] & 0x80) != 0 ? 0xFF : 0));
+			dest.writeIntLE((data[j] & 0xFF) | ((data[j + 1] & 0xFF) << 8) | ((data[j + 2] & 0x7F) << 17)
+					| ((data[j + 2] & 0x80) != 0 ? 0xFF000000 : 0));
 		}
 	}
 
