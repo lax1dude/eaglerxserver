@@ -68,17 +68,17 @@ class SkinHandshakeConverter {
 			for(int x = 0; x < 22; ++x) {
 				i = inOffset + ((y * 32 + x) << 2);
 				j = outOffset + ((y * 23 + x) * 3);
-				skinOut[j] = imageIn.getByte(i + 1);
-				skinOut[j + 1] = imageIn.getByte(i + 2);
-				skinOut[j + 2] = imageIn.getByte(i + 3);
+				skinOut[j] = imageIn.getByte(i);
+				skinOut[j + 1] = imageIn.getByte(i + 1);
+				skinOut[j + 2] = imageIn.getByte(i + 2);
 			}
 		}
 		for(int y = 0; y < 11; ++y) {
 			i = inOffset + (((y + 11) * 32 + 22) << 2);
 			j = outOffset + (((y + 6) * 23 + 22) * 3);
-			skinOut[j] = imageIn.getByte(i + 1);
-			skinOut[j + 1] = imageIn.getByte(i + 2);
-			skinOut[j + 2] = imageIn.getByte(i + 3);
+			skinOut[j] = imageIn.getByte(i);
+			skinOut[j + 1] = imageIn.getByte(i + 1);
+			skinOut[j + 2] = imageIn.getByte(i + 2);
 		}
 	}
 

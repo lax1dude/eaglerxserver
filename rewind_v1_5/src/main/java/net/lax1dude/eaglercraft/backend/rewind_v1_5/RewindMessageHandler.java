@@ -269,6 +269,7 @@ public class RewindMessageHandler implements GameMessageHandler {
 				}
 				if(packet.capeID >= 0) {
 					buf.writeByte(2); // preset cape
+					buf.writeByte(0xFF); // skin layer bits, TODO: map to 1.8 entity metadata value?
 					if(packet.capeID < 256) {
 						buf.writeByte(packet.capeID);
 					}else {
@@ -276,6 +277,7 @@ public class RewindMessageHandler implements GameMessageHandler {
 					}
 				}else {
 					buf.writeByte(0);
+					buf.writeByte(0xFF); // skin layer bits, TODO: map to 1.8 entity metadata value?
 					SkinPacketUtils.rewriteCustomCapeToLegacy(packet.customCape, buf);
 				}
 				buf.setShort(lengthAt, buf.writerIndex() - lengthAt - 2);

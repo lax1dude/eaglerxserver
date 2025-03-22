@@ -50,8 +50,8 @@ public class RewindPluginProtocol<PlayerObject> implements IEaglerXRewindProtoco
 	public void initializeConnection(int legacyProtocol, IEaglerXRewindInitializer<PlayerInstance<PlayerObject>> initializer) {
 		IEaglerConnection eaglerConnection = initializer.getConnection();
 		IPacket2ClientProtocol legacyHandshake = initializer.getLegacyHandshake();
-		IMessageController messageController = initializer.createMessageController();
-		IOutboundInjector outboundInjector = initializer.createOutboundInjector();
+		IMessageController messageController = initializer.requestMessageController();
+		IOutboundInjector outboundInjector = initializer.requestOutboundInjector();
 		
 		String realAddr = eaglerConnection.getRealAddress();
 		if(realAddr == null) {

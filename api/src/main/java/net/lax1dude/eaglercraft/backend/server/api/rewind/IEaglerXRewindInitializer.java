@@ -22,9 +22,9 @@ public interface IEaglerXRewindInitializer<Attachment> {
 
 	void rewriteInitialHandshakeV2(int eaglerProtocol, int minecraftProtocol, String eaglerClientBrand, String eaglerClientVersion, boolean authEnabled, byte[] authUsername);
 
-	IMessageController createMessageController();
+	IMessageController requestMessageController();
 
-	IOutboundInjector createOutboundInjector();
+	IOutboundInjector requestOutboundInjector();
 
 	void cancelDisconnect();
 

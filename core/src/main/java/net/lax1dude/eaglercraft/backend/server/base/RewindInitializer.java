@@ -176,7 +176,7 @@ public abstract class RewindInitializer<Attachment> implements IEaglerXRewindIni
 	protected abstract void injectNettyHandlers0(ChannelHandler nettyCodec);
 
 	@Override
-	public IMessageController createMessageController() {
+	public IMessageController requestMessageController() {
 		if(messageController != null) {
 			throw new IllegalStateException("Message controller handle has already been created");
 		}
@@ -184,7 +184,7 @@ public abstract class RewindInitializer<Attachment> implements IEaglerXRewindIni
 	}
 
 	@Override
-	public IOutboundInjector createOutboundInjector() {
+	public IOutboundInjector requestOutboundInjector() {
 		if(messageInjector != null) {
 			throw new IllegalStateException("Message injector has already been created");
 		}

@@ -124,6 +124,7 @@ public class SkinPacketUtils {
 	public static byte[] rewriteLegacyHandshakeCapeToV1(ByteBuf data) {
 		try {
 			int id = data.readUnsignedByte();
+			data.skipBytes(1); // Skip skin layers, TODO: remap this to 1.8 entity metadata?
 			switch(id) {
 			case CAPE_TYPE_CUSTOM:
 				return rewriteLegacyHandshakeCustomCapeToV1(data);
@@ -173,13 +174,13 @@ public class SkinPacketUtils {
 			for(int x = 0; x < 22; ++x) {
 				i = idx + ((y * 32 + x) << 2);
 				j = ((y * 23 + x) * 3);
-				dest.setIntLE(i, 0xFF | ((data[j + 2] & 0xFF) << 8) | ((data[j + 1] & 0xFF) << 16) | ((data[j] & 0xFF) << 24));
+				dest.setIntLE(i, 0xFF000000 | ((data[j + 2] & 0xFF) << 16) | ((data[j + 1] & 0xFF) << 8) | (data[j] & 0xFF));
 			}
 		}
 		for(int y = 0; y < 11; ++y) {
 			i = idx + (((y + 11) * 32 + 22) << 2);
 			j = (((y + 6) * 23 + 22) * 3);
-			dest.setIntLE(i, 0xFF | ((data[j + 2] & 0xFF) << 8) | ((data[j + 1] & 0xFF) << 16) | ((data[j] & 0xFF) << 24));
+			dest.setIntLE(i, 0xFF000000 | ((data[j + 2] & 0xFF) << 16) | ((data[j + 1] & 0xFF) << 8) | (data[j] & 0xFF));
 		}
 	}
 
