@@ -11,6 +11,7 @@ import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
+import net.lax1dude.eaglercraft.backend.server.base.message.RewindMessageControllerHandle;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class EaglerConnectionInstance extends BaseConnectionInstance implements IEaglerLoginConnection {
@@ -39,6 +40,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	private final Object rewindAttachment;
 	private final IEaglerXRewindProtocol<?, ?> rewindProtocol;
 	private final int rewindProtocolVersion;
+	private final RewindMessageControllerHandle rewindMessageControllerHandle;
 	private final Map<String, byte[]> extraProfileData;
 	private NettyPipelineData.ProfileDataHolder profileDataInit;
 
@@ -69,6 +71,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		this.rewindAttachment = pipelineData.rewindAttachment;
 		this.rewindProtocol = pipelineData.rewindProtocol;
 		this.rewindProtocolVersion = pipelineData.rewindProtocolVersion;
+		this.rewindMessageControllerHandle = pipelineData.rewindMessageControllerHandle;
 		this.profileDataInit = pipelineData.profileDataHelper();
 		this.extraProfileData = pipelineData.extraProfileDataHelper();
 	}
@@ -129,6 +132,10 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 
 	public Object getRewindAttachment() {
 		return rewindAttachment;
+	}
+
+	public RewindMessageControllerHandle getRewindMessageControllerHandle() {
+		return rewindMessageControllerHandle;
 	}
 
 	@Override

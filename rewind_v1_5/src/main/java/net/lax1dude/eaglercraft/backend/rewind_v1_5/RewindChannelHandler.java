@@ -8,6 +8,7 @@ import io.netty.handler.codec.MessageToMessageCodec;
 import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTContext;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IMessageController;
 
 public class RewindChannelHandler<PlayerObject> extends MessageToMessageCodec<ByteBuf, ByteBuf> {
 
@@ -53,6 +54,10 @@ public class RewindChannelHandler<PlayerObject> extends MessageToMessageCodec<By
 
 		protected final byte[] tempBuffer() {
 			return codec.player.getTempBuffer();
+		}
+
+		protected final IMessageController messageController() {
+			return codec.player.getMessageController();
 		}
 
 	}

@@ -6,7 +6,11 @@ import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelOutboundHandler;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindInitializer;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IMessageController;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IOutboundInjector;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IPacket2ClientProtocol;
+import net.lax1dude.eaglercraft.backend.server.base.message.RewindMessageControllerHandle;
+import net.lax1dude.eaglercraft.backend.server.base.message.RewindMessageInjector;
 
 public abstract class RewindInitializer<Attachment> implements IEaglerXRewindInitializer<Attachment>,
 		IEaglerXRewindInitializer.NettyUnsafe {
@@ -65,6 +69,9 @@ public abstract class RewindInitializer<Attachment> implements IEaglerXRewindIni
 	private String eaglerClientVersion;
 	private boolean authEnabled;
 	private byte[] authUsername;
+
+	private RewindMessageControllerHandle messageController;
+	private RewindMessageInjector messageInjector;
 
 	public RewindInitializer(Channel channel, NettyPipelineData pipelineData, int protocolVersion, String username,
 			String serverHost, int serverPort) {
@@ -168,6 +175,22 @@ public abstract class RewindInitializer<Attachment> implements IEaglerXRewindIni
 
 	protected abstract void injectNettyHandlers0(ChannelHandler nettyCodec);
 
+	@Override
+	public IMessageController createMessageController() {
+		if(messageController != null) {
+			throw new IllegalStateException("Message controller handle has already been created");
+		}
+		return messageController = new RewindMessageControllerHandle(pipelineData.connectionLogger);
+	}
+
+	@Override
+	public IOutboundInjector createOutboundInjector() {
+		if(messageInjector != null) {
+			throw new IllegalStateException("Message injector has already been created");
+		}
+		return messageInjector = new RewindMessageInjector(channel);
+	}
+
 	public boolean isCanceled() {
 		return canceled;
 	}
@@ -202,6 +225,14 @@ public abstract class RewindInitializer<Attachment> implements IEaglerXRewindIni
 
 	public byte[] getAuthUsername() {
 		return authUsername;
+	}
+
+	public RewindMessageControllerHandle getMessageControllerHandle() {
+		return messageController;
+	}
+
+	public RewindMessageInjector getMessageInjector() {
+		return messageInjector;
 	}
 
 }

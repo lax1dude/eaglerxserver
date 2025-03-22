@@ -15,6 +15,8 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.MessageToMessageCodec;
 import net.lax1dude.eaglercraft.backend.server.api.EnumPipelineEvent;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IMessageController;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IOutboundInjector;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.RewindInitializer;
@@ -26,6 +28,7 @@ import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakerV2;
 import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakerV3;
 import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakerV4;
 import net.lax1dude.eaglercraft.backend.server.base.handshake.VanillaInitializer;
+import net.lax1dude.eaglercraft.backend.server.base.message.RewindMessageInjector;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 
 public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf, ByteBuf> {
@@ -408,6 +411,7 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 				legacyKickPacket.release();
 			}
 		}
+		
 		RewindInitializer<Object> initializer = new RewindInitializer<Object>(ctx.channel(), pipelineData, protocolVers, username, serverHost, serverPort) {
 
 			@Override
@@ -443,6 +447,18 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		}
 		pipelineData.rewindProtocol = protocol;
 		pipelineData.rewindProtocolVersion = protocolVers;
+		RewindMessageInjector injector = initializer.getMessageInjector();
+		if(injector != null) {
+			ChannelPipeline pipeline = ctx.pipeline();
+			if(pipeline.get(PipelineTransformer.HANDLER_REWIND_CODEC) != null) {
+				pipeline.addBefore(PipelineTransformer.HANDLER_REWIND_CODEC,
+						PipelineTransformer.HANDLER_REWIND_INJECTOR, RewindInjectedMessageHandler.INSTANCE);
+			}else {
+				pipeline.addBefore(PipelineTransformer.HANDLER_REWIND_ENCODER,
+						PipelineTransformer.HANDLER_REWIND_INJECTOR, RewindInjectedMessageHandler.INSTANCE);
+			}
+		}
+		pipelineData.rewindMessageControllerHandle = initializer.getMessageControllerHandle();
 		int eaglerProtocol = initializer.getEaglerProtocol();
 		switch(eaglerProtocol) {
 		case 1:

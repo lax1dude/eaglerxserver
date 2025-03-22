@@ -9,6 +9,10 @@ public class MessageControllerFactory {
 	public static MessageController initializePlayer(EaglerPlayerInstance<?> instance) {
 		GamePluginMessageProtocol protocol = instance.getEaglerProtocol();
 		ServerMessageHandler handler = createHandler(protocol.ver, instance);
+		RewindMessageControllerHandle rewindHandle = instance.connectionImpl().getRewindMessageControllerHandle();
+		if(rewindHandle != null) {
+			return new RewindMessageControllerImpl(rewindHandle, protocol, handler);
+		}
 		EaglerXServer<?> server = instance.getEaglerXServer();
 		int sendDelay = server.getConfig().getSettings().getProtocolV4DefragSendDelay();
 		if (protocol.ver >= 5) {

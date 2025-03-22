@@ -1,13 +1,19 @@
 package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
+import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.INativeZlib;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTContext;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IMessageController;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IOutboundInjector;
 
 public class PlayerInstance<PlayerObject> {
 
 	private final RewindPluginProtocol<PlayerObject> rewind;
+	private final IMessageController messageController;
+	private final IOutboundInjector outboundInjector;
+	private final Channel channel;
 	private final IRewindLogger logger;
 	private IEaglerPlayer<PlayerObject> eaglerPlayer;
 
@@ -17,8 +23,12 @@ public class PlayerInstance<PlayerObject> {
 
 	private byte[] temp;
 
-	public PlayerInstance(RewindPluginProtocol<PlayerObject> rewind, String logName) {
+	public PlayerInstance(RewindPluginProtocol<PlayerObject> rewind, IMessageController messageController,
+			IOutboundInjector outboundInjector, Channel channel, String logName) {
 		this.rewind = rewind;
+		this.messageController = messageController;
+		this.outboundInjector = outboundInjector;
+		this.channel = channel;
 		this.logger = rewind.logger().createSubLogger(logName);
 	}
 
@@ -32,6 +42,18 @@ public class PlayerInstance<PlayerObject> {
 
 	public IEaglerPlayer<PlayerObject> getPlayer() {
 		return eaglerPlayer;
+	}
+
+	public IMessageController getMessageController() {
+		return messageController;
+	}
+
+	public IOutboundInjector getOutboundInjector() {
+		return outboundInjector;
+	}
+
+	public Channel getChannel() {
+		return channel;
 	}
 
 	public INativeZlib getNativeZlib() {

@@ -7,6 +7,8 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindInitializer;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IMessageController;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IOutboundInjector;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IPacket2ClientProtocol;
 
 public class RewindPluginProtocol<PlayerObject> implements IEaglerXRewindProtocol<PlayerObject, PlayerInstance<PlayerObject>> {
@@ -48,14 +50,19 @@ public class RewindPluginProtocol<PlayerObject> implements IEaglerXRewindProtoco
 	public void initializeConnection(int legacyProtocol, IEaglerXRewindInitializer<PlayerInstance<PlayerObject>> initializer) {
 		IEaglerConnection eaglerConnection = initializer.getConnection();
 		IPacket2ClientProtocol legacyHandshake = initializer.getLegacyHandshake();
+		IMessageController messageController = initializer.createMessageController();
+		IOutboundInjector outboundInjector = initializer.createOutboundInjector();
 		
 		String realAddr = eaglerConnection.getRealAddress();
 		if(realAddr == null) {
 			realAddr = eaglerConnection.getSocketAddress().toString();
 		}
 		
-		PlayerInstance<PlayerObject> attachment = new PlayerInstance<>(this, realAddr + "|" + legacyHandshake.getUsername());
+		PlayerInstance<PlayerObject> attachment = new PlayerInstance<>(this, messageController, outboundInjector,
+				initializer.netty().getChannel(), realAddr + "|" + legacyHandshake.getUsername());
 		initializer.setAttachment(attachment);
+		
+		messageController.setOutboundHandler(new RewindMessageHandler(attachment));
 		
 		initializer.netty().injectNettyHandlers((new RewindChannelHandler<PlayerObject>(attachment))
 				.setCodec(new RewindHandshakeCodec<>(legacyHandshake)));

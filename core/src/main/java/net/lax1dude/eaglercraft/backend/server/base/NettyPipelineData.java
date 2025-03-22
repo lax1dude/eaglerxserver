@@ -28,6 +28,7 @@ import net.lax1dude.eaglercraft.backend.server.api.INettyChannel;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
+import net.lax1dude.eaglercraft.backend.server.base.message.RewindMessageControllerHandle;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class NettyPipelineData extends IIdentifiedConnection.Base
@@ -96,6 +97,7 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	public Object rewindAttachment;
 	public IEaglerXRewindProtocol<?, ?> rewindProtocol;
 	public int rewindProtocolVersion = -1;
+	public RewindMessageControllerHandle rewindMessageControllerHandle;
 
 	public EaglerPendingStateAdapter pendingConnection;
 	public EaglerLoginStateAdapter loginConnection;
