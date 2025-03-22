@@ -78,7 +78,7 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 		}
 		Collection<NotificationManagerPlayer<PlayerObject>> lst = players.stream().map(server::getEaglerPlayer)
 				.filter((e) -> e != null)
-				.map(EaglerPlayerInstance<PlayerObject>::getNotificationManagerOrNull)
+				.map(EaglerPlayerInstance<PlayerObject>::getNotificationManager)
 				.filter((e) -> e != null)
 				.collect(ImmutableList.toImmutableList());
 		if(lst.size() > 0) {
@@ -95,7 +95,7 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 			return nopPlayersManager;
 		}
 		Collection<NotificationManagerPlayer<PlayerObject>> lst = players.stream()
-				.map((p) -> ((EaglerPlayerInstance<PlayerObject>)p).getNotificationManagerOrNull())
+				.map((p) -> ((EaglerPlayerInstance<PlayerObject>)p).getNotificationManager())
 				.filter((e) -> e != null)
 				.collect(ImmutableList.toImmutableList());
 		if(lst.size() > 0) {

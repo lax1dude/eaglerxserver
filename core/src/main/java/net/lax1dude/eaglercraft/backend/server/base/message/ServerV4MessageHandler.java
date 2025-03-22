@@ -17,7 +17,7 @@ public class ServerV4MessageHandler extends ServerV3MessageHandler {
 	}
 
 	public void handleClient(CPacketVoiceSignalDisconnectV4EAG packet) {
-		VoiceManager<?> mgr = eaglerHandle.getVoiceManagerOrNull();
+		VoiceManager<?> mgr = eaglerHandle.getVoiceManager();
 		if(mgr != null) {
 			mgr.handleVoiceSignalPacketTypeDisconnect();
 		}else {
@@ -26,7 +26,7 @@ public class ServerV4MessageHandler extends ServerV3MessageHandler {
 	}
 
 	public void handleClient(CPacketVoiceSignalDisconnectPeerV4EAG packet) {
-		VoiceManager<?> mgr = eaglerHandle.getVoiceManagerOrNull();
+		VoiceManager<?> mgr = eaglerHandle.getVoiceManager();
 		if(mgr != null) {
 			mgr.handleVoiceSignalPacketTypeDisconnectPeer(new UUID(packet.uuidMost, packet.uuidLeast));
 		}else {

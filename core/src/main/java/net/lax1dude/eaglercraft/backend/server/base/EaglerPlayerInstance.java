@@ -143,14 +143,6 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public VoiceManager<PlayerObject> getVoiceManager() {
-		if(voiceManager == null) {
-			throw new IllegalStateException("Voice service is not enabled!");
-		}
-		return voiceManager;
-	}
-
-	@Override
-	public VoiceManager<PlayerObject> getVoiceManagerOrNull() {
 		return voiceManager;
 	}
 
@@ -187,14 +179,6 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public NotificationManagerPlayer<PlayerObject> getNotificationManager() {
-		if(notifManager == null) {
-			throw new IllegalStateException("Notification service is not supported!");
-		}
-		return notifManager;
-	}
-
-	@Override
-	public NotificationManagerPlayer<PlayerObject> getNotificationManagerOrNull() {
 		return notifManager;
 	}
 
@@ -210,24 +194,12 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
-	public IPauseMenuManager<PlayerObject> getPauseMenuManagerOrNull() {
-		// TODO
-		return null;
-	}
-
-	@Override
 	public boolean isWebViewSupported() {
 		return connectionInstance.getEaglerProtocol().ver >= 4;
 	}
 
 	@Override
 	public IWebViewManager<PlayerObject> getWebViewManager() {
-		// TODO
-		return null;
-	}
-
-	@Override
-	public IWebViewManager<PlayerObject> getWebViewManagerOrNull() {
 		// TODO
 		return null;
 	}
