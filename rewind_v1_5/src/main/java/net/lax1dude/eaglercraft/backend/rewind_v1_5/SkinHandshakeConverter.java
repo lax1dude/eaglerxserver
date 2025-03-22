@@ -15,9 +15,6 @@ class SkinHandshakeConverter {
 		}
 	}
 
-	/**
-	 * Intended for handshake, write a ByteBuf-to-ByteBuf version for play packets!
-	 */
 	static void convertSkin64x32To64x64(ByteBuf imageIn, int offsetIn, byte[] imageOut, int offsetOut) {
 		copyRawPixels(imageIn, offsetIn, imageOut, offsetOut, 0, 0, 0, 0, 64, 32, 64, 64, false);
 		copyRawPixels(imageIn, offsetIn, imageOut, offsetOut, 24, 48, 20, 52, 4, 16, 8, 20, 64, 64);
@@ -65,9 +62,6 @@ class SkinHandshakeConverter {
 		}
 	}
 
-	/**
-	 * Intended for handshake, write a ByteBuf-to-ByteBuf version for play packets!
-	 */
 	static void convertCape32x32RGBAto23x17RGB(ByteBuf imageIn, int inOffset, byte[] skinOut, int outOffset) {
 		int i, j;
 		for(int y = 0; y < 17; ++y) {

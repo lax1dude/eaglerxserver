@@ -60,6 +60,10 @@ public class RewindChannelHandler<PlayerObject> extends MessageToMessageCodec<By
 			return codec.player.getMessageController();
 		}
 
+		protected final TabListTracker tabList() {
+			return codec.player.getTabList();
+		}
+
 	}
 
 	public static abstract class Encoder<PlayerObject> extends Codec<PlayerObject> {

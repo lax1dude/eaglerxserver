@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.skins;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
@@ -15,8 +16,12 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.InternUtils;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketEnableFNAWSkinsEAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketInvalidatePlayerCacheV4EAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherCapeCustomEAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherSkinCustomV4EAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherTexturesV5EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketUnforceClientV4EAG;
 
 public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<PlayerObject>, ISkinManagerImpl {
@@ -245,7 +250,7 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 			if(skin != null) {
 				player.sendEaglerMessage(skin.getSkinPacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
 			}else {
-				((ISkinManagerImpl)skinMgr).resolvePlayerSkinKeyed(player.getUniqueId(), (res) -> {
+				skinMgr.resolvePlayerSkinKeyed(player.getUniqueId(), (res) -> {
 					player.sendEaglerMessage(res.getSkinPacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
 				});
 			}
@@ -272,6 +277,83 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 		skinService.loadCacheSkinFromURL(url, EnumSkinModel.STEVE, (res) -> {
 			player.sendEaglerMessage(res.getSkinPacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
 		});
+	}
+
+	public void handlePacketGetTextures(long uuidMost, long uuidLeast) {
+		UUID targetUUID = new UUID(uuidMost, uuidLeast);
+		BasePlayerInstance<PlayerObject> target = player.getEaglerXServer().getPlayerByUUID(targetUUID);
+		if(target != null) {
+			ISkinManagerImpl skinMgr = (ISkinManagerImpl) target.getSkinManager();
+			IEaglerPlayerSkin skin = skinMgr.getPlayerSkinIfLoaded();
+			IEaglerPlayerCape cape = skinMgr.getPlayerCapeIfLoaded();
+			if(skin != null && cape != null) {
+				player.sendEaglerMessage(createV5Textures(uuidMost, uuidLeast, skin, cape));
+			}else {
+				new MultiSkinResolver(skin, cape, skinMgr, player.getUniqueId(), uuidMost, uuidLeast);
+			}
+		}
+	}
+
+	private class MultiSkinResolver {
+
+		private final long uuidMost;
+		private final long uuidLeast;
+		private final AtomicInteger countDown = new AtomicInteger(2);
+		private volatile IEaglerPlayerSkin skin;
+		private volatile IEaglerPlayerCape cape;
+
+		protected MultiSkinResolver(IEaglerPlayerSkin skin, IEaglerPlayerCape cape, ISkinManagerImpl skinMgr, UUID uuid,
+				long uuidMost, long uuidLeast) {
+			this.uuidMost = uuidMost;
+			this.uuidLeast = uuidLeast;
+			if(skin == null) {
+				skinMgr.resolvePlayerSkinKeyed(uuid, (res) -> {
+					this.skin = res;
+					countDown();
+				});
+			}else {
+				this.skin = skin;
+				countDown();
+			}
+			if(cape == null) {
+				skinMgr.resolvePlayerCapeKeyed(uuid, (res) -> {
+					this.cape = res;
+					countDown();
+				});
+			}else {
+				this.cape = cape;
+				countDown();
+			}
+		}
+
+		private void countDown() {
+			if(countDown.decrementAndGet() == 0) {
+				player.sendEaglerMessage(createV5Textures(uuidMost, uuidLeast, skin, cape));
+			}
+		}
+
+	}
+
+	private SPacketOtherTexturesV5EAG createV5Textures(long uuidMost, long uuidLeast, IEaglerPlayerSkin skin, IEaglerPlayerCape cape) {
+		int skinID = 0;
+		byte[] customSkin = null;
+		int capeID = 0;
+		byte[] customCape = null;
+		if(skin.isSkinPreset()) {
+			skinID = skin.getPresetSkinId() & 0x7FFFFFFF;
+		}else {
+			SPacketOtherSkinCustomV4EAG cs = (SPacketOtherSkinCustomV4EAG) skin.getSkinPacket(uuidMost, uuidLeast, GamePluginMessageProtocol.V4);
+			skinID = -cs.modelID - 1;
+			customSkin = cs.customSkin;
+		}
+		if(cape.isCapePreset()) {
+			capeID = cape.getPresetCapeId() & 0x7FFFFFFF;
+		}else {
+			SPacketOtherCapeCustomEAG cs = (SPacketOtherCapeCustomEAG) cape.getCapePacket(uuidMost, uuidLeast, GamePluginMessageProtocol.V4);
+			capeID = -1;
+			customCape = cs.customCape;
+		}
+		return new SPacketOtherTexturesV5EAG(uuidMost, uuidLeast, skinID, customSkin, capeID, customCape);
 	}
 
 }

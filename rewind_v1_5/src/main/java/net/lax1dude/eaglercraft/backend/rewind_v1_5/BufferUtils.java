@@ -767,12 +767,8 @@ public class BufferUtils {
 		return "\"" + str.replaceAll("\"","\\\\\"") + "\"";
 	}
 
-	public static String getUsernameOrElse(IEaglerXServerAPI<?> api, UUID uuid, String fallback) {
-		IBasePlayer<?> guh = api.getPlayerByUUID(uuid);
-		if (guh == null) {
-			return fallback;
-		}
-		return guh.getUsername();
+	public static String readASCIIStr(ByteBuf in) {
+		return in.readCharSequence(in.readUnsignedShort(), StandardCharsets.US_ASCII).toString();
 	}
 
 }

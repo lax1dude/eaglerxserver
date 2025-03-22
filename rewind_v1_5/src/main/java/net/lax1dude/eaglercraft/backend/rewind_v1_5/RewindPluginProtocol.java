@@ -67,7 +67,7 @@ public class RewindPluginProtocol<PlayerObject> implements IEaglerXRewindProtoco
 		initializer.netty().injectNettyHandlers((new RewindChannelHandler<PlayerObject>(attachment))
 				.setCodec(new RewindHandshakeCodec<>(legacyHandshake)));
 		
-		initializer.rewriteInitialHandshakeV2(3, 47, "EaglerXRewind", "1.5.2", false,
+		initializer.rewriteInitialHandshakeV2(5, 47, "EaglerXRewind", "1.5.2", false,
 				legacyHandshake.getUsername().getBytes(StandardCharsets.US_ASCII));
 	}
 
@@ -88,7 +88,7 @@ public class RewindPluginProtocol<PlayerObject> implements IEaglerXRewindProtoco
 
 	@Override
 	public int getEmulatedEaglerHandshake() {
-		return 3;
+		return 5;
 	}
 
 }

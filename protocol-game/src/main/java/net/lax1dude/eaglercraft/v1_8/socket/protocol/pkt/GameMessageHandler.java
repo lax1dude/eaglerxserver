@@ -80,6 +80,10 @@ public interface GameMessageHandler {
 		throw new WrongPacketException();
 	}
 
+	default void handleClient(CPacketGetOtherTexturesV5EAG packet) {
+		throw new WrongPacketException();
+	}
+
 	default void handleServer(SPacketEnableFNAWSkinsEAG packet) {
 		throw new WrongPacketException();
 	}
@@ -201,6 +205,10 @@ public interface GameMessageHandler {
 	}
 
 	default void handleServer(SPacketNotifBadgeHideV4EAG packet) {
+		throw new WrongPacketException();
+	}
+
+	default void handleServer(SPacketOtherTexturesV5EAG packet) {
 		throw new WrongPacketException();
 	}
 

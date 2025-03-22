@@ -58,33 +58,38 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 	private void handleClientClientCommand(ChannelHandlerContext ctx, ByteBuf buf, List<Object> output) {
 		if(state == STATE_SENT_RECEIVED_ALLOW_LOGIN) {
 			state = STATE_STALLING;
+			boolean skin = false, cape = false;
+			int total = 0;
 			if(skinData != null && skinData != ERR) {
+				skin = true;
+				++total;
+			}
+			if(capeData != null && capeData != ERR) {
+				cape = true;
+				++total;
+			}
+			if(total > 0) {
 				ByteBuf packet = ctx.alloc().buffer();
 				try {
 					// PROTOCOL_CLIENT_PROFILE_DATA
 					packet.writeByte(0x07);
-					packet.writeByte(SKIN_V1_STR.length);
-					packet.writeBytes(SKIN_V1_STR);
-					packet.writeShort(skinData.length);
-					packet.writeBytes(skinData);
+					packet.writeByte(total);
+					if(skin) {
+						packet.writeByte(SKIN_V1_STR.length);
+						packet.writeBytes(SKIN_V1_STR);
+						packet.writeShort(skinData.length);
+						packet.writeBytes(skinData);
+					}
+					if(cape) {
+						packet.writeByte(CAPE_V1_STR.length);
+						packet.writeBytes(CAPE_V1_STR);
+						packet.writeShort(capeData.length);
+						packet.writeBytes(capeData);
+					}
 					output.add(packet.retain());
 				}finally {
 					packet.release();
 					skinData = null;
-				}
-			}
-			if(capeData != null && capeData != ERR) {
-				ByteBuf packet = ctx.alloc().buffer();
-				try {
-					// PROTOCOL_CLIENT_PROFILE_DATA
-					packet.writeByte(0x07);
-					packet.writeByte(CAPE_V1_STR.length);
-					packet.writeBytes(CAPE_V1_STR);
-					packet.writeShort(capeData.length);
-					packet.writeBytes(capeData);
-					output.add(packet.retain());
-				}finally {
-					packet.release();
 					capeData = null;
 				}
 			}
@@ -215,6 +220,8 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 				packet.writeCharSequence(username, StandardCharsets.US_ASCII);
 				packet.writeByte(REWIND_STR.length);
 				packet.writeBytes(REWIND_STR);
+				packet.writeByte(0);
+				packet.writeBoolean(false);
 				packet.writeByte(0);
 				state = STATE_SENT_REQUESTED_LOGIN;
 				ctx.fireChannelRead(packet.retain());

@@ -30,6 +30,8 @@ public class MessageControllerFactory {
 
 	private static ServerMessageHandler createHandler(int ver, EaglerPlayerInstance<?> instance) {
 		switch(ver) {
+		case 5:
+			return new ServerV5MessageHandler(instance);
 		case 4:
 			return new ServerV4MessageHandler(instance);
 		case 3:

@@ -9,18 +9,6 @@ import io.netty.channel.ChannelHandlerContext;
 
 public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Encoder<PlayerObject> {
 
-	private static final class TabListItem {
-		public String name;
-		public int ping;
-
-		public TabListItem(String name, int ping) {
-			this.name = name;
-			this.ping = ping;
-		}
-	}
-
-	private final Map<UUID, TabListItem> tabList = new HashMap<>();
-
 	private final Map<String, Map<String, Integer>> scoreBoard = new HashMap<>();
 
 	private byte playerDimension = 0;
@@ -237,15 +225,11 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			tmp.writeByte(in.readByte());
 			tmp.writeShort(in.readShort());
 			String playerName = BufferUtils.convertMetadata2Legacy(in, tmp, 300, alloc, nbtContext(), componentHelper());
-			if (playerName == null || playerName.isEmpty()) {
-				TabListItem tli = tabList.get(uuid);
-				String fb;
-				if (tli == null) {
-					fb = "" + uuid.hashCode();
-				} else {
-					fb = tli.name;
-				}
-				playerName = BufferUtils.getUsernameOrElse(serverAPI(), uuid, fb);
+			TabListTracker.ListItem itm = tabList().handleSpawnPlayer(uuid, eid);
+			if (itm != null) {
+				playerName = itm.playerName;
+			} else if (playerName == null) {
+				playerName = "" + uuid.hashCode();
 			}
 			BufferUtils.writeLegacyMCString(bb, playerName, 16);
 			bb.writeBytes(tmp);
@@ -1156,9 +1140,10 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				long plimsb = in.readLong();
 				long plilsb = in.readLong();
 				UUID pliUuid = new UUID(plimsb, plilsb);
-				if (!tabList.containsKey(pliUuid)) {
-					if (pliAction == 0) {
+				switch(pliAction) {
+					case 0: {
 						String tempName = BufferUtils.readMCString(in, 255);
+						String displayName = tempName;
 						int tempSkip = BufferUtils.readVarInt(in);
 						for (int iii = 0; iii < tempSkip; ++iii) {
 							BufferUtils.readMCString(in, 255);
@@ -1170,55 +1155,99 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 						BufferUtils.readVarInt(in);
 						int tbPing = BufferUtils.readVarInt(in);
 						if (in.readBoolean()) {
-							tempName = componentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767));
+							displayName = componentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767));
 						}
-						tabList.put(pliUuid, new TabListItem(tempName, tbPing));
-					} else {
-						tabList.put(pliUuid, new TabListItem(BufferUtils.getUsernameOrElse(serverAPI(), pliUuid, "" + pliUuid.hashCode()), 0));
+						TabListTracker.ListItem pliItem = tabList().handleAddPlayer(tempName, pliUuid, displayName, tbPing);
+						if(pliItem != null) {
+							bb = alloc.buffer();
+							try {
+								bb.writeByte(0xC9);
+								BufferUtils.writeLegacyMCString(bb, pliItem.oldDisplayName, 16);
+								bb.writeBoolean(false);
+								bb.writeShort(0);
+								out.add(bb.retain());
+							} finally {
+								bb.release();
+							}
+						}
+						bb = alloc.buffer();
+						try {
+							bb.writeByte(0xC9);
+							BufferUtils.writeLegacyMCString(bb, displayName, 16);
+							bb.writeBoolean(true);
+							bb.writeShort(tbPing);
+							out.add(bb.retain());
+						} finally {
+							bb.release();
+						}
+						break;
 					}
-				}
-				TabListItem pliItem = tabList.get(pliUuid);
-				if (pliAction != 0) {
-					bb = alloc.buffer();
-					try {
-						bb.writeByte(0xC9);
-						BufferUtils.writeLegacyMCString(bb, pliItem.name, 16);
-						bb.writeBoolean(false);
-						bb.writeShort(pliItem.ping);
-						out.add(bb.retain());
-					} finally {
-						bb.release();
+					case 2: {
+						int tbPing = BufferUtils.readVarInt(in);
+						TabListTracker.ListItem pliItem = tabList().handleUpdatePing(pliUuid, tbPing);
+						if(pliItem != null) {
+							bb = alloc.buffer();
+							try {
+								bb.writeByte(0xC9);
+								BufferUtils.writeLegacyMCString(bb, pliItem.displayName, 16);
+								bb.writeBoolean(true);
+								bb.writeShort(tbPing);
+								out.add(bb.retain());
+							} finally {
+								bb.release();
+							}
+						}
+						break;
 					}
-				}
-				if (pliAction == 2) {
-					bb = alloc.buffer();
-					try {
-						bb.writeByte(0xC9);
-						BufferUtils.writeLegacyMCString(bb, pliItem.name, 16);
-						bb.writeBoolean(true);
-						bb.writeShort(pliItem.ping = BufferUtils.readVarInt(in));
-						out.add(bb.retain());
-					} finally {
-						bb.release();
+					case 3: {
+						TabListTracker.ListItem pliItem;
+						if (in.readBoolean()) {
+							pliItem = tabList().handleUpdateDisplayName(pliUuid, componentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767)));
+						}else {
+							pliItem = tabList().handleUpdateDisplayName(pliUuid, null);
+						}
+						if(pliItem.dirty) {
+							pliItem.dirty = false;
+							bb = alloc.buffer();
+							try {
+								bb.writeByte(0xC9);
+								BufferUtils.writeLegacyMCString(bb, pliItem.oldDisplayName, 16);
+								bb.writeBoolean(false);
+								bb.writeShort(0);
+								out.add(bb.retain());
+							} finally {
+								bb.release();
+							}
+							pliItem.oldDisplayName = pliItem.displayName;
+							bb = alloc.buffer();
+							try {
+								bb.writeByte(0xC9);
+								BufferUtils.writeLegacyMCString(bb, pliItem.displayName, 16);
+								bb.writeBoolean(true);
+								bb.writeShort(pliItem.pingValue);
+								out.add(bb.retain());
+							} finally {
+								bb.release();
+							}
+						}
+						break;
 					}
-				} else if (pliAction == 3) {
-					if (in.readBoolean()) {
-						pliItem.name = componentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767));
+					case 4: {
+						TabListTracker.ListItem pliItem = tabList().handleRemovePlayer(pliUuid);
+						if(pliItem != null) {
+							bb = alloc.buffer();
+							try {
+								bb.writeByte(0xC9);
+								BufferUtils.writeLegacyMCString(bb, pliItem.oldDisplayName, 16);
+								bb.writeBoolean(false);
+								bb.writeShort(0);
+								out.add(bb.retain());
+							} finally {
+								bb.release();
+							}
+						}
+						break;
 					}
-				}
-				if (pliAction != 4) {
-					bb = alloc.buffer();
-					try {
-						bb.writeByte(0xC9);
-						BufferUtils.writeLegacyMCString(bb, pliItem.name, 16);
-						bb.writeBoolean(true);
-						bb.writeShort(pliItem.ping);
-						out.add(bb.retain());
-					} finally {
-						bb.release();
-					}
-				} else {
-					tabList.remove(pliUuid);
 				}
 			}
 		}
@@ -1660,7 +1689,6 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				bb.release();
 			}
 		}
-		in.skipBytes(in.readableBytes());
 		if (out.isEmpty()) {
 			out.add(Unpooled.EMPTY_BUFFER);
 		}

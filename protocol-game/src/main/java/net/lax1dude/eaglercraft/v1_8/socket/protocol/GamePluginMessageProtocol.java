@@ -98,11 +98,63 @@ public enum GamePluginMessageProtocol {
 			define(V4_CHANNEL, 0x29, SERVER_TO_CLIENT, SPacketNotifIconsReleaseV4EAG.class, SPacketNotifIconsReleaseV4EAG::new),
 			define(V4_CHANNEL, 0x2A, SERVER_TO_CLIENT, SPacketNotifBadgeShowV4EAG.class, SPacketNotifBadgeShowV4EAG::new),
 			define(V4_CHANNEL, 0x2B, SERVER_TO_CLIENT, SPacketNotifBadgeHideV4EAG.class, SPacketNotifBadgeHideV4EAG::new)
+	), V5(5,
+
+			// Client to server
+			define(0x01, CLIENT_TO_SERVER, CPacketGetOtherSkinEAG.class, CPacketGetOtherSkinEAG::new),
+			define(0x02, CLIENT_TO_SERVER, CPacketGetOtherCapeEAG.class, CPacketGetOtherCapeEAG::new),
+			define(0x03, CLIENT_TO_SERVER, CPacketGetOtherTexturesV5EAG.class, CPacketGetOtherTexturesV5EAG::new),
+			define(0x04, CLIENT_TO_SERVER, CPacketGetSkinByURLEAG.class, CPacketGetSkinByURLEAG::new),
+			define(0x05, CLIENT_TO_SERVER, CPacketInstallSkinSPEAG.class, CPacketInstallSkinSPEAG::new),
+			define(0x06, CLIENT_TO_SERVER, CPacketVoiceSignalRequestEAG.class, CPacketVoiceSignalRequestEAG::new),
+			define(0x07, CLIENT_TO_SERVER, CPacketVoiceSignalConnectEAG.class, CPacketVoiceSignalConnectEAG::new),
+			define(0x08, CLIENT_TO_SERVER, CPacketVoiceSignalDisconnectV4EAG.class, CPacketVoiceSignalDisconnectV4EAG::new),
+			define(0x09, CLIENT_TO_SERVER, CPacketVoiceSignalDisconnectPeerV4EAG.class, CPacketVoiceSignalDisconnectPeerV4EAG::new),
+			define(0x0A, CLIENT_TO_SERVER, CPacketVoiceSignalICEEAG.class, CPacketVoiceSignalICEEAG::new),
+			define(0x0B, CLIENT_TO_SERVER, CPacketVoiceSignalDescEAG.class, CPacketVoiceSignalDescEAG::new),
+			define(0x0C, CLIENT_TO_SERVER, CPacketGetOtherClientUUIDV4EAG.class, CPacketGetOtherClientUUIDV4EAG::new),
+			define(0x0D, CLIENT_TO_SERVER, CPacketRequestServerInfoV4EAG.class, CPacketRequestServerInfoV4EAG::new),
+			define(0x0E, CLIENT_TO_SERVER, CPacketWebViewMessageEnV4EAG.class, CPacketWebViewMessageEnV4EAG::new),
+			define(0x0F, CLIENT_TO_SERVER, CPacketWebViewMessageV4EAG.class, CPacketWebViewMessageV4EAG::new),
+
+			// Server to client
+			define(0x01, SERVER_TO_CLIENT, SPacketOtherSkinPresetEAG.class, SPacketOtherSkinPresetEAG::new),
+			define(0x02, SERVER_TO_CLIENT, SPacketOtherSkinCustomV4EAG.class, SPacketOtherSkinCustomV4EAG::new),
+			define(0x03, SERVER_TO_CLIENT, SPacketOtherCapePresetEAG.class, SPacketOtherCapePresetEAG::new),
+			define(0x04, SERVER_TO_CLIENT, SPacketOtherCapeCustomEAG.class, SPacketOtherCapeCustomEAG::new),
+			define(0x05, SERVER_TO_CLIENT, SPacketOtherTexturesV5EAG.class, SPacketOtherTexturesV5EAG::new),
+			define(0x06, SERVER_TO_CLIENT, SPacketVoiceSignalAllowedEAG.class, SPacketVoiceSignalAllowedEAG::new),
+			define(0x07, SERVER_TO_CLIENT, SPacketVoiceSignalConnectV4EAG.class, SPacketVoiceSignalConnectV4EAG::new),
+			define(0x08, SERVER_TO_CLIENT, SPacketVoiceSignalConnectAnnounceV4EAG.class, SPacketVoiceSignalConnectAnnounceV4EAG::new),
+			define(0x09, SERVER_TO_CLIENT, SPacketVoiceSignalDisconnectPeerEAG.class, SPacketVoiceSignalDisconnectPeerEAG::new),
+			define(0x0A, SERVER_TO_CLIENT, SPacketVoiceSignalICEEAG.class, SPacketVoiceSignalICEEAG::new),
+			define(0x0B, SERVER_TO_CLIENT, SPacketVoiceSignalDescEAG.class, SPacketVoiceSignalDescEAG::new),
+			define(0x0C, SERVER_TO_CLIENT, SPacketVoiceSignalGlobalEAG.class, SPacketVoiceSignalGlobalEAG::new),
+			define(0x0D, SERVER_TO_CLIENT, SPacketUpdateCertEAG.class, SPacketUpdateCertEAG::new),
+			define(0x0E, SERVER_TO_CLIENT, SPacketEnableFNAWSkinsEAG.class, SPacketEnableFNAWSkinsEAG::new),
+			define(0x0F, SERVER_TO_CLIENT, SPacketForceClientSkinPresetV4EAG.class, SPacketForceClientSkinPresetV4EAG::new),
+			define(0x10, SERVER_TO_CLIENT, SPacketForceClientSkinCustomV4EAG.class, SPacketForceClientSkinCustomV4EAG::new),
+			define(0x11, SERVER_TO_CLIENT, SPacketSetServerCookieV4EAG.class, SPacketSetServerCookieV4EAG::new),
+			define(0x12, SERVER_TO_CLIENT, SPacketRedirectClientV4EAG.class, SPacketRedirectClientV4EAG::new),
+			define(0x13, SERVER_TO_CLIENT, SPacketOtherPlayerClientUUIDV4EAG.class, SPacketOtherPlayerClientUUIDV4EAG::new),
+			define(0x14, SERVER_TO_CLIENT, SPacketForceClientCapePresetV4EAG.class, SPacketForceClientCapePresetV4EAG::new),
+			define(0x15, SERVER_TO_CLIENT, SPacketForceClientCapeCustomV4EAG.class, SPacketForceClientCapeCustomV4EAG::new),
+			define(0x16, SERVER_TO_CLIENT, SPacketInvalidatePlayerCacheV4EAG.class, SPacketInvalidatePlayerCacheV4EAG::new),
+			define(0x17, SERVER_TO_CLIENT, SPacketUnforceClientV4EAG.class, SPacketUnforceClientV4EAG::new),
+			define(0x18, SERVER_TO_CLIENT, SPacketCustomizePauseMenuV4EAG.class, SPacketCustomizePauseMenuV4EAG::new),
+			define(0x19, SERVER_TO_CLIENT, SPacketServerInfoDataChunkV4EAG.class, SPacketServerInfoDataChunkV4EAG::new),
+			define(0x1A, SERVER_TO_CLIENT, SPacketWebViewMessageV4EAG.class, SPacketWebViewMessageV4EAG::new),
+			define(0x1B, SERVER_TO_CLIENT, SPacketNotifIconsRegisterV4EAG.class, SPacketNotifIconsRegisterV4EAG::new),
+			define(0x1C, SERVER_TO_CLIENT, SPacketNotifIconsReleaseV4EAG.class, SPacketNotifIconsReleaseV4EAG::new),
+			define(0x1D, SERVER_TO_CLIENT, SPacketNotifBadgeShowV4EAG.class, SPacketNotifBadgeShowV4EAG::new),
+			define(0x1E, SERVER_TO_CLIENT, SPacketNotifBadgeHideV4EAG.class, SPacketNotifBadgeHideV4EAG::new)
+
 	);
 
 	public final int ver;
 
 	private final Map<String, Object>[] channelMap;
+	private final PacketDef[][] channelMapV5;
 	private final Map<Class<? extends GameMessagePacket>, PacketDef>[] classMap;
 	private final Set<String> notChannelMap = new HashSet<>(); // populated in clinit
 
@@ -111,30 +163,46 @@ public enum GamePluginMessageProtocol {
 
 	private GamePluginMessageProtocol(int versionInt, PacketDef... packets) {
 		ver = versionInt;
-		channelMap = new Map[] { new HashMap<>(), new HashMap<>() };
-		classMap = new Map[] { new HashMap<>(), new HashMap<>() };
-		for(int i = 0; i < packets.length; ++i) {
-			PacketDef pkt = packets[i];
-			classMap[pkt.dir].put(pkt.clazz, pkt);
-			if(pkt.id == -1) {
-				channelMap[pkt.dir].put(pkt.channel, pkt);
-			}else {
-				PacketDef[] map = (PacketDef[])channelMap[pkt.dir].get(pkt.channel);
-				if(map == null || map.length <= pkt.id) {
-					PacketDef[] newMap = new PacketDef[((pkt.id + 1) & 0xF0) + 0x0F];
-					if(map != null) {
-						System.arraycopy(map, 0, newMap, 0, map.length);
+		if(versionInt >= 5) {
+			channelMap = null;
+			classMap = null;
+			this.channelMapV5 = new PacketDef[2][48];
+			for(int i = 0; i < packets.length; ++i) {
+				PacketDef pkt = packets[i];
+				classMap[pkt.dir].put(pkt.clazz, pkt);
+				channelMapV5[pkt.dir][pkt.id] = pkt;
+			}
+		}else {
+			channelMap = new Map[] { new HashMap<>(), new HashMap<>() };
+			classMap = new Map[] { new HashMap<>(), new HashMap<>() };
+			channelMapV5 = null;
+			for(int i = 0; i < packets.length; ++i) {
+				PacketDef pkt = packets[i];
+				classMap[pkt.dir].put(pkt.clazz, pkt);
+				if(pkt.id == -1) {
+					channelMap[pkt.dir].put(pkt.channel, pkt);
+				}else {
+					PacketDef[] map = (PacketDef[])channelMap[pkt.dir].get(pkt.channel);
+					if(map == null || map.length <= pkt.id) {
+						PacketDef[] newMap = new PacketDef[((pkt.id + 1) & 0xF0) + 0x0F];
+						if(map != null) {
+							System.arraycopy(map, 0, newMap, 0, map.length);
+						}
+						map = newMap;
+						channelMap[pkt.dir].put(pkt.channel, map);
 					}
-					map = newMap;
-					channelMap[pkt.dir].put(pkt.channel, map);
+					map[pkt.id] = pkt;
 				}
-				map[pkt.id] = pkt;
 			}
 		}
 	}
 
 	private static PacketDef define(String channel, int id, int dir, Class<? extends GameMessagePacket> clazz, Supplier<? extends GameMessagePacket> ctor) {
 		return new PacketDef(channel, id, dir, clazz, ctor);
+	}
+
+	private static PacketDef define(int id, int dir, Class<? extends GameMessagePacket> clazz, Supplier<? extends GameMessagePacket> ctor) {
+		return new PacketDef(null, id, dir, clazz, ctor);
 	}
 
 	private static class PacketDef {
@@ -176,7 +244,15 @@ public enum GamePluginMessageProtocol {
 	}
 
 	public GameMessagePacket readPacketV5(int direction, GamePacketInputBuffer buffer) throws IOException {
-		return null; //TODO
+		PacketDef[] lst = channelMapV5[direction];
+		int pktId = buffer.readUnsignedByte();
+		PacketDef def;
+		if(pktId >= lst.length || (def = lst[pktId]) == null) {
+			throw new IOException("Unknown packet ID: " + pktId);
+		}
+		GameMessagePacket ret = def.ctor.get();
+		ret.readPacket(buffer);
+		return ret;
 	}
 
 	public String writePacket(int direction, GamePacketOutputBuffer stream, GameMessagePacket packet) throws IOException {
@@ -193,7 +269,15 @@ public enum GamePluginMessageProtocol {
 	}
 
 	public void writePacketV5(int direction, GamePacketOutputBuffer stream, GameMessagePacket packet) throws IOException {
-		 //TODO
+		Class<? extends GameMessagePacket> clazz = packet.getClass();
+		PacketDef def = classMap[direction].get(clazz);
+		if(def == null) {
+			throw new IOException("Unknown packet type or wrong direction: " + clazz);
+		}
+		if(def.id != -1) {
+			stream.writeByte(def.id);
+		}
+		packet.writePacket(stream);
 	}
 
 	public List<String> filterProtocols(Collection<String> data) {

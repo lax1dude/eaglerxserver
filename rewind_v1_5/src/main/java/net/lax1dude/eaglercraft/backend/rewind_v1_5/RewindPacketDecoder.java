@@ -1,10 +1,18 @@
 package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketGetOtherTexturesV5EAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketVoiceSignalConnectEAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketVoiceSignalDescEAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketVoiceSignalDisconnectPeerV4EAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketVoiceSignalDisconnectV4EAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketVoiceSignalICEEAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketVoiceSignalRequestEAG;
 
 public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Decoder<PlayerObject> {
 
@@ -17,7 +25,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 		int pktId = in.readUnsignedByte();
 		ByteBuf bb = null;
 		try {
-			switch (pktId) {
+			fuck: switch (pktId) {
 				case 0x00:
 					bb = ctx.alloc().buffer();
 					BufferUtils.writeVarInt(bb, 0x00);
@@ -188,7 +196,8 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 				case 0xFA:
 					String name = BufferUtils.readLegacyMCString(in, 255);
 					int pmLen = in.readShort();
-					if (name.equals("MC|AdvCdm")) {
+					switch(name) {
+					case "MC|AdvCdm":
 						int ri = in.readerIndex();
 						int cmdX = in.readInt();
 						int cmdY = in.readInt();
@@ -203,8 +212,10 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 						BufferUtils.writeMCString(in, cmd, 32767);
 						in.writeBoolean(true);
 						pmLen = in.writerIndex() - ri;
-					} else if (name.equals("MC|BEdit") || name.equals("MC|BSign")) {
-						int ri = in.readerIndex();
+						break;
+					case "MC|BEdit":
+					case "MC|BSign":
+						ri = in.readerIndex();
 						bb = ctx.alloc().buffer();
 						BufferUtils.convertLegacySlot(in, bb, nbtContext(), tempBuffer());
 						in.readerIndex(ri);
@@ -212,6 +223,61 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 						in.writeBytes(bb);
 						pmLen = bb.writerIndex();
 						bb.release();
+						break;
+					case "EAG|FetchSkin":
+						int cookie = in.readUnsignedShort();
+						String username = in.readCharSequence(pmLen - 2, StandardCharsets.US_ASCII).toString();
+						TabListTracker.ListItem playerItem = tabList().getItemByName(username);
+						if(playerItem != null) {
+							UUID uuid = playerItem.playerUUID;
+							player().addSkinRequest(uuid, cookie);
+							messageController().recieveInboundMessage(new CPacketGetOtherTexturesV5EAG(
+									uuid.getMostSignificantBits(), uuid.getLeastSignificantBits()));
+						}
+						break fuck;
+					case "EAG|Voice":
+						int sig = in.readUnsignedByte();
+						switch(sig) {
+						case 0: // VOICE_SIGNAL_REQUEST
+							UUID uuid = player().getVoicePlayerByName(BufferUtils.readASCIIStr(in));
+							if(uuid != null) {
+								messageController().recieveInboundMessage(new CPacketVoiceSignalRequestEAG(
+										uuid.getMostSignificantBits(), uuid.getLeastSignificantBits()));
+							}
+							break;
+						case 1: // VOICE_SIGNAL_CONNECT
+							messageController().recieveInboundMessage(new CPacketVoiceSignalConnectEAG());
+							break;
+						case 2: // VOICE_SIGNAL_DISCONNECT
+							if(in.isReadable()) {
+								uuid = player().getVoicePlayerByName(BufferUtils.readASCIIStr(in));
+								if(uuid != null) {
+									messageController().recieveInboundMessage(new CPacketVoiceSignalDisconnectPeerV4EAG(
+											uuid.getMostSignificantBits(), uuid.getLeastSignificantBits()));
+								}
+							}else {
+								player().releaseVoiceGlobalMap();
+								messageController().recieveInboundMessage(new CPacketVoiceSignalDisconnectV4EAG());
+							}
+							break;
+						case 3: // VOICE_SIGNAL_ICE
+							uuid = player().getVoicePlayerByName(BufferUtils.readASCIIStr(in));
+							if(uuid != null) {
+								byte[] data = new byte[in.readUnsignedShort()];
+								messageController().recieveInboundMessage(new CPacketVoiceSignalICEEAG(
+										uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(), data));
+							}
+							break;
+						case 4: // VOICE_SIGNAL_DESC
+							uuid = player().getVoicePlayerByName(BufferUtils.readASCIIStr(in));
+							if(uuid != null) {
+								byte[] data = new byte[in.readUnsignedShort()];
+								messageController().recieveInboundMessage(new CPacketVoiceSignalDescEAG(
+										uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(), data));
+							}
+							break;
+						}
+						break fuck;
 					}
 					bb = ctx.alloc().buffer();
 					BufferUtils.writeVarInt(bb, 0x17);
@@ -231,10 +297,6 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 			if (bb != null) {
 				bb.release();
 			}
-		}
-		in.skipBytes(in.readableBytes());
-		if (out.isEmpty()) {
-			out.add(Unpooled.EMPTY_BUFFER);
 		}
 	}
 

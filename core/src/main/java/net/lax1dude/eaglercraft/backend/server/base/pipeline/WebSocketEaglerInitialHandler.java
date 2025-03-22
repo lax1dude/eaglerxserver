@@ -15,8 +15,6 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.MessageToMessageCodec;
 import net.lax1dude.eaglercraft.backend.server.api.EnumPipelineEvent;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
-import net.lax1dude.eaglercraft.backend.server.api.rewind.IMessageController;
-import net.lax1dude.eaglercraft.backend.server.api.rewind.IOutboundInjector;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.RewindInitializer;
@@ -27,6 +25,7 @@ import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakerV1;
 import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakerV2;
 import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakerV3;
 import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakerV4;
+import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakerV5;
 import net.lax1dude.eaglercraft.backend.server.base.handshake.VanillaInitializer;
 import net.lax1dude.eaglercraft.backend.server.base.message.RewindMessageInjector;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
@@ -334,7 +333,11 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 			return;
 		}
 		
-		if (selectedHandshakeProtocol == 4) {
+		if (selectedHandshakeProtocol == 5) {
+			HandshakerV5 hs = new HandshakerV5(server, pipelineData, this);
+			handshaker = hs;
+			hs.init(ctx, eaglerBrand, eaglerVersionString, maxAvailableMC, clientAuth, authUsername);
+		}else if(selectedHandshakeProtocol == 4) {
 			HandshakerV4 hs = new HandshakerV4(server, pipelineData, this);
 			handshaker = hs;
 			hs.init(ctx, eaglerBrand, eaglerVersionString, maxAvailableMC, clientAuth, authUsername);
@@ -487,6 +490,14 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		case 4:
 			if(protocols.isProtocolV4Allowed()) {
 				HandshakerV4 hs = new HandshakerV4(server, pipelineData, this);
+				handshaker = hs;
+				hs.init(ctx, initializer.getEaglerClientBrand(), initializer.getEaglerClientVersion(),
+						initializer.getMinecraftProtocol(), initializer.isAuthEnabled(), initializer.getAuthUsername());
+			}
+			break;
+		case 5:
+			if(protocols.isProtocolV5Allowed()) {
+				HandshakerV5 hs = new HandshakerV5(server, pipelineData, this);
 				handshaker = hs;
 				hs.init(ctx, initializer.getEaglerClientBrand(), initializer.getEaglerClientVersion(),
 						initializer.getMinecraftProtocol(), initializer.isAuthEnabled(), initializer.getAuthUsername());
