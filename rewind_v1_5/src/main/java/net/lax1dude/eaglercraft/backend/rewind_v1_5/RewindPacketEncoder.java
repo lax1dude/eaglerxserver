@@ -23,12 +23,6 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private final Map<String, Map<String, Integer>> scoreBoard = new HashMap<>();
 
-	private double playerX = 0;
-	private double playerY = 0;
-	private double playerZ = 0;
-	private float playerYaw = 0;
-	private float playerPitch = 0;
-
 	private byte playerDimension = 0;
 
 	private final Set<Short> enchWindows = new HashSet<>();
@@ -115,7 +109,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private void handleChatMessage(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x03);
-		BufferUtils.writeLegacyMCString(bb, serverAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767)), 32767);
+		BufferUtils.writeLegacyMCString(bb, componentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767)), 32767);
 	}
 
 	private void handleTimeUpdate(ByteBuf in, ByteBuf bb) {
@@ -169,15 +163,27 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		float plyaw = in.readFloat();
 		float plpitch = in.readFloat();
 		byte flags = in.readByte();
-		playerX = plx + ((flags & 0x01) != 0 ? playerX : 0);
-		playerY = ply + ((flags & 0x02) != 0 ? playerY : 0);
-		playerZ = plz + ((flags & 0x04) != 0 ? playerZ : 0);
-		playerYaw = plyaw + ((flags & 0x10) != 0 ? playerYaw : 0);
-		playerPitch = plpitch + ((flags & 0x08) != 0 ? playerPitch : 0);
-		bb.writeDouble(playerX);
-		bb.writeDouble(playerY + 1.6200000047683716D);
-		bb.writeDouble(playerY + 1.6200000047683716D);
-		bb.writeDouble(playerZ);
+		if ((flags & 0x01) != 0) {
+			plx += player().getX();
+		}
+		if ((flags & 0x02) != 0) {
+			ply += player().getY();
+		}
+		if ((flags & 0x04) != 0) {
+			plz += player().getZ();
+		}
+		if ((flags & 0x08) != 0) {
+			plyaw += player().getYaw();
+		}
+		if ((flags & 0x10) != 0) {
+			plpitch += player().getPitch();
+		}
+		player().setPos(plx, ply, plz);
+		player().setLook(plyaw, plpitch);
+		bb.writeDouble(plx);
+		bb.writeDouble(ply + 1.6200000047683716D);
+		bb.writeDouble(ply);
+		bb.writeDouble(plz);
 		bb.writeFloat(plyaw);
 		bb.writeFloat(plpitch);
 		bb.writeBoolean(false);
@@ -803,7 +809,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		}
 		bb.writeByte(windowId);
 		String windowTitle = BufferUtils.readMCString(in, 4095);
-		windowTitle = serverAPI().getComponentHelper().convertJSONToLegacySection(windowTitle);
+		windowTitle = componentHelper().convertJSONToLegacySection(windowTitle);
 		BufferUtils.writeLegacyMCString(bb, windowTitle, 255);
 		bb.writeByte(in.readUnsignedByte());
 		bb.writeBoolean(!windowTitle.isEmpty());
@@ -908,7 +914,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		for (int ii = 0; ii < 4; ++ii) {
 			String line = BufferUtils.readMCString(in, 4095);
 			try {
-				line = serverAPI().getComponentHelper().convertJSONToLegacySection(line);
+				line = componentHelper().convertJSONToLegacySection(line);
 			} catch (IllegalArgumentException ignored) {
 				//
 			}
@@ -1164,7 +1170,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 						BufferUtils.readVarInt(in);
 						int tbPing = BufferUtils.readVarInt(in);
 						if (in.readBoolean()) {
-							tempName = serverAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767));
+							tempName = componentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767));
 						}
 						tabList.put(pliUuid, new TabListItem(tempName, tbPing));
 					} else {
@@ -1197,7 +1203,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					}
 				} else if (pliAction == 3) {
 					if (in.readBoolean()) {
-						pliItem.name = serverAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767));
+						pliItem.name = componentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767));
 					}
 				}
 				if (pliAction != 4) {
@@ -1225,8 +1231,8 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			paFlags ^= 0x09;
 		}
 		bb.writeByte(paFlags);
-		float speed1 = in.readFloat() * 256;
-		float speed2 = in.readFloat() * 256;
+		float speed1 = in.readFloat() * 255.0F;
+		float speed2 = in.readFloat() * 255.0F;
 		bb.writeByte((int) speed1);
 		bb.writeByte((int) speed2);
 	}
@@ -1395,7 +1401,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private void handleDisconnect(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0xFF);
-		BufferUtils.writeLegacyMCString(bb, serverAPI().getComponentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767)), 32767);
+		BufferUtils.writeLegacyMCString(bb, componentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767)), 32767);
 	}
 
 	@Override
