@@ -43,28 +43,42 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 				case 0x0B:
 					bb = ctx.alloc().buffer();
 					BufferUtils.writeVarInt(bb, 0x04);
-					bb.writeDouble(in.readDouble());
-					bb.writeDouble(in.readDouble());
+					double ppx = in.readDouble();
+					double ppy = in.readDouble();
 					in.readDouble();
-					bb.writeDouble(in.readDouble());
+					double ppz = in.readDouble();
+					player().setPos(ppx, ppy, ppz);
+					bb.writeDouble(ppx);
+					bb.writeDouble(ppy);
+					bb.writeDouble(ppz);
 					bb.writeBoolean(in.readBoolean());
 					break;
 				case 0x0C:
 					bb = ctx.alloc().buffer();
 					BufferUtils.writeVarInt(bb, 0x05);
-					bb.writeFloat(in.readFloat());
-					bb.writeFloat(in.readFloat());
+					float plyaw = in.readFloat();
+					float plpitch = in.readFloat();
+					player().setLook(plyaw, plpitch);
+					bb.writeFloat(plyaw);
+					bb.writeFloat(plpitch);
 					bb.writeBoolean(in.readBoolean());
 					break;
 				case 0x0D:
 					bb = ctx.alloc().buffer();
 					BufferUtils.writeVarInt(bb, 0x06);
-					bb.writeDouble(in.readDouble());
-					bb.writeDouble(in.readDouble());
+					double pplx = in.readDouble();
+					double pply = in.readDouble();
 					in.readDouble();
-					bb.writeDouble(in.readDouble());
-					bb.writeFloat(in.readFloat());
-					bb.writeFloat(in.readFloat());
+					double pplz = in.readDouble();
+					float pplyaw = in.readFloat();
+					float pplpitch = in.readFloat();
+					player().setPos(pplx, pply, pplz);
+					player().setLook(pplyaw, pplpitch);
+					bb.writeDouble(pplx);
+					bb.writeDouble(pply);
+					bb.writeDouble(pplz);
+					bb.writeFloat(pplyaw);
+					bb.writeFloat(pplpitch);
 					bb.writeBoolean(in.readBoolean());
 					break;
 				case 0x0E:

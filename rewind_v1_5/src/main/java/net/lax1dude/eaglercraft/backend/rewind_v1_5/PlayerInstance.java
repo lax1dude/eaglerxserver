@@ -21,6 +21,12 @@ public class PlayerInstance<PlayerObject> {
 	private INBTContext nbtContext;
 	private IComponentHelper componentHelper;
 
+	private double x = 0;
+	private double y = 0;
+	private double z = 0;
+	private float yaw = 0;
+	private float pitch = 0;
+
 	private byte[] temp;
 
 	public PlayerInstance(RewindPluginProtocol<PlayerObject> rewind, IMessageController messageController,
@@ -75,6 +81,37 @@ public class PlayerInstance<PlayerObject> {
 			this.componentHelper = rewind.getServerAPI().getComponentHelper();
 		}
 		return this.componentHelper;
+	}
+
+	public double getX() {
+		return this.x;
+	}
+
+	public double getY() {
+		return this.y;
+	}
+
+	public double getZ() {
+		return this.z;
+	}
+
+	public float getYaw() {
+		return this.yaw;
+	}
+
+	public float getPitch() {
+		return this.pitch;
+	}
+
+	public void setPos(double x, double y, double z) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+
+	public void setLook(float yaw, float pitch) {
+		this.yaw = yaw;
+		this.pitch = pitch;
 	}
 
 	public byte[] getTempBuffer() {
