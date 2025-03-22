@@ -15,7 +15,7 @@ public class MessageControllerFactory {
 			return InjectedMessageController.injectEagler(protocol, handler,
 					instance.getPlatformPlayer().getConnection().getChannel(), sendDelay);
 		}else {
-			if (sendDelay > 0) {
+			if (protocol.ver == 4 && sendDelay > 0) {
 				return new LegacyMessageController(protocol, handler,
 						instance.getPlatformPlayer().getConnection().getChannel().eventLoop(), sendDelay);
 			}else {
