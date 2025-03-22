@@ -206,7 +206,7 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 			state = STATE_STALLING;
 			int protocolVers = buf.readUnsignedShort();
 			int gameVers = buf.readUnsignedShort();
-			if(protocolVers != 3 || gameVers != 47) {
+			if(protocolVers != 5 || gameVers != 47) {
 				state = STATE_COMPLETED;
 				kickClient(ctx);
 				logger().error("Backend response does not match the requested protocol: V" + protocolVers + ", mc" + gameVers);
@@ -237,7 +237,7 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 		if(state == STATE_SENT_HANDSHAKE) {
 			state = STATE_COMPLETED;
 			kickClient(ctx);
-			logger().error("Backend responded with PROTOCOL_VERISON_MISMATCH to requested protocol: V3, mc47");
+			logger().error("Backend responded with PROTOCOL_VERISON_MISMATCH to requested protocol: V5, mc47");
 		}else {
 			handleUnexpectedServerPacket(ctx, 0x03);
 		}

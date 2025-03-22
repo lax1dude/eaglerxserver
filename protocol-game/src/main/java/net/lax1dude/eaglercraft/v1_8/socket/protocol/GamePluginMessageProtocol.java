@@ -165,7 +165,7 @@ public enum GamePluginMessageProtocol {
 		ver = versionInt;
 		if(versionInt >= 5) {
 			channelMap = null;
-			classMap = null;
+			classMap = new Map[] { new HashMap<>(), new HashMap<>() };
 			this.channelMapV5 = new PacketDef[2][48];
 			for(int i = 0; i < packets.length; ++i) {
 				PacketDef pkt = packets[i];
@@ -306,15 +306,19 @@ public enum GamePluginMessageProtocol {
 		PROTOCOLS_MAP[2] = V3;
 		for(int i = 0; i < _values.length; ++i) {
 			GamePluginMessageProtocol protocol = _values[i];
-			PROTOCOLS_MAP[protocol.ver] = protocol;
-			allChannels.addAll(protocol.channelMap[CLIENT_TO_SERVER].keySet());
-			allChannels.addAll(protocol.channelMap[SERVER_TO_CLIENT].keySet());
+			if(protocol.ver < 5) {
+				PROTOCOLS_MAP[protocol.ver] = protocol;
+				allChannels.addAll(protocol.channelMap[CLIENT_TO_SERVER].keySet());
+				allChannels.addAll(protocol.channelMap[SERVER_TO_CLIENT].keySet());
+			}
 		}
 		for(int i = 0; i < _values.length; ++i) {
 			GamePluginMessageProtocol protocol = _values[i];
-			protocol.notChannelMap.addAll(allChannels);
-			protocol.notChannelMap.removeAll(protocol.channelMap[CLIENT_TO_SERVER].keySet());
-			protocol.notChannelMap.removeAll(protocol.channelMap[SERVER_TO_CLIENT].keySet());
+			if(protocol.ver < 5) {
+				protocol.notChannelMap.addAll(allChannels);
+				protocol.notChannelMap.removeAll(protocol.channelMap[CLIENT_TO_SERVER].keySet());
+				protocol.notChannelMap.removeAll(protocol.channelMap[SERVER_TO_CLIENT].keySet());
+			}
 		}
 	}
 }
