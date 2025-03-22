@@ -264,6 +264,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 							uuid = player().getVoicePlayerByName(BufferUtils.readASCIIStr(in));
 							if(uuid != null) {
 								byte[] data = new byte[in.readUnsignedShort()];
+								in.readBytes(data);
 								messageController().recieveInboundMessage(new CPacketVoiceSignalICEEAG(
 										uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(), data));
 							}
@@ -272,6 +273,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 							uuid = player().getVoicePlayerByName(BufferUtils.readASCIIStr(in));
 							if(uuid != null) {
 								byte[] data = new byte[in.readUnsignedShort()];
+								in.readBytes(data);
 								messageController().recieveInboundMessage(new CPacketVoiceSignalDescEAG(
 										uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(), data));
 							}

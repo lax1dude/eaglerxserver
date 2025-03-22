@@ -37,6 +37,10 @@ public class RewindMessageHandler implements GameMessageHandler {
 			ByteBuf buf = alloc().buffer();
 			try {
 				// VOICE_SIGNAL_ALLOWED
+				buf.writeByte(0xFA);
+				BufferUtils.writeLegacyMCString(buf, "EAG|Voice", 255);
+				int lengthAt = buf.writerIndex();
+				buf.writeShort(0);
 				buf.writeByte(0);
 				buf.writeBoolean(packet.allowed);
 				if(!packet.allowed) {
@@ -48,6 +52,7 @@ public class RewindMessageHandler implements GameMessageHandler {
 					buf.writeShort(bytes.length);
 					buf.writeBytes(bytes);
 				}
+				buf.setShort(lengthAt, buf.writerIndex() - lengthAt - 2);
 				out.add(buf.retain());
 			}finally {
 				buf.release();
@@ -61,6 +66,10 @@ public class RewindMessageHandler implements GameMessageHandler {
 			ByteBuf buf = alloc().buffer();
 			try {
 				// VOICE_SIGNAL_GLOBAL
+				buf.writeByte(0xFA);
+				BufferUtils.writeLegacyMCString(buf, "EAG|Voice", 255);
+				int lengthAt = buf.writerIndex();
+				buf.writeShort(0);
 				buf.writeByte(5);
 				buf.writeInt(packet.users.size());
 				for(SPacketVoiceSignalGlobalEAG.UserData user : packet.users) {
@@ -68,6 +77,7 @@ public class RewindMessageHandler implements GameMessageHandler {
 					buf.writeShort(bytes.length);
 					buf.writeBytes(bytes);
 				}
+				buf.setShort(lengthAt, buf.writerIndex() - lengthAt - 2);
 				out.add(buf.retain());
 			}finally {
 				buf.release();
@@ -82,11 +92,16 @@ public class RewindMessageHandler implements GameMessageHandler {
 				ByteBuf buf = alloc().buffer();
 				try {
 					// VOICE_SIGNAL_CONNECT
+					buf.writeByte(0xFA);
+					BufferUtils.writeLegacyMCString(buf, "EAG|Voice", 255);
+					int lengthAt = buf.writerIndex();
+					buf.writeShort(0);
 					buf.writeByte(1);
 					byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
 					buf.writeShort(bytes.length);
 					buf.writeBytes(bytes);
 					buf.writeBoolean(packet.offer);
+					buf.setShort(lengthAt, buf.writerIndex() - lengthAt - 2);
 					out.add(buf.retain());
 				}finally {
 					buf.release();
@@ -104,10 +119,15 @@ public class RewindMessageHandler implements GameMessageHandler {
 				ByteBuf buf = alloc().buffer();
 				try {
 					// VOICE_SIGNAL_CONNECT
+					buf.writeByte(0xFA);
+					BufferUtils.writeLegacyMCString(buf, "EAG|Voice", 255);
+					int lengthAt = buf.writerIndex();
+					buf.writeShort(0);
 					buf.writeByte(1);
 					byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
 					buf.writeShort(bytes.length);
 					buf.writeBytes(bytes);
+					buf.setShort(lengthAt, buf.writerIndex() - lengthAt - 2);
 					out.add(buf.retain());
 				}finally {
 					buf.release();
@@ -125,6 +145,10 @@ public class RewindMessageHandler implements GameMessageHandler {
 				ByteBuf buf = alloc().buffer();
 				try {
 					// VOICE_SIGNAL_DESC
+					buf.writeByte(0xFA);
+					BufferUtils.writeLegacyMCString(buf, "EAG|Voice", 255);
+					int lengthAt = buf.writerIndex();
+					buf.writeShort(0);
 					buf.writeByte(4);
 					byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
 					buf.writeShort(bytes.length);
@@ -135,6 +159,7 @@ public class RewindMessageHandler implements GameMessageHandler {
 					}
 					buf.writeShort(descLen);
 					buf.writeBytes(packet.desc);
+					buf.setShort(lengthAt, buf.writerIndex() - lengthAt - 2);
 					out.add(buf.retain());
 				}finally {
 					buf.release();
@@ -152,6 +177,10 @@ public class RewindMessageHandler implements GameMessageHandler {
 				ByteBuf buf = alloc().buffer();
 				try {
 					// VOICE_SIGNAL_ICE
+					buf.writeByte(0xFA);
+					BufferUtils.writeLegacyMCString(buf, "EAG|Voice", 255);
+					int lengthAt = buf.writerIndex();
+					buf.writeShort(0);
 					buf.writeByte(3);
 					byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
 					buf.writeShort(bytes.length);
@@ -162,6 +191,7 @@ public class RewindMessageHandler implements GameMessageHandler {
 					}
 					buf.writeShort(descLen);
 					buf.writeBytes(packet.ice);
+					buf.setShort(lengthAt, buf.writerIndex() - lengthAt - 2);
 					out.add(buf.retain());
 				}finally {
 					buf.release();
@@ -179,10 +209,15 @@ public class RewindMessageHandler implements GameMessageHandler {
 				ByteBuf buf = alloc().buffer();
 				try {
 					// VOICE_SIGNAL_DISCONNECT
+					buf.writeByte(0xFA);
+					BufferUtils.writeLegacyMCString(buf, "EAG|Voice", 255);
+					int lengthAt = buf.writerIndex();
+					buf.writeShort(0);
 					buf.writeByte(2);
 					byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
 					buf.writeShort(bytes.length);
 					buf.writeBytes(bytes);
+					buf.setShort(lengthAt, buf.writerIndex() - lengthAt - 2);
 					out.add(buf.retain());
 				}finally {
 					buf.release();

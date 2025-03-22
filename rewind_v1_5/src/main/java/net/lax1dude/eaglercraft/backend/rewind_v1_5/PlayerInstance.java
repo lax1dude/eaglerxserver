@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
@@ -180,22 +181,22 @@ public class PlayerInstance<PlayerObject> {
 	}
 
 	public void releaseVoiceGlobalMap() {
-		voiceGlobalMap.clear();
+		voiceGlobalMap = null;
 	}
 
 	public void handleVoiceGlobal(Collection<SPacketVoiceSignalGlobalEAG.UserData> userDatas) {
-		releaseVoiceGlobalMap();
+		voiceGlobalMap = HashBiMap.create();
 		for(SPacketVoiceSignalGlobalEAG.UserData userData : userDatas) {
 			voiceGlobalMap.put(InternUtil.uuidInterner.intern(new UUID(userData.uuidMost, userData.uuidLeast)), userData.username.intern());
 		}
 	}
 
 	public String getVoicePlayerByUUID(UUID uuid) {
-		return voiceGlobalMap.get(uuid);
+		return voiceGlobalMap != null ? voiceGlobalMap.get(uuid) : null;
 	}
 
 	public UUID getVoicePlayerByName(String name) {
-		return voiceGlobalMap.inverse().get(name);
+		return voiceGlobalMap != null ? voiceGlobalMap.inverse().get(name) : null;
 	}
 
 	public void handlePlayerCreate(IEaglerPlayer<PlayerObject> eaglerPlayer) {
