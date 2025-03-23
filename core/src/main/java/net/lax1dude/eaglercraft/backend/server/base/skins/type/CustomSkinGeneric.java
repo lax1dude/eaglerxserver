@@ -19,7 +19,7 @@ public class CustomSkinGeneric extends BaseCustomSkin implements IModelRewritabl
 	private CustomSkinGeneric(int modelId, byte[] textureDataV3, byte[] textureDataV4) {
 		this.modelId = modelId;
 		this.textureDataV3 = textureDataV3;
-		this.textureDataV4 = textureDataV3;
+		this.textureDataV4 = textureDataV4;
 	}
 
 	public static CustomSkinGeneric createV3(int modelId, byte[] textureDataV3) {

@@ -81,7 +81,7 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 		if(skinCache != null) {
 			skinCache.resolveSkinByURL(skinURL, (data) -> {
 				if(data != null) {
-					callback.accept(CustomSkinGeneric.createV3(modelId.getId(), data));
+					callback.accept(CustomSkinGeneric.createV4(modelId.getId(), data));
 				}else {
 					callback.accept(MissingSkin.MISSING_SKIN);
 				}
@@ -95,7 +95,7 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 		if(skinCache != null) {
 			skinCache.resolveSkinByURL(skinURL, (data) -> {
 				if(data != null) {
-					callback.accept(CustomSkinPlayer.createV3(playerUUID.getMostSignificantBits(),
+					callback.accept(CustomSkinPlayer.createV4(playerUUID.getMostSignificantBits(),
 							playerUUID.getLeastSignificantBits(), modelId.getId(), data));
 				} else {
 					callback.accept(MissingSkin.forPlayerUUID(playerUUID));
