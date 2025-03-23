@@ -8,6 +8,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
 
+import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilitySpec;
 import net.lax1dude.eaglercraft.backend.server.api.ICEServerEntry;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
@@ -146,7 +147,7 @@ public class VoiceService<PlayerObject> implements IVoiceService<PlayerObject> {
 	}
 
 	public VoiceManager<PlayerObject> createVoiceManager(EaglerPlayerInstance<PlayerObject> player) {
-		return enabled ? new VoiceManager<>(player, this) : null;
+		return enabled && player.hasCapability(EnumCapabilitySpec.VOICE_V0) ? new VoiceManager<>(player, this) : null;
 	}
 
 	@Override

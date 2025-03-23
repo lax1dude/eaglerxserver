@@ -113,6 +113,12 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	void setEaglerPlayerProperyEnabled(boolean enable);
 
+	void registerExtendedCapability(Object plugin, ExtendedCapabilitySpec capability);
+
+	void unregisterExtendedCapability(Object plugin, ExtendedCapabilitySpec capability);
+
+	boolean isExtendedCapabilityRegistered(UUID capabilityUUID, int version);
+
 	Collection<ICEServerEntry> getICEServers();
 
 	void setICEServers(Collection<ICEServerEntry> servers);
@@ -152,6 +158,8 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 	INBTHelper getNBTHelper();
 
 	IBinaryHTTPClient getBinaryHTTPClient();
+
+	UUID intern(UUID uuid);
 
 	INativeZlib createNativeZlib(boolean compression, boolean decompression, int compressionLevel);
 

@@ -1,8 +1,18 @@
 package net.lax1dude.eaglercraft.backend.server.base.handshake;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.UUID;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.BufferUtils;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
+import net.lax1dude.eaglercraft.backend.server.util.Util;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class HandshakerV5 extends HandshakerV4 {
@@ -10,6 +20,15 @@ public class HandshakerV5 extends HandshakerV4 {
 	public HandshakerV5(EaglerXServer<?> server, NettyPipelineData pipelineData,
 			WebSocketEaglerInitialHandler inboundHandler) {
 		super(server, pipelineData, inboundHandler);
+	}
+
+	public void init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString,
+			int minecraftVersion, boolean auth, byte[] authUsername) {
+		if(authUsername != null) {
+			handlePacketInit(ctx, eaglerBrand, eaglerVersionString, minecraftVersion, auth, authUsername);
+		}else {
+			handleInvalidData(ctx);
+		}
 	}
 
 	@Override
@@ -20,6 +39,158 @@ public class HandshakerV5 extends HandshakerV4 {
 	@Override
 	protected GamePluginMessageProtocol getFinalVersion() {
 		return GamePluginMessageProtocol.V5;
+	}
+
+	@Override
+	protected ChannelFuture sendPacketVersionNoAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
+			int selectedMinecraftProtocol, String serverBrand, String serverVersion) {
+		ByteBuf buffer = ctx.alloc().buffer();
+		
+		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
+		buffer.writeShort(selectedEaglerProtocol);
+		buffer.writeShort(selectedMinecraftProtocol);
+		
+		int len = serverBrand.length();
+		if(len > 255) {
+			serverBrand = serverBrand.substring(0, 255);
+			len = 255;
+		}
+		buffer.writeByte(len);
+		buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
+		
+		len = serverVersion.length();
+		if(len > 255) {
+			serverVersion = serverVersion.substring(0, 255);
+			len = 255;
+		}
+		buffer.writeByte(len);
+		buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
+
+		buffer.writeByte(0);
+		buffer.writeShort(0);
+		buffer.writeBoolean(false);
+
+		return ctx.writeAndFlush(buffer);
+	}
+
+	@Override
+	protected ChannelFuture sendPacketVersionAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
+			int selectedMinecraftProtocol, String serverBrand, String serverVersion,
+			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData, boolean nicknameSelection) {
+		int authMethId = getAuthTypeId(authMethod);
+		
+		if(authMethId == -1) {
+			inboundHandler.terminateInternalError(ctx, getVersion());
+			pipelineData.connectionLogger.error("Unsupported authentication method resolved: " + authMethod);
+			return null;
+		}
+		
+		ByteBuf buffer = ctx.alloc().buffer();
+		
+		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
+		buffer.writeShort(selectedEaglerProtocol);
+		buffer.writeShort(selectedMinecraftProtocol);
+		
+		int len = serverBrand.length();
+		if(len > 255) {
+			serverBrand = serverBrand.substring(0, 255);
+			len = 255;
+		}
+		buffer.writeByte(len);
+		buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
+		
+		len = serverVersion.length();
+		if(len > 255) {
+			serverVersion = serverVersion.substring(0, 255);
+			len = 255;
+		}
+		buffer.writeByte(len);
+		buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
+
+		buffer.writeByte(authMethId);
+		if(authSaltingData != null) {
+			buffer.writeShort(authSaltingData.length);
+			buffer.writeBytes(authSaltingData);
+		}else {
+			buffer.writeShort(0);
+		}
+		
+		buffer.writeBoolean(nicknameSelection);
+		
+		return ctx.writeAndFlush(buffer);
+	}
+
+	@Override
+	protected void handleInboundRequestLogin(ChannelHandlerContext ctx, ByteBuf buffer) {
+		int strlen = buffer.readUnsignedByte();
+		String username = buffer.readCharSequence(strlen, StandardCharsets.US_ASCII).toString();
+		strlen = buffer.readUnsignedByte();
+		String requestedServer = buffer.readCharSequence(strlen, StandardCharsets.US_ASCII).toString();
+		strlen = buffer.readUnsignedByte();
+		byte[] authPassword = Util.newByteArray(strlen);
+		buffer.readBytes(authPassword);
+		boolean enableCookie = buffer.readBoolean();
+		int cookieLen = buffer.readUnsignedByte();
+		byte[] cookieData = Util.ZERO_BYTES;
+		if(enableCookie) {
+			cookieData = Util.newByteArray(cookieLen);
+			buffer.readBytes(cookieData);
+		}else {
+			if(cookieLen > 0) {
+				throw new IndexOutOfBoundsException();
+			}
+		}
+		int standardCaps = BufferUtils.readVarInt(buffer, 5);
+		int capCount = Integer.bitCount(standardCaps);
+		int[] capSupport = new int[capCount];
+		for(int i = 0; i < capCount; ++i) {
+			capSupport[i] = BufferUtils.readVarInt(buffer, 5);
+		}
+		UUID[] extendedCapUUIDs;
+		int[] extendedCapVers;
+		int extCapabilityCount = buffer.readUnsignedByte();
+		if(extCapabilityCount > 0) {
+			if(extCapabilityCount > 32) {
+				throw new IndexOutOfBoundsException();
+			}
+			extendedCapUUIDs = new UUID[extCapabilityCount];
+			extendedCapVers = new int[extCapabilityCount];
+			for(int i = 0; i < extCapabilityCount; ++i) {
+				extendedCapUUIDs[i] = new UUID(buffer.readLong(), buffer.readLong());
+				extendedCapVers[i] = BufferUtils.readVarInt(buffer, 5);
+			}
+		}else {
+			extendedCapUUIDs = NO_UUID;
+			extendedCapVers = NO_VER;
+		}
+		if(buffer.isReadable()) {
+			throw new IndexOutOfBoundsException();
+		}
+		handlePacketRequestLogin(ctx, username, requestedServer, authPassword, enableCookie, cookieData,
+				standardCaps, capSupport, extendedCapUUIDs, extendedCapVers);
+	}
+
+	@Override
+	protected ChannelFuture sendPacketAllowLogin(ChannelHandlerContext ctx, String setUsername, UUID setUUID,
+			int standardCapabilities, byte[] standardCapabilityVersions, Map<UUID, Byte> extendedCapabilities) {
+		ByteBuf buffer = ctx.alloc().buffer();
+		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_ALLOW_LOGIN);
+		buffer.writeByte(setUsername.length());
+		buffer.writeCharSequence(setUsername, StandardCharsets.US_ASCII);
+		buffer.writeLong(setUUID.getMostSignificantBits());
+		buffer.writeLong(setUUID.getLeastSignificantBits());
+		BufferUtils.writeVarInt(buffer, standardCapabilities);
+		buffer.writeBytes(standardCapabilityVersions);
+		buffer.writeByte(extendedCapabilities.size());
+		if(extendedCapabilities.size() > 0) {
+			for(Map.Entry<UUID, Byte> etr : extendedCapabilities.entrySet()) {
+				UUID uuid = etr.getKey();
+				buffer.writeLong(uuid.getMostSignificantBits());
+				buffer.writeLong(uuid.getLeastSignificantBits());
+				buffer.writeByte(etr.getValue());
+			}
+		}
+		return ctx.writeAndFlush(buffer);
 	}
 
 }

@@ -7,9 +7,13 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilityType;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IPacket2ClientProtocol;
 
 public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Codec<PlayerObject> {
+
+	private static final int CAPABILITIES_MASK = EnumCapabilityType.VOICE.getBit() | EnumCapabilityType.REDIRECT.getBit();
+	private static final int[] CAPABILITIES_VER = new int[] { 1, 1 };
 
 	private static final byte[] REWIND_STR = "rewind".getBytes(StandardCharsets.US_ASCII);
 	private static final byte[] SKIN_V1_STR = "skin_v1".getBytes(StandardCharsets.US_ASCII);
@@ -222,6 +226,11 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 				packet.writeBytes(REWIND_STR);
 				packet.writeByte(0);
 				packet.writeBoolean(false);
+				packet.writeByte(0);
+				BufferUtils.writeVarInt(packet, CAPABILITIES_MASK);
+				for(int i = 0; i < CAPABILITIES_VER.length; ++i) {
+					BufferUtils.writeVarInt(packet, CAPABILITIES_VER[i]);
+				}
 				packet.writeByte(0);
 				state = STATE_SENT_REQUESTED_LOGIN;
 				ctx.fireChannelRead(packet.retain());

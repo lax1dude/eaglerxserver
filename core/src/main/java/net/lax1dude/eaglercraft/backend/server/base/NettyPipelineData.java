@@ -87,10 +87,14 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	public String authMessage;
 	public boolean nicknameSelectionEnabled;
 	public byte[] authSalt;
+	public boolean cookieSupport;
 	public boolean cookieEnabled;
 	public boolean cookieAuthEventEnabled;
 	public byte[] cookieData;
 	public Map<String, byte[]> profileDatas;
+	public int acceptedCapabilitiesMask;
+	public byte[] acceptedCapabilitiesVers;
+	public Map<UUID, Byte> acceptedExtendedCapabilities;
 
 	public IPlatformSubLogger connectionLogger;
 

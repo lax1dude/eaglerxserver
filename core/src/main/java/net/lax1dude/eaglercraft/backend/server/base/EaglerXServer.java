@@ -20,6 +20,8 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -40,6 +42,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.api.EnumPlatformType;
+import net.lax1dude.eaglercraft.backend.server.api.ExtendedCapabilitySpec;
 import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IBinaryHTTPClient;
 import net.lax1dude.eaglercraft.backend.server.api.ICEServerEntry;
@@ -100,6 +103,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		IEaglerXServerAPI<PlayerObject>, IEaglerXServerAPI.NettyUnsafe {
 
 	public static final Gson GSON_PRETTY = (new GsonBuilder()).setLenient().setPrettyPrinting().create();
+	public static final Interner<UUID> uuidInterner = Interners.newWeakInterner();
 
 	private final EaglerAttributeManager attributeManager = APIFactoryImpl.INSTANCE.getEaglerAttribManager();
 	private final EaglerAttributeManager.EaglerAttributeHolder attributeHolder = attributeManager.createEaglerHolder();
@@ -119,6 +123,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private WebServer webServer;
 	private RewindService<PlayerObject> rewindService;
 	private PipelineTransformer pipelineTransformer;
+	private ExtCapabilityMap extCapabilityMap;
 	private SSLCertificateManager certificateManager;
 	private IPlatformTask certificateRefreshTask;
 	private String serverListConfirmCode;
@@ -180,6 +185,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		webServer = new WebServer(this);
 		rewindService = new RewindService<>(this);
 		pipelineTransformer = new PipelineTransformer(this, rewindService);
+		extCapabilityMap = new ExtCapabilityMap();
 		certificateManager = new SSLCertificateManager(logger());
 		componentType = componentHelper().getComponentType();
 		componentTypeSet = Collections.singleton(componentType);
@@ -697,6 +703,25 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
+	public void registerExtendedCapability(Object plugin, ExtendedCapabilitySpec capability) {
+		extCapabilityMap.registerCapability(plugin, capability);
+	}
+
+	@Override
+	public void unregisterExtendedCapability(Object plugin, ExtendedCapabilitySpec capability) {
+		extCapabilityMap.unregisterCapability(plugin, capability);
+	}
+
+	@Override
+	public boolean isExtendedCapabilityRegistered(UUID capabilityUUID, int version) {
+		return extCapabilityMap.isCapabilityRegistered(capabilityUUID, version);
+	}
+
+	public ExtCapabilityMap getExtCapabilityMap() {
+		return extCapabilityMap;
+	}
+
+	@Override
 	public Collection<ICEServerEntry> getICEServers() {
 		return iceServers;
 	}
@@ -805,6 +830,11 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	public IBinaryHTTPClient getBinaryHTTPClient() {
 		return httpClientAPI;
+	}
+
+	@Override
+	public UUID intern(UUID uuid) {
+		return uuidInterner.intern(uuid);
 	}
 
 	@Override

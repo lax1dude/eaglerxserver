@@ -78,7 +78,7 @@ public class HandshakerV2 extends HandshakerV1 {
 	@Override
 	protected ChannelFuture sendPacketVersionAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
 			int selectedMinecraftProtocol, String serverBrand, String serverVersion,
-			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData) {
+			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData, boolean nicknameSelection) {
 		int authMethId = getAuthTypeId(authMethod);
 		
 		if(authMethId == -1) {

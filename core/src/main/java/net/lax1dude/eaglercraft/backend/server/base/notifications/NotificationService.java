@@ -17,6 +17,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.google.common.collect.ImmutableList;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
+import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilitySpec;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationBuilder;
@@ -241,7 +242,7 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 	}
 
 	public NotificationManagerPlayer<PlayerObject> createPlayerManager(EaglerPlayerInstance<PlayerObject> player) {
-		if(player.getEaglerProtocol().ver >= 4) {
+		if(player.hasCapability(EnumCapabilitySpec.NOTIFICATION_V0)) {
 			return new NotificationManagerPlayer<PlayerObject>(this, player);
 		}else {
 			return null;

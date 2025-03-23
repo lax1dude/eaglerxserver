@@ -2,6 +2,8 @@ package net.lax1dude.eaglercraft.backend.server.base;
 
 import java.util.UUID;
 
+import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilitySpec;
+import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilityType;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 
 public class EaglerLoginStateAdapter extends EaglerPendingStateAdapter implements IEaglerLoginConnection {
@@ -32,7 +34,7 @@ public class EaglerLoginStateAdapter extends EaglerPendingStateAdapter implement
 
 	@Override
 	public boolean isCookieSupported() {
-		return pipelineData.gameProtocol.ver >= 4;
+		return pipelineData.cookieSupport;
 	}
 
 	@Override
@@ -43,6 +45,30 @@ public class EaglerLoginStateAdapter extends EaglerPendingStateAdapter implement
 	@Override
 	public byte[] getCookieData() {
 		return pipelineData.cookieData;
+	}
+
+	@Override
+	public boolean hasCapability(EnumCapabilitySpec capability) {
+		return CapabilityBits.hasCapability(pipelineData.acceptedCapabilitiesMask,
+				pipelineData.acceptedCapabilitiesVers, capability.getId(), capability.getVer());
+	}
+
+	@Override
+	public int getCapability(EnumCapabilityType capability) {
+		return CapabilityBits.getCapability(pipelineData.acceptedCapabilitiesMask,
+				pipelineData.acceptedCapabilitiesVers, capability.getId());
+	}
+
+	@Override
+	public boolean hasExtendedCapability(UUID extendedCapability, int version) {
+		Byte b = pipelineData.acceptedExtendedCapabilities.get(extendedCapability);
+		return b != null && (b.byteValue() & 0xFF) >= version;
+	}
+
+	@Override
+	public int getExtendedCapability(UUID extendedCapability) {
+		Byte b = pipelineData.acceptedExtendedCapabilities.get(extendedCapability);
+		return b != null ? (b.byteValue() & 0xFF) : -1;
 	}
 
 }

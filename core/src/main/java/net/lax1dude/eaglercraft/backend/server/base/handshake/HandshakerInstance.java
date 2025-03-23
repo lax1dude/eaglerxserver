@@ -1,16 +1,21 @@
 package net.lax1dude.eaglercraft.backend.server.base.handshake;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilityType;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCookieEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthPasswordEvent;
+import net.lax1dude.eaglercraft.backend.server.base.CapabilityBits;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
@@ -21,6 +26,9 @@ public abstract class HandshakerInstance implements IHandshaker {
 
 	public static final Pattern USERNAME_REGEX = Pattern.compile("^[A-Za-z0-9_]{3,16}$");
 	private static final byte[] OFFLINE_PLAYER_BYTES = "OfflinePlayer:".getBytes(StandardCharsets.US_ASCII);
+
+	protected static final UUID[] NO_UUID = new UUID[0];
+	protected static final int[] NO_VER = new int[0];
 
 	protected final EaglerXServer<?> server;
 	protected final NettyPipelineData pipelineData;
@@ -127,7 +135,8 @@ public abstract class HandshakerInstance implements IHandshaker {
 							pipelineData.authEventEnabled = true;
 							state = HandshakePacketTypes.STATE_CLIENT_VERSION;
 							if(sendPacketVersionAuth(ctx, pipelineData.handshakeProtocol, pipelineData.minecraftProtocol,
-									server.getServerBrand(), server.getServerVersion(), pipelineData.authType, evt.getSaltingData()) == null) {
+									server.getServerBrand(), server.getServerVersion(), pipelineData.authType, evt.getSaltingData(),
+									evt.isNicknameSelectionEnabled()) == null) {
 								state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 							}
 							break;
@@ -162,16 +171,25 @@ public abstract class HandshakerInstance implements IHandshaker {
 			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, String message);
 
 	protected abstract ChannelFuture sendPacketVersionNoAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
-			int selectedMinecraftProtocol, String serverBrand, String serverVersion);
+			int selectedMinecraftProtocol, String serverBrand, String serverVersions);
 
 	protected abstract ChannelFuture sendPacketVersionAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
 			int selectedMinecraftProtocol, String serverBrand, String serverVersion,
-			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData);
+			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData, boolean nicknameSelection);
 
 	protected void handlePacketRequestLogin(ChannelHandlerContext ctx, String requestedUsername, String requestedServer,
-			byte[] authPassword, boolean enableCookie, byte[] authCookie) {
+			byte[] authPassword, boolean enableCookie, byte[] authCookie, int standardCapabilities, int[] standardCapabilityVersions) {
+		handlePacketRequestLogin(ctx, requestedUsername, requestedServer, authPassword, enableCookie, authCookie,
+				standardCapabilities, standardCapabilityVersions, NO_UUID, NO_VER);
+	}
+
+	protected void handlePacketRequestLogin(ChannelHandlerContext ctx, String requestedUsername, String requestedServer,
+			byte[] authPassword, boolean enableCookie, byte[] authCookie, int standardCapabilities, int[] standardCapabilityVersions,
+			UUID[] extendedCapabilities, int[] extendedCapabilityVersions) {
 		if(state == HandshakePacketTypes.STATE_CLIENT_VERSION) {
 			state = HandshakePacketTypes.STATE_STALLING;
+
+			processCapabilities(standardCapabilities, standardCapabilityVersions, extendedCapabilities, extendedCapabilityVersions);
 
 			String username;
 
@@ -201,6 +219,8 @@ public abstract class HandshakerInstance implements IHandshaker {
 			}
 
 			pipelineData.requestedServer = requestedServer;
+			pipelineData.cookieSupport = CapabilityBits.hasCapability(pipelineData.acceptedCapabilitiesMask,
+					pipelineData.acceptedCapabilitiesVers, EnumCapabilityType.COOKIE.getId(), 0);
 			pipelineData.cookieEnabled = enableCookie;
 			pipelineData.cookieData = authCookie;
 
@@ -234,11 +254,91 @@ public abstract class HandshakerInstance implements IHandshaker {
 		}
 	}
 
+	protected void processCapabilities(int standardCapabilities, int[] standardCapabilityVersions,
+			UUID[] extendedCapabilities, int[] extendedCapabilityVersions) {
+		int acceptedMask = 0;
+		byte[] acceptedVersions = new byte[8];
+		int acceptedIdx = 0;
+		int standardCount = Integer.bitCount(standardCapabilities);
+		if (standardCount > standardCapabilityVersions.length) {
+			standardCount = standardCapabilityVersions.length;
+		}
+		for(int i = 0; i < standardCount && acceptedIdx < acceptedVersions.length && standardCapabilities != 0; ++i) {
+			int bit = Integer.numberOfTrailingZeros(standardCapabilities);
+			int verBits = standardCapabilityVersions[i];
+			switch(bit) {
+			case 0: // UPDATE
+				if((verBits & 1) != 0) { // V0
+					acceptedMask |= EnumCapabilityType.UPDATE.getBit();
+					acceptedVersions[acceptedIdx++] = 0;
+				}
+				break;
+			case 1: // VOICE
+				if((verBits & 1) != 0) { // V0
+					acceptedMask |= EnumCapabilityType.VOICE.getBit();
+					acceptedVersions[acceptedIdx++] = 0;
+				}
+				break;
+			case 2: // REDIRECT
+				if((verBits & 1) != 0) { // V0
+					acceptedMask |= EnumCapabilityType.REDIRECT.getBit();
+					acceptedVersions[acceptedIdx++] = 0;
+				}
+				break;
+			case 3: // NOTIFICATION
+				if((verBits & 1) != 0) { // V0
+					acceptedMask |= EnumCapabilityType.NOTIFICATION.getBit();
+					acceptedVersions[acceptedIdx++] = 0;
+				}
+				break;
+			case 4: // PAUSE_MENU
+				if((verBits & 1) != 0) { // V0
+					acceptedMask |= EnumCapabilityType.PAUSE_MENU.getBit();
+					acceptedVersions[acceptedIdx++] = 0;
+				}
+				break;
+			case 5: // WEBVIEW
+				if((verBits & 1) != 0) { // V0
+					acceptedMask |= EnumCapabilityType.WEBVIEW.getBit();
+					acceptedVersions[acceptedIdx++] = 0;
+				}
+				break;
+			case 6: // COOKIE
+				if((verBits & 1) != 0) { // V0
+					acceptedMask |= EnumCapabilityType.COOKIE.getBit();
+					acceptedVersions[acceptedIdx++] = 0;
+				}
+				break;
+			case 7: // EAGLER_IP
+				if((verBits & 1) != 0) { // V0
+					acceptedMask |= EnumCapabilityType.EAGLER_IP.getBit();
+					acceptedVersions[acceptedIdx++] = 0;
+				}
+				break;
+			}
+			standardCapabilities &= (0xFFFFFFFF << (bit + 1));
+		}
+		pipelineData.acceptedCapabilitiesMask = acceptedMask;
+		pipelineData.acceptedCapabilitiesVers = acceptedIdx == acceptedVersions.length ? acceptedVersions
+				: Arrays.copyOf(acceptedVersions, acceptedIdx);
+		int extCnt = extendedCapabilities.length;
+		if(extCnt > 0) {
+			Map<UUID, Integer> tmpMap = new HashMap<>(extCnt);
+			for(int i = 0; i < extCnt; ++i) {
+				tmpMap.put(extendedCapabilities[i], extendedCapabilityVersions[i]);
+			}
+			pipelineData.acceptedExtendedCapabilities = server.getExtCapabilityMap().acceptExtendedCapabilities(tmpMap);
+		}else {
+			pipelineData.acceptedExtendedCapabilities = Collections.emptyMap();
+		}
+	}
+
 	private void continueLoginNoAuth(ChannelHandlerContext ctx) {
 		updateLoggerName();
 		ctx.channel().eventLoop().execute(() -> {
 			state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
-			sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid);
+			sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid, pipelineData.acceptedCapabilitiesMask,
+					pipelineData.acceptedCapabilitiesVers, pipelineData.acceptedExtendedCapabilities);
 		});
 	}
 
@@ -260,7 +360,8 @@ public abstract class HandshakerInstance implements IHandshaker {
 					pipelineData.requestedServer = evt.getAuthRequestedServer();
 					updateLoggerName();
 					state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
-					sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid);
+					sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid, pipelineData.acceptedCapabilitiesMask,
+							pipelineData.acceptedCapabilitiesVers, pipelineData.acceptedExtendedCapabilities);
 				});
 			}else {
 				Object obj = evt.getKickMessage();
@@ -294,7 +395,8 @@ public abstract class HandshakerInstance implements IHandshaker {
 					pipelineData.requestedServer = evt.getAuthRequestedServer();
 					updateLoggerName();
 					state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
-					sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid);
+					sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid, pipelineData.acceptedCapabilitiesMask,
+							pipelineData.acceptedCapabilitiesVers, pipelineData.acceptedExtendedCapabilities);
 				});
 				break;
 			case DENY:
@@ -320,7 +422,8 @@ public abstract class HandshakerInstance implements IHandshaker {
 		pipelineData.connectionLogger = pipelineData.connectionLogger.createSubLogger(pipelineData.username);
 	}
 
-	protected abstract ChannelFuture sendPacketAllowLogin(ChannelHandlerContext ctx, String setUsername, UUID setUUID);
+	protected abstract ChannelFuture sendPacketAllowLogin(ChannelHandlerContext ctx, String setUsername, UUID setUUID,
+			int standardCapabilities, byte[] standardCapabilityVersions, Map<UUID, Byte> extendedCapabilities);
 
 	protected abstract ChannelFuture sendPacketDenyLogin(ChannelHandlerContext ctx, Object component);
 

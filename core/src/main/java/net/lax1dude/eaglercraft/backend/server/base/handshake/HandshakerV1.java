@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.handshake;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
@@ -61,7 +62,16 @@ public class HandshakerV1 extends HandshakerInstance {
 		if(buffer.isReadable()) {
 			throw new IndexOutOfBoundsException();
 		}
-		handlePacketRequestLogin(ctx, username, requestedServer, authPassword, false, Util.ZERO_BYTES);
+		handlePacketRequestLogin(ctx, username, requestedServer, authPassword, false, Util.ZERO_BYTES,
+				fallbackCapabilityMask(), fallbackCapabilityVers());
+	}
+
+	protected int fallbackCapabilityMask() {
+		return 0;
+	}
+
+	protected int[] fallbackCapabilityVers() {
+		return NO_VER;
 	}
 
 	protected void handleInboundProfileData(ChannelHandlerContext ctx, ByteBuf buffer) {
@@ -126,12 +136,13 @@ public class HandshakerV1 extends HandshakerInstance {
 	@Override
 	protected ChannelFuture sendPacketVersionAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
 			int selectedMinecraftProtocol, String serverBrand, String serverVersion,
-			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData) {
+			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData, boolean nicknameSelection) {
 		throw new IllegalStateException();
 	}
 
 	@Override
-	protected ChannelFuture sendPacketAllowLogin(ChannelHandlerContext ctx, String setUsername, UUID setUUID) {
+	protected ChannelFuture sendPacketAllowLogin(ChannelHandlerContext ctx, String setUsername, UUID setUUID,
+			int standardCapabilities, byte[] standardCapabilityVersions, Map<UUID, Byte> extendedCapabilities) {
 		ByteBuf buffer = ctx.alloc().buffer();
 		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_ALLOW_LOGIN);
 		buffer.writeByte(setUsername.length());

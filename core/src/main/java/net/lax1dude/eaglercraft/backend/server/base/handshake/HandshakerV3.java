@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilityType;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
@@ -30,6 +31,19 @@ public class HandshakerV3 extends HandshakerV2 {
 	@Override
 	protected GamePluginMessageProtocol getFinalVersion() {
 		return GamePluginMessageProtocol.V3;
+	}
+
+	private static final int CAPABILITIES_MASK = EnumCapabilityType.UPDATE.getBit() | EnumCapabilityType.VOICE.getBit();
+	private static final int[] CAPABILITIES_VER = new int[] { 1, 1 };
+
+	@Override
+	protected int fallbackCapabilityMask() {
+		return CAPABILITIES_MASK;
+	}
+
+	@Override
+	protected int[] fallbackCapabilityVers() {
+		return CAPABILITIES_VER;
 	}
 
 	@Override

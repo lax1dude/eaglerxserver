@@ -7,6 +7,8 @@ import java.util.UUID;
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformSubLogger;
+import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilitySpec;
+import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilityType;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
@@ -34,6 +36,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	private final int minecraftProtocol;
 	private final boolean handshakeAuthEnabled;
 	private final byte[] handshakeAuthUsername;
+	private final boolean cookieSupport;
 	private final boolean cookieEnabled;
 	private byte[] cookieData;
 	private final IPlatformSubLogger connectionLogger;
@@ -42,6 +45,9 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	private final int rewindProtocolVersion;
 	private final RewindMessageControllerHandle rewindMessageControllerHandle;
 	private final Map<String, byte[]> extraProfileData;
+	private final int acceptedCapabilitiesMask;
+	private final byte[] acceptedCapabilitiesVers;
+	private final Map<UUID, Byte> acceptedExtendedCapabilities;
 	private NettyPipelineData.ProfileDataHolder profileDataInit;
 
 	public EaglerConnectionInstance(IPlatformConnection connection,
@@ -65,6 +71,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		this.minecraftProtocol = pipelineData.minecraftProtocol;
 		this.handshakeAuthEnabled = pipelineData.handshakeAuthEnabled;
 		this.handshakeAuthUsername = pipelineData.handshakeAuthUsername;
+		this.cookieSupport = pipelineData.cookieSupport;
 		this.cookieEnabled = pipelineData.cookieEnabled;
 		this.cookieData = pipelineData.cookieData;
 		this.connectionLogger = pipelineData.connectionLogger;
@@ -74,6 +81,9 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		this.rewindMessageControllerHandle = pipelineData.rewindMessageControllerHandle;
 		this.profileDataInit = pipelineData.profileDataHelper();
 		this.extraProfileData = pipelineData.extraProfileDataHelper();
+		this.acceptedCapabilitiesMask = pipelineData.acceptedCapabilitiesMask;
+		this.acceptedCapabilitiesVers = pipelineData.acceptedCapabilitiesVers;
+		this.acceptedExtendedCapabilities = pipelineData.acceptedExtendedCapabilities;
 	}
 
 	@Override
@@ -89,6 +99,28 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	@Override
 	public IEaglerLoginConnection asEaglerPlayer() {
 		return this;
+	}
+
+	@Override
+	public boolean hasCapability(EnumCapabilitySpec capability) {
+		return CapabilityBits.hasCapability(acceptedCapabilitiesMask, acceptedCapabilitiesVers, capability.getId(), capability.getVer());
+	}
+
+	@Override
+	public int getCapability(EnumCapabilityType capability) {
+		return CapabilityBits.getCapability(acceptedCapabilitiesMask, acceptedCapabilitiesVers, capability.getId());
+	}
+
+	@Override
+	public boolean hasExtendedCapability(UUID extendedCapability, int version) {
+		Byte b = acceptedExtendedCapabilities.get(extendedCapability);
+		return b != null && (b.byteValue() & 0xFF) >= version;
+	}
+
+	@Override
+	public int getExtendedCapability(UUID extendedCapability) {
+		Byte b = acceptedExtendedCapabilities.get(extendedCapability);
+		return b != null ? (b.byteValue() & 0xFF) : -1;
 	}
 
 	@Override
@@ -180,7 +212,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 
 	@Override
 	public boolean isCookieSupported() {
-		return gameProtocol.ver >= 4;
+		return cookieSupport;
 	}
 
 	@Override

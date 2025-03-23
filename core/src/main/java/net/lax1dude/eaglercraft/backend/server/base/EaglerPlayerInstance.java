@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformSubLogger;
+import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilitySpec;
+import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilityType;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
@@ -25,6 +27,8 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	private final EaglerConnectionInstance connectionInstance;
 	private final IPlatformSubLogger playerLogger;
+	private final boolean updateSystem;
+	private final boolean redirectSupport;
 	MessageController messageController;
 	VoiceManager<PlayerObject> voiceManager;
 	NotificationManagerPlayer<PlayerObject> notifManager;
@@ -34,6 +38,28 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 		super(player, server);
 		connectionInstance = player.getConnectionAttachment();
 		playerLogger = connectionInstance.logger();
+		updateSystem = connectionInstance.hasCapability(EnumCapabilitySpec.UPDATE_V0);
+		redirectSupport = connectionInstance.hasCapability(EnumCapabilitySpec.REDIRECT_V0);
+	}
+
+	@Override
+	public boolean hasCapability(EnumCapabilitySpec capability) {
+		return connectionInstance.hasCapability(capability);
+	}
+
+	@Override
+	public int getCapability(EnumCapabilityType capability) {
+		return connectionInstance.getCapability(capability);
+	}
+
+	@Override
+	public boolean hasExtendedCapability(UUID extendedCapability, int version) {
+		return connectionInstance.hasExtendedCapability(extendedCapability, version);
+	}
+
+	@Override
+	public int getExtendedCapability(UUID extendedCapability) {
+		return connectionInstance.getExtendedCapability(extendedCapability);
 	}
 
 	@Override
@@ -123,21 +149,20 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public boolean isRedirectPlayerSupported() {
-		return connectionInstance.getEaglerProtocol().ver >= 4;
+		return redirectSupport;
 	}
 
 	@Override
 	public void redirectPlayerToWebSocket(String webSocketURI) {
-		if(connectionInstance.getEaglerProtocol().ver >= 4) {
+		if(redirectSupport) {
 			sendEaglerMessage(new SPacketRedirectClientV4EAG(webSocketURI));
 		}else {
-			playerLogger.warn("Attempted to redirect player on an unsupported (<V4) client");
+			playerLogger.warn("Attempted to redirect player on an unsupported client");
 		}
 	}
 
 	@Override
 	public boolean isVoiceSupported() {
-		// TODO
 		return voiceManager != null;
 	}
 
@@ -206,8 +231,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public boolean isUpdateSystemSupported() {
-		// TODO
-		return false;
+		return updateSystem;
 	}
 
 	@Override
