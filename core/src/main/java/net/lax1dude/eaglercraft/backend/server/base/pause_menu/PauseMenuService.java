@@ -36,7 +36,7 @@ public class PauseMenuService<PlayerObject> implements IPauseMenuService<PlayerO
 
 	@Override
 	public ICustomPauseMenu getVanillaPauseMenu() {
-		return VanillaPauseMenu.INSTANCE;
+		return PauseMenuImplVanilla.INSTANCE;
 	}
 
 	@Override

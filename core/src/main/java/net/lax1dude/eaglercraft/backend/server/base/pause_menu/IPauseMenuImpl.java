@@ -10,4 +10,6 @@ public interface IPauseMenuImpl extends ICustomPauseMenu {
 
 	IWebViewBlob getBlob();
 
+	boolean isPermitWebViewChannel();
+
 }

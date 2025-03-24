@@ -8,7 +8,6 @@ dependencies {
 	implementation project(":voice-api")
 	implementation project(":backend-rpc-api")
 	implementation project(":backend-rpc-api-bukkit")
-	implementation project(":backend-rpc-core")
 	implementation project(":backend-rpc-protocol")
 	compileOnly(libs.paper.api)
 }

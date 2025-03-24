@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.v1_8.socket.protocol.util;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketInputBuffer;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
@@ -20,7 +21,7 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
  * POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-public class PacketImageData {
+public final class PacketImageData {
 
 	public final int width;
 	public final int height;
@@ -74,6 +75,26 @@ public class PacketImageData {
 				buffer.writeShort(0);
 			}
 		}
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Arrays.hashCode(rgba);
+		result = prime * result + width;
+		result = prime * result + height;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!(obj instanceof PacketImageData))
+			return false;
+		PacketImageData other = (PacketImageData) obj;
+		return width == other.width && height == other.height && Arrays.equals(rgba, other.rgba);
 	}
 
 }

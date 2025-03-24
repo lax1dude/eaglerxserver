@@ -1,8 +1,13 @@
 package net.lax1dude.eaglercraft.backend.server.base.pause_menu;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+
+import com.google.common.collect.Lists;
 
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumDiscordInviteButton;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumPauseMenuIcon;
@@ -11,6 +16,7 @@ import net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumWebViewPerms;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.ICustomPauseMenu;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuBuilder;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewBlob;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketCustomizePauseMenuV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.PacketImageData;
 
 public class PauseMenuBuilder implements IPauseMenuBuilder {
@@ -45,8 +51,68 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 
 	@Override
 	public IPauseMenuBuilder copyFrom(ICustomPauseMenu pauseMenu) {
-		// TODO Auto-generated method stub
-		return null;
+		IPauseMenuImpl impl = (IPauseMenuImpl) pauseMenu;
+		SPacketCustomizePauseMenuV4EAG pkt = impl.getPacket();
+		switch(pkt.serverInfoMode) {
+		case SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_NONE:
+		default:
+			serverInfoButtonMode = EnumServerInfoButton.NONE;
+			serverInfoButtonText = null;
+			serverInfoURL = null;
+			serverInfoButtonBlob = null;
+			serverInfoTitle = null;
+			serverInfoPerms = null;
+			break;
+		case SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_EXTERNAL_URL:
+			serverInfoButtonMode = EnumServerInfoButton.EXTERNAL_URL;
+			serverInfoButtonText = pkt.serverInfoButtonText;
+			serverInfoURL = pkt.serverInfoURL;
+			serverInfoButtonBlob = null;
+			serverInfoTitle = null;
+			serverInfoPerms = null;
+			break;
+		case SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_SHOW_EMBED_OVER_HTTP:
+			serverInfoButtonMode = EnumServerInfoButton.WEBVIEW_URL;
+			serverInfoButtonText = pkt.serverInfoButtonText;
+			serverInfoURL = pkt.serverInfoURL;
+			serverInfoButtonBlob = null;
+			serverInfoTitle = pkt.serverInfoEmbedTitle;
+			serverInfoPerms = EnumWebViewPerms.fromBits(pkt.serverInfoEmbedPerms);
+			break;
+		case SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_SHOW_EMBED_OVER_WS:
+			serverInfoButtonMode = EnumServerInfoButton.WEBVIEW_URL;
+			serverInfoButtonText = pkt.serverInfoButtonText;
+			serverInfoURL = null;
+			serverInfoButtonBlob = impl.getBlob();
+			serverInfoTitle = pkt.serverInfoEmbedTitle;
+			serverInfoPerms = EnumWebViewPerms.fromBits(pkt.serverInfoEmbedPerms);
+			break;
+		}
+		switch(pkt.discordButtonMode) {
+		case SPacketCustomizePauseMenuV4EAG.DISCORD_MODE_NONE:
+		default:
+			discordButtonMode = EnumDiscordInviteButton.NONE;
+			discordButtonText = null;
+			discordButtonURL = null;
+			break;
+		case SPacketCustomizePauseMenuV4EAG.DISCORD_MODE_INVITE_URL:
+			discordButtonMode = EnumDiscordInviteButton.EXTERNAL_URL;
+			discordButtonText = pkt.discordButtonText;
+			discordButtonURL = pkt.discordInviteURL;
+			break;
+		}
+		if(pkt.imageMappings != null && !pkt.imageMappings.isEmpty()) {
+			customIcons = new HashMap<>();
+			for(Entry<String, Integer> etr : pkt.imageMappings.entrySet()) {
+				int i = etr.getValue();
+				if(i >= 0 && i < pkt.imageData.size()) {
+					customIcons.put(etr.getKey(), pkt.imageData.get(i));
+				}
+			}
+		}else {
+			customIcons = null;
+		}
+		return this;
 	}
 
 	@Override
@@ -186,7 +252,51 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 
 	@Override
 	public ICustomPauseMenu buildPauseMenu() {
-		// TODO Auto-generated method stub
+		int serverInfoMode;
+		String serverInfoButtonText;
+		String serverInfoURL;
+		byte[] serverInfoHash;
+		int serverInfoEmbedPerms;
+		String serverInfoEmbedTitle;
+		switch(serverInfoButtonMode) {
+		case NONE:
+		default:
+			
+			break;
+		case EXTERNAL_URL:
+			
+			break;
+		case WEBVIEW_URL:
+			
+			break;
+		case WEBVIEW_BLOB:
+			
+			break;
+		}
+		int discordButtonMode;
+		String discordButtonText;
+		String discordInviteURL;
+		switch(this.discordButtonMode) {
+		case NONE:
+		default:
+			discordButtonMode = SPacketCustomizePauseMenuV4EAG.DISCORD_MODE_NONE;
+			discordButtonText = null;
+			discordInviteURL = null;
+			break;
+		case EXTERNAL_URL:
+			discordButtonMode = SPacketCustomizePauseMenuV4EAG.DISCORD_MODE_INVITE_URL;
+			discordButtonText = this.discordButtonText;
+			discordInviteURL = discordButtonURL;
+			break;
+		}
+		Map<String,Integer> imageMappings;
+		List<PacketImageData> imageData;
+		if(customIcons != null && !customIcons.isEmpty()) {
+			//TODO
+		}else {
+			imageMappings = null;
+			imageData = null;
+		}
 		return null;
 	}
 
