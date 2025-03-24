@@ -6,19 +6,20 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilitySpec;
-import net.lax1dude.eaglercraft.backend.server.api.ICEServerEntry;
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceImpl;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings.ConfigDataVoiceService;
+import net.lax1dude.eaglercraft.backend.voice.api.ICEServerEntry;
+import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
+import net.lax1dude.eaglercraft.backend.voice.api.IVoicePlayer;
 
-public class VoiceService<PlayerObject> implements IVoiceService<PlayerObject> {
+public class VoiceService<PlayerObject> implements IVoiceServiceImpl<PlayerObject> {
 
 	private final EaglerXServer<PlayerObject> server;
 	private final boolean enabled;
@@ -26,7 +27,8 @@ public class VoiceService<PlayerObject> implements IVoiceService<PlayerObject> {
 	private final boolean separateServer;
 	private final IVoiceChannel globalChannel;
 	private final Map<String, IVoiceChannel> serverChannels;
-	private String[] iceServers = new String[0];
+	private Collection<ICEServerEntry> iceServers;
+	private String[] iceServersStr = new String[0];
 
 	public VoiceService(EaglerXServer<PlayerObject> server, ConfigDataVoiceService config) {
 		this.server = server;
@@ -71,7 +73,9 @@ public class VoiceService<PlayerObject> implements IVoiceService<PlayerObject> {
 		}
 	}
 
-	public void handleICEServerUpdate(Collection<ICEServerEntry> newICEServers) {
+	@Override
+	public void setICEServers(Collection<ICEServerEntry> newICEServers) {
+		newICEServers = iceServers = ImmutableList.copyOf(newICEServers);
 		String[] newArray = new String[newICEServers.size()];
 		int i = 0;
 		for(ICEServerEntry etr : newICEServers) {
@@ -80,7 +84,7 @@ public class VoiceService<PlayerObject> implements IVoiceService<PlayerObject> {
 		if(i != newArray.length) {
 			throw new IllegalStateException("fuck you");
 		}
-		iceServers = newArray;
+		iceServersStr = newArray;
 	}
 
 	private String iceServerToStr(ICEServerEntry etr) {
@@ -91,8 +95,13 @@ public class VoiceService<PlayerObject> implements IVoiceService<PlayerObject> {
 		}
 	}
 
-	String[] getICEServers() {
+	@Override
+	public Collection<ICEServerEntry> getICEServers() {
 		return iceServers;
+	}
+
+	String[] getICEServersStr() {
+		return iceServersStr;
 	}
 
 	@Override
@@ -151,7 +160,7 @@ public class VoiceService<PlayerObject> implements IVoiceService<PlayerObject> {
 	}
 
 	@Override
-	public Collection<IEaglerPlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel) {
+	public Collection<IVoicePlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel) {
 		if(channel == null) {
 			throw new NullPointerException("Voice channel cannot be null!");
 		}

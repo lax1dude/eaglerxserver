@@ -1,14 +1,10 @@
-package net.lax1dude.eaglercraft.backend.server.api.voice;
-
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
+package net.lax1dude.eaglercraft.backend.voice.api;
 
 public interface IVoiceManager<PlayerObject> {
 
-	IEaglerPlayer<PlayerObject> getPlayer();
+	IVoicePlayer<PlayerObject> getPlayer();
 
 	IVoiceService<PlayerObject> getVoiceService();
-
-	boolean isBackendRelayMode();
 
 	EnumVoiceState getVoiceState();
 

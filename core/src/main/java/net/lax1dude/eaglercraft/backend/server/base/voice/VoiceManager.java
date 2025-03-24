@@ -4,14 +4,14 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
-import net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManagerImpl;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceImpl;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
+import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
+import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalAllowedEAG;
 
-public class VoiceManager<PlayerObject> implements IVoiceManager<PlayerObject> {
+public class VoiceManager<PlayerObject> implements IVoiceManagerImpl<PlayerObject> {
 
 	final EaglerPlayerInstance<PlayerObject> player;
 	final VoiceService<PlayerObject> voice;
@@ -34,7 +34,7 @@ public class VoiceManager<PlayerObject> implements IVoiceManager<PlayerObject> {
 	}
 
 	@Override
-	public IVoiceService<PlayerObject> getVoiceService() {
+	public IVoiceServiceImpl<PlayerObject> getVoiceService() {
 		return voice;
 	}
 
@@ -130,7 +130,7 @@ public class VoiceManager<PlayerObject> implements IVoiceManager<PlayerObject> {
 
 	private void enableVoice() {
 		if(!isServerEnable.compareAndExchange(false, true)) {
-			player.sendEaglerMessage(new SPacketVoiceSignalAllowedEAG(true, voice.getICEServers()));
+			player.sendEaglerMessage(new SPacketVoiceSignalAllowedEAG(true, voice.getICEServersStr()));
 		}
 	}
 

@@ -45,7 +45,6 @@ import net.lax1dude.eaglercraft.backend.server.api.EnumPlatformType;
 import net.lax1dude.eaglercraft.backend.server.api.ExtendedCapabilitySpec;
 import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IBinaryHTTPClient;
-import net.lax1dude.eaglercraft.backend.server.api.ICEServerEntry;
 import net.lax1dude.eaglercraft.backend.server.api.IComponentSerializer;
 import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
@@ -65,7 +64,7 @@ import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindService;
 import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesProperty;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceImpl;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
 import net.lax1dude.eaglercraft.backend.server.base.bukkit_rpc.BackendChannelHelper;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandBrand;
@@ -97,6 +96,7 @@ import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheDatastore;
 import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheDownloader;
 import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheService;
 import net.lax1dude.eaglercraft.backend.util.EaglerDrivers;
+import net.lax1dude.eaglercraft.backend.voice.api.ICEServerEntry;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObject>, IEaglerAPIFactory,
@@ -139,7 +139,6 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private DeferredStartSkinCache skinCacheService;
 	private Connection skinCacheJDBCHandle;
 	private VoiceService<PlayerObject> voiceService;
-	private Collection<ICEServerEntry> iceServers;
 	private NotificationService<PlayerObject> notificationService;
 	private PauseMenuService<PlayerObject> pauseMenuService;
 
@@ -219,9 +218,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			vanillaSkinCache.delete();
 		}
 		
-		iceServers = config.getICEServers();
 		voiceService = new VoiceService<>(this, config.getSettings().getVoiceService());
-		voiceService.handleICEServerUpdate(iceServers);
+		voiceService.setICEServers(config.getICEServers());
 		
 		notificationService = new NotificationService<>(this);
 		pauseMenuService = new PauseMenuService<>(this);
@@ -722,17 +720,6 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public Collection<ICEServerEntry> getICEServers() {
-		return iceServers;
-	}
-
-	@Override
-	public void setICEServers(Collection<ICEServerEntry> servers) {
-		Collection<ICEServerEntry> tmp = iceServers = ImmutableList.copyOf(servers);
-		voiceService.handleICEServerUpdate(tmp);
-	}
-
-	@Override
 	public SkinService<PlayerObject> getSkinService() {
 		return skinService;
 	}
@@ -742,7 +729,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public IVoiceService<PlayerObject> getVoiceService() {
+	public IVoiceServiceImpl<PlayerObject> getVoiceService() {
 		return voiceService;
 	}
 

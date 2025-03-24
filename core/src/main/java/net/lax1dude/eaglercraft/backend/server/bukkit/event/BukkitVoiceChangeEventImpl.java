@@ -5,8 +5,8 @@ import org.bukkit.entity.Player;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.EaglercraftVoiceChangeEvent;
-import net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel;
+import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
+import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
 
 class BukkitVoiceChangeEventImpl extends EaglercraftVoiceChangeEvent {
 

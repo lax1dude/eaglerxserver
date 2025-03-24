@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
 	implementation project(":protocol-game")
+	implementation project(":voice-api")
 	implementation project(":api")
 	implementation project(":api-bukkit")
 	implementation project(":api-bungee")
