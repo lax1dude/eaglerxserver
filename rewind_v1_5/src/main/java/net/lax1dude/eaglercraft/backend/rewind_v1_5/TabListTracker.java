@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+
 public class TabListTracker {
 
 	public static class ListItem {
@@ -40,9 +42,10 @@ public class TabListTracker {
 	/**
 	 * Note: returns the old item!
 	 */
-	public ListItem handleAddPlayer(String playerName, UUID playerUUID, String displayName, int pingValue) {
+	public ListItem handleAddPlayer(String playerName, UUID playerUUID, String displayName, int pingValue,
+			IEaglerXServerAPI<?> interner) {
 		playerName = playerName.intern();
-		playerUUID = InternUtil.uuidInterner.intern(playerUUID);
+		playerUUID = interner.intern(playerUUID);
 		ListItem newItem = new ListItem(playerName, playerUUID,
 				playerName.equals(displayName) ? playerName : displayName.intern(), pingValue);
 		ListItem oldItem = playerUUIDToItem.put(playerUUID, newItem);

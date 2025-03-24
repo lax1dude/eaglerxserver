@@ -187,7 +187,7 @@ public class PlayerInstance<PlayerObject> {
 	public void handleVoiceGlobal(Collection<SPacketVoiceSignalGlobalEAG.UserData> userDatas) {
 		voiceGlobalMap = HashBiMap.create();
 		for(SPacketVoiceSignalGlobalEAG.UserData userData : userDatas) {
-			voiceGlobalMap.put(InternUtil.uuidInterner.intern(new UUID(userData.uuidMost, userData.uuidLeast)), userData.username.intern());
+			voiceGlobalMap.put(rewind.getServerAPI().intern(new UUID(userData.uuidMost, userData.uuidLeast)), userData.username.intern());
 		}
 	}
 

@@ -1157,7 +1157,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 						if (in.readBoolean()) {
 							displayName = componentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767));
 						}
-						TabListTracker.ListItem pliItem = tabList().handleAddPlayer(tempName, pliUuid, displayName, tbPing);
+						TabListTracker.ListItem pliItem = tabList().handleAddPlayer(tempName, pliUuid, displayName, tbPing, serverAPI());
 						if(pliItem != null) {
 							bb = alloc.buffer();
 							try {
