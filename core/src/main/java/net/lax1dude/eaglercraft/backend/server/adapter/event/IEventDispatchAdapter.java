@@ -15,7 +15,6 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMess
 import net.lax1dude.eaglercraft.backend.server.api.query.IMOTDConnection;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryConnection;
 import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
-import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCookieEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthPasswordEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftClientBrandEvent;
@@ -67,8 +66,7 @@ public interface IEventDispatchAdapter<PlayerObject, ComponentObject> {
 			IEventDispatchCallback<IEaglercraftRevokeSessionQueryEvent<PlayerObject>> onComplete);
 
 	void dispatchVoiceChangeEvent(IEaglerPlayer<PlayerObject> player, EnumVoiceState voiceStateOld,
-			IVoiceChannel voiceChannelOld, EnumVoiceState voiceStateNew, IVoiceChannel voiceChannelNew,
-			IEventDispatchCallback<IEaglercraftVoiceChangeEvent<PlayerObject>> onComplete);
+			EnumVoiceState voiceStateNew, IEventDispatchCallback<IEaglercraftVoiceChangeEvent<PlayerObject>> onComplete);
 
 	void dispatchWebSocketOpenEvent(IEaglerConnection delegate,
 			IEventDispatchCallback<IEaglercraftWebSocketOpenEvent<PlayerObject>> onComplete);

@@ -6,26 +6,20 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.EaglercraftVoiceChangeEvent;
 import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
-import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
 
 class BukkitVoiceChangeEventImpl extends EaglercraftVoiceChangeEvent {
 
 	private final IEaglerXServerAPI<Player> api;
 	private final IEaglerPlayer<Player> player;
 	private final EnumVoiceState voiceStateOld;
-	private final IVoiceChannel voiceChannelOld;
 	private final EnumVoiceState voiceStateNew;
-	private final IVoiceChannel voiceChannelNew;
 
 	BukkitVoiceChangeEventImpl(IEaglerXServerAPI<Player> api, IEaglerPlayer<Player> player,
-			EnumVoiceState voiceStateOld, IVoiceChannel voiceChannelOld, EnumVoiceState voiceStateNew,
-			IVoiceChannel voiceChannelNew) {
+			EnumVoiceState voiceStateOld, EnumVoiceState voiceStateNew) {
 		this.api = api;
 		this.player = player;
 		this.voiceStateOld = voiceStateOld;
-		this.voiceChannelOld = voiceChannelOld;
 		this.voiceStateNew = voiceStateNew;
-		this.voiceChannelNew = voiceChannelNew;
 	}
 
 	@Override
@@ -44,18 +38,8 @@ class BukkitVoiceChangeEventImpl extends EaglercraftVoiceChangeEvent {
 	}
 
 	@Override
-	public IVoiceChannel getVoiceChannelOld() {
-		return voiceChannelOld;
-	}
-
-	@Override
 	public EnumVoiceState getVoiceStateNew() {
 		return voiceStateNew;
-	}
-
-	@Override
-	public IVoiceChannel getVoiceChannelNew() {
-		return voiceChannelNew;
 	}
 
 }

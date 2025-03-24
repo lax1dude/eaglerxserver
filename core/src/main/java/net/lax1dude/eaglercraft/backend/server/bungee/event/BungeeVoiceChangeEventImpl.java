@@ -4,7 +4,6 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftVoiceChangeEvent;
 import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
-import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 class BungeeVoiceChangeEventImpl extends EaglercraftVoiceChangeEvent {
@@ -12,19 +11,14 @@ class BungeeVoiceChangeEventImpl extends EaglercraftVoiceChangeEvent {
 	private final IEaglerXServerAPI<ProxiedPlayer> api;
 	private final IEaglerPlayer<ProxiedPlayer> player;
 	private final EnumVoiceState voiceStateOld;
-	private final IVoiceChannel voiceChannelOld;
 	private final EnumVoiceState voiceStateNew;
-	private final IVoiceChannel voiceChannelNew;
 
 	BungeeVoiceChangeEventImpl(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerPlayer<ProxiedPlayer> player,
-			EnumVoiceState voiceStateOld, IVoiceChannel voiceChannelOld, EnumVoiceState voiceStateNew,
-			IVoiceChannel voiceChannelNew) {
+			EnumVoiceState voiceStateOld, EnumVoiceState voiceStateNew) {
 		this.api = api;
 		this.player = player;
 		this.voiceStateOld = voiceStateOld;
-		this.voiceChannelOld = voiceChannelOld;
 		this.voiceStateNew = voiceStateNew;
-		this.voiceChannelNew = voiceChannelNew;
 	}
 
 	@Override
@@ -43,18 +37,8 @@ class BungeeVoiceChangeEventImpl extends EaglercraftVoiceChangeEvent {
 	}
 
 	@Override
-	public IVoiceChannel getVoiceChannelOld() {
-		return voiceChannelOld;
-	}
-
-	@Override
 	public EnumVoiceState getVoiceStateNew() {
 		return voiceStateNew;
-	}
-
-	@Override
-	public IVoiceChannel getVoiceChannelNew() {
-		return voiceChannelNew;
 	}
 
 }

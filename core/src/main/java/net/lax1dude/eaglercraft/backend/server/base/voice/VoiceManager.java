@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.base.voice;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManagerImpl;
@@ -20,8 +21,9 @@ public class VoiceManager<PlayerObject> implements IVoiceManagerImpl<PlayerObjec
 
 	private boolean isAlive = true;
 	private boolean isManaged = true;
+	private final AtomicBoolean isServerEnable = new AtomicBoolean(false);
+	private final AtomicReference<EnumVoiceState> lastVoiceState = new AtomicReference<>(EnumVoiceState.SERVER_DISABLE);
 	private IVoiceChannel currentVoiceChannel = DisabledChannel.INSTANCE;
-	private AtomicBoolean isServerEnable = new AtomicBoolean(false);
 
 	VoiceManager(EaglerPlayerInstance<PlayerObject> player, VoiceService<PlayerObject> voice) {
 		this.player = player;
@@ -61,6 +63,11 @@ public class VoiceManager<PlayerObject> implements IVoiceManagerImpl<PlayerObjec
 
 	@Override
 	public void setVoiceChannel(IVoiceChannel channel) {
+		setVoiceChannel0(channel);
+		onStateChanged();
+	}
+
+	private void setVoiceChannel0(IVoiceChannel channel) {
 		if(channel == null) {
 			throw new NullPointerException("Voice channel cannot be null!");
 		}
@@ -94,8 +101,9 @@ public class VoiceManager<PlayerObject> implements IVoiceManagerImpl<PlayerObjec
 
 	public void handleServerChanged(String serverName) {
 		if(isManaged) {
-			setVoiceChannel(DisabledChannel.INSTANCE);
-			setVoiceChannel(voice.getServerVoiceChannel(serverName));
+			setVoiceChannel0(DisabledChannel.INSTANCE);
+			setVoiceChannel0(voice.getServerVoiceChannel(serverName));
+			onStateChanged();
 		}
 	}
 
@@ -137,6 +145,14 @@ public class VoiceManager<PlayerObject> implements IVoiceManagerImpl<PlayerObjec
 	private void disableVoice() {
 		if(isServerEnable.compareAndExchange(true, false)) {
 			player.sendEaglerMessage(new SPacketVoiceSignalAllowedEAG(false, null));
+		}
+	}
+
+	private void onStateChanged() {
+		EnumVoiceState newState = getVoiceState();
+		EnumVoiceState oldState = lastVoiceState.getAndSet(newState);
+		if(newState != oldState) {
+			player.getEaglerXServer().eventDispatcher().dispatchVoiceChangeEvent(player, oldState, newState, null);
 		}
 	}
 

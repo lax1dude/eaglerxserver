@@ -152,10 +152,8 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player,
 
 	@Override
 	public void dispatchVoiceChangeEvent(IEaglerPlayer<Player> player, EnumVoiceState voiceStateOld,
-			IVoiceChannel voiceChannelOld, EnumVoiceState voiceStateNew, IVoiceChannel voiceChannelNew,
-			IEventDispatchCallback<IEaglercraftVoiceChangeEvent<Player>> onComplete) {
-		fireSync(new BukkitVoiceChangeEventImpl(api, player, voiceStateOld,
-				voiceChannelOld, voiceStateNew, voiceChannelNew), onComplete);
+			EnumVoiceState voiceStateNew, IEventDispatchCallback<IEaglercraftVoiceChangeEvent<Player>> onComplete) {
+		fireSync(new BukkitVoiceChangeEventImpl(api, player, voiceStateOld, voiceStateNew), onComplete);
 	}
 
 	@Override
