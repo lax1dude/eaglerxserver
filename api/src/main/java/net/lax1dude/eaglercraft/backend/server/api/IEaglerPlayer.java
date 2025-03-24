@@ -28,7 +28,9 @@ public interface IEaglerPlayer<PlayerObject>
 		return getSkinManager().getEaglerCape();
 	}
 
-	boolean isVoiceSupported();
+	boolean isVoiceCapable();
+
+	boolean hasVoiceManager();
 
 	IVoiceManagerImpl<PlayerObject> getVoiceManager();
 

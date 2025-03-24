@@ -1,0 +1,30 @@
+package net.lax1dude.eaglercraft.backend.rpc.api;
+
+import java.util.concurrent.Executor;
+
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+
+public interface IRPCFuture<V> extends ListenableFuture<V> {
+
+	/**
+	 * Warning: Futures.addCallback is recommended!
+	 */
+	default void addListener(Runnable runnable) {
+		addListener(runnable, SameThreadExecutor.SAME_THREAD_EXECUTOR);
+	}
+
+	default void addCallback(FutureCallback<V> runnable, Executor executor) {
+		Futures.addCallback(this, runnable, executor);
+	}
+
+	default void addCallback(FutureCallback<V> runnable) {
+		Futures.addCallback(this, runnable, SameThreadExecutor.SAME_THREAD_EXECUTOR);
+	}
+
+	void setExpiresMSFromNow(int millis);
+
+	boolean hasExpired();
+
+}

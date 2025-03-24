@@ -45,6 +45,6 @@ public interface INotificationManager<PlayerObject> {
 
 	void showUnmanagedNotificationBadge(SPacketNotifBadgeShowV4EAG packet);
 
-	void hideUnmanagedNotificationBadge(UUID badgeUUID);
+	void hideNotificationBadge(UUID badgeUUID);
 
 }

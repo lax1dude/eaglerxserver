@@ -17,8 +17,6 @@ public interface IVoiceService<PlayerObject> {
 
 	boolean isVoiceEnabled();
 
-	boolean isBackendRelayMode();
-
 	boolean isVoiceEnabledAllServers();
 
 	boolean isVoiceEnabledOnServer(String serverName);

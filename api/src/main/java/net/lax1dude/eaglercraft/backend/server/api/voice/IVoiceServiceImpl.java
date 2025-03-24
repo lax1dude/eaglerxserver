@@ -17,4 +17,6 @@ public interface IVoiceServiceImpl<PlayerObject> extends IVoiceService<PlayerObj
 		return player.getVoiceManager();
 	}
 
+	boolean isBackendRelayMode();
+
 }

@@ -4,7 +4,9 @@ import java.util.UUID;
 
 public interface IVoicePlayer<PlayerObject> {
 
-	boolean isVoiceSupported();
+	boolean isVoiceCapable();
+
+	boolean hasVoiceManager();
 
 	IVoiceManager<PlayerObject> getVoiceManager();
 

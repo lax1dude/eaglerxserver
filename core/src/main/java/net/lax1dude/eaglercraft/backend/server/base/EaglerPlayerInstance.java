@@ -162,7 +162,12 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
-	public boolean isVoiceSupported() {
+	public boolean isVoiceCapable() {
+		return hasCapability(EnumCapabilitySpec.VOICE_V0);
+	}
+
+	@Override
+	public boolean hasVoiceManager() {
 		return voiceManager != null;
 	}
 

@@ -31,6 +31,10 @@ public interface IWebViewService<PlayerObject> {
 
 	IWebViewBlob createWebViewBlob(File file);
 
+	byte[] registerGlobalBlob(IWebViewBlob blob);
+
+	void unregisterGlobalBlob(IWebViewBlob blob);
+
 	Map<String, String> getTemplateGlobals();
 
 	void addTemplateGlobal(String key, String value);

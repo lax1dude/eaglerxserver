@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.base.bukkit_rpc;
+package net.lax1dude.eaglercraft.backend.server.base.rpc;
 
 import java.util.Collection;
 

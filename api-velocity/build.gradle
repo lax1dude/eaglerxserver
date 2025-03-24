@@ -6,6 +6,8 @@ plugins {
 
 dependencies {
 	implementation project(":api")
+	implementation project(":voice-api")
+	implementation project(":protocol-game")
 	compileOnly(libs.velocity.api)
 }
 

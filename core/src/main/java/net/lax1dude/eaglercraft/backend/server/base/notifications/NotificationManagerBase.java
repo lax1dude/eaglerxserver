@@ -187,7 +187,7 @@ public abstract class NotificationManagerBase<PlayerObject> implements INotifica
 	}
 
 	@Override
-	public void hideUnmanagedNotificationBadge(UUID badgeUUID) {
+	public void hideNotificationBadge(UUID badgeUUID) {
 		sendPacket(new SPacketNotifBadgeHideV4EAG(badgeUUID.getMostSignificantBits(),
 				badgeUUID.getLeastSignificantBits()));
 	}

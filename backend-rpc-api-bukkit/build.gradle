@@ -1,0 +1,17 @@
+
+plugins {
+	id "java"
+	id "eclipse"
+}
+
+dependencies {
+	implementation project(":voice-api")
+	implementation project(":backend-rpc-api")
+	compileOnly(libs.paper.api)
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_11
+	targetCompatibility = JavaVersion.VERSION_11
+}
+

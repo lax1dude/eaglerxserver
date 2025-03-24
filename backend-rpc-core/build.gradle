@@ -1,0 +1,28 @@
+
+plugins {
+	id "java"
+	id "eclipse"
+}
+
+dependencies {
+	implementation project(":voice-api")
+	implementation project(":backend-rpc-api")
+	implementation project(":backend-rpc-api-bukkit")
+	implementation project(":backend-rpc-core")
+	implementation project(":backend-rpc-protocol")
+	compileOnly(libs.paper.api)
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_11
+	targetCompatibility = JavaVersion.VERSION_11
+}
+
+jar {
+	compileJava.options.encoding = "UTF-8"
+	javadoc.options.encoding = "UTF-8"
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	from {
+		configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+	}
+}

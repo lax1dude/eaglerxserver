@@ -93,7 +93,7 @@ public class NotificationManagerNOP<PlayerObject> implements INotificationManage
 	}
 
 	@Override
-	public void hideUnmanagedNotificationBadge(UUID badgeUUID) {
+	public void hideNotificationBadge(UUID badgeUUID) {
 	}
 
 }
