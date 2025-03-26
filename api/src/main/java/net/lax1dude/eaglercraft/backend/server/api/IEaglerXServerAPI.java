@@ -96,7 +96,15 @@ public interface IEaglerXServerAPI<PlayerObject> extends IEaglerVoiceAPI<PlayerO
 
 	int getEaglerPlayerCount();
 
-	Collection<byte[]> getUpdateCertificates();
+	Collection<IUpdateCertificate> getUpdateCertificates();
+
+	default IUpdateCertificate createUpdateCertificate(byte[] data) {
+		return createUpdateCertificate(data, 0, data.length);
+	}
+
+	IUpdateCertificate createUpdateCertificate(byte[] data, int offset, int length);
+
+	void addUpdateCertificate(IUpdateCertificate cert);
 
 	Collection<IEaglerListenerInfo> getAllEaglerListeners();
 

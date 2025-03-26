@@ -1,6 +1,9 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
@@ -10,10 +13,13 @@ import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilityType;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
+import net.lax1dude.eaglercraft.backend.server.api.IUpdateCertificate;
+import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
 import net.lax1dude.eaglercraft.backend.server.base.message.MessageController;
 import net.lax1dude.eaglercraft.backend.server.base.notifications.NotificationManagerPlayer;
 import net.lax1dude.eaglercraft.backend.server.base.pause_menu.PauseMenuManager;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinManagerEagler;
+import net.lax1dude.eaglercraft.backend.server.base.update.IUpdateCertificateImpl;
 import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceManager;
 import net.lax1dude.eaglercraft.backend.server.base.webview.WebViewManager;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
@@ -21,27 +27,35 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherPlayerClientUUIDV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketRedirectClientV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketSetServerCookieV4EAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketUpdateCertEAG;
 
 public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<PlayerObject>
 		implements IEaglerPlayer<PlayerObject> {
 
 	private final EaglerConnectionInstance connectionInstance;
 	private final IPlatformSubLogger playerLogger;
-	private final boolean updateSystem;
+	private final Set<SHA1Sum> updateSent;
 	private final boolean redirectSupport;
+	private final boolean updateSupport;
 	MessageController messageController;
 	VoiceManager<PlayerObject> voiceManager;
 	NotificationManagerPlayer<PlayerObject> notifManager;
 	WebViewManager<PlayerObject> webViewManager;
 	PauseMenuManager<PlayerObject> pauseMenuManager;
+	IUpdateCertificate updateCertificate;
 
 	public EaglerPlayerInstance(IPlatformPlayer<PlayerObject> player,
 			EaglerXServer<PlayerObject> server) {
 		super(player, server);
 		connectionInstance = player.getConnectionAttachment();
 		playerLogger = connectionInstance.logger();
-		updateSystem = connectionInstance.hasCapability(EnumCapabilitySpec.UPDATE_V0);
 		redirectSupport = connectionInstance.hasCapability(EnumCapabilitySpec.REDIRECT_V0);
+		updateSupport = connectionInstance.hasCapability(EnumCapabilitySpec.UPDATE_V0);
+		if(updateSupport && server.getConfig().getSettings().getUpdateService().isEnableUpdateSystem()) {
+			updateSent = new HashSet<>();
+		}else {
+			updateSent = null;
+		}
 	}
 
 	@Override
@@ -236,18 +250,63 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public boolean isUpdateSystemSupported() {
-		return updateSystem;
+		return updateSupport;
 	}
 
 	@Override
-	public byte[] getUpdateCertificate() {
-		// TODO
-		return null;
+	public IUpdateCertificate getUpdateCertificate() {
+		return updateCertificate;
 	}
 
 	@Override
-	public void sendUpdateCertificate(byte[] certificate) {
-		// TODO
+	public void offerUpdateCertificate(IUpdateCertificate cert) {
+		if(!(cert instanceof IUpdateCertificateImpl)) {
+			throw new UnsupportedOperationException("Unknown certificate: " + cert);
+		}
+		if(updateSent == null) {
+			return;
+		}
+		IUpdateCertificateImpl impl = (IUpdateCertificateImpl) cert;
+		SHA1Sum csum = impl.checkSum();
+		boolean send;
+		synchronized(updateSent) {
+			send = updateSent.add(csum);
+			if(send) {
+				int s = updateSent.size();
+				if(s > 256) {
+					removeRandomCertToken();
+				}
+			}
+		}
+		if(send) {
+			SPacketUpdateCertEAG pkt = impl.packet();
+			server.getUpdateServiceLoop().pushRunnable(() -> {
+				sendEaglerMessage(pkt);
+				return pkt.length();
+			});
+		}
+	}
+
+	@Override
+	public void sendUpdateCertificate(IUpdateCertificate cert) {
+		if(!(cert instanceof IUpdateCertificateImpl)) {
+			throw new UnsupportedOperationException("Unknown certificate: " + cert);
+		}
+		if(updateSupport) {
+			sendEaglerMessage(((IUpdateCertificateImpl) cert).packet());
+		}
+	}
+
+	private void removeRandomCertToken() {
+		long l = System.nanoTime();
+		if(l < 0l) l = -l;
+		int idx = (int)(l % updateSent.size());
+		Iterator<SHA1Sum> itr = updateSent.iterator();
+		itr.next();
+		while(--idx > 0 && itr.hasNext()) {
+			itr.next();
+		}
+		itr.remove();
 	}
 
 	public IPlatformSubLogger logger() {

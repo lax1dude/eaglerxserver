@@ -70,9 +70,11 @@ public interface IEaglerPlayer<PlayerObject>
 
 	boolean isUpdateSystemSupported();
 
-	byte[] getUpdateCertificate();
+	IUpdateCertificate getUpdateCertificate();
 
-	void sendUpdateCertificate(byte[] certificate);
+	void offerUpdateCertificate(IUpdateCertificate certificate);
+
+	void sendUpdateCertificate(IUpdateCertificate certificate);
 
 	Map<String, byte[]> getExtraProfileData();
 

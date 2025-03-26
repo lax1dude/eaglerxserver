@@ -54,6 +54,7 @@ import net.lax1dude.eaglercraft.backend.server.api.INativeZlib;
 import net.lax1dude.eaglercraft.backend.server.api.IPacketImageLoader;
 import net.lax1dude.eaglercraft.backend.server.api.IScheduler;
 import net.lax1dude.eaglercraft.backend.server.api.IServerIconLoader;
+import net.lax1dude.eaglercraft.backend.server.api.IUpdateCertificate;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
 import net.lax1dude.eaglercraft.backend.server.api.internal.factory.IEaglerAPIFactory;
@@ -88,6 +89,9 @@ import net.lax1dude.eaglercraft.backend.server.base.rpc.BackendChannelHelper;
 import net.lax1dude.eaglercraft.backend.server.base.skins.ProfileResolver;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SimpleProfileCache;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinService;
+import net.lax1dude.eaglercraft.backend.server.base.update.IUpdateCertificateImpl;
+import net.lax1dude.eaglercraft.backend.server.base.update.UpdateCertificate;
+import net.lax1dude.eaglercraft.backend.server.base.update.UpdateServiceLoop;
 import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceService;
 import net.lax1dude.eaglercraft.backend.server.base.webserver.WebServer;
 import net.lax1dude.eaglercraft.backend.server.base.webview.WebViewService;
@@ -143,6 +147,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private NotificationService<PlayerObject> notificationService;
 	private WebViewService<PlayerObject> webViewService;
 	private PauseMenuService<PlayerObject> pauseMenuService;
+	private UpdateServiceLoop updateServiceLoop;
 
 	public EaglerXServer() {
 	}
@@ -242,6 +247,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 				logger().error("Could not load custom pause menu!", e);
 				pauseMenuService.setDefaultPauseMenu(pauseMenuService.getVanillaPauseMenu());
 			}
+		}
+		
+		if(config.getSettings().getUpdateService().isEnableUpdateSystem()) {
+			updateServiceLoop = new UpdateServiceLoop();
 		}
 		
 		init.setOnServerEnable(this::enableHandler);
@@ -677,9 +686,31 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public Collection<byte[]> getUpdateCertificates() {
-		// TODO
-		return null;
+	@SuppressWarnings("unchecked")
+	public Collection<IUpdateCertificate> getUpdateCertificates() {
+		// This is fine...
+		return (Collection<IUpdateCertificate>) (Object) UpdateCertificate.dumpAll();
+	}
+
+	@Override
+	public IUpdateCertificate createUpdateCertificate(byte[] data, int offset, int length) {
+		byte[] copy = new byte[length];
+		System.arraycopy(data, offset, copy, 0, length);
+		return UpdateCertificate.intern(copy);
+	}
+
+	@Override
+	public void addUpdateCertificate(IUpdateCertificate cert) {
+		if(!(cert instanceof IUpdateCertificateImpl)) {
+			throw new UnsupportedOperationException("Unknown certificate: " + cert);
+		}
+		forEachEaglerPlayer((player) -> {
+			player.offerUpdateCertificate(cert);
+		});
+	}
+
+	public UpdateServiceLoop getUpdateServiceLoop() {
+		return updateServiceLoop;
 	}
 
 	@Override
