@@ -42,7 +42,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	NotificationManagerPlayer<PlayerObject> notifManager;
 	WebViewManager<PlayerObject> webViewManager;
 	PauseMenuManager<PlayerObject> pauseMenuManager;
-	IUpdateCertificate updateCertificate;
+	IUpdateCertificateImpl updateCertificate;
 
 	public EaglerPlayerInstance(IPlatformPlayer<PlayerObject> player,
 			EaglerXServer<PlayerObject> server) {
@@ -51,7 +51,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 		playerLogger = connectionInstance.logger();
 		redirectSupport = connectionInstance.hasCapability(EnumCapabilitySpec.REDIRECT_V0);
 		updateSupport = connectionInstance.hasCapability(EnumCapabilitySpec.UPDATE_V0);
-		if(updateSupport && server.getConfig().getSettings().getUpdateService().isEnableUpdateSystem()) {
+		if(updateSupport && server.getUpdateService() != null) {
 			updateSent = new HashSet<>();
 		}else {
 			updateSent = null;
@@ -230,7 +230,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public boolean isPauseMenuSupported() {
-		return connectionInstance.getEaglerProtocol().ver >= 4;
+		return pauseMenuManager != null;
 	}
 
 	@Override
@@ -240,7 +240,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public boolean isWebViewSupported() {
-		return connectionInstance.getEaglerProtocol().ver >= 4;
+		return webViewManager != null;
 	}
 
 	@Override
@@ -254,7 +254,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
-	public IUpdateCertificate getUpdateCertificate() {
+	public IUpdateCertificateImpl getUpdateCertificate() {
 		return updateCertificate;
 	}
 
@@ -267,6 +267,9 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 			return;
 		}
 		IUpdateCertificateImpl impl = (IUpdateCertificateImpl) cert;
+		if(impl == updateCertificate) {
+			return;
+		}
 		SHA1Sum csum = impl.checkSum();
 		boolean send;
 		synchronized(updateSent) {
@@ -280,7 +283,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 		}
 		if(send) {
 			SPacketUpdateCertEAG pkt = impl.packet();
-			server.getUpdateServiceLoop().pushRunnable(() -> {
+			server.getUpdateService().getLoop().pushRunnable(() -> {
 				sendEaglerMessage(pkt);
 				return pkt.length();
 			});

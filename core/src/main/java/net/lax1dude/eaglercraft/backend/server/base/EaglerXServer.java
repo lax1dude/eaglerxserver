@@ -91,7 +91,7 @@ import net.lax1dude.eaglercraft.backend.server.base.skins.SimpleProfileCache;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinService;
 import net.lax1dude.eaglercraft.backend.server.base.update.IUpdateCertificateImpl;
 import net.lax1dude.eaglercraft.backend.server.base.update.UpdateCertificate;
-import net.lax1dude.eaglercraft.backend.server.base.update.UpdateServiceLoop;
+import net.lax1dude.eaglercraft.backend.server.base.update.UpdateService;
 import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceService;
 import net.lax1dude.eaglercraft.backend.server.base.webserver.WebServer;
 import net.lax1dude.eaglercraft.backend.server.base.webview.WebViewService;
@@ -147,7 +147,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private NotificationService<PlayerObject> notificationService;
 	private WebViewService<PlayerObject> webViewService;
 	private PauseMenuService<PlayerObject> pauseMenuService;
-	private UpdateServiceLoop updateServiceLoop;
+	private UpdateService updateService;
 
 	public EaglerXServer() {
 	}
@@ -250,7 +250,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		}
 		
 		if(config.getSettings().getUpdateService().isEnableUpdateSystem()) {
-			updateServiceLoop = new UpdateServiceLoop();
+			updateService = new UpdateService(this);
 		}
 		
 		init.setOnServerEnable(this::enableHandler);
@@ -375,6 +375,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 					new SkinCacheDownloader(httpClient, skinConf.getValidSkinDownloadURLs()), datastore,
 					skinConf.getSkinCacheMemoryKeepSeconds(), skinConf.getSkinCacheMemoryMaxObjects()));
 		}
+		
+		if(updateService != null) {
+			updateService.start();
+		}
 	}
 
 	private void disableHandler() {
@@ -401,6 +405,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			}
 			skinCacheService.setDelegate(null);
 		}
+		
+		if(updateService != null) {
+			updateService.stop();
+		}
 	}
 
 	public void registerPlayer(BasePlayerInstance<PlayerObject> playerInstance) {
@@ -419,13 +427,18 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		NettyPipelineData.ProfileDataHolder profileData = pendingConnection.transferProfileData();
 
 		playerInstance.messageController = MessageControllerFactory.initializePlayer(playerInstance);
+		
+		if(updateService != null) {
+			playerInstance.updateCertificate = updateService.createUpdateCertificate(playerInstance, profileData.updateCertInit);
+		}
+		
+		playerInstance.voiceManager = voiceService.createVoiceManager(playerInstance);
+		playerInstance.notifManager = notificationService.createPlayerManager(playerInstance);
+		playerInstance.webViewManager = webViewService.createWebViewManager(playerInstance);
+		playerInstance.pauseMenuManager = pauseMenuService.createPauseMenuManager(playerInstance);
+		
 		skinService.createEaglerSkinManager(playerInstance, profileData, (mgr) -> {
 			playerInstance.skinManager = mgr;
-			
-			playerInstance.voiceManager = voiceService.createVoiceManager(playerInstance);
-			playerInstance.notifManager = notificationService.createPlayerManager(playerInstance);
-			playerInstance.webViewManager = webViewService.createWebViewManager(playerInstance);
-			playerInstance.pauseMenuManager = pauseMenuService.createPauseMenuManager(playerInstance);
 			
 			try {
 				if(pendingConnection.isEaglerXRewindPlayer()) {
@@ -449,6 +462,11 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	public void unregisterEaglerPlayer(EaglerPlayerInstance<PlayerObject> playerInstance) {
 		if(!eaglerPlayers.remove(playerInstance)) {
 			throw new RegistrationStateException();
+		}
+
+		if(updateService != null) {
+			updateService.removeUpdateCertificate(playerInstance);
+			playerInstance.updateCertificate = null;
 		}
 
 		if(playerInstance.voiceManager != null) {
@@ -686,10 +704,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public Collection<IUpdateCertificate> getUpdateCertificates() {
-		// This is fine...
-		return (Collection<IUpdateCertificate>) (Object) UpdateCertificate.dumpAll();
+		if(updateService != null) {
+			return updateService.dumpAllCerts();
+		}else {
+			return Collections.emptyList();
+		}
 	}
 
 	@Override
@@ -704,13 +724,15 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		if(!(cert instanceof IUpdateCertificateImpl)) {
 			throw new UnsupportedOperationException("Unknown certificate: " + cert);
 		}
-		forEachEaglerPlayer((player) -> {
-			player.offerUpdateCertificate(cert);
-		});
+		if(updateService != null) {
+			forEachEaglerPlayer((player) -> {
+				player.offerUpdateCertificate(cert);
+			});
+		}
 	}
 
-	public UpdateServiceLoop getUpdateServiceLoop() {
-		return updateServiceLoop;
+	public UpdateService getUpdateService() {
+		return updateService;
 	}
 
 	@Override

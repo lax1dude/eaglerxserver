@@ -335,12 +335,10 @@ public class EaglerConfigLoader {
 			if(!downloadCertsFromConf.exists()) {
 				downloadCertsFromConf.setComment("List of strings, defines the URLs to download "
 						+ "the certificates from if download_latest_certs is enabled");
+				downloadCertsFromConf.appendString("https://eaglercraft.com/backup.cert");
+				downloadCertsFromConf.appendString("https://deev.is/eagler/backup.cert");
 			}
-			List<String> downloadCertsFrom = ImmutableList
-					.copyOf(downloadCertsFromConf.getAsStringList(() -> Arrays.asList(
-							"https://eaglercraft.com/backup.cert",
-							"https://deev.is/eagler/backup.cert"
-						)));
+			List<String> downloadCertsFrom = ImmutableList.copyOf(downloadCertsFromConf.getAsStringList());
 			int checkForUpdateEvery = updateService.getInteger(
 				"check_for_update_every", 28800,
 				"Default value is 28800 seconds, defines how often to check the URL list for "

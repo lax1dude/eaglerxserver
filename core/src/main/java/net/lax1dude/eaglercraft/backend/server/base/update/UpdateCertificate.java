@@ -13,8 +13,7 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketUpdateCer
 
 public final class UpdateCertificate implements IUpdateCertificateImpl {
 
-	private static final Cache<SHA1Sum, UpdateCertificate> interner = CacheBuilder.newBuilder()
-			.weakKeys().weakValues().build();
+	private static final Cache<SHA1Sum, UpdateCertificate> interner = CacheBuilder.newBuilder().softValues().build();
 
 	public static IUpdateCertificateImpl intern(byte[] data) {
 		if(data == null) {
