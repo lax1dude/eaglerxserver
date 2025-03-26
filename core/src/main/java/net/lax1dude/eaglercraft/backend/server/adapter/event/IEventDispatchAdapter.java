@@ -74,7 +74,7 @@ public interface IEventDispatchAdapter<PlayerObject, ComponentObject> {
 	void dispatchWebViewChannelEvent(IEaglerPlayer<PlayerObject> player, EnumEventType type, String channel,
 			IEventDispatchCallback<IEaglercraftWebViewChannelEvent<PlayerObject>> onComplete);
 
-	void dispatchWebViewMessageEvent(IEaglerPlayer<PlayerObject> player, EnumMessageType type, byte[] data,
+	void dispatchWebViewMessageEvent(IEaglerPlayer<PlayerObject> player, String channel, EnumMessageType type, byte[] data,
 			IEventDispatchCallback<IEaglercraftWebViewMessageEvent<PlayerObject>> onComplete);
 
 }

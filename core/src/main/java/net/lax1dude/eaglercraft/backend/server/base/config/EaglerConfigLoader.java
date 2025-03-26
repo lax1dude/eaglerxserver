@@ -3,8 +3,11 @@ package net.lax1dude.eaglercraft.backend.server.base.config;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URI;
@@ -521,6 +524,9 @@ public class EaglerConfigLoader {
 			return builder.build();
 		});
 		ConfigDataPauseMenu pauseMenu = root.loadConfig("pause_menu", (config) -> {
+			if(!config.exists()) {
+				extractDefaultPauseMenuAssets(root.getBaseDir());
+			}
 			boolean enableCustomPauseMenu = config.getBoolean(
 				"enable_custom_pause_menu", false,
 				"Default value is false, if pause menu customization should be enabled on supported clients or not"
@@ -558,7 +564,7 @@ public class EaglerConfigLoader {
 			String serverInfoButtonEmbedFile = serverInfoButtonConf.getString(
 				"server_info_embed_file", "server_info.html",
 				"Sets the name of the local file/template containing the markup to display in the "
-				+ "\"Server Info\" webview if it is not in URL mode."
+				+ "\"Server Info\" webview if it is not in URL mode, relative to this config file."
 			);
 			String serverInfoButtonEmbedScreenTitle = serverInfoButtonConf.getString(
 				"server_info_embed_screen_title", "Server Info",
@@ -635,6 +641,8 @@ public class EaglerConfigLoader {
 			);
 			IEaglerConfSection customImagesConf = config.getSection("custom_images");
 			if(!customImagesConf.exists()) {
+				customImagesConf.setComment("Section, map of custom images to display on the pause menu, "
+						+ "paths are relative to this config file.");
 				customImagesConf.getString("icon_title_L", "");
 				customImagesConf.getString("icon_title_R", "");
 				customImagesConf.getString("icon_backToGame_L", "");
@@ -659,7 +667,7 @@ public class EaglerConfigLoader {
 			builder = ImmutableMap.builder();
 			for(String str : customImagesConf.getKeys()) {
 				String s = customImagesConf.getIfString(str);
-				if(s != null) {
+				if(s != null && s.length() > 0) {
 					builder.put(str, s);
 				}
 			}
@@ -940,6 +948,23 @@ public class EaglerConfigLoader {
 			return "0.0.0.0:25565";
 		default:
 			return "0.0.0.0:8081";
+		}
+	}
+
+	private static void extractDefaultPauseMenuAssets(File baseDir) throws IOException {
+		extractDefaultPauseMenuAssets(baseDir, "server_info_message_api_example.html");
+		extractDefaultPauseMenuAssets(baseDir, "server_info_message_api_v1.js");
+		extractDefaultPauseMenuAssets(baseDir, "server_info.html");
+		extractDefaultPauseMenuAssets(baseDir, "test_image.png");
+	}
+
+	private static void extractDefaultPauseMenuAssets(File baseDir, String name) throws IOException {
+		File f = new File(baseDir, name);
+		if(!f.isFile()) {
+			try (InputStream is = EaglerConfigLoader.class.getResourceAsStream(name);
+					OutputStream os = new FileOutputStream(f)) {
+				is.transferTo(os);
+			}
 		}
 	}
 

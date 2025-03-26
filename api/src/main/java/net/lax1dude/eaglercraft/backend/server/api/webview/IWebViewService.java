@@ -1,11 +1,15 @@
 package net.lax1dude.eaglercraft.backend.server.api.webview;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuService;
 
 public interface IWebViewService<PlayerObject> {
@@ -23,44 +27,57 @@ public interface IWebViewService<PlayerObject> {
 
 	IPauseMenuService<PlayerObject> getPauseMenuService();
 
-	IWebViewBlob createWebViewBlob(String markupIn);
+	IWebViewProvider<PlayerObject> getDefaultProvider();
+
+	default IWebViewBlob createWebViewBlob(String markupIn) {
+		return createWebViewBlob(markupIn.getBytes(StandardCharsets.UTF_8));
+	}
 
 	IWebViewBlob createWebViewBlob(byte[] bytesIn);
 
-	IWebViewBlob createWebViewBlob(InputStream inputStream);
+	IWebViewBlob createWebViewBlob(InputStream inputStream) throws IOException;
 
-	IWebViewBlob createWebViewBlob(File file);
+	default IWebViewBlob createWebViewBlob(File file) throws IOException {
+		try(InputStream is = new FileInputStream(file)) {
+			return createWebViewBlob(is);
+		}
+	}
 
-	byte[] registerGlobalBlob(IWebViewBlob blob);
+	SHA1Sum registerGlobalBlob(IWebViewBlob blob);
 
-	void unregisterGlobalBlob(IWebViewBlob blob);
+	default void unregisterGlobalBlob(IWebViewBlob blob) {
+		unregisterGlobalBlob(blob.getHash());
+	}
+
+	void unregisterGlobalBlob(SHA1Sum sum);
 
 	Map<String, String> getTemplateGlobals();
 
-	void addTemplateGlobal(String key, String value);
+	void setTemplateGlobal(String key, String value);
 
-	String loadWebViewTemplate(String markupIn, Map<String, String> variables, boolean allowEvalMacro);
+	void removeTemplateGlobal(String key);
 
-	default String loadWebViewTemplate(String markupIn, boolean allowEvalMacro) {
-		return loadWebViewTemplate(markupIn, null, allowEvalMacro);
+	default ITemplateLoader createTemplateLoader() {
+		return createTemplateLoader(null, null, null, false);
 	}
 
-	String loadWebViewTemplate(byte[] bytesIn, Map<String, String> variables, boolean allowEvalMacro);
-
-	default String loadWebViewTemplate(byte[] bytesIn, boolean allowEvalMacro) {
-		return loadWebViewTemplate(bytesIn, null, allowEvalMacro);
+	default ITemplateLoader createTemplateLoader(File baseDir) {
+		return createTemplateLoader(baseDir, null, null, false);
 	}
 
-	String loadWebViewTemplate(InputStream inputStream, Map<String, String> variables, boolean allowEvalMacro);
-
-	default String loadWebViewTemplate(InputStream inputStream, boolean allowEvalMacro) {
-		return loadWebViewTemplate(inputStream, null, allowEvalMacro);
+	default ITemplateLoader createTemplateLoader(File baseDir, boolean allowEvalMacro) {
+		return createTemplateLoader(baseDir, null, null, allowEvalMacro);
 	}
 
-	String loadWebViewTemplate(File file, Map<String, String> variables, boolean allowEvalMacro);
-
-	default String loadWebViewTemplate(File file, boolean allowEvalMacro) {
-		return loadWebViewTemplate(file, null, allowEvalMacro);
+	default ITemplateLoader createTemplateLoader(File baseDir, Map<String, String> variables, boolean allowEvalMacro) {
+		return createTemplateLoader(baseDir, variables, null, allowEvalMacro);
 	}
+
+	default ITemplateLoader createTemplateLoader(File baseDir, ITranslationProvider translations, boolean allowEvalMacro) {
+		return createTemplateLoader(baseDir, null, translations, allowEvalMacro);
+	}
+
+	ITemplateLoader createTemplateLoader(File baseDir, Map<String, String> variables, ITranslationProvider translations,
+			boolean allowEvalMacro);
 
 }

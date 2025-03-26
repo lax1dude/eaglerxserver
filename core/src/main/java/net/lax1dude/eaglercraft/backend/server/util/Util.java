@@ -42,6 +42,14 @@ public class Util {
 		}
 	}
 
+	public static MessageDigest sha1() {
+		try {
+			return MessageDigest.getInstance("SHA-1");
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException("SHA-1 is not supported on this JRE!", e);
+		}
+	}
+
 	private static final String hex = "0123456789abcdef";
 
 	public static String hash2string(byte[] b) {

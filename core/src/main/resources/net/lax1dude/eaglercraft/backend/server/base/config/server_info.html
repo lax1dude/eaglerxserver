@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Eaglercraft Server</title>
+<style type="text/css">
+body {
+	margin: 16px;
+	font-family: sans-serif;
+}
+</style>
+</head>
+<body>
+
+<h1>Hello World</h1>
+
+{% htmlescape on %}
+<p>Server Name: {% global `server_name` %}</p>
+<p>Using: {% global `plugin_name` %} {% global `plugin_version` %}</p>
+<p>JVM: {% property `java.vm.name` `(unknown)` %} ({% property `java.vm.info` `null` %}) {% property `java.vm.vendor` `(unknown)` %}</p>
+{% htmlescape off %}
+
+<p><img src="data:image/png;base64,{% embed base64 `test_image.png` %}" /></p>
+
+<!-- Note: JPEGs are recommended for larger images to reduce their size -->
+<!-- <p><img src="data:image/jpeg;base64,(% embed base64 `large_image.jpg` %)" /></p> -->
+
+</body>
+</html>

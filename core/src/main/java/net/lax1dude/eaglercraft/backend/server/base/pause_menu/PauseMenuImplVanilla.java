@@ -28,4 +28,9 @@ class PauseMenuImplVanilla implements IPauseMenuImpl {
 		return false;
 	}
 
+	@Override
+	public boolean isPermitWebViewRequest() {
+		return false;
+	}
+
 }

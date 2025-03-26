@@ -75,7 +75,12 @@ public class ConfigHelper {
 			File f = new File(singleFile);
 			platform.logger().info("Using single config file at: " + f.getAbsolutePath());
 			IEaglerConfig conf = defaultFormat.getConfigFile(f);
+			File parent = f.getParentFile();
 			T result = handler.load(new IConfigDirectory() {
+				@Override
+				public File getBaseDir() {
+					return parent;
+				}
 				@Override
 				public <V> V loadConfig(String fileName, IConfigLoadFunction<V> func) throws IOException {
 					return func.call(conf.getRoot().getSection(fileName));
@@ -86,11 +91,15 @@ public class ConfigHelper {
 			}
 			return result;
 		}else {
+			File dataFolder = platform.getDataFolder();
 			return handler.load(new IConfigDirectory() {
+				@Override
+				public File getBaseDir() {
+					return dataFolder;
+				}
 				@Override
 				public <V> V loadConfig(String fileName, IConfigLoadFunction<V> func) throws IOException {
 					EnumConfigFormat fmt = defaultFormat;
-					File dataFolder = platform.getDataFolder();
 					File f = new File(dataFolder, fileName + "." + fmt.getDefaultExt());
 					if(!f.isFile()) {
 						search: for(EnumConfigFormat fmt2 : supported) {

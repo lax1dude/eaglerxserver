@@ -11,14 +11,16 @@ class BungeeWebViewMessageEventImpl extends EaglercraftWebViewMessageEvent {
 
 	private final IEaglerXServerAPI<ProxiedPlayer> api;
 	private final IEaglerPlayer<ProxiedPlayer> player;
+	private final String channel;
 	private final EnumMessageType type;
 	private final byte[] data;
 	private String asString;
 
 	BungeeWebViewMessageEventImpl(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerPlayer<ProxiedPlayer> player,
-			EnumMessageType type, byte[] data) {
+			String channel, EnumMessageType type, byte[] data) {
 		this.api = api;
 		this.player = player;
+		this.channel = channel;
 		this.type = type;
 		this.data = data;
 	}
@@ -31,6 +33,11 @@ class BungeeWebViewMessageEventImpl extends EaglercraftWebViewMessageEvent {
 	@Override
 	public IEaglerPlayer<ProxiedPlayer> getPlayer() {
 		return player;
+	}
+
+	@Override
+	public String getChannel() {
+		return channel;
 	}
 
 	@Override

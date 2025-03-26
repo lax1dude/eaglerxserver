@@ -60,15 +60,7 @@ class RegisterSkinDownloader {
 
 	private void countDown() {
 		if(countDown.decrementAndGet() == 0) {
-			if(player.getEaglerProtocol().ver >= 4) {
-				if(!skinResult.equals(state.skinOriginal)) {
-					player.sendEaglerMessage(skinResult.getForceSkinPacketV4());
-				}
-				if(!capeResult.equals(state.capeOriginal)) {
-					player.sendEaglerMessage(capeResult.getForceCapePacketV4());
-				}
-			}
-			onComplete.accept(skinResult, capeResult);
+			state.handleComplete(player, skinResult, capeResult, onComplete);
 		}
 	}
 

@@ -1,13 +1,11 @@
 package net.lax1dude.eaglercraft.backend.server.api.webview;
 
-import java.util.List;
-
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketServerInfoDataChunkV4EAG;
+import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
 
 public interface IWebViewBlob {
 
-	byte[] getHash();
+	int getLength();
 
-	List<SPacketServerInfoDataChunkV4EAG> loadChunks();
+	SHA1Sum getHash();
 
 }

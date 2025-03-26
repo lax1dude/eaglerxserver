@@ -35,7 +35,6 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMess
 import net.lax1dude.eaglercraft.backend.server.api.query.IMOTDConnection;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryConnection;
 import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
-import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
 
 public class VelocityEventDispatchAdapter implements IEventDispatchAdapter<Player, Component> {
 
@@ -168,9 +167,9 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter<Playe
 	}
 
 	@Override
-	public void dispatchWebViewMessageEvent(IEaglerPlayer<Player> player, EnumMessageType type, byte[] data,
-			IEventDispatchCallback<IEaglercraftWebViewMessageEvent<Player>> onComplete) {
-		fire(new VelocityWebViewMessageEventImpl(api, player, type, data), onComplete);
+	public void dispatchWebViewMessageEvent(IEaglerPlayer<Player> player, String channel, EnumMessageType type,
+			byte[] data, IEventDispatchCallback<IEaglercraftWebViewMessageEvent<Player>> onComplete) {
+		fire(new VelocityWebViewMessageEventImpl(api, player, channel, type, data), onComplete);
 	}
 
 }

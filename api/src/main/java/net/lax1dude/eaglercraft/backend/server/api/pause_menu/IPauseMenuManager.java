@@ -9,7 +9,9 @@ public interface IPauseMenuManager<PlayerObject> {
 
 	IPauseMenuService<PlayerObject> getPauseMenuService();
 
-	IWebViewManager<PlayerObject> getWebViewManager();
+	default IWebViewManager<PlayerObject> getWebViewManager() {
+		return getPlayer().getWebViewManager();
+	}
 
 	ICustomPauseMenu getActivePauseMenu();
 

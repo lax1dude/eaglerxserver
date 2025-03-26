@@ -24,7 +24,7 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.IProfileResolver;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesProperty;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceImpl;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceX;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IWebServer;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
 import net.lax1dude.eaglercraft.backend.voice.api.IEaglerVoiceAPI;
@@ -122,7 +122,7 @@ public interface IEaglerXServerAPI<PlayerObject> extends IEaglerVoiceAPI<PlayerO
 
 	ISkinService<PlayerObject> getSkinService();
 
-	IVoiceServiceImpl<PlayerObject> getVoiceService();
+	IVoiceServiceX<PlayerObject> getVoiceService();
 
 	IBrandService<PlayerObject> getBrandService();
 

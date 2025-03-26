@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Eaglercraft Server</title>
+<style type="text/css">
+body {
+	margin: 16px;
+	font-family: sans-serif;
+}
+</style>
+</head>
+<script type="text/javascript">
+{% embed text `message_api_v1.js` %}
+</script>
+<script type="text/javascript">
+
+// Open the channel, this can be any string
+serverMessageAPI.openChannel("com.example.test_channel");
+
+// Set the callback for when messages are recieved
+serverMessageAPI.addEventListener("message", function(msg) {
+	var newElement = document.createElement("li");
+	if(msg.type === "binary") {
+		newElement.innerText = "[" + msg.channel + "][binary] ArrayBuffer(" + msg.data.byteLength + ")";
+	}else if(msg.type === "string") {
+		newElement.innerText = "[" + msg.channel + "][string] \"" + msg.data + "\"";
+	}
+	document.getElementById("messages_recieved").appendChild(newElement);
+});
+
+window.addEventListener("load", function() {
+	document.getElementById("message_send").addEventListener("click", function() {
+		var el = document.getElementById("message_contents");
+		var toSend = el.value.trim();
+		if(toSend.length > 0) {
+			
+			// Send the message, can be a string, ArrayBuffer, Int8Array, or Uint8Array
+			serverMessageAPI.send("com.example.test_channel", toSend);
+			
+			el.value = "";
+		}
+	});
+});
+
+</script>
+<body>
+<h1>Message API Test</h1>
+<h4>Server Version: {% global `plugin_name` %} {% global `plugin_version` %}</h4>
+<h4>Make sure you enable javascript in "pause_menu.yml"</h4>
+<p>Message: <input type="text" id="message_contents" placeholder="eagler"> <button id="message_send">Send</button></p>
+<p>Recieved from server:</p>
+<ul id="messages_recieved"></ul>
+</body>
+</html>

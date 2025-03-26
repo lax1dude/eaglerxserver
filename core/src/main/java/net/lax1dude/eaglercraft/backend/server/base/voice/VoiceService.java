@@ -11,7 +11,7 @@ import com.google.common.collect.ImmutableMap;
 
 import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilitySpec;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceImpl;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceX;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings.ConfigDataVoiceService;
@@ -19,7 +19,7 @@ import net.lax1dude.eaglercraft.backend.voice.api.ICEServerEntry;
 import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.voice.api.IVoicePlayer;
 
-public class VoiceService<PlayerObject> implements IVoiceServiceImpl<PlayerObject> {
+public class VoiceService<PlayerObject> implements IVoiceServiceX<PlayerObject> {
 
 	private final EaglerXServer<PlayerObject> server;
 	private final boolean enabled;
@@ -155,10 +155,6 @@ public class VoiceService<PlayerObject> implements IVoiceServiceImpl<PlayerObjec
 		return DisabledChannel.INSTANCE;
 	}
 
-	public VoiceManager<PlayerObject> createVoiceManager(EaglerPlayerInstance<PlayerObject> player) {
-		return enabled && player.hasCapability(EnumCapabilitySpec.VOICE_V0) ? new VoiceManager<>(player, this) : null;
-	}
-
 	@Override
 	public Collection<IVoicePlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel) {
 		if(channel == null) {
@@ -171,6 +167,10 @@ public class VoiceService<PlayerObject> implements IVoiceServiceImpl<PlayerObjec
 			throw new IllegalArgumentException("Unknown voice channel");
 		}
 		return ((VoiceChannel<PlayerObject>)channel).listConnectedPlayers();
+	}
+
+	public VoiceManager<PlayerObject> createVoiceManager(EaglerPlayerInstance<PlayerObject> player) {
+		return enabled && player.hasCapability(EnumCapabilitySpec.VOICE_V0) ? new VoiceManager<>(player, this) : null;
 	}
 
 }

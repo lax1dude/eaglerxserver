@@ -8,7 +8,7 @@ import net.lax1dude.eaglercraft.backend.rpc.api.internal.factory.IEaglerRPCFacto
 import net.lax1dude.eaglercraft.backend.rpc.api.notifications.INotificationBuilder;
 import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.IPauseMenuBuilder;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.ISkinImageLoader;
-import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceServiceImpl;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceServiceX;
 import net.lax1dude.eaglercraft.backend.voice.api.IEaglerVoiceAPI;
 
 public interface IEaglerXServerRPC<PlayerObject> extends IEaglerVoiceAPI<PlayerObject>, IRPCAttributeHolder {
@@ -33,7 +33,7 @@ public interface IEaglerXServerRPC<PlayerObject> extends IEaglerVoiceAPI<PlayerO
 
 	EnumPlatformType getPlatformType();
 
-	IVoiceServiceImpl<PlayerObject> getVoiceService();
+	IVoiceServiceX<PlayerObject> getVoiceService();
 
 	ISkinImageLoader getSkinImageLoader();
 

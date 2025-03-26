@@ -1,6 +1,6 @@
 package net.lax1dude.eaglercraft.backend.rpc.api;
 
-import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceManagerImpl;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceManagerX;
 import net.lax1dude.eaglercraft.backend.voice.api.IVoicePlayer;
 
 public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject>, IVoicePlayer<PlayerObject> {
@@ -9,7 +9,7 @@ public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject>, 
 
 	boolean hasVoiceManager();
 
-	IVoiceManagerImpl<PlayerObject> getVoiceManager();
+	IVoiceManagerX<PlayerObject> getVoiceManager();
 
 	IRPCHandle<IEaglerPlayerRPC<PlayerObject>> getHandleEagler();
 

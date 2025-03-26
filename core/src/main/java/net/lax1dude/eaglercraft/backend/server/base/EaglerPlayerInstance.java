@@ -10,12 +10,12 @@ import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilityType;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
-import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuManager;
-import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewManager;
 import net.lax1dude.eaglercraft.backend.server.base.message.MessageController;
 import net.lax1dude.eaglercraft.backend.server.base.notifications.NotificationManagerPlayer;
+import net.lax1dude.eaglercraft.backend.server.base.pause_menu.PauseMenuManager;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinManagerEagler;
 import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceManager;
+import net.lax1dude.eaglercraft.backend.server.base.webview.WebViewManager;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherPlayerClientUUIDV4EAG;
@@ -32,6 +32,8 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	MessageController messageController;
 	VoiceManager<PlayerObject> voiceManager;
 	NotificationManagerPlayer<PlayerObject> notifManager;
+	WebViewManager<PlayerObject> webViewManager;
+	PauseMenuManager<PlayerObject> pauseMenuManager;
 
 	public EaglerPlayerInstance(IPlatformPlayer<PlayerObject> player,
 			EaglerXServer<PlayerObject> server) {
@@ -218,9 +220,8 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
-	public IPauseMenuManager<PlayerObject> getPauseMenuManager() {
-		// TODO
-		return null;
+	public PauseMenuManager<PlayerObject> getPauseMenuManager() {
+		return pauseMenuManager;
 	}
 
 	@Override
@@ -229,9 +230,8 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
-	public IWebViewManager<PlayerObject> getWebViewManager() {
-		// TODO
-		return null;
+	public WebViewManager<PlayerObject> getWebViewManager() {
+		return webViewManager;
 	}
 
 	@Override

@@ -9,25 +9,23 @@ public interface IWebViewManager<PlayerObject> {
 
 	IWebViewService<PlayerObject> getWebViewService();
 
-	IPauseMenuManager<PlayerObject> getPauseMenuManager();
+	default IPauseMenuManager<PlayerObject> getPauseMenuManager() {
+		return getPlayer().getPauseMenuManager();
+	}
 
-	EnumWebViewState getWebViewState();
+	IWebViewProvider<PlayerObject> getProvider();
 
-	boolean isWebViewSupported();
+	void setProvider(IWebViewProvider<PlayerObject> func);
 
-	boolean isWebViewAllowed();
+	boolean isRequestAllowed();
+
+	boolean isChannelAllowed();
+
+	EnumChannelState getChannelState();
 
 	boolean isChannelOpen();
 
 	boolean isChannelOpen(String channelName);
-
-	String getChannelName();
-
-	void sendMessageString(String contents);
-
-	void sendMessageString(byte[] contents);
-
-	void sendMessageBinary(byte[] contents);
 
 	void sendMessageString(String channelName, String contents);
 

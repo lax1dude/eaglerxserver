@@ -17,6 +17,8 @@ public interface IEaglercraftWebViewMessageEvent<PlayerObject> extends IBasePlay
 		return getServerAPI().getWebViewService();
 	}
 
+	String getChannel();
+
 	EnumMessageType getType();
 
 	String getAsString();

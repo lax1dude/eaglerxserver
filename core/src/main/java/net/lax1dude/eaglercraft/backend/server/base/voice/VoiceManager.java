@@ -5,14 +5,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManagerImpl;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceImpl;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManagerX;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceX;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
 import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalAllowedEAG;
 
-public class VoiceManager<PlayerObject> implements IVoiceManagerImpl<PlayerObject> {
+public class VoiceManager<PlayerObject> implements IVoiceManagerX<PlayerObject> {
 
 	final EaglerPlayerInstance<PlayerObject> player;
 	final VoiceService<PlayerObject> voice;
@@ -36,7 +36,7 @@ public class VoiceManager<PlayerObject> implements IVoiceManagerImpl<PlayerObjec
 	}
 
 	@Override
-	public IVoiceServiceImpl<PlayerObject> getVoiceService() {
+	public IVoiceServiceX<PlayerObject> getVoiceService() {
 		return voice;
 	}
 

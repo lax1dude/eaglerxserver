@@ -12,14 +12,16 @@ class BukkitWebViewMessageEventImpl extends EaglercraftWebViewMessageEvent {
 
 	private final IEaglerXServerAPI<Player> api;
 	private final IEaglerPlayer<Player> player;
+	private final String channel;
 	private final EnumMessageType type;
 	private final byte[] data;
 	private String asString;
 
 	BukkitWebViewMessageEventImpl(IEaglerXServerAPI<Player> api, IEaglerPlayer<Player> player,
-			EnumMessageType type, byte[] data) {
+			String channel, EnumMessageType type, byte[] data) {
 		this.api = api;
 		this.player = player;
+		this.channel = channel;
 		this.type = type;
 		this.data = data;
 	}
@@ -32,6 +34,11 @@ class BukkitWebViewMessageEventImpl extends EaglercraftWebViewMessageEvent {
 	@Override
 	public IEaglerPlayer<Player> getPlayer() {
 		return player;
+	}
+
+	@Override
+	public String getChannel() {
+		return channel;
 	}
 
 	@Override

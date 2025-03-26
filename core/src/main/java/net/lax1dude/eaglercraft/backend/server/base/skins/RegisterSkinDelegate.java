@@ -1,10 +1,13 @@
 package net.lax1dude.eaglercraft.backend.server.base.skins;
 
+import java.util.function.BiConsumer;
+
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IRegisterSkinDelegate;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesResult;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 
 abstract class RegisterSkinDelegate implements IRegisterSkinDelegate {
 
@@ -139,6 +142,25 @@ abstract class RegisterSkinDelegate implements IRegisterSkinDelegate {
 			capeURL = null;
 			this.cape = cape;
 		}
+	}
+
+	void handleComplete(EaglerPlayerInstance<?> player, IEaglerPlayerSkin skinResult,
+			IEaglerPlayerCape capeResult, BiConsumer<IEaglerPlayerSkin, IEaglerPlayerCape> onComplete) {
+		if(skinResult == null) {
+			skinResult = skinOriginal;
+		}else if(!skinResult.equals(skinOriginal)) {
+			if(player.getEaglerProtocol().ver >= 4) {
+				player.sendEaglerMessage(skinResult.getForceSkinPacketV4());
+			}
+		}
+		if(capeResult == null) {
+			capeResult = capeOriginal;
+		}else if(!capeResult.equals(capeOriginal)) {
+			if(player.getEaglerProtocol().ver >= 4) {
+				player.sendEaglerMessage(capeResult.getForceCapePacketV4());
+			}
+		}
+		onComplete.accept(skinResult, capeResult);
 	}
 
 }

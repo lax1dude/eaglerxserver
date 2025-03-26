@@ -64,7 +64,7 @@ import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindService;
 import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesProperty;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceImpl;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceX;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandBrand;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandConfirmCode;
@@ -73,6 +73,7 @@ import net.lax1dude.eaglercraft.backend.server.base.command.CommandProtocol;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandUserAgent;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandVersion;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
+import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataPauseMenu;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataRoot;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings.ConfigDataSkinService;
 import net.lax1dude.eaglercraft.backend.server.base.message.MessageControllerFactory;
@@ -89,6 +90,7 @@ import net.lax1dude.eaglercraft.backend.server.base.skins.SimpleProfileCache;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinService;
 import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceService;
 import net.lax1dude.eaglercraft.backend.server.base.webserver.WebServer;
+import net.lax1dude.eaglercraft.backend.server.base.webview.WebViewService;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 import net.lax1dude.eaglercraft.backend.skin_cache.HTTPClient;
 import net.lax1dude.eaglercraft.backend.skin_cache.ISkinCacheService;
@@ -140,6 +142,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private Connection skinCacheJDBCHandle;
 	private VoiceService<PlayerObject> voiceService;
 	private NotificationService<PlayerObject> notificationService;
+	private WebViewService<PlayerObject> webViewService;
 	private PauseMenuService<PlayerObject> pauseMenuService;
 
 	public EaglerXServer() {
@@ -222,7 +225,25 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		voiceService.setICEServers(config.getICEServers());
 		
 		notificationService = new NotificationService<>(this);
+		
+		webViewService = new WebViewService<>(this);
+		webViewService.setTemplateGlobal("server_name", getServerName());
+		webViewService.setTemplateGlobal("plugin_name", getServerBrand());
+		webViewService.setTemplateGlobal("plugin_version", getServerVersion());
+		webViewService.setTemplateGlobal("plugin_authors", EaglerXServerVersion.AUTHOR);
+		config.getPauseMenu().getServerInfoButtonEmbedTemplateGlobals().forEach(webViewService::setTemplateGlobal);
+		
 		pauseMenuService = new PauseMenuService<>(this);
+		
+		ConfigDataPauseMenu pauseMenuConf = config.getPauseMenu();
+		if(pauseMenuConf.isEnableCustomPauseMenu()) {
+			try {
+				pauseMenuService.reloadDefaultPauseMenu(new File(platform.getDataFolder(), "pause_menu"), pauseMenuConf);
+			} catch (IOException e) {
+				logger().error("Could not load custom pause menu!", e);
+				pauseMenuService.setDefaultPauseMenu(pauseMenuService.getVanillaPauseMenu());
+			}
+		}
 		
 		init.setOnServerEnable(this::enableHandler);
 		init.setOnServerDisable(this::disableHandler);
@@ -395,6 +416,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			
 			playerInstance.voiceManager = voiceService.createVoiceManager(playerInstance);
 			playerInstance.notifManager = notificationService.createPlayerManager(playerInstance);
+			playerInstance.webViewManager = webViewService.createWebViewManager(playerInstance);
+			playerInstance.pauseMenuManager = pauseMenuService.createPauseMenuManager(playerInstance);
 			
 			try {
 				if(pendingConnection.isEaglerXRewindPlayer()) {
@@ -729,7 +752,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public IVoiceServiceImpl<PlayerObject> getVoiceService() {
+	public IVoiceServiceX<PlayerObject> getVoiceService() {
 		return voiceService;
 	}
 

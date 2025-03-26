@@ -158,9 +158,9 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 	}
 
 	@Override
-	public void dispatchWebViewMessageEvent(IEaglerPlayer<ProxiedPlayer> player, EnumMessageType type, byte[] data,
-			IEventDispatchCallback<IEaglercraftWebViewMessageEvent<ProxiedPlayer>> onComplete) {
-		fireSync(new BungeeWebViewMessageEventImpl(api, player, type, data), onComplete);
+	public void dispatchWebViewMessageEvent(IEaglerPlayer<ProxiedPlayer> player, String channel, EnumMessageType type,
+			byte[] data, IEventDispatchCallback<IEaglercraftWebViewMessageEvent<ProxiedPlayer>> onComplete) {
+		fireSync(new BungeeWebViewMessageEventImpl(api, player, channel, type, data), onComplete);
 	}
 
 }

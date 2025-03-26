@@ -189,10 +189,10 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 		server.eventDispatcher().dispatchRegisterSkinEvent(conn, handle, (evt, err) -> {
 			if(err != null) {
 				server.logger().error("Uncaught exception in register skin event", err);
-				onComplete.accept(skin, cape);
+				onComplete.accept(handle.skinOriginal, handle.capeOriginal);
 			}else {
 				if(handle.skinURL == null && handle.capeURL == null) {
-					onComplete.accept(handle.skin, handle.cape);
+					handle.handleComplete(conn, handle.skin, handle.cape, onComplete);
 				} else {
 					(new RegisterSkinDownloader(this, conn, handle, onComplete)).run();
 				}

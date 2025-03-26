@@ -35,10 +35,12 @@ public class PacketImageLoader {
 	};
 
 	public static PacketImageData loadPacketImageData(int[] pixelsARGB8, int width, int height) {
+		checkSize(width, height);
 		return new PacketImageData(width, height, pixelsARGB8);
 	}
 
 	public static PacketImageData loadPacketImageData(BufferedImage img, int maxWidth, int maxHeight) {
+		checkSize(maxWidth, maxHeight);
 		int w = img.getWidth();
 		int h = img.getHeight();
 		if(w > maxWidth || h > maxHeight) {
@@ -66,11 +68,25 @@ public class PacketImageLoader {
 	}
 
 	public static PacketImageData loadPacketImageData(InputStream inputStream, int maxWidth, int maxHeight) throws IOException {
+		checkSize(maxWidth, maxHeight);
 		return loadPacketImageData(ImageIO.read(inputStream), maxWidth, maxHeight);
 	}
 
 	public static PacketImageData loadPacketImageData(File imageFile, int maxWidth, int maxHeight) throws IOException {
+		checkSize(maxWidth, maxHeight);
 		return loadPacketImageData(ImageIO.read(imageFile), maxWidth, maxHeight);
+	}
+
+	private static void checkSize(int w, int h) {
+		if(w < 0 || h < 0) {
+			throw new IllegalArgumentException("Size is negative");
+		}
+		if(w > 255) {
+			throw new IllegalArgumentException("Width is greater than 255");
+		}
+		if(h > 255) {
+			throw new IllegalArgumentException("Height is greater than 255");
+		}
 	}
 
 }

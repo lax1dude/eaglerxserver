@@ -1,14 +1,15 @@
 package net.lax1dude.eaglercraft.backend.server.base.pause_menu;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.google.common.collect.Lists;
-
+import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumDiscordInviteButton;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumPauseMenuIcon;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumServerInfoButton;
@@ -25,6 +26,7 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 	private String serverInfoButtonText = null;
 	private String serverInfoURL = null;
 	private IWebViewBlob serverInfoButtonBlob = null;
+	private SHA1Sum serverInfoButtonBlobHash = null;
 	private String serverInfoTitle = null;
 	private Set<EnumWebViewPerms> serverInfoPerms = null;
 
@@ -41,11 +43,14 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 		serverInfoButtonText = builder.serverInfoButtonText;
 		serverInfoURL = builder.serverInfoURL;
 		serverInfoButtonBlob = builder.serverInfoButtonBlob;
+		serverInfoButtonBlobHash = builder.serverInfoButtonBlobHash;
 		serverInfoTitle = builder.serverInfoTitle;
-		serverInfoPerms = builder.serverInfoPerms;
+		serverInfoPerms = builder.serverInfoPerms != null && !builder.serverInfoPerms.isEmpty()
+				? EnumSet.copyOf(builder.serverInfoPerms) : null;
 		discordButtonMode = builder.discordButtonMode;
 		discordButtonText = builder.discordButtonText;
 		discordButtonURL = builder.discordButtonURL;
+		customIcons = builder.customIcons != null && !builder.customIcons.isEmpty() ? new HashMap<>(builder.customIcons) : null;
 		return this;
 	}
 
@@ -60,6 +65,7 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 			serverInfoButtonText = null;
 			serverInfoURL = null;
 			serverInfoButtonBlob = null;
+			serverInfoButtonBlobHash = null;
 			serverInfoTitle = null;
 			serverInfoPerms = null;
 			break;
@@ -68,6 +74,7 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 			serverInfoButtonText = pkt.serverInfoButtonText;
 			serverInfoURL = pkt.serverInfoURL;
 			serverInfoButtonBlob = null;
+			serverInfoButtonBlobHash = null;
 			serverInfoTitle = null;
 			serverInfoPerms = null;
 			break;
@@ -76,16 +83,24 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 			serverInfoButtonText = pkt.serverInfoButtonText;
 			serverInfoURL = pkt.serverInfoURL;
 			serverInfoButtonBlob = null;
+			serverInfoButtonBlobHash = null;
 			serverInfoTitle = pkt.serverInfoEmbedTitle;
-			serverInfoPerms = EnumWebViewPerms.fromBits(pkt.serverInfoEmbedPerms);
+			serverInfoPerms = pkt.serverInfoEmbedPerms != 0 ? EnumWebViewPerms.fromBits(pkt.serverInfoEmbedPerms) : null;
 			break;
 		case SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_SHOW_EMBED_OVER_WS:
 			serverInfoButtonMode = EnumServerInfoButton.WEBVIEW_URL;
 			serverInfoButtonText = pkt.serverInfoButtonText;
 			serverInfoURL = null;
 			serverInfoButtonBlob = impl.getBlob();
+			serverInfoButtonBlobHash = SHA1Sum.create(pkt.serverInfoHash);
+			if(serverInfoButtonBlob != null) {
+				SHA1Sum sum = serverInfoButtonBlob.getHash();
+				if(sum.equals(serverInfoButtonBlobHash)) {
+					serverInfoButtonBlobHash = sum;
+				}
+			}
 			serverInfoTitle = pkt.serverInfoEmbedTitle;
-			serverInfoPerms = EnumWebViewPerms.fromBits(pkt.serverInfoEmbedPerms);
+			serverInfoPerms = pkt.serverInfoEmbedPerms != 0 ? EnumWebViewPerms.fromBits(pkt.serverInfoEmbedPerms) : null;
 			break;
 		}
 		switch(pkt.discordButtonMode) {
@@ -126,6 +141,7 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 		serverInfoButtonText = null;
 		serverInfoURL = null;
 		serverInfoButtonBlob = null;
+		serverInfoButtonBlobHash = null;
 		serverInfoPerms = null;
 		serverInfoTitle = null;
 		return this;
@@ -137,6 +153,7 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 		serverInfoButtonText = text;
 		serverInfoURL = url;
 		serverInfoButtonBlob = null;
+		serverInfoButtonBlobHash = null;
 		serverInfoPerms = null;
 		serverInfoTitle = null;
 		return this;
@@ -149,6 +166,7 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 		serverInfoButtonText = text;
 		serverInfoURL = url;
 		serverInfoButtonBlob = null;
+		serverInfoButtonBlobHash = null;
 		serverInfoPerms = permissions;
 		serverInfoTitle = title;
 		return this;
@@ -161,6 +179,20 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 		serverInfoButtonText = text;
 		serverInfoURL = null;
 		serverInfoButtonBlob = blob;
+		serverInfoButtonBlobHash = blob.getHash();
+		serverInfoPerms = permissions;
+		serverInfoTitle = title;
+		return this;
+	}
+
+	@Override
+	public IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(String text, String title,
+			Set<EnumWebViewPerms> permissions, SHA1Sum hash) {
+		serverInfoButtonMode = EnumServerInfoButton.WEBVIEW_BLOB;
+		serverInfoButtonText = text;
+		serverInfoURL = null;
+		serverInfoButtonBlob = null;
+		serverInfoButtonBlobHash = hash;
 		serverInfoPerms = permissions;
 		serverInfoTitle = title;
 		return this;
@@ -183,12 +215,17 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 
 	@Override
 	public Set<EnumWebViewPerms> getServerInfoButtonWebViewPerms() {
-		return serverInfoPerms;
+		return serverInfoPerms != null ? serverInfoPerms : Collections.emptySet();
 	}
 
 	@Override
 	public IWebViewBlob getServerInfoButtonBlob() {
 		return serverInfoButtonBlob;
+	}
+
+	@Override
+	public SHA1Sum getServerInfoButtonBlobHash() {
+		return serverInfoButtonBlobHash;
 	}
 
 	@Override
@@ -251,6 +288,12 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 	}
 
 	@Override
+	public IPauseMenuBuilder clearMenuIcons() {
+		customIcons = null;
+		return this;
+	}
+
+	@Override
 	public ICustomPauseMenu buildPauseMenu() {
 		int serverInfoMode;
 		String serverInfoButtonText;
@@ -258,19 +301,49 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 		byte[] serverInfoHash;
 		int serverInfoEmbedPerms;
 		String serverInfoEmbedTitle;
+		IWebViewBlob serverInfoBlob;
+		boolean permitChannel;
 		switch(serverInfoButtonMode) {
 		case NONE:
 		default:
-			
+			serverInfoMode = SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_NONE;
+			serverInfoButtonText = null;
+			serverInfoURL = null;
+			serverInfoHash = null;
+			serverInfoEmbedPerms = 0;
+			serverInfoEmbedTitle = null;
+			serverInfoBlob = null;
+			permitChannel = false;
 			break;
 		case EXTERNAL_URL:
-			
+			serverInfoMode = SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_EXTERNAL_URL;
+			serverInfoButtonText = this.serverInfoButtonText;
+			serverInfoURL = this.serverInfoURL;
+			serverInfoHash = null;
+			serverInfoEmbedPerms = 0;
+			serverInfoEmbedTitle = null;
+			serverInfoBlob = null;
+			permitChannel = false;
 			break;
 		case WEBVIEW_URL:
-			
+			serverInfoMode = SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_SHOW_EMBED_OVER_HTTP;
+			serverInfoButtonText = this.serverInfoButtonText;
+			serverInfoURL = this.serverInfoURL;
+			serverInfoHash = null;
+			serverInfoEmbedPerms = serverInfoPerms != null ? EnumWebViewPerms.toBits(serverInfoPerms) : 0;
+			serverInfoEmbedTitle = serverInfoTitle;
+			serverInfoBlob = null;
+			permitChannel = (serverInfoEmbedPerms & SPacketCustomizePauseMenuV4EAG.SERVER_INFO_EMBED_PERMS_MESSAGE_API) != 0;
 			break;
 		case WEBVIEW_BLOB:
-			
+			serverInfoMode = SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_SHOW_EMBED_OVER_WS;
+			serverInfoButtonText = this.serverInfoButtonText;
+			serverInfoURL = null;
+			serverInfoHash = serverInfoButtonBlobHash.asBytes();
+			serverInfoEmbedPerms = serverInfoPerms != null ? EnumWebViewPerms.toBits(serverInfoPerms) : 0;
+			serverInfoEmbedTitle = serverInfoTitle;
+			serverInfoBlob = serverInfoButtonBlob;
+			permitChannel = (serverInfoEmbedPerms & SPacketCustomizePauseMenuV4EAG.SERVER_INFO_EMBED_PERMS_MESSAGE_API) != 0;
 			break;
 		}
 		int discordButtonMode;
@@ -289,15 +362,32 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 			discordInviteURL = discordButtonURL;
 			break;
 		}
-		Map<String,Integer> imageMappings;
+		Map<String, Integer> imageMappings;
 		List<PacketImageData> imageData;
 		if(customIcons != null && !customIcons.isEmpty()) {
-			//TODO
+			imageMappings = new HashMap<>(customIcons.size());
+			Map<PacketImageData, Integer> imageDataMap = new HashMap<>(customIcons.size());
+			for(Map.Entry<String, PacketImageData> etr : customIcons.entrySet()) {
+				int sz = imageDataMap.size();
+				Integer i = imageDataMap.putIfAbsent(etr.getValue(), sz);
+				if(i != null) {
+					imageMappings.put(etr.getKey(), i);
+				}else {
+					imageMappings.put(etr.getKey(), sz);
+				}
+			}
+			PacketImageData[] imageDataArr = new PacketImageData[imageDataMap.size()];
+			for(Map.Entry<PacketImageData, Integer> etr : imageDataMap.entrySet()) {
+				imageDataArr[etr.getValue()] = etr.getKey();
+			}
+			imageData = Arrays.asList(imageDataArr);
 		}else {
 			imageMappings = null;
 			imageData = null;
 		}
-		return null;
+		return new PauseMenuImplCustom(new SPacketCustomizePauseMenuV4EAG(serverInfoMode, serverInfoButtonText,
+				serverInfoURL, serverInfoHash, serverInfoEmbedPerms, serverInfoEmbedTitle, discordButtonMode,
+				discordButtonText, discordInviteURL, imageMappings, imageData), serverInfoBlob, permitChannel);
 	}
 
 }

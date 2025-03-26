@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.rpc.api.pause_menu;
 import java.util.Set;
 
 import net.lax1dude.eaglercraft.backend.rpc.api.IPacketImageData;
+import net.lax1dude.eaglercraft.backend.rpc.api.SHA1Sum;
 
 public interface IPauseMenuBuilder {
 
@@ -18,7 +19,15 @@ public interface IPauseMenuBuilder {
 
 	IPauseMenuBuilder setServerInfoButtonModeWebViewURL(String text, String title, Set<EnumWebViewPerms> permissions, String url);
 
-	IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(String text, String title, Set<EnumWebViewPerms> permissions, byte[] blobHash);
+	default IPauseMenuBuilder setServerInfoButtonModeWebViewURL(String text, String title, String url) {
+		return setServerInfoButtonModeWebViewURL(text, title, null, url);
+	}
+
+	IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(String text, String title, Set<EnumWebViewPerms> permissions, SHA1Sum blobHash);
+
+	default IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(String text, String title, SHA1Sum blobHash) {
+		return setServerInfoButtonModeWebViewBlob(text, title, null, blobHash);
+	}
 
 	String getServerInfoButtonText();
 
@@ -28,7 +37,7 @@ public interface IPauseMenuBuilder {
 
 	Set<EnumWebViewPerms> getServerInfoButtonWebViewPerms();
 
-	byte[] getServerInfoButtonBlobHash();
+	SHA1Sum getServerInfoButtonBlobHash();
 
 	EnumDiscordInviteButton getDiscordInviteButtonMode();
 
@@ -47,6 +56,8 @@ public interface IPauseMenuBuilder {
 	IPauseMenuBuilder setMenuIcon(EnumPauseMenuIcon icon, IPacketImageData imageData);
 
 	IPauseMenuBuilder setMenuIcon(String icon, IPacketImageData imageData);
+
+	IPauseMenuBuilder clearMenuIcons();
 
 	ICustomPauseMenu buildPauseMenu();
 

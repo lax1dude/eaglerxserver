@@ -35,7 +35,6 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMess
 import net.lax1dude.eaglercraft.backend.server.api.query.IMOTDConnection;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryConnection;
 import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
-import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
 import net.md_5.bungee.api.chat.BaseComponent;
 
 public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player, BaseComponent> {
@@ -169,9 +168,9 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player,
 	}
 
 	@Override
-	public void dispatchWebViewMessageEvent(IEaglerPlayer<Player> player, EnumMessageType type, byte[] data,
-			IEventDispatchCallback<IEaglercraftWebViewMessageEvent<Player>> onComplete) {
-		fireSync(new BukkitWebViewMessageEventImpl(api, player, type, data), onComplete);
+	public void dispatchWebViewMessageEvent(IEaglerPlayer<Player> player, String channel, EnumMessageType type,
+			byte[] data, IEventDispatchCallback<IEaglercraftWebViewMessageEvent<Player>> onComplete) {
+		fireSync(new BukkitWebViewMessageEventImpl(api, player, channel, type, data), onComplete);
 	}
 
 }
