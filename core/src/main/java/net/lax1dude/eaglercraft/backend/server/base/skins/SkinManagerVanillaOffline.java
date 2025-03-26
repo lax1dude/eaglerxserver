@@ -4,6 +4,8 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
+import net.lax1dude.eaglercraft.backend.server.api.skins.EnumPresetCapes;
+import net.lax1dude.eaglercraft.backend.server.api.skins.EnumPresetSkins;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
@@ -16,7 +18,9 @@ import net.lax1dude.eaglercraft.backend.server.base.skins.type.PresetSkinPlayer;
 public class SkinManagerVanillaOffline<PlayerObject> implements ISkinManagerBase<PlayerObject>, ISkinManagerImpl {
 
 	private final BasePlayerInstance<PlayerObject> player;
-	private final IEaglerPlayerSkin skin;
+	private final IEaglerPlayerSkin oldSkin;
+	private IEaglerPlayerSkin skin;
+	private IEaglerPlayerCape cape;
 
 	SkinManagerVanillaOffline(BasePlayerInstance<PlayerObject> player) {
 		this(player, initDefaultSkin(player.getUniqueId()));
@@ -24,7 +28,9 @@ public class SkinManagerVanillaOffline<PlayerObject> implements ISkinManagerBase
 
 	SkinManagerVanillaOffline(BasePlayerInstance<PlayerObject> player, IEaglerPlayerSkin skin) {
 		this.player = player;
+		this.oldSkin = skin;
 		this.skin = skin;
+		this.cape = InternUtils.getPresetCape(0);
 	}
 
 	private static IEaglerPlayerSkin initDefaultSkin(UUID uuid) {
@@ -59,27 +65,85 @@ public class SkinManagerVanillaOffline<PlayerObject> implements ISkinManagerBase
 
 	@Override
 	public IEaglerPlayerCape getPlayerCapeIfLoaded() {
-		return InternUtils.getPresetCape(0);
+		return cape;
 	}
 
 	@Override
 	public void resolvePlayerSkin(Consumer<IEaglerPlayerSkin> callback) {
-		callback.accept(getPlayerSkinIfLoaded());
+		callback.accept(skin);
 	}
 
 	@Override
 	public void resolvePlayerCape(Consumer<IEaglerPlayerCape> callback) {
-		callback.accept(getPlayerCapeIfLoaded());
+		callback.accept(cape);
 	}
 
 	@Override
 	public void resolvePlayerSkinKeyed(UUID requester, Consumer<IEaglerPlayerSkin> callback) {
-		callback.accept(getPlayerSkinIfLoaded());
+		callback.accept(skin);
 	}
 
 	@Override
 	public void resolvePlayerCapeKeyed(UUID requester, Consumer<IEaglerPlayerCape> callback) {
-		callback.accept(getPlayerCapeIfLoaded());
+		callback.accept(cape);
+	}
+
+	@Override
+	public void changePlayerSkin(IEaglerPlayerSkin newSkin, boolean notifyOthers) {
+		if(!newSkin.equals(skin)) {
+			skin = newSkin;
+			if(notifyOthers) {
+				SkinManagerHelper.notifyOthers(player, true, false);
+			}
+		}
+	}
+
+	@Override
+	public void changePlayerSkin(EnumPresetSkins newSkin, boolean notifyOthers) {
+		changePlayerSkin(InternUtils.getPresetSkin(newSkin.getId()), notifyOthers);
+	}
+
+	@Override
+	public void changePlayerCape(IEaglerPlayerCape newCape, boolean notifyOthers) {
+		if(!newCape.equals(cape)) {
+			cape = newCape;
+			if(notifyOthers) {
+				SkinManagerHelper.notifyOthers(player, false, true);
+			}
+		}
+	}
+
+	@Override
+	public void changePlayerCape(EnumPresetCapes newCape, boolean notifyOthers) {
+		changePlayerCape(InternUtils.getPresetCape(newCape.getId()), notifyOthers);
+	}
+
+	@Override
+	public void resetPlayerSkin(boolean notifyOthers) {
+		changePlayerSkin(oldSkin, notifyOthers);
+		
+	}
+
+	@Override
+	public void resetPlayerCape(boolean notifyOthers) {
+		changePlayerCape(InternUtils.getPresetCape(0), notifyOthers);
+	}
+
+	@Override
+	public void resetPlayerSkinAndCape(boolean notifyOthers) {
+		IEaglerPlayerCape oldCape = InternUtils.getPresetCape(0);
+		boolean s = !oldSkin.equals(skin), c = !oldCape.equals(cape);
+		if(s || c) {
+			if(s) {
+				skin = oldSkin;
+			}
+			if(c) {
+				cape = oldCape;
+			}
+			if(notifyOthers) {
+				SkinManagerHelper.notifyOthers(player, s, c);
+			}
+		}
 	}
 
 }

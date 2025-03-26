@@ -98,7 +98,6 @@ import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheDatastore;
 import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheDownloader;
 import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheService;
 import net.lax1dude.eaglercraft.backend.util.EaglerDrivers;
-import net.lax1dude.eaglercraft.backend.voice.api.ICEServerEntry;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObject>, IEaglerAPIFactory,
@@ -773,8 +772,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public IWebViewService<PlayerObject> getWebViewService() {
-		// TODO
-		return null;
+		return webViewService;
 	}
 
 	@Override

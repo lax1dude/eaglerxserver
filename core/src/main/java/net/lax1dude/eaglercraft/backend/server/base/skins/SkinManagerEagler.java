@@ -18,7 +18,6 @@ import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.InternUtils;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketEnableFNAWSkinsEAG;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketInvalidatePlayerCacheV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherCapeCustomEAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherSkinCustomV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherTexturesV5EAG;
@@ -105,80 +104,62 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 	}
 
 	@Override
-	public void changeEaglerSkin(IEaglerPlayerSkin newSkin, boolean notifyOthers) {
+	public void changePlayerSkin(IEaglerPlayerSkin newSkin, boolean notifyOthers) {
 		if(!newSkin.equals(skin)) {
 			skin = newSkin;
 			if(player.getEaglerProtocol().ver >= 4) {
-				if(newSkin == oldSkin) {
+				if(newSkin.equals(oldSkin)) {
 					player.sendEaglerMessage(new SPacketUnforceClientV4EAG(true, false, false));
 				}else {
 					player.sendEaglerMessage(newSkin.getForceSkinPacketV4());
 				}
 			}
 			if(notifyOthers) {
-				UUID uuid = player.getUniqueId();
-				SPacketInvalidatePlayerCacheV4EAG invalidatePacket = new SPacketInvalidatePlayerCacheV4EAG(true, false,
-						uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
-				player.getPlatformPlayer().getServer().forEachPlayer((player) -> {
-					EaglerPlayerInstance<PlayerObject> playerObj = player
-							.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().asEaglerPlayer();
-					if (playerObj != null && playerObj != this.player) {
-						playerObj.writePacket(invalidatePacket);
-					}
-				});
+				SkinManagerHelper.notifyOthers(player, true, false);
 			}
 		}
 	}
 
 	@Override
-	public void changeEaglerSkin(EnumPresetSkins newSkin, boolean notifyOthers) {
-		changeEaglerSkin(InternUtils.getPresetSkin(newSkin.getId()), notifyOthers);
+	public void changePlayerSkin(EnumPresetSkins newSkin, boolean notifyOthers) {
+		changePlayerSkin(InternUtils.getPresetSkin(newSkin.getId()), notifyOthers);
 	}
 
 	@Override
-	public void changeEaglerCape(IEaglerPlayerCape newCape, boolean notifyOthers) {
+	public void changePlayerCape(IEaglerPlayerCape newCape, boolean notifyOthers) {
 		if(!newCape.equals(cape)) {
 			cape = newCape;
 			if(player.getEaglerProtocol().ver >= 4) {
-				if(newCape == oldCape) {
+				if(newCape.equals(oldCape)) {
 					player.sendEaglerMessage(new SPacketUnforceClientV4EAG(false, true, false));
 				}else {
 					player.sendEaglerMessage(newCape.getForceCapePacketV4());
 				}
 			}
 			if(notifyOthers) {
-				UUID uuid = player.getUniqueId();
-				SPacketInvalidatePlayerCacheV4EAG invalidatePacket = new SPacketInvalidatePlayerCacheV4EAG(false, true,
-						uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
-				player.getPlatformPlayer().getServer().forEachPlayer((player) -> {
-					EaglerPlayerInstance<PlayerObject> playerObj = player
-							.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().asEaglerPlayer();
-					if (playerObj != null && playerObj != this.player) {
-						playerObj.writePacket(invalidatePacket);
-					}
-				});
+				SkinManagerHelper.notifyOthers(player, false, true);
 			}
 		}
 	}
 
 	@Override
-	public void changeEaglerCape(EnumPresetCapes newCape, boolean notifyOthers) {
-		changeEaglerCape(InternUtils.getPresetCape(newCape.getId()), notifyOthers);
+	public void changePlayerCape(EnumPresetCapes newCape, boolean notifyOthers) {
+		changePlayerCape(InternUtils.getPresetCape(newCape.getId()), notifyOthers);
 	}
 
 	@Override
-	public void resetEaglerSkin(boolean notifyOthers) {
-		changeEaglerSkin(oldSkin, notifyOthers);
+	public void resetPlayerSkin(boolean notifyOthers) {
+		changePlayerSkin(oldSkin, notifyOthers);
 	}
 
 	@Override
-	public void resetEaglerCape(boolean notifyOthers) {
-		changeEaglerCape(oldCape, notifyOthers);
+	public void resetPlayerCape(boolean notifyOthers) {
+		changePlayerCape(oldCape, notifyOthers);
 	}
 
 	@Override
-	public void resetEaglerSkinAndCape(boolean notifyOthers) {
-		boolean s = !skin.equals(oldSkin), c = !cape.equals(oldCape);
+	public void resetPlayerSkinAndCape(boolean notifyOthers) {
+		boolean s = !oldSkin.equals(skin), c = !oldCape.equals(cape);
 		if(s || c) {
 			if(s) {
 				skin = oldSkin;
@@ -190,16 +171,7 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 				player.sendEaglerMessage(new SPacketUnforceClientV4EAG(s, c, false));
 			}
 			if(notifyOthers) {
-				UUID uuid = player.getUniqueId();
-				SPacketInvalidatePlayerCacheV4EAG invalidatePacket = new SPacketInvalidatePlayerCacheV4EAG(s, c,
-						uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
-				player.getPlatformPlayer().getServer().forEachPlayer((player) -> {
-					EaglerPlayerInstance<PlayerObject> playerObj = player
-							.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().asEaglerPlayer();
-					if (playerObj != null && playerObj != this.player) {
-						playerObj.writePacket(invalidatePacket);
-					}
-				});
+				SkinManagerHelper.notifyOthers(player, s, c);
 			}
 		}
 	}

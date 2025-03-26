@@ -5,6 +5,8 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
+import net.lax1dude.eaglercraft.backend.server.api.skins.EnumPresetCapes;
+import net.lax1dude.eaglercraft.backend.server.api.skins.EnumPresetSkins;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
@@ -12,6 +14,7 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerEagler;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.InternUtils;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.PresetCapePlayer;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.PresetSkinPlayer;
 import net.lax1dude.eaglercraft.backend.server.util.KeyedConcurrentLazyLoader.KeyedConsumerList;
@@ -29,6 +32,9 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 	private volatile IEaglerPlayerCape cape = null;
 	private final Object capeLock = new Object();
 	private KeyedConsumerList<UUID, IEaglerPlayerCape> waitingCapeCallbacks = null;
+
+	private IEaglerPlayerSkin originalSkin = null;
+	private IEaglerPlayerCape originalCape = null;
 
 	SkinManagerVanillaOnline(BasePlayerInstance<PlayerObject> player, String skinURL, EnumSkinModel skinModel, String capeURL) {
 		this.player = player;
@@ -112,9 +118,13 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 				KeyedConsumerList<UUID, IEaglerPlayerSkin> toCall;
 				synchronized(this) {
 					if(this.skin != null) {
+						if(originalSkin == null) {
+							this.originalSkin = skin;
+						}
 						return; // ignore multiple results
 					}
 					this.skin = skin;
+					this.originalSkin = skin;
 					toCall = waitingSkinCallbacks;
 					waitingSkinCallbacks = null;
 				}
@@ -159,9 +169,13 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 				KeyedConsumerList<UUID, IEaglerPlayerCape> toCall;
 				synchronized(capeLock) {
 					if(this.cape != null) {
+						if(originalCape == null) {
+							this.originalCape = cape;
+						}
 						return; // ignore multiple results
 					}
 					this.cape = cape;
+					this.originalCape = cape;
 					toCall = waitingCapeCallbacks;
 					waitingCapeCallbacks = null;
 				}
@@ -176,6 +190,190 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 					}
 				}
 			});
+		}
+	}
+
+	@Override
+	public void changePlayerSkin(IEaglerPlayerSkin newSkin, boolean notifyOthers) {
+		changePlayerSkin0(newSkin, notifyOthers);
+	}
+
+	private void changePlayerSkin0(IEaglerPlayerSkin newSkin, boolean notifyOthers) {
+		KeyedConsumerList<UUID, IEaglerPlayerSkin> toCall = null;
+		synchronized(this) {
+			if(newSkin != null) {
+				IEaglerPlayerSkin oldSkin = skin;
+				if(oldSkin != null && newSkin.equals(oldSkin)) {
+					return;
+				}
+				skin = newSkin;
+				toCall = waitingSkinCallbacks;
+				waitingSkinCallbacks = null;
+			}else {
+				if(originalSkin != null) {
+					IEaglerPlayerSkin oldSkin = skin;
+					if(oldSkin != null && originalSkin.equals(oldSkin)) {
+						return;
+					}
+					skin = originalSkin;
+					newSkin = originalSkin;
+					toCall = waitingSkinCallbacks;
+					waitingSkinCallbacks = null;
+				}else {
+					if(skin == null) {
+						return;
+					}
+					skin = null;
+				}
+			}
+		}
+		if(notifyOthers) {
+			SkinManagerHelper.notifyOthers(player, true, false);
+		}
+		if(toCall != null) {
+			List<Consumer<IEaglerPlayerSkin>> toCallList = toCall.getList();
+			for(int i = 0, l = toCallList.size(); i < l; ++i) {
+				try {
+					toCallList.get(i).accept(newSkin);
+				}catch(Exception ex) {
+					player.getEaglerXServer().logger().error("Caught error from lazy load callback", ex);
+				}
+			}
+		}
+	}
+
+	@Override
+	public void changePlayerSkin(EnumPresetSkins newSkin, boolean notifyOthers) {
+		changePlayerSkin(InternUtils.getPresetSkin(newSkin.getId()), notifyOthers);
+	}
+
+	@Override
+	public void changePlayerCape(IEaglerPlayerCape newCape, boolean notifyOthers) {
+		changePlayerCape0(newCape, notifyOthers);
+	}
+
+	private void changePlayerCape0(IEaglerPlayerCape newCape, boolean notifyOthers) {
+		KeyedConsumerList<UUID, IEaglerPlayerCape> toCall = null;
+		synchronized(capeLock) {
+			if(newCape != null) {
+				IEaglerPlayerCape oldCape = cape;
+				if(oldCape != null && newCape.equals(oldCape)) {
+					return;
+				}
+				cape = newCape;
+				toCall = waitingCapeCallbacks;
+				waitingCapeCallbacks = null;
+			}else {
+				if(originalCape != null) {
+					IEaglerPlayerCape oldCape = cape;
+					if(oldCape != null && originalCape.equals(oldCape)) {
+						return;
+					}
+					cape = originalCape;
+					newCape = originalCape;
+					toCall = waitingCapeCallbacks;
+					waitingCapeCallbacks = null;
+				}else {
+					if(cape == null) {
+						return;
+					}
+					cape = null;
+				}
+			}
+		}
+		if(notifyOthers) {
+			SkinManagerHelper.notifyOthers(player, false, true);
+		}
+		if(toCall != null) {
+			List<Consumer<IEaglerPlayerCape>> toCallList = toCall.getList();
+			for(int i = 0, l = toCallList.size(); i < l; ++i) {
+				try {
+					toCallList.get(i).accept(newCape);
+				}catch(Exception ex) {
+					player.getEaglerXServer().logger().error("Caught error from lazy load callback", ex);
+				}
+			}
+		}
+	}
+
+	@Override
+	public void changePlayerCape(EnumPresetCapes newCape, boolean notifyOthers) {
+		changePlayerCape(InternUtils.getPresetCape(newCape.getId()), notifyOthers);
+	}
+
+	@Override
+	public void resetPlayerSkin(boolean notifyOthers) {
+		changePlayerSkin0(null, notifyOthers);
+	}
+
+	@Override
+	public void resetPlayerCape(boolean notifyOthers) {
+		changePlayerCape0(null, notifyOthers);
+	}
+
+	@Override
+	public void resetPlayerSkinAndCape(boolean notifyOthers) {
+		boolean c = false, s = false;
+		IEaglerPlayerSkin newSkin = null;
+		KeyedConsumerList<UUID, IEaglerPlayerSkin> toCall1 = null;
+		IEaglerPlayerCape newCape = null;
+		KeyedConsumerList<UUID, IEaglerPlayerCape> toCall2 = null;
+		synchronized(this) {
+			if(originalSkin != null) {
+				IEaglerPlayerSkin oldSkin = skin;
+				if(oldSkin == null || !originalSkin.equals(oldSkin)) {
+					s = true;
+					skin = originalSkin;
+					newSkin = originalSkin;
+					toCall1 = waitingSkinCallbacks;
+					waitingSkinCallbacks = null;
+				}
+			}else {
+				if(skin != null) {
+					skin = null;
+					s = true;
+				}
+			}
+		}
+		synchronized(capeLock) {
+			if(originalCape != null) {
+				IEaglerPlayerCape oldCape = cape;
+				if(oldCape == null || !originalCape.equals(oldCape)) {
+					c = true;
+					cape = originalCape;
+					newCape = originalCape;
+					toCall2 = waitingCapeCallbacks;
+					waitingCapeCallbacks = null;
+				}
+			}else {
+				if(cape != null) {
+					cape = null;
+					c = true;
+				}
+			}
+		}
+		if(notifyOthers && (s || c)) {
+			SkinManagerHelper.notifyOthers(player, s, c);
+		}
+		if(toCall1 != null) {
+			List<Consumer<IEaglerPlayerSkin>> toCallList = toCall1.getList();
+			for(int i = 0, l = toCallList.size(); i < l; ++i) {
+				try {
+					toCallList.get(i).accept(newSkin);
+				}catch(Exception ex) {
+					player.getEaglerXServer().logger().error("Caught error from lazy load callback", ex);
+				}
+			}
+		}
+		if(toCall2 != null) {
+			List<Consumer<IEaglerPlayerCape>> toCallList = toCall2.getList();
+			for(int i = 0, l = toCallList.size(); i < l; ++i) {
+				try {
+					toCallList.get(i).accept(newCape);
+				}catch(Exception ex) {
+					player.getEaglerXServer().logger().error("Caught error from lazy load callback", ex);
+				}
+			}
 		}
 	}
 
