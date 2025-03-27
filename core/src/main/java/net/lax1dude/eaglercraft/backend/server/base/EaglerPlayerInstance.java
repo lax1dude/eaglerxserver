@@ -37,6 +37,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	private final Set<SHA1Sum> updateSent;
 	private final boolean redirectSupport;
 	private final boolean updateSupport;
+	private PlayerRateLimits rateLimits;
 	MessageController messageController;
 	VoiceManager<PlayerObject> voiceManager;
 	NotificationManagerPlayer<PlayerObject> notifManager;
@@ -320,11 +321,18 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 		return connectionInstance;
 	}
 
+	public PlayerRateLimits getRateLimits() {
+		return rateLimits;
+	}
+
 	public MessageController getMessageController() {
 		return messageController;
 	}
 
 	public void handlePacketGetOtherClientUUID(long playerUUIDMost, long playerUUIDLeast, int requestId) {
+		if(!rateLimits.ratelimitBrand()) {
+			return;
+		}
 		UUID uuid = new UUID(playerUUIDMost, playerUUIDLeast);
 		BasePlayerInstance<PlayerObject> player = server.getPlayerByUUID(uuid);
 		if(player != null) {

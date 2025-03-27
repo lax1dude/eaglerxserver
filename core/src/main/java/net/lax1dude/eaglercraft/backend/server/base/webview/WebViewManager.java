@@ -140,6 +140,11 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 	}
 
 	public void handlePacketRequestData(byte[] hash) {
+		if(!player.getRateLimits().ratelimitWebViewData()) {
+			player.disconnect(service.getEaglerXServer().componentBuilder().buildTextComponent().beginStyle()
+					.color(EnumChatColor.RED).end().text("Too many WebView data requests!").end());
+			return;
+		}
 		IWebViewProvider<PlayerObject> provider = this.provider;
 		if(provider != null && provider.isRequestAllowed(this)) {
 			SHA1Sum sum = SHA1Sum.create(hash);
@@ -205,6 +210,11 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 	}
 
 	public void handlePacketChannel(String channel, boolean open) {
+		if(!player.getRateLimits().ratelimitWebViewMsg()) {
+			player.disconnect(service.getEaglerXServer().componentBuilder().buildTextComponent().beginStyle()
+					.color(EnumChatColor.RED).end().text("Too many WebView messages!").end());
+			return;
+		}
 		String prevChannel = null;
 		String nextChannel = null;
 		boolean allowed = open && isChannelAllowed();
@@ -243,6 +253,11 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 	}
 
 	public void handlePacketMessage(byte[] data, boolean binary) {
+		if(!player.getRateLimits().ratelimitWebViewMsg()) {
+			player.disconnect(service.getEaglerXServer().componentBuilder().buildTextComponent().beginStyle()
+					.color(EnumChatColor.RED).end().text("Too many WebView messages!").end());
+			return;
+		}
 		String channel = channelName;
 		if(channel != null) {
 			service.getEaglerXServer().eventDispatcher().dispatchWebViewMessageEvent(player, channel,

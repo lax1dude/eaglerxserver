@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceManager;
+import net.lax1dude.eaglercraft.backend.server.base.webview.WebViewManager;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.*;
 
 public class ServerV4MessageHandler extends ServerV3MessageHandler {
@@ -39,15 +40,30 @@ public class ServerV4MessageHandler extends ServerV3MessageHandler {
 	}
 
 	public void handleClient(CPacketRequestServerInfoV4EAG packet) {
-		
+		WebViewManager<?> mgr = eaglerHandle.getWebViewManager();
+		if(mgr != null) {
+			mgr.handlePacketRequestData(packet.requestHash);
+		}else {
+			throw notCapable();
+		}
 	}
 
 	public void handleClient(CPacketWebViewMessageV4EAG packet) {
-		
+		WebViewManager<?> mgr = eaglerHandle.getWebViewManager();
+		if(mgr != null) {
+			mgr.handlePacketMessage(packet.data, packet.type != CPacketWebViewMessageV4EAG.TYPE_STRING);
+		}else {
+			throw notCapable();
+		}
 	}
 
 	public void handleClient(CPacketWebViewMessageEnV4EAG packet) {
-		
+		WebViewManager<?> mgr = eaglerHandle.getWebViewManager();
+		if(mgr != null) {
+			mgr.handlePacketChannel(packet.channelName, packet.messageChannelOpen);
+		}else {
+			throw notCapable();
+		}
 	}
 
 }

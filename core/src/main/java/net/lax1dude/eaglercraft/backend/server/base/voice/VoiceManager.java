@@ -16,6 +16,7 @@ public class VoiceManager<PlayerObject> implements IVoiceManagerX<PlayerObject> 
 
 	final EaglerPlayerInstance<PlayerObject> player;
 	final VoiceService<PlayerObject> voice;
+	final boolean isBroken;
 
 	volatile VoiceChannel<PlayerObject>.Context activeChannel = null;
 
@@ -28,6 +29,7 @@ public class VoiceManager<PlayerObject> implements IVoiceManagerX<PlayerObject> 
 	VoiceManager(EaglerPlayerInstance<PlayerObject> player, VoiceService<PlayerObject> voice) {
 		this.player = player;
 		this.voice = voice;
+		this.isBroken = player.getEaglerProtocol().ver < 5;
 	}
 
 	@Override
@@ -154,6 +156,22 @@ public class VoiceManager<PlayerObject> implements IVoiceManagerX<PlayerObject> 
 		if(newState != oldState) {
 			player.getEaglerXServer().eventDispatcher().dispatchVoiceChangeEvent(player, oldState, newState, null);
 		}
+	}
+
+	boolean ratelimitCon() {
+		return player.getRateLimits().ratelimitVoiceCon();
+	}
+
+	boolean ratelimitReqLegacy() {
+		return !isBroken ||  player.getRateLimits().ratelimitVoiceReq();
+	}
+
+	boolean ratelimitReqV5() {
+		return isBroken || player.getRateLimits().ratelimitVoiceReq();
+	}
+
+	boolean ratelimitICE() {
+		return player.getRateLimits().ratelimitVoiceICE();
 	}
 
 	public void handleVoiceSignalPacketTypeConnect() {

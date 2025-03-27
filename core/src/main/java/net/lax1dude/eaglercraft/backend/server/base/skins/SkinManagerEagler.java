@@ -214,6 +214,9 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 	}
 
 	public void handlePacketGetOtherSkin(long uuidMost, long uuidLeast) {
+		if(!player.getRateLimits().ratelimitSkin()) {
+			return;
+		}
 		UUID targetUUID = new UUID(uuidMost, uuidLeast);
 		BasePlayerInstance<PlayerObject> target = player.getEaglerXServer().getPlayerByUUID(targetUUID);
 		if(target != null) {
@@ -230,6 +233,9 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 	}
 
 	public void handlePacketGetOtherCape(long uuidMost, long uuidLeast) {
+		if(!player.getRateLimits().ratelimitCape()) {
+			return;
+		}
 		UUID targetUUID = new UUID(uuidMost, uuidLeast);
 		BasePlayerInstance<PlayerObject> target = player.getEaglerXServer().getPlayerByUUID(targetUUID);
 		if(target != null) {
@@ -246,12 +252,18 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 	}
 
 	public void handlePacketGetSkinByURL(long uuidMost, long uuidLeast, String url) {
+		if(!player.getRateLimits().ratelimitSkin()) {
+			return;
+		}
 		skinService.loadCacheSkinFromURL(url, EnumSkinModel.STEVE, (res) -> {
 			player.sendEaglerMessage(res.getSkinPacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
 		});
 	}
 
 	public void handlePacketGetTextures(long uuidMost, long uuidLeast) {
+		if(!player.getRateLimits().ratelimitSkin()) {
+			return;
+		}
 		UUID targetUUID = new UUID(uuidMost, uuidLeast);
 		BasePlayerInstance<PlayerObject> target = player.getEaglerXServer().getPlayerByUUID(targetUUID);
 		if(target != null) {
