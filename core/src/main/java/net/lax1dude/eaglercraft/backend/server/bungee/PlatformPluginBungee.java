@@ -46,7 +46,6 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformScheduler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformZlib;
 import net.lax1dude.eaglercraft.backend.server.adapter.JavaLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
@@ -56,7 +55,6 @@ import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.bungee.chat.BungeeComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.bungee.event.BungeeEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
-import net.lax1dude.eaglercraft.backend.server.util.FallbackJava11Zlib;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -93,7 +91,6 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	protected Function<SocketAddress, ChannelFactory<? extends ServerChannel>> serverChannelFactory;
 	protected EventLoopGroup bossEventLoopGroup;
 	protected EventLoopGroup workerEventLoopGroup;
-	protected BungeeNative.IBungeeNativeZlibFactory zlibFactory;
 
 	public class PluginMessageHandler {
 
@@ -133,7 +130,6 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
     	serverChannelFactory = BungeeUnsafe.getServerChannelFactory();
     	bossEventLoopGroup = BungeeUnsafe.getBossEventLoopGroup(proxy);
     	workerEventLoopGroup = BungeeUnsafe.getWorkerEventLoopGroup(proxy);
-    	zlibFactory = BungeeNative.bindFactory();
 		Init<ProxiedPlayer> init = new InitProxying<ProxiedPlayer>() {
 
 			@Override
@@ -491,15 +487,6 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	@Override
 	public EventLoopGroup getWorkerEventLoopGroup() {
 		return workerEventLoopGroup;
-	}
-
-	@Override
-	public IPlatformZlib createNativeZlib(boolean compression, boolean decompression, int compressionLevel) {
-		IPlatformZlib ret;
-		if(zlibFactory != null && (ret = zlibFactory.create(compression, decompression, compressionLevel)) != null) {
-			return ret;
-		}
-		return FallbackJava11Zlib.create(compression, decompression, compressionLevel);
 	}
 
 	public void initializeConnection(PendingConnection conn, Object pipelineData, Consumer<BungeeConnection> setAttr) {

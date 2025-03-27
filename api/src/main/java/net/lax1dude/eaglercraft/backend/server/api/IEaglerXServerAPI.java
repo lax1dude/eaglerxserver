@@ -52,6 +52,8 @@ public interface IEaglerXServerAPI<PlayerObject> extends IEaglerVoiceAPI<PlayerO
 
 	EnumPlatformType getPlatformType();
 
+	Class<PlayerObject> getPlayerClass();
+
 	String getServerBrand();
 
 	String getServerVersion();
@@ -165,8 +167,6 @@ public interface IEaglerXServerAPI<PlayerObject> extends IEaglerVoiceAPI<PlayerO
 	IBinaryHTTPClient getBinaryHTTPClient();
 
 	UUID intern(UUID uuid);
-
-	INativeZlib createNativeZlib(boolean compression, boolean decompression, int compressionLevel);
 
 	IAttributeManager getAttributeManager();
 

@@ -62,7 +62,6 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformScheduler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformZlib;
 import net.lax1dude.eaglercraft.backend.server.adapter.JavaLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
@@ -74,7 +73,6 @@ import net.lax1dude.eaglercraft.backend.server.bungee.chat.BungeeComponentHelper
 import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
 import net.lax1dude.eaglercraft.backend.server.util.CompressionDisablerHack;
 import net.lax1dude.eaglercraft.backend.server.util.DecompressionDisablerHack;
-import net.lax1dude.eaglercraft.backend.server.util.FallbackJava11Zlib;
 import net.md_5.bungee.api.chat.BaseComponent;
 
 public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player>, IPlatformServer<Player> {
@@ -544,11 +542,6 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public EventLoopGroup getWorkerEventLoopGroup() {
 		return eventLoopGroup;
-	}
-
-	@Override
-	public IPlatformZlib createNativeZlib(boolean compression, boolean decompression, int compressionLevel) {
-		return FallbackJava11Zlib.create(compression, decompression, compressionLevel);
 	}
 
 	public void initializeConnection(LoginConnectionHolder loginConnection, Object pipelineData,

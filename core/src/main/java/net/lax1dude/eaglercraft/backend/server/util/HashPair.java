@@ -27,7 +27,7 @@ public class HashPair<A, B> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		HashPair other = (HashPair) obj;
+		HashPair<?, ?> other = (HashPair<?, ?>) obj;
 		if (valueA == null) {
 			if (other.valueA != null)
 				return false;

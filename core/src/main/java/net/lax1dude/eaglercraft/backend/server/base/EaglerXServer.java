@@ -50,7 +50,6 @@ import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
-import net.lax1dude.eaglercraft.backend.server.api.INativeZlib;
 import net.lax1dude.eaglercraft.backend.server.api.IPacketImageLoader;
 import net.lax1dude.eaglercraft.backend.server.api.IScheduler;
 import net.lax1dude.eaglercraft.backend.server.api.IServerIconLoader;
@@ -543,6 +542,11 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
+	public Class<PlayerObject> getPlayerClass() {
+		return playerClazz;
+	}
+
+	@Override
 	public String getServerBrand() {
 		return EaglerXServerVersion.BRAND;
 	}
@@ -900,16 +904,6 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	public UUID intern(UUID uuid) {
 		return uuidInterner.intern(uuid);
-	}
-
-	@Override
-	public INativeZlib createNativeZlib(boolean compression, boolean decompression, int compressionLevel) {
-		if(compressionLevel < 0 || compressionLevel > 9) {
-			throw new IllegalArgumentException("Compression level is invalid, must be between 0 and 9");
-		}else if(!compression && !decompression) {
-			throw new IllegalArgumentException("Compression and decompression are both false");
-		}
-		return platform.createNativeZlib(compression, decompression, compressionLevel);
 	}
 
 	@Override

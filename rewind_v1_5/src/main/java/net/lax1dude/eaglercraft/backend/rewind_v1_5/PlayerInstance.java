@@ -12,7 +12,6 @@ import com.google.common.collect.HashBiMap;
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
-import net.lax1dude.eaglercraft.backend.server.api.INativeZlib;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTContext;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IMessageController;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IOutboundInjector;
@@ -27,7 +26,6 @@ public class PlayerInstance<PlayerObject> {
 	private final IRewindLogger logger;
 	private IEaglerPlayer<PlayerObject> eaglerPlayer;
 
-	private INativeZlib nativeZlib;
 	private INBTContext nbtContext;
 	private IComponentHelper componentHelper;
 	private TabListTracker tabList;
@@ -84,13 +82,6 @@ public class PlayerInstance<PlayerObject> {
 
 	public Channel getChannel() {
 		return channel;
-	}
-
-	public INativeZlib getNativeZlib() {
-		if(this.nativeZlib == null) {
-			this.nativeZlib = rewind.getServerAPI().createNativeZlib(true, false, 0);
-		}
-		return this.nativeZlib;
 	}
 
 	public INBTContext getNBTContext() {
@@ -208,10 +199,7 @@ public class PlayerInstance<PlayerObject> {
 	}
 
 	public void releaseNatives() {
-		if(this.nativeZlib != null) {
-			this.nativeZlib.release();
-			this.nativeZlib = null;
-		}
+		
 	}
 
 }

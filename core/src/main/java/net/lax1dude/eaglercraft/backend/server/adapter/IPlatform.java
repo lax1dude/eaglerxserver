@@ -108,6 +108,4 @@ public interface IPlatform<PlayerObject> {
 
 	EventLoopGroup getWorkerEventLoopGroup();
 
-	IPlatformZlib createNativeZlib(boolean compression, boolean decompression, int compressionLevel);
-
 }
