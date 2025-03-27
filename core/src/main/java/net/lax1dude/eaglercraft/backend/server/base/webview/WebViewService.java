@@ -153,9 +153,13 @@ public class WebViewService<PlayerObject> implements IWebViewService<PlayerObjec
 	@Override
 	public void setTemplateGlobal(String key, String value) {
 		ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
-		builder.putAll(templateGlobals);
+		for(Entry<String, String> etr : templateGlobals.entrySet()) {
+			if(!key.equals(etr.getKey())) {
+				builder.put(etr);
+			}
+		}
 		builder.put(key, value);
-		templateGlobals = builder.buildKeepingLast();
+		templateGlobals = builder.build();
 	}
 
 	@Override
@@ -166,7 +170,7 @@ public class WebViewService<PlayerObject> implements IWebViewService<PlayerObjec
 				builder.put(etr);
 			}
 		}
-		templateGlobals = builder.buildKeepingLast();
+		templateGlobals = builder.build();
 	}
 
 	@Override
