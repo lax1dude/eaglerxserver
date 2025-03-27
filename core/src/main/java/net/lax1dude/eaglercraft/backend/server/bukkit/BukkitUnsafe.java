@@ -330,7 +330,7 @@ public class BukkitUnsafe {
 
 	public static BukkitUnsafe.PropertyInjector propertyInjector(Player player) {
 		if(paperProfileAPISupport) {
-			return null; //TODO: use the actual paper api
+			return new PaperPropertyInjector(player, player.getPlayerProfile());
 		}else {
 			if(class_CraftPlayer == null) {
 				bindCraftPlayer(player);
