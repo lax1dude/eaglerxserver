@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -49,7 +50,6 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -58,24 +58,37 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 
 public class HTTPClient {
 
+	public static final int MAX_REDIRECTS = 8;
+
 	public static class Response {
 
 		public final int code;
+		public final boolean redirected;
 		public final ByteBuf data;
 		public final Throwable exception;
 
-		public Response(int code, ByteBuf data) {
+		public Response(int code, boolean redirected, ByteBuf data) {
 			this.code = code;
+			this.redirected = redirected;
 			this.data = data;
 			this.exception = null;
 		}
 
 		public Response(Throwable exception) {
 			this.code = -1;
+			this.redirected = false;
 			this.data = null;
 			this.exception = exception;
 		}
 
+	}
+
+	private static class RedirectTracker {
+		private int redirects = 0;
+		private String method;
+		private RedirectTracker(String method) {
+			this.method = method;
+		}
 	}
 
 	private class NettyHttpChannelFutureListener implements ChannelFutureListener {
@@ -111,12 +124,15 @@ public class HTTPClient {
 	private class NettyHttpChannelInitializer extends ChannelInitializer<Channel> {
 
 		protected final Consumer<Response> responseCallback;
+		protected final RedirectTracker redirectTracker;
 		protected final boolean ssl;
 		protected final String host;
 		protected final int port;
 
-		protected NettyHttpChannelInitializer(Consumer<Response> responseCallback, boolean ssl, String host, int port) {
+		protected NettyHttpChannelInitializer(Consumer<Response> responseCallback, RedirectTracker redirectTracker,
+				boolean ssl, String host, int port) {
 			this.responseCallback = responseCallback;
+			this.redirectTracker = redirectTracker;
 			this.ssl = ssl;
 			this.host = host;
 			this.port = port;
@@ -131,7 +147,7 @@ public class HTTPClient {
 			}
 
 			ch.pipeline().addLast("http", new HttpClientCodec());
-			ch.pipeline().addLast("handler", new NettyHttpResponseHandler(responseCallback));
+			ch.pipeline().addLast("handler", new NettyHttpResponseHandler(responseCallback, redirectTracker));
 		}
 
 	}
@@ -139,11 +155,13 @@ public class HTTPClient {
 	private class NettyHttpResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
 		protected final Consumer<Response> responseCallback;
+		protected final RedirectTracker redirectTracker;
 		protected int responseCode = -1;
 		protected ByteBuf buffer = null;
 
-		protected NettyHttpResponseHandler(Consumer<Response> responseCallback) {
+		protected NettyHttpResponseHandler(Consumer<Response> responseCallback, RedirectTracker redirectTracker) {
 			this.responseCallback = responseCallback;
+			this.redirectTracker = redirectTracker;
 		}
 
 		@Override
@@ -151,7 +169,16 @@ public class HTTPClient {
 			if (msg instanceof HttpResponse) {
 				HttpResponse response = (HttpResponse) msg;
 				responseCode = response.status().code();
-				if (responseCode == HttpResponseStatus.NO_CONTENT.code()) {
+				if (responseCode == 301 || responseCode == 302 || responseCode == 303 || responseCode == 307
+						|| responseCode == 308) {
+					ctx.channel().pipeline().remove(this);
+					ctx.channel().close();
+					if(responseCode == 303) {
+						redirectTracker.method = "GET";
+					}
+					redirect(response);
+					return;
+				}else if (responseCode == 204) {
 					this.done(ctx);
 					return;
 				}
@@ -168,6 +195,26 @@ public class HTTPClient {
 			}
 		}
 
+		private void redirect(HttpResponse response) {
+			if(++redirectTracker.redirects >= MAX_REDIRECTS) {
+				responseCallback.accept(new Response(new IllegalStateException("Too many redirects!")));
+			}else {
+				CharSequence target = response.headers().get(HttpHeaderNames.LOCATION);
+				if(target != null) {
+					URI uri;
+					try {
+						uri = new URI(target.toString());
+					}catch(URISyntaxException ex) {
+						responseCallback.accept(new Response(new IllegalStateException("Invalid redirect address in 3xx response!", ex)));
+						return;
+					}
+					asyncRequest(uri, responseCallback, redirectTracker);
+				}else {
+					responseCallback.accept(new Response(new IllegalStateException("Missing redirect address in 3xx response!")));
+				}
+			}
+		}
+
 		@Override
 		public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 			responseCallback.accept(new Response(cause));
@@ -175,7 +222,7 @@ public class HTTPClient {
 
 		private void done(ChannelHandlerContext ctx) {
 			try {
-				responseCallback.accept(new Response(responseCode, buffer));
+				responseCallback.accept(new Response(responseCode, redirectTracker.redirects > 0, buffer));
 			}finally {
 				ctx.channel().pipeline().remove(this);
 				ctx.channel().close();
@@ -202,6 +249,10 @@ public class HTTPClient {
 	}
 
 	public void asyncRequest(String method, URI uri, Consumer<Response> responseCallback) {
+		asyncRequest(uri, responseCallback, new RedirectTracker(method));
+	}
+
+	private void asyncRequest(URI uri, Consumer<Response> responseCallback, RedirectTracker redirectTracker) {
 		int port = uri.getPort();
 		boolean ssl = false;
 		String scheme = uri.getScheme();
@@ -235,10 +286,10 @@ public class HTTPClient {
 		}
 		InetSocketAddress addr = new InetSocketAddress(inetHost, port);
 		(new Bootstrap()).channelFactory(channelFactory).group(eventLoop)
-				.handler(new NettyHttpChannelInitializer(responseCallback, ssl, host, port))
+				.handler(new NettyHttpChannelInitializer(responseCallback, redirectTracker, ssl, host, port))
 				.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000).option(ChannelOption.TCP_NODELAY, true)
 				.remoteAddress(addr).connect()
-				.addListener(new NettyHttpChannelFutureListener(method, uri, responseCallback));
+				.addListener(new NettyHttpChannelFutureListener(redirectTracker.method, uri, responseCallback));
 	}
 
 }

@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.base.config;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -296,12 +297,12 @@ public class ConfigDataSettings {
 		private final int certPacketDataRateLimit;
 		private final boolean enableEagcertFolder;
 		private final boolean downloadLatestCerts;
-		private final List<String> downloadCertsFrom;
+		private final List<URI> downloadCertsFrom;
 		private final int checkForUpdateEvery;
 
 		public ConfigDataUpdateService(boolean enableUpdateSystem, boolean discardLoginPacketCerts,
 				int certPacketDataRateLimit, boolean enableEagcertFolder, boolean downloadLatestCerts,
-				List<String> downloadCertsFrom, int checkForUpdateEvery) {
+				List<URI> downloadCertsFrom, int checkForUpdateEvery) {
 			this.enableUpdateSystem = enableUpdateSystem;
 			this.discardLoginPacketCerts = discardLoginPacketCerts;
 			this.certPacketDataRateLimit = certPacketDataRateLimit;
@@ -331,7 +332,7 @@ public class ConfigDataSettings {
 			return downloadLatestCerts;
 		}
 
-		public List<String> getDownloadCertsFrom() {
+		public List<URI> getDownloadCertsFrom() {
 			return downloadCertsFrom;
 		}
 

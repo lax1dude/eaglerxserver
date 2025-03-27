@@ -19,7 +19,18 @@ public final class UpdateCertificate implements IUpdateCertificateImpl {
 		if(data == null) {
 			throw new NullPointerException("data");
 		}
-		SHA1Sum sum = SHA1Sum.create(data);
+		SHA1Sum sum = SHA1Sum.ofData(data);
+		try {
+			return interner.get(sum, () -> {
+				return new UpdateCertificate(data, sum);
+			});
+		} catch (ExecutionException e) {
+			Throwables.throwIfUnchecked(e.getCause());
+			throw new RuntimeException(e.getCause());
+		}
+	}
+
+	static IUpdateCertificateImpl internUnsafe(SHA1Sum sum, byte[] data) {
 		try {
 			return interner.get(sum, () -> {
 				return new UpdateCertificate(data, sum);

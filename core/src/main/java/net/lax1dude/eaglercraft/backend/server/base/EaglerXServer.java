@@ -888,6 +888,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		return NBTHelper.INSTANCE;
 	}
 
+	public HTTPClient getInternalHTTPClient() {
+		return httpClient;
+	}
+
 	@Override
 	public IBinaryHTTPClient getBinaryHTTPClient() {
 		return httpClientAPI;

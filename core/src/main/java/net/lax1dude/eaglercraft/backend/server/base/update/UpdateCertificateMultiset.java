@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.base.update;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import com.google.common.collect.ImmutableList;
@@ -16,15 +17,27 @@ public class UpdateCertificateMultiset {
 		updateCertSet = (new MapMaker()).weakKeys().makeMap();
 	}
 
-	public void add(IUpdateCertificateImpl cert) {
-		updateCertSet.compute(cert, (certt, refCnt) -> {
+	private static class Witness implements BiFunction<IUpdateCertificateImpl, AtomicInteger, AtomicInteger> {
+
+		protected boolean create;
+
+		@Override
+		public AtomicInteger apply(IUpdateCertificateImpl certt, AtomicInteger refCnt) {
 			if(refCnt == null) {
+				create = true;
 				return new AtomicInteger(1);
 			}else {
 				refCnt.incrementAndGet();
 				return refCnt;
 			}
-		});
+		}
+
+	}
+
+	public boolean add(IUpdateCertificateImpl cert) {
+		Witness witness = new Witness();
+		updateCertSet.compute(cert, witness);
+		return witness.create;
 	}
 
 	public void remove(IUpdateCertificateImpl cert) {

@@ -14,7 +14,7 @@ public interface IBinaryHTTPResponse {
 
 	byte[] getResponseBody();
 
-	NettyUnsafe getNettyUnsafe();
+	NettyUnsafe netty();
 
 	public interface NettyUnsafe {
 

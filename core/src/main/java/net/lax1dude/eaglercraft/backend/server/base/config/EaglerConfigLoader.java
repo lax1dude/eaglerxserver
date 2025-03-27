@@ -338,7 +338,15 @@ public class EaglerConfigLoader {
 				downloadCertsFromConf.appendString("https://eaglercraft.com/backup.cert");
 				downloadCertsFromConf.appendString("https://deev.is/eagler/backup.cert");
 			}
-			List<String> downloadCertsFrom = ImmutableList.copyOf(downloadCertsFromConf.getAsStringList());
+			ImmutableList.Builder<URI> builder = ImmutableList.builder();
+			for(String str : downloadCertsFromConf.getAsStringList()) {
+				try {
+					builder.add(new URI(str));
+				} catch (URISyntaxException e) {
+					throw new IOException("Invalid URI: " + str, e);
+				}
+			}
+			List<URI> downloadCertsFrom = builder.build();
 			int checkForUpdateEvery = updateService.getInteger(
 				"check_for_update_every", 28800,
 				"Default value is 28800 seconds, defines how often to check the URL list for "

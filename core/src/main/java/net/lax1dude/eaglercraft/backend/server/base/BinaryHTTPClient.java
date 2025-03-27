@@ -48,7 +48,7 @@ public class BinaryHTTPClient implements IBinaryHTTPClient {
 
 		@Override
 		public boolean isRedirected() {
-			return false; //TODO
+			return response.redirected;
 		}
 
 		@Override
@@ -68,7 +68,7 @@ public class BinaryHTTPClient implements IBinaryHTTPClient {
 		}
 
 		@Override
-		public NettyUnsafe getNettyUnsafe() {
+		public NettyUnsafe netty() {
 			return this;
 		}
 
