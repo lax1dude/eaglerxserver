@@ -1,89 +1,89 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
-import net.lax1dude.eaglercraft.backend.server.util.RateLimiter;
+import net.lax1dude.eaglercraft.backend.server.util.RateLimiterBasic;
 
 public class PlayerRateLimits {
 
 	private static final int LIMIT_SKIN = 240;
-	private RateLimiter ratelimitSkin;
+	private RateLimiterBasic ratelimitSkin;
 	private static final int LIMIT_CAPE = 180;
-	private RateLimiter ratelimitCape;
+	private RateLimiterBasic ratelimitCape;
 	private static final int LIMIT_VOICE_CON = 20;
-	private RateLimiter ratelimitVoiceCon;
+	private RateLimiterBasic ratelimitVoiceCon;
 	private static final int LIMIT_VOICE_REQ = 120;
-	private RateLimiter ratelimitVoiceReq;
+	private RateLimiterBasic ratelimitVoiceReq;
 	private static final int LIMIT_VOICE_ICE = 600;
-	private RateLimiter ratelimitVoiceICE;
+	private RateLimiterBasic ratelimitVoiceICE;
 	private static final int LIMIT_BRAND = 240;
-	private RateLimiter ratelimitBrand;
+	private RateLimiterBasic ratelimitBrand;
 	private static final int LIMIT_WEBVIEW_DATA = 8;
-	private RateLimiter ratelimitWebViewData;
+	private RateLimiterBasic ratelimitWebViewData;
 	private static final int LIMIT_WEBVIEW_MSG = 120;
-	private RateLimiter ratelimitWebViewMsg;
+	private RateLimiterBasic ratelimitWebViewMsg;
 
 	// Note that the below functions are not perfectly thread safe,
 	// but unlikely to cause the rate limiting to be unreliable
 
 	public boolean ratelimitSkin() {
-		RateLimiter limiter = ratelimitSkin;
+		RateLimiterBasic limiter = ratelimitSkin;
 		if(limiter == null) {
-			limiter = ratelimitSkin = new RateLimiter();
+			limiter = ratelimitSkin = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(LIMIT_SKIN);
 	}
 
 	public boolean ratelimitCape() {
-		RateLimiter limiter = ratelimitCape;
+		RateLimiterBasic limiter = ratelimitCape;
 		if(limiter == null) {
-			limiter = ratelimitCape = new RateLimiter();
+			limiter = ratelimitCape = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(LIMIT_CAPE);
 	}
 
 	public boolean ratelimitVoiceCon() {
-		RateLimiter limiter = ratelimitVoiceCon;
+		RateLimiterBasic limiter = ratelimitVoiceCon;
 		if(limiter == null) {
-			limiter = ratelimitVoiceCon = new RateLimiter();
+			limiter = ratelimitVoiceCon = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(LIMIT_VOICE_CON);
 	}
 
 	public boolean ratelimitVoiceReq() {
-		RateLimiter limiter = ratelimitVoiceReq;
+		RateLimiterBasic limiter = ratelimitVoiceReq;
 		if(limiter == null) {
-			limiter = ratelimitVoiceReq = new RateLimiter();
+			limiter = ratelimitVoiceReq = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(LIMIT_VOICE_REQ);
 	}
 
 	public boolean ratelimitVoiceICE() {
-		RateLimiter limiter = ratelimitVoiceICE;
+		RateLimiterBasic limiter = ratelimitVoiceICE;
 		if(limiter == null) {
-			limiter = ratelimitVoiceICE = new RateLimiter();
+			limiter = ratelimitVoiceICE = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(LIMIT_VOICE_ICE);
 	}
 
 	public boolean ratelimitBrand() {
-		RateLimiter limiter = ratelimitBrand;
+		RateLimiterBasic limiter = ratelimitBrand;
 		if(limiter == null) {
-			limiter = ratelimitBrand = new RateLimiter();
+			limiter = ratelimitBrand = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(LIMIT_BRAND);
 	}
 
 	public boolean ratelimitWebViewData() {
-		RateLimiter limiter = ratelimitWebViewData;
+		RateLimiterBasic limiter = ratelimitWebViewData;
 		if(limiter == null) {
-			limiter = ratelimitWebViewData = new RateLimiter();
+			limiter = ratelimitWebViewData = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(LIMIT_WEBVIEW_DATA);
 	}
 
 	public boolean ratelimitWebViewMsg() {
-		RateLimiter limiter = ratelimitWebViewMsg;
+		RateLimiterBasic limiter = ratelimitWebViewMsg;
 		if(limiter == null) {
-			limiter = ratelimitWebViewMsg = new RateLimiter();
+			limiter = ratelimitWebViewMsg = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(LIMIT_WEBVIEW_MSG);
 	}

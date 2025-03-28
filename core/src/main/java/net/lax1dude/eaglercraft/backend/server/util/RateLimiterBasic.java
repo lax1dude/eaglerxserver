@@ -2,11 +2,11 @@ package net.lax1dude.eaglercraft.backend.server.util;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class RateLimiter extends AtomicInteger {
+public class RateLimiterBasic extends AtomicInteger {
 
 	private long timer;
 
-	public RateLimiter() {
+	public RateLimiterBasic() {
 		super(0);
 		this.timer = Util.steadyTime();
 	}
@@ -22,6 +22,10 @@ public class RateLimiter extends AtomicInteger {
 				long delta = (Util.steadyTime() - timer) / period;
 				if(delta > 0l) {
 					timer += delta * period;
+					int correction = v - (limitVal << 1);
+					if(correction > 0) {
+						delta += correction;
+					}
 					return addAndGet(-Math.min((int)delta, v)) < limitVal;
 				}
 				return false;

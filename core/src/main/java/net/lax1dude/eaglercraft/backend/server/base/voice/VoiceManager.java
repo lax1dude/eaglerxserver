@@ -162,10 +162,6 @@ public class VoiceManager<PlayerObject> implements IVoiceManagerX<PlayerObject> 
 		return player.getRateLimits().ratelimitVoiceCon();
 	}
 
-	boolean ratelimitReqLegacy() {
-		return !isBroken ||  player.getRateLimits().ratelimitVoiceReq();
-	}
-
 	boolean ratelimitReqV5() {
 		return isBroken || player.getRateLimits().ratelimitVoiceReq();
 	}

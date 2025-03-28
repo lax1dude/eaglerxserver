@@ -30,6 +30,7 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 	private final byte[] legacyRedirectAddressBuf;
 	private byte[] cachedServerIcon;
 	private List<String> cachedServerMOTD;
+	private CompoundRateLimiterMap rateLimiter;
 
 	EaglerListener(EaglerXServer<?> server, ConfigDataListener listenerConf) throws SSLException, IOException {
 		this(server, listenerConf.getInjectAddress(), listenerConf);
@@ -65,6 +66,9 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 		}else {
 			cachedServerIcon = null;
 		}
+		rateLimiter = CompoundRateLimiterMap.create(listenerConf.getLimitIP(), listenerConf.getLimitLogin(),
+				listenerConf.getLimitMOTD(), listenerConf.getLimitQuery(), listenerConf.getLimitHTTP(),
+				listenerConf.getLimitExclusions());
 	}
 
 	public ISSLContextProvider getSSLContext() {
@@ -194,6 +198,10 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 
 	public ConfigDataListener getConfigData() {
 		return listenerConf;
+	}
+
+	public CompoundRateLimiterMap getRateLimiter() {
+		return rateLimiter;
 	}
 
 }

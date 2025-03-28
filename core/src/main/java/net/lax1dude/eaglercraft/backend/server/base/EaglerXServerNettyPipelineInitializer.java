@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.function.Consumer;
 
@@ -19,11 +20,29 @@ class EaglerXServerNettyPipelineInitializer<PlayerObject> implements IEaglerXSer
 		EaglerListener eagListener = (EaglerListener) initializer.getListener();
 		System.out.println("New channel: " + initializer.getChannel());
 		Consumer<SocketAddress> realAddressHandle = null;
-		if(eagListener.isForwardIP() && eagListener.getConfigData().isSpoofPlayerAddressForwarded()) {
-			realAddressHandle = initializer.realAddressHandle();
+		CompoundRateLimiterMap.ICompoundRatelimits rateLimits = null;
+		if(eagListener.isForwardIP()) {
+			if(eagListener.getConfigData().isSpoofPlayerAddressForwarded()) {
+				realAddressHandle = initializer.realAddressHandle();
+			}
+		}else {
+			CompoundRateLimiterMap map = eagListener.getRateLimiter();
+			if(map != null) {
+				SocketAddress addr = initializer.getChannel().remoteAddress();
+				if(addr instanceof InetSocketAddress) {
+					rateLimits = map.rateLimit(((InetSocketAddress)addr).getAddress());
+					if(rateLimits == null) {
+						initializer.getChannel().close();
+						return;
+					}
+				}else {
+					server.logger().warn("Unable to ratelimit unknown address type: " + addr.getClass().getName()
+							+ " - \"" + addr + "\"");
+				}
+			}
 		}
 		NettyPipelineData attachment = new NettyPipelineData(initializer.getChannel(), server, eagListener,
-				server.getEaglerAttribManager().createEaglerHolder(), realAddressHandle);
+				server.getEaglerAttribManager().createEaglerHolder(), realAddressHandle, rateLimits);
 		initializer.setAttachment(attachment);
 		if (eagListener.isDualStack()) {
 			server.getPipelineTransformer().injectDualStack(initializer.getPipeline(), initializer.getChannel(),

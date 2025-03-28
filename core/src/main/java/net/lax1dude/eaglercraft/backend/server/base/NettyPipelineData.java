@@ -12,6 +12,7 @@ import java.util.function.Consumer;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.net.InetAddresses;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -58,6 +59,7 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	public final EaglerXServer<?> server;
 	public final EaglerAttributeManager.EaglerAttributeHolder attributeHolder;
 	public final Consumer<SocketAddress> realAddressHandle;
+	public CompoundRateLimiterMap.ICompoundRatelimits rateLimits;
 	public boolean initStall;
 
 	public EaglerListener listenerInfo;
@@ -72,6 +74,7 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	public String headerAuthorization;
 	public String requestPath;
 	public String realAddress;
+	public InetAddress realInetAddress;
 
 	public int handshakeProtocol;
 	public GamePluginMessageProtocol gameProtocol;
@@ -109,13 +112,15 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	private volatile IPlatformTask disconnectTask = null;
 
 	public NettyPipelineData(Channel channel, EaglerXServer<?> server, EaglerListener listenerInfo,
-			EaglerAttributeManager.EaglerAttributeHolder attributeHolder, Consumer<SocketAddress> realAddressHandle) {
+			EaglerAttributeManager.EaglerAttributeHolder attributeHolder, Consumer<SocketAddress> realAddressHandle,
+			CompoundRateLimiterMap.ICompoundRatelimits rateLimits) {
 		this.channel = channel;
 		this.server = server;
 		this.listenerInfo = listenerInfo;
 		this.attributeHolder = attributeHolder;
 		this.realAddressHandle = realAddressHandle;
 		this.connectionLogger = server.logger().createSubLogger("" + channel.remoteAddress());
+		this.rateLimits = rateLimits;
 	}
 
 	@Override
@@ -291,12 +296,16 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 			Consumer<SocketAddress> handle = realAddressHandle;
 			if(handle != null) {
 				InetAddress addr;
-				try {
-					addr = InetAddress.getByName(realAddress);
-				} catch (UnknownHostException ex) {
-					connectionLogger.error("Connected with an invalid \""
-							+ listenerInfo.getConfigData().getForwardIPHeader() + "\" header, disconnecting...", ex);
-					return false;
+				if(realInetAddress != null) {
+					addr = realInetAddress;
+				}else {
+					try {
+						addr = InetAddresses.forString(realAddress);
+					} catch (IllegalArgumentException ex) {
+						connectionLogger.error("Connected with an invalid \""
+								+ listenerInfo.getConfigData().getForwardIPHeader() + "\" header, disconnecting...", ex);
+						return false;
+					}
 				}
 				int port = 65535;
 				SocketAddress addr2 = channel.remoteAddress();

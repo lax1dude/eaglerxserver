@@ -12,16 +12,13 @@ public class ConfigDataListener {
 		private final int limit;
 		private final int limitLockout;
 		private final int lockoutDuration;
-		private final List<String> exceptions;
 
-		public ConfigRateLimit(boolean enable, int period, int limit, int limitLockout, int lockoutDuration,
-				List<String> exceptions) {
+		public ConfigRateLimit(boolean enable, int period, int limit, int limitLockout, int lockoutDuration) {
 			this.enable = enable;
 			this.period = period;
 			this.limit = limit;
 			this.limitLockout = limitLockout;
 			this.lockoutDuration = lockoutDuration;
-			this.exceptions = exceptions;
 		}
 
 		public boolean isEnabled() {
@@ -42,10 +39,6 @@ public class ConfigDataListener {
 
 		public int getLockoutDuration() {
 			return lockoutDuration;
-		}
-
-		public List<String> getExceptions() {
-			return exceptions;
 		}
 
 	}
@@ -85,6 +78,7 @@ public class ConfigDataListener {
 	private final ConfigRateLimit limitMOTD;
 	private final ConfigRateLimit limitQuery;
 	private final ConfigRateLimit limitHTTP;
+	private final List<String> limitExclusions;
 
 	public ConfigDataListener(String listenerName, SocketAddress injectAddress, boolean dualStack, boolean forwardIp,
 			String forwardIPHeader, boolean forwardSecret, String forwardSecretHeader, String forwardSecretFile,
@@ -94,7 +88,8 @@ public class ConfigDataListener {
 			List<String> serverMOTD, boolean allowMOTD, boolean allowQuery, boolean showMOTDPlayerList,
 			boolean allowCookieRevokeQuery, int motdCacheTTL, boolean motdCacheAnimation, boolean motdCacheResults,
 			boolean motdCacheTrending, boolean motdCachePortfolios, ConfigRateLimit limitIP, ConfigRateLimit limitLogin,
-			ConfigRateLimit limitMOTD, ConfigRateLimit limitQuery, ConfigRateLimit limitHTTP) {
+			ConfigRateLimit limitMOTD, ConfigRateLimit limitQuery, ConfigRateLimit limitHTTP,
+			List<String> limitExclusions) {
 		this.listenerName = listenerName;
 		this.injectAddress = injectAddress;
 		this.dualStack = dualStack;
@@ -130,6 +125,7 @@ public class ConfigDataListener {
 		this.limitMOTD = limitMOTD;
 		this.limitQuery = limitQuery;
 		this.limitHTTP = limitHTTP;
+		this.limitExclusions = limitExclusions;
 	}
 
 	public String getListenerName() {
@@ -270,6 +266,10 @@ public class ConfigDataListener {
 
 	public ConfigRateLimit getLimitHTTP() {
 		return limitHTTP;
+	}
+
+	public List<String> getLimitExclusions() {
+		return limitExclusions;
 	}
 
 }

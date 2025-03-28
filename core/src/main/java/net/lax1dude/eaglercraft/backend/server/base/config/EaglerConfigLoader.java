@@ -887,12 +887,20 @@ public class EaglerConfigLoader {
 			ratelimitConf, "http", 30, 10, 20, 300,
 			"Sets ratelimit on non-WebSocket HTTP connections."
 		);
+		IEaglerConfList exceptionsConf = ratelimitConf.getList("disable_ratelimit");
+		List<String> exceptionsConfList = ImmutableList
+				.copyOf(exceptionsConf.getAsStringList(() -> Arrays.asList("127.0.0.0/8", "::1/128"), 
+						"List of IPv4 and IPv6 addresses to disable ratelimiting for, use CIDR notation to specify "
+						+ "entire subnets, default value includes localhost to ensure ratelimiting is disabled by "
+						+ "default when EaglerXServer is used with nginx and caddy. If forward_ip is true, the "
+						+ "ratelimits will be applied based on the forwarded address instead of the raw socket address."));
 		return new ConfigDataListener(name, injectAddress, dualStack, forwardIp, forwardIPHeader, forwardSecret,
 				forwardSecretHeader, forwardSecretFile, forwardSecretValue, spoofPlayerAddressForwarded, enableTLS,
 				requireTLS, tlsManagedByExternalPlugin, tlsPublicChainFile, tlsPrivateKeyFile, tlsPrivateKeyPassword,
 				tlsAutoRefreshCert, redirectLegacyClientsTo, serverIcon, serverMOTD, allowMOTD, allowQuery,
 				showMOTDPlayerList, allowCookieRevokeQuery, motdCacheTTL, motdCacheAnimation, motdCacheResults,
-				motdCacheTrending, motdCachePortfolios, limitIP, limitLogin, limitMOTD, limitQuery, limitHTTP);
+				motdCacheTrending, motdCachePortfolios, limitIP, limitLogin, limitMOTD, limitQuery, limitHTTP,
+				exceptionsConfList);
 	}
 
 	private static ConfigDataListener.ConfigRateLimit loadRatelimiter(IEaglerConfSection parent, String name,
@@ -921,15 +929,8 @@ public class EaglerConfigLoader {
 			"lockout_duration", lockoutDuration,
 			"Sets the total number of seconds a \"lock out\" should last on this limiter."
 		);
-		IEaglerConfList exceptionsConf = limitCfg.getList("exceptions_list");
-		List<String> exceptionsConfList = ImmutableList
-				.copyOf(exceptionsConf.getAsStringList(() -> Arrays.asList("127.0.0.0/8", "::1/128"), 
-						"List of IPv4 and IPv6 addresses to disable ratelimiting for, use CIDR notation to specify "
-						+ "entire subnets, default value includes localhost to ensure ratelimiting is disabled by "
-						+ "default when EaglerXServer is used with nginx and caddy. If forward_ip is true, the "
-						+ "ratelimits will be applied based on the forwarded address instead of the raw socket address."));
 		return new ConfigDataListener.ConfigRateLimit(enableConf, periodConf, limitConf, limitLockoutConf,
-				lockoutDurationConf, exceptionsConfList);
+				lockoutDurationConf);
 	}
 
 	private static String mapPlatformName(EnumAdapterPlatformType platform) {

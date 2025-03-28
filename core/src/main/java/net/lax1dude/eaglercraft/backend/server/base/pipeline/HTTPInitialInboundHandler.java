@@ -1,5 +1,10 @@
 package net.lax1dude.eaglercraft.backend.server.base.pipeline;
 
+import java.net.InetAddress;
+import java.util.List;
+
+import com.google.common.net.InetAddresses;
+
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -15,6 +20,7 @@ import io.netty.util.ReferenceCountUtil;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.api.EnumPipelineEvent;
+import net.lax1dude.eaglercraft.backend.server.base.CompoundRateLimiterMap;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerListener;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
@@ -48,9 +54,28 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 				}
 				
 				if(conf.isForwardIP()) {
-					String forwardedIP = headers.get(conf.getForwardIPHeader());
-					if(forwardedIP != null) {
-						pipelineData.realAddress = forwardedIP;
+					List<String> forwardedIP = headers.getAll(conf.getForwardIPHeader());
+					if(forwardedIP != null && !forwardedIP.isEmpty()) {
+						pipelineData.realAddress = forwardedIP.get(0);
+						CompoundRateLimiterMap rateLimiter = pipelineData.listenerInfo.getRateLimiter();
+						if(rateLimiter != null) {
+							InetAddress addr;
+							try {
+								addr = InetAddresses.forString(pipelineData.realAddress);
+							}catch(IllegalArgumentException ex) {
+								pipelineData.connectionLogger.error("Connected with an invalid \""
+										+ conf.getForwardIPHeader() + "\" header, disconnecting...", ex);
+								pipelineData.initStall = true;
+								ctx.close();
+								return;
+							}
+							pipelineData.realInetAddress = addr;
+							if((pipelineData.rateLimits = rateLimiter.rateLimit(addr)) == null) {
+								pipelineData.initStall = true;
+								ctx.close();
+								return;
+							}
+						}
 					}else {
 						pipelineData.connectionLogger.error(
 								"Connected without a \"" + conf.getForwardIPHeader() + "\" header, disconnecting...");
