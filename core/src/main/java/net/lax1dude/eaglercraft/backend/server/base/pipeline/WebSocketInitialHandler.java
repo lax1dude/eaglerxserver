@@ -24,8 +24,16 @@ public class WebSocketInitialHandler extends ChannelInboundHandlerAdapter {
 			}
 			if(msg instanceof BinaryWebSocketFrame) {
 				NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
+				if(pipelineData.initStall) {
+					return;
+				}
 				if(!pipelineData.processRealAddress()) {
+					pipelineData.initStall = true;
 					ctx.close();
+					return;
+				}
+				if(!pipelineData.processLoginRatelimit(ctx)) {
+					pipelineData.initStall = true;
 					return;
 				}
 				ChannelPipeline pipeline = ctx.pipeline();
@@ -38,6 +46,13 @@ public class WebSocketInitialHandler extends ChannelInboundHandlerAdapter {
 				ctx.fireChannelRead(((BinaryWebSocketFrame)msg).content().retain());
 			}else if(msg instanceof TextWebSocketFrame) {
 				NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
+				if(pipelineData.initStall) {
+					return;
+				}
+				if(!pipelineData.processQueryRatelimit(ctx)) {
+					pipelineData.initStall = true;
+					return;
+				}
 				ChannelPipeline pipeline = ctx.pipeline();
 				pipelineData.server.getPipelineTransformer().removeVanillaHandlers(pipeline);
 				pipeline.addAfter(PipelineTransformer.HANDLER_WS_INITIAL, PipelineTransformer.HANDLER_QUERY,

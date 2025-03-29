@@ -23,12 +23,14 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.ReferenceCountUtil;
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestHandler;
+import net.lax1dude.eaglercraft.backend.server.base.CompoundRateLimiterMap;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.webserver.RequestContext;
 import net.lax1dude.eaglercraft.backend.server.base.webserver.RequestContext.ContextPromise;
 import net.lax1dude.eaglercraft.backend.server.base.webserver.RouteMap;
 import net.lax1dude.eaglercraft.backend.server.base.webserver.RouteProcessor;
+import net.lax1dude.eaglercraft.backend.server.util.EnumRateLimitState;
 
 public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 
@@ -46,10 +48,12 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 	private final NettyPipelineData pipelineData;
 	private RouteProcessor processor;
 	private RequestContext context;
+	private boolean isFirst;
 
 	public HTTPRequestInboundHandler(EaglerXServer<?> server, NettyPipelineData pipelineData) {
 		this.server = server;
 		this.pipelineData = pipelineData;
+		this.isFirst = true;
 	}
 
 	private RouteProcessor processor() {
@@ -69,6 +73,9 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msgRaw) throws Exception {
 		try {
+			if(!ctx.channel().isActive()) {
+				return;
+			}
 			if(msgRaw instanceof FullHttpRequest) {
 				FullHttpRequest msg = (FullHttpRequest) msgRaw;
 				if(msg.protocolVersion() != HttpVersion.HTTP_1_1) {
@@ -87,9 +94,34 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 					path = uri;
 					query = "";
 				}
-				
+
 				HttpMethod method = msg.method();
 				EnumRequestMethod meth = methodLookup.get(method);
+				
+				CompoundRateLimiterMap rateLimiter = pipelineData.listenerInfo.getRateLimiter();
+				if(rateLimiter != null) {
+					if(!isFirst) {
+						if(!HTTPInitialInboundHandler.recheckRatelimitAddress(ctx, pipelineData, msg)) {
+							ctx.close();
+							return;
+						}
+					}
+					if(pipelineData.rateLimits != null) {
+						EnumRateLimitState rateLimit = pipelineData.rateLimits.rateLimitHTTP();
+						if(!rateLimit.isOk()) {
+							if(rateLimit == EnumRateLimitState.BLOCKED || rateLimit == EnumRateLimitState.BLOCKED_LOCKED) {
+								if(meth == null) {
+									meth = EnumRequestMethod.GET;
+								}
+								handleRequest(ctx, msg, meth, null, uri, path, query, server.getWebServer().get429Handler(), false);
+							}else {
+								ctx.close();
+							}
+							return;
+						}
+					}
+				}
+				
 				if(meth == null) {
 					if(method == HttpMethod.OPTIONS) {
 						handleOptions(ctx, uri, path, query, msg);
@@ -114,6 +146,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 			}
 		}finally {
 			ReferenceCountUtil.release(msgRaw);
+			isFirst = false;
 		}
 	}
 

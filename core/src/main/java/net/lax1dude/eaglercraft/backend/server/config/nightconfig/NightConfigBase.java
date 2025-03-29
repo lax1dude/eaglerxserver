@@ -1,6 +1,5 @@
 package net.lax1dude.eaglercraft.backend.server.config.nightconfig;
 
-import java.io.File;
 import java.io.IOException;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;

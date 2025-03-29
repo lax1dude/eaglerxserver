@@ -1,6 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.base.pipeline;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.List;
 
 import com.google.common.net.InetAddresses;
@@ -13,6 +15,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
@@ -40,6 +43,12 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 			NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
 			if(!pipelineData.initStall && (msgRaw instanceof FullHttpRequest)) {
 				FullHttpRequest msg = (FullHttpRequest) msgRaw;
+				if(msg.protocolVersion() != HttpVersion.HTTP_1_1) {
+					pipelineData.initStall = true;
+					ctx.close();
+					return;
+				}
+				
 				HttpHeaders headers = msg.headers();
 				
 				EaglerListener listener = pipelineData.listenerInfo;
@@ -47,6 +56,7 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 				
 				if(conf.isForwardSecret()) {
 					if(!conf.getForwardSecretValue().equals(headers.get(conf.getForwardSecretHeader()))) {
+						pipelineData.connectionLogger.error("Connected without a valid forwarding secret header, disconnecting...");
 						pipelineData.initStall = true;
 						ctx.close();
 						return;
@@ -173,6 +183,54 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 		pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_STATE_HTTP_REQUEST);
 		ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
 		pipeline.remove(PipelineTransformer.HANDLER_HTTP_INITIAL);
+	}
+
+	static boolean recheckRatelimitAddress(ChannelHandlerContext ctx, NettyPipelineData pipelineData, FullHttpRequest msg) {
+		EaglerListener listener = pipelineData.listenerInfo;
+		ConfigDataListener conf = listener.getConfigData();
+		HttpHeaders headers = msg.headers();
+		if(conf.isForwardSecret()) {
+			if(!conf.getForwardSecretValue().equals(headers.get(conf.getForwardSecretHeader()))) {
+				pipelineData.connectionLogger.error("Connected without a valid forwarding secret header, disconnecting...");
+				return false;
+			}
+		}
+		if(conf.isForwardIP()) {
+			List<String> forwardedIP = headers.getAll(conf.getForwardIPHeader());
+			if(forwardedIP != null && !forwardedIP.isEmpty()) {
+				pipelineData.realAddress = forwardedIP.get(0);
+				CompoundRateLimiterMap rateLimiter = pipelineData.listenerInfo.getRateLimiter();
+				if(rateLimiter != null) {
+					InetAddress addr;
+					try {
+						addr = InetAddresses.forString(pipelineData.realAddress);
+					}catch(IllegalArgumentException ex) {
+						pipelineData.connectionLogger.error("Connected with an invalid \""
+								+ conf.getForwardIPHeader() + "\" header, disconnecting...", ex);
+						return false;
+					}
+					pipelineData.realInetAddress = addr;
+					pipelineData.rateLimits = rateLimiter.getRateLimit(addr);
+				}
+				return true;
+			}else {
+				pipelineData.connectionLogger.error(
+						"Connected without a \"" + conf.getForwardIPHeader() + "\" header, disconnecting...");
+				return false;
+			}
+		}else {
+			CompoundRateLimiterMap rateLimiter = pipelineData.listenerInfo.getRateLimiter();
+			if(rateLimiter != null) {
+				SocketAddress addr = ctx.channel().remoteAddress();
+				if(addr instanceof InetSocketAddress) {
+					pipelineData.rateLimits = rateLimiter.getRateLimit(((InetSocketAddress)addr).getAddress());
+				}else {
+					pipelineData.connectionLogger.warn("Unable to ratelimit unknown address type: " + addr.getClass().getName()
+							+ " - \"" + addr + "\"");
+				}
+			}
+			return true;
+		}
 	}
 
 }

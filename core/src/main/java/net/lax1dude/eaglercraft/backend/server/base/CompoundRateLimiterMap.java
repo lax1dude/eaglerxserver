@@ -12,6 +12,7 @@ import com.google.common.cache.LoadingCache;
 
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener.ConfigRateLimit;
+import net.lax1dude.eaglercraft.backend.server.util.EnumRateLimitState;
 import net.lax1dude.eaglercraft.backend.server.util.RateLimiterExclusions;
 import net.lax1dude.eaglercraft.backend.server.util.RateLimiterLocking;
 import net.lax1dude.eaglercraft.backend.server.util.RateLimiterLocking.Config;
@@ -47,28 +48,28 @@ public class CompoundRateLimiterMap {
 	}
 
 	public static interface ICompoundRatelimits {
-		boolean rateLimitLogin();
-		boolean rateLimitMOTD();
-		boolean rateLimitQuery();
-		boolean rateLimitHTTP();
+		EnumRateLimitState rateLimitLogin();
+		EnumRateLimitState rateLimitMOTD();
+		EnumRateLimitState rateLimitQuery();
+		EnumRateLimitState rateLimitHTTP();
 	}
 
-	private static final ICompoundRatelimits ALWAYS_TRUE = new ICompoundRatelimits() {
+	private static final ICompoundRatelimits ALWAYS_OK = new ICompoundRatelimits() {
 		@Override
-		public boolean rateLimitLogin() {
-			return true;
+		public EnumRateLimitState rateLimitLogin() {
+			return EnumRateLimitState.OK;
 		}
 		@Override
-		public boolean rateLimitMOTD() {
-			return true;
+		public EnumRateLimitState rateLimitMOTD() {
+			return EnumRateLimitState.OK;
 		}
 		@Override
-		public boolean rateLimitQuery() {
-			return true;
+		public EnumRateLimitState rateLimitQuery() {
+			return EnumRateLimitState.OK;
 		}
 		@Override
-		public boolean rateLimitHTTP() {
-			return true;
+		public EnumRateLimitState rateLimitHTTP() {
+			return EnumRateLimitState.OK;
 		}
 	};
 
@@ -80,9 +81,9 @@ public class CompoundRateLimiterMap {
 		private RateLimiterLocking ratelimitHTTP;
 
 		@Override
-		public boolean rateLimitLogin() {
+		public EnumRateLimitState rateLimitLogin() {
 			if(ratelimitLoginConf == null) {
-				return true;
+				return EnumRateLimitState.OK;
 			}
 			RateLimiterLocking limiter = ratelimitLogin;
 			if(limiter == null) {
@@ -92,9 +93,9 @@ public class CompoundRateLimiterMap {
 		}
 
 		@Override
-		public boolean rateLimitMOTD() {
+		public EnumRateLimitState rateLimitMOTD() {
 			if(ratelimitMOTDConf == null) {
-				return true;
+				return EnumRateLimitState.OK;
 			}
 			RateLimiterLocking limiter = ratelimitMOTD;
 			if(limiter == null) {
@@ -104,9 +105,9 @@ public class CompoundRateLimiterMap {
 		}
 
 		@Override
-		public boolean rateLimitQuery() {
+		public EnumRateLimitState rateLimitQuery() {
 			if(ratelimitQueryConf == null) {
-				return true;
+				return EnumRateLimitState.OK;
 			}
 			RateLimiterLocking limiter = ratelimitQuery;
 			if(limiter == null) {
@@ -116,9 +117,9 @@ public class CompoundRateLimiterMap {
 		}
 
 		@Override
-		public boolean rateLimitHTTP() {
+		public EnumRateLimitState rateLimitHTTP() {
 			if(ratelimitHTTPConf == null) {
-				return true;
+				return EnumRateLimitState.OK;
 			}
 			RateLimiterLocking limiter = ratelimitHTTP;
 			if(limiter == null) {
@@ -166,10 +167,18 @@ public class CompoundRateLimiterMap {
 
 	public ICompoundRatelimits rateLimit(InetAddress address) {
 		if(ratelimitExclusions != null && ratelimitExclusions.testExclusion(address)) {
-			return ALWAYS_TRUE;
+			return ALWAYS_OK;
 		}else {
 			RateLimits limits = load(address);
-			return (ratelimitIPConf == null || limits.rateLimit(ratelimitIPConf)) ? limits : null;
+			return (ratelimitIPConf == null || limits.rateLimit(ratelimitIPConf).isOk()) ? limits : null;
+		}
+	}
+
+	public ICompoundRatelimits getRateLimit(InetAddress address) {
+		if(ratelimitExclusions != null && ratelimitExclusions.testExclusion(address)) {
+			return ALWAYS_OK;
+		}else {
+			return load(address);
 		}
 	}
 

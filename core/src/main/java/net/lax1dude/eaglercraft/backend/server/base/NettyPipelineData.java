@@ -3,7 +3,6 @@ package net.lax1dude.eaglercraft.backend.server.base;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -17,6 +16,8 @@ import com.google.common.net.InetAddresses;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformSubLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
@@ -30,6 +31,7 @@ import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.backend.server.base.message.RewindMessageControllerHandle;
+import net.lax1dude.eaglercraft.backend.server.util.EnumRateLimitState;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class NettyPipelineData extends IIdentifiedConnection.Base
@@ -313,6 +315,48 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 					port = ((InetSocketAddress)addr2).getPort();
 				}
 				handle.accept(new InetSocketAddress(addr, port));
+			}
+		}
+		return true;
+	}
+
+	public boolean processLoginRatelimit(ChannelHandlerContext ctx) {
+		if(rateLimits != null) {
+			EnumRateLimitState state = rateLimits.rateLimitLogin();
+			if(!state.isOk()) {
+				switch(state) {
+				case BLOCKED:
+					ctx.writeAndFlush(RateLimitMessage.getBlockedLoginMessage()).addListener(ChannelFutureListener.CLOSE);
+					break;
+				case BLOCKED_LOCKED:
+					ctx.writeAndFlush(RateLimitMessage.getLockedLoginMessage()).addListener(ChannelFutureListener.CLOSE);
+					break;
+				default:
+					ctx.close();
+					break;
+				}
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public boolean processQueryRatelimit(ChannelHandlerContext ctx) {
+		if(rateLimits != null) {
+			EnumRateLimitState state = rateLimits.rateLimitQuery();
+			if(!state.isOk()) {
+				switch(state) {
+				case BLOCKED:
+					ctx.writeAndFlush(RateLimitMessage.getBlockedQueryMessage()).addListener(ChannelFutureListener.CLOSE);
+					break;
+				case BLOCKED_LOCKED:
+					ctx.writeAndFlush(RateLimitMessage.getLockedQueryMessage()).addListener(ChannelFutureListener.CLOSE);
+					break;
+				default:
+					ctx.close();
+					break;
+				}
+				return false;
 			}
 		}
 		return true;

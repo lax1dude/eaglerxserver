@@ -2,7 +2,6 @@ package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 

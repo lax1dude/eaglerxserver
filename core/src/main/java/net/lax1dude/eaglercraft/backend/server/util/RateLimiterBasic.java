@@ -16,7 +16,7 @@ public class RateLimiterBasic extends AtomicInteger {
 			synchronized(this) {
 				int v = get();
 				if(v < limitVal) {
-					return false;
+					return true;
 				}
 				long period = (long)(60000 / limitVal);
 				long delta = (Util.steadyTime() - timer) / period;
