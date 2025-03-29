@@ -18,6 +18,7 @@ import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerAttributeManager.EaglerAttributeHolder;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
+import net.lax1dude.eaglercraft.backend.server.util.RateLimiterExclusions;
 
 public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListener {
 
@@ -68,7 +69,7 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 		}
 		rateLimiter = CompoundRateLimiterMap.create(listenerConf.getLimitIP(), listenerConf.getLimitLogin(),
 				listenerConf.getLimitMOTD(), listenerConf.getLimitQuery(), listenerConf.getLimitHTTP(),
-				listenerConf.getLimitExclusions(), server.logger());
+				RateLimiterExclusions.create(listenerConf.getLimitExclusions(), server.logger()));
 	}
 
 	public ISSLContextProvider getSSLContext() {
