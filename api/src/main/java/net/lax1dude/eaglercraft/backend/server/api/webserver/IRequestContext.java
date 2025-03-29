@@ -89,8 +89,6 @@ public interface IRequestContext {
 
 		void setResponseBodyHttpResponse(FullHttpResponse response);
 
-		void setResponseSent();
-
 	}
 
 	public interface IContextPromise {

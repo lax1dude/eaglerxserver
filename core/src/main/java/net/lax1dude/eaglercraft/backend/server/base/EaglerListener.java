@@ -68,7 +68,7 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 		}
 		rateLimiter = CompoundRateLimiterMap.create(listenerConf.getLimitIP(), listenerConf.getLimitLogin(),
 				listenerConf.getLimitMOTD(), listenerConf.getLimitQuery(), listenerConf.getLimitHTTP(),
-				listenerConf.getLimitExclusions());
+				listenerConf.getLimitExclusions(), server.logger());
 	}
 
 	public ISSLContextProvider getSSLContext() {

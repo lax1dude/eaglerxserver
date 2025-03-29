@@ -28,6 +28,7 @@ import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.webserver.RequestContext;
 import net.lax1dude.eaglercraft.backend.server.base.webserver.RequestContext.ContextPromise;
+import net.lax1dude.eaglercraft.backend.server.base.webserver.ResponseOrdering;
 import net.lax1dude.eaglercraft.backend.server.base.webserver.RouteMap;
 import net.lax1dude.eaglercraft.backend.server.base.webserver.RouteProcessor;
 import net.lax1dude.eaglercraft.backend.server.util.EnumRateLimitState;
@@ -46,6 +47,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 
 	private final EaglerXServer<?> server;
 	private final NettyPipelineData pipelineData;
+	private ResponseOrdering ordering;
 	private RouteProcessor processor;
 	private RequestContext context;
 	private boolean isFirst;
@@ -68,6 +70,31 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 			return context = new RequestContext(server.getWebServer());
 		}
 		return context;
+	}
+
+	@Override
+	public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+		if(ordering != null) {
+			ordering.release();
+		}
+		ordering = new ResponseOrdering() {
+			@Override
+			protected void send(FullHttpResponse data) {
+				if(ctx.channel().isActive()) {
+					ctx.writeAndFlush(data);
+				}else {
+					data.release();
+				}
+			}
+		};
+	}
+
+	@Override
+	public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+		if(ordering != null) {
+			ordering.release();
+			ordering = null;
+		}
 	}
 
 	@Override
@@ -94,9 +121,11 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 					path = uri;
 					query = "";
 				}
-
+				
 				HttpMethod method = msg.method();
 				EnumRequestMethod meth = methodLookup.get(method);
+				
+				ResponseOrdering.Slot responseSlot = ordering.push();
 				
 				CompoundRateLimiterMap rateLimiter = pipelineData.listenerInfo.getRateLimiter();
 				if(rateLimiter != null) {
@@ -113,7 +142,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 								if(meth == null) {
 									meth = EnumRequestMethod.GET;
 								}
-								handleRequest(ctx, msg, meth, null, uri, path, query, server.getWebServer().get429Handler(), false);
+								handleRequest(ctx, msg, meth, null, uri, path, query, server.getWebServer().get429Handler(), responseSlot, false);
 							}else {
 								ctx.close();
 							}
@@ -124,9 +153,9 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 				
 				if(meth == null) {
 					if(method == HttpMethod.OPTIONS) {
-						handleOptions(ctx, uri, path, query, msg);
+						handleOptions(ctx, uri, path, query, msg, responseSlot);
 					}else {
-						handleUnexpectedMeth(ctx, method);
+						handleUnexpectedMeth(ctx, method, responseSlot);
 					}
 					return;
 				}
@@ -138,11 +167,11 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 				if(dir != handlerResult.directory) {
 					FullHttpResponse res = createResponse(HttpResponseStatus.PERMANENT_REDIRECT, null, 0);
 					res.headers().add(HttpHeaderNames.LOCATION, redirDir(path, query, dir));
-					ctx.writeAndFlush(res);
+					responseSlot.complete(res);
 					return;
 				}
 				
-				handleRequest(ctx, msg, meth, null, uri, path, query, handlerResult.result, false);
+				handleRequest(ctx, msg, meth, null, uri, path, query, handlerResult.result, responseSlot, false);
 			}
 		}finally {
 			ReferenceCountUtil.release(msgRaw);
@@ -168,7 +197,8 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 		}
 	}
 
-	private void handleOptions(ChannelHandlerContext ctx, String uri, String path, String query, FullHttpRequest msg) {
+	private void handleOptions(ChannelHandlerContext ctx, String uri, String path, String query, FullHttpRequest msg,
+			ResponseOrdering.Slot responseSlot) {
 		HttpHeaders headers = msg.headers();
 		String reqMethod = headers.get(HttpHeaderNames.ACCESS_CONTROL_REQUEST_METHOD);
 
@@ -188,13 +218,14 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 				if(dir != handlerResult.directory) {
 					FullHttpResponse res = createResponse(HttpResponseStatus.PERMANENT_REDIRECT, null, 0);
 					res.headers().add(HttpHeaderNames.LOCATION, redirDir(path, query, dir));
-					ctx.writeAndFlush(res);
+					responseSlot.complete(res);
 					return;
 				}
 
-				handleRequest(ctx, msg, EnumRequestMethod.OPTIONS, corsMethod, uri, path, query, handlerResult.result, false);
+				handleRequest(ctx, msg, EnumRequestMethod.OPTIONS, corsMethod, uri, path, query, handlerResult.result,
+						responseSlot, false);
 			}else {
-				ctx.writeAndFlush(createResponse(HttpResponseStatus.BAD_REQUEST, null, 0));
+				responseSlot.complete(createResponse(HttpResponseStatus.BAD_REQUEST, null, 0));
 			}
 			return;
 		}
@@ -202,7 +233,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 		if("*".equals(path) && query.isEmpty()) {
 			FullHttpResponse res = createResponse(HttpResponseStatus.OK, null, 0);
 			res.headers().add(HttpHeaderNames.ALLOW, RouteMap.allMethods);
-			ctx.writeAndFlush(res);
+			responseSlot.complete(res);
 			return;
 		}
 		
@@ -213,30 +244,31 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 			if(dir != optionsResult.directory) {
 				FullHttpResponse res = createResponse(HttpResponseStatus.PERMANENT_REDIRECT, null, 0);
 				res.headers().add(HttpHeaderNames.LOCATION, redirDir(path, query, dir));
-				ctx.writeAndFlush(res);
+				responseSlot.complete(res);
 				return;
 			}
 			if(!optionsResult.result.isEmpty()) {
 				FullHttpResponse res = createResponse(HttpResponseStatus.OK, null, 0);
 				res.headers().add(HttpHeaderNames.ALLOW, optionsResult.result);
-				ctx.writeAndFlush(res);
+				responseSlot.complete(res);
 				return;
 			}
 		}
 		
-		ctx.writeAndFlush(createResponse(HttpResponseStatus.FORBIDDEN, null, 0));
+		responseSlot.complete(createResponse(HttpResponseStatus.FORBIDDEN, null, 0));
 	}
 
-	private void handleRequest(RequestContext oldContext, IRequestHandler requestHandler, boolean isFailing) {
+	private void handleRequest(RequestContext oldContext, IRequestHandler requestHandler,
+			ResponseOrdering.Slot responseSlot, boolean isFailing) {
 		handleRequest(oldContext.ctx, oldContext.request, oldContext.meth, oldContext.pfMeth, oldContext.uri,
-				oldContext.path, oldContext.query, requestHandler, isFailing);
+				oldContext.path, oldContext.query, requestHandler, responseSlot, isFailing);
 	}
 
 	private void handleRequest(ChannelHandlerContext ctx, FullHttpRequest msg, EnumRequestMethod meth,
 			EnumRequestMethod pfMeth, String uri, String path, String query, IRequestHandler requestHandler,
-			boolean isFailing) {
+			ResponseOrdering.Slot responseSlot, boolean isFailing) {
 		if(pfMeth != null && !requestHandler.enablePreflight()) {
-			context.ctx.writeAndFlush(createResponse(HttpResponseStatus.FORBIDDEN, null, 0));
+			responseSlot.complete(createResponse(HttpResponseStatus.FORBIDDEN, null, 0));
 			return;
 		}
 		RequestContext context = context();
@@ -259,28 +291,33 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 			if(context.contextPromise != null) {
 				this.context = null;
 			}
-			completeRequest(context, ex);
+			completeRequest(context, ex, responseSlot);
 			return;
 		}
 		ContextPromise promise = context.contextPromise;
 		if(promise != null) {
 			this.context = null; // "forks" the context
+			context.responseSlotTmp = responseSlot;
 			promise.onResumeInternal(this::completeRequest);
 		}else {
-			completeRequest(context, null);
+			completeRequest(context, null, responseSlot);
 		}
 	}
 
 	private void completeRequest(RequestContext context, Throwable err) {
+		completeRequest(context, err, context.responseSlotTmp);
+	}
+
+	private void completeRequest(RequestContext context, Throwable err, ResponseOrdering.Slot responseSlot) {
 		boolean rc = context.contextPromise != null;
 		try {
 			if(err != null) {
 				pipelineData.connectionLogger.error("Request handler " + context.requestHandlerInternal
 						+ " raised an exception while handling " + context.meth.name() + " \"" + context.uri + "\"", err);
 				if(!context.failing) {
-					handleRequest(context, server.getWebServer().get500Handler(), true);
+					handleRequest(context, server.getWebServer().get500Handler(), responseSlot, true);
 				}else {
-					context.ctx.writeAndFlush(createResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR, null, 0));
+					responseSlot.complete(createResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR, null, 0));
 				}
 				return;
 			}
@@ -288,9 +325,9 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 				pipelineData.connectionLogger.error("Request handler " + context.requestHandlerInternal
 						+ " set no response code for " + context.meth.name() + " \"" + context.uri + "\"");
 				if(!context.failing) {
-					handleRequest(context, server.getWebServer().get500Handler(), true);
+					handleRequest(context, server.getWebServer().get500Handler(), responseSlot, true);
 				}else {
-					context.ctx.writeAndFlush(createResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR, null, 0));
+					responseSlot.complete(createResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR, null, 0));
 				}
 				return;
 			}
@@ -300,50 +337,48 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 			default:
 				pipelineData.connectionLogger.error("Request handler " + context.requestHandlerInternal
 						+ " made no response for " + context.meth.name() + " \"" + context.uri + "\"");
-				handleRequest(context, server.getWebServer().get500Handler(), true);
+				handleRequest(context, server.getWebServer().get500Handler(), responseSlot, true);
 				break;
 			case RequestContext.RESPONSE_PREPARED:
 				if(context.meth == EnumRequestMethod.HEAD) {
-					context.ctx.writeAndFlush(populateHeadersFrom(
+					responseSlot.complete(populateHeadersFrom(
 							createResponse(status, null, context.responsePrepared.buffer.readableBytes()), context));
 				}else {
-					context.ctx.writeAndFlush(populateHeadersFrom(
+					responseSlot.complete(populateHeadersFrom(
 							createResponse(status, Unpooled.wrappedBuffer(context.responsePrepared.buffer), 0), context).retain());
 				}
 				break;
 			case RequestContext.RESPONSE_BYTE_ARRAY:
 				if(context.meth == EnumRequestMethod.HEAD) {
-					context.ctx.writeAndFlush(populateHeadersFrom(
+					responseSlot.complete(populateHeadersFrom(
 							createResponse(status, null, context.responseData.length), context));
 				}else {
-					context.ctx.writeAndFlush(populateHeadersFrom(
+					responseSlot.complete(populateHeadersFrom(
 							createResponse(status, Unpooled.wrappedBuffer(context.responseData), 0), context));
 				}
 				break;
 			case RequestContext.RESPONSE_CHARS:
 				if(context.meth == EnumRequestMethod.HEAD) {
-					context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, null,
+					responseSlot.complete(populateHeadersFrom(createResponse(status, null,
 							stringByteLength(context.responseChars, context.responseCharsCharset)), context));
 				}else {
 					ByteBuf buf = context.ctx.alloc().buffer();
 					try {
 						buf.writeCharSequence(context.responseChars, context.responseCharsCharset);
-						context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, buf, 0), context).retain());
+						responseSlot.complete(populateHeadersFrom(createResponse(status, buf, 0), context).retain());
 					}finally {
 						buf.release();
 					}
 				}
 				break;
 			case RequestContext.RESPONSE_EMPTY:
-				context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, null, 0), context));
+				responseSlot.complete(populateHeadersFrom(createResponse(status, null, 0), context));
 				break;
 			case RequestContext.RESPONSE_UNSAFE_BUF:
-				context.ctx.writeAndFlush(populateHeadersFrom(createResponse(status, context.responseUnsafeByteBuf, 0), context).retain());
+				responseSlot.complete(populateHeadersFrom(createResponse(status, context.responseUnsafeByteBuf, 0), context).retain());
 				break;
 			case RequestContext.RESPONSE_UNSAFE_FULL:
-				context.ctx.writeAndFlush(context.responseUnsafeFull.retain());
-				break;
-			case RequestContext.RESPONSE_UNSAFE_SENT:
+				responseSlot.complete(context.responseUnsafeFull.retain());
 				break;
 			}
 		}finally {
@@ -402,8 +437,8 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 		return response;
 	}
 
-	private void handleUnexpectedMeth(ChannelHandlerContext ctx, HttpMethod method) {
-		ctx.writeAndFlush(createResponse(HttpResponseStatus.METHOD_NOT_ALLOWED, null, 0));
+	private void handleUnexpectedMeth(ChannelHandlerContext ctx, HttpMethod method, ResponseOrdering.Slot responseSlot) {
+		responseSlot.complete(createResponse(HttpResponseStatus.METHOD_NOT_ALLOWED, null, 0));
 	}
 
 	@Override

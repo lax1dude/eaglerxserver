@@ -43,7 +43,6 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 	public static final int RESPONSE_EMPTY = 4;
 	public static final int RESPONSE_UNSAFE_BUF = 5;
 	public static final int RESPONSE_UNSAFE_FULL = 6;
-	public static final int RESPONSE_UNSAFE_SENT = 7;
 
 	public int responseCode = -1;
 	public List<Object> responseHeaders = null;
@@ -58,6 +57,7 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	public boolean suspendable = false;
 	public ContextPromise contextPromise;
+	public ResponseOrdering.Slot responseSlotTmp;
 
 	public RequestContext(WebServer webServer) {
 		this.webServer = webServer;
@@ -333,12 +333,6 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 		clearResult();
 		this.response = RESPONSE_UNSAFE_FULL;
 		this.responseUnsafeFull = response;
-	}
-
-	@Override
-	public void setResponseSent() {
-		clearResult();
-		this.response = RESPONSE_UNSAFE_SENT;
 	}
 
 	@Override

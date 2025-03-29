@@ -10,6 +10,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener.ConfigRateLimit;
 import net.lax1dude.eaglercraft.backend.server.util.EnumRateLimitState;
@@ -24,7 +25,7 @@ public class CompoundRateLimiterMap {
 			ConfigDataListener.ConfigRateLimit ratelimitMOTDConfIn,
 			ConfigDataListener.ConfigRateLimit ratelimitQueryConfIn,
 			ConfigDataListener.ConfigRateLimit ratelimitHTTPConfIn,
-			List<String> ratelimitExclusionsIn) {
+			List<String> ratelimitExclusionsIn, IPlatformLogger logger) {
 		if (!ratelimitIPConfIn.isEnabled() && !ratelimitLoginConfIn.isEnabled() && !ratelimitMOTDConfIn.isEnabled()
 				&& !ratelimitQueryConfIn.isEnabled() && !ratelimitHTTPConfIn.isEnabled()) {
 			return null;
@@ -34,7 +35,7 @@ public class CompoundRateLimiterMap {
 		RateLimiterLocking.Config ratelimitMOTDConf = createConf(ratelimitMOTDConfIn);
 		RateLimiterLocking.Config ratelimitQueryConf = createConf(ratelimitQueryConfIn);
 		RateLimiterLocking.Config ratelimitHTTPConf = createConf(ratelimitHTTPConfIn);
-		RateLimiterExclusions ratelimitExclusions = RateLimiterExclusions.create(ratelimitExclusionsIn);
+		RateLimiterExclusions ratelimitExclusions = RateLimiterExclusions.create(ratelimitExclusionsIn, logger);
 		return new CompoundRateLimiterMap(ratelimitIPConf, ratelimitLoginConf, ratelimitMOTDConf,
 				ratelimitQueryConf, ratelimitHTTPConf, ratelimitExclusions);
 	}
