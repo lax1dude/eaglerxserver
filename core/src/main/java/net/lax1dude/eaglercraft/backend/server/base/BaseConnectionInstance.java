@@ -39,17 +39,17 @@ public class BaseConnectionInstance extends IIdentifiedConnection.Base
 
 	@Override
 	public SocketAddress getSocketAddress() {
-		return connection.getSocketAddress();
-	}
-
-	@Override
-	public String getRealAddress() {
-		return connection.getSocketAddress().toString();
+		return connection.getChannel().remoteAddress();
 	}
 
 	@Override
 	public int getMinecraftProtocol() {
 		return connection.getMinecraftProtocol();
+	}
+
+	@Override
+	public SocketAddress getPlayerAddress() {
+		return connection.getSocketAddress();
 	}
 
 	@Override

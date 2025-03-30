@@ -49,13 +49,13 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 	}
 
 	@Override
-	public String getRealAddress() {
-		return player.<BaseConnectionInstance>getConnectionAttachment().getRealAddress();
+	public int getMinecraftProtocol() {
+		return player.<BaseConnectionInstance>getConnectionAttachment().getMinecraftProtocol();
 	}
 
 	@Override
-	public int getMinecraftProtocol() {
-		return player.<BaseConnectionInstance>getConnectionAttachment().getMinecraftProtocol();
+	public SocketAddress getPlayerAddress() {
+		return player.<BaseConnectionInstance>getConnectionAttachment().getPlayerAddress();
 	}
 
 	@Override

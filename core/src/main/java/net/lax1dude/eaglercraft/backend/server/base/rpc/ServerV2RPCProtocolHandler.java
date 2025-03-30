@@ -15,16 +15,16 @@ public class ServerV2RPCProtocolHandler extends ServerV1RPCProtocolHandler {
 	public void handleClient(CPacketRPCRequestPlayerInfo packet) {
 		switch(packet.requestType) {
 		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_TEXTURE_DATA:
-			rpcManager.handleRequestTextureData(packet.requestID);
+			rpcManager.context().handleRequestTextureData(packet.requestID);
 			break;
 		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_DATA:
-			rpcManager.handleRequestBrandData(packet.requestID);
+			rpcManager.context().handleRequestBrandData(packet.requestID);
 			break;
 		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_MINECRAFT_BRAND:
-			rpcManager.handleRequestMinecraftBrand(packet.requestID);
+			rpcManager.context().handleRequestMinecraftBrand(packet.requestID);
 			break;
 		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_AUTH_USERNAME:
-			rpcManager.handleRequestAuthUsername(packet.requestID);
+			rpcManager.context().handleRequestAuthUsername(packet.requestID);
 			break;
 		default:
 			super.handleClient(packet);
@@ -33,11 +33,11 @@ public class ServerV2RPCProtocolHandler extends ServerV1RPCProtocolHandler {
 	}
 
 	public void handleClient(CPacketRPCInjectRawBinaryFrameV2 packet) {
-		rpcManager.handleInjectRawBinaryFrame(packet.messageData);
+		rpcManager.context().handleInjectRawBinaryFrame(packet.messageData);
 	}
 
 	public void handleClient(CPacketRPCInjectRawEaglerFrameV2 packet) {
-		rpcManager.handleInjectRawEaglerFrame(packet.packetID, packet.messageData);
+		rpcManager.context().handleInjectRawEaglerFrame(packet.packetID, packet.messageData);
 	}
 
 }

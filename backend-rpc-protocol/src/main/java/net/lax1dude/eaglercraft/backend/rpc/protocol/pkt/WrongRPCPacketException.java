@@ -22,4 +22,8 @@ public class WrongRPCPacketException extends RuntimeException {
 		super("Wrong RPC packet type recieved for the current handler!");
 	}
 
+	public WrongRPCPacketException(String msg) {
+		super(msg);
+	}
+
 }

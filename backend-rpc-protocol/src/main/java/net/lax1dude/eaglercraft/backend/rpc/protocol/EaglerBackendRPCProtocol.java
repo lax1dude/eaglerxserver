@@ -87,15 +87,14 @@ public enum EaglerBackendRPCProtocol {
 			define_SERVER_(0x02, SPacketRPCResponseTypeBytes.class),
 			define_SERVER_(0x03, SPacketRPCResponseTypeString.class),
 			define_SERVER_(0x04, SPacketRPCResponseTypeBrandDataV2.class),
-			define_SERVER_(0x05, SPacketRPCResponseTypeTexturesV2.class),
-			define_SERVER_(0x06, SPacketRPCResponseTypeUUID.class),
-			define_SERVER_(0x07, SPacketRPCResponseTypeCookie.class),
-			define_SERVER_(0x08, SPacketRPCResponseTypeVoiceStatus.class),
-			define_SERVER_(0x09, SPacketRPCResponseTypeWebViewStatus.class),
-			define_SERVER_(0x0A, SPacketRPCResponseTypeError.class),
-			define_SERVER_(0x0B, SPacketRPCEventWebViewOpenClose.class),
-			define_SERVER_(0x0C, SPacketRPCEventWebViewMessage.class),
-			define_SERVER_(0x0D, SPacketRPCEventToggledVoice.class)
+			define_SERVER_(0x05, SPacketRPCResponseTypeUUID.class),
+			define_SERVER_(0x06, SPacketRPCResponseTypeCookie.class),
+			define_SERVER_(0x07, SPacketRPCResponseTypeVoiceStatus.class),
+			define_SERVER_(0x08, SPacketRPCResponseTypeWebViewStatus.class),
+			define_SERVER_(0x09, SPacketRPCResponseTypeError.class),
+			define_SERVER_(0x0A, SPacketRPCEventWebViewOpenClose.class),
+			define_SERVER_(0x0B, SPacketRPCEventWebViewMessage.class),
+			define_SERVER_(0x0C, SPacketRPCEventToggledVoice.class)
 	);
 
 	public static final String CHANNEL_NAME = "EAG|1.8-RPC";

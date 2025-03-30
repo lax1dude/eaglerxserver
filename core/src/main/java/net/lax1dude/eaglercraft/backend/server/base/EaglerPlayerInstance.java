@@ -96,6 +96,11 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
+	public String getRealAddress() {
+		return connectionInstance.getRealAddress();
+	}
+
+	@Override
 	public boolean isWebSocketSecure() {
 		return connectionInstance.isWebSocketSecure();
 	}

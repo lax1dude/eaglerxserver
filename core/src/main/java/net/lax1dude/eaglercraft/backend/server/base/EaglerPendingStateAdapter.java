@@ -37,6 +37,11 @@ public class EaglerPendingStateAdapter extends IIdentifiedConnection.Base implem
 	}
 
 	@Override
+	public SocketAddress getPlayerAddress() {
+		return pipelineData.getPlayerAddress();
+	}
+
+	@Override
 	public String getRealAddress() {
 		return pipelineData.realAddress;
 	}

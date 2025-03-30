@@ -1,9 +1,13 @@
 package net.lax1dude.eaglercraft.backend.server.api;
 
+import java.net.SocketAddress;
+
 import io.netty.channel.Channel;
 import io.netty.util.ReferenceCountUtil;
 
 public interface INettyChannel {
+
+	SocketAddress getSocketAddress();
 
 	NettyUnsafe netty();
 

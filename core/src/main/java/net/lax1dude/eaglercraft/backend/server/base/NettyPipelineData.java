@@ -61,6 +61,7 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	public final EaglerXServer<?> server;
 	public final EaglerAttributeManager.EaglerAttributeHolder attributeHolder;
 	public final Consumer<SocketAddress> realAddressHandle;
+	public SocketAddress realSocketAddressInstance;
 	public CompoundRateLimiterMap.ICompoundRatelimits rateLimits;
 	public boolean initStall;
 
@@ -128,6 +129,10 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	@Override
 	public SocketAddress getSocketAddress() {
 		return channel.remoteAddress();
+	}
+
+	public SocketAddress getPlayerAddress() {
+		return realSocketAddressInstance != null ? realSocketAddressInstance : channel.remoteAddress();
 	}
 
 	@Override
@@ -314,7 +319,7 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 				if((addr2 instanceof InetSocketAddress)) {
 					port = ((InetSocketAddress)addr2).getPort();
 				}
-				handle.accept(new InetSocketAddress(addr, port));
+				handle.accept(realSocketAddressInstance = new InetSocketAddress(addr, port));
 			}
 		}
 		return true;

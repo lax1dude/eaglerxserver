@@ -140,7 +140,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 
 	@Override
 	public String getRealAddress() {
-		return realAddress != null ? realAddress : super.getRealAddress();
+		return realAddress;
 	}
 
 	@Override

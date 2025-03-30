@@ -161,8 +161,4 @@ public interface EaglerBackendRPCHandler {
 		throw new WrongRPCPacketException();
 	}
 
-	default void handleServer(SPacketRPCResponseTypeTexturesV2 packet) {
-		throw new WrongRPCPacketException();
-	}
-
 }

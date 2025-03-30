@@ -114,30 +114,6 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 
 	void sendRawEaglerPacketV5(byte[] data);
 
-	default void subscribeEvents(EnumSubscribeEvents event) {
-		subscribeEvents(event.bit);
-	}
-
-	default void subscribeEvents(EnumSubscribeEvents...events) {
-		subscribeEvents(EnumSubscribeEvents.toBits(events));
-	}
-
-	void subscribeEvents(int events);
-
-	default void unsubscribeEvents(EnumSubscribeEvents event) {
-		unsubscribeEvents(event.bit);
-	}
-
-	default void unsubscribeEvents(EnumSubscribeEvents...events) {
-		unsubscribeEvents(EnumSubscribeEvents.toBits(events));
-	}
-
-	void unsubscribeEvents(int events);
-
-	default void unsubscribeAllEvents() {
-		unsubscribeEvents(getSubscribedEventsBits());
-	}
-
 	int getSubscribedEventsBits();
 
 	default Set<EnumSubscribeEvents> getSubscribedEvents() {
@@ -163,6 +139,8 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 	void sendWebViewMessageString(String channelName, String data);
 
 	void sendWebViewMessageBytes(String channelName, byte[] data);
+
+	boolean isCookieSupported();
 
 	void setCookieData(byte[] cookieData, int expiresAfterSec, boolean revokeQuerySupported, boolean saveToDisk);
 
