@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.base.skins;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
@@ -89,6 +90,11 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 	@Override
 	public void resolvePlayerCape(Consumer<IEaglerPlayerCape> callback) {
 		resolvePlayerCapeKeyed(null, callback);
+	}
+
+	@Override
+	public void resolvePlayerTextures(BiConsumer<IEaglerPlayerSkin, IEaglerPlayerCape> callback) {
+		resolvePlayerTexturesKeyed(null, callback);
 	}
 
 	@Override
@@ -190,6 +196,22 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 					}
 				}
 			});
+		}
+	}
+
+	@Override
+	public void resolvePlayerTexturesKeyed(UUID requester, BiConsumer<IEaglerPlayerSkin, IEaglerPlayerCape> callback) {
+		IEaglerPlayerSkin val1 = skin;
+		IEaglerPlayerCape val2 = cape;
+		if(val1 != null && val2 != null) {
+			callback.accept(val1, val2);
+		}else {
+			new MultiSkinResolver<SkinManagerVanillaOnline<PlayerObject>, PlayerObject>(this, val1, val2, requester) {
+				@Override
+				protected void onComplete(SkinManagerVanillaOnline<PlayerObject> mgr, IEaglerPlayerSkin skin, IEaglerPlayerCape cape) {
+					callback.accept(skin, cape);
+				}
+			};
 		}
 	}
 
@@ -302,53 +324,65 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 	}
 
 	@Override
-	public void resetPlayerSkin(boolean notifyOthers) {
-		changePlayerSkin0(null, notifyOthers);
+	public void changePlayerTextures(IEaglerPlayerSkin newSkin, IEaglerPlayerCape newCape, boolean notifyOthers) {
+		changePlayerTextures0(newSkin, newCape, notifyOthers);
 	}
 
-	@Override
-	public void resetPlayerCape(boolean notifyOthers) {
-		changePlayerCape0(null, notifyOthers);
-	}
-
-	@Override
-	public void resetPlayerSkinAndCape(boolean notifyOthers) {
+	private void changePlayerTextures0(IEaglerPlayerSkin newSkin, IEaglerPlayerCape newCape, boolean notifyOthers) {
 		boolean c = false, s = false;
-		IEaglerPlayerSkin newSkin = null;
 		KeyedConsumerList<UUID, IEaglerPlayerSkin> toCall1 = null;
-		IEaglerPlayerCape newCape = null;
 		KeyedConsumerList<UUID, IEaglerPlayerCape> toCall2 = null;
 		synchronized(this) {
-			if(originalSkin != null) {
+			if(newSkin != null) {
 				IEaglerPlayerSkin oldSkin = skin;
-				if(oldSkin == null || !originalSkin.equals(oldSkin)) {
+				if(oldSkin == null || !newSkin.equals(oldSkin)) {
 					s = true;
-					skin = originalSkin;
-					newSkin = originalSkin;
+					skin = newSkin;
 					toCall1 = waitingSkinCallbacks;
 					waitingSkinCallbacks = null;
 				}
 			}else {
-				if(skin != null) {
-					skin = null;
-					s = true;
+				if(originalSkin != null) {
+					IEaglerPlayerSkin oldSkin = skin;
+					if(oldSkin == null || !originalSkin.equals(oldSkin)) {
+						s = true;
+						skin = originalSkin;
+						newSkin = originalSkin;
+						toCall1 = waitingSkinCallbacks;
+						waitingSkinCallbacks = null;
+					}
+				}else {
+					if(skin != null) {
+						skin = null;
+						s = true;
+					}
 				}
 			}
 		}
 		synchronized(capeLock) {
-			if(originalCape != null) {
+			if(newCape != null) {
 				IEaglerPlayerCape oldCape = cape;
-				if(oldCape == null || !originalCape.equals(oldCape)) {
+				if(oldCape == null || !newCape.equals(oldCape)) {
 					c = true;
-					cape = originalCape;
-					newCape = originalCape;
+					cape = newCape;
 					toCall2 = waitingCapeCallbacks;
 					waitingCapeCallbacks = null;
 				}
 			}else {
-				if(cape != null) {
-					cape = null;
-					c = true;
+				if(originalCape != null) {
+					IEaglerPlayerCape oldCape = cape;
+					if(oldCape == null || !originalCape.equals(oldCape)) {
+						c = true;
+						cape = originalCape;
+						newCape = originalCape;
+						toCall2 = waitingCapeCallbacks;
+						waitingCapeCallbacks = null;
+					}
+				}else {
+					if(cape != null) {
+						cape = null;
+						c = true;
+					}
 				}
 			}
 		}
@@ -375,6 +409,26 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 				}
 			}
 		}
+	}
+
+	@Override
+	public void changePlayerTextures(EnumPresetSkins newSkin, EnumPresetCapes newCape, boolean notifyOthers) {
+		changePlayerTextures(InternUtils.getPresetSkin(newSkin.getId()), InternUtils.getPresetCape(newCape.getId()), notifyOthers);
+	}
+
+	@Override
+	public void resetPlayerSkin(boolean notifyOthers) {
+		changePlayerSkin0(null, notifyOthers);
+	}
+
+	@Override
+	public void resetPlayerCape(boolean notifyOthers) {
+		changePlayerCape0(null, notifyOthers);
+	}
+
+	@Override
+	public void resetPlayerTextures(boolean notifyOthers) {
+		changePlayerTextures0(null, null, notifyOthers);
 	}
 
 }

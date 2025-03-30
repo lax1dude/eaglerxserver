@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.skins;
 
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
@@ -79,6 +80,11 @@ public class SkinManagerVanillaOffline<PlayerObject> implements ISkinManagerBase
 	}
 
 	@Override
+	public void resolvePlayerTextures(BiConsumer<IEaglerPlayerSkin, IEaglerPlayerCape> callback) {
+		callback.accept(skin, cape);
+	}
+
+	@Override
 	public void resolvePlayerSkinKeyed(UUID requester, Consumer<IEaglerPlayerSkin> callback) {
 		callback.accept(skin);
 	}
@@ -86,6 +92,11 @@ public class SkinManagerVanillaOffline<PlayerObject> implements ISkinManagerBase
 	@Override
 	public void resolvePlayerCapeKeyed(UUID requester, Consumer<IEaglerPlayerCape> callback) {
 		callback.accept(cape);
+	}
+
+	@Override
+	public void resolvePlayerTexturesKeyed(UUID requester, BiConsumer<IEaglerPlayerSkin, IEaglerPlayerCape> callback) {
+		callback.accept(skin, cape);
 	}
 
 	@Override
@@ -119,9 +130,29 @@ public class SkinManagerVanillaOffline<PlayerObject> implements ISkinManagerBase
 	}
 
 	@Override
+	public void changePlayerTextures(IEaglerPlayerSkin newSkin, IEaglerPlayerCape newCape, boolean notifyOthers) {
+		boolean s = !newSkin.equals(skin), c = !newCape.equals(cape);
+		if(s || c) {
+			if(s) {
+				skin = newSkin;
+			}
+			if(c) {
+				cape = newCape;
+			}
+			if(notifyOthers) {
+				SkinManagerHelper.notifyOthers(player, s, c);
+			}
+		}
+	}
+
+	@Override
+	public void changePlayerTextures(EnumPresetSkins newSkin, EnumPresetCapes newCape, boolean notifyOthers) {
+		changePlayerTextures(InternUtils.getPresetSkin(newSkin.getId()), InternUtils.getPresetCape(newCape.getId()), notifyOthers);
+	}
+
+	@Override
 	public void resetPlayerSkin(boolean notifyOthers) {
 		changePlayerSkin(oldSkin, notifyOthers);
-		
 	}
 
 	@Override
@@ -130,7 +161,7 @@ public class SkinManagerVanillaOffline<PlayerObject> implements ISkinManagerBase
 	}
 
 	@Override
-	public void resetPlayerSkinAndCape(boolean notifyOthers) {
+	public void resetPlayerTextures(boolean notifyOthers) {
 		IEaglerPlayerCape oldCape = InternUtils.getPresetCape(0);
 		boolean s = !oldSkin.equals(skin), c = !oldCape.equals(cape);
 		if(s || c) {

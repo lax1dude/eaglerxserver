@@ -25,6 +25,7 @@ import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCPacket;
 
 public class CPacketRPCRequestPlayerInfo implements EaglerBackendRPCPacket {
 
+	// V1+
 	public static final int REQUEST_PLAYER_REAL_UUID = 0;
 	public static final int REQUEST_PLAYER_REAL_IP = 1;
 	public static final int REQUEST_PLAYER_ORIGIN = 2;
@@ -38,6 +39,12 @@ public class CPacketRPCRequestPlayerInfo implements EaglerBackendRPCPacket {
 	public static final int REQUEST_PLAYER_CLIENT_BRAND_UUID = 10;
 	public static final int REQUEST_PLAYER_CLIENT_VOICE_STATUS = 11;
 	public static final int REQUEST_PLAYER_CLIENT_WEBVIEW_STATUS = 12;
+
+	// V2+
+	public static final int REQUEST_PLAYER_TEXTURE_DATA = 13;
+	public static final int REQUEST_PLAYER_CLIENT_BRAND_DATA = 14;
+	public static final int REQUEST_PLAYER_MINECRAFT_BRAND = 15;
+	public static final int REQUEST_PLAYER_AUTH_USERNAME = 16;
 
 	public int requestID;
 	public int requestType;

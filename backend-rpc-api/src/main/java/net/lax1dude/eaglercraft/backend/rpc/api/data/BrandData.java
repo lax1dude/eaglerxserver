@@ -1,23 +1,30 @@
 package net.lax1dude.eaglercraft.backend.rpc.api.data;
 
+import java.util.UUID;
+
 public final class BrandData {
 
-	public static BrandData create(String brandName, String brandVersion) {
+	public static BrandData create(String brandName, String brandVersion, UUID brandUUID) {
 		if(brandName == null) {
 			throw new NullPointerException("brandName");
 		}
 		if(brandVersion == null) {
 			throw new NullPointerException("brandVersion");
 		}
-		return new BrandData(brandName, brandVersion);
+		if(brandUUID == null) {
+			throw new NullPointerException("brandUUID");
+		}
+		return new BrandData(brandName, brandVersion, brandUUID);
 	}
 
 	private final String brandName;
 	private final String brandVersion;
+	private final UUID brandUUID;
 
-	private BrandData(String brandName, String brandVersion) {
+	private BrandData(String brandName, String brandVersion, UUID brandUUID) {
 		this.brandName = brandName;
 		this.brandVersion = brandVersion;
+		this.brandUUID = brandUUID;
 	}
 
 	public String getBrandName() {
@@ -28,12 +35,16 @@ public final class BrandData {
 		return brandVersion;
 	}
 
+	public UUID getBrandUUID() {
+		return brandUUID;
+	}
+
 	@Override
 	public int hashCode() {
-		final int prime = 31;
 		int result = 1;
-		result = prime * result + brandName.hashCode();
-		result = prime * result + brandVersion.hashCode();
+		result = 31 * result + brandName.hashCode();
+		result = 31 * result + brandVersion.hashCode();
+		result = 31 * result + brandUUID.hashCode();
 		return result;
 	}
 
@@ -47,6 +58,8 @@ public final class BrandData {
 		if (!brandName.equals(other.brandName))
 			return false;
 		if (!brandVersion.equals(other.brandVersion))
+			return false;
+		if (!brandUUID.equals(other.brandUUID))
 			return false;
 		return true;
 	}

@@ -30,7 +30,9 @@ public enum EaglerBackendRPCProtocol {
 	INIT(0,
 			define_CLIENT_(0x00, CPacketRPCEnabled.class),
 			define_SERVER_(0x01, SPacketRPCEnabledSuccess.class),
-			define_SERVER_(0x02, SPacketRPCEnabledFailure.class)
+			define_SERVER_(0x02, SPacketRPCEnabledFailure.class),
+			define_SERVER_(0x03, SPacketRPCEnabledSuccessVanillaV2.class),
+			define_SERVER_(0x04, SPacketRPCEnabledSuccessEaglerV2.class)
 	), V1(1,
 			define_CLIENT_(0x03, CPacketRPCDisabled.class),
 			define_CLIENT_(0x04, CPacketRPCRequestPlayerInfo.class),
@@ -59,6 +61,41 @@ public enum EaglerBackendRPCProtocol {
 			define_CLIENT_(0x1B, CPacketRPCNotifBadgeShow.class),
 			define_CLIENT_(0x1C, CPacketRPCNotifBadgeHide.class),
 			define_CLIENT_(0x1D, CPacketRPCSendRawMessage.class)
+	), V2(2,
+			// client-to-server
+			define_CLIENT_(0x01, CPacketRPCDisabled.class),
+			define_CLIENT_(0x02, CPacketRPCRequestPlayerInfo.class),
+			define_CLIENT_(0x03, CPacketRPCSubscribeEvents.class),
+			define_CLIENT_(0x04, CPacketRPCSetPlayerSkin.class),
+			define_CLIENT_(0x05, CPacketRPCSetPlayerCape.class),
+			define_CLIENT_(0x06, CPacketRPCSetPlayerCookie.class),
+			define_CLIENT_(0x07, CPacketRPCSetPlayerFNAWEn.class),
+			define_CLIENT_(0x08, CPacketRPCSetPauseMenuCustom.class),
+			define_CLIENT_(0x09, CPacketRPCRedirectPlayer.class),
+			define_CLIENT_(0x0A, CPacketRPCResetPlayerMulti.class),
+			define_CLIENT_(0x0B, CPacketRPCSendWebViewMessage.class),
+			define_CLIENT_(0x0C, CPacketRPCNotifIconRegister.class),
+			define_CLIENT_(0x0D, CPacketRPCNotifIconRelease.class),
+			define_CLIENT_(0x0E, CPacketRPCNotifBadgeShow.class),
+			define_CLIENT_(0x0F, CPacketRPCNotifBadgeHide.class),
+			define_CLIENT_(0x10, CPacketRPCSendRawMessage.class),
+			define_CLIENT_(0x11, CPacketRPCInjectRawBinaryFrameV2.class),
+			define_CLIENT_(0x12, CPacketRPCInjectRawEaglerFrameV2.class),
+			
+			// server-to-client
+			define_SERVER_(0x01, SPacketRPCResponseTypeNull.class),
+			define_SERVER_(0x02, SPacketRPCResponseTypeBytes.class),
+			define_SERVER_(0x03, SPacketRPCResponseTypeString.class),
+			define_SERVER_(0x04, SPacketRPCResponseTypeBrandDataV2.class),
+			define_SERVER_(0x05, SPacketRPCResponseTypeTexturesV2.class),
+			define_SERVER_(0x06, SPacketRPCResponseTypeUUID.class),
+			define_SERVER_(0x07, SPacketRPCResponseTypeCookie.class),
+			define_SERVER_(0x08, SPacketRPCResponseTypeVoiceStatus.class),
+			define_SERVER_(0x09, SPacketRPCResponseTypeWebViewStatus.class),
+			define_SERVER_(0x0A, SPacketRPCResponseTypeError.class),
+			define_SERVER_(0x0B, SPacketRPCEventWebViewOpenClose.class),
+			define_SERVER_(0x0C, SPacketRPCEventWebViewMessage.class),
+			define_SERVER_(0x0D, SPacketRPCEventToggledVoice.class)
 	);
 
 	public static final String CHANNEL_NAME = "EAG|1.8-RPC";
@@ -90,11 +127,11 @@ public enum EaglerBackendRPCProtocol {
 	}
 
 	private static PacketDef define_CLIENT_(int id, Class<? extends EaglerBackendRPCPacket> pkt) {
-		return new PacketDef(id, 0, pkt);
+		return new PacketDef(id, CLIENT_TO_SERVER, pkt);
 	}
 
 	private static PacketDef define_SERVER_(int id, Class<? extends EaglerBackendRPCPacket> pkt) {
-		return new PacketDef(id, 1, pkt);
+		return new PacketDef(id, SERVER_TO_CLIENT, pkt);
 	}
 
 	private static class PacketDef {

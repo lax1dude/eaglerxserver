@@ -1,7 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.skins;
 
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
@@ -25,7 +25,7 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketUnforceCl
 
 public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<PlayerObject>, ISkinManagerImpl {
 
-	private final EaglerPlayerInstance<PlayerObject> player;
+	final EaglerPlayerInstance<PlayerObject> player;
 	private final SkinService<PlayerObject> skinService;
 	private IEaglerPlayerSkin skin;
 	private IEaglerPlayerCape cape;
@@ -79,6 +79,11 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 	}
 
 	@Override
+	public void resolvePlayerTextures(BiConsumer<IEaglerPlayerSkin, IEaglerPlayerCape> callback) {
+		callback.accept(getEaglerSkin(), getEaglerCape());
+	}
+
+	@Override
 	public void resolvePlayerSkinKeyed(UUID requester, Consumer<IEaglerPlayerSkin> callback) {
 		callback.accept(getEaglerSkin());
 	}
@@ -86,6 +91,11 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 	@Override
 	public void resolvePlayerCapeKeyed(UUID requester, Consumer<IEaglerPlayerCape> callback) {
 		callback.accept(getEaglerCape());
+	}
+
+	@Override
+	public void resolvePlayerTexturesKeyed(UUID requester, BiConsumer<IEaglerPlayerSkin, IEaglerPlayerCape> callback) {
+		callback.accept(getEaglerSkin(), getEaglerCape());
 	}
 
 	@Override
@@ -148,6 +158,35 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 	}
 
 	@Override
+	public void changePlayerTextures(IEaglerPlayerSkin newSkin, IEaglerPlayerCape newCape, boolean notifyOthers) {
+		boolean s = !newSkin.equals(skin), c = !newCape.equals(cape);
+		if(s || c) {
+			if(s) {
+				skin = newSkin;
+			}
+			if(c) {
+				cape = newCape;
+			}
+			if(player.getEaglerProtocol().ver >= 4) {
+				if(s) {
+					player.sendEaglerMessage(newSkin.getForceSkinPacketV4());
+				}
+				if(c) {
+					player.sendEaglerMessage(newCape.getForceCapePacketV4());
+				}
+			}
+			if(notifyOthers) {
+				SkinManagerHelper.notifyOthers(player, s, c);
+			}
+		}
+	}
+
+	@Override
+	public void changePlayerTextures(EnumPresetSkins newSkin, EnumPresetCapes newCape, boolean notifyOthers) {
+		changePlayerTextures(InternUtils.getPresetSkin(newSkin.getId()), InternUtils.getPresetCape(newCape.getId()), notifyOthers);
+	}
+
+	@Override
 	public void resetPlayerSkin(boolean notifyOthers) {
 		changePlayerSkin(oldSkin, notifyOthers);
 	}
@@ -158,7 +197,7 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 	}
 
 	@Override
-	public void resetPlayerSkinAndCape(boolean notifyOthers) {
+	public void resetPlayerTextures(boolean notifyOthers) {
 		boolean s = !oldSkin.equals(skin), c = !oldCape.equals(cape);
 		if(s || c) {
 			if(s) {
@@ -273,52 +312,17 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 			if(skin != null && cape != null) {
 				player.sendEaglerMessage(createV5Textures(uuidMost, uuidLeast, skin, cape));
 			}else {
-				new MultiSkinResolver(skin, cape, skinMgr, player.getUniqueId(), uuidMost, uuidLeast);
+				new MultiSkinResolver<SkinManagerEagler<PlayerObject>, PlayerObject>(this, skin, cape, player.getUniqueId()) {
+					@Override
+					protected void onComplete(SkinManagerEagler<PlayerObject> mgr, IEaglerPlayerSkin skin, IEaglerPlayerCape cape) {
+						mgr.player.sendEaglerMessage(mgr.createV5Textures(uuidMost, uuidLeast, skin, cape));
+					}
+				};
 			}
 		}
 	}
 
-	private class MultiSkinResolver {
-
-		private final long uuidMost;
-		private final long uuidLeast;
-		private final AtomicInteger countDown = new AtomicInteger(2);
-		private volatile IEaglerPlayerSkin skin;
-		private volatile IEaglerPlayerCape cape;
-
-		protected MultiSkinResolver(IEaglerPlayerSkin skin, IEaglerPlayerCape cape, ISkinManagerImpl skinMgr, UUID uuid,
-				long uuidMost, long uuidLeast) {
-			this.uuidMost = uuidMost;
-			this.uuidLeast = uuidLeast;
-			if(skin == null) {
-				skinMgr.resolvePlayerSkinKeyed(uuid, (res) -> {
-					this.skin = res;
-					countDown();
-				});
-			}else {
-				this.skin = skin;
-				countDown();
-			}
-			if(cape == null) {
-				skinMgr.resolvePlayerCapeKeyed(uuid, (res) -> {
-					this.cape = res;
-					countDown();
-				});
-			}else {
-				this.cape = cape;
-				countDown();
-			}
-		}
-
-		private void countDown() {
-			if(countDown.decrementAndGet() == 0) {
-				player.sendEaglerMessage(createV5Textures(uuidMost, uuidLeast, skin, cape));
-			}
-		}
-
-	}
-
-	private SPacketOtherTexturesV5EAG createV5Textures(long uuidMost, long uuidLeast, IEaglerPlayerSkin skin, IEaglerPlayerCape cape) {
+	SPacketOtherTexturesV5EAG createV5Textures(long uuidMost, long uuidLeast, IEaglerPlayerSkin skin, IEaglerPlayerCape cape) {
 		int skinID = 0;
 		byte[] customSkin = null;
 		int capeID = 0;

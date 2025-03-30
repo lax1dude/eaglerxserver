@@ -18,6 +18,7 @@ import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
 import net.lax1dude.eaglercraft.backend.server.base.message.MessageController;
 import net.lax1dude.eaglercraft.backend.server.base.notifications.NotificationManagerPlayer;
 import net.lax1dude.eaglercraft.backend.server.base.pause_menu.PauseMenuManager;
+import net.lax1dude.eaglercraft.backend.server.base.rpc.EaglerPlayerRPCManager;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinManagerEagler;
 import net.lax1dude.eaglercraft.backend.server.base.update.IUpdateCertificateImpl;
 import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceManager;
@@ -343,6 +344,11 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 			sendEaglerMessage(new SPacketOtherPlayerClientUUIDV4EAG(requestId, 0l, 0l));
 			//TODO: supervisor
 		}
+	}
+
+	@Override
+	public EaglerPlayerRPCManager<PlayerObject> getPlayerRPCManager() {
+		return (EaglerPlayerRPCManager<PlayerObject>) backendRPCManager;
 	}
 
 }

@@ -85,6 +85,7 @@ import net.lax1dude.eaglercraft.backend.server.base.config.EaglerConfigLoader;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.PipelineTransformer;
 import net.lax1dude.eaglercraft.backend.server.base.query.QueryServer;
 import net.lax1dude.eaglercraft.backend.server.base.rpc.BackendChannelHelper;
+import net.lax1dude.eaglercraft.backend.server.base.rpc.BackendRPCService;
 import net.lax1dude.eaglercraft.backend.server.base.skins.ProfileResolver;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SimpleProfileCache;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinService;
@@ -147,6 +148,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private WebViewService<PlayerObject> webViewService;
 	private PauseMenuService<PlayerObject> pauseMenuService;
 	private UpdateService updateService;
+	private BackendRPCService<PlayerObject> backendRPCService;
 
 	public EaglerXServer() {
 	}
@@ -250,6 +252,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		
 		if(config.getSettings().getUpdateService().isEnableUpdateSystem()) {
 			updateService = new UpdateService(this);
+		}
+		
+		if(config.getSettings().isEnableBackendRPCAPI()) {
+			backendRPCService = new BackendRPCService<>(this);
 		}
 		
 		init.setOnServerEnable(this::enableHandler);
@@ -411,6 +417,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	public void registerPlayer(BasePlayerInstance<PlayerObject> playerInstance) {
+		if(backendRPCService != null) {
+			playerInstance.backendRPCManager = backendRPCService.createVanillaPlayerRPCManager(playerInstance);
+		}
+		
 		playerInstance.skinManager = skinService.createVanillaSkinManager(playerInstance);
 	}
 
@@ -435,6 +445,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		playerInstance.notifManager = notificationService.createPlayerManager(playerInstance);
 		playerInstance.webViewManager = webViewService.createWebViewManager(playerInstance);
 		playerInstance.pauseMenuManager = pauseMenuService.createPauseMenuManager(playerInstance);
+		
+		if(backendRPCService != null) {
+			playerInstance.backendRPCManager = backendRPCService.createEaglerPlayerRPCManager(playerInstance);
+		}
 		
 		skinService.createEaglerSkinManager(playerInstance, profileData, (mgr) -> {
 			playerInstance.skinManager = mgr;
@@ -737,6 +751,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	public UpdateService getUpdateService() {
 		return updateService;
+	}
+
+	public BackendRPCService<PlayerObject> getBackendRPCService() {
+		return backendRPCService;
 	}
 
 	@Override

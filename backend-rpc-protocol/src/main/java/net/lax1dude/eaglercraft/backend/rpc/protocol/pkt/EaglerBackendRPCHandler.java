@@ -89,7 +89,23 @@ public interface EaglerBackendRPCHandler {
 		throw new WrongRPCPacketException();
 	}
 
+	default void handleClient(CPacketRPCInjectRawBinaryFrameV2 packet) {
+		throw new WrongRPCPacketException();
+	}
+
+	default void handleClient(CPacketRPCInjectRawEaglerFrameV2 packet) {
+		throw new WrongRPCPacketException();
+	}
+
 	default void handleServer(SPacketRPCEnabledSuccess packet) {
+		throw new WrongRPCPacketException();
+	}
+
+	default void handleServer(SPacketRPCEnabledSuccessVanillaV2 packet) {
+		throw new WrongRPCPacketException();
+	}
+
+	default void handleServer(SPacketRPCEnabledSuccessEaglerV2 packet) {
 		throw new WrongRPCPacketException();
 	}
 
@@ -138,6 +154,14 @@ public interface EaglerBackendRPCHandler {
 	}
 
 	default void handleServer(SPacketRPCEventToggledVoice packet) {
+		throw new WrongRPCPacketException();
+	}
+
+	default void handleServer(SPacketRPCResponseTypeBrandDataV2 packet) {
+		throw new WrongRPCPacketException();
+	}
+
+	default void handleServer(SPacketRPCResponseTypeTexturesV2 packet) {
 		throw new WrongRPCPacketException();
 	}
 

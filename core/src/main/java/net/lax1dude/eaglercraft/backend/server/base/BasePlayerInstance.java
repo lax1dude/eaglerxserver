@@ -11,6 +11,7 @@ import net.lax1dude.eaglercraft.backend.server.api.INettyChannel;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistry;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
+import net.lax1dude.eaglercraft.backend.server.base.rpc.BasePlayerRPCManager;
 
 public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 		implements IBasePlayer<PlayerObject>, INettyChannel.NettyUnsafe {
@@ -19,6 +20,7 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 	protected final EaglerAttributeManager.EaglerAttributeHolder attributeHolder;
 	protected final EaglerXServer<PlayerObject> server;
 	ISkinManagerBase<PlayerObject> skinManager;
+	BasePlayerRPCManager<PlayerObject> backendRPCManager;
 
 	public BasePlayerInstance(IPlatformPlayer<PlayerObject> player,
 			EaglerXServer<PlayerObject> server) {
@@ -138,6 +140,10 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 	@Override
 	public Channel getChannel() {
 		return player.getConnection().getChannel();
+	}
+
+	public BasePlayerRPCManager<PlayerObject> getPlayerRPCManager() {
+		return backendRPCManager;
 	}
 
 }

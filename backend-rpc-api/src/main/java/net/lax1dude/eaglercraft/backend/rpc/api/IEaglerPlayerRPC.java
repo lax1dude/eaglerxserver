@@ -84,6 +84,16 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 
 	IRPCFuture<BrandData> getBrandData(int timeoutSec, int cacheTTLSec);
 
+	default IRPCFuture<byte[]> getAuthUsername() {
+		return getAuthUsername(getBaseRequestTimeout(), getBaseCacheTTL());
+	}
+
+	default IRPCFuture<byte[]> getAuthUsername(int timeoutSec) {
+		return getAuthUsername(timeoutSec, getBaseCacheTTL());
+	}
+
+	IRPCFuture<byte[]> getAuthUsername(int timeoutSec, int cacheTTLSec);
+
 	default IRPCFuture<EnumVoiceState> getVoiceState() {
 		return getVoiceState(getBaseRequestTimeout());
 	}

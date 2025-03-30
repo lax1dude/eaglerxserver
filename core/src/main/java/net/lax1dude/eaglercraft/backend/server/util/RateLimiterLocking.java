@@ -6,16 +6,16 @@ public class RateLimiterLocking extends AtomicInteger {
 
 	public static class Config {
 
-		public final int period;
+		public final long period;
 		public final int limit;
 		public final int limitLockout;
 		public final long lockoutDuration;
 
 		public Config(int period, int limit, int limitLockout, long lockoutDuration) {
-			this.period = period;
+			this.period = period * 1000l;
 			this.limit = limit;
 			this.limitLockout = limitLockout;
-			this.lockoutDuration = lockoutDuration;
+			this.lockoutDuration = lockoutDuration * 1000l;
 		}
 
 	}

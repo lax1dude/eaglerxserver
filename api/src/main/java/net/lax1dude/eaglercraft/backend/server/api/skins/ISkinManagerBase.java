@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.api.skins;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
@@ -22,6 +23,8 @@ public interface ISkinManagerBase<PlayerObject> {
 
 	void resolvePlayerCape(Consumer<IEaglerPlayerCape> callback);
 
+	void resolvePlayerTextures(BiConsumer<IEaglerPlayerSkin, IEaglerPlayerCape> callback);
+
 	void changePlayerSkin(IEaglerPlayerSkin newSkin, boolean notifyOthers);
 
 	void changePlayerSkin(EnumPresetSkins newSkin, boolean notifyOthers);
@@ -30,10 +33,14 @@ public interface ISkinManagerBase<PlayerObject> {
 
 	void changePlayerCape(EnumPresetCapes newCape, boolean notifyOthers);
 
+	void changePlayerTextures(IEaglerPlayerSkin newSkin, IEaglerPlayerCape newCape, boolean notifyOthers);
+
+	void changePlayerTextures(EnumPresetSkins newSkin, EnumPresetCapes newCape, boolean notifyOthers);
+
 	void resetPlayerSkin(boolean notifyOthers);
 
 	void resetPlayerCape(boolean notifyOthers);
 
-	void resetPlayerSkinAndCape(boolean notifyOthers);
+	void resetPlayerTextures(boolean notifyOthers);
 
 }

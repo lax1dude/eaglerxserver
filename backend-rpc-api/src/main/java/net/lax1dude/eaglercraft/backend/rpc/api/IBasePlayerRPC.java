@@ -17,6 +17,8 @@ public interface IBasePlayerRPC<PlayerObject> {
 
 	int getMinecraftProtocolVersion();
 
+	int getSupervisorNodeId();
+
 	void setBaseRequestTimeout(int seconds);
 
 	int getBaseRequestTimeout();
@@ -64,6 +66,16 @@ public interface IBasePlayerRPC<PlayerObject> {
 	}
 
 	IRPCFuture<UUID> getProfileUUID(int timeoutSec, int cacheTTLSec);
+
+	default IRPCFuture<String> getMinecraftBrand() {
+		return getMinecraftBrand(getBaseRequestTimeout(), getBaseCacheTTL());
+	}
+
+	default IRPCFuture<String> getMinecraftBrand(int timeoutSec) {
+		return getMinecraftBrand(timeoutSec, getBaseCacheTTL());
+	}
+
+	IRPCFuture<String> getMinecraftBrand(int timeoutSec, int cacheTTLSec);
 
 	default IRPCFuture<UUID> getBrandUUID() {
 		return getBrandUUID(getBaseRequestTimeout(), getBaseCacheTTL());
