@@ -271,6 +271,7 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 
 	@Override
 	public IPauseMenuBuilder setMenuIcon(EnumPauseMenuIcon icon, PacketImageData imageData) {
+		checkDimensions(imageData);
 		if(customIcons == null) {
 			customIcons = new HashMap<>();
 		}
@@ -280,6 +281,7 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 
 	@Override
 	public IPauseMenuBuilder setMenuIcon(String icon, PacketImageData imageData) {
+		checkDimensions(imageData);
 		if(customIcons == null) {
 			customIcons = new HashMap<>();
 		}
@@ -291,6 +293,12 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 	public IPauseMenuBuilder clearMenuIcons() {
 		customIcons = null;
 		return this;
+	}
+
+	private static void checkDimensions(PacketImageData etr) {
+		if(etr.width < 1 || etr.width > 64 || etr.height < 1 || etr.height > 64) {
+			throw new IllegalArgumentException("Invalid image dimensions, must be between 1x1 and 64x64, got " + etr.width + "x" + etr.height);
+		}
 	}
 
 	@Override

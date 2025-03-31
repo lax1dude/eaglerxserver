@@ -35,6 +35,8 @@ public interface IPauseMenuBuilder {
 		return setServerInfoButtonModeWebViewBlob(text, title, null, blobAlias);
 	}
 
+	IPauseMenuBuilder setServerInfoButtonModeInheritDefault();
+
 	String getServerInfoButtonText();
 
 	String getServerInfoButtonURL();
@@ -51,9 +53,15 @@ public interface IPauseMenuBuilder {
 
 	IPauseMenuBuilder setDiscordInviteButtonModeURL(String text, String url);
 
+	IPauseMenuBuilder setDiscordInviteButtonModeInheritDefault();
+
 	String getDiscordInviteButtonText();
 
 	String getDiscordInviteButtonURL();
+
+	boolean isMenuIconInheritDefault(EnumPauseMenuIcon icon);
+
+	boolean isMenuIconInheritDefault(String icon);
 
 	IPacketImageData getMenuIcon(EnumPauseMenuIcon icon);
 
@@ -62,6 +70,8 @@ public interface IPauseMenuBuilder {
 	IPauseMenuBuilder setMenuIcon(EnumPauseMenuIcon icon, IPacketImageData imageData);
 
 	IPauseMenuBuilder setMenuIcon(String icon, IPacketImageData imageData);
+
+	IPauseMenuBuilder setMenuIconInheritDefault(String icon);
 
 	IPauseMenuBuilder clearMenuIcons();
 

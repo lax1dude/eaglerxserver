@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.base.rpc;
 import java.util.Collection;
 import java.util.UUID;
 
+import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCPacket;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.WrongRPCPacketException;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.*;
@@ -12,7 +13,11 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
 import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
 
-public abstract class BasePlayerRPCContext<PlayerObject> {
+public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationContext {
+
+	BasePlayerRPCContext(EaglerBackendRPCProtocol protocol) {
+		super(protocol);
+	}
 
 	protected abstract BasePlayerRPCManager<PlayerObject> manager();
 
@@ -235,7 +240,7 @@ public abstract class BasePlayerRPCContext<PlayerObject> {
 	}
 
 	void handleDisabled() {
-		manager().handleDisabledLegacy();
+		manager().handleDisabled();
 	}
 
 }

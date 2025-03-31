@@ -6,7 +6,8 @@ public class EaglerPlayerRPCManager<PlayerObject> extends BasePlayerRPCManager<P
 
 	private final EaglerPlayerInstance<PlayerObject> player;
 
-	EaglerPlayerRPCManager(EaglerPlayerInstance<PlayerObject> player) {
+	EaglerPlayerRPCManager(BackendRPCService<PlayerObject> service, EaglerPlayerInstance<PlayerObject> player) {
+		super(service);
 		this.player = player;
 	}
 

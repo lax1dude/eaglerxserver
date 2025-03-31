@@ -6,7 +6,8 @@ public class VanillaPlayerRPCManager<PlayerObject> extends BasePlayerRPCManager<
 
 	private final BasePlayerInstance<PlayerObject> player;
 
-	VanillaPlayerRPCManager(BasePlayerInstance<PlayerObject> player) {
+	VanillaPlayerRPCManager(BackendRPCService<PlayerObject> service, BasePlayerInstance<PlayerObject> player) {
+		super(service);
 		this.player = player;
 	}
 

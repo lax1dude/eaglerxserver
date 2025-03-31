@@ -55,6 +55,8 @@ public class CPacketRPCSetPauseMenuCustom implements EaglerBackendRPCPacket {
 	public static final int DISCORD_MODE_INVITE_URL = 1;
 	public static final int DISCORD_MODE_INHERIT_DEFAULT = 2;
 
+	public static final int ICON_ID_INHERIT = 32767;
+
 	public int serverInfoMode;
 	public String serverInfoButtonText;
 	public String serverInfoURL;
@@ -138,30 +140,21 @@ public class CPacketRPCSetPauseMenuCustom implements EaglerBackendRPCPacket {
 		int mappingsCount = buffer.readUnsignedShort();
 		if(mappingsCount > 0) {
 			imageMappings = new HashMap<>();
-			imageData = new ArrayList<>();
 			for(int i = 0; i < mappingsCount; ++i) {
 				imageMappings.put(readString(buffer, 255, false, StandardCharsets.US_ASCII), buffer.readUnsignedShort());
 			}
 			int imageDataCount = buffer.readUnsignedShort();
-			for(int i = 0; i < imageDataCount; ++i) {
-				int w = buffer.readUnsignedByte();
-				int h = buffer.readUnsignedByte();
-				int pixelCount = w * h;
-				int[] pixels = new int[pixelCount];
-				for(int j = 0, p, pR, pG, pB; j < pixelCount; ++j) {
-					p = buffer.readUnsignedShort();
-					pR = (p >>> 11) & 0x1F;
-					pG = (p >>> 5) & 0x3F;
-					pB = p & 0x1F;
-					if(pR + pG + pB > 0) {
-						pB = (pB - 1) * 31 / 30;
-						pixels[j] = 0xFF000000 | (pR << 19) | (pG << 10) | (pB << 3);
-					}else {
-						pixels[j] = 0;
-					}
+			if(imageDataCount > 0) {
+				imageData = new ArrayList<>();
+				for(int i = 0; i < imageDataCount; ++i) {
+					imageData.add(PacketImageData.readRGB16(buffer));
 				}
-				imageData.add(new PacketImageData(w, h, pixels));
+			}else {
+				imageData = null;
 			}
+		}else {
+			imageMappings = null;
+			imageData = null;
 		}
 	}
 
@@ -203,12 +196,14 @@ public class CPacketRPCSetPauseMenuCustom implements EaglerBackendRPCPacket {
 				writeString(buffer, etr.getKey(), false, StandardCharsets.US_ASCII);
 				buffer.writeShort(etr.getValue().intValue());
 			}
-			buffer.writeShort(imageData.size());
-			for(PacketImageData etr : imageData) {
-				if(etr.width < 1 || etr.width > 64 || etr.height < 1 || etr.height > 64) {
-					throw new IOException("Invalid image dimensions in packet, must be between 1x1 and 64x64, got " + etr.width + "x" + etr.height);
+			if(imageData != null && imageData.size() > 0) {
+				buffer.writeShort(imageData.size());
+				for(PacketImageData etr : imageData) {
+					if(etr.width < 1 || etr.width > 64 || etr.height < 1 || etr.height > 64) {
+						throw new IOException("Invalid image dimensions in packet, must be between 1x1 and 64x64, got " + etr.width + "x" + etr.height);
+					}
+					PacketImageData.writeRGB16(buffer, etr);
 				}
-				PacketImageData.writeRGB16(buffer, etr);
 			}
 		}else {
 			buffer.writeByte(0);

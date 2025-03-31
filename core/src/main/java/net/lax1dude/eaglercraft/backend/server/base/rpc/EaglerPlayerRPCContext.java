@@ -19,6 +19,7 @@ import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketNotifBadgeShowV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketNotifIconsRegisterV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketWebViewMessageV4EAG;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.*;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.*;
 
@@ -29,7 +30,8 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 	protected volatile boolean subscribeWebViewMessage;
 	protected final AtomicInteger voiceStateTracker = new AtomicInteger(0);
 
-	EaglerPlayerRPCContext(EaglerPlayerRPCManager<PlayerObject> manager) {
+	EaglerPlayerRPCContext(EaglerPlayerRPCManager<PlayerObject> manager, EaglerBackendRPCProtocol protocol) {
+		super(protocol);
 		this.manager = manager;
 	}
 
