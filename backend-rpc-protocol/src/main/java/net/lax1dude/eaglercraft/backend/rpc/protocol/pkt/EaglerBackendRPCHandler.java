@@ -93,10 +93,6 @@ public interface EaglerBackendRPCHandler {
 		throw new WrongRPCPacketException();
 	}
 
-	default void handleClient(CPacketRPCInjectRawEaglerFrameV2 packet) {
-		throw new WrongRPCPacketException();
-	}
-
 	default void handleServer(SPacketRPCEnabledSuccess packet) {
 		throw new WrongRPCPacketException();
 	}
@@ -158,6 +154,10 @@ public interface EaglerBackendRPCHandler {
 	}
 
 	default void handleServer(SPacketRPCResponseTypeBrandDataV2 packet) {
+		throw new WrongRPCPacketException();
+	}
+
+	default void handleServer(SPacketRPCResponseTypeWebViewStatusV2 packet) {
 		throw new WrongRPCPacketException();
 	}
 

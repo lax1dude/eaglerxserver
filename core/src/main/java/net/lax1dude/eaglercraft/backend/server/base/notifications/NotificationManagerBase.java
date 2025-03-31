@@ -181,6 +181,14 @@ public abstract class NotificationManagerBase<PlayerObject> implements INotifica
 		}
 	}
 
+	public void showNotificationBadge(SPacketNotifBadgeShowV4EAG packet, UUID iconA, UUID iconB) {
+		if(iconA != null || iconB != null) {
+			touchIcons(packet, iconA, iconB);
+		}else {
+			sendPacket(packet);
+		}
+	}
+
 	@Override
 	public void showUnmanagedNotificationBadge(SPacketNotifBadgeShowV4EAG packet) {
 		sendPacket(packet);

@@ -45,6 +45,7 @@ public class CPacketRPCRequestPlayerInfo implements EaglerBackendRPCPacket {
 	public static final int REQUEST_PLAYER_CLIENT_BRAND_DATA = 14;
 	public static final int REQUEST_PLAYER_MINECRAFT_BRAND = 15;
 	public static final int REQUEST_PLAYER_AUTH_USERNAME = 16;
+	public static final int REQUEST_PLAYER_CLIENT_WEBVIEW_STATUS_V2 = 17;
 
 	public int requestID;
 	public int requestType;

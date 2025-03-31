@@ -15,6 +15,8 @@ public interface IPauseMenuManager<PlayerObject> {
 
 	ICustomPauseMenu getActivePauseMenu();
 
+	boolean isActivePauseMenuRemote();
+
 	void updatePauseMenu(ICustomPauseMenu pauseMenu);
 
 }

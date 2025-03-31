@@ -19,9 +19,10 @@ package net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.RandomAccess;
 
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCHandler;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCPacket;
@@ -31,39 +32,67 @@ import java.util.UUID;
 
 public class CPacketRPCNotifIconRegister implements EaglerBackendRPCPacket {
 
-	public Map<UUID,PacketImageData> notifIcons;
+	public static class RegisterIcon {
+
+		public final UUID uuid;
+		public final PacketImageData image;
+
+		public RegisterIcon(UUID uuid, PacketImageData image) {
+			this.uuid = uuid;
+			this.image = image;
+		}
+
+	}
+
+	public Collection<RegisterIcon> notifIcons;
 
 	public CPacketRPCNotifIconRegister() {
 	}
 
-	public CPacketRPCNotifIconRegister(Map<UUID,PacketImageData> notifIcons) {
+	public CPacketRPCNotifIconRegister(Collection<RegisterIcon> notifIcons) {
 		this.notifIcons = notifIcons;
 	}
 
 	@Override
 	public void readPacket(DataInput buffer) throws IOException {
-		notifIcons = new HashMap<>();
 		int cnt = buffer.readUnsignedByte();
-		for(int i = 0; i < cnt; ++i) {
-			UUID uuid = new UUID(buffer.readLong(), buffer.readLong());
-			PacketImageData img = PacketImageData.readRGB16(buffer);
-			notifIcons.put(uuid, img);
+		if(cnt > 0) {
+			RegisterIcon[] icns = new RegisterIcon[cnt];
+			for(int i = 0; i < cnt; ++i) {
+				UUID uuid = new UUID(buffer.readLong(), buffer.readLong());
+				PacketImageData img = PacketImageData.readRGB16(buffer);
+				icns[i] = new RegisterIcon(uuid, img);
+			}
+			notifIcons = Arrays.asList(icns);
+		}else {
+			notifIcons = null;
 		}
 	}
 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
-		if(notifIcons != null && !notifIcons.isEmpty()) {
+		if(notifIcons != null) {
 			int l = notifIcons.size();
 			if(l > 255) {
 				throw new IOException("Too many notification icons in packet! (Max is 255, got " + l + " total)");
 			}
 			buffer.writeByte(l);
-			for(Entry<UUID,PacketImageData> etr : notifIcons.entrySet()) {
-				UUID uuid = etr.getKey();
-				buffer.writeLong(uuid.getMostSignificantBits());
-				buffer.writeLong(uuid.getLeastSignificantBits());
-				PacketImageData.writeRGB16(buffer, etr.getValue());
+			if(l > 0) {
+				if(notifIcons instanceof RandomAccess) {
+					List<RegisterIcon> lst = (List<RegisterIcon>) notifIcons;
+					for(int i = 0; i < l; ++i) {
+						RegisterIcon icn = lst.get(i);
+						buffer.writeLong(icn.uuid.getMostSignificantBits());
+						buffer.writeLong(icn.uuid.getLeastSignificantBits());
+						PacketImageData.writeRGB16(buffer, icn.image);
+					}
+				}else {
+					for(RegisterIcon icn : notifIcons) {
+						buffer.writeLong(icn.uuid.getMostSignificantBits());
+						buffer.writeLong(icn.uuid.getLeastSignificantBits());
+						PacketImageData.writeRGB16(buffer, icn.image);
+					}
+				}
 			}
 		}else {
 			buffer.writeByte(0);
@@ -77,9 +106,22 @@ public class CPacketRPCNotifIconRegister implements EaglerBackendRPCPacket {
 
 	@Override
 	public int length() {
-		int i = 1 + (notifIcons.size() << 4);
-		for(PacketImageData dat : notifIcons.values()) {
-			i += dat.getByteLengthRGB16();
+		if(notifIcons == null) {
+			return 1;
+		}
+		int l = notifIcons.size();
+		int i = 1 + (l << 4);
+		if(l > 0) {
+			if(notifIcons instanceof RandomAccess) {
+				List<RegisterIcon> lst = (List<RegisterIcon>) notifIcons;
+				for(int j = 0; j < l; ++j) {
+					i += lst.get(j).image.getByteLengthRGB16();
+				}
+			}else {
+				for(RegisterIcon icn : notifIcons) {
+					i += icn.image.getByteLengthRGB16();
+				}
+			}
 		}
 		return i;
 	}

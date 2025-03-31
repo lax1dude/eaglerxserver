@@ -1,6 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.base.webview;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -10,7 +12,6 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChannelEvent.EnumEventType;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent.EnumMessageType;
-import net.lax1dude.eaglercraft.backend.server.api.webview.EnumChannelState;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewBlob;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewManager;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewProvider;
@@ -42,15 +43,6 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 	@Override
 	public IWebViewService<PlayerObject> getWebViewService() {
 		return service;
-	}
-
-	@Override
-	public EnumChannelState getChannelState() {
-		if(isChannelAllowed()) {
-			return null;
-		}else {
-			return EnumChannelState.SERVER_DISABLE;
-		}
 	}
 
 	@Override
@@ -87,6 +79,10 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 		callback.accept(service.getGlobalBlob(hash));
 	}
 
+	public SHA1Sum handleAliasDefault(String alias) {
+		return service.getBlobFromAlias(alias);
+	}
+
 	@Override
 	public IWebViewProvider<PlayerObject> getProvider() {
 		return provider;
@@ -97,7 +93,6 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 		provider = func;
 	}
 
-	@Override
 	public boolean isChannelOpen() {
 		return channelName != null;
 	}
@@ -106,6 +101,20 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 	public boolean isChannelOpen(String channelName) {
 		String str = this.channelName;
 		return str != null && channelName.equals(str);
+	}
+
+	@Override
+	public Set<String> getOpenChannels() {
+		String str = this.channelName;
+		if(str != null) {
+			return Collections.singleton(str);
+		}else {
+			return Collections.emptySet();
+		}
+	}
+
+	public String getOpenChannel() {
+		return channelName;
 	}
 
 	private boolean validateChannel(String channelName) {

@@ -98,7 +98,8 @@ public class EaglerPendingStateAdapter extends IIdentifiedConnection.Base implem
 
 	@Override
 	public byte[] getAuthUsername() {
-		return pipelineData.handshakeAuthUsername;
+		byte[] b = pipelineData.handshakeAuthUsername;
+		return b != null ? b.clone() : null;
 	}
 
 	@Override

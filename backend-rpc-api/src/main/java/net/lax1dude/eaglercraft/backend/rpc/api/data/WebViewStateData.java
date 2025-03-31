@@ -1,39 +1,46 @@
 package net.lax1dude.eaglercraft.backend.rpc.api.data;
 
-public class WebViewStateData {
+import java.util.Collection;
 
-	public static WebViewStateData create(EnumWebViewState state, String channel) {
-		if(state == null) {
-			throw new NullPointerException("state");
+public final class WebViewStateData {
+
+	public static WebViewStateData create(boolean webViewAllowed, boolean channelAllowed,
+			Collection<String> openChannels) {
+		if(openChannels == null) {
+			throw new NullPointerException("openChannels");
 		}
-		if(channel == null) {
-			throw new NullPointerException("channel");
-		}
-		return new WebViewStateData(state, channel);
+		return new WebViewStateData(webViewAllowed, channelAllowed, openChannels);
 	}
 
-	private final EnumWebViewState state;
-	private final String channel;
+	private final boolean webViewAllowed;
+	private final boolean channelAllowed;
+	private final Collection<String> openChannels;
 
-	private WebViewStateData(EnumWebViewState state, String channel) {
-		this.state = state;
-		this.channel = channel;
+	private WebViewStateData(boolean webViewAllowed, boolean channelAllowed,
+			Collection<String> openChannels) {
+		this.webViewAllowed = webViewAllowed;
+		this.channelAllowed = channelAllowed;
+		this.openChannels = openChannels;
 	}
 
-	public EnumWebViewState getState() {
-		return state;
+	public boolean isWebViewAllowed() {
+		return webViewAllowed;
 	}
 
-	public String getChannel() {
-		return channel;
+	public boolean isChannelAllowed() {
+		return channelAllowed;
+	}
+
+	public Collection<String> getOpenChannels() {
+		return openChannels;
 	}
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
 		int result = 1;
-		result = prime * result + channel.hashCode();
-		result = prime * result + state.hashCode();
+		result = 31 * result + (channelAllowed ? 1231 : 1237);
+		result = 31 * result + openChannels.hashCode();
+		result = 31 * result + (webViewAllowed ? 1231 : 1237);
 		return result;
 	}
 
@@ -44,9 +51,11 @@ public class WebViewStateData {
 		if (!(obj instanceof WebViewStateData))
 			return false;
 		WebViewStateData other = (WebViewStateData) obj;
-		if (!channel.equals(other.channel))
+		if (channelAllowed != other.channelAllowed)
 			return false;
-		if (state != other.state)
+		if (!openChannels.equals(other.openChannels))
+			return false;
+		if (webViewAllowed != other.webViewAllowed)
 			return false;
 		return true;
 	}

@@ -51,6 +51,12 @@ public interface IWebViewService<PlayerObject> {
 
 	void unregisterGlobalBlob(SHA1Sum sum);
 
+	void registerBlobAlias(String name, SHA1Sum blob);
+
+	void unregisterBlobAlias(String name);
+
+	SHA1Sum getBlobFromAlias(String name);
+
 	Map<String, String> getTemplateGlobals();
 
 	void setTemplateGlobal(String key, String value);

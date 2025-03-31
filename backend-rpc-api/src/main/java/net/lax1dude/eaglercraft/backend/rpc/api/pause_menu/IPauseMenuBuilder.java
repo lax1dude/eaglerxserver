@@ -29,6 +29,12 @@ public interface IPauseMenuBuilder {
 		return setServerInfoButtonModeWebViewBlob(text, title, null, blobHash);
 	}
 
+	IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(String text, String title, Set<EnumWebViewPerms> permissions, String blobAlias);
+
+	default IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(String text, String title, String blobAlias) {
+		return setServerInfoButtonModeWebViewBlob(text, title, null, blobAlias);
+	}
+
 	String getServerInfoButtonText();
 
 	String getServerInfoButtonURL();

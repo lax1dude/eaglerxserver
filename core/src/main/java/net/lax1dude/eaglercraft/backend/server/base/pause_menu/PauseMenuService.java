@@ -16,6 +16,7 @@ import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.PacketImageLoader;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataPauseMenu;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketCustomizePauseMenuV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.PacketImageData;
 
 public class PauseMenuService<PlayerObject> implements IPauseMenuService<PlayerObject> {
@@ -49,6 +50,10 @@ public class PauseMenuService<PlayerObject> implements IPauseMenuService<PlayerO
 	@Override
 	public ICustomPauseMenu getDefaultPauseMenu() {
 		return defaultPauseMenu;
+	}
+
+	public SPacketCustomizePauseMenuV4EAG getDefaultPauseMenuUnsafe() {
+		return defaultPauseMenu.getPacket();
 	}
 
 	@Override

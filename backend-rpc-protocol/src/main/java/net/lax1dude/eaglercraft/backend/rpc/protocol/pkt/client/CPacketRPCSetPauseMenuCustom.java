@@ -35,16 +35,22 @@ import net.lax1dude.eaglercraft.backend.rpc.protocol.util.PacketImageData;
 
 public class CPacketRPCSetPauseMenuCustom implements EaglerBackendRPCPacket {
 
+	// V1+
 	public static final int SERVER_INFO_MODE_NONE = 0;
 	public static final int SERVER_INFO_MODE_EXTERNAL_URL = 1;
 	public static final int SERVER_INFO_MODE_SHOW_EMBED_OVER_HTTP = 2;
 	public static final int SERVER_INFO_MODE_SHOW_EMBED_OVER_WS = 3;
 	public static final int SERVER_INFO_MODE_INHERIT_DEFAULT = 4;
 
+	// V2+
+	public static final int SERVER_INFO_MODE_SHOW_NAMED_EMBED_OVER_WS = 5;
+
+	// V1+
 	public static final int SERVER_INFO_EMBED_PERMS_JAVASCRIPT = 1;
 	public static final int SERVER_INFO_EMBED_PERMS_MESSAGE_API = 2;
 	public static final int SERVER_INFO_EMBED_PERMS_STRICT_CSP = 4;
 
+	// V1+
 	public static final int DISCORD_MODE_NONE = 0;
 	public static final int DISCORD_MODE_INVITE_URL = 1;
 	public static final int DISCORD_MODE_INHERIT_DEFAULT = 2;
@@ -95,8 +101,10 @@ public class CPacketRPCSetPauseMenuCustom implements EaglerBackendRPCPacket {
 			serverInfoURL = readString(buffer, 65535, true, StandardCharsets.US_ASCII);
 			serverInfoEmbedPerms = 0;
 			serverInfoHash = null;
+			serverInfoEmbedTitle = null;
 			break;
 		case SERVER_INFO_MODE_SHOW_EMBED_OVER_HTTP:
+		case SERVER_INFO_MODE_SHOW_NAMED_EMBED_OVER_WS:
 			serverInfoButtonText = readString(buffer, 127, false, StandardCharsets.UTF_8);
 			serverInfoURL = readString(buffer, 65535, true, StandardCharsets.US_ASCII);
 			serverInfoEmbedPerms = buffer.readUnsignedByte();
@@ -117,6 +125,7 @@ public class CPacketRPCSetPauseMenuCustom implements EaglerBackendRPCPacket {
 			serverInfoURL = null;
 			serverInfoEmbedPerms = 0;
 			serverInfoHash = null;
+			serverInfoEmbedTitle = null;
 			break;
 		}
 		if(discordButtonMode == DISCORD_MODE_INVITE_URL) {
@@ -165,6 +174,7 @@ public class CPacketRPCSetPauseMenuCustom implements EaglerBackendRPCPacket {
 			writeString(buffer, serverInfoURL, true, StandardCharsets.US_ASCII);
 			break;
 		case SERVER_INFO_MODE_SHOW_EMBED_OVER_HTTP:
+		case SERVER_INFO_MODE_SHOW_NAMED_EMBED_OVER_WS:
 			writeString(buffer, serverInfoButtonText, false, StandardCharsets.UTF_8);
 			writeString(buffer, serverInfoURL, true, StandardCharsets.US_ASCII);
 			buffer.writeByte(serverInfoEmbedPerms);

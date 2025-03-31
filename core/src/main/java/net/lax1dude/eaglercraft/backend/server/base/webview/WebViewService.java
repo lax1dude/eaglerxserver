@@ -39,12 +39,14 @@ public class WebViewService<PlayerObject> implements IWebViewService<PlayerObjec
 
 	private final EaglerXServer<PlayerObject> server;
 	private final ConcurrentMap<SHA1Sum, IWebViewBlob> globalBlobs;
+	private final ConcurrentMap<String, SHA1Sum> blobAliases;
 
 	private Map<String, String> templateGlobals = Collections.emptyMap();
 
 	public WebViewService(EaglerXServer<PlayerObject> server) {
 		this.server = server;
 		this.globalBlobs = new ConcurrentHashMap<>();
+		this.blobAliases = new ConcurrentHashMap<>();
 	}
 
 	@Override
@@ -143,6 +145,21 @@ public class WebViewService<PlayerObject> implements IWebViewService<PlayerObjec
 
 	public IWebViewBlob getGlobalBlob(SHA1Sum hash) {
 		return globalBlobs.get(hash);
+	}
+
+	@Override
+	public void registerBlobAlias(String name, SHA1Sum blob) {
+		blobAliases.put(name, blob);
+	}
+
+	@Override
+	public void unregisterBlobAlias(String name) {
+		blobAliases.remove(name);
+	}
+
+	@Override
+	public SHA1Sum getBlobFromAlias(String name) {
+		return blobAliases.get(name);
 	}
 
 	@Override

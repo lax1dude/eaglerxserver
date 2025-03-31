@@ -19,6 +19,8 @@ package net.lax1dude.eaglercraft.backend.rpc.protocol;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -80,7 +82,6 @@ public enum EaglerBackendRPCProtocol {
 			define_CLIENT_(0x0F, CPacketRPCNotifBadgeHide.class),
 			define_CLIENT_(0x10, CPacketRPCSendRawMessage.class),
 			define_CLIENT_(0x11, CPacketRPCInjectRawBinaryFrameV2.class),
-			define_CLIENT_(0x12, CPacketRPCInjectRawEaglerFrameV2.class),
 			
 			// server-to-client
 			define_SERVER_(0x01, SPacketRPCResponseTypeNull.class),
@@ -90,7 +91,7 @@ public enum EaglerBackendRPCProtocol {
 			define_SERVER_(0x05, SPacketRPCResponseTypeUUID.class),
 			define_SERVER_(0x06, SPacketRPCResponseTypeCookie.class),
 			define_SERVER_(0x07, SPacketRPCResponseTypeVoiceStatus.class),
-			define_SERVER_(0x08, SPacketRPCResponseTypeWebViewStatus.class),
+			define_SERVER_(0x08, SPacketRPCResponseTypeWebViewStatusV2.class),
 			define_SERVER_(0x09, SPacketRPCResponseTypeError.class),
 			define_SERVER_(0x0A, SPacketRPCEventWebViewOpenClose.class),
 			define_SERVER_(0x0B, SPacketRPCEventWebViewMessage.class),
@@ -138,11 +139,17 @@ public enum EaglerBackendRPCProtocol {
 		private final int id;
 		private final int dir;
 		private final Class<? extends EaglerBackendRPCPacket> pkt;
+		private final Constructor<? extends EaglerBackendRPCPacket> ctor;
 
 		private PacketDef(int id, int dir, Class<? extends EaglerBackendRPCPacket> pkt) {
 			this.id = id;
 			this.dir = dir;
 			this.pkt = pkt;
+			try {
+				this.ctor = pkt.getConstructor();
+			} catch (NoSuchMethodException | SecurityException e) {
+				throw new RuntimeException("Packet does not have a default constructor: " + pkt.getName(), e);
+			}
 		}
 
 	}
@@ -158,9 +165,10 @@ public enum EaglerBackendRPCProtocol {
 		}
 		EaglerBackendRPCPacket newPkt;
 		try {
-			newPkt = pp.pkt.newInstance();
-		}catch(Throwable t) {
-			throw new RuntimeException("Reflection failed to call packet constructor for \"" + pp.pkt.getSimpleName() + "\"! (is it defined?)", t);
+			newPkt = pp.ctor.newInstance();
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException e) {
+			throw new RuntimeException(e);
 		}
 		newPkt.readPacket(buffer);
 		return newPkt;

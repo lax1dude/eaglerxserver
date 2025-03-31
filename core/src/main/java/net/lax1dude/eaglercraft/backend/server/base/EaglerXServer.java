@@ -58,14 +58,9 @@ import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
 import net.lax1dude.eaglercraft.backend.server.api.internal.factory.IEaglerAPIFactory;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTHelper;
-import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationService;
-import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuService;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
-import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindService;
 import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesProperty;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceX;
-import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandBrand;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandConfirmCode;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandDomain;
@@ -826,7 +821,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public IVoiceServiceX<PlayerObject> getVoiceService() {
+	public VoiceService<PlayerObject> getVoiceService() {
 		return voiceService;
 	}
 
@@ -836,17 +831,17 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public INotificationService<PlayerObject> getNotificationService() {
+	public NotificationService<PlayerObject> getNotificationService() {
 		return notificationService;
 	}
 
 	@Override
-	public IPauseMenuService<PlayerObject> getPauseMenuService() {
+	public PauseMenuService<PlayerObject> getPauseMenuService() {
 		return pauseMenuService;
 	}
 
 	@Override
-	public IWebViewService<PlayerObject> getWebViewService() {
+	public WebViewService<PlayerObject> getWebViewService() {
 		return webViewService;
 	}
 
@@ -857,7 +852,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public IEaglerXRewindService<PlayerObject> getEaglerXRewindService() {
+	public RewindService<PlayerObject> getEaglerXRewindService() {
 		return rewindService;
 	}
 

@@ -14,4 +14,8 @@ public interface IPauseMenuImpl extends ICustomPauseMenu {
 
 	boolean isPermitWebViewRequest();
 
+	ICustomPauseMenu extern();
+
+	boolean isRemote();
+
 }

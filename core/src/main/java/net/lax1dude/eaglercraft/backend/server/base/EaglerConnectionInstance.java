@@ -130,6 +130,10 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 
 	@Override
 	public byte[] getAuthUsername() {
+		return handshakeAuthUsername != null ? handshakeAuthUsername.clone() : null;
+	}
+
+	public byte[] getAuthUsernameUnsafe() {
 		return handshakeAuthUsername;
 	}
 

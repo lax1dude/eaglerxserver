@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.api.webview;
 
+import java.util.Set;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuManager;
 
@@ -21,11 +23,9 @@ public interface IWebViewManager<PlayerObject> {
 
 	boolean isChannelAllowed();
 
-	EnumChannelState getChannelState();
-
-	boolean isChannelOpen();
-
 	boolean isChannelOpen(String channelName);
+
+	Set<String> getOpenChannels();
 
 	void sendMessageString(String channelName, String contents);
 

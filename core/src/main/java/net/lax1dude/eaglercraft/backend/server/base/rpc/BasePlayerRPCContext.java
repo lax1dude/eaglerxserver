@@ -1,21 +1,16 @@
 package net.lax1dude.eaglercraft.backend.server.base.rpc;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCPacket;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.WrongRPCPacketException;
-import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCNotifBadgeShow;
-import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSetPauseMenuCustom;
-import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCResponseTypeBytes;
-import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCResponseTypeNull;
-import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCResponseTypeString;
-import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCResponseTypeUUID;
-import net.lax1dude.eaglercraft.backend.rpc.protocol.util.PacketImageData;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.*;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.*;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
+import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
 
 public abstract class BasePlayerRPCContext<PlayerObject> {
 
@@ -136,16 +131,32 @@ public abstract class BasePlayerRPCContext<PlayerObject> {
 		throw notEaglerPlayer();
 	}
 
+	void handleRequestWebViewStatusV2(int requestID) {
+		throw notEaglerPlayer();
+	}
+
 	void handleSetSubscribeWebViewOpenClose(boolean enable) {
 		throw notEaglerPlayer();
+	}
+
+	void fireWebViewOpenClose(boolean open, String channel) {
+		
 	}
 
 	void handleSetSubscribeWebViewMessage(boolean enable) {
 		throw notEaglerPlayer();
 	}
 
+	void fireWebViewMessage(String channel, boolean binary, byte[] data) {
+		
+	}
+
 	void handleSetSubscribeToggleVoice(boolean enable) {
 		throw notEaglerPlayer();
+	}
+
+	void fireToggleVoice(EnumVoiceState voiceState) {
+		
 	}
 
 	void handleSetPlayerSkin(byte[] skinPacket, boolean notifyOthers) {
@@ -164,7 +175,7 @@ public abstract class BasePlayerRPCContext<PlayerObject> {
 		manager().getPlayer().getSkinManager().changePlayerCape(cape, notifyOthers);
 	}
 
-	void handleSetPlayerCookie(byte[] cookieData, int expires, boolean saveToDisk, boolean revokeQuerySupported) {
+	void handleSetPlayerCookie(byte[] cookieData, long expiresSec, boolean saveToDisk, boolean revokeQuerySupported) {
 		throw notEaglerPlayer();
 	}
 
@@ -199,7 +210,7 @@ public abstract class BasePlayerRPCContext<PlayerObject> {
 		throw notEaglerPlayer();
 	}
 
-	void handleNotifIconRegister(Map<UUID, PacketImageData> icons) {
+	void handleNotifIconRegister(Collection<CPacketRPCNotifIconRegister.RegisterIcon> notifIcons) {
 		throw notEaglerPlayer();
 	}
 
@@ -220,10 +231,6 @@ public abstract class BasePlayerRPCContext<PlayerObject> {
 	}
 
 	void handleInjectRawBinaryFrame(byte[] data) {
-		throw notEaglerPlayer();
-	}
-
-	void handleInjectRawEaglerFrame(int pkt, byte[] data) {
 		throw notEaglerPlayer();
 	}
 

@@ -12,4 +12,8 @@ public interface IWebViewProvider<PlayerObject> {
 
 	void handleRequest(IWebViewManager<PlayerObject> manager, SHA1Sum hash, Consumer<IWebViewBlob> callback);
 
+	default SHA1Sum handleAlias(IWebViewManager<PlayerObject> manager, String aliasName) {
+		return manager.getWebViewService().getBlobFromAlias(aliasName);
+	}
+
 }

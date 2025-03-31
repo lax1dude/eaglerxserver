@@ -3,7 +3,7 @@ package net.lax1dude.eaglercraft.backend.rpc.api.data;
 import net.lax1dude.eaglercraft.backend.rpc.api.EnumSubscribeEvents;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCEvent;
 
-public class WebViewOpenCloseEvent implements IRPCEvent {
+public final class WebViewOpenCloseEvent implements IRPCEvent {
 
 	public WebViewOpenCloseEvent create(String channelName, boolean opened) {
 		return new WebViewOpenCloseEvent(channelName, opened);

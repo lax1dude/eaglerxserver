@@ -40,6 +40,10 @@ public interface INotificationBuilder<ComponentObject> {
 
 	INotificationBuilder<ComponentObject> setSilent(boolean silent);
 
+	boolean getManaged();
+
+	INotificationBuilder<ComponentObject> setManaged(boolean silent);
+
 	EnumBadgePriority getPriority();
 
 	INotificationBuilder<ComponentObject> setPriority(EnumBadgePriority priority);

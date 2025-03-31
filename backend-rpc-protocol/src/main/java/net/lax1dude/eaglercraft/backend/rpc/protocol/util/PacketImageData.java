@@ -47,7 +47,7 @@ public class PacketImageData {
 			pG = (p >>> 5) & 0x3F;
 			pB = p & 0x1F;
 			if(pR + pG + pB > 0) {
-				pB = (int)((pB - 1) * 8.5f);
+				pB = (pB - 1) * 255 / 30;
 				pixels[j] = 0xFF000000 | (pR << 19) | (pG << 10) | pB;
 			}else {
 				pixels[j] = 0;
@@ -68,7 +68,7 @@ public class PacketImageData {
 			if((p >>> 24) > 0x7F) {
 				pR = (p >>> 19) & 0x1F;
 				pG = (p >>> 10) & 0x3F;
-				pB = (int)((p & 0xFF) * 0.1176471f) + 1;
+				pB = ((p & 0xFF) * 30 / 255) + 1;
 				buffer.writeShort((pR << 11) | (pG << 5) | pB);
 			}else {
 				buffer.writeShort(0);

@@ -6,6 +6,7 @@ import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuManager;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuService;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewBlob;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketCustomizePauseMenuV4EAG;
 
 public class PauseMenuManager<PlayerObject> implements IPauseMenuManager<PlayerObject> {
 
@@ -30,7 +31,12 @@ public class PauseMenuManager<PlayerObject> implements IPauseMenuManager<PlayerO
 
 	@Override
 	public ICustomPauseMenu getActivePauseMenu() {
-		return activePauseMenu;
+		return activePauseMenu.extern();
+	}
+
+	@Override
+	public boolean isActivePauseMenuRemote() {
+		return activePauseMenu.isRemote();
 	}
 
 	@Override
@@ -51,6 +57,11 @@ public class PauseMenuManager<PlayerObject> implements IPauseMenuManager<PlayerO
 
 	public IWebViewBlob getWebViewBlobDefault() {
 		return activePauseMenu.getBlob();
+	}
+
+	public void updatePauseMenuRPC(SPacketCustomizePauseMenuV4EAG packet) {
+		activePauseMenu = PauseMenuImplVanilla.INSTANCE_RPC;
+		player.sendEaglerMessage(packet);
 	}
 
 }

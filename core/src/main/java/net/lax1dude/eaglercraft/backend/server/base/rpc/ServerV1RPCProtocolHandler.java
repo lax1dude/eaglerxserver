@@ -67,7 +67,7 @@ public class ServerV1RPCProtocolHandler extends ServerRPCProtocolHandler {
 	}
 
 	public void handleClient(CPacketRPCSetPlayerCookie packet) {
-		rpcManager.context().handleSetPlayerCookie(packet.cookieData, packet.expires, packet.saveToDisk, packet.revokeQuerySupported);
+		rpcManager.context().handleSetPlayerCookie(packet.cookieData, packet.expires, packet.revokeQuerySupported, packet.saveToDisk);
 	}
 
 	public void handleClient(CPacketRPCSetPlayerFNAWEn packet) {

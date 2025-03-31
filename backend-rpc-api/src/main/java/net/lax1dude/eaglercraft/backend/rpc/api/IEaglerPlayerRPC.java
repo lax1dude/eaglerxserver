@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.BrandData;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.CookieData;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewStateData;
-import net.lax1dude.eaglercraft.backend.rpc.api.notifications.INotificationBuilder;
+import net.lax1dude.eaglercraft.backend.rpc.api.notifications.INotificationBadge;
 import net.lax1dude.eaglercraft.backend.rpc.api.notifications.IconDef;
 import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.ICustomPauseMenu;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumEnableFNAW;
@@ -174,27 +174,15 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 
 	boolean isNotificationSupported();
 
-	void registerNotificationIcon(UUID iconUUID);
+	void registerNotificationIcon(UUID iconUUID, IPacketImageData icon);
 
-	void registerNotificationIcons(Collection<UUID> iconUUIDs);
-
-	void registerUnmanagedNotificationIcon(UUID iconUUID, IPacketImageData icon);
-
-	void registerUnmanagedNotificationIcons(Collection<IconDef> icons);
-
-	void releaseUnmanagedNotificationIcon(UUID iconUUID);
-
-	void releaseUnmanagedNotificationIcons(Collection<UUID> iconUUIDs);
+	void registerNotificationIcons(Collection<IconDef> icons);
 
 	void releaseNotificationIcon(UUID iconUUID);
 
 	void releaseNotificationIcons(Collection<UUID> iconUUIDs);
 
-	void releaseNotificationIcons();
-
-	void showNotificationBadge(INotificationBuilder<?> builder);
-
-	void showUnmanagedNotificationBadge(INotificationBuilder<?> builder);
+	void showNotificationBadge(INotificationBadge badge);
 
 	void hideNotificationBadge(UUID badgeUUID);
 

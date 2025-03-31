@@ -34,4 +34,9 @@ class WebViewDefaultProvider implements IWebViewProvider<Object> {
 		((WebViewManager<?>)manager).handleRequestDefault(hash, callback);
 	}
 
+	@Override
+	public SHA1Sum handleAlias(IWebViewManager<Object> manager, String aliasName) {
+		return ((WebViewManager<?>)manager).handleAliasDefault(aliasName);
+	}
+
 }

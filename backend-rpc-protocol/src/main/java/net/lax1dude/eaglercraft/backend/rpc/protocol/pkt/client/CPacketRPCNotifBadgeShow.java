@@ -63,6 +63,7 @@ public class CPacketRPCNotifBadgeShow implements EaglerBackendRPCPacket {
 	public String sourceComponent;
 	public long originalTimestampSec;
 	public boolean silent;
+	public boolean managed;
 	public EnumBadgePriority priority;
 	public UUID mainIconUUID;
 	public UUID titleIconUUID;
@@ -77,7 +78,7 @@ public class CPacketRPCNotifBadgeShow implements EaglerBackendRPCPacket {
 	}
 
 	public CPacketRPCNotifBadgeShow(UUID badgeUUID, String bodyComponent, String titleComponent, String sourceComponent,
-			long originalTimestampSec, UUID mainIconUUID, UUID titleIconUUID, boolean silent,
+			long originalTimestampSec, UUID mainIconUUID, UUID titleIconUUID, boolean silent, boolean managed,
 			EnumBadgePriority priority, int hideAfterSec, int expireAfterSec, int backgroundColor, int bodyTxtColor,
 			int titleTxtColor, int sourceTxtColor) {
 		this.badgeUUID = badgeUUID;
@@ -88,6 +89,7 @@ public class CPacketRPCNotifBadgeShow implements EaglerBackendRPCPacket {
 		this.mainIconUUID = mainIconUUID;
 		this.titleIconUUID = titleIconUUID;
 		this.silent = silent;
+		this.managed = managed;
 		this.priority = priority;
 		this.hideAfterSec = hideAfterSec;
 		this.expireAfterSec = expireAfterSec;
@@ -111,6 +113,7 @@ public class CPacketRPCNotifBadgeShow implements EaglerBackendRPCPacket {
 		expireAfterSec = buffer.readUnsignedShort();
 		mainIconUUID = (flags & 8) != 0 ? new UUID(buffer.readLong(), buffer.readLong()) : null;
 		titleIconUUID = (flags & 16) != 0 ? new UUID(buffer.readLong(), buffer.readLong()) : null;
+		managed = (flags & 32) != 0;
 		backgroundColor = (buffer.readUnsignedByte() << 16) | (buffer.readUnsignedByte() << 8) | buffer.readUnsignedByte();
 		bodyTxtColor = (buffer.readUnsignedByte() << 16) | (buffer.readUnsignedByte() << 8) | buffer.readUnsignedByte();
 		titleTxtColor = (buffer.readUnsignedByte() << 16) | (buffer.readUnsignedByte() << 8) | buffer.readUnsignedByte();
@@ -126,10 +129,12 @@ public class CPacketRPCNotifBadgeShow implements EaglerBackendRPCPacket {
 		writeString(buffer, sourceComponent, false, StandardCharsets.UTF_8);
 		buffer.writeShort((int)((originalTimestampSec >> 32l) & 0xFFFFl));
 		buffer.writeInt((int)(originalTimestampSec & 0xFFFFFFFFl));
-		int flags = (silent ? 1 : 0);
+		int flags = 0;
+		if(silent) flags |= 1;
 		flags |= ((priority != null ? priority.priority : 1) << 1);
-		flags |= (mainIconUUID != null ? 8 : 0);
-		flags |= (titleIconUUID != null ? 16 : 0);
+		if(mainIconUUID != null) flags |= 8;
+		if(titleIconUUID != null) flags |= 16;
+		if(managed) flags |= 32;
 		buffer.writeByte(flags);
 		buffer.writeByte(hideAfterSec);
 		buffer.writeShort(expireAfterSec);
