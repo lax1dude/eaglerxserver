@@ -26,7 +26,6 @@ public class SkinConverter {
 			imageOut[j + 1] = (byte)(k >>> 8);
 			imageOut[j + 2] = (byte)(((k >>> 17) & 0x7F) | ((k >>> 24) & 0x80));
 		}
-		setAlphaForChestV4(imageOut);
 	}
 
 	public static void convert64x32To64x64(int[] imageIn, byte[] imageOut) {
@@ -43,7 +42,6 @@ public class SkinConverter {
 		copyRawPixels(imageIn, imageOut, 40, 52, 36, 64, 44, 20, 48, 32, 64, 64);
 		copyRawPixels(imageIn, imageOut, 44, 52, 40, 64, 40, 20, 44, 32, 64, 64);
 		copyRawPixels(imageIn, imageOut, 48, 52, 44, 64, 52, 20, 56, 32, 64, 64);
-		setAlphaForChestV4(imageOut);
 	}
 
 	private static void copyRawPixels(int[] imageIn, byte[] imageOut, int dx1, int dy1, int dx2, int dy2, int sx1,
@@ -91,14 +89,6 @@ public class SkinConverter {
 			skinOut[j] = (byte)(i >>> 16);
 			skinOut[j + 1] = (byte)(i >>> 8);
 			skinOut[j + 2] = (byte)(i & 0xFF);
-		}
-	}
-
-	public static void setAlphaForChestV4(byte[] skin64x64) {
-		for(int y = 20; y < 32; ++y) {
-			for(int x = 16; x < 40; ++x) {
-				skin64x64[((y << 6) | x) * 3 + 2] |= 0x80;
-			}
 		}
 	}
 

@@ -31,7 +31,6 @@ public class SkinHandshake {
 				}
 				byte[] pixels = new byte[16384];
 				System.arraycopy(data, 2, pixels, 0, pixels.length);
-				setAlphaForChestV3(pixels);
 				return CustomSkinPlayer.createV3(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(),
 						(int) data[1] & 0xFF, pixels);
 			default:
@@ -57,7 +56,6 @@ public class SkinHandshake {
 				}
 				byte[] pixels = new byte[12288];
 				System.arraycopy(data, 2, pixels, 0, pixels.length);
-				setAlphaForChestV4(pixels);
 				return CustomSkinPlayer.createV4(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(),
 						(int) data[1] & 0xFF, pixels);
 			default:
@@ -89,22 +87,6 @@ public class SkinHandshake {
 			}
 		}
 		return new PresetCapePlayer(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(), 0);
-	}
-
-	public static void setAlphaForChestV3(byte[] skin64x64) {
-		for(int y = 20; y < 32; ++y) {
-			for(int x = 16; x < 40; ++x) {
-				skin64x64[(y << 8) | (x << 2)] = (byte)0xFF;
-			}
-		}
-	}
-
-	public static void setAlphaForChestV4(byte[] skin64x64) {
-		for(int y = 20; y < 32; ++y) {
-			for(int x = 16; x < 40; ++x) {
-				skin64x64[((y << 6) | x) * 3] |= 0x80;
-			}
-		}
 	}
 
 }
