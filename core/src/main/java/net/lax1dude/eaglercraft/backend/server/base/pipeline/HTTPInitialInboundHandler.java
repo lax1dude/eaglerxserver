@@ -164,6 +164,7 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 		if(hs != null) {
 			hs.handshake(ctx.channel(), msg).addListener((future) -> {
 				if(future.isSuccess()) {
+					pipelineData.initStall = false;
 					pipelineData.scheduleLoginTimeoutHelper();
 				}else {
 					ctx.close();
