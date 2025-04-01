@@ -2,24 +2,17 @@ package net.lax1dude.eaglercraft.backend.server.base.rpc;
 
 import java.io.IOException;
 
-import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCHandler;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCPacket;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCEnabled;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCEnabledFailure;
 import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
 import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
 
 public abstract class BasePlayerRPCManager<PlayerObject> {
 
-	public interface IExceptionCallback {
-		void handleException(Exception ex);
-	}
-
-	public interface IMessageHandler extends EaglerBackendRPCHandler, IExceptionCallback {
-	}
-
 	protected final BackendRPCService<PlayerObject> service;
 	protected BasePlayerRPCContext<PlayerObject> context;
-	protected EaglerBackendRPCHandler packetHandler;
-	protected IExceptionCallback exceptionHandler;
 
 	BasePlayerRPCManager(BackendRPCService<PlayerObject> service) {
 		this.service = service;
@@ -29,6 +22,17 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 
 	public abstract boolean isEaglerPlayer();
 
+	public void sendRPCInitPacket(EaglerBackendRPCPacket packet) {
+		byte[] data;
+		try {
+			data = service.handshakeCtx.serialize(packet);
+		} catch (IOException e) {
+			handleException(e);
+			return;
+		}
+		getPlayer().getPlatformPlayer().sendDataBackend(service.getRPCChannel(), data);
+	}
+
 	public void sendRPCPacket(EaglerBackendRPCPacket packet) {
 		BasePlayerRPCContext<PlayerObject> ctx = context;
 		if(ctx != null) {
@@ -36,7 +40,7 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 			try {
 				data = ctx.serialize(packet);
 			} catch (IOException e) {
-				onException(e);
+				handleException(e);
 				return;
 			}
 			getPlayer().getPlatformPlayer().sendDataBackend(service.getRPCChannel(), data);
@@ -50,25 +54,42 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 			try {
 				packet = ctx.deserialize(data);
 			} catch (IOException e) {
-				onException(e);
+				handleException(e);
 				return;
 			}
-			handleRPCPacket(packet);
+			try {
+				packet.handlePacket(ctx.packetHandler());
+			} catch(Exception e) {
+				handleException(e);
+			}
 		}else {
-			//TODO
+			EaglerBackendRPCPacket packet;
+			try {
+				packet = service.handshakeCtx.deserialize(data);
+			} catch (IOException e) {
+				handleException(e);
+				return;
+			}
+			if(packet instanceof CPacketRPCEnabled) {
+				CPacketRPCEnabled pkt = (CPacketRPCEnabled) packet;
+				boolean V1 = false, V2 = false;
+				for(int i : pkt.supportedProtocols) {
+					if(i == 1) V1 = true;
+					if(i == 2) V2 = true;
+					if(V2) break;
+				}
+				if(V2) {
+					handleEnabled(EaglerBackendRPCProtocol.V2);
+				}else if(V1) {
+					handleEnabled(EaglerBackendRPCProtocol.V1);
+				}else {
+					sendRPCInitPacket(new SPacketRPCEnabledFailure(SPacketRPCEnabledFailure.FAILURE_CODE_OUTDATED_SERVER));
+				}
+			}else {
+				handleException(new IllegalStateException("Unexpected packet type for handshake: " + packet.getClass().getName()));
+				sendRPCInitPacket(new SPacketRPCEnabledFailure(SPacketRPCEnabledFailure.FAILURE_CODE_INTERNAL_ERROR));
+			}
 		}
-	}
-
-	public void handleRPCPacket(EaglerBackendRPCPacket packet) {
-		try {
-			packet.handlePacket(packetHandler);
-		}catch(Exception ex) {
-			onException(ex);
-		}
-	}
-
-	protected void onException(Exception ex) {
-		exceptionHandler.handleException(ex);
 	}
 
 	BasePlayerRPCContext<PlayerObject> context() {
@@ -80,6 +101,16 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 		}
 	}
 
+	void handleException(Exception ex) {
+		getPlayer().getEaglerXServer().logger().error("Exception thrown while handling backend RPC packet for \"" + getPlayer().getUsername() + "\"!", ex);
+	}
+
+	protected abstract void handleEnabled(EaglerBackendRPCProtocol ver);
+
+	protected void handleEnableContext(BasePlayerRPCContext<PlayerObject> ctx) {
+		context = ctx;
+	}
+
 	void handleDisabled() {
 		context = null;
 	}
@@ -89,7 +120,10 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 		if(ctx != null) {
 			ctx.handleDisabled();
 		}
+		sendReadyMessage();
 	}
+
+	protected abstract void sendReadyMessage();
 
 	public void fireWebViewOpenClose(boolean open, String channel) {
 		BasePlayerRPCContext<PlayerObject> ctx = context;

@@ -111,6 +111,14 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		return CapabilityBits.getCapability(acceptedCapabilitiesMask, acceptedCapabilitiesVers, capability.getId());
 	}
 
+	public int getCapabilityMask() {
+		return acceptedCapabilitiesMask;
+	}
+
+	public byte[] getCapabilityVers() {
+		return acceptedCapabilitiesVers;
+	}
+
 	@Override
 	public boolean hasExtendedCapability(UUID extendedCapability, int version) {
 		Byte b = acceptedExtendedCapabilities.get(extendedCapability);
@@ -121,6 +129,10 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	public int getExtendedCapability(UUID extendedCapability) {
 		Byte b = acceptedExtendedCapabilities.get(extendedCapability);
 		return b != null ? (b.byteValue() & 0xFF) : -1;
+	}
+
+	public Map<UUID, Byte> getExtCapabilities() {
+		return acceptedExtendedCapabilities;
 	}
 
 	@Override

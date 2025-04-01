@@ -249,7 +249,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			updateService = new UpdateService(this);
 		}
 		
-		if(config.getSettings().isEnableBackendRPCAPI()) {
+		if(config.getSettings().isEnableBackendRPCAPI() && platform.getType().proxy) {
 			backendRPCService = new BackendRPCService<>(this);
 		}
 		
@@ -491,13 +491,18 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	private void handleServerJoin(IPlatformPlayer<PlayerObject> player, IPlatformServer<PlayerObject> server) {
 		BasePlayerInstance<PlayerObject> playerInstance = player.getPlayerAttachment();
-		if(playerInstance != null && server != null && playerInstance.isEaglerPlayer()) {
+		if(playerInstance != null && server != null) {
 			String serverName = server.getServerConfName();
 			System.out.println("server change: " + serverName);
-			EaglerPlayerInstance<PlayerObject> eaglerPlayer = playerInstance.asEaglerPlayer();
-			eaglerPlayer.getSkinManager().handleServerChanged(serverName);
-			if(eaglerPlayer.voiceManager != null) {
-				eaglerPlayer.voiceManager.handleServerChanged(serverName);
+			if(playerInstance.backendRPCManager != null) {
+				playerInstance.backendRPCManager.handleSwitchServers();
+			}
+			if(playerInstance.isEaglerPlayer()) {
+				EaglerPlayerInstance<PlayerObject> eaglerPlayer = playerInstance.asEaglerPlayer();
+				eaglerPlayer.getSkinManager().handleServerChanged(serverName);
+				if(eaglerPlayer.voiceManager != null) {
+					eaglerPlayer.voiceManager.handleServerChanged(serverName);
+				}
 			}
 		}
 	}

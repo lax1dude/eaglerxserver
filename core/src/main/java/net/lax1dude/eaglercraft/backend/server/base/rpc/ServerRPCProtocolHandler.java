@@ -1,28 +1,14 @@
 package net.lax1dude.eaglercraft.backend.server.base.rpc;
 
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCHandler;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.WrongRPCPacketException;
-import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
-import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 
-public abstract class ServerRPCProtocolHandler implements BasePlayerRPCManager.IMessageHandler {
+public abstract class ServerRPCProtocolHandler implements EaglerBackendRPCHandler {
 
-	protected final BasePlayerRPCManager<?> rpcManager;
+	protected final BasePlayerRPCContext<?> rpcContext;
 
-	public ServerRPCProtocolHandler(BasePlayerRPCManager<?> rpcManager) {
-		this.rpcManager = rpcManager;
-	}
-
-	public BasePlayerInstance<?> getPlayer() {
-		return rpcManager.getPlayer();
-	}
-
-	public EaglerXServer<?> getServer() {
-		return rpcManager.getPlayer().getEaglerXServer();
-	}
-
-	@Override
-	public void handleException(Exception ex) {
-		getServer().logger().error("Exception thrown while handling backend RPC packet for \"" + getPlayer().getUsername() + "\"!", ex);
+	public ServerRPCProtocolHandler(BasePlayerRPCContext<?> rpcContext) {
+		this.rpcContext = rpcContext;
 	}
 
 	protected RuntimeException wrongPacket() {

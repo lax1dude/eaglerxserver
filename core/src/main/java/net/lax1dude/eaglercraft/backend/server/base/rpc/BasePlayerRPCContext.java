@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCHandler;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCPacket;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.WrongRPCPacketException;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.*;
@@ -15,11 +16,27 @@ import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
 
 public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationContext {
 
+	private final EaglerBackendRPCHandler packetHandler;
+
 	BasePlayerRPCContext(EaglerBackendRPCProtocol protocol) {
 		super(protocol);
+		switch(protocol) {
+		case V1:
+			packetHandler = new ServerV1RPCProtocolHandler(this);
+			break;
+		case V2:
+			packetHandler = new ServerV2RPCProtocolHandler(this);
+			break;
+		default:
+			throw new IllegalStateException();
+		}
 	}
 
 	protected abstract BasePlayerRPCManager<PlayerObject> manager();
+
+	EaglerBackendRPCHandler packetHandler() {
+		return packetHandler;
+	}
 
 	protected final void sendRPCPacket(EaglerBackendRPCPacket packet) {
 		manager().sendRPCPacket(packet);

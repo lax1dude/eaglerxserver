@@ -4,8 +4,8 @@ import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.*;
 
 public class ServerV2RPCProtocolHandler extends ServerV1RPCProtocolHandler {
 
-	public ServerV2RPCProtocolHandler(BasePlayerRPCManager<?> rpcManager) {
-		super(rpcManager);
+	public ServerV2RPCProtocolHandler(BasePlayerRPCContext<?> rpcContext) {
+		super(rpcContext);
 	}
 
 	public void handleClient(CPacketRPCDisabled packet) {
@@ -17,19 +17,19 @@ public class ServerV2RPCProtocolHandler extends ServerV1RPCProtocolHandler {
 		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_WEBVIEW_STATUS:
 			throw wrongPacket();
 		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_TEXTURE_DATA:
-			rpcManager.context().handleRequestTextureData(packet.requestID);
+			rpcContext.handleRequestTextureData(packet.requestID);
 			break;
 		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_DATA:
-			rpcManager.context().handleRequestBrandData(packet.requestID);
+			rpcContext.handleRequestBrandData(packet.requestID);
 			break;
 		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_MINECRAFT_BRAND:
-			rpcManager.context().handleRequestMinecraftBrand(packet.requestID);
+			rpcContext.handleRequestMinecraftBrand(packet.requestID);
 			break;
 		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_AUTH_USERNAME:
-			rpcManager.context().handleRequestAuthUsername(packet.requestID);
+			rpcContext.handleRequestAuthUsername(packet.requestID);
 			break;
 		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_WEBVIEW_STATUS_V2:
-			rpcManager.context().handleRequestWebViewStatus(packet.requestID);
+			rpcContext.handleRequestWebViewStatus(packet.requestID);
 			break;
 		default:
 			super.handleClient(packet);
@@ -38,7 +38,7 @@ public class ServerV2RPCProtocolHandler extends ServerV1RPCProtocolHandler {
 	}
 
 	public void handleClient(CPacketRPCInjectRawBinaryFrameV2 packet) {
-		rpcManager.context().handleInjectRawBinaryFrame(packet.messageData);
+		rpcContext.handleInjectRawBinaryFrame(packet.messageData);
 	}
 
 }
