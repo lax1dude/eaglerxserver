@@ -1,0 +1,15 @@
+
+plugins {
+	id "java"
+	id "eclipse"
+}
+
+dependencies {
+	compileOnly(libs.guava)
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_11
+	targetCompatibility = JavaVersion.VERSION_11
+}
+

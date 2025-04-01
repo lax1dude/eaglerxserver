@@ -17,7 +17,8 @@ public class OutboundPacketThrowHandler extends ChannelOutboundHandlerAdapter {
 	public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
 		if(!(msg instanceof HttpResponse) && !(msg instanceof WebSocketFrame)) {
 			ReferenceCountUtil.release(msg);
-			throw new IllegalStateException("Server sent an unexpected packet before the connection was initialized");
+			ctx.close();
+			promise.setFailure(new IllegalStateException("Server sent an unexpected packet before the connection was initialized"));
 		}else {
 			ctx.write(msg, promise);
 		}

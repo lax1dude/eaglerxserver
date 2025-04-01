@@ -194,6 +194,7 @@ public enum EaglerBackendRPCProtocol {
 		switch(id) {
 		case 0: return INIT;
 		case 1: return V1;
+		case 2: return V2;
 		default: return null;
 		}
 	}
