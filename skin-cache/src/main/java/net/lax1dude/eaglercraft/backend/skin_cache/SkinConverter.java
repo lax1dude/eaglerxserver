@@ -97,7 +97,7 @@ public class SkinConverter {
 	public static void setAlphaForChestV4(byte[] skin64x64) {
 		for(int y = 20; y < 32; ++y) {
 			for(int x = 16; x < 40; ++x) {
-				skin64x64[((y << 6) | x) * 3] |= 0x80;
+				skin64x64[((y << 6) | x) * 3 + 2] |= 0x80;
 			}
 		}
 	}
