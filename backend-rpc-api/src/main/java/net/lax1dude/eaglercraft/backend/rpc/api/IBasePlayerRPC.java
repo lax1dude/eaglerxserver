@@ -2,6 +2,9 @@ package net.lax1dude.eaglercraft.backend.rpc.api;
 
 import java.util.UUID;
 
+import net.lax1dude.eaglercraft.backend.rpc.api.data.TexturesData;
+import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetCapes;
+import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetSkins;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerSkin;
 
@@ -27,35 +30,53 @@ public interface IBasePlayerRPC<PlayerObject> {
 
 	int getBaseCacheTTL();
 
-	default IRPCFuture<IEaglerPlayerSkin> getEaglerSkin() {
-		return getEaglerSkin(getBaseRequestTimeout(), getBaseCacheTTL());
+	default IRPCFuture<IEaglerPlayerSkin> getPlayerSkin() {
+		return getPlayerSkin(getBaseRequestTimeout(), getBaseCacheTTL());
 	}
 
-	default IRPCFuture<IEaglerPlayerSkin> getEaglerSkin(int timeoutSec) {
-		return getEaglerSkin(timeoutSec, getBaseCacheTTL());
+	default IRPCFuture<IEaglerPlayerSkin> getPlayerSkin(int timeoutSec) {
+		return getPlayerSkin(timeoutSec, getBaseCacheTTL());
 	}
 
-	IRPCFuture<IEaglerPlayerSkin> getEaglerSkin(int timeoutSec, int cacheTTLSec);
+	IRPCFuture<IEaglerPlayerSkin> getPlayerSkin(int timeoutSec, int cacheTTLSec);
 
-	void changeEaglerSkin(IEaglerPlayerSkin skin, boolean notifyOthers);
+	void changePlayerSkin(IEaglerPlayerSkin skin, boolean notifyOthers);
 
-	default IRPCFuture<IEaglerPlayerSkin> getEaglerCape() {
-		return getEaglerCape(getBaseRequestTimeout(), getBaseCacheTTL());
+	void changePlayerSkin(EnumPresetSkins skin, boolean notifyOthers);
+
+	default IRPCFuture<IEaglerPlayerCape> getPlayerCape() {
+		return getPlayerCape(getBaseRequestTimeout(), getBaseCacheTTL());
 	}
 
-	default IRPCFuture<IEaglerPlayerSkin> getEaglerCape(int timeoutSec) {
-		return getEaglerCape(timeoutSec, getBaseCacheTTL());
+	default IRPCFuture<IEaglerPlayerCape> getPlayerCape(int timeoutSec) {
+		return getPlayerCape(timeoutSec, getBaseCacheTTL());
 	}
 
-	IRPCFuture<IEaglerPlayerSkin> getEaglerCape(int timeoutSec, int cacheTTLSec);
+	IRPCFuture<IEaglerPlayerCape> getPlayerCape(int timeoutSec, int cacheTTLSec);
 
 	void changePlayerCape(IEaglerPlayerCape cape, boolean notifyOthers);
 
-	void resetForcedSkin(boolean notifyOtherPlayers);
+	void changePlayerCape(EnumPresetCapes cape, boolean notifyOthers);
 
-	void resetForcedCape(boolean notifyOtherPlayers);
+	default IRPCFuture<TexturesData> getPlayerTextures() {
+		return getPlayerTextures(getBaseRequestTimeout(), getBaseCacheTTL());
+	}
 
-	void resetForcedMulti(boolean resetSkin, boolean resetCape, boolean notifyOtherPlayers);
+	default IRPCFuture<TexturesData> getPlayerTextures(int timeoutSec) {
+		return getPlayerTextures(timeoutSec, getBaseCacheTTL());
+	}
+
+	IRPCFuture<TexturesData> getPlayerTextures(int timeoutSec, int cacheTTLSec);
+
+	void changePlayerTextures(IEaglerPlayerSkin skin, IEaglerPlayerCape cape, boolean notifyOthers);
+
+	void changePlayerTextures(EnumPresetSkins skin, EnumPresetCapes cape, boolean notifyOthers);
+
+	void resetPlayerSkin(boolean notifyOthers);
+
+	void resetPlayerCape(boolean notifyOthers);
+
+	void resetPlayerTextures(boolean notifyOthers);
 
 	default IRPCFuture<UUID> getProfileUUID() {
 		return getProfileUUID(getBaseRequestTimeout(), getBaseCacheTTL());

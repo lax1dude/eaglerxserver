@@ -37,7 +37,15 @@ public interface EaglerBackendRPCHandler {
 		throw new WrongRPCPacketException();
 	}
 
+	default void handleClient(CPacketRPCSetPlayerSkinPresetV2 packet) {
+		throw new WrongRPCPacketException();
+	}
+
 	default void handleClient(CPacketRPCSetPlayerCape packet) {
+		throw new WrongRPCPacketException();
+	}
+
+	default void handleClient(CPacketRPCSetPlayerCapePresetV2 packet) {
 		throw new WrongRPCPacketException();
 	}
 
@@ -90,6 +98,14 @@ public interface EaglerBackendRPCHandler {
 	}
 
 	default void handleClient(CPacketRPCInjectRawBinaryFrameV2 packet) {
+		throw new WrongRPCPacketException();
+	}
+
+	default void handleClient(CPacketRPCSetPlayerTexturesV2 packet) {
+		throw new WrongRPCPacketException();
+	}
+
+	default void handleClient(CPacketRPCSetPlayerTexturesPresetV2 packet) {
 		throw new WrongRPCPacketException();
 	}
 
@@ -158,6 +174,14 @@ public interface EaglerBackendRPCHandler {
 	}
 
 	default void handleServer(SPacketRPCResponseTypeWebViewStatusV2 packet) {
+		throw new WrongRPCPacketException();
+	}
+
+	default void handleServer(SPacketRPCResponseTypeIntegerSingleV2 packet) {
+		throw new WrongRPCPacketException();
+	}
+
+	default void handleServer(SPacketRPCResponseTypeIntegerTupleV2 packet) {
 		throw new WrongRPCPacketException();
 	}
 

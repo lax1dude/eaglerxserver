@@ -1,7 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.message;
 
 import java.io.IOException;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -23,8 +23,8 @@ public class LegacyMessageController extends MessageController {
 	private final ReusableByteArrayOutputStream byteOutputStreamSingleton = new ReusableByteArrayOutputStream();
 	private final SimpleInputBufferImpl inputStreamSingleton = new SimpleInputBufferImpl(byteInputStreamSingleton);
 	private final SimpleOutputBufferImpl outputStreamSingleton = new SimpleOutputBufferImpl(byteOutputStreamSingleton);
-	private final ReentrantLock inputStreamLock = new ReentrantLock();
-	private final ReentrantLock outputStreamLock = new ReentrantLock();
+	private final AtomicBoolean inputStreamLock = new AtomicBoolean(false);
+	private final AtomicBoolean outputStreamLock = new AtomicBoolean(false);
 
 	public LegacyMessageController(GamePluginMessageProtocol protocol, ServerMessageHandler handler, EventLoop eventLoop,
 			int defragSendDelay) {
@@ -37,7 +37,7 @@ public class LegacyMessageController extends MessageController {
 		}
 		try {
 			GameMessagePacket pkt;
-			if(inputStreamLock.tryLock()) {
+			if(!inputStreamLock.getAndSet(true)) {
 				try {
 					byteInputStreamSingleton.feedBuffer(data);
 					if(data[0] == (byte)0xFF && channel.equals(GamePluginMessageConstants.V4_CHANNEL)) {
@@ -72,7 +72,7 @@ public class LegacyMessageController extends MessageController {
 				}finally {
 					byteInputStreamSingleton.feedBuffer(null);
 					inputStreamSingleton.setToByteArrayReturns(null);
-					inputStreamLock.unlock();
+					inputStreamLock.set(false);
 				}
 			}else {
 				// slow version that makes multiple new objects
@@ -126,14 +126,14 @@ public class LegacyMessageController extends MessageController {
 		int len = packet.length() + 1;
 		String chan;
 		byte[] data;
-		if(outputStreamLock.tryLock()) {
+		if(!outputStreamLock.getAndSet(true)) {
 			try {
 				byteOutputStreamSingleton.feedBuffer(new byte[len == 0 ? 64 : len]);
 				chan = protocol.writePacket(GamePluginMessageConstants.SERVER_TO_CLIENT, outputStreamSingleton, packet);
 				data = byteOutputStreamSingleton.returnBuffer();
 			}finally {
 				byteOutputStreamSingleton.feedBuffer(null);
-				outputStreamLock.unlock();
+				outputStreamLock.set(false);
 			}
 		}else {
 			// slow version that makes multiple new objects
@@ -157,7 +157,7 @@ public class LegacyMessageController extends MessageController {
 		EaglerPlayerInstance<?> player = ((ServerMessageHandler)handler).eaglerHandle;
 		byte[][] buffer = new byte[total][];
 		byte[] dat;
-		if(outputStreamLock.tryLock()) {
+		if(!outputStreamLock.getAndSet(true)) {
 			try {
 				for(int i = 0; i < packets.length; ++i) {
 					GameMessagePacket packet = packets[i];
@@ -173,7 +173,7 @@ public class LegacyMessageController extends MessageController {
 				}
 			}finally {
 				byteOutputStreamSingleton.feedBuffer(null);
-				outputStreamLock.unlock();
+				outputStreamLock.set(false);
 			}
 		}else {
 			ReusableByteArrayOutputStream bao = new ReusableByteArrayOutputStream();

@@ -12,6 +12,9 @@ import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.*;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.InternUtils;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingCape;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingSkin;
 import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
 
 public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationContext {
@@ -75,7 +78,21 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 	}
 
 	private void completeRequestSkinData(int requestID, IEaglerPlayerSkin skin) {
-		sendRPCPacket(new SPacketRPCResponseTypeBytes(requestID, TextureDataHelper.encodeSkinData(skin)));
+		boolean legacy = getProtocol() == EaglerBackendRPCProtocol.V1;
+		if(!legacy) {
+			if(!skin.isSuccess()) {
+				sendRPCPacket(new SPacketRPCResponseTypeIntegerSingleV2(requestID, -1));
+				return;
+			}else if(skin.isSkinPreset()) {
+				int id = skin.getPresetSkinId();
+				if(id == -1) {
+					id = 0;
+				}
+				sendRPCPacket(new SPacketRPCResponseTypeIntegerSingleV2(requestID, id));
+				return;
+			}
+		}
+		sendRPCPacket(new SPacketRPCResponseTypeBytes(requestID, TextureDataHelper.encodeSkinData(skin, legacy)));
 	}
 
 	void handleRequestCapeData(int requestID) {
@@ -91,6 +108,19 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 	}
 
 	private void completeRequestCapeData(int requestID, IEaglerPlayerCape cape) {
+		if(getProtocol() != EaglerBackendRPCProtocol.V1) {
+			if(!cape.isSuccess()) {
+				sendRPCPacket(new SPacketRPCResponseTypeIntegerSingleV2(requestID, -1));
+				return;
+			}else if(cape.isCapePreset()) {
+				int id = cape.getPresetCapeId();
+				if(id == -1) {
+					id = 0;
+				}
+				sendRPCPacket(new SPacketRPCResponseTypeIntegerSingleV2(requestID, id));
+				return;
+			}
+		}
 		sendRPCPacket(new SPacketRPCResponseTypeBytes(requestID, TextureDataHelper.encodeCapeData(cape)));
 	}
 
@@ -127,12 +157,38 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 		IEaglerPlayerSkin skin = skinMgr.getPlayerSkinIfLoaded();
 		IEaglerPlayerCape cape = skinMgr.getPlayerCapeIfLoaded();
 		if(skin != null && cape != null) {
-			sendRPCPacket(new SPacketRPCResponseTypeBytes(requestID, TextureDataHelper.encodeTexturesData(skin, cape)));
+			completeRequestTextureData(requestID, skin, cape);
 		}else {
 			skinMgr.resolvePlayerTextures((resolvedSkin, resolvedCape) -> {
-				sendRPCPacket(new SPacketRPCResponseTypeBytes(requestID,
-						TextureDataHelper.encodeTexturesData(resolvedSkin, resolvedCape)));
+				completeRequestTextureData(requestID, resolvedSkin, resolvedCape);
 			});
+		}
+	}
+
+	private void completeRequestTextureData(int requestID, IEaglerPlayerSkin skin, IEaglerPlayerCape cape) {
+		boolean a = !skin.isSuccess();
+		boolean b = !cape.isSuccess();
+		if((a || skin.isSkinPreset()) && (b || cape.isCapePreset())) {
+			int i1, i2;
+			if(a) {
+				i1 = -1;
+			}else {
+				i1 = skin.getPresetSkinId();
+				if(i1 == -1) {
+					i1 = 0;
+				}
+			}
+			if(b) {
+				i2 = -1;
+			}else {
+				i2 = cape.getPresetCapeId();
+				if(i2 == -1) {
+					i2 = 0;
+				}
+			}
+			sendRPCPacket(new SPacketRPCResponseTypeIntegerTupleV2(requestID, i1, i2));
+		}else {
+			sendRPCPacket(new SPacketRPCResponseTypeBytes(requestID, TextureDataHelper.encodeTexturesData(skin, cape)));
 		}
 	}
 
@@ -182,19 +238,47 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 	}
 
 	void handleSetPlayerSkin(byte[] skinPacket, boolean notifyOthers) {
-		IEaglerPlayerSkin skin = TextureDataHelper.decodeSkinData(skinPacket);
+		IEaglerPlayerSkin skin = TextureDataHelper.decodeSkinData(skinPacket, getProtocol() == EaglerBackendRPCProtocol.V1);
 		if(skin == null) {
 			throw new WrongRPCPacketException("Invalid skin texture data recieved");
 		}
 		manager().getPlayer().getSkinManager().changePlayerSkin(skin, notifyOthers);
 	}
 
+	void handleSetPlayerSkinPreset(int presetSkinId, boolean notifyOthers) {
+		manager().getPlayer().getSkinManager().changePlayerSkin(
+				presetSkinId != -1 ? InternUtils.getPresetSkin(presetSkinId) : MissingSkin.MISSING_SKIN, notifyOthers);
+	}
+
 	void handleSetPlayerCape(byte[] capePacket, boolean notifyOthers) {
-		IEaglerPlayerCape cape = TextureDataHelper.decodeCapeData(capePacket);
+		IEaglerPlayerCape cape = TextureDataHelper.decodeCapeData(capePacket, getProtocol() == EaglerBackendRPCProtocol.V1);
 		if(cape == null) {
 			throw new WrongRPCPacketException("Invalid cape texture data recieved");
 		}
 		manager().getPlayer().getSkinManager().changePlayerCape(cape, notifyOthers);
+	}
+
+	void handleSetPlayerCapePreset(int presetCapeId, boolean notifyOthers) {
+		manager().getPlayer().getSkinManager().changePlayerCape(
+				presetCapeId != -1 ? InternUtils.getPresetCape(presetCapeId) : MissingCape.MISSING_CAPE, notifyOthers);
+	}
+
+	void handleSetPlayerTextures(byte[] texturesPacket, boolean notifyOthers) {
+		IEaglerPlayerSkin skin = TextureDataHelper.decodeTexturesSkinData(texturesPacket);
+		if(skin == null) {
+			throw new WrongRPCPacketException("Invalid skin texture data recieved");
+		}
+		IEaglerPlayerCape cape = TextureDataHelper.decodeTexturesCapeData(texturesPacket, skin);
+		if(cape == null) {
+			throw new WrongRPCPacketException("Invalid cape texture data recieved");
+		}
+		manager().getPlayer().getSkinManager().changePlayerTextures(skin, cape, notifyOthers);
+	}
+
+	void handleSetPlayerTexturesPreset(int presetSkinId, int presetCapeId, boolean notifyOthers) {
+		manager().getPlayer().getSkinManager().changePlayerTextures(
+				presetSkinId != -1 ? InternUtils.getPresetSkin(presetSkinId) : MissingSkin.MISSING_SKIN,
+				presetCapeId != -1 ? InternUtils.getPresetCape(presetCapeId) : MissingCape.MISSING_CAPE, notifyOthers);
 	}
 
 	void handleSetPlayerCookie(byte[] cookieData, long expiresSec, boolean saveToDisk, boolean revokeQuerySupported) {

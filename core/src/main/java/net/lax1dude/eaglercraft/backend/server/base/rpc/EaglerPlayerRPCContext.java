@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
@@ -38,6 +39,11 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 	@Override
 	protected EaglerPlayerRPCManager<PlayerObject> manager() {
 		return manager;
+	}
+
+	@Override
+	protected IPlatformLogger logger() {
+		return manager.getPlayer().logger();
 	}
 
 	void handleRequestRealIP(int requestID) {
@@ -239,6 +245,13 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 			en = EnumEnableFNAW.DISABLED;
 		}
 		manager().getPlayer().getSkinManager().setEnableFNAWSkins(en);
+	}
+
+	void handleResetPlayerMulti(boolean resetSkin, boolean resetCape, boolean resetFNAWForce, boolean notifyOthers) {
+		super.handleResetPlayerMulti(resetSkin, resetCape, false, notifyOthers);
+		if(resetFNAWForce) {
+			manager().getPlayer().getSkinManager().resetEnableFNAWSkins();
+		}
 	}
 
 	void handleRedirectPlayer(String redirectURI) {

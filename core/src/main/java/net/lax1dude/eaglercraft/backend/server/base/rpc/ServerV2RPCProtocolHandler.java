@@ -37,8 +37,24 @@ public class ServerV2RPCProtocolHandler extends ServerV1RPCProtocolHandler {
 		}
 	}
 
+	public void handleClient(CPacketRPCSetPlayerSkinPresetV2 packet) {
+		rpcContext.handleSetPlayerSkinPreset(packet.presetSkinId, packet.notifyOthers);
+	}
+
+	public void handleClient(CPacketRPCSetPlayerCapePresetV2 packet) {
+		rpcContext.handleSetPlayerCapePreset(packet.presetCapeId, packet.notifyOthers);
+	}
+
 	public void handleClient(CPacketRPCInjectRawBinaryFrameV2 packet) {
 		rpcContext.handleInjectRawBinaryFrame(packet.messageData);
+	}
+
+	public void handleClient(CPacketRPCSetPlayerTexturesV2 packet) {
+		rpcContext.handleSetPlayerTextures(packet.texturesPacket, packet.notifyOthers);
+	}
+
+	public void handleClient(CPacketRPCSetPlayerTexturesPresetV2 packet) {
+		rpcContext.handleSetPlayerTexturesPreset(packet.presetSkinId, packet.presetCapeId, packet.notifyOthers);
 	}
 
 }
