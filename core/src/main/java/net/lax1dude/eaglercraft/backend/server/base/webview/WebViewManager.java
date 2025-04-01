@@ -18,6 +18,7 @@ import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewProvider;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.pause_menu.PauseMenuManager;
+import net.lax1dude.eaglercraft.backend.server.base.rpc.EaglerPlayerRPCManager;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketServerInfoDataChunkV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketWebViewMessageV4EAG;
 
@@ -249,11 +250,19 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 		if(prevChannel != null) {
 			service.getEaglerXServer().eventDispatcher().dispatchWebViewChannelEvent(player,
 					EnumEventType.CHANNEL_CLOSE, prevChannel, null);
+			EaglerPlayerRPCManager<PlayerObject> rpcMgr = player.getPlayerRPCManager();
+			if(rpcMgr != null) {
+				rpcMgr.fireWebViewOpenClose(false, prevChannel);
+			}
 		}
 		if(nextChannel != null) {
 			if(allowed) {
 				service.getEaglerXServer().eventDispatcher().dispatchWebViewChannelEvent(player,
 						EnumEventType.CHANNEL_OPEN, nextChannel, null);
+				EaglerPlayerRPCManager<PlayerObject> rpcMgr = player.getPlayerRPCManager();
+				if(rpcMgr != null) {
+					rpcMgr.fireWebViewOpenClose(true, nextChannel);
+				}
 			}else {
 				player.disconnect(service.getEaglerXServer().componentBuilder().buildTextComponent().beginStyle()
 						.color(EnumChatColor.RED).end().text("Unexpected WebView channel opened!").end());
@@ -271,6 +280,10 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 		if(channel != null) {
 			service.getEaglerXServer().eventDispatcher().dispatchWebViewMessageEvent(player, channel,
 					binary ? EnumMessageType.BINARY : EnumMessageType.STRING, data, null);
+			EaglerPlayerRPCManager<PlayerObject> rpcMgr = player.getPlayerRPCManager();
+			if(rpcMgr != null) {
+				rpcMgr.fireWebViewMessage(channel, binary, data);
+			}
 		}else {
 			player.disconnect(service.getEaglerXServer().componentBuilder().buildTextComponent().beginStyle()
 					.color(EnumChatColor.RED).end().text("Unexpected WebView packet!").end());

@@ -3,7 +3,6 @@ package net.lax1dude.eaglercraft.backend.server.base.rpc;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -27,9 +26,9 @@ import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.*;
 public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<PlayerObject> {
 
 	protected final EaglerPlayerRPCManager<PlayerObject> manager;
-	protected volatile boolean subscribeWebViewOpenClose;
-	protected volatile boolean subscribeWebViewMessage;
-	protected final AtomicInteger voiceStateTracker = new AtomicInteger(0);
+	protected boolean subscribeWebViewOpenClose;
+	protected boolean subscribeWebViewMessage;
+	protected boolean subscribeToggleVoice;
 
 	EaglerPlayerRPCContext(EaglerPlayerRPCManager<PlayerObject> manager, EaglerBackendRPCProtocol protocol) {
 		super(protocol);
@@ -179,53 +178,25 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 	}
 
 	void handleSetSubscribeToggleVoice(boolean enable) {
-		for(;;) {
-			int oldState = voiceStateTracker.get();
-			if(((oldState & 16) != 0) == enable) {
-				break;
-			}
-			int newState;
-			if(enable) {
-				newState = oldState | 16;
-			}else {
-				newState = oldState & 15;
-			}
-			if(voiceStateTracker.compareAndSet(oldState, newState)) {
-				break;
-			}
+		subscribeToggleVoice = enable;
+	}
+
+	void fireToggleVoice(EnumVoiceState oldVoiceState, EnumVoiceState newVoiceState) {
+		if(subscribeToggleVoice) {
+			sendRPCPacket(new SPacketRPCEventToggledVoice(mapToggleVoice(oldVoiceState), mapToggleVoice(newVoiceState)));
 		}
 	}
 
-	void fireToggleVoice(EnumVoiceState voiceState) {
-		int newValue;
-		switch(voiceState) {
+	private int mapToggleVoice(EnumVoiceState state) {
+		switch(state) {
 		case SERVER_DISABLE:
 		default:
-			newValue = SPacketRPCEventToggledVoice.VOICE_STATE_SERVER_DISABLE;
-			break;
+			return SPacketRPCEventToggledVoice.VOICE_STATE_SERVER_DISABLE;
 		case DISABLED:
-			newValue = SPacketRPCEventToggledVoice.VOICE_STATE_DISABLED;
-			break;
+			return SPacketRPCEventToggledVoice.VOICE_STATE_DISABLED;
 		case ENABLED:
-			newValue = SPacketRPCEventToggledVoice.VOICE_STATE_ENABLED;
-			break;
+			return SPacketRPCEventToggledVoice.VOICE_STATE_ENABLED;
 		}
-		int oldVoiceState;
-		for(;;) {
-			int oldState = voiceStateTracker.get();
-			oldVoiceState = (oldState & 15);
-			if(oldVoiceState == newValue) {
-				return;
-			}
-			int newState = (oldState & 16) | newValue;
-			if(voiceStateTracker.compareAndSet(oldState, newState)) {
-				if((oldState & 16) == 0) {
-					return;
-				}
-				break;
-			}
-		}
-		sendRPCPacket(new SPacketRPCEventToggledVoice(oldVoiceState, newValue));
 	}
 
 	void handleSetPlayerCookie(byte[] cookieData, long expiresSec, boolean revokeQuerySupported, boolean saveToDisk) {

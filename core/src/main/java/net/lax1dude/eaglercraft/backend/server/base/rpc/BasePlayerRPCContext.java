@@ -233,7 +233,7 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 		throw notEaglerPlayer();
 	}
 
-	void fireToggleVoice(EnumVoiceState voiceState) {
+	void fireToggleVoice(EnumVoiceState oldVoiceState, EnumVoiceState newVoiceState) {
 		
 	}
 

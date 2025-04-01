@@ -139,10 +139,10 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 		}
 	}
 
-	public void fireToggleVoice(EnumVoiceState voiceState) {
+	public void fireToggleVoice(EnumVoiceState oldVoiceState, EnumVoiceState newVoiceState) {
 		BasePlayerRPCContext<PlayerObject> ctx = context;
 		if(ctx != null) {
-			ctx.fireToggleVoice(voiceState);
+			ctx.fireToggleVoice(oldVoiceState, newVoiceState);
 		}
 	}
 

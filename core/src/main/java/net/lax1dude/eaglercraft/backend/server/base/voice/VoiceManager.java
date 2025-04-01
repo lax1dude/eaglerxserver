@@ -8,6 +8,7 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManagerX;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceX;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
+import net.lax1dude.eaglercraft.backend.server.base.rpc.EaglerPlayerRPCManager;
 import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
 import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalAllowedEAG;
@@ -155,6 +156,10 @@ public class VoiceManager<PlayerObject> implements IVoiceManagerX<PlayerObject> 
 		EnumVoiceState oldState = lastVoiceState.getAndSet(newState);
 		if(newState != oldState) {
 			player.getEaglerXServer().eventDispatcher().dispatchVoiceChangeEvent(player, oldState, newState, null);
+			EaglerPlayerRPCManager<PlayerObject> rpcMgr = player.getPlayerRPCManager();
+			if(rpcMgr != null) {
+				rpcMgr.fireToggleVoice(oldState, newState);
+			}
 		}
 	}
 
