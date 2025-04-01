@@ -520,7 +520,7 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 	public static byte[] prepareRedirectAddr(String addr) {
 		int len = addr.length();
 		byte[] ret = new byte[2 + len * 2];
-		ByteBuf buf = Unpooled.wrappedBuffer(ret);
+		ByteBuf buf = Unpooled.wrappedBuffer(ret).writerIndex(0);
 		buf.writeShort(len);
 		for(int i = 0; i < len; ++i) {
 			buf.writeChar(addr.charAt(i));

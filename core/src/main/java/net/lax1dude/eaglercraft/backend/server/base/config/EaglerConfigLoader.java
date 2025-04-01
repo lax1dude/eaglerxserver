@@ -949,8 +949,8 @@ public class EaglerConfigLoader {
 	private static String mapDefaultListener(EnumAdapterPlatformType platform) {
 		switch(platform) {
 		case BUNGEE:
-		case VELOCITY:
 			return "0.0.0.0:25577";
+		case VELOCITY:
 		case BUKKIT:
 			return "0.0.0.0:25565";
 		default:
