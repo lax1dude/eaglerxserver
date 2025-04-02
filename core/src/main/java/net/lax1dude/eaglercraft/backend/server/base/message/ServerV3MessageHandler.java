@@ -28,8 +28,6 @@ public class ServerV3MessageHandler extends ServerMessageHandler {
 		VoiceManager<?> mgr = eaglerHandle.getVoiceManager();
 		if(mgr != null) {
 			mgr.handleVoiceSignalPacketTypeConnect();
-		}else {
-			throw notCapable();
 		}
 	}
 
