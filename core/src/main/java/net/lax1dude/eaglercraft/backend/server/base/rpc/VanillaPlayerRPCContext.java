@@ -8,7 +8,7 @@ public class VanillaPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<
 	protected final BasePlayerRPCManager<PlayerObject> manager;
 
 	VanillaPlayerRPCContext(BasePlayerRPCManager<PlayerObject> manager, EaglerBackendRPCProtocol protocol) {
-		super(protocol);
+		super(protocol, manager.getPlayer().getSerializationContext());
 		this.manager = manager;
 	}
 

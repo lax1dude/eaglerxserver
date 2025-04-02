@@ -12,6 +12,7 @@ import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.*;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
+import net.lax1dude.eaglercraft.backend.server.base.DataSerializationContext;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.InternUtils;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingCape;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingSkin;
@@ -21,8 +22,8 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 
 	private final EaglerBackendRPCHandler packetHandler;
 
-	BasePlayerRPCContext(EaglerBackendRPCProtocol protocol) {
-		super(protocol);
+	BasePlayerRPCContext(EaglerBackendRPCProtocol protocol, DataSerializationContext dataCtx) {
+		super(protocol, dataCtx);
 		switch(protocol) {
 		case V1:
 			packetHandler = new ServerV1RPCProtocolHandler(this);

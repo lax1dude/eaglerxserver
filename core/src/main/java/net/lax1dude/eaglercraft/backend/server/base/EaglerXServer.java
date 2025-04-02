@@ -71,6 +71,7 @@ import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataPauseMenu;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataRoot;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings.ConfigDataSkinService;
+import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings.ConfigDataVoiceService;
 import net.lax1dude.eaglercraft.backend.server.base.message.MessageControllerFactory;
 import net.lax1dude.eaglercraft.backend.server.base.message.PlayerChannelHelper;
 import net.lax1dude.eaglercraft.backend.server.base.nbt.NBTHelper;
@@ -87,7 +88,10 @@ import net.lax1dude.eaglercraft.backend.server.base.skins.SkinService;
 import net.lax1dude.eaglercraft.backend.server.base.update.IUpdateCertificateImpl;
 import net.lax1dude.eaglercraft.backend.server.base.update.UpdateCertificate;
 import net.lax1dude.eaglercraft.backend.server.base.update.UpdateService;
-import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceService;
+import net.lax1dude.eaglercraft.backend.server.base.voice.IVoiceServiceImpl;
+import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceServiceDisabled;
+import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceServiceLocal;
+import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceServiceRemote;
 import net.lax1dude.eaglercraft.backend.server.base.webserver.WebServer;
 import net.lax1dude.eaglercraft.backend.server.base.webview.WebViewService;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
@@ -138,7 +142,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private SkinService<PlayerObject> skinService;
 	private DeferredStartSkinCache skinCacheService;
 	private Connection skinCacheJDBCHandle;
-	private VoiceService<PlayerObject> voiceService;
+	private IVoiceServiceImpl<PlayerObject> voiceService;
 	private NotificationService<PlayerObject> notificationService;
 	private WebViewService<PlayerObject> webViewService;
 	private PauseMenuService<PlayerObject> pauseMenuService;
@@ -221,8 +225,17 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			vanillaSkinCache.delete();
 		}
 		
-		voiceService = new VoiceService<>(this, config.getSettings().getVoiceService());
-		voiceService.setICEServers(config.getICEServers());
+		ConfigDataVoiceService voiceConfig = config.getSettings().getVoiceService();
+		if(voiceConfig.isEnableVoiceService()) {
+			if(voiceConfig.isVoiceBackendRelayMode()) {
+				voiceService = new VoiceServiceRemote<>(this);
+			}else {
+				voiceService = new VoiceServiceLocal<>(this, voiceConfig);
+			}
+			voiceService.setICEServers(config.getICEServers());
+		}else {
+			voiceService = new VoiceServiceDisabled<>(this);
+		}
 		
 		notificationService = new NotificationService<>(this);
 		
@@ -826,7 +839,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public VoiceService<PlayerObject> getVoiceService() {
+	public IVoiceServiceImpl<PlayerObject> getVoiceService() {
 		return voiceService;
 	}
 

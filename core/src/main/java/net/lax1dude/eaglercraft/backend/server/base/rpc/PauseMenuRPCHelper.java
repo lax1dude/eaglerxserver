@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSetPauseMenuCustom;
 import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
@@ -159,7 +160,8 @@ class PauseMenuRPCHelper {
 				imageData = Arrays.asList(imageDataArr);
 			}else {
 				if(packet.imageData != null && !packet.imageData.isEmpty()) {
-					imageData = packet.imageData.stream().map(TextureDataHelper::packetImageDataRPCToCore).toList();
+					imageData = packet.imageData.stream().map(TextureDataHelper::packetImageDataRPCToCore)
+							.collect(Collectors.toList());
 				}else {
 					// wtf?
 					imageData = Collections.emptyList();

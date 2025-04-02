@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.rpc;
 
+import java.util.stream.Collectors;
+
 import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCEnabledSuccess;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCEnabledSuccessEaglerV2;
@@ -36,7 +38,7 @@ public class EaglerPlayerRPCManager<PlayerObject> extends BasePlayerRPCManager<P
 					player.getEaglerProtocol().ver, player.getRewindProtocolVersion(), conn.getCapabilityMask(),
 					conn.getCapabilityVers(), conn.getExtCapabilities().entrySet().stream().map(
 							(etr) -> new SPacketRPCEnabledSuccessEaglerV2.ExtCapability(etr.getKey(), etr.getValue() & 0xFF))
-							.toList()));
+							.collect(Collectors.toList())));
 		}
 		handleEnableContext(new EaglerPlayerRPCContext<>(this, protocol));
 	}

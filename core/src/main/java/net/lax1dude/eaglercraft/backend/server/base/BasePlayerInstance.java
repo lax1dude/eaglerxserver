@@ -21,6 +21,7 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 	protected final EaglerXServer<PlayerObject> server;
 	ISkinManagerBase<PlayerObject> skinManager;
 	BasePlayerRPCManager<PlayerObject> backendRPCManager;
+	DataSerializationContext serializationContext;
 
 	public BasePlayerInstance(IPlatformPlayer<PlayerObject> player,
 			EaglerXServer<PlayerObject> server) {
@@ -144,6 +145,13 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 
 	public BasePlayerRPCManager<PlayerObject> getPlayerRPCManager() {
 		return backendRPCManager;
+	}
+
+	public DataSerializationContext getSerializationContext() {
+		if(serializationContext == null) {
+			serializationContext = new DataSerializationContext();
+		}
+		return serializationContext;
 	}
 
 }

@@ -26,14 +26,14 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 
 	public static final long REQUEST_TIMEOUT = 2000l;
 
-	final VoiceService<PlayerObject> owner;
+	final VoiceServiceLocal<PlayerObject> owner;
 	final ConcurrentMap<UUID, Context> connectedPlayers = new ConcurrentHashMap<>();
 
-	VoiceChannel(VoiceService<PlayerObject> owner) {
+	VoiceChannel(VoiceServiceLocal<PlayerObject> owner) {
 		this.owner = owner;
 	}
 
-	void addToChannel(VoiceManager<PlayerObject> mgr) {
+	void addToChannel(VoiceManagerLocal<PlayerObject> mgr) {
 		Context oldContext = mgr.activeChannel;
 		if(oldContext != null) {
 			mgr.activeChannel = null;
@@ -44,7 +44,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 		mgr.activeChannel = newContext;
 	}
 
-	void removeFromChannel(VoiceManager<PlayerObject> mgr, boolean dead) {
+	void removeFromChannel(VoiceManagerLocal<PlayerObject> mgr, boolean dead) {
 		Context oldContext = mgr.activeChannel;
 		if(oldContext != null) {
 			mgr.activeChannel = null;
@@ -75,12 +75,12 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 
 	class Context extends HashMap<Context, IVoiceState> {
 
-		final VoiceManager<PlayerObject> mgr;
+		final VoiceManagerLocal<PlayerObject> mgr;
 		final UUID selfUUID;
 		long lastFlush = 0;
 		boolean expirable = false;
 
-		private Context(VoiceManager<PlayerObject> mgr) {
+		private Context(VoiceManagerLocal<PlayerObject> mgr) {
 			this.mgr = mgr;
 			this.selfUUID = mgr.player.getUniqueId();
 		}

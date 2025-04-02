@@ -12,14 +12,16 @@ public class SPacketVCCapable implements EaglerVCPacket {
 
 	public int version;
 	public boolean allowed;
+	public boolean overrideICE;
 	public String[] iceServers;
 
 	public SPacketVCCapable() {
 	}
 
-	public SPacketVCCapable(int version, boolean allowed, String[] iceServers) {
+	public SPacketVCCapable(int version, boolean allowed, boolean overrideICE, String[] iceServers) {
 		this.version = version;
 		this.allowed = allowed;
+		this.overrideICE = overrideICE;
 		this.iceServers = iceServers;
 	}
 
@@ -27,38 +29,32 @@ public class SPacketVCCapable implements EaglerVCPacket {
 	public void readPacket(DataInput buffer) throws IOException {
 		version = buffer.readUnsignedByte();
 		int numIce = buffer.readUnsignedByte();
-		if(numIce > 0) {
-			allowed = true;
-			if(numIce > 64) {
-				throw new IOException("Too many STUN/TURN servers recieved! (" + numIce + ", max is 64!)");
-			}
-			iceServers = new String[numIce];
-			for(int i = 0; i < iceServers.length; ++i) {
-				iceServers[i] = EaglerVCPacket.readString(buffer, 1024, true, StandardCharsets.UTF_8);
-			}
-		}else {
-			allowed = false;
+		allowed = (numIce & 128) != 0;
+		overrideICE = (numIce & 64) != 0;
+		numIce &= 63;
+		iceServers = new String[numIce];
+		for(int i = 0; i < iceServers.length; ++i) {
+			iceServers[i] = EaglerVCPacket.readString(buffer, 1024, true, StandardCharsets.UTF_8);
 		}
 	}
 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
+		int j = 0;
+		if(allowed) j |= 128;
+		if(overrideICE) j |= 64;
 		buffer.writeByte(version);
-		if(allowed) {
-			int cnt;
-			if(iceServers != null && (cnt = iceServers.length) > 0) {
-				if(cnt > 64) {
-					throw new IOException("Too many STUN/TURN servers sent! (" + cnt + ", max is 64!)");
-				}
-				buffer.writeByte(cnt);
-				for(int i = 0; i < cnt; ++i) {
-					EaglerVCPacket.writeString(buffer, iceServers[i], true, StandardCharsets.UTF_8);
-				}
-			}else {
-				throw new IOException("No STUN/TURN servers provided");
+		int cnt;
+		if(iceServers != null && (cnt = iceServers.length) > 0) {
+			if(cnt > 63) {
+				throw new IOException("Too many STUN/TURN servers sent! (" + cnt + ", max is 63!)");
+			}
+			buffer.writeByte(cnt | j);
+			for(int i = 0; i < cnt; ++i) {
+				EaglerVCPacket.writeString(buffer, iceServers[i], true, StandardCharsets.UTF_8);
 			}
 		}else {
-			buffer.writeByte(0);
+			buffer.writeByte(j);
 		}
 	}
 
@@ -69,7 +65,7 @@ public class SPacketVCCapable implements EaglerVCPacket {
 
 	@Override
 	public int length() {
-		return allowed ? -1 : 2;
+		return -1;
 	}
 
 }

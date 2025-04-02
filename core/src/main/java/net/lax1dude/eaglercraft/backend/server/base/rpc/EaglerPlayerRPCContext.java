@@ -13,7 +13,7 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.notifications.NotificationManagerPlayer;
 import net.lax1dude.eaglercraft.backend.server.base.pause_menu.PauseMenuManager;
-import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceManager;
+import net.lax1dude.eaglercraft.backend.server.base.voice.IVoiceManagerImpl;
 import net.lax1dude.eaglercraft.backend.server.base.webview.WebViewManager;
 import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketNotifBadgeShowV4EAG;
@@ -31,7 +31,7 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 	protected boolean subscribeToggleVoice;
 
 	EaglerPlayerRPCContext(EaglerPlayerRPCManager<PlayerObject> manager, EaglerBackendRPCProtocol protocol) {
-		super(protocol);
+		super(protocol, manager.getPlayer().getSerializationContext());
 		this.manager = manager;
 	}
 
@@ -91,7 +91,7 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 	}
 
 	void handleRequestVoiceStatus(int requestID) {
-		VoiceManager<PlayerObject> voice = manager().getPlayer().getVoiceManager();
+		IVoiceManagerImpl<PlayerObject> voice = manager().getPlayer().getVoiceManager();
 		int response;
 		if(voice != null) {
 			switch(voice.getVoiceState()) {

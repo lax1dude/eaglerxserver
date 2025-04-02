@@ -5,7 +5,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManagerX;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceX;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.rpc.EaglerPlayerRPCManager;
@@ -13,10 +12,10 @@ import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
 import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalAllowedEAG;
 
-public class VoiceManager<PlayerObject> implements IVoiceManagerX<PlayerObject> {
+public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<PlayerObject> {
 
 	final EaglerPlayerInstance<PlayerObject> player;
-	final VoiceService<PlayerObject> voice;
+	final VoiceServiceLocal<PlayerObject> voice;
 	final boolean isBroken;
 
 	volatile VoiceChannel<PlayerObject>.Context activeChannel = null;
@@ -27,7 +26,7 @@ public class VoiceManager<PlayerObject> implements IVoiceManagerX<PlayerObject> 
 	private final AtomicReference<EnumVoiceState> lastVoiceState = new AtomicReference<>(EnumVoiceState.SERVER_DISABLE);
 	private IVoiceChannel currentVoiceChannel = DisabledChannel.INSTANCE;
 
-	VoiceManager(EaglerPlayerInstance<PlayerObject> player, VoiceService<PlayerObject> voice) {
+	VoiceManagerLocal(EaglerPlayerInstance<PlayerObject> player, VoiceServiceLocal<PlayerObject> voice) {
 		this.player = player;
 		this.voice = voice;
 		this.isBroken = player.getEaglerProtocol().ver < 5;
@@ -45,7 +44,7 @@ public class VoiceManager<PlayerObject> implements IVoiceManagerX<PlayerObject> 
 
 	@Override
 	public boolean isBackendRelayMode() {
-		return voice.isBackendRelayMode();
+		return false;
 	}
 
 	@Override
@@ -102,6 +101,7 @@ public class VoiceManager<PlayerObject> implements IVoiceManagerX<PlayerObject> 
 		isManaged = managed;
 	}
 
+	@Override
 	public void handleServerChanged(String serverName) {
 		if(isManaged) {
 			setVoiceChannel0(DisabledChannel.INSTANCE);
@@ -110,6 +110,7 @@ public class VoiceManager<PlayerObject> implements IVoiceManagerX<PlayerObject> 
 		}
 	}
 
+	@Override
 	public void destroyVoiceManager() {
 		IVoiceChannel oldChannel;
 		synchronized(this) {
@@ -175,46 +176,57 @@ public class VoiceManager<PlayerObject> implements IVoiceManagerX<PlayerObject> 
 		return player.getRateLimits().ratelimitVoiceICE();
 	}
 
-	public void handleVoiceSignalPacketTypeConnect() {
+	@Override
+	public void handlePlayerSignalPacketTypeConnect() {
 		VoiceChannel<PlayerObject>.Context ch = activeChannel;
 		if(ch != null) {
 			ch.handleVoiceSignalPacketTypeConnect();
 		}
 	}
 
-	public void handleVoiceSignalPacketTypeRequest(UUID player) {
+	@Override
+	public void handlePlayerSignalPacketTypeRequest(long playerUUIDMost, long playerUUIDLeast) {
 		VoiceChannel<PlayerObject>.Context ch = activeChannel;
 		if(ch != null) {
-			ch.handleVoiceSignalPacketTypeRequest(player);
+			ch.handleVoiceSignalPacketTypeRequest(new UUID(playerUUIDMost, playerUUIDLeast));
 		}
 	}
 
-	public void handleVoiceSignalPacketTypeICE(UUID player, byte[] str) {
+	@Override
+	public void handlePlayerSignalPacketTypeICE(long playerUUIDMost, long playerUUIDLeast, byte[] str) {
 		VoiceChannel<PlayerObject>.Context ch = activeChannel;
 		if(ch != null) {
-			ch.handleVoiceSignalPacketTypeICE(player, str);
+			ch.handleVoiceSignalPacketTypeICE(new UUID(playerUUIDMost, playerUUIDLeast), str);
 		}
 	}
 
-	public void handleVoiceSignalPacketTypeDesc(UUID player, byte[] str) {
+	@Override
+	public void handlePlayerSignalPacketTypeDesc(long playerUUIDMost, long playerUUIDLeast, byte[] str) {
 		VoiceChannel<PlayerObject>.Context ch = activeChannel;
 		if(ch != null) {
-			ch.handleVoiceSignalPacketTypeDesc(player, str);
+			ch.handleVoiceSignalPacketTypeDesc(new UUID(playerUUIDMost, playerUUIDLeast), str);
 		}
 	}
 
-	public void handleVoiceSignalPacketTypeDisconnectPeer(UUID player) {
+	@Override
+	public void handlePlayerSignalPacketTypeDisconnectPeer(long playerUUIDMost, long playerUUIDLeast) {
 		VoiceChannel<PlayerObject>.Context ch = activeChannel;
 		if(ch != null) {
-			ch.handleVoiceSignalPacketTypeDisconnectPeer(player);
+			ch.handleVoiceSignalPacketTypeDisconnectPeer(new UUID(playerUUIDMost, playerUUIDLeast));
 		}
 	}
 
-	public void handleVoiceSignalPacketTypeDisconnect() {
+	@Override
+	public void handlePlayerSignalPacketTypeDisconnect() {
 		VoiceChannel<PlayerObject>.Context ch = activeChannel;
 		if(ch != null) {
 			ch.handleVoiceSignalPacketTypeDisconnect();
 		}
+	}
+
+	@Override
+	public void handleBackendMessage(byte[] data) {
+		player.logger().warn("Ignoring plugin message from backend on voice RPC channel, server is not in backend-relayed mode");
 	}
 
 }

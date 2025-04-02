@@ -12,6 +12,14 @@ public class CPacketVCDisconnectPeer implements EaglerVCPacket {
 	public long uuidMost;
 	public long uuidLeast;
 
+	public CPacketVCDisconnectPeer() {
+	}
+
+	public CPacketVCDisconnectPeer(long uuidMost, long uuidLeast) {
+		this.uuidMost = uuidMost;
+		this.uuidLeast = uuidLeast;
+	}
+
 	@Override
 	public void readPacket(DataInput buffer) throws IOException {
 		uuidMost = buffer.readLong();

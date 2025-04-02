@@ -1,9 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.message;
 
-import java.util.UUID;
-
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
-import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceManager;
+import net.lax1dude.eaglercraft.backend.server.base.voice.IVoiceManagerImpl;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.*;
 
 public class ServerV3MessageHandler extends ServerMessageHandler {
@@ -25,28 +23,29 @@ public class ServerV3MessageHandler extends ServerMessageHandler {
 	}
 
 	public void handleClient(CPacketVoiceSignalConnectEAG packet) {
-		VoiceManager<?> mgr = eaglerHandle.getVoiceManager();
+		IVoiceManagerImpl<?> mgr = eaglerHandle.getVoiceManager();
 		if(mgr != null) {
-			mgr.handleVoiceSignalPacketTypeConnect();
+			mgr.handlePlayerSignalPacketTypeConnect();
 		}
+		// Do not throw "not capable" on connect, clients may join in a bad state and send it mistakenly
 	}
 
 	public void handleClient(CPacketVoiceSignalDescEAG packet) {
-		VoiceManager<?> mgr = eaglerHandle.getVoiceManager();
+		IVoiceManagerImpl<?> mgr = eaglerHandle.getVoiceManager();
 		if(mgr != null) {
-			mgr.handleVoiceSignalPacketTypeDesc(new UUID(packet.uuidMost, packet.uuidLeast), packet.desc);
+			mgr.handlePlayerSignalPacketTypeDesc(packet.uuidMost, packet.uuidLeast, packet.desc);
 		}else {
 			throw notCapable();
 		}
 	}
 
 	public void handleClient(CPacketVoiceSignalDisconnectV3EAG packet) {
-		VoiceManager<?> mgr = eaglerHandle.getVoiceManager();
+		IVoiceManagerImpl<?> mgr = eaglerHandle.getVoiceManager();
 		if(mgr != null) {
 			if(packet.isPeerType) {
-				mgr.handleVoiceSignalPacketTypeDisconnectPeer(new UUID(packet.uuidMost, packet.uuidLeast));
+				mgr.handlePlayerSignalPacketTypeDisconnectPeer(packet.uuidMost, packet.uuidLeast);
 			}else {
-				mgr.handleVoiceSignalPacketTypeDisconnect();
+				mgr.handlePlayerSignalPacketTypeDisconnect();
 			}
 		}else {
 			throw notCapable();
@@ -54,18 +53,18 @@ public class ServerV3MessageHandler extends ServerMessageHandler {
 	}
 
 	public void handleClient(CPacketVoiceSignalICEEAG packet) {
-		VoiceManager<?> mgr = eaglerHandle.getVoiceManager();
+		IVoiceManagerImpl<?> mgr = eaglerHandle.getVoiceManager();
 		if(mgr != null) {
-			mgr.handleVoiceSignalPacketTypeICE(new UUID(packet.uuidMost, packet.uuidLeast), packet.ice);
+			mgr.handlePlayerSignalPacketTypeICE(packet.uuidMost, packet.uuidLeast, packet.ice);
 		}else {
 			throw notCapable();
 		}
 	}
 
 	public void handleClient(CPacketVoiceSignalRequestEAG packet) {
-		VoiceManager<?> mgr = eaglerHandle.getVoiceManager();
+		IVoiceManagerImpl<?> mgr = eaglerHandle.getVoiceManager();
 		if(mgr != null) {
-			mgr.handleVoiceSignalPacketTypeRequest(new UUID(packet.uuidMost, packet.uuidLeast));
+			mgr.handlePlayerSignalPacketTypeRequest(packet.uuidMost, packet.uuidLeast);
 		}else {
 			throw notCapable();
 		}

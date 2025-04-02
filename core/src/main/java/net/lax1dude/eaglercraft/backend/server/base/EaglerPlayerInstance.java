@@ -21,7 +21,7 @@ import net.lax1dude.eaglercraft.backend.server.base.pause_menu.PauseMenuManager;
 import net.lax1dude.eaglercraft.backend.server.base.rpc.EaglerPlayerRPCManager;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinManagerEagler;
 import net.lax1dude.eaglercraft.backend.server.base.update.IUpdateCertificateImpl;
-import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceManager;
+import net.lax1dude.eaglercraft.backend.server.base.voice.IVoiceManagerImpl;
 import net.lax1dude.eaglercraft.backend.server.base.webview.WebViewManager;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
@@ -40,7 +40,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	private final boolean updateSupport;
 	private final PlayerRateLimits rateLimits;
 	MessageController messageController;
-	VoiceManager<PlayerObject> voiceManager;
+	IVoiceManagerImpl<PlayerObject> voiceManager;
 	NotificationManagerPlayer<PlayerObject> notifManager;
 	WebViewManager<PlayerObject> webViewManager;
 	PauseMenuManager<PlayerObject> pauseMenuManager;
@@ -196,7 +196,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
-	public VoiceManager<PlayerObject> getVoiceManager() {
+	public IVoiceManagerImpl<PlayerObject> getVoiceManager() {
 		return voiceManager;
 	}
 

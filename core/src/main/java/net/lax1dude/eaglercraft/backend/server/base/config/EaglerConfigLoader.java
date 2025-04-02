@@ -304,6 +304,13 @@ public class EaglerConfigLoader {
 				"Default value is true, if each server should get its own global voice channel, or "
 				+ "if players on all servers should share the same global voice channel"
 			);
+			boolean voiceBackendRelayMode = platform.proxy ? voiceService.getBoolean(
+				"voice_backend_relayed_mode", false,
+				"Default value is false, if voice packets should be relayed by the backend Spigot "
+				+ "server instead of the EaglerXServer proxy, allows your Spigot plugins to take "
+				+ "full control of the eagler voice service, also allows the voice service to work "
+				+ "while using the supervisor. Requires the EaglerXBackendRPC plugin."
+			) : false;
 			IEaglerConfSection updateService = config.getSection("update_service");
 			boolean enableUpdateSystem = updateService.getBoolean(
 				"enable_update_system", true,
@@ -368,7 +375,7 @@ public class EaglerConfigLoader {
 							skinCacheDiskMaxObjects, skinCacheAntagonistsRatelimit, enableFNAWSkinModelsGlobal,
 							enableFNAWSkinModelsOnServers),
 					new ConfigDataSettings.ConfigDataVoiceService(enableVoiceService, enableVoiceChatAllServers,
-							enableVoiceChatOnServers, separateVoiceChannelsPerServer),
+							enableVoiceChatOnServers, separateVoiceChannelsPerServer, voiceBackendRelayMode),
 					new ConfigDataSettings.ConfigDataUpdateService(enableUpdateSystem, discardLoginPacketCerts,
 							certPacketDataRateLimit, enableEagcertFolder, downloadLatestCerts, downloadCertsFrom,
 							checkForUpdateEvery));

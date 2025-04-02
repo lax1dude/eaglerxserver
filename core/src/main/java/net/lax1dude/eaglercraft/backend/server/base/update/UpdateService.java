@@ -217,6 +217,9 @@ public class UpdateService {
 					if(l == 0l) {
 						l = millis;
 					}
+					if(certsCache == Collections.EMPTY_MAP) {
+						certsCache = new HashMap<>();
+					}
 					certsCache.put(name, new CachedClientCertificate(ch, l));
 					if(certSet.add(ch)) {
 						if(broadcastList == null) {

@@ -12,21 +12,21 @@ public class CPacketVCICECandidate implements EaglerVCPacket {
 
 	public long uuidMost;
 	public long uuidLeast;
-	public byte[] desc;
+	public byte[] ice;
 
 	public CPacketVCICECandidate() {
 	}
 
-	public CPacketVCICECandidate(long uuidMost, long uuidLeast, byte[] desc) {
+	public CPacketVCICECandidate(long uuidMost, long uuidLeast, byte[] ice) {
 		this.uuidMost = uuidMost;
 		this.uuidLeast = uuidLeast;
-		this.desc = desc;
+		this.ice = ice;
 	}
 
-	public CPacketVCICECandidate(long uuidMost, long uuidLeast, String desc) {
+	public CPacketVCICECandidate(long uuidMost, long uuidLeast, String ice) {
 		this.uuidMost = uuidMost;
 		this.uuidLeast = uuidLeast;
-		this.desc = desc.getBytes(StandardCharsets.UTF_8);
+		this.ice = ice.getBytes(StandardCharsets.UTF_8);
 	}
 
 	@Override
@@ -37,19 +37,19 @@ public class CPacketVCICECandidate implements EaglerVCPacket {
 		if(descLen > 32750) {
 			throw new IOException("Voice signal packet ICE too long!");
 		}
-		desc = new byte[descLen];
-		buffer.readFully(desc);
+		ice = new byte[descLen];
+		buffer.readFully(ice);
 	}
 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
-		if(desc.length > 32750) {
+		if(ice.length > 32750) {
 			throw new IOException("Voice signal packet ICE too long!");
 		}
 		buffer.writeLong(uuidMost);
 		buffer.writeLong(uuidLeast);
-		buffer.writeShort(desc.length);
-		buffer.write(desc);
+		buffer.writeShort(ice.length);
+		buffer.write(ice);
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public class CPacketVCICECandidate implements EaglerVCPacket {
 
 	@Override
 	public int length() {
-		return 18 + desc.length;
+		return 18 + ice.length;
 	}
 
 }

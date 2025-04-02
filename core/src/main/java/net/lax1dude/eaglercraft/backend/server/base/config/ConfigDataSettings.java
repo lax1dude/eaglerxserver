@@ -263,13 +263,16 @@ public class ConfigDataSettings {
 		private final boolean enableVoiceChatAllServers;
 		private final Set<String> enableVoiceChatOnServers;
 		private final boolean separateVoiceChannelsPerServer;
+		private final boolean voiceBackendRelayMode;
 
 		public ConfigDataVoiceService(boolean enableVoiceService, boolean enableVoiceChatAllServers,
-				Set<String> enableVoiceChatOnServers, boolean separateVoiceChannelsPerServer) {
+				Set<String> enableVoiceChatOnServers, boolean separateVoiceChannelsPerServer,
+				boolean voiceBackendRelayMode) {
 			this.enableVoiceService = enableVoiceService;
 			this.enableVoiceChatAllServers = enableVoiceChatAllServers;
 			this.enableVoiceChatOnServers = enableVoiceChatOnServers;
 			this.separateVoiceChannelsPerServer = separateVoiceChannelsPerServer;
+			this.voiceBackendRelayMode = voiceBackendRelayMode;
 		}
 
 		public boolean isEnableVoiceService() {
@@ -286,6 +289,10 @@ public class ConfigDataSettings {
 
 		public boolean isSeparateVoiceChannelsPerServer() {
 			return separateVoiceChannelsPerServer;
+		}
+
+		public boolean isVoiceBackendRelayMode() {
+			return voiceBackendRelayMode;
 		}
 
 	}
