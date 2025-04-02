@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.base.pipeline;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -535,17 +536,28 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 	}
 
 	private void kickLegacy(ChannelHandlerContext ctx, int redirectCandidate) {
+		terminated = true;
 		if (redirectCandidate == 69 && pipelineData.listenerInfo != null
 				&& pipelineData.listenerInfo.getLegacyRedirectAddressBuf() != null) {
-			terminated = true;
 			byte[] d = pipelineData.listenerInfo.getLegacyRedirectAddressBuf();
 			ByteBuf buf = ctx.alloc().buffer(LEGACY_REDIRECT.length + d.length);
 			buf.writeBytes(LEGACY_REDIRECT);
 			buf.writeBytes(d);
-			ctx.writeAndFlush(buf).addListener(ChannelFutureListener.CLOSE);
+			ctx.writeAndFlush(buf).addListener((ChannelFutureListener) (f) -> {
+				f.channel().eventLoop().schedule(() -> {
+					if(f.channel().isActive()) {
+						f.channel().close();
+					}
+				}, 100l, TimeUnit.MILLISECONDS);
+			});
 		} else {
-			terminated = true;
-			ctx.writeAndFlush(Unpooled.wrappedBuffer(LEGACY_KICK)).addListener(ChannelFutureListener.CLOSE);
+			ctx.writeAndFlush(Unpooled.wrappedBuffer(LEGACY_KICK)).addListener((ChannelFutureListener) (f) -> {
+				f.channel().eventLoop().schedule(() -> {
+					if(f.channel().isActive()) {
+						f.channel().close();
+					}
+				}, 250l, TimeUnit.MILLISECONDS);
+			});
 		}
 	}
 

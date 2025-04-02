@@ -362,7 +362,7 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 		if(state == STATE_SENT_REQUESTED_LOGIN) {
 			state = STATE_COMPLETED;
 			int len = buf.readUnsignedShort();
-			ByteBuf packet = ctx.alloc().buffer();
+			ByteBuf packet = ctx.alloc().buffer(LEGACY_REDIRECT.length + len + 2);
 			try {
 				packet.writeBytes(LEGACY_REDIRECT);
 				packet.writeBytes(buf, buf.readerIndex() - 2, len + 2);
