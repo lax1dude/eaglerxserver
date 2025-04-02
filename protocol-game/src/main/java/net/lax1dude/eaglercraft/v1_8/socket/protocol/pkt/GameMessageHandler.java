@@ -212,4 +212,16 @@ public interface GameMessageHandler {
 		throw new WrongPacketException();
 	}
 
+	default void handleServer(SPacketClientStateFlagV5EAG packet) {
+		throw new WrongPacketException();
+	}
+
+	default void handleServer(SPacketDisplayWebViewURLV5EAG packet) {
+		throw new WrongPacketException();
+	}
+
+	default void handleServer(SPacketDisplayWebViewBlobV5EAG packet) {
+		throw new WrongPacketException();
+	}
+
 }

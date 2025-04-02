@@ -1,6 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.base.rpc;
 
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.*;
+import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
+import net.lax1dude.eaglercraft.backend.server.api.webview.EnumWebViewPerms;
 
 public class ServerV2RPCProtocolHandler extends ServerV1RPCProtocolHandler {
 
@@ -55,6 +57,18 @@ public class ServerV2RPCProtocolHandler extends ServerV1RPCProtocolHandler {
 
 	public void handleClient(CPacketRPCSetPlayerTexturesPresetV2 packet) {
 		rpcContext.handleSetPlayerTexturesPreset(packet.presetSkinId, packet.presetCapeId, packet.notifyOthers);
+	}
+
+	public void handleClient(CPacketRPCDisplayWebViewURLV2 packet) {
+		rpcContext.handleDisplayWebViewURL(packet.embedTitle, packet.embedURL, EnumWebViewPerms.fromBits(packet.flags));
+	}
+
+	public void handleClient(CPacketRPCDisplayWebViewBlobV2 packet) {
+		rpcContext.handleDisplayWebViewBlob(packet.embedTitle, SHA1Sum.create(packet.embedHash), EnumWebViewPerms.fromBits(packet.flags));
+	}
+
+	public void handleClient(CPacketRPCDisplayWebViewAliasV2 packet) {
+		rpcContext.handleDisplayWebViewAlias(packet.embedTitle, packet.embedName, EnumWebViewPerms.fromBits(packet.flags));
 	}
 
 }

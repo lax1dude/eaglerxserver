@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.rpc;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
@@ -9,9 +10,11 @@ import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCPacket;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.WrongRPCPacketException;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.*;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.*;
+import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
+import net.lax1dude.eaglercraft.backend.server.api.webview.EnumWebViewPerms;
 import net.lax1dude.eaglercraft.backend.server.base.DataSerializationContext;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.InternUtils;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingCape;
@@ -338,6 +341,18 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 	}
 
 	void handleInjectRawBinaryFrame(byte[] data) {
+		throw notEaglerPlayer();
+	}
+
+	void handleDisplayWebViewURL(String title, String url, Set<EnumWebViewPerms> perms) {
+		throw notEaglerPlayer();
+	}
+
+	void handleDisplayWebViewBlob(String title, SHA1Sum hash, Set<EnumWebViewPerms> perms) {
+		throw notEaglerPlayer();
+	}
+
+	void handleDisplayWebViewAlias(String title, String name, Set<EnumWebViewPerms> perms) {
 		throw notEaglerPlayer();
 	}
 

@@ -7,9 +7,9 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
-import net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumWebViewPerms;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.ICustomPauseMenu;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuBuilder;
+import net.lax1dude.eaglercraft.backend.server.api.webview.EnumWebViewPerms;
 import net.lax1dude.eaglercraft.backend.server.api.webview.ITemplateLoader;
 import net.lax1dude.eaglercraft.backend.server.api.webview.InvalidMacroException;
 import net.lax1dude.eaglercraft.backend.server.base.PacketImageLoader;

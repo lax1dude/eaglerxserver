@@ -109,6 +109,18 @@ public interface EaglerBackendRPCHandler {
 		throw new WrongRPCPacketException();
 	}
 
+	default void handleClient(CPacketRPCDisplayWebViewURLV2 packet) {
+		throw new WrongRPCPacketException();
+	}
+
+	default void handleClient(CPacketRPCDisplayWebViewBlobV2 packet) {
+		throw new WrongRPCPacketException();
+	}
+
+	default void handleClient(CPacketRPCDisplayWebViewAliasV2 packet) {
+		throw new WrongRPCPacketException();
+	}
+
 	default void handleServer(SPacketRPCEnabledSuccess packet) {
 		throw new WrongRPCPacketException();
 	}

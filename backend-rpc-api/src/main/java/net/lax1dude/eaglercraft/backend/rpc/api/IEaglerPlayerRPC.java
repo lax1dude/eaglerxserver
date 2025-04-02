@@ -12,6 +12,7 @@ import net.lax1dude.eaglercraft.backend.rpc.api.notifications.INotificationBadge
 import net.lax1dude.eaglercraft.backend.rpc.api.notifications.IconDef;
 import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.ICustomPauseMenu;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumEnableFNAW;
+import net.lax1dude.eaglercraft.backend.rpc.api.webview.EnumWebViewPerms;
 import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
 
 public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObject> {
@@ -185,5 +186,25 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 	void showNotificationBadge(INotificationBadge badge);
 
 	void hideNotificationBadge(UUID badgeUUID);
+
+	boolean isDisplayWebViewSupported();
+
+	default void displayWebViewURL(String title, String url) {
+		displayWebViewURL(title, url, null);
+	}
+
+	void displayWebViewURL(String title, String url, Set<EnumWebViewPerms> permissions);
+
+	default void displayWebViewBlob(String title, SHA1Sum hash) {
+		displayWebViewBlob(title, hash, null);
+	}
+
+	void displayWebViewBlob(String title, SHA1Sum hash, Set<EnumWebViewPerms> permissions);
+
+	default void displayWebViewBlob(String title, String alias) {
+		displayWebViewBlob(title, alias, null);
+	}
+
+	void displayWebViewBlob(String title, String alias, Set<EnumWebViewPerms> permissions);
 
 }

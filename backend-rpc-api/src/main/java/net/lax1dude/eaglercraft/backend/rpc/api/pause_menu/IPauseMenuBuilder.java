@@ -4,6 +4,7 @@ import java.util.Set;
 
 import net.lax1dude.eaglercraft.backend.rpc.api.IPacketImageData;
 import net.lax1dude.eaglercraft.backend.rpc.api.SHA1Sum;
+import net.lax1dude.eaglercraft.backend.rpc.api.webview.EnumWebViewPerms;
 
 public interface IPauseMenuBuilder {
 

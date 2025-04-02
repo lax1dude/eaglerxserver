@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.base.rpc;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 
 import io.netty.buffer.Unpooled;
@@ -9,7 +10,10 @@ import io.netty.channel.Channel;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
+import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW;
+import net.lax1dude.eaglercraft.backend.server.api.webview.EnumWebViewPerms;
+import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewProvider;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.notifications.NotificationManagerPlayer;
 import net.lax1dude.eaglercraft.backend.server.base.pause_menu.PauseMenuManager;
@@ -297,6 +301,33 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 		Channel channel = manager().getPlayer().getChannel();
 		if(channel.isActive()) {
 			channel.writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(data)), channel.voidPromise());
+		}
+	}
+
+	void handleDisplayWebViewURL(String title, String url, Set<EnumWebViewPerms> perms) {
+		WebViewManager<PlayerObject> webViewManager = manager().getPlayer().getWebViewManager();
+		if(webViewManager != null) {
+			webViewManager.displayWebViewURL(title, url, perms);
+		}
+	}
+
+	void handleDisplayWebViewBlob(String title, SHA1Sum hash, Set<EnumWebViewPerms> perms) {
+		WebViewManager<PlayerObject> webViewManager = manager().getPlayer().getWebViewManager();
+		if(webViewManager != null) {
+			webViewManager.displayWebViewBlob(title, hash, perms);
+		}
+	}
+
+	void handleDisplayWebViewAlias(String title, String name, Set<EnumWebViewPerms> perms) {
+		WebViewManager<PlayerObject> webViewManager = manager().getPlayer().getWebViewManager();
+		if(webViewManager != null) {
+			IWebViewProvider<PlayerObject> provider = webViewManager.getProvider();
+			if(provider != null) {
+				SHA1Sum hash = provider.handleAlias(webViewManager, name);
+				if(hash != null) {
+					webViewManager.displayWebViewBlob(title, hash, perms);
+				}
+			}
 		}
 	}
 

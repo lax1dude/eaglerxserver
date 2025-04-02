@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.api.pause_menu;
+package net.lax1dude.eaglercraft.backend.rpc.api.webview;
 
 import java.util.EnumSet;
 import java.util.Set;

@@ -323,4 +323,8 @@ public class RewindMessageHandler implements GameMessageHandler {
 		});
 	}
 
+	public void handleServer(SPacketClientStateFlagV5EAG packet) {
+		// nope
+	}
+
 }

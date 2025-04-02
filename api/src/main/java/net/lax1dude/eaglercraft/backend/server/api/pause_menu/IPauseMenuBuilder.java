@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.api.pause_menu;
 import java.util.Set;
 
 import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
+import net.lax1dude.eaglercraft.backend.server.api.webview.EnumWebViewPerms;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewBlob;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.PacketImageData;
 

@@ -143,12 +143,14 @@ public enum GamePluginMessageProtocol {
 			define(0x17, SERVER_TO_CLIENT, SPacketUnforceClientV4EAG.class, SPacketUnforceClientV4EAG::new),
 			define(0x18, SERVER_TO_CLIENT, SPacketCustomizePauseMenuV4EAG.class, SPacketCustomizePauseMenuV4EAG::new),
 			define(0x19, SERVER_TO_CLIENT, SPacketServerInfoDataChunkV4EAG.class, SPacketServerInfoDataChunkV4EAG::new),
-			define(0x1A, SERVER_TO_CLIENT, SPacketWebViewMessageV4EAG.class, SPacketWebViewMessageV4EAG::new),
-			define(0x1B, SERVER_TO_CLIENT, SPacketNotifIconsRegisterV4EAG.class, SPacketNotifIconsRegisterV4EAG::new),
-			define(0x1C, SERVER_TO_CLIENT, SPacketNotifIconsReleaseV4EAG.class, SPacketNotifIconsReleaseV4EAG::new),
-			define(0x1D, SERVER_TO_CLIENT, SPacketNotifBadgeShowV4EAG.class, SPacketNotifBadgeShowV4EAG::new),
-			define(0x1E, SERVER_TO_CLIENT, SPacketNotifBadgeHideV4EAG.class, SPacketNotifBadgeHideV4EAG::new)
-
+			define(0x1A, SERVER_TO_CLIENT, SPacketDisplayWebViewURLV5EAG.class, SPacketDisplayWebViewURLV5EAG::new),
+			define(0x1B, SERVER_TO_CLIENT, SPacketDisplayWebViewBlobV5EAG.class, SPacketDisplayWebViewBlobV5EAG::new),
+			define(0x1C, SERVER_TO_CLIENT, SPacketWebViewMessageV4EAG.class, SPacketWebViewMessageV4EAG::new),
+			define(0x1D, SERVER_TO_CLIENT, SPacketNotifIconsRegisterV4EAG.class, SPacketNotifIconsRegisterV4EAG::new),
+			define(0x1E, SERVER_TO_CLIENT, SPacketNotifIconsReleaseV4EAG.class, SPacketNotifIconsReleaseV4EAG::new),
+			define(0x1F, SERVER_TO_CLIENT, SPacketNotifBadgeShowV4EAG.class, SPacketNotifBadgeShowV4EAG::new),
+			define(0x20, SERVER_TO_CLIENT, SPacketNotifBadgeHideV4EAG.class, SPacketNotifBadgeHideV4EAG::new),
+			define(0x21, SERVER_TO_CLIENT, SPacketClientStateFlagV5EAG.class, SPacketClientStateFlagV5EAG::new)
 	);
 
 	public final int ver;

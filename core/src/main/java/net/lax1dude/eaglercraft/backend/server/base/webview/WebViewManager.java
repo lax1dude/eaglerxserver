@@ -12,6 +12,7 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChannelEvent.EnumEventType;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent.EnumMessageType;
+import net.lax1dude.eaglercraft.backend.server.api.webview.EnumWebViewPerms;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewBlob;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewManager;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewProvider;
@@ -19,6 +20,8 @@ import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.pause_menu.PauseMenuManager;
 import net.lax1dude.eaglercraft.backend.server.base.rpc.EaglerPlayerRPCManager;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketDisplayWebViewBlobV5EAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketDisplayWebViewURLV5EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketServerInfoDataChunkV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketWebViewMessageV4EAG;
 
@@ -146,6 +149,31 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 	public void sendMessageBinary(String channelName, byte[] contents) {
 		if(validateChannel(channelName)) {
 			player.sendEaglerMessage(new SPacketWebViewMessageV4EAG(contents));
+		}
+	}
+
+	@Override
+	public boolean isDisplayWebViewSupported() {
+		return player.getEaglerProtocol().ver >= 5;
+	}
+
+	@Override
+	public void displayWebViewURL(String title, String url, Set<EnumWebViewPerms> permissions) {
+		if(player.getEaglerProtocol().ver >= 5) {
+			player.sendEaglerMessage(new SPacketDisplayWebViewURLV5EAG(
+					permissions != null ? EnumWebViewPerms.toBits(permissions) : 0, title, url));
+		}else {
+			player.logger().warn("Attempted to display web view on an unsupported client");
+		}
+	}
+
+	@Override
+	public void displayWebViewBlob(String title, SHA1Sum hash, Set<EnumWebViewPerms> permissions) {
+		if(player.getEaglerProtocol().ver >= 5) {
+			player.sendEaglerMessage(new SPacketDisplayWebViewBlobV5EAG(
+					permissions != null ? EnumWebViewPerms.toBits(permissions) : 0, title, hash.asBytes()));
+		}else {
+			player.logger().warn("Attempted to display web view on an unsupported client");
 		}
 	}
 
