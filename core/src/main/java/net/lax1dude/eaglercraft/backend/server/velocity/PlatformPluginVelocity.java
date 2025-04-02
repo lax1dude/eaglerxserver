@@ -57,6 +57,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHand
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipelineInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformCommandSender;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
@@ -550,6 +551,9 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	public void initializeConnection(InboundConnection conn, String username, UUID uuid, Object pipelineData,
 			Consumer<VelocityConnection> setAttr) {
 		VelocityConnection c = new VelocityConnection(this, conn, username, uuid);
+		if((pipelineData instanceof IPipelineData) && ((IPipelineData)pipelineData).isEaglerPlayer()) {
+			c.compressionDisable = true;
+		}
 		setAttr.accept(c);
 		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<Object, Object>() {
 			@Override

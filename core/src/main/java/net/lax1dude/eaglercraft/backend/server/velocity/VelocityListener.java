@@ -68,7 +68,7 @@ class VelocityListener {
 				.attr(PipelineAttributes.<VelocityConnection>connectionData()).get();
 		GameProfile gameProfile = gameProfileEvent.getGameProfile();
 		boolean changed = false;
-		if(!conn.uuid.equals(gameProfile.getId())) {
+		if(conn.uuid != null && !conn.uuid.equals(gameProfile.getId())) {
 			gameProfile = gameProfile.withId(conn.uuid);
 			changed = true;
 		}
@@ -98,7 +98,12 @@ class VelocityListener {
 		// Fired right before compression is enabled
 		PermissionSubject p = permissionsSetupEvent.getSubject();
 		if(p instanceof Player) {
-			VelocityUnsafe.injectCompressionDisable(plugin.proxy(), (Player)p);
+			Player player = (Player) p;
+			VelocityConnection conn = VelocityUnsafe.getInboundChannel(player)
+					.attr(PipelineAttributes.<VelocityConnection>connectionData()).get();
+			if(conn.compressionDisable) {
+				VelocityUnsafe.injectCompressionDisable(plugin.proxy(), player);
+			}
 		}
 	}
 
