@@ -193,4 +193,18 @@ public class HandshakerV5 extends HandshakerV4 {
 		return ctx.writeAndFlush(buffer);
 	}
 
+	@Override
+	protected ChannelFuture sendPacketLoginStateRedirect(ChannelHandlerContext ctx, String address) {
+		ByteBuf buffer = ctx.alloc().buffer();
+		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_REDIRECT_TO);
+		byte[] addr = address.getBytes(StandardCharsets.UTF_8);
+		int len = addr.length;
+		if(len > 65535) {
+			len = 65535;
+		}
+		buffer.writeShort(len);
+		buffer.writeBytes(addr, 0, len);
+		return ctx.writeAndFlush(buffer);
+	}
+
 }

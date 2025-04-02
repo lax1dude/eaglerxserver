@@ -245,7 +245,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 			}else if(pipelineData.cookieAuthEventEnabled) {
 				continueLoginCookieAuth(ctx, requestedUsername);
 			}else {
-				continueLoginNoAuth(ctx);
+				handleContinueLogin(ctx);
 			}
 		}else {
 			state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
@@ -309,12 +309,12 @@ public abstract class HandshakerInstance implements IHandshaker {
 					acceptedVersions[acceptedIdx++] = 0;
 				}
 				break;
-			case 7: // EAGLER_IP
-				if((verBits & 1) != 0) { // V0
-					acceptedMask |= EnumCapabilityType.EAGLER_IP.getBit();
-					acceptedVersions[acceptedIdx++] = 0;
-				}
-				break;
+//			case 7: // EAGLER_IP
+//				if((verBits & 1) != 0) { // V0
+//					acceptedMask |= EnumCapabilityType.EAGLER_IP.getBit();
+//					acceptedVersions[acceptedIdx++] = 0;
+//				}
+//				break;
 			}
 			standardCapabilities &= (0xFFFFFFFF << (bit + 1));
 		}
@@ -333,15 +333,6 @@ public abstract class HandshakerInstance implements IHandshaker {
 		}
 	}
 
-	private void continueLoginNoAuth(ChannelHandlerContext ctx) {
-		updateLoggerName();
-		ctx.channel().eventLoop().execute(() -> {
-			state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
-			sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid, pipelineData.acceptedCapabilitiesMask,
-					pipelineData.acceptedCapabilitiesVers, pipelineData.acceptedExtendedCapabilities);
-		});
-	}
-
 	private void continueLoginPasswordAuth(ChannelHandlerContext ctx, String requestedUsername, byte[] authPassword) {
 		server.eventDispatcher().dispatchAuthPasswordEvent(pipelineData.asLoginConnection(),
 				pipelineData.handshakeAuthUsername, pipelineData.nicknameSelectionEnabled, pipelineData.authSalt,
@@ -358,10 +349,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 					pipelineData.username = evt.getProfileUsername();
 					pipelineData.uuid = evt.getProfileUUID();
 					pipelineData.requestedServer = evt.getAuthRequestedServer();
-					updateLoggerName();
-					state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
-					sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid, pipelineData.acceptedCapabilitiesMask,
-							pipelineData.acceptedCapabilitiesVers, pipelineData.acceptedExtendedCapabilities);
+					handleContinueLogin(ctx);
 				});
 			}else {
 				Object obj = evt.getKickMessage();
@@ -370,7 +358,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 				}
 				final Object obj2 = obj;
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
-				ctx.channel().eventLoop().execute(() -> sendPacketDenyLogin(ctx, obj2));
+				ctx.channel().eventLoop().execute(() -> sendPacketDenyLogin(ctx, obj2).addListener(ChannelFutureListener.CLOSE));
 			}
 		});
 	}
@@ -393,10 +381,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 					pipelineData.username = evt.getProfileUsername();
 					pipelineData.uuid = evt.getProfileUUID();
 					pipelineData.requestedServer = evt.getAuthRequestedServer();
-					updateLoggerName();
-					state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
-					sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid, pipelineData.acceptedCapabilitiesMask,
-							pipelineData.acceptedCapabilitiesVers, pipelineData.acceptedExtendedCapabilities);
+					handleContinueLogin(ctx);
 				});
 				break;
 			case DENY:
@@ -406,7 +391,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 				}
 				final Object obj2 = obj;
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
-				ctx.channel().eventLoop().execute(() -> sendPacketDenyLogin(ctx, obj2));
+				ctx.channel().eventLoop().execute(() -> sendPacketDenyLogin(ctx, obj2).addListener(ChannelFutureListener.CLOSE));
 				break;
 			case REQUIRE_AUTH:
 				inboundHandler.terminated = true;
@@ -422,12 +407,58 @@ public abstract class HandshakerInstance implements IHandshaker {
 		pipelineData.connectionLogger = pipelineData.connectionLogger.createSubLogger(pipelineData.username);
 	}
 
+	private void handleContinueLogin(ChannelHandlerContext ctx) {
+		updateLoggerName();
+		server.eventDispatcher().dispatchLoginEvent(pipelineData.asLoginConnection(),
+				pipelineData.hasLoginStateRedirectCap(), (evt, err) -> {
+			if(!ctx.channel().isActive()) {
+				return;
+			}
+			if(err == null) {
+				if(evt.isCancelled()) {
+					state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
+					Object kickMsg = evt.getMessage();
+					if(kickMsg == null) {
+						String redirectAddr = evt.getRedirectAddress();
+						if(redirectAddr != null) {
+							if(evt.isLoginStateRedirectSupported()) {
+								ctx.channel().eventLoop().execute(() -> sendPacketLoginStateRedirect(ctx, redirectAddr)
+										.addListener(ChannelFutureListener.CLOSE));
+							}else {
+								inboundHandler.terminateInternalError(ctx, getVersion());
+								pipelineData.connectionLogger.error("A plugin attempted to login-state redirect a client "
+										+ "that does not support login-state redirects");
+							}
+							return;
+						}else {
+							kickMsg = server.componentBuilder().buildTranslationComponent().translation("disconnect.closed").end();
+						}
+					}
+					final Object msg2 = kickMsg;
+					ctx.channel().eventLoop().execute(() -> sendPacketDenyLogin(ctx, msg2).addListener(ChannelFutureListener.CLOSE));
+				}else {
+					ctx.channel().eventLoop().execute(() -> {
+						state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
+						sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid, pipelineData.acceptedCapabilitiesMask,
+								pipelineData.acceptedCapabilitiesVers, pipelineData.acceptedExtendedCapabilities);
+					});
+				}
+			}else {
+				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
+				inboundHandler.terminateInternalError(ctx, getVersion());
+				pipelineData.connectionLogger.error("Caught exception dispatching login event", err);
+			}
+		});
+	}
+
 	protected abstract ChannelFuture sendPacketAllowLogin(ChannelHandlerContext ctx, String setUsername, UUID setUUID,
 			int standardCapabilities, byte[] standardCapabilityVersions, Map<UUID, Byte> extendedCapabilities);
 
 	protected abstract ChannelFuture sendPacketDenyLogin(ChannelHandlerContext ctx, Object component);
 
 	protected abstract ChannelFuture sendPacketDenyLogin(ChannelHandlerContext ctx, String message);
+
+	protected abstract ChannelFuture sendPacketLoginStateRedirect(ChannelHandlerContext ctx, String address);
 
 	protected void handlePacketProfileData(ChannelHandlerContext ctx, String key, byte[] value) {
 		if(state == HandshakePacketTypes.STATE_CLIENT_LOGIN) {

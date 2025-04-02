@@ -21,6 +21,7 @@ import io.netty.channel.ChannelHandlerContext;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformSubLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
+import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilityType;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
@@ -365,6 +366,11 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 			}
 		}
 		return true;
+	}
+
+	public boolean hasLoginStateRedirectCap() {
+		return gameProtocol.ver >= 5 && CapabilityBits.hasCapability(acceptedCapabilitiesMask, acceptedCapabilitiesVers,
+				EnumCapabilityType.REDIRECT.getId(), 0);
 	}
 
 }

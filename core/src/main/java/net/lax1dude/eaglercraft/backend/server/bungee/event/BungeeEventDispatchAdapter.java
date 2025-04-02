@@ -17,6 +17,7 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthPasswor
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftClientBrandEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftDestroyPlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftLoginEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterSkinEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRevokeSessionQueryEvent;
@@ -105,6 +106,12 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 	public void dispatchClientBrandEvent(IEaglerPendingConnection pendingConnection,
 			IEventDispatchCallback<IEaglercraftClientBrandEvent<ProxiedPlayer, BaseComponent>> onComplete) {
 		eventMgr.callEvent(new BungeeClientBrandEventImpl(api, pendingConnection, transformCallback(onComplete)));
+	}
+
+	@Override
+	public void dispatchLoginEvent(IEaglerLoginConnection loginConnection, boolean redirectSupport,
+			IEventDispatchCallback<IEaglercraftLoginEvent<ProxiedPlayer, BaseComponent>> onComplete) {
+		eventMgr.callEvent(new BungeeLoginEventImpl(api, loginConnection, redirectSupport, transformCallback(onComplete)));
 	}
 
 	@Override

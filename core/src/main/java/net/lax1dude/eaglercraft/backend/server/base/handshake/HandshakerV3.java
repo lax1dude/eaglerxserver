@@ -47,6 +47,11 @@ public class HandshakerV3 extends HandshakerV2 {
 	}
 
 	@Override
+	protected ChannelFuture sendPacketDenyLogin(ChannelHandlerContext ctx, Object component) {
+		return sendPacketDenyLogin(ctx, server.componentHelper().serializeLegacyJSON(component));
+	}
+
+	@Override
 	protected ChannelFuture sendPacketDenyLogin(ChannelHandlerContext ctx, String message) {
 		if(message.length() > 65535) {
 			message = message.substring(0, 65535);

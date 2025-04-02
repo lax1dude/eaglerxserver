@@ -23,6 +23,7 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthPasswor
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftClientBrandEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftDestroyPlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftLoginEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterSkinEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRevokeSessionQueryEvent;
@@ -118,6 +119,12 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player,
 	public void dispatchClientBrandEvent(IEaglerPendingConnection pendingConnection,
 			IEventDispatchCallback<IEaglercraftClientBrandEvent<Player, BaseComponent>> onComplete) {
 		fireAsync(new BukkitClientBrandEventImpl(api, pendingConnection), onComplete);
+	}
+
+	@Override
+	public void dispatchLoginEvent(IEaglerLoginConnection loginConnection, boolean redirectSupport,
+			IEventDispatchCallback<IEaglercraftLoginEvent<Player, BaseComponent>> onComplete) {
+		fireAsync(new BukkitLoginEventImpl(api, loginConnection, redirectSupport), onComplete);
 	}
 
 	@Override

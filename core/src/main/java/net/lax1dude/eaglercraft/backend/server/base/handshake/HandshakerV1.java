@@ -181,4 +181,9 @@ public class HandshakerV1 extends HandshakerInstance {
 		return ctx.writeAndFlush(buffer);
 	}
 
+	@Override
+	protected ChannelFuture sendPacketLoginStateRedirect(ChannelHandlerContext ctx, String address) {
+		throw new UnsupportedOperationException();
+	}
+
 }

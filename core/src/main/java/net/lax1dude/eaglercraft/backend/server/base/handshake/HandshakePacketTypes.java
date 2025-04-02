@@ -29,6 +29,7 @@ public class HandshakePacketTypes {
 	public static final int PROTOCOL_CLIENT_PROFILE_DATA = 0x07;
 	public static final int PROTOCOL_CLIENT_FINISH_LOGIN = 0x08;
 	public static final int PROTOCOL_SERVER_FINISH_LOGIN = 0x09;
+	public static final int PROTOCOL_SERVER_REDIRECT_TO = 0x0A;
 	public static final int PROTOCOL_SERVER_ERROR = 0xFF;
 
 	public static final int STATE_OPENED = 0x00;

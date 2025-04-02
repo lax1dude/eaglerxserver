@@ -20,6 +20,7 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthPasswor
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftClientBrandEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftDestroyPlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftLoginEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterSkinEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRevokeSessionQueryEvent;
@@ -49,6 +50,9 @@ public interface IEventDispatchAdapter<PlayerObject, ComponentObject> {
 
 	void dispatchClientBrandEvent(IEaglerPendingConnection pendingConnection,
 			IEventDispatchCallback<IEaglercraftClientBrandEvent<PlayerObject, ComponentObject>> onComplete);
+
+	void dispatchLoginEvent(IEaglerLoginConnection loginConnection, boolean redirectSupport,
+			IEventDispatchCallback<IEaglercraftLoginEvent<PlayerObject, ComponentObject>> onComplete);
 
 	void dispatchInitializePlayerEvent(IEaglerPlayer<PlayerObject> player,
 			IEventDispatchCallback<IEaglercraftInitializePlayerEvent<PlayerObject>> onComplete);

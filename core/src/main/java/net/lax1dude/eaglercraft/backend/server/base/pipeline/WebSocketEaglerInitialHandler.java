@@ -53,7 +53,9 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		for(int i = 0; i < len; ++i) {
 			buf.writeChar(str.charAt(i));
 		}
-		buf = Unpooled.wrappedBuffer(LEGACY_REDIRECT = new byte[13]);
+		str = "EAG|Reconnect";
+		len = str.length();
+		buf = Unpooled.wrappedBuffer(LEGACY_REDIRECT = new byte[15 + len * 2]);
 		buf.writerIndex(0);
 		buf.writeByte(0x01);
 		buf.writeInt(0);
@@ -64,6 +66,10 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		buf.writeByte(0);
 		buf.writeByte(0);
 		buf.writeByte(0xFA);
+		buf.writeShort(len);
+		for(int i = 0; i < len; ++i) {
+			buf.writeChar(str.charAt(i));
+		}
 	}
 
 	private final EaglerXServer<?> server;
@@ -532,9 +538,10 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		if (redirectCandidate == 69 && pipelineData.listenerInfo != null
 				&& pipelineData.listenerInfo.getLegacyRedirectAddressBuf() != null) {
 			terminated = true;
-			ByteBuf buf = ctx.alloc().buffer();
+			byte[] d = pipelineData.listenerInfo.getLegacyRedirectAddressBuf();
+			ByteBuf buf = ctx.alloc().buffer(LEGACY_REDIRECT.length + d.length);
 			buf.writeBytes(LEGACY_REDIRECT);
-			buf.writeBytes(pipelineData.listenerInfo.getLegacyRedirectAddressBuf());
+			buf.writeBytes(d);
 			ctx.writeAndFlush(buf).addListener(ChannelFutureListener.CLOSE);
 		} else {
 			terminated = true;

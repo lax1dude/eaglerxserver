@@ -175,6 +175,9 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 				case 0x09: // PROTOCOL_SERVER_FINISH_LOGIN
 					handleServerFinishLogin(ctx, buf);
 					break;
+				case 0x0A: // PROTOCOL_SERVER_REDIRECT_TO
+					handleServerRedirectTo(ctx, buf);
+					break;
 				case 0xFF: // PROTOCOL_SERVER_ERROR
 					handleServerError(ctx, buf);
 					break;
@@ -330,6 +333,45 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 			enterPlayState();
 		}else {
 			handleUnexpectedServerPacket(ctx, 0x09);
+		}
+	}
+
+	private static final byte[] LEGACY_REDIRECT;
+
+	static {
+		String str = "EAG|Reconnect";
+		int len = str.length();
+		ByteBuf buf = Unpooled.wrappedBuffer(LEGACY_REDIRECT = new byte[15 + len * 2]);
+		buf.writerIndex(0);
+		buf.writeByte(0x01);
+		buf.writeInt(0);
+		buf.writeShort(0);
+		buf.writeByte(0);
+		buf.writeByte(0);
+		buf.writeByte(0xFF);
+		buf.writeByte(0);
+		buf.writeByte(0);
+		buf.writeByte(0xFA);
+		buf.writeShort(len);
+		for(int i = 0; i < len; ++i) {
+			buf.writeChar(str.charAt(i));
+		}
+	}
+
+	private void handleServerRedirectTo(ChannelHandlerContext ctx, ByteBuf buf) {
+		if(state == STATE_SENT_REQUESTED_LOGIN) {
+			state = STATE_COMPLETED;
+			int len = buf.readUnsignedShort();
+			ByteBuf packet = ctx.alloc().buffer();
+			try {
+				packet.writeBytes(LEGACY_REDIRECT);
+				packet.writeBytes(buf, buf.readerIndex() - 2, len + 2);
+				ctx.writeAndFlush(packet.retain()).addListener(ChannelFutureListener.CLOSE);
+			}finally {
+				packet.release();
+			}
+		}else {
+			handleUnexpectedServerPacket(ctx, 0x0A);
 		}
 	}
 
