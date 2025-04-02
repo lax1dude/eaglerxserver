@@ -38,7 +38,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	private final Set<SHA1Sum> updateSent;
 	private final boolean redirectSupport;
 	private final boolean updateSupport;
-	private PlayerRateLimits rateLimits;
+	private final PlayerRateLimits rateLimits;
 	MessageController messageController;
 	VoiceManager<PlayerObject> voiceManager;
 	NotificationManagerPlayer<PlayerObject> notifManager;
@@ -53,6 +53,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 		playerLogger = connectionInstance.logger();
 		redirectSupport = connectionInstance.hasCapability(EnumCapabilitySpec.REDIRECT_V0);
 		updateSupport = connectionInstance.hasCapability(EnumCapabilitySpec.UPDATE_V0);
+		rateLimits = new PlayerRateLimits();
 		if(updateSupport && server.getUpdateService() != null) {
 			updateSent = new HashSet<>();
 		}else {
