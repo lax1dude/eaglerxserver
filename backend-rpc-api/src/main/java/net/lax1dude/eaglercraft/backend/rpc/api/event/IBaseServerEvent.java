@@ -1,9 +1,9 @@
 package net.lax1dude.eaglercraft.backend.rpc.api.event;
 
-import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXServerRPC;
+import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXBackendRPC;
 
 public interface IBaseServerEvent<PlayerObject> {
 
-	IEaglerXServerRPC<PlayerObject> getServerAPI();
+	IEaglerXBackendRPC<PlayerObject> getServerAPI();
 
 }

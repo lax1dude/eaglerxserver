@@ -1,12 +1,12 @@
 package net.lax1dude.eaglercraft.backend.rpc.api.voice;
 
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
-import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXServerRPC;
+import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXBackendRPC;
 import net.lax1dude.eaglercraft.backend.voice.api.IVoiceService;
 
 public interface IVoiceServiceX<PlayerObject> extends IVoiceService<PlayerObject> {
 
-	IEaglerXServerRPC<PlayerObject> getServerAPI();
+	IEaglerXBackendRPC<PlayerObject> getServerAPI();
 
 	default IVoiceManagerX<PlayerObject> getVoiceManager(PlayerObject player) {
 		IEaglerPlayer<PlayerObject> eagPlayer = getServerAPI().getEaglerPlayer(player);

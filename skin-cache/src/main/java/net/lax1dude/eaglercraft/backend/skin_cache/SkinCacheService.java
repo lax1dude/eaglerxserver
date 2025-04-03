@@ -117,14 +117,16 @@ public class SkinCacheService implements ISkinCacheService {
 		this.downloader = downloader;
 		this.datastore = datastore;
 		this.skinCache = CacheBuilder.newBuilder().expireAfterAccess(expireAfterSec, TimeUnit.SECONDS)
-				.maximumSize(maxSize).build(new CacheLoader<String, ConcurrentLazyLoader<byte[]>>() {
+				.initialCapacity(Math.min(256, maxSize)).maximumSize(maxSize).concurrencyLevel(16)
+				.build(new CacheLoader<String, ConcurrentLazyLoader<byte[]>>() {
 					@Override
 					public ConcurrentLazyLoader<byte[]> load(String key) throws Exception {
 						return new SkinCacheEntry(key);
 					}
 				});
 		this.capeCache = CacheBuilder.newBuilder().expireAfterAccess(expireAfterSec, TimeUnit.SECONDS)
-				.maximumSize(maxSize).build(new CacheLoader<String, ConcurrentLazyLoader<byte[]>>() {
+				.initialCapacity(Math.min(256, maxSize)).maximumSize(maxSize).concurrencyLevel(16)
+				.build(new CacheLoader<String, ConcurrentLazyLoader<byte[]>>() {
 					@Override
 					public ConcurrentLazyLoader<byte[]> load(String key) throws Exception {
 						return new CapeCacheEntry(key);

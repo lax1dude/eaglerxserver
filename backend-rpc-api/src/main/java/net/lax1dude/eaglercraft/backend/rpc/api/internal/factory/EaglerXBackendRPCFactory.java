@@ -4,13 +4,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;
 
-import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXServerRPC;
+import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXBackendRPC;
 
-public abstract class EaglerXServerRPCFactory {
+public abstract class EaglerXBackendRPCFactory {
 
 	public static final Factory INSTANCE;
 
 	static {
+		// Dependency injection? Never heard of it
 		try {
 			Class<?> clz = Class.forName("net.lax1dude.eaglercraft.backend.rpc.base.APIFactoryImpl");
 			Method meth = clz.getDeclaredMethod("createFactory");
@@ -18,20 +19,20 @@ public abstract class EaglerXServerRPCFactory {
 			INSTANCE = (Factory) meth.invoke(null);
 		} catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException
 				| IllegalArgumentException | InvocationTargetException e) {
-			throw new UnsupportedOperationException("Could not access the EaglerXServerRPC factory!", e);
+			throw new UnsupportedOperationException("Could not access the EaglerXBackendRPC factory!", e);
 		}
 	}
 
-	protected EaglerXServerRPCFactory() {
+	protected EaglerXBackendRPCFactory() {
 	}
 
 	public static abstract class Factory implements IEaglerRPCFactory {
 
 		public abstract Set<Class<?>> getPlayerTypes();
 
-		public abstract <T> IEaglerXServerRPC<T> getAPI(Class<T> playerClass);
+		public abstract <T> IEaglerXBackendRPC<T> getAPI(Class<T> playerClass);
 
-		public abstract IEaglerXServerRPC<?> getDefaultAPI();
+		public abstract IEaglerXBackendRPC<?> getDefaultAPI();
 
 	}
 

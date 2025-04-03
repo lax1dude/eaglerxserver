@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
-import com.google.common.collect.Sets;
+import com.google.common.collect.MapMaker;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -158,7 +158,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			throw new IllegalStateException();
 		}
 		hasStartedLoading = true;
-		eaglerPlayers = Sets.newConcurrentHashSet();
+		eaglerPlayers = Collections.newSetFromMap((new MapMaker()).initialCapacity(512).concurrencyLevel(16).makeMap());
 		platform = init.getPlatform();
 		playerClazz = platform.getPlayerClass();
 		playerClassSet = Collections.singleton(playerClazz);

@@ -4,7 +4,9 @@ import java.util.UUID;
 
 public interface IBasePlayer<PlayerObject> extends IRPCAttributeHolder {
 
-	IEaglerXServerRPC<PlayerObject> getServerAPI();
+	IEaglerXBackendRPC<PlayerObject> getServerAPI();
+
+	PlayerObject getPlayerObject();
 
 	boolean isEaglerPlayer();
 

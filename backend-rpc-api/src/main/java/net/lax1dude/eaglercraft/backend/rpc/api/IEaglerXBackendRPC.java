@@ -1,9 +1,10 @@
 package net.lax1dude.eaglercraft.backend.rpc.api;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 
-import net.lax1dude.eaglercraft.backend.rpc.api.internal.factory.EaglerXServerRPCFactory;
+import net.lax1dude.eaglercraft.backend.rpc.api.internal.factory.EaglerXBackendRPCFactory;
 import net.lax1dude.eaglercraft.backend.rpc.api.internal.factory.IEaglerRPCFactory;
 import net.lax1dude.eaglercraft.backend.rpc.api.notifications.INotificationBuilder;
 import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.IPauseMenuBuilder;
@@ -11,27 +12,29 @@ import net.lax1dude.eaglercraft.backend.rpc.api.skins.ISkinImageLoader;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceServiceX;
 import net.lax1dude.eaglercraft.backend.voice.api.IEaglerVoiceAPI;
 
-public interface IEaglerXServerRPC<PlayerObject> extends IEaglerVoiceAPI<PlayerObject>, IRPCAttributeHolder {
+public interface IEaglerXBackendRPC<PlayerObject> extends IEaglerVoiceAPI<PlayerObject>, IRPCAttributeHolder {
 
-	public static <PlayerObject> IEaglerXServerRPC<PlayerObject> instance(Class<PlayerObject> playerObj) {
-		return EaglerXServerRPCFactory.INSTANCE.getAPI(playerObj);
+	public static <PlayerObject> IEaglerXBackendRPC<PlayerObject> instance(Class<PlayerObject> playerObj) {
+		return EaglerXBackendRPCFactory.INSTANCE.getAPI(playerObj);
 	}
 
-	public static IEaglerXServerRPC<?> instance() {
-		return EaglerXServerRPCFactory.INSTANCE.getDefaultAPI();
+	public static IEaglerXBackendRPC<?> instance() {
+		return EaglerXBackendRPCFactory.INSTANCE.getDefaultAPI();
 	}
 
 	public static Set<Class<?>> getPlayerTypes() {
-		return EaglerXServerRPCFactory.INSTANCE.getPlayerTypes();
+		return EaglerXBackendRPCFactory.INSTANCE.getPlayerTypes();
 	}
 
 	public static IEaglerRPCFactory getFactoryInstance() {
-		return EaglerXServerRPCFactory.INSTANCE;
+		return EaglerXBackendRPCFactory.INSTANCE;
 	}
 
 	IEaglerRPCFactory getFactory();
 
 	EnumPlatformType getPlatformType();
+
+	Class<PlayerObject> getPlayerClass();
 
 	IVoiceServiceX<PlayerObject> getVoiceService();
 
@@ -62,5 +65,13 @@ public interface IEaglerXServerRPC<PlayerObject> extends IEaglerVoiceAPI<PlayerO
 	boolean isEaglerPlayerByName(String playerName);
 
 	boolean isEaglerPlayerByUUID(UUID playerUUID);
+
+	Collection<IBasePlayer<PlayerObject>> getAllPlayers();
+
+	Set<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers();
+
+	IScheduler getScheduler();
+
+	boolean isLocal();
 
 }

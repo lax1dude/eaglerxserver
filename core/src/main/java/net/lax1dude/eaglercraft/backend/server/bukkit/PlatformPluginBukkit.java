@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
 
@@ -23,6 +22,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.MapMaker;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
@@ -101,7 +101,8 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	protected boolean enableNativeTransport;
 	protected EventLoopGroup eventLoopGroup;
 
-	private final ConcurrentMap<Player, BukkitPlayer> playerInstanceMap = new ConcurrentHashMap<>(1024);
+	private final ConcurrentMap<Player, BukkitPlayer> playerInstanceMap = (new MapMaker()).initialCapacity(512)
+			.concurrencyLevel(16).makeMap();
 
 	private final ChannelHandler compressionDisabler = new CompressionDisablerHack("compress", BukkitUnsafe::disposeCompressionHandler);
 	private final ChannelHandler decompressionDisabler = new DecompressionDisablerHack("decompress", BukkitUnsafe::disposeDecompressionHandler);

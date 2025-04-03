@@ -8,13 +8,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.MapMaker;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
@@ -107,7 +107,8 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 
 	}
 
-	private final ConcurrentMap<ProxiedPlayer, BungeePlayer> playerInstanceMap = new ConcurrentHashMap<>(1024);
+	private final ConcurrentMap<ProxiedPlayer, BungeePlayer> playerInstanceMap = (new MapMaker()).initialCapacity(1024)
+			.concurrencyLevel(16).makeMap();
 
 	public PlatformPluginBungee() {
 	}

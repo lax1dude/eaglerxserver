@@ -5,7 +5,11 @@ plugins {
 }
 
 dependencies {
+	compileOnly project(":api")
+	compileOnly project(":api-bukkit")
+	compileOnly project(":protocol-game")
 	implementation project(":voice-api")
+	implementation project(":voice-rpc-protocol")
 	implementation project(":backend-rpc-api")
 	implementation project(":backend-rpc-api-bukkit")
 	implementation project(":backend-rpc-protocol")

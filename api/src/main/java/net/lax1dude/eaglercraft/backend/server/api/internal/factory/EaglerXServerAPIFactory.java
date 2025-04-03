@@ -12,6 +12,7 @@ public abstract class EaglerXServerAPIFactory {
 	public static final Factory INSTANCE;
 
 	static {
+		// Dependency injection? Never heard of it
 		try {
 			Class<?> clz = Class.forName("net.lax1dude.eaglercraft.backend.server.base.APIFactoryImpl");
 			Method meth = clz.getDeclaredMethod("createFactory");

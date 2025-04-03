@@ -157,7 +157,8 @@ class ResponseCache {
 	ResponseCache(long expiresAfter, int maxCacheFiles, int threadCount, IEaglerWebLogger loggerIn) {
 		logger = loggerIn;
 		cache = CacheBuilder.newBuilder().concurrencyLevel(8).expireAfterWrite(expiresAfter, TimeUnit.MILLISECONDS)
-				.maximumSize(maxCacheFiles).build(new CacheLoader<ResponseCacheKey, ResponseLoader>() {
+				.initialCapacity(Math.min(256, maxCacheFiles)).maximumSize(maxCacheFiles)
+				.build(new CacheLoader<ResponseCacheKey, ResponseLoader>() {
 			@Override
 			public ResponseLoader load(ResponseCacheKey key) throws Exception {
 				return new ResponseLoader(key);

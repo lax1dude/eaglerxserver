@@ -10,7 +10,7 @@ import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerSkin;
 
 public interface IBasePlayerRPC<PlayerObject> {
 
-	IEaglerXServerRPC<PlayerObject> getServerAPI();
+	IEaglerXBackendRPC<PlayerObject> getServerAPI();
 
 	IBasePlayer<PlayerObject> getPlayer();
 

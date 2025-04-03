@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.MapMaker;
 import com.google.inject.Inject;
 import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.command.CommandSource;
@@ -145,7 +146,8 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 
 	}
 
-	private final ConcurrentMap<Player, VelocityPlayer> playerInstanceMap = new ConcurrentHashMap<>(1024);
+	private final ConcurrentMap<Player, VelocityPlayer> playerInstanceMap = (new MapMaker()).initialCapacity(1024)
+			.concurrencyLevel(16).makeMap();
 
 	protected ListenerInitList listenersToInit = null;
 
