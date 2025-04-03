@@ -1,11 +1,11 @@
 package net.lax1dude.eaglercraft.backend.rpc.api.data;
 
-import java.util.Collection;
+import java.util.Set;
 
 public final class WebViewStateData {
 
 	public static WebViewStateData create(boolean webViewAllowed, boolean channelAllowed,
-			Collection<String> openChannels) {
+			Set<String> openChannels) {
 		if(openChannels == null) {
 			throw new NullPointerException("openChannels");
 		}
@@ -14,10 +14,10 @@ public final class WebViewStateData {
 
 	private final boolean webViewAllowed;
 	private final boolean channelAllowed;
-	private final Collection<String> openChannels;
+	private final Set<String> openChannels;
 
 	private WebViewStateData(boolean webViewAllowed, boolean channelAllowed,
-			Collection<String> openChannels) {
+			Set<String> openChannels) {
 		this.webViewAllowed = webViewAllowed;
 		this.channelAllowed = channelAllowed;
 		this.openChannels = openChannels;
@@ -31,7 +31,7 @@ public final class WebViewStateData {
 		return channelAllowed;
 	}
 
-	public Collection<String> getOpenChannels() {
+	public Set<String> getOpenChannels() {
 		return openChannels;
 	}
 

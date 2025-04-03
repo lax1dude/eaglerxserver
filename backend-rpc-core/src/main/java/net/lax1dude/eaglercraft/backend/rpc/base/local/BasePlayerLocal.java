@@ -22,7 +22,12 @@ public class BasePlayerLocal<PlayerObject> extends RPCAttributeHolder
 			net.lax1dude.eaglercraft.backend.server.api.IBasePlayer<PlayerObject> delegate) {
 		this.server = server;
 		this.player = player;
-		this.playerRPC = new BasePlayerRPCLocal<>(this, delegate);
+		this.playerRPC = createRPC(delegate);
+	}
+
+	protected BasePlayerRPCLocal<PlayerObject> createRPC(
+			net.lax1dude.eaglercraft.backend.server.api.IBasePlayer<PlayerObject> delegate) {
+		return new BasePlayerRPCLocal<>(this, delegate);
 	}
 
 	@Override
@@ -67,7 +72,7 @@ public class BasePlayerLocal<PlayerObject> extends RPCAttributeHolder
 
 	@Override
 	public IRPCFuture<IBasePlayerRPC<PlayerObject>> openHandle() {
-		return null;//TODO
+		return playerRPC.future;
 	}
 
 }

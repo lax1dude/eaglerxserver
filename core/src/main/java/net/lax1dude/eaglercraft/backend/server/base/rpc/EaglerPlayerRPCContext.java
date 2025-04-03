@@ -78,7 +78,13 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 
 	void handleRequestCookie(int requestID) {
 		EaglerPlayerInstance<PlayerObject> player = manager().getPlayer();
-		sendRPCPacket(new SPacketRPCResponseTypeCookie(requestID, player.isCookieEnabled(), player.getCookieData()));
+		SPacketRPCResponseTypeCookie pkt;
+		if(player.isCookieEnabled()) {
+			pkt = new SPacketRPCResponseTypeCookie(requestID, true, player.getCookieData());
+		}else {
+			pkt = new SPacketRPCResponseTypeCookie(requestID, false, null);
+		}
+		sendRPCPacket(pkt);
 	}
 
 	void handleRequestBrandOld(int requestID) {

@@ -113,8 +113,6 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 
 	void injectRawBinaryFrameV5(byte[] data);
 
-	void sendRawEaglerPacketV5(byte[] data);
-
 	int getSubscribedEventsBits();
 
 	default Set<EnumSubscribeEvents> getSubscribedEvents() {
@@ -139,39 +137,41 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 
 	void sendWebViewMessageString(String channelName, String data);
 
+	void sendWebViewMessageString(String channelName, byte[] data);
+
 	void sendWebViewMessageBytes(String channelName, byte[] data);
 
 	boolean isCookieSupported();
 
-	void setCookieData(byte[] cookieData, int expiresAfterSec, boolean revokeQuerySupported, boolean saveToDisk);
+	void setCookieData(byte[] cookieData, long expiresAfterSec, boolean revokeQuerySupported, boolean saveToDisk);
 
-	default void setCookieData(byte[] cookieData, int expiresAfter, TimeUnit expiresTimeUnit, boolean revokeQuerySupported, boolean saveToDisk) {
-		setCookieData(cookieData, (int)expiresTimeUnit.toSeconds(expiresAfter), revokeQuerySupported, saveToDisk);
+	default void setCookieData(byte[] cookieData, long expiresAfter, TimeUnit expiresTimeUnit, boolean revokeQuerySupported, boolean saveToDisk) {
+		setCookieData(cookieData, expiresTimeUnit.toSeconds(expiresAfter), revokeQuerySupported, saveToDisk);
 	}
 
-	default void setCookieData(byte[] cookieData, int expiresAfterSec, boolean revokeQuerySupported) {
+	default void setCookieData(byte[] cookieData, long expiresAfterSec, boolean revokeQuerySupported) {
 		setCookieData(cookieData, expiresAfterSec, revokeQuerySupported, true);
 	}
 
-	default void setCookieData(byte[] cookieData, int expiresAfter, TimeUnit expiresTimeUnit, boolean revokeQuerySupported) {
-		setCookieData(cookieData, (int)expiresTimeUnit.toSeconds(expiresAfter), revokeQuerySupported, true);
+	default void setCookieData(byte[] cookieData, long expiresAfter, TimeUnit expiresTimeUnit, boolean revokeQuerySupported) {
+		setCookieData(cookieData, expiresTimeUnit.toSeconds(expiresAfter), revokeQuerySupported, true);
 	}
 
-	default void setCookieData(byte[] cookieData, int expiresAfterSec) {
+	default void setCookieData(byte[] cookieData, long expiresAfterSec) {
 		setCookieData(cookieData, expiresAfterSec, false, true);
 	}
 
-	default void setCookieData(byte[] cookieData, int expiresAfter, TimeUnit expiresTimeUnit) {
-		setCookieData(cookieData, (int)expiresTimeUnit.toSeconds(expiresAfter), false, true);
+	default void setCookieData(byte[] cookieData, long expiresAfter, TimeUnit expiresTimeUnit) {
+		setCookieData(cookieData, expiresTimeUnit.toSeconds(expiresAfter), false, true);
 	}
 
 	default void clearCookieData() {
-		setCookieData(null, 0, false, false);
+		setCookieData(null, 0l, false, false);
 	}
 
-	void setFNAWSkinsEnabled(EnumEnableFNAW state);
+	void setEnableFNAWSkins(EnumEnableFNAW state);
 
-	void resetForcedFNAW();
+	void resetEnableFNAWSkins();
 
 	boolean isNotificationSupported();
 

@@ -14,6 +14,7 @@ dependencies {
 	implementation project(":backend-rpc-api-bukkit")
 	implementation project(":backend-rpc-protocol")
 	compileOnly(libs.paper.api)
+	compileOnly(libs.bundles.netty.all)
 }
 
 java {
