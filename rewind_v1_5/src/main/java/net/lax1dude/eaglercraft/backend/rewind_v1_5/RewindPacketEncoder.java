@@ -1204,7 +1204,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 						}else {
 							pliItem = tabList().handleUpdateDisplayName(pliUuid, null);
 						}
-						if(pliItem.dirty) {
+						if(pliItem != null && pliItem.dirty) {
 							pliItem.dirty = false;
 							bb = alloc.buffer();
 							try {
