@@ -4,7 +4,12 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.collect.ImmutableList;
+
+import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCMessageChannel;
+import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatform.Init;
+import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatform.InitRemoteMode;
 import net.lax1dude.eaglercraft.backend.rpc.api.IBasePlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.IPacketImageLoader;
@@ -13,6 +18,8 @@ import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.IPauseMenuBuilder;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.ISkinImageLoader;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceServiceX;
 import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCBase;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
+import net.lax1dude.eaglercraft.backend.voice.protocol.EaglerVCProtocol;
 
 public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase<PlayerObject> {
 
@@ -20,7 +27,14 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	protected void load0(Init<PlayerObject> platf) {
 		platf.setOnServerEnable(this::enableHandler);
 		platf.setOnServerDisable(this::disableHandler);
-		
+		InitRemoteMode<PlayerObject> platfRemote = platf.remoteMode();
+		platfRemote.setEaglerPlayerChannels(ImmutableList.of(
+				new BackendRPCMessageChannel<PlayerObject>(EaglerBackendRPCProtocol.CHANNEL_NAME,
+						EaglerBackendRPCProtocol.CHANNEL_NAME_MODERN, this::handleRPCMessage),
+				new BackendRPCMessageChannel<PlayerObject>(EaglerBackendRPCProtocol.CHANNEL_NAME_READY,
+						EaglerBackendRPCProtocol.CHANNEL_NAME_READY_MODERN, this::handleReadyMessage),
+				new BackendRPCMessageChannel<PlayerObject>(EaglerVCProtocol.CHANNEL_NAME,
+						EaglerVCProtocol.CHANNEL_NAME_MODERN, this::handleVoiceMessage)));
 	}
 
 	private void enableHandler() {
@@ -28,6 +42,18 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	}
 
 	private void disableHandler() {
+		
+	}
+
+	private void handleRPCMessage(IBackendRPCMessageChannel<PlayerObject> channel, IPlatformPlayer<PlayerObject> player, byte[] contents) {
+		
+	}
+
+	private void handleReadyMessage(IBackendRPCMessageChannel<PlayerObject> channel, IPlatformPlayer<PlayerObject> player, byte[] contents) {
+		
+	}
+
+	private void handleVoiceMessage(IBackendRPCMessageChannel<PlayerObject> channel, IPlatformPlayer<PlayerObject> player, byte[] contents) {
 		
 	}
 
