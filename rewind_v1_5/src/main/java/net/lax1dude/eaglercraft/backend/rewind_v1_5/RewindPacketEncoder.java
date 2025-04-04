@@ -12,8 +12,6 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 	private final Map<String, Map<String, Integer>> scoreBoard = new HashMap<>();
 
 	private byte playerDimension = 0;
-
-	private final Set<Short> enchWindows = new HashSet<>();
 	private final Set<Short> furnWindows = new HashSet<>();
 
 	private final Map<Integer, Integer> entityIdToType = new HashMap<>();
@@ -769,7 +767,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				windowId = 3;
 				break;
 			case "minecraft:enchanting_table":
-				enchWindows.add(windowUniqueId);
+				player().getEnchWindows().add(windowUniqueId);
 				windowId = 4;
 				break;
 			case "minecraft:brewing_stand":
@@ -802,7 +800,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 	private void handleCloseWindow(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x65);
 		short windowUniqueId = in.readUnsignedByte();
-		enchWindows.remove(windowUniqueId);
+		player().getEnchWindows().remove(windowUniqueId);
 		furnWindows.remove(windowUniqueId);
 		bb.writeByte(windowUniqueId);
 	}
@@ -814,7 +812,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			byte windowUniqueId = in.readByte();
 			bb.writeByte(windowUniqueId);
 			short slot = in.readShort();
-			if (enchWindows.contains((short) windowUniqueId) && slot > 0) {
+			if (player().getEnchWindows().contains((short) windowUniqueId) && slot > 0) {
 				if (slot == 1) {
 					return null;
 				}
@@ -835,7 +833,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		short windowUniqueId = in.readUnsignedByte();
 		bb.writeByte(windowUniqueId);
 		short numSlots = in.readShort();
-		boolean ench = enchWindows.contains(windowUniqueId);
+		boolean ench = player().getEnchWindows().contains(windowUniqueId);
 		if (ench && numSlots > 1) {
 			bb.writeShort(numSlots - 1);
 		} else {

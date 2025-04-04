@@ -309,6 +309,7 @@ public class BufferUtils {
 		}
 		buffer.readerIndex(buffer.readerIndex() - 1);
 		int wi = bb.writerIndex() + 2;
+		bb.ensureWritable(2);
 		bb.writerIndex(wi);
 
 		try (ByteBufInputStream bbis = new ByteBufInputStream(buffer);

@@ -130,8 +130,13 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 				case 0x66:
 					bb = ctx.alloc().buffer();
 					BufferUtils.writeVarInt(bb, 0x0E);
-					bb.writeByte(in.readByte());
-					bb.writeShort(in.readShort());
+					byte windowId = in.readByte();
+					short slot = in.readShort();
+					if (player().getEnchWindows().contains((short) windowId) && slot > 0) {
+						++slot;
+					}
+					bb.writeByte(windowId);
+					bb.writeShort(slot);
 					bb.writeByte(in.readByte());
 					bb.writeShort(in.readShort());
 					bb.writeByte(in.readByte());

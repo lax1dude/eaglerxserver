@@ -1,10 +1,6 @@
 package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -31,6 +27,8 @@ public class PlayerInstance<PlayerObject> {
 	private TabListTracker tabList;
 	private Map<UUID, SkinRequest> skinRequests;
 	private BiMap<UUID, String> voiceGlobalMap;
+
+	private final Set<Short> enchWindows = new HashSet<>();
 
 	private double x = 0;
 	private double y = 0;
@@ -103,6 +101,10 @@ public class PlayerInstance<PlayerObject> {
 			this.tabList = new TabListTracker();
 		}
 		return this.tabList;
+	}
+
+	public Set<Short> getEnchWindows() {
+		return this.enchWindows;
 	}
 
 	public double getX() {
