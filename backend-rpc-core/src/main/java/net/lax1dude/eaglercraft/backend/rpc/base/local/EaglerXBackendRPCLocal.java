@@ -19,7 +19,9 @@ import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.IPauseMenuBuilder;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.ISkinImageLoader;
 import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCBase;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftVoiceChangeEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChannelEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent;
 
 public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<PlayerObject> {
 
@@ -41,7 +43,9 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 		platf.setOnServerDisable(this::disableHandler);
 		platf.setPlayerInitializer(new BackendRPCPlayerInitializer<>(this));
 		InitLocalMode<PlayerObject> platfLocal = platf.localMode();
-		platfLocal.setOnEaglerPlayerInitialized(this::handleEaglerPlayerInitialized);
+		platfLocal.setOnWebViewChannel(this::fireWebViewChannel);
+		platfLocal.setOnWebViewMessage(this::fireWebViewMessage);
+		platfLocal.setOnVoiceChange(this::fireVoiceChange);
 		serverAPI = IEaglerXServerAPI.instance(playerClass);
 		skinLoaderCache = new SkinTypesHelper(serverAPI.getSkinService().getSkinLoader(true));
 		skinLoaderNoCache = new SkinTypesHelper(serverAPI.getSkinService().getSkinLoader(false));
@@ -57,13 +61,24 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 		
 	}
 
-	private void handleEaglerPlayerInitialized(IEaglercraftInitializePlayerEvent<PlayerObject> event) {
-		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(event.getPlayer().getPlayerObject());
-		if(platformPlayer != null) {
-			PlayerInitData<PlayerObject> initData = platformPlayer.getPreAttachment();
-			if(initData != null) {
-				initData.eaglerPlayer = event.getPlayer();
-			}
+	private void fireWebViewChannel(IEaglercraftWebViewChannelEvent<PlayerObject> event) {
+		EaglerPlayerLocal<PlayerObject> player = eaglerPlayerMap.get(event.getPlayer().getPlayerObject());
+		if(player != null) {
+			player.playerRPC().fireLocalWebViewChannel(event);
+		}
+	}
+
+	private void fireWebViewMessage(IEaglercraftWebViewMessageEvent<PlayerObject> event) {
+		EaglerPlayerLocal<PlayerObject> player = eaglerPlayerMap.get(event.getPlayer().getPlayerObject());
+		if(player != null) {
+			player.playerRPC().fireLocalWebViewMessage(event);
+		}
+	}
+
+	private void fireVoiceChange(IEaglercraftVoiceChangeEvent<PlayerObject> event) {
+		EaglerPlayerLocal<PlayerObject> player = eaglerPlayerMap.get(event.getPlayer().getPlayerObject());
+		if(player != null) {
+			player.playerRPC().fireLocalVoiceChange(event);
 		}
 	}
 
@@ -72,7 +87,12 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 			throw new IllegalStateException("Player is already registered!");
 		}
 		eaglerPlayerMap.put(player.getPlayerObject(), player);
-		platform.eventDispatcher().dispatchPlayerReadyEvent(player);
+	}
+
+	void confirmEaglerPlayer(EaglerPlayerLocal<PlayerObject> player) {
+		if(eaglerPlayerMap.get(player.getPlayerObject()) != null) {
+			platform.eventDispatcher().dispatchPlayerReadyEvent(player);
+		}
 	}
 
 	void unregisterEaglerPlayer(EaglerPlayerLocal<PlayerObject> player) {
@@ -86,6 +106,9 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 		if(basePlayerMap.put(player.getPlayerObject(), player) != null) {
 			throw new IllegalStateException("Player is already registered!");
 		}
+	}
+
+	void confirmVanillaPlayer(BasePlayerLocal<PlayerObject> player) {
 	}
 
 	void unregisterVanillaPlayer(BasePlayerLocal<PlayerObject> player) {

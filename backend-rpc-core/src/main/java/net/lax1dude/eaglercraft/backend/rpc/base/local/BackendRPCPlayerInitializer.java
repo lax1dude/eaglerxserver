@@ -3,11 +3,9 @@ package net.lax1dude.eaglercraft.backend.rpc.base.local;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayerInitializer;
-import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPreInitializer;
-import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
 
 class BackendRPCPlayerInitializer<PlayerObject> implements
-		IBackendRPCPlayerInitializer<PlayerInitData<PlayerObject>, BasePlayerLocal<PlayerObject>, PlayerObject> {
+		IBackendRPCPlayerInitializer<BasePlayerLocal<PlayerObject>, PlayerObject> {
 
 	private final EaglerXBackendRPCLocal<PlayerObject> server;
 
@@ -16,27 +14,29 @@ class BackendRPCPlayerInitializer<PlayerObject> implements
 	}
 
 	@Override
-	public void initializePlayer(IPlatformPreInitializer<PlayerInitData<PlayerObject>, PlayerObject> initializer) {
-		initializer.setPreAttachment(new PlayerInitData<>());
-	}
-
-	@Override
-	public void confirmPlayer(IPlatformPlayerInitializer<PlayerInitData<PlayerObject>, BasePlayerLocal<PlayerObject>, PlayerObject> initializer) {
-		PlayerInitData<PlayerObject> playerData = initializer.getPreAttachment();
-		if(playerData == null) {
-			return;
-		}
-		IPlatformPlayer<PlayerObject> player = initializer.getPlayer();
-		if(playerData.eaglerPlayer != null) {
-			EaglerPlayerLocal<PlayerObject> playerInstance = new EaglerPlayerLocal<>(server, player, playerData.eaglerPlayer);
+	public void initializePlayer(IPlatformPlayerInitializer<BasePlayerLocal<PlayerObject>, PlayerObject> initializer) {
+		net.lax1dude.eaglercraft.backend.server.api.IBasePlayer<PlayerObject> player = server.serverAPI()
+				.getPlayer(initializer.getPlayer().getPlayerObject());
+		if(player.isEaglerPlayer()) {
+			EaglerPlayerLocal<PlayerObject> playerInstance = new EaglerPlayerLocal<>(server, initializer.getPlayer(),
+					player.asEaglerPlayer());
 			initializer.setPlayerAttachment(playerInstance);
 			server.registerEaglerPlayer(playerInstance);
 		}else {
-			IBasePlayer<PlayerObject> basePlayer = server.serverAPI().getPlayer(player.getPlayerObject());
-			if(basePlayer != null) {
-				BasePlayerLocal<PlayerObject> playerInstance = new BasePlayerLocal<>(server, player, basePlayer);
-				initializer.setPlayerAttachment(playerInstance);
-				server.registerVanillaPlayer(playerInstance);
+			BasePlayerLocal<PlayerObject> playerInstance = new BasePlayerLocal<>(server, initializer.getPlayer(), player);
+			initializer.setPlayerAttachment(playerInstance);
+			server.registerVanillaPlayer(playerInstance);
+		}
+	}
+
+	@Override
+	public void confirmPlayer(IPlatformPlayer<PlayerObject> player) {
+		BasePlayerLocal<PlayerObject> playerInstance = player.getAttachment();
+		if(playerInstance != null) {
+			if(playerInstance instanceof EaglerPlayerLocal) {
+				server.confirmEaglerPlayer((EaglerPlayerLocal<PlayerObject>) playerInstance);
+			}else {
+				server.confirmVanillaPlayer(playerInstance);
 			}
 		}
 	}
@@ -45,7 +45,7 @@ class BackendRPCPlayerInitializer<PlayerObject> implements
 	public void destroyPlayer(IPlatformPlayer<PlayerObject> player) {
 		BasePlayerLocal<PlayerObject> playerInstance = player.getAttachment();
 		if(playerInstance != null) {
-			if(playerInstance.isEaglerPlayer()) {
+			if(playerInstance instanceof EaglerPlayerLocal) {
 				server.unregisterEaglerPlayer((EaglerPlayerLocal<PlayerObject>)playerInstance);
 			}else {
 				server.unregisterVanillaPlayer(playerInstance);

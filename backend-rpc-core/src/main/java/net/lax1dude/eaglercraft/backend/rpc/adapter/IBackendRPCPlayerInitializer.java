@@ -1,10 +1,10 @@
 package net.lax1dude.eaglercraft.backend.rpc.adapter;
 
-public interface IBackendRPCPlayerInitializer<PreAttachment, PlayerAttachment, PlayerObject> {
+public interface IBackendRPCPlayerInitializer<PlayerAttachment, PlayerObject> {
 
-	void initializePlayer(IPlatformPreInitializer<PreAttachment, PlayerObject> initializer);
+	void initializePlayer(IPlatformPlayerInitializer<PlayerAttachment, PlayerObject> initializer);
 
-	void confirmPlayer(IPlatformPlayerInitializer<PreAttachment, PlayerAttachment, PlayerObject> initializer);
+	void confirmPlayer(IPlatformPlayer<PlayerObject> player);
 
 	void destroyPlayer(IPlatformPlayer<PlayerObject> player);
 

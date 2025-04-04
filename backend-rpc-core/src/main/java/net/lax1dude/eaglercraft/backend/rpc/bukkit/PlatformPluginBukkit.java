@@ -25,14 +25,11 @@ import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatform;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayerInitializer;
-import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPreInitializer;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformScheduler;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.JavaLogger;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCBase;
 import net.lax1dude.eaglercraft.backend.rpc.bukkit.event.BukkitEventDispatchAdapter;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftDestroyPlayerEvent;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftVoiceChangeEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChannelEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent;
@@ -43,17 +40,15 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	private IEventDispatchAdapter<Player> eventDispatcher;
 	protected Runnable onServerEnable;
 	protected Runnable onServerDisable;
-	protected IBackendRPCPlayerInitializer<Object, Object, Player> playerInitializer;
+	protected IBackendRPCPlayerInitializer<Object, Player> playerInitializer;
 	protected boolean post_v1_13;
 	protected IPlatformScheduler schedulerImpl;
 
 	protected boolean localMode;
 	protected Collection<IBackendRPCMessageChannel<Player>> channelsList;
-	protected Consumer<IEaglercraftInitializePlayerEvent<Player>> localInitHandler;
-	protected Consumer<IEaglercraftDestroyPlayerEvent<Player>> localDestroyHandler;
 	protected Consumer<IEaglercraftWebViewChannelEvent<Player>> localWebViewChannelHandler;
 	protected Consumer<IEaglercraftWebViewMessageEvent<Player>> localWebViewMessageHandler;
-	protected Consumer<IEaglercraftVoiceChangeEvent<Player>> localToggleVoiceHandler;
+	protected Consumer<IEaglercraftVoiceChangeEvent<Player>> localVoiceChangeHandler;
 
 	private final ConcurrentMap<Player, BukkitPlayer> playerInstanceMap = (new MapMaker()).initialCapacity(256)
 			.concurrencyLevel(16).makeMap();
@@ -75,8 +70,8 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 				onServerDisable = disable;
 			}
 			@Override
-			public void setPlayerInitializer(IBackendRPCPlayerInitializer<?, ?, Player> initializer) {
-				playerInitializer = (IBackendRPCPlayerInitializer<Object, Object, Player>) initializer;
+			public void setPlayerInitializer(IBackendRPCPlayerInitializer<?, Player> initializer) {
+				playerInitializer = (IBackendRPCPlayerInitializer<Object, Player>) initializer;
 			}
 			@Override
 			public IPlatform<Player> getPlatform() {
@@ -87,14 +82,6 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 				localMode = true;
 				return new InitLocalMode<Player>() {
 					@Override
-					public void setOnEaglerPlayerInitialized(Consumer<IEaglercraftInitializePlayerEvent<Player>> handler) {
-						localInitHandler = handler;
-					}
-					@Override
-					public void setOnEaglerPlayerDestroyed(Consumer<IEaglercraftDestroyPlayerEvent<Player>> handler) {
-						localDestroyHandler = handler;
-					}
-					@Override
 					public void setOnWebViewChannel(Consumer<IEaglercraftWebViewChannelEvent<Player>> handler) {
 						localWebViewChannelHandler = handler;
 					}
@@ -103,8 +90,8 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 						localWebViewMessageHandler = handler;
 					}
 					@Override
-					public void setOnToggleVoice(Consumer<IEaglercraftVoiceChangeEvent<Player>> handler) {
-						localToggleVoiceHandler = handler;
+					public void setOnVoiceChange(Consumer<IEaglercraftVoiceChangeEvent<Player>> handler) {
+						localVoiceChangeHandler = handler;
 					}
 				};
 			}
@@ -119,7 +106,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 				};
 			}
 		};
-		((IBackendRPCImpl<Player>) EaglerXBackendRPCBase.<Player>init()).load(init);
+		EaglerXBackendRPCBase.<Player>init().load(init);
 	}
 
 	@Override
@@ -246,10 +233,10 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	void initializePlayer(Player player) {
 		BukkitPlayer p = new BukkitPlayer(this, player);
-		playerInitializer.initializePlayer(new IPlatformPreInitializer<Object, Player>() {
+		playerInitializer.initializePlayer(new IPlatformPlayerInitializer<Object, Player>() {
 			@Override
-			public void setPreAttachment(Object attachment) {
-				p.preAttachment = attachment;
+			public void setPlayerAttachment(Object attachment) {
+				p.attachment = attachment;
 			}
 			@Override
 			public IPlatformPlayer<Player> getPlayer() {
@@ -272,21 +259,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 				p.confirmTask = null;
 				conf.cancel();
 			}
-			playerInitializer.confirmPlayer(new IPlatformPlayerInitializer<Object, Object, Player>() {
-				@Override
-				public void setPlayerAttachment(Object attachment) {
-					p.attachment = attachment;
-				}
-				@Override
-				public Object getPreAttachment() {
-					return p.preAttachment;
-				}
-				@Override
-				public IPlatformPlayer<Player> getPlayer() {
-					return p;
-				}
-			});
-			p.preAttachment = null;
+			playerInitializer.confirmPlayer(p);
 		}
 	}
 

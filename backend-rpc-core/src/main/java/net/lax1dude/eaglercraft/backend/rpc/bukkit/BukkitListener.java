@@ -15,7 +15,7 @@ class BukkitListener implements Listener {
 		this.plugin = plugin;
 	}
 
-	@EventHandler(priority = EventPriority.LOWEST)
+	@EventHandler(priority = EventPriority.LOW)
 	public void onPlayerLogin(PlayerLoginEvent evt) {
 		plugin.initializePlayer(evt.getPlayer());
 	}

@@ -11,7 +11,6 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 
 	private final PlatformPluginBukkit plugin;
 	private final Player player;
-	Object preAttachment;
 	Object attachment;
 	volatile BukkitTask confirmTask;
 
@@ -23,11 +22,6 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 	@Override
 	public Player getPlayerObject() {
 		return player;
-	}
-
-	@Override
-	public <T> T getPreAttachment() {
-		return (T) preAttachment;
 	}
 
 	@Override

@@ -6,8 +6,6 @@ public interface IPlatformPlayer<PlayerObject> {
 
 	PlayerObject getPlayerObject();
 
-	<T> T getPreAttachment();
-
 	<T> T getAttachment();
 
 	String getUsername();

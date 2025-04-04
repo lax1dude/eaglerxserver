@@ -3,8 +3,6 @@ package net.lax1dude.eaglercraft.backend.rpc.bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.EaglercraftDestroyPlayerEvent;
-import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.EaglercraftInitializePlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.EaglercraftVoiceChangeEvent;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.EaglercraftWebViewChannelEvent;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.EaglercraftWebViewMessageEvent;
@@ -15,20 +13,6 @@ class BukkitListenerLocal implements Listener {
 
 	BukkitListenerLocal(PlatformPluginBukkit plugin) {
 		this.plugin = plugin;
-	}
-
-	@EventHandler
-	public void onEaglerPlayerInit(EaglercraftInitializePlayerEvent evt) {
-		if(plugin.localInitHandler != null) {
-			plugin.localInitHandler.accept(evt);
-		}
-	}
-
-	@EventHandler
-	public void onEaglerPlayerDestroy(EaglercraftDestroyPlayerEvent evt) {
-		if(plugin.localDestroyHandler != null) {
-			plugin.localDestroyHandler.accept(evt);
-		}
 	}
 
 	@EventHandler
@@ -47,8 +31,8 @@ class BukkitListenerLocal implements Listener {
 
 	@EventHandler
 	public void onToggleVoice(EaglercraftVoiceChangeEvent evt) {
-		if(plugin.localToggleVoiceHandler != null) {
-			plugin.localToggleVoiceHandler.accept(evt);
+		if(plugin.localVoiceChangeHandler != null) {
+			plugin.localVoiceChangeHandler.accept(evt);
 		}
 	}
 

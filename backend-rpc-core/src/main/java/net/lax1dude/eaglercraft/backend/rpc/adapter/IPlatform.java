@@ -6,8 +6,6 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.rpc.adapter.event.IEventDispatchAdapter;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftDestroyPlayerEvent;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftVoiceChangeEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChannelEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent;
@@ -22,7 +20,7 @@ public interface IPlatform<PlayerObject> {
 
 		void setOnServerDisable(Runnable disable);
 
-		void setPlayerInitializer(IBackendRPCPlayerInitializer<?, ?, PlayerObject> initializer);
+		void setPlayerInitializer(IBackendRPCPlayerInitializer<?, PlayerObject> initializer);
 
 		InitLocalMode<PlayerObject> localMode();
 
@@ -32,15 +30,11 @@ public interface IPlatform<PlayerObject> {
 
 	public interface InitLocalMode<PlayerObject> {
 
-		void setOnEaglerPlayerInitialized(Consumer<IEaglercraftInitializePlayerEvent<PlayerObject>> handler);
-
-		void setOnEaglerPlayerDestroyed(Consumer<IEaglercraftDestroyPlayerEvent<PlayerObject>> handler);
-
 		void setOnWebViewChannel(Consumer<IEaglercraftWebViewChannelEvent<PlayerObject>> handler);
 
 		void setOnWebViewMessage(Consumer<IEaglercraftWebViewMessageEvent<PlayerObject>> handler);
 
-		void setOnToggleVoice(Consumer<IEaglercraftVoiceChangeEvent<PlayerObject>> handler);
+		void setOnVoiceChange(Consumer<IEaglercraftVoiceChangeEvent<PlayerObject>> handler);
 
 	}
 
