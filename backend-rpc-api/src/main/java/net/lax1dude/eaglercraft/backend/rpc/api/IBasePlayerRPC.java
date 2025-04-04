@@ -22,6 +22,10 @@ public interface IBasePlayerRPC<PlayerObject> {
 
 	int getSupervisorNodeId();
 
+	void addCloseListener(IRPCCloseHandler handler);
+
+	void removeCloseListener(IRPCCloseHandler handler);
+
 	void setBaseRequestTimeout(int seconds);
 
 	int getBaseRequestTimeout();

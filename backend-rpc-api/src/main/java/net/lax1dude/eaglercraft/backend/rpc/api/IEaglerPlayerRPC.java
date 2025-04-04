@@ -123,10 +123,6 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 
 	void removeEventListener(EnumSubscribeEvents eventType, IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler);
 
-	void addCloseListener(IRPCCloseHandler handler);
-
-	void removeCloseListener(IRPCCloseHandler handler);
-
 	boolean isRedirectPlayerSupported();
 
 	void redirectPlayerToWebSocket(String webSocketURI);

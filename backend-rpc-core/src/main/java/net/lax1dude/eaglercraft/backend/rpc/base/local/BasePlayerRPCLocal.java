@@ -1,9 +1,13 @@
 package net.lax1dude.eaglercraft.backend.rpc.base.local;
 
+import java.util.Set;
 import java.util.UUID;
+
+import com.google.common.collect.Sets;
 
 import net.lax1dude.eaglercraft.backend.rpc.api.IBasePlayerRPC;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXBackendRPC;
+import net.lax1dude.eaglercraft.backend.rpc.api.IRPCCloseHandler;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCFuture;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.TexturesData;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetCapes;
@@ -20,6 +24,7 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 	protected final IRPCFuture<IBasePlayerRPC<PlayerObject>> future;
 	protected final BasePlayerLocal<PlayerObject> owner;
 	protected final net.lax1dude.eaglercraft.backend.server.api.IBasePlayer<PlayerObject> delegate;
+	protected Set<IRPCCloseHandler> closeListeners;
 	protected int dummyTimeout = 10;
 	protected int dummyTTL = 300;
 
@@ -58,6 +63,39 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 	@Override
 	public int getSupervisorNodeId() {
 		return -1;
+	}
+
+	@Override
+	public synchronized void addCloseListener(IRPCCloseHandler handler) {
+		if(closeListeners == null) {
+			closeListeners = Sets.newIdentityHashSet();
+		}
+		closeListeners.add(handler);
+	}
+
+	@Override
+	public synchronized void removeCloseListener(IRPCCloseHandler handler) {
+		if(closeListeners != null && closeListeners.remove(handler) && closeListeners.isEmpty()) {
+			closeListeners = null;
+		}
+	}
+
+	void fireCloseListeners() {
+		Object[] handlers;
+		synchronized(this) {
+			if(closeListeners == null) {
+				return;
+			}
+			handlers = closeListeners.toArray();
+		}
+		for(int i = 0; i < handlers.length; ++i) {
+			IRPCCloseHandler handler = (IRPCCloseHandler) handlers[i];
+			try {
+				handler.handleClosed();
+			}catch(Exception ex) {
+				owner.logger().error("Caught exception while calling RPC close listener", ex);
+			}
+		}
 	}
 
 	@Override

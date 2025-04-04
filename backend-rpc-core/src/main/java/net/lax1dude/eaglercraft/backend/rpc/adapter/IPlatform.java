@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import net.lax1dude.eaglercraft.backend.rpc.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftDestroyPlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftVoiceChangeEvent;
@@ -58,6 +59,8 @@ public interface IPlatform<PlayerObject> {
 	File getDataFolder();
 
 	IPlatformLogger logger();
+
+	IEventDispatchAdapter<PlayerObject> eventDispatcher();
 
 	void forEachPlayer(Consumer<IPlatformPlayer<PlayerObject>> playerCallback);
 

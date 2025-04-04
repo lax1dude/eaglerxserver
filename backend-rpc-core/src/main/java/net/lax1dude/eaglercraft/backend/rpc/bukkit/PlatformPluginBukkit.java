@@ -28,7 +28,9 @@ import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPreInitializer;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformScheduler;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.JavaLogger;
+import net.lax1dude.eaglercraft.backend.rpc.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCBase;
+import net.lax1dude.eaglercraft.backend.rpc.bukkit.event.BukkitEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftDestroyPlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftVoiceChangeEvent;
@@ -38,6 +40,7 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMess
 public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player> {
 
 	private IPlatformLogger loggerImpl;
+	private IEventDispatchAdapter<Player> eventDispatcher;
 	protected Runnable onServerEnable;
 	protected Runnable onServerDisable;
 	protected IBackendRPCPlayerInitializer<Object, Object, Player> playerInitializer;
@@ -60,6 +63,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		post_v1_13 = isPost_v1_13();
 		Server server = getServer();
 		loggerImpl = new JavaLogger(getLogger());
+		eventDispatcher = new BukkitEventDispatchAdapter(this, server.getPluginManager());
 		schedulerImpl = new BukkitScheduler(this, server.getScheduler());
 		Init<Player> init = new Init<Player>() {
 			@Override
@@ -193,6 +197,11 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public IPlatformLogger logger() {
 		return loggerImpl;
+	}
+
+	@Override
+	public IEventDispatchAdapter<Player> eventDispatcher() {
+		return eventDispatcher;
 	}
 
 	@Override

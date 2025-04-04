@@ -46,9 +46,11 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 			throw new IllegalStateException("EaglerXBackendRPC is already loading");
 		}
 		hasStartedLoading = true;
+
 		platform = platf.getPlatform();
 		playerClass = platform.getPlayerClass();
 		playerClassSet = Collections.singleton(playerClass);
+
 		switch(platform.getType()) {
 		case BUKKIT:
 			platformType = EnumPlatformType.BUKKIT;
@@ -56,7 +58,11 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 		default:
 			throw new IllegalStateException();
 		}
+
 		load0(platf);
+
+		platform.eventDispatcher().setAPI(this);
+		APIFactoryImpl.INSTANCE.initialize(playerClass, this);
 	}
 
 	protected abstract void load0(Init<PlayerObject> platf);

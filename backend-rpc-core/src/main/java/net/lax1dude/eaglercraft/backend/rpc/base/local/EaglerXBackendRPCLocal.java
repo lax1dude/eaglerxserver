@@ -68,21 +68,30 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 	}
 
 	void registerEaglerPlayer(EaglerPlayerLocal<PlayerObject> player) {
-		basePlayerMap.put(player.getPlayerObject(), player);
+		if(basePlayerMap.putIfAbsent(player.getPlayerObject(), player) != null) {
+			throw new IllegalStateException("Player is already registered!");
+		}
 		eaglerPlayerMap.put(player.getPlayerObject(), player);
+		platform.eventDispatcher().dispatchPlayerReadyEvent(player);
 	}
 
 	void unregisterEaglerPlayer(EaglerPlayerLocal<PlayerObject> player) {
-		basePlayerMap.remove(player.getPlayerObject());
-		eaglerPlayerMap.remove(player.getPlayerObject());
+		if(basePlayerMap.remove(player.getPlayerObject()) != null) {
+			eaglerPlayerMap.remove(player.getPlayerObject());
+			player.handleDestroyed();
+		}
 	}
 
 	void registerVanillaPlayer(BasePlayerLocal<PlayerObject> player) {
-		basePlayerMap.put(player.getPlayerObject(), player);
+		if(basePlayerMap.put(player.getPlayerObject(), player) != null) {
+			throw new IllegalStateException("Player is already registered!");
+		}
 	}
 
 	void unregisterVanillaPlayer(BasePlayerLocal<PlayerObject> player) {
-		basePlayerMap.remove(player.getPlayerObject());
+		if(basePlayerMap.remove(player.getPlayerObject()) != null) {
+			player.handleDestroyed();
+		}
 	}
 
 	IEaglerXServerAPI<PlayerObject> serverAPI() {

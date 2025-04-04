@@ -18,7 +18,16 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 
 	@Override
 	protected void load0(Init<PlayerObject> platf) {
-		// TODO Auto-generated method stub
+		platf.setOnServerEnable(this::enableHandler);
+		platf.setOnServerDisable(this::disableHandler);
+		
+	}
+
+	private void enableHandler() {
+		
+	}
+
+	private void disableHandler() {
 		
 	}
 

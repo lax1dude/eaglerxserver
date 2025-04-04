@@ -23,6 +23,9 @@ class BackendRPCPlayerInitializer<PlayerObject> implements
 	@Override
 	public void confirmPlayer(IPlatformPlayerInitializer<PlayerInitData<PlayerObject>, BasePlayerLocal<PlayerObject>, PlayerObject> initializer) {
 		PlayerInitData<PlayerObject> playerData = initializer.getPreAttachment();
+		if(playerData == null) {
+			return;
+		}
 		IPlatformPlayer<PlayerObject> player = initializer.getPlayer();
 		if(playerData.eaglerPlayer != null) {
 			EaglerPlayerLocal<PlayerObject> playerInstance = new EaglerPlayerLocal<>(server, player, playerData.eaglerPlayer);

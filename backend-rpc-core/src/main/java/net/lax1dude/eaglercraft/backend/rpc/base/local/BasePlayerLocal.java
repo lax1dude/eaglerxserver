@@ -82,4 +82,8 @@ public class BasePlayerLocal<PlayerObject> extends RPCAttributeHolder
 		return logger;
 	}
 
+	void handleDestroyed() {
+		
+	}
+
 }

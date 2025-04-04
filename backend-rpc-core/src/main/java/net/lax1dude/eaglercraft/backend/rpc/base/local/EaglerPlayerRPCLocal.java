@@ -49,7 +49,6 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 		implements IEaglerPlayerRPC<PlayerObject> {
 
 	protected final net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject> delegate;
-	protected Set<IRPCCloseHandler> closeListeners;
 	protected volatile RPCEventBus<PlayerObject> eventBus;
 	protected volatile int subscribedEvents;
 
@@ -288,21 +287,6 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_TOGGLE_VOICE, evt,
 					(evt2) -> ToggledVoiceEvent.create(evt2.getVoiceStateOld(), evt2.getVoiceStateNew()),
 					getPlayer().logger());
-		}
-	}
-
-	@Override
-	public synchronized void addCloseListener(IRPCCloseHandler handler) {
-		if(closeListeners == null) {
-			closeListeners = Sets.newIdentityHashSet();
-		}
-		closeListeners.add(handler);
-	}
-
-	@Override
-	public synchronized void removeCloseListener(IRPCCloseHandler handler) {
-		if(closeListeners != null && closeListeners.remove(handler) && closeListeners.isEmpty()) {
-			closeListeners = null;
 		}
 	}
 
