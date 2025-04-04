@@ -80,7 +80,7 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 	public void loadCacheSkinFromURL(String skinURL, EnumSkinModel modelId, Consumer<IEaglerPlayerSkin> callback) {
 		if(skinCache != null) {
 			skinCache.resolveSkinByURL(skinURL, (data) -> {
-				if(data != null) {
+				if(data != null && data.length > 0) {
 					callback.accept(CustomSkinGeneric.createV4(modelId.getId(), data));
 				}else {
 					callback.accept(MissingSkin.MISSING_SKIN);
@@ -94,7 +94,7 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 	void loadPlayerSkinFromURL(String skinURL, UUID playerUUID, EnumSkinModel modelId, Consumer<IEaglerPlayerSkin> callback) {
 		if(skinCache != null) {
 			skinCache.resolveSkinByURL(skinURL, (data) -> {
-				if(data != null) {
+				if(data != null && data.length > 0) {
 					callback.accept(CustomSkinPlayer.createV4(playerUUID.getMostSignificantBits(),
 							playerUUID.getLeastSignificantBits(), modelId.getId(), data));
 				} else {
@@ -110,7 +110,7 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 	public void loadCacheCapeFromURL(String capeURL, Consumer<IEaglerPlayerCape> callback) {
 		if(skinCache != null) {
 			skinCache.resolveCapeByURL(capeURL, (data) -> {
-				if(data != null) {
+				if(data != null && data.length > 0) {
 					callback.accept(new CustomCapeGeneric(data));
 				}else {
 					callback.accept(MissingCape.MISSING_CAPE);
@@ -124,7 +124,7 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 	void loadPlayerCapeFromURL(String capeURL, UUID playerUUID, Consumer<IEaglerPlayerCape> callback) {
 		if(skinCache != null) {
 			skinCache.resolveCapeByURL(capeURL, (data) -> {
-				if(data != null) {
+				if(data != null && data.length > 0) {
 					callback.accept(new CustomCapePlayer(playerUUID.getMostSignificantBits(),
 							playerUUID.getLeastSignificantBits(), data));
 				}else {
