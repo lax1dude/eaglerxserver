@@ -1,5 +1,9 @@
 package net.lax1dude.eaglercraft.backend.server.api.pause_menu;
 
+import java.util.Map;
+
+import com.google.common.collect.ImmutableMap;
+
 public enum EnumPauseMenuIcon {
 	ICON_TITLE_L("icon_title_L"),
 	ICON_TITLE_R("icon_title_R"),
@@ -30,6 +34,20 @@ public enum EnumPauseMenuIcon {
 
 	public String getIconName() {
 		return icon;
+	}
+
+	private static final Map<String, EnumPauseMenuIcon> NAMES_MAP;
+
+	public static EnumPauseMenuIcon getByName(String name) {
+		return NAMES_MAP.get(name);
+	}
+
+	static {
+		ImmutableMap.Builder<String, EnumPauseMenuIcon> builder = ImmutableMap.builder();
+		for(EnumPauseMenuIcon e : values()) {
+			builder.put(e.icon, e);
+		}
+		NAMES_MAP = builder.build();
 	}
 
 }

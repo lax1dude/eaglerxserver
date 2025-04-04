@@ -22,18 +22,28 @@ import java.util.Set;
 public enum EnumSubscribeEvents {
 
 	/** @see net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewOpenCloseEvent */
-	EVENT_WEBVIEW_OPEN_CLOSE(1),
+	EVENT_WEBVIEW_OPEN_CLOSE(0, 1),
 
 	/** @see net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewMessageEvent */
-	EVENT_WEBVIEW_MESSAGE(2),
+	EVENT_WEBVIEW_MESSAGE(1, 2),
 
 	/** @see net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewOpenCloseEvent */
-	EVENT_TOGGLE_VOICE(4);
+	EVENT_TOGGLE_VOICE(2, 4);
 
-	public final int bit;
+	private final int id;
+	private final int bit;
 
-	private EnumSubscribeEvents(int bit) {
+	private EnumSubscribeEvents(int id, int bit) {
+		this.id = id;
 		this.bit = bit;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public int getBit() {
+		return bit;
 	}
 
 	public static int toBits(EnumSubscribeEvents... evts) {

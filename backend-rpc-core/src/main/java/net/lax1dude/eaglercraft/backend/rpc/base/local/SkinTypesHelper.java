@@ -1,13 +1,20 @@
 package net.lax1dude.eaglercraft.backend.rpc.base.local;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.UUID;
+
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumEnableFNAW;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetCapes;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetSkins;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerSkin;
+import net.lax1dude.eaglercraft.backend.rpc.api.skins.ISkinImageLoader;
 
-class SkinTypesHelper {
+class SkinTypesHelper implements ISkinImageLoader {
 
 	static IEaglerPlayerSkin wrap(net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin skin) {
 		return new PlayerSkinLocal(skin);
@@ -25,6 +32,10 @@ class SkinTypesHelper {
 		return EnumPresetCapes.getByIdOrDefault(cape.getId());
 	}
 
+	static EnumSkinModel wrap(net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel model) {
+		return EnumSkinModel.getById(model.getId());
+	}
+
 	static net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin unwrap(IEaglerPlayerSkin skin) {
 		return ((PlayerSkinLocal) skin).skin;
 	}
@@ -39,6 +50,10 @@ class SkinTypesHelper {
 
 	static net.lax1dude.eaglercraft.backend.server.api.skins.EnumPresetCapes unwrap(EnumPresetCapes cape) {
 		return net.lax1dude.eaglercraft.backend.server.api.skins.EnumPresetCapes.getByIdOrDefault(cape.getId());
+	}
+
+	static net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel unwrap(EnumSkinModel model) {
+		return net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel.getById(model.getId());
 	}
 
 	static EnumEnableFNAW wrap(net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW en) {
@@ -183,6 +198,117 @@ class SkinTypesHelper {
 			return this == obj || ((obj instanceof PlayerCapeLocal) && cape.equals(((PlayerCapeLocal) obj).cape));
 		}
 
+	}
+
+	final net.lax1dude.eaglercraft.backend.server.api.skins.ISkinImageLoader loader;
+
+	public SkinTypesHelper(net.lax1dude.eaglercraft.backend.server.api.skins.ISkinImageLoader loader) {
+		this.loader = loader;
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadPresetSkin(int presetSkin) {
+		return wrap(loader.loadPresetSkin(presetSkin));
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadPresetSkin(EnumPresetSkins presetSkin) {
+		return wrap(loader.loadPresetSkin(presetSkin.getId()));
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadPresetSkin(UUID playerUUID) {
+		return wrap(loader.loadPresetSkin(playerUUID));
+	}
+
+	@Override
+	public IEaglerPlayerCape loadPresetNoCape() {
+		return wrap(loader.loadPresetNoCape());
+	}
+
+	@Override
+	public IEaglerPlayerCape loadPresetCape(int presetCape) {
+		return wrap(loader.loadPresetCape(presetCape));
+	}
+
+	@Override
+	public IEaglerPlayerCape loadPresetCape(EnumPresetCapes presetCape) {
+		return wrap(loader.loadPresetCape(presetCape.getId()));
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData64x64(int[] pixelsARGB8, EnumSkinModel modelId) {
+		return wrap(loader.loadSkinImageData64x64(pixelsARGB8, unwrap(modelId)));
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData64x64(byte[] pixelsRGBA8, EnumSkinModel modelId) {
+		return wrap(loader.loadSkinImageData64x64(pixelsRGBA8, unwrap(modelId)));
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData64x64Eagler(byte[] pixelsEagler, EnumSkinModel modelId) {
+		return wrap(loader.loadSkinImageData64x64Eagler(pixelsEagler, unwrap(modelId)));
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData64x32(int[] pixelsARGB8, EnumSkinModel modelId) {
+		return wrap(loader.loadSkinImageData64x32(pixelsARGB8, unwrap(modelId)));
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData(BufferedImage image, EnumSkinModel modelId) {
+		return wrap(loader.loadSkinImageData(image, unwrap(modelId)));
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData(InputStream inputStream, EnumSkinModel modelId) throws IOException {
+		return wrap(loader.loadSkinImageData(inputStream, unwrap(modelId)));
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData(File imageFile, EnumSkinModel modelId) throws IOException {
+		return wrap(loader.loadSkinImageData(imageFile, unwrap(modelId)));
+	}
+
+	@Override
+	public IEaglerPlayerSkin rewriteCustomSkinModelId(IEaglerPlayerSkin skin, EnumSkinModel modelId) {
+		return wrap(loader.rewriteCustomSkinModelId(unwrap(skin), unwrap(modelId)));
+	}
+
+	@Override
+	public IEaglerPlayerCape loadCapeImageData64x32(int[] pixelsARGB8) {
+		return wrap(loader.loadCapeImageData64x32(pixelsARGB8));
+	}
+
+	@Override
+	public IEaglerPlayerCape loadCapeImageData32x32(int[] pixelsARGB8) {
+		return wrap(loader.loadCapeImageData32x32(pixelsARGB8));
+	}
+
+	@Override
+	public IEaglerPlayerCape loadCapeImageData32x32(byte[] pixelsRGBA8) {
+		return wrap(loader.loadCapeImageData32x32(pixelsRGBA8));
+	}
+
+	@Override
+	public IEaglerPlayerCape loadCapeImageData23x17Eagler(byte[] pixelsEagler) {
+		return wrap(loader.loadCapeImageData23x17Eagler(pixelsEagler));
+	}
+
+	@Override
+	public IEaglerPlayerCape loadCapeImageData(BufferedImage image) {
+		return wrap(loader.loadCapeImageData(image));
+	}
+
+	@Override
+	public IEaglerPlayerCape loadCapeImageData(InputStream inputStream) throws IOException {
+		return wrap(loader.loadCapeImageData(inputStream));
+	}
+
+	@Override
+	public IEaglerPlayerCape loadCapeImageData(File imageFile) throws IOException {
+		return wrap(loader.loadCapeImageData(imageFile));
 	}
 
 }

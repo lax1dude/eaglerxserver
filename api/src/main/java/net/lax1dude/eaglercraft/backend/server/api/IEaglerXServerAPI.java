@@ -94,7 +94,7 @@ public interface IEaglerXServerAPI<PlayerObject> extends IEaglerVoiceAPI<PlayerO
 
 	Collection<IBasePlayer<PlayerObject>> getAllPlayers();
 
-	Set<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers();
+	Collection<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers();
 
 	int getEaglerPlayerCount();
 
@@ -156,7 +156,7 @@ public interface IEaglerXServerAPI<PlayerObject> extends IEaglerVoiceAPI<PlayerO
 
 	IScheduler getScheduler();
 
-	Set<Class<?>> getComponentClass();
+	Set<Class<?>> getComponentTypes();
 
 	<ComponentObject> IComponentSerializer<ComponentObject> getComponentSerializer(Class<ComponentObject> componentType);
 

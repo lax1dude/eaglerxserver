@@ -38,7 +38,7 @@ public interface IEaglerXBackendRPC<PlayerObject> extends IEaglerVoiceAPI<Player
 
 	IVoiceServiceX<PlayerObject> getVoiceService();
 
-	ISkinImageLoader getSkinImageLoader();
+	ISkinImageLoader getSkinImageLoader(boolean cacheEnabled);
 
 	IPacketImageLoader getPacketImageLoader();
 
@@ -68,7 +68,7 @@ public interface IEaglerXBackendRPC<PlayerObject> extends IEaglerVoiceAPI<Player
 
 	Collection<IBasePlayer<PlayerObject>> getAllPlayers();
 
-	Set<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers();
+	Collection<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers();
 
 	IScheduler getScheduler();
 

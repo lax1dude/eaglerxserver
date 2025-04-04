@@ -3,15 +3,23 @@ package net.lax1dude.eaglercraft.backend.rpc.base.local;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayerRPC;
-import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXBackendRPC;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCHandle;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceManagerX;
 
 public class EaglerPlayerLocal<PlayerObject> extends BasePlayerLocal<PlayerObject> implements IEaglerPlayer<PlayerObject> {
 
-	EaglerPlayerLocal(IEaglerXBackendRPC<PlayerObject> server, IPlatformPlayer<PlayerObject> player,
+	final VoiceManagerLocal<PlayerObject> voiceManager;
+	final boolean voiceCapable;
+
+	EaglerPlayerLocal(EaglerXBackendRPCLocal<PlayerObject> server, IPlatformPlayer<PlayerObject> player,
 			net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject> delegate) {
 		super(server, player, delegate);
+		this.voiceCapable = delegate.isVoiceCapable();
+		if(delegate.hasVoiceManager()) {
+			this.voiceManager = new VoiceManagerLocal<>(server.getVoiceService(), this, delegate.getVoiceManager());
+		}else {
+			this.voiceManager = null;
+		}
 	}
 
 	@Override
@@ -26,21 +34,28 @@ public class EaglerPlayerLocal<PlayerObject> extends BasePlayerLocal<PlayerObjec
 	}
 
 	@Override
+	public boolean isEaglerPlayer() {
+		return true;
+	}
+
+	@Override
+	public IEaglerPlayer<PlayerObject> asEaglerPlayer() {
+		return this;
+	}
+
+	@Override
 	public boolean isVoiceCapable() {
-		// TODO
-		return false;
+		return voiceCapable;
 	}
 
 	@Override
 	public boolean hasVoiceManager() {
-		// TODO
-		return false;
+		return voiceManager != null;
 	}
 
 	@Override
 	public IVoiceManagerX<PlayerObject> getVoiceManager() {
-		// TODO
-		return null;
+		return voiceManager;
 	}
 
 	@Override

@@ -76,6 +76,8 @@ public interface IPauseMenuBuilder {
 
 	IPauseMenuBuilder clearMenuIcons();
 
+	boolean isRemoteFeaturesSupported();
+
 	ICustomPauseMenu buildPauseMenu();
 
 }

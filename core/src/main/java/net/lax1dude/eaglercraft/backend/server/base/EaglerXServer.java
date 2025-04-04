@@ -19,7 +19,6 @@ import javax.net.ssl.SSLException;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import com.google.common.collect.MapMaker;
@@ -721,12 +720,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public Set<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers() {
-		return ImmutableSet.copyOf(eaglerPlayers);
+	public Collection<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers() {
+		return ImmutableList.copyOf(eaglerPlayers);
 	}
 
-	public Set<EaglerPlayerInstance<PlayerObject>> getAllEaglerPlayersInternal() {
-		return ImmutableSet.copyOf(eaglerPlayers);
+	public Collection<EaglerPlayerInstance<PlayerObject>> getAllEaglerPlayersInternal() {
+		return ImmutableList.copyOf(eaglerPlayers);
 	}
 
 	@Override
@@ -900,7 +899,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public Set<Class<?>> getComponentClass() {
+	public Set<Class<?>> getComponentTypes() {
 		return componentTypeSet;
 	}
 

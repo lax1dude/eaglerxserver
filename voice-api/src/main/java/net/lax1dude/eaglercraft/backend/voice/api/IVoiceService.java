@@ -17,12 +17,6 @@ public interface IVoiceService<PlayerObject> {
 
 	boolean isVoiceEnabled();
 
-	boolean isVoiceEnabledAllServers();
-
-	boolean isVoiceEnabledOnServer(String serverName);
-
-	boolean isSeparateServerChannels();
-
 	Collection<ICEServerEntry> getICEServers();
 
 	void setICEServers(Collection<ICEServerEntry> servers);
@@ -30,8 +24,6 @@ public interface IVoiceService<PlayerObject> {
 	IVoiceChannel createVoiceChannel();
 
 	IVoiceChannel getGlobalVoiceChannel();
-
-	IVoiceChannel getServerVoiceChannel(String serverName);
 
 	IVoiceChannel getDisabledVoiceChannel();
 

@@ -1,9 +1,11 @@
 package net.lax1dude.eaglercraft.backend.rpc.base.local;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.Sets;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -20,14 +22,23 @@ import net.lax1dude.eaglercraft.backend.rpc.api.IRPCFuture;
 import net.lax1dude.eaglercraft.backend.rpc.api.SHA1Sum;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.BrandData;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.CookieData;
+import net.lax1dude.eaglercraft.backend.rpc.api.data.ToggledVoiceEvent;
+import net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewMessageEvent;
+import net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewOpenCloseEvent;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewStateData;
 import net.lax1dude.eaglercraft.backend.rpc.api.notifications.INotificationBadge;
 import net.lax1dude.eaglercraft.backend.rpc.api.notifications.IconDef;
 import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.ICustomPauseMenu;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumEnableFNAW;
 import net.lax1dude.eaglercraft.backend.rpc.api.webview.EnumWebViewPerms;
+import net.lax1dude.eaglercraft.backend.rpc.base.RPCEventBus;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCImmediateFuture;
+import net.lax1dude.eaglercraft.backend.rpc.base.local.NotificationBadgeHelper.NotificationBadgeLocal;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftVoiceChangeEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChannelEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent;
+import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationManager;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuManager;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewManager;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewProvider;
@@ -38,6 +49,9 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 		implements IEaglerPlayerRPC<PlayerObject> {
 
 	protected final net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject> delegate;
+	protected Set<IRPCCloseHandler> closeListeners;
+	protected volatile RPCEventBus<PlayerObject> eventBus;
+	protected volatile int subscribedEvents;
 
 	EaglerPlayerRPCLocal(EaglerPlayerLocal<PlayerObject> player,
 			net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject> delegate) {
@@ -182,7 +196,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 			dat = WebViewStateData.create(webviewMgr.isRequestAllowed(), webviewMgr.isChannelAllowed(),
 					webviewMgr.getOpenChannels());
 		}else {
-			dat = WebViewStateData.create(false, false, Collections.emptySet());
+			dat = WebViewStateData.disabled();
 		}
 		return RPCImmediateFuture.create(dat);
 	}
@@ -202,34 +216,94 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	@Override
 	public int getSubscribedEventsBits() {
-		// TODO Auto-generated method stub
-		return 0;
+		return subscribedEvents;
 	}
 
 	@Override
-	public void addEventListener(EnumSubscribeEvents eventType,
+	public synchronized void addEventListener(EnumSubscribeEvents eventType,
 			IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler) {
-		// TODO Auto-generated method stub
-		
+		RPCEventBus<PlayerObject> eventBus = this.eventBus;
+		if(eventBus == null) {
+			eventBus = new RPCEventBus<PlayerObject>(this);
+			int i = eventBus.addEventListener(eventType, handler);
+			if(i > 0) {
+				this.eventBus = eventBus;
+				subscribedEvents = i;
+			}
+		}else {
+			int i = eventBus.addEventListener(eventType, handler);
+			if(i != -1) {
+				subscribedEvents = i;
+			}
+		}
 	}
 
 	@Override
-	public void removeEventListener(EnumSubscribeEvents eventType,
+	public synchronized void removeEventListener(EnumSubscribeEvents eventType,
 			IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler) {
-		// TODO Auto-generated method stub
-		
+		RPCEventBus<PlayerObject> eventBus = this.eventBus;
+		if(eventBus != null) {
+			int i = eventBus.removeEventListener(eventType, handler);
+			if(i != -1 && (subscribedEvents = i) == 0) {
+				this.eventBus = null;
+			}
+		}
+	}
+
+	public void fireLocalWebViewChannel(IEaglercraftWebViewChannelEvent<PlayerObject> evt) {
+		RPCEventBus<PlayerObject> eventBus = this.eventBus;
+		if(eventBus != null) {
+			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_WEBVIEW_OPEN_CLOSE, evt, (evt2) -> {
+				switch(evt2.getType()) {
+				case CHANNEL_OPEN:
+					return WebViewOpenCloseEvent.create(evt2.getChannel(), true);
+				case CHANNEL_CLOSE:
+					return WebViewOpenCloseEvent.create(evt2.getChannel(), false);
+				default:
+					throw new IllegalStateException();
+				}
+			}, getPlayer().logger());
+		}
+	}
+
+	public void fireLocalWebViewMessage(IEaglercraftWebViewMessageEvent<PlayerObject> evt) {
+		RPCEventBus<PlayerObject> eventBus = this.eventBus;
+		if(eventBus != null) {
+			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_WEBVIEW_MESSAGE, evt, (evt2) -> {
+				switch(evt2.getType()) {
+				case STRING:
+					return WebViewMessageEvent.string(evt2.getChannel(), evt2.getAsBinary());
+				case BINARY:
+					return WebViewMessageEvent.binary(evt2.getChannel(), evt2.getAsBinary());
+				default:
+					throw new IllegalStateException();
+				}
+			}, getPlayer().logger());
+		}
+	}
+
+	public void fireLocalVoiceChange(IEaglercraftVoiceChangeEvent<PlayerObject> evt) {
+		RPCEventBus<PlayerObject> eventBus = this.eventBus;
+		if(eventBus != null) {
+			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_TOGGLE_VOICE, evt,
+					(evt2) -> ToggledVoiceEvent.create(evt2.getVoiceStateOld(), evt2.getVoiceStateNew()),
+					getPlayer().logger());
+		}
 	}
 
 	@Override
-	public void addCloseListener(IRPCCloseHandler handler) {
-		// TODO Auto-generated method stub
-		
+	public synchronized void addCloseListener(IRPCCloseHandler handler) {
+		if(closeListeners == null) {
+			closeListeners = Sets.newIdentityHashSet();
+		}
+		closeListeners.add(handler);
 	}
 
 	@Override
-	public void removeCloseListener(IRPCCloseHandler handler) {
-		// TODO Auto-generated method stub
-		
+	public synchronized void removeCloseListener(IRPCCloseHandler handler) {
+		if(closeListeners != null && closeListeners.remove(handler) && closeListeners.isEmpty()) {
+			closeListeners = null;
+		}
 	}
 
 	@Override
@@ -307,38 +381,58 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	@Override
 	public void registerNotificationIcon(UUID iconUUID, IPacketImageData icon) {
-		// TODO Auto-generated method stub
-		
+		INotificationManager<PlayerObject> notifManager = delegate.getNotificationManager();
+		if(notifManager != null) {
+			notifManager.registerUnmanagedNotificationIcon(iconUUID, PacketImageDataHelper.unwrap(icon));
+		}
 	}
 
 	@Override
 	public void registerNotificationIcons(Collection<IconDef> icons) {
-		// TODO Auto-generated method stub
-		
+		INotificationManager<PlayerObject> notifManager = delegate.getNotificationManager();
+		if(notifManager != null) {
+			notifManager.registerUnmanagedNotificationIcons(icons.stream()
+					.map((def) -> net.lax1dude.eaglercraft.backend.server.api.notifications.IconDef
+							.create(def.getUUID(), PacketImageDataHelper.unwrap(def.getIcon())))
+					.collect(Collectors.toList()));
+		}
 	}
 
 	@Override
 	public void releaseNotificationIcon(UUID iconUUID) {
-		// TODO Auto-generated method stub
-		
+		INotificationManager<PlayerObject> notifManager = delegate.getNotificationManager();
+		if(notifManager != null) {
+			notifManager.releaseUnmanagedNotificationIcon(iconUUID);
+		}
 	}
 
 	@Override
 	public void releaseNotificationIcons(Collection<UUID> iconUUIDs) {
-		// TODO Auto-generated method stub
-		
+		INotificationManager<PlayerObject> notifManager = delegate.getNotificationManager();
+		if(notifManager != null) {
+			notifManager.releaseUnmanagedNotificationIcons(iconUUIDs);
+		}
 	}
 
 	@Override
 	public void showNotificationBadge(INotificationBadge badge) {
-		// TODO Auto-generated method stub
-		
+		INotificationManager<PlayerObject> notifManager = delegate.getNotificationManager();
+		if(notifManager != null) {
+			NotificationBadgeLocal badgeLocal = NotificationBadgeHelper.unwrap(badge);
+			if(badgeLocal.managed) {
+				notifManager.showNotificationBadge(badgeLocal.packet);
+			}else {
+				notifManager.showUnmanagedNotificationBadge(badgeLocal.packet);
+			}
+		}
 	}
 
 	@Override
 	public void hideNotificationBadge(UUID badgeUUID) {
-		// TODO Auto-generated method stub
-		
+		INotificationManager<PlayerObject> notifManager = delegate.getNotificationManager();
+		if(notifManager != null) {
+			notifManager.hideNotificationBadge(badgeUUID);
+		}
 	}
 
 	@Override

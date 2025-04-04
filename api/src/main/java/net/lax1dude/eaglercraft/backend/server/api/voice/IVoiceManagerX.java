@@ -9,6 +9,10 @@ public interface IVoiceManagerX<PlayerObject> extends IVoiceManager<PlayerObject
 
 	IVoiceServiceX<PlayerObject> getVoiceService();
 
+	boolean isServerManaged();
+
+	void setServerManaged(boolean managed);
+
 	boolean isBackendRelayMode();
 
 }

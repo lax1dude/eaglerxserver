@@ -7,6 +7,26 @@ import net.lax1dude.eaglercraft.backend.rpc.api.IRPCEvent;
 
 public final class WebViewMessageEvent implements IRPCEvent {
 
+	public static WebViewMessageEvent string(String channelName, byte[] messageContent) {
+		if(channelName == null) {
+			throw new NullPointerException("channelName");
+		}
+		if(messageContent == null) {
+			throw new NullPointerException("messageContent");
+		}
+		return new WebViewMessageEvent(channelName, EnumMessageType.STRING, messageContent);
+	}
+
+	public static WebViewMessageEvent binary(String channelName, byte[] messageContent) {
+		if(channelName == null) {
+			throw new NullPointerException("channelName");
+		}
+		if(messageContent == null) {
+			throw new NullPointerException("messageContent");
+		}
+		return new WebViewMessageEvent(channelName, EnumMessageType.BINARY, messageContent);
+	}
+
 	private final String channelName;
 	private final EnumMessageType messageType;
 	private final byte[] messageContent;

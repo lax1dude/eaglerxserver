@@ -7,6 +7,9 @@ import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftDestroyPlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftVoiceChangeEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChannelEvent;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent;
 
 public interface IPlatform<PlayerObject> {
 
@@ -31,6 +34,12 @@ public interface IPlatform<PlayerObject> {
 		void setOnEaglerPlayerInitialized(Consumer<IEaglercraftInitializePlayerEvent<PlayerObject>> handler);
 
 		void setOnEaglerPlayerDestroyed(Consumer<IEaglercraftDestroyPlayerEvent<PlayerObject>> handler);
+
+		void setOnWebViewChannel(Consumer<IEaglercraftWebViewChannelEvent<PlayerObject>> handler);
+
+		void setOnWebViewMessage(Consumer<IEaglercraftWebViewMessageEvent<PlayerObject>> handler);
+
+		void setOnToggleVoice(Consumer<IEaglercraftVoiceChangeEvent<PlayerObject>> handler);
 
 	}
 

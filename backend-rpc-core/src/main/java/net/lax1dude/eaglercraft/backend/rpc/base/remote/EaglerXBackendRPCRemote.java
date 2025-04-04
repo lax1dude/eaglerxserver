@@ -29,7 +29,7 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	}
 
 	@Override
-	public ISkinImageLoader getSkinImageLoader() {
+	public ISkinImageLoader getSkinImageLoader(boolean enableCache) {
 		// TODO Auto-generated method stub
 		return null;
 	}

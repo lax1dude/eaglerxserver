@@ -3,25 +3,37 @@ package net.lax1dude.eaglercraft.backend.rpc.base.local;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentMap;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.MapMaker;
 
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatform.Init;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatform.InitLocalMode;
+import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.IBasePlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.IPacketImageLoader;
 import net.lax1dude.eaglercraft.backend.rpc.api.notifications.INotificationBuilder;
 import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.IPauseMenuBuilder;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.ISkinImageLoader;
-import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceServiceX;
 import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCBase;
-import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftDestroyPlayerEvent;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
 
 public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<PlayerObject> {
 
-	final IAttributeKey<BasePlayerLocal<PlayerObject>> playerAttr = IAttributeKey.factory()
-			.initPrivateAttribute((Class<BasePlayerLocal<PlayerObject>>) (Object) BasePlayerLocal.class);
+	private final ConcurrentMap<PlayerObject, BasePlayerLocal<PlayerObject>> basePlayerMap = (new MapMaker())
+			.initialCapacity(256).concurrencyLevel(16).makeMap();
+
+	private final ConcurrentMap<PlayerObject, EaglerPlayerLocal<PlayerObject>> eaglerPlayerMap = (new MapMaker())
+			.initialCapacity(256).concurrencyLevel(16).makeMap();
+
+	private IEaglerXServerAPI<PlayerObject> serverAPI;
+	private ISkinImageLoader skinLoaderCache;
+	private ISkinImageLoader skinLoaderNoCache;
+	private IPacketImageLoader packetImageLoader;
+	private VoiceServiceLocal<PlayerObject> voiceService;
 
 	@Override
 	protected void load0(Init<PlayerObject> platf) {
@@ -30,7 +42,11 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 		platf.setPlayerInitializer(new BackendRPCPlayerInitializer<>(this));
 		InitLocalMode<PlayerObject> platfLocal = platf.localMode();
 		platfLocal.setOnEaglerPlayerInitialized(this::handleEaglerPlayerInitialized);
-		platfLocal.setOnEaglerPlayerDestroyed(this::handleEaglerPlayerDestroyed);
+		serverAPI = IEaglerXServerAPI.instance(playerClass);
+		skinLoaderCache = new SkinTypesHelper(serverAPI.getSkinService().getSkinLoader(true));
+		skinLoaderNoCache = new SkinTypesHelper(serverAPI.getSkinService().getSkinLoader(false));
+		packetImageLoader = new PacketImageDataHelper(serverAPI.getPacketImageLoader());
+		voiceService = new VoiceServiceLocal<>(this, serverAPI.getVoiceService());
 	}
 
 	private void enableHandler() {
@@ -42,114 +58,158 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 	}
 
 	private void handleEaglerPlayerInitialized(IEaglercraftInitializePlayerEvent<PlayerObject> event) {
-		
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(event.getPlayer().getPlayerObject());
+		if(platformPlayer != null) {
+			PlayerInitData<PlayerObject> initData = platformPlayer.getPreAttachment();
+			if(initData != null) {
+				initData.eaglerPlayer = event.getPlayer();
+			}
+		}
 	}
 
-	private void handleEaglerPlayerDestroyed(IEaglercraftDestroyPlayerEvent<PlayerObject> event) {
-		
+	void registerEaglerPlayer(EaglerPlayerLocal<PlayerObject> player) {
+		basePlayerMap.put(player.getPlayerObject(), player);
+		eaglerPlayerMap.put(player.getPlayerObject(), player);
+	}
+
+	void unregisterEaglerPlayer(EaglerPlayerLocal<PlayerObject> player) {
+		basePlayerMap.remove(player.getPlayerObject());
+		eaglerPlayerMap.remove(player.getPlayerObject());
+	}
+
+	void registerVanillaPlayer(BasePlayerLocal<PlayerObject> player) {
+		basePlayerMap.put(player.getPlayerObject(), player);
+	}
+
+	void unregisterVanillaPlayer(BasePlayerLocal<PlayerObject> player) {
+		basePlayerMap.remove(player.getPlayerObject());
+	}
+
+	IEaglerXServerAPI<PlayerObject> serverAPI() {
+		return serverAPI;
 	}
 
 	@Override
-	public IVoiceServiceX<PlayerObject> getVoiceService() {
-		// TODO Auto-generated method stub
-		return null;
+	public VoiceServiceLocal<PlayerObject> getVoiceService() {
+		return voiceService;
 	}
 
 	@Override
-	public ISkinImageLoader getSkinImageLoader() {
-		// TODO Auto-generated method stub
-		return null;
+	public ISkinImageLoader getSkinImageLoader(boolean cacheEnabled) {
+		return cacheEnabled ? skinLoaderCache : skinLoaderNoCache;
 	}
 
 	@Override
 	public IPacketImageLoader getPacketImageLoader() {
-		// TODO Auto-generated method stub
-		return null;
+		return packetImageLoader;
 	}
 
 	@Override
 	public Set<Class<?>> getComponentTypes() {
-		// TODO Auto-generated method stub
-		return null;
+		return serverAPI.getComponentTypes();
 	}
 
 	@Override
 	public IPauseMenuBuilder createPauseMenuBuilder() {
-		// TODO Auto-generated method stub
-		return null;
+		return new PauseMenuBuilderLocal(serverAPI.getPauseMenuService().createPauseMenuBuilder());
 	}
 
 	@Override
 	public <ComponentType> INotificationBuilder<ComponentType> createNotificationBadgeBuilder(
 			Class<ComponentType> componentType) {
-		// TODO Auto-generated method stub
-		return null;
+		return new NotificationBuilderLocal<ComponentType>(
+				serverAPI.getNotificationService().createNotificationBuilder(componentType));
 	}
 
 	@Override
 	public IBasePlayer<PlayerObject> getBasePlayer(PlayerObject player) {
-		// TODO Auto-generated method stub
-		return null;
+		return basePlayerMap.get(player);
 	}
 
 	@Override
 	public IBasePlayer<PlayerObject> getBasePlayerByName(String playerName) {
-		// TODO Auto-generated method stub
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
+		if(platformPlayer != null) {
+			return platformPlayer.getAttachment();
+		}
 		return null;
 	}
 
 	@Override
 	public IBasePlayer<PlayerObject> getBasePlayerByUUID(UUID playerUUID) {
-		// TODO Auto-generated method stub
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
+		if(platformPlayer != null) {
+			return platformPlayer.getAttachment();
+		}
 		return null;
 	}
 
 	@Override
 	public IEaglerPlayer<PlayerObject> getEaglerPlayer(PlayerObject player) {
-		// TODO Auto-generated method stub
-		return null;
+		return eaglerPlayerMap.get(player);
 	}
 
 	@Override
 	public IEaglerPlayer<PlayerObject> getEaglerPlayerByName(String playerName) {
-		// TODO Auto-generated method stub
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
+		if(platformPlayer != null) {
+			BasePlayerLocal<PlayerObject> basePlayer = platformPlayer.getAttachment();
+			if(basePlayer != null) {
+				return basePlayer.asEaglerPlayer();
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public IEaglerPlayer<PlayerObject> getEaglerPlayerByUUID(UUID playerUUID) {
-		// TODO Auto-generated method stub
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
+		if(platformPlayer != null) {
+			BasePlayerLocal<PlayerObject> basePlayer = platformPlayer.getAttachment();
+			if(basePlayer != null) {
+				return basePlayer.asEaglerPlayer();
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public boolean isEaglerPlayer(PlayerObject player) {
-		// TODO Auto-generated method stub
-		return false;
+		return eaglerPlayerMap.containsKey(player);
 	}
 
 	@Override
 	public boolean isEaglerPlayerByName(String playerName) {
-		// TODO Auto-generated method stub
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
+		if(platformPlayer != null) {
+			BasePlayerLocal<PlayerObject> basePlayer = platformPlayer.<BasePlayerLocal<PlayerObject>>getAttachment();
+			if(basePlayer != null) {
+				return basePlayer.isEaglerPlayer();
+			}
+		}
 		return false;
 	}
 
 	@Override
 	public boolean isEaglerPlayerByUUID(UUID playerUUID) {
-		// TODO Auto-generated method stub
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
+		if(platformPlayer != null) {
+			BasePlayerLocal<PlayerObject> basePlayer = platformPlayer.<BasePlayerLocal<PlayerObject>>getAttachment();
+			if(basePlayer != null) {
+				return basePlayer.isEaglerPlayer();
+			}
+		}
 		return false;
 	}
 
 	@Override
 	public Collection<IBasePlayer<PlayerObject>> getAllPlayers() {
-		// TODO Auto-generated method stub
-		return null;
+		return ImmutableList.copyOf(basePlayerMap.values());
 	}
 
 	@Override
-	public Set<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers() {
-		// TODO Auto-generated method stub
-		return null;
+	public Collection<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers() {
+		return ImmutableList.copyOf(eaglerPlayerMap.values());
 	}
 
 	@Override

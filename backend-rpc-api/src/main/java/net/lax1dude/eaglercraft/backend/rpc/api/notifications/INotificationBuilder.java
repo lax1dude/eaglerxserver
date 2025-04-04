@@ -42,7 +42,7 @@ public interface INotificationBuilder<ComponentObject> {
 
 	boolean getManaged();
 
-	INotificationBuilder<ComponentObject> setManaged(boolean silent);
+	INotificationBuilder<ComponentObject> setManaged(boolean managed);
 
 	EnumBadgePriority getPriority();
 

@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.rpc.base.local;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayer;
+import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformSubLogger;
 import net.lax1dude.eaglercraft.backend.rpc.api.IBasePlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.IBasePlayerRPC;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
@@ -17,12 +18,14 @@ public class BasePlayerLocal<PlayerObject> extends RPCAttributeHolder
 	protected final IEaglerXBackendRPC<PlayerObject> server;
 	protected final IPlatformPlayer<PlayerObject> player;
 	protected final BasePlayerRPCLocal<PlayerObject> playerRPC;
+	protected final IPlatformSubLogger logger;
 
-	BasePlayerLocal(IEaglerXBackendRPC<PlayerObject> server, IPlatformPlayer<PlayerObject> player,
+	BasePlayerLocal(EaglerXBackendRPCLocal<PlayerObject> server, IPlatformPlayer<PlayerObject> player,
 			net.lax1dude.eaglercraft.backend.server.api.IBasePlayer<PlayerObject> delegate) {
 		this.server = server;
 		this.player = player;
 		this.playerRPC = createRPC(delegate);
+		this.logger = server.logger().createSubLogger(player.getUsername());
 	}
 
 	protected BasePlayerRPCLocal<PlayerObject> createRPC(
@@ -73,6 +76,10 @@ public class BasePlayerLocal<PlayerObject> extends RPCAttributeHolder
 	@Override
 	public IRPCFuture<IBasePlayerRPC<PlayerObject>> openHandle() {
 		return playerRPC.future;
+	}
+
+	public IPlatformSubLogger logger() {
+		return logger;
 	}
 
 }

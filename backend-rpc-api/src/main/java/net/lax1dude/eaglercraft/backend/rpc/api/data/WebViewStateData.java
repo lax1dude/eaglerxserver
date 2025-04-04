@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.rpc.api.data;
 
+import java.util.Collections;
 import java.util.Set;
 
 public final class WebViewStateData {
@@ -10,6 +11,12 @@ public final class WebViewStateData {
 			throw new NullPointerException("openChannels");
 		}
 		return new WebViewStateData(webViewAllowed, channelAllowed, openChannels);
+	}
+
+	private static final WebViewStateData DISABLED = new WebViewStateData(false, false, Collections.emptySet());
+
+	public static WebViewStateData disabled() {
+		return DISABLED;
 	}
 
 	private final boolean webViewAllowed;

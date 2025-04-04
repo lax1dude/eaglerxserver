@@ -5,7 +5,7 @@ import net.lax1dude.eaglercraft.backend.rpc.api.IRPCEvent;
 
 public final class WebViewOpenCloseEvent implements IRPCEvent {
 
-	public WebViewOpenCloseEvent create(String channelName, boolean opened) {
+	public static WebViewOpenCloseEvent create(String channelName, boolean opened) {
 		return new WebViewOpenCloseEvent(channelName, opened);
 	}
 
