@@ -61,6 +61,16 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	}
 
 	@Override
+	public boolean isEaglerPlayer() {
+		return true;
+	}
+
+	@Override
+	public IEaglerPlayerRPC<PlayerObject> asEaglerPlayer() {
+		return this;
+	}
+
+	@Override
 	public int getEaglerHandshakeVersion() {
 		return delegate.getHandshakeEaglerProtocol();
 	}
@@ -104,7 +114,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	@Override
 	public IRPCFuture<String> getRealIP() {
-		return RPCImmediateFuture.create(delegate.getRealAddress());
+		return RPCImmediateFuture.create(schedulerExecutors, delegate.getRealAddress());
 	}
 
 	@Override
@@ -114,7 +124,8 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	@Override
 	public IRPCFuture<String> getOrigin() {
-		return RPCImmediateFuture.create(delegate.getWebSocketHeader(EnumWebSocketHeader.HEADER_ORIGIN));
+		return RPCImmediateFuture.create(schedulerExecutors,
+				delegate.getWebSocketHeader(EnumWebSocketHeader.HEADER_ORIGIN));
 	}
 
 	@Override
@@ -124,7 +135,8 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	@Override
 	public IRPCFuture<String> getUserAgent() {
-		return RPCImmediateFuture.create(delegate.getWebSocketHeader(EnumWebSocketHeader.HEADER_USER_AGENT));
+		return RPCImmediateFuture.create(schedulerExecutors,
+				delegate.getWebSocketHeader(EnumWebSocketHeader.HEADER_USER_AGENT));
 	}
 
 	@Override
@@ -140,7 +152,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 		}else {
 			dat = CookieData.disabled();
 		}
-		return RPCImmediateFuture.create(dat);
+		return RPCImmediateFuture.create(schedulerExecutors, dat);
 	}
 
 	@Override
@@ -150,7 +162,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	@Override
 	public IRPCFuture<BrandData> getBrandData() {
-		return RPCImmediateFuture.create(BrandData.create(delegate.getEaglerBrandString(),
+		return RPCImmediateFuture.create(schedulerExecutors, BrandData.create(delegate.getEaglerBrandString(),
 				delegate.getEaglerVersionString(), delegate.getEaglerBrandUUID()));
 	}
 
@@ -161,7 +173,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	@Override
 	public IRPCFuture<byte[]> getAuthUsername() {
-		return RPCImmediateFuture.create(delegate.getAuthUsername());
+		return RPCImmediateFuture.create(schedulerExecutors, delegate.getAuthUsername());
 	}
 
 	@Override
@@ -173,9 +185,9 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	public IRPCFuture<EnumVoiceState> getVoiceState() {
 		IVoiceManager<PlayerObject> voiceMgr = delegate.getVoiceManager();
 		if(voiceMgr != null) {
-			return RPCImmediateFuture.create(voiceMgr.getVoiceState());
+			return RPCImmediateFuture.create(schedulerExecutors, voiceMgr.getVoiceState());
 		}else {
-			return RPCImmediateFuture.create(EnumVoiceState.SERVER_DISABLE);
+			return RPCImmediateFuture.create(schedulerExecutors, EnumVoiceState.SERVER_DISABLE);
 		}
 	}
 
@@ -194,7 +206,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 		}else {
 			dat = WebViewStateData.disabled();
 		}
-		return RPCImmediateFuture.create(dat);
+		return RPCImmediateFuture.create(schedulerExecutors, dat);
 	}
 
 	@Override

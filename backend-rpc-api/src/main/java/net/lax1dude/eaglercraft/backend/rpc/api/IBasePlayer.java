@@ -8,6 +8,8 @@ public interface IBasePlayer<PlayerObject> extends IRPCAttributeHolder {
 
 	PlayerObject getPlayerObject();
 
+	boolean isRPCReady();
+
 	boolean isEaglerPlayer();
 
 	IEaglerPlayer<PlayerObject> asEaglerPlayer();

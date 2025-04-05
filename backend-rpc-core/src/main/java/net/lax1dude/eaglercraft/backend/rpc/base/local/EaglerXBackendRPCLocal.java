@@ -83,10 +83,11 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 	}
 
 	void registerEaglerPlayer(EaglerPlayerLocal<PlayerObject> player) {
-		if(basePlayerMap.putIfAbsent(player.getPlayerObject(), player) != null) {
+		PlayerObject playerObj = player.getPlayerObject();
+		if(basePlayerMap.putIfAbsent(playerObj, player) != null) {
 			throw new IllegalStateException("Player is already registered!");
 		}
-		eaglerPlayerMap.put(player.getPlayerObject(), player);
+		eaglerPlayerMap.put(playerObj, player);
 	}
 
 	void confirmEaglerPlayer(EaglerPlayerLocal<PlayerObject> player) {
@@ -96,8 +97,9 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 	}
 
 	void unregisterEaglerPlayer(EaglerPlayerLocal<PlayerObject> player) {
-		if(basePlayerMap.remove(player.getPlayerObject()) != null) {
-			eaglerPlayerMap.remove(player.getPlayerObject());
+		PlayerObject playerObj = player.getPlayerObject();
+		if(basePlayerMap.remove(playerObj) != null) {
+			eaglerPlayerMap.remove(playerObj);
 			player.handleDestroyed();
 		}
 	}
@@ -214,7 +216,7 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 	public boolean isEaglerPlayerByName(String playerName) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
 		if(platformPlayer != null) {
-			BasePlayerLocal<PlayerObject> basePlayer = platformPlayer.<BasePlayerLocal<PlayerObject>>getAttachment();
+			BasePlayerLocal<PlayerObject> basePlayer = platformPlayer.getAttachment();
 			if(basePlayer != null) {
 				return basePlayer.isEaglerPlayer();
 			}
@@ -226,7 +228,7 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 	public boolean isEaglerPlayerByUUID(UUID playerUUID) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
 		if(platformPlayer != null) {
-			BasePlayerLocal<PlayerObject> basePlayer = platformPlayer.<BasePlayerLocal<PlayerObject>>getAttachment();
+			BasePlayerLocal<PlayerObject> basePlayer = platformPlayer.getAttachment();
 			if(basePlayer != null) {
 				return basePlayer.isEaglerPlayer();
 			}

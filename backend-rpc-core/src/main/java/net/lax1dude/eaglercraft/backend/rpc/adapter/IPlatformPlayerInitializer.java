@@ -6,4 +6,6 @@ public interface IPlatformPlayerInitializer<PlayerAttachment, PlayerObject> {
 
 	IPlatformPlayer<PlayerObject> getPlayer();
 
+	boolean isEaglerPlayerProperty();
+
 }

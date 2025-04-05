@@ -3,8 +3,10 @@ package net.lax1dude.eaglercraft.backend.rpc.base.remote;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentMap;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.MapMaker;
 
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCMessageChannel;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayer;
@@ -22,6 +24,12 @@ import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
 import net.lax1dude.eaglercraft.backend.voice.protocol.EaglerVCProtocol;
 
 public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase<PlayerObject> {
+
+	private final ConcurrentMap<PlayerObject, PlayerInstanceRemote<PlayerObject>> basePlayerMap = (new MapMaker())
+			.initialCapacity(256).concurrencyLevel(16).makeMap();
+
+	private final ConcurrentMap<PlayerObject, PlayerInstanceRemote<PlayerObject>> eaglerPlayerMap = (new MapMaker())
+			.initialCapacity(256).concurrencyLevel(16).makeMap();
 
 	@Override
 	protected void load0(Init<PlayerObject> platf) {
@@ -45,16 +53,34 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 		
 	}
 
-	private void handleRPCMessage(IBackendRPCMessageChannel<PlayerObject> channel, IPlatformPlayer<PlayerObject> player, byte[] contents) {
+	void registerPlayer(PlayerInstanceRemote<PlayerObject> playerInstance) {
 		
 	}
 
-	private void handleReadyMessage(IBackendRPCMessageChannel<PlayerObject> channel, IPlatformPlayer<PlayerObject> player, byte[] contents) {
+	void confirmPlayer(PlayerInstanceRemote<PlayerObject> playerInstance) {
 		
 	}
 
-	private void handleVoiceMessage(IBackendRPCMessageChannel<PlayerObject> channel, IPlatformPlayer<PlayerObject> player, byte[] contents) {
-		
+	void unregisterPlayer(PlayerInstanceRemote<PlayerObject> playerInstance) {
+		PlayerObject player = playerInstance.getPlayerObject();
+		if(basePlayerMap.remove(player) != null && playerInstance.isEaglerPlayer()) {
+			eaglerPlayerMap.remove(player);
+		}
+	}
+
+	private void handleRPCMessage(IBackendRPCMessageChannel<PlayerObject> channel,
+			IPlatformPlayer<PlayerObject> player, byte[] contents) {
+
+	}
+
+	private void handleReadyMessage(IBackendRPCMessageChannel<PlayerObject> channel,
+			IPlatformPlayer<PlayerObject> player, byte[] contents) {
+
+	}
+
+	private void handleVoiceMessage(IBackendRPCMessageChannel<PlayerObject> channel,
+			IPlatformPlayer<PlayerObject> player, byte[] contents) {
+
 	}
 
 	@Override
@@ -96,68 +122,93 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 
 	@Override
 	public IBasePlayer<PlayerObject> getBasePlayer(PlayerObject player) {
-		// TODO Auto-generated method stub
-		return null;
+		return basePlayerMap.get(player);
 	}
 
 	@Override
 	public IBasePlayer<PlayerObject> getBasePlayerByName(String playerName) {
-		// TODO Auto-generated method stub
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
+		if(platformPlayer != null) {
+			return platformPlayer.getAttachment();
+		}
 		return null;
 	}
 
 	@Override
 	public IBasePlayer<PlayerObject> getBasePlayerByUUID(UUID playerUUID) {
-		// TODO Auto-generated method stub
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
+		if(platformPlayer != null) {
+			return platformPlayer.getAttachment();
+		}
 		return null;
 	}
 
 	@Override
 	public IEaglerPlayer<PlayerObject> getEaglerPlayer(PlayerObject player) {
-		// TODO Auto-generated method stub
-		return null;
+		return eaglerPlayerMap.get(player);
 	}
 
 	@Override
 	public IEaglerPlayer<PlayerObject> getEaglerPlayerByName(String playerName) {
-		// TODO Auto-generated method stub
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
+		if(platformPlayer != null) {
+			PlayerInstanceRemote<PlayerObject> basePlayer = platformPlayer.getAttachment();
+			if(basePlayer != null) {
+				return basePlayer.asEaglerPlayer();
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public IEaglerPlayer<PlayerObject> getEaglerPlayerByUUID(UUID playerUUID) {
-		// TODO Auto-generated method stub
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
+		if(platformPlayer != null) {
+			PlayerInstanceRemote<PlayerObject> basePlayer = platformPlayer.getAttachment();
+			if(basePlayer != null) {
+				return basePlayer.asEaglerPlayer();
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public boolean isEaglerPlayer(PlayerObject player) {
-		// TODO Auto-generated method stub
-		return false;
+		return eaglerPlayerMap.containsKey(player);
 	}
 
 	@Override
 	public boolean isEaglerPlayerByName(String playerName) {
-		// TODO Auto-generated method stub
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
+		if(platformPlayer != null) {
+			PlayerInstanceRemote<PlayerObject> basePlayer = platformPlayer.getAttachment();
+			if(basePlayer != null) {
+				return basePlayer.isEaglerPlayer();
+			}
+		}
 		return false;
 	}
 
 	@Override
 	public boolean isEaglerPlayerByUUID(UUID playerUUID) {
-		// TODO Auto-generated method stub
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
+		if(platformPlayer != null) {
+			PlayerInstanceRemote<PlayerObject> basePlayer = platformPlayer.getAttachment();
+			if(basePlayer != null) {
+				return basePlayer.isEaglerPlayer();
+			}
+		}
 		return false;
 	}
 
 	@Override
 	public Collection<IBasePlayer<PlayerObject>> getAllPlayers() {
-		// TODO Auto-generated method stub
-		return null;
+		return ImmutableList.copyOf(basePlayerMap.values());
 	}
 
 	@Override
-	public Set<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers() {
-		// TODO Auto-generated method stub
-		return null;
+	public Collection<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers() {
+		return ImmutableList.copyOf(eaglerPlayerMap.values());
 	}
 
 	@Override

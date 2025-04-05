@@ -4,17 +4,17 @@ import java.util.function.BiConsumer;
 
 import com.google.common.util.concurrent.AbstractFuture;
 
-import net.lax1dude.eaglercraft.backend.rpc.api.IRPCFuture;
+public abstract class RPCBiConsumerFuture<I1, I2, V> extends AbstractFuture<V> implements IRPCFutureAbstract<V>, BiConsumer<I1, I2> {
 
-public abstract class RPCBiConsumerFuture<I1, I2, V> extends AbstractFuture<V> implements IRPCFuture<V>, BiConsumer<I1, I2> {
+	private final SchedulerExecutors executors;
 
-	@Override
-	public void setExpiresMSFromNow(int millis) {
+	protected RPCBiConsumerFuture(SchedulerExecutors executors) {
+		this.executors = executors;
 	}
 
 	@Override
-	public boolean hasExpired() {
-		return false;
+	public SchedulerExecutors getSchedulerExecutors() {
+		return executors;
 	}
 
 }

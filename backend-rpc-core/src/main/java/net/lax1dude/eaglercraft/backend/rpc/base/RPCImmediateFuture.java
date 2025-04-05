@@ -5,18 +5,23 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import net.lax1dude.eaglercraft.backend.rpc.api.IRPCFuture;
+public class RPCImmediateFuture<V> implements IRPCFutureAbstract<V> {
 
-public class RPCImmediateFuture<V> implements IRPCFuture<V> {
-
-	public static <V> RPCImmediateFuture<V> create(V value) {
-		return new RPCImmediateFuture<>(value);
+	public static <V> RPCImmediateFuture<V> create(SchedulerExecutors executors, V value) {
+		return new RPCImmediateFuture<>(executors, value);
 	}
 
+	private final SchedulerExecutors executors;
 	private final V value;
 
-	private RPCImmediateFuture(V value) {
+	private RPCImmediateFuture(SchedulerExecutors executors, V value) {
+		this.executors = executors;
 		this.value = value;
+	}
+
+	@Override
+	public SchedulerExecutors getSchedulerExecutors() {
+		return executors;
 	}
 
 	@Override
@@ -47,15 +52,6 @@ public class RPCImmediateFuture<V> implements IRPCFuture<V> {
 	@Override
 	public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
 		return value;
-	}
-
-	@Override
-	public void setExpiresMSFromNow(int millis) {
-	}
-
-	@Override
-	public boolean hasExpired() {
-		return false;
 	}
 
 }

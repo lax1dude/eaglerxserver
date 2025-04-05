@@ -1,7 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.update;
 
-import java.util.Deque;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformScheduler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
@@ -14,7 +14,7 @@ public class UpdateServiceLoop {
 	private final int tickDataRateLimit;
 	private IPlatformTask task;
 
-	private final Deque<IUpdateServiceLoopRunnable> queue = new ConcurrentLinkedDeque<>();
+	private final Queue<IUpdateServiceLoopRunnable> queue = new ConcurrentLinkedQueue<>();
 
 	public UpdateServiceLoop(IPlatformScheduler scheduler, int certPacketDataRateLimit) {
 		this.scheduler = scheduler;
@@ -38,9 +38,9 @@ public class UpdateServiceLoop {
 	}
 
 	public void pushRunnable(IUpdateServiceLoopRunnable runnable) {
-		queue.addLast(runnable);
+		queue.add(runnable);
 		if(queue.size() > MAX_QUEUE_LENGTH) {
-			IUpdateServiceLoopRunnable itm = queue.pollFirst();
+			IUpdateServiceLoopRunnable itm = queue.poll();
 			if(itm != null) {
 				itm.run();
 			}
@@ -50,7 +50,7 @@ public class UpdateServiceLoop {
 	private void loop() {
 		int total = 0;
 		while(total < tickDataRateLimit) {
-			IUpdateServiceLoopRunnable itm = queue.pollFirst();
+			IUpdateServiceLoopRunnable itm = queue.poll();
 			if(itm != null) {
 				total += itm.run();
 			}else {

@@ -14,6 +14,10 @@ public interface IBasePlayerRPC<PlayerObject> {
 
 	IBasePlayer<PlayerObject> getPlayer();
 
+	boolean isEaglerPlayer();
+
+	IEaglerPlayerRPC<PlayerObject> asEaglerPlayer();
+
 	boolean isOpen();
 
 	int getRPCProtocolVersion();

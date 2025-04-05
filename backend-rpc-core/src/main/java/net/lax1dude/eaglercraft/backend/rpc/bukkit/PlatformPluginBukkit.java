@@ -242,6 +242,10 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			public IPlatformPlayer<Player> getPlayer() {
 				return p;
 			}
+			@Override
+			public boolean isEaglerPlayerProperty() {
+				return BukkitUnsafe.isEaglerPlayerProperty(player);
+			}
 		});
 		playerInstanceMap.put(player, p);
 		p.confirmTask = getServer().getScheduler().runTaskLaterAsynchronously(this, () -> {

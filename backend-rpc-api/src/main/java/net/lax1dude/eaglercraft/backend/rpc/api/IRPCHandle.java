@@ -4,6 +4,6 @@ public interface IRPCHandle<T> {
 
 	T getIfOpen();
 
-	IRPCFuture<T> openHandle();
+	IRPCFuture<T> openFuture();
 
 }

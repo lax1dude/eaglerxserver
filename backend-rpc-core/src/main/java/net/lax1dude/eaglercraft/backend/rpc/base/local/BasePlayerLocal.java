@@ -15,7 +15,7 @@ import net.lax1dude.eaglercraft.backend.rpc.base.RPCAttributeHolder;
 public class BasePlayerLocal<PlayerObject> extends RPCAttributeHolder
 		implements IBasePlayer<PlayerObject>, IRPCHandle<IBasePlayerRPC<PlayerObject>> {
 
-	protected final IEaglerXBackendRPC<PlayerObject> server;
+	protected final EaglerXBackendRPCLocal<PlayerObject> server;
 	protected final IPlatformPlayer<PlayerObject> player;
 	protected final BasePlayerRPCLocal<PlayerObject> playerRPC;
 	protected final IPlatformSubLogger logger;
@@ -41,6 +41,11 @@ public class BasePlayerLocal<PlayerObject> extends RPCAttributeHolder
 	@Override
 	public PlayerObject getPlayerObject() {
 		return player.getPlayerObject();
+	}
+
+	@Override
+	public boolean isRPCReady() {
+		return true;
 	}
 
 	@Override
@@ -74,7 +79,7 @@ public class BasePlayerLocal<PlayerObject> extends RPCAttributeHolder
 	}
 
 	@Override
-	public IRPCFuture<IBasePlayerRPC<PlayerObject>> openHandle() {
+	public IRPCFuture<IBasePlayerRPC<PlayerObject>> openFuture() {
 		return playerRPC.future;
 	}
 

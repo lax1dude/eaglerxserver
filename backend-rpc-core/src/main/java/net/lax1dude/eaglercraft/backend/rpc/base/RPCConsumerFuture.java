@@ -4,17 +4,17 @@ import java.util.function.Consumer;
 
 import com.google.common.util.concurrent.AbstractFuture;
 
-import net.lax1dude.eaglercraft.backend.rpc.api.IRPCFuture;
+public abstract class RPCConsumerFuture<I, V> extends AbstractFuture<V> implements IRPCFutureAbstract<V>, Consumer<I> {
 
-public abstract class RPCConsumerFuture<I, V> extends AbstractFuture<V> implements IRPCFuture<V>, Consumer<I> {
+	private final SchedulerExecutors executors;
 
-	@Override
-	public void setExpiresMSFromNow(int millis) {
+	protected RPCConsumerFuture(SchedulerExecutors executors) {
+		this.executors = executors;
 	}
 
 	@Override
-	public boolean hasExpired() {
-		return false;
+	public SchedulerExecutors getSchedulerExecutors() {
+		return executors;
 	}
 
 }

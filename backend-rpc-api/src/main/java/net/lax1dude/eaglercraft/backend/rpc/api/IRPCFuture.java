@@ -8,11 +8,19 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 public interface IRPCFuture<V> extends ListenableFuture<V> {
 
+	Executor getScheduler();
+
+	Executor getSchedulerAsync();
+
 	/**
 	 * Warning: Futures.addCallback is recommended!
 	 */
 	default void addListener(Runnable runnable) {
-		addListener(runnable, SameThreadExecutor.SAME_THREAD_EXECUTOR);
+		addListener(runnable, getScheduler());
+	}
+
+	default void addListenerAsync(Runnable runnable) {
+		addListener(runnable, getSchedulerAsync());
 	}
 
 	default void addCallback(FutureCallback<V> runnable, Executor executor) {
@@ -20,11 +28,11 @@ public interface IRPCFuture<V> extends ListenableFuture<V> {
 	}
 
 	default void addCallback(FutureCallback<V> runnable) {
-		Futures.addCallback(this, runnable, SameThreadExecutor.SAME_THREAD_EXECUTOR);
+		Futures.addCallback(this, runnable, getScheduler());
 	}
 
-	void setExpiresMSFromNow(int millis);
-
-	boolean hasExpired();
+	default void addCallbackAsync(FutureCallback<V> runnable) {
+		Futures.addCallback(this, runnable, getSchedulerAsync());
+	}
 
 }

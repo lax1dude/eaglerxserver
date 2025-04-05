@@ -22,6 +22,10 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 	protected EnumPlatformType platformType;
 	protected Class<PlayerObject> playerClass;
 	protected Set<Class<?>> playerClassSet;
+	protected SchedulerExecutors schedulerExecutors;
+	protected FutureTimeoutLoop timeoutLoop;
+	protected int baseRequestTimeout = 10;
+	protected int baseCacheTTL = 300;
 
 	public static <PlayerObject> EaglerXBackendRPCBase<PlayerObject> init() {
 		if(detectAPI()) {
@@ -50,6 +54,9 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 		platform = platf.getPlatform();
 		playerClass = platform.getPlayerClass();
 		playerClassSet = Collections.singleton(playerClass);
+
+		schedulerExecutors = new SchedulerExecutors(platform.getScheduler());
+		timeoutLoop = new FutureTimeoutLoop(platform.getScheduler());
 
 		switch(platform.getType()) {
 		case BUKKIT:
@@ -107,12 +114,48 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 		return platform;
 	}
 
+	@Override
 	public IScheduler getScheduler() {
 		return platform.getScheduler();
 	}
 
+	@Override
+	public void setBaseRequestTimeout(int seconds) {
+		baseRequestTimeout = seconds;
+	}
+
+	@Override
+	public int getBaseRequestTimeout() {
+		return baseRequestTimeout;
+	}
+
+	@Override
+	public void setBaseCacheTTL(int seconds) {
+		baseCacheTTL = seconds;
+	}
+
+	@Override
+	public int getBaseCacheTTL() {
+		return baseCacheTTL;
+	}
+
 	public IPlatformLogger logger() {
 		return platform.logger();
+	}
+
+	public SchedulerExecutors schedulerExecutors() {
+		return schedulerExecutors;
+	}
+
+	public FutureTimeoutLoop timeoutLoop() {
+		return timeoutLoop;
+	}
+
+	public <V> RPCActiveFuture<V> createFuture(int expiresAfter) {
+		long now = System.nanoTime();
+		RPCActiveFuture<V> ret = new RPCActiveFuture<V>(schedulerExecutors, now + expiresAfter * 1000000000l);
+		timeoutLoop.addFuture(now, ret);
+		return ret;
 	}
 
 }

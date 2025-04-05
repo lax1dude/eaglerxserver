@@ -72,6 +72,14 @@ public interface IEaglerXBackendRPC<PlayerObject> extends IEaglerVoiceAPI<Player
 
 	IScheduler getScheduler();
 
+	void setBaseRequestTimeout(int seconds);
+
+	int getBaseRequestTimeout();
+
+	void setBaseCacheTTL(int seconds);
+
+	int getBaseCacheTTL();
+
 	boolean isLocal();
 
 }

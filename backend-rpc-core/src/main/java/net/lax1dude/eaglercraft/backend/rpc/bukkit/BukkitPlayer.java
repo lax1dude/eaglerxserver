@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
+import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayer;
 
 class BukkitPlayer implements IPlatformPlayer<Player> {
@@ -41,7 +42,8 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 
 	@Override
 	public boolean isConnected() {
-		return false;//TODO
+		Channel ch = BukkitUnsafe.getPlayerChannel(player);
+		return ch != null && ch.isActive();
 	}
 
 	@Override
