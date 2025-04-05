@@ -1,0 +1,40 @@
+
+plugins {
+    id "java"
+    id "eclipse"
+}
+
+repositories {
+    maven {
+        url  "https://jitpack.io"
+    }
+}
+
+dependencies {
+    compileOnly project(":protocol-game")
+    compileOnly project(":voice-api")
+    compileOnly project(":api")
+    compileOnly project(":api-bukkit")
+    compileOnly project(":api-bungee")
+    compileOnly project(":api-velocity")
+    compileOnly(libs.bungeecord.api)
+    compileOnly(libs.velocity.api)
+    compileOnly(libs.paper.api)
+    annotationProcessor(libs.velocity.api)
+    compileOnly "com.github.plan-player-analytics:Plan:5.6.2965"
+    testCompileOnly "com.github.plan-player-analytics:Plan:5.6.2965"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+jar {
+    compileJava.options.encoding = "UTF-8"
+    javadoc.options.encoding = "UTF-8"
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
