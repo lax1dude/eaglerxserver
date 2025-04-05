@@ -5,8 +5,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Sets;
-
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
@@ -15,7 +13,6 @@ import net.lax1dude.eaglercraft.backend.rpc.api.EnumCapabilityType;
 import net.lax1dude.eaglercraft.backend.rpc.api.EnumSubscribeEvents;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayerRPC;
 import net.lax1dude.eaglercraft.backend.rpc.api.IPacketImageData;
-import net.lax1dude.eaglercraft.backend.rpc.api.IRPCCloseHandler;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCEvent;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCEventHandler;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCFuture;
@@ -219,11 +216,12 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	}
 
 	@Override
-	public synchronized void addEventListener(EnumSubscribeEvents eventType,
+	public synchronized void addGenericEventListener(EnumSubscribeEvents eventType,
 			IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler) {
 		RPCEventBus<PlayerObject> eventBus = this.eventBus;
-		if(eventBus == null) {
-			eventBus = new RPCEventBus<PlayerObject>(this);
+		if (eventBus == null) {
+			eventBus = new RPCEventBus<PlayerObject>(this,
+					((EaglerXBackendRPCLocal<PlayerObject>) getServerAPI()).getPlatform().getScheduler());
 			int i = eventBus.addEventListener(eventType, handler);
 			if(i > 0) {
 				this.eventBus = eventBus;
@@ -238,7 +236,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	}
 
 	@Override
-	public synchronized void removeEventListener(EnumSubscribeEvents eventType,
+	public synchronized void removeGenericEventListener(EnumSubscribeEvents eventType,
 			IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler) {
 		RPCEventBus<PlayerObject> eventBus = this.eventBus;
 		if(eventBus != null) {

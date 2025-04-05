@@ -119,9 +119,25 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 		return EnumSubscribeEvents.fromBits(getSubscribedEventsBits());
 	}
 
-	void addEventListener(EnumSubscribeEvents eventType, IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler);
+	void addGenericEventListener(EnumSubscribeEvents eventType, IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler);
 
-	void removeEventListener(EnumSubscribeEvents eventType, IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler);
+	void removeGenericEventListener(EnumSubscribeEvents eventType, IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler);
+
+	default <T extends IRPCEvent> void addEventListener(RPCEventType<T> eventType, IRPCEventHandler<PlayerObject, T> handler) {
+		addGenericEventListener(eventType.getEventType(), handler);
+	}
+
+	default <T extends IRPCEvent> void addEventListener(RPCEventType<T> eventType, IRPCEventHandlerSync<PlayerObject, T> handler) {
+		addGenericEventListener(eventType.getEventType(), handler);
+	}
+
+	default <T extends IRPCEvent> void addEventListenerAsync(RPCEventType<T> eventType, IRPCEventHandlerAsync<PlayerObject, T> handler) {
+		addGenericEventListener(eventType.getEventType(), handler);
+	}
+
+	default <T extends IRPCEvent> void removeEventListener(RPCEventType<T> eventType, IRPCEventHandler<PlayerObject, T> handler) {
+		removeGenericEventListener(eventType.getEventType(), handler);
+	}
 
 	boolean isRedirectPlayerSupported();
 

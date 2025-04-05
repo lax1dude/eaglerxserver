@@ -8,6 +8,7 @@ import java.util.function.Function;
 import com.google.common.collect.Sets;
 
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformLogger;
+import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformScheduler;
 import net.lax1dude.eaglercraft.backend.rpc.api.EnumSubscribeEvents;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayerRPC;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCEvent;
@@ -16,15 +17,41 @@ import net.lax1dude.eaglercraft.backend.rpc.api.IRPCEventHandler;
 public class RPCEventBus<PlayerObject> {
 
 	private final IEaglerPlayerRPC<PlayerObject> owner;
+	private final IPlatformScheduler scheduler;
 	private final ReadWriteLock lock = new ReentrantReadWriteLock();
 	private int subscribed = 0;
-	private Set<IRPCEventHandler<PlayerObject, ? extends IRPCEvent>>[] handlers = new Set[3];
+	private Set<IRPCEventHandler<PlayerObject, ? extends IRPCEvent>>[] handlers = new Set[EnumSubscribeEvents.total];
 
-	public RPCEventBus(IEaglerPlayerRPC<PlayerObject> owner) {
+	public RPCEventBus(IEaglerPlayerRPC<PlayerObject> owner, IPlatformScheduler scheduler) {
 		this.owner = owner;
+		this.scheduler = scheduler;
 	}
 
-	public void dispatchEvent(IRPCEvent event, IPlatformLogger logger) {
+	private class RPCEventWrapper<T extends IRPCEvent> implements Runnable {
+
+		private final IRPCEventHandler<PlayerObject, T> handler;
+		private final IPlatformLogger logger;
+		private final T event;
+
+		private RPCEventWrapper(IRPCEventHandler<PlayerObject, T> handler, IPlatformLogger logger,
+				T event) {
+			this.handler = handler;
+			this.logger = logger;
+			this.event = event;
+		}
+
+		@Override
+		public void run() {
+			try {
+				handler.handleEvent(owner, event.getEventType(), event);
+			}catch(Exception ex) {
+				logger.error("Caught exception while dispatching RPC event to handler: " + handler, ex);
+			}
+		}
+
+	}
+
+	public <T extends IRPCEvent> void dispatchEvent(T event, IPlatformLogger logger) {
 		EnumSubscribeEvents eventType = event.getEventType();
 		Object[] tmp;
 		lock.readLock().lock();
@@ -38,16 +65,18 @@ public class RPCEventBus<PlayerObject> {
 			lock.readLock().unlock();
 		}
 		for(int i = 0; i < tmp.length; ++i) {
-			IRPCEventHandler<PlayerObject, IRPCEvent> evt = (IRPCEventHandler<PlayerObject, IRPCEvent>) tmp[i];
-			try {
-				evt.handleEvent(owner, eventType, event);
-			}catch(Exception ex) {
-				logger.error("Caught exception while dispatching RPC event to handler: " + evt, ex);
+			IRPCEventHandler<PlayerObject, T> handler = (IRPCEventHandler<PlayerObject, T>) tmp[i];
+			RPCEventWrapper<T> evt = new RPCEventWrapper<>(handler, logger, event);
+			if(handler.isAsync()) {
+				scheduler.executeAsync(evt);
+			}else {
+				scheduler.execute(evt);
 			}
 		}
 	}
 
-	public <T> void dispatchLazyEvent(EnumSubscribeEvents eventType, T event, Function<T, IRPCEvent> conv, IPlatformLogger logger) {
+	public <I, T extends IRPCEvent> void dispatchLazyEvent(EnumSubscribeEvents eventType, I event, Function<I, T> conv,
+			IPlatformLogger logger) {
 		Object[] tmp;
 		lock.readLock().lock();
 		try {
@@ -61,13 +90,14 @@ public class RPCEventBus<PlayerObject> {
 		}
 		int j = tmp.length;
 		if(j > 0) {
-			IRPCEvent evtObj = conv.apply(event);
+			T evtObj = conv.apply(event);
 			for(int i = 0; i < j; ++i) {
-				IRPCEventHandler<PlayerObject, IRPCEvent> evt = (IRPCEventHandler<PlayerObject, IRPCEvent>) tmp[i];
-				try {
-					evt.handleEvent(owner, eventType, evtObj);
-				}catch(Exception ex) {
-					logger.error("Caught exception while dispatching RPC event to handler: " + evt, ex);
+				IRPCEventHandler<PlayerObject, T> handler = (IRPCEventHandler<PlayerObject, T>) tmp[i];
+				RPCEventWrapper<T> evt = new RPCEventWrapper<>(handler, logger, evtObj);
+				if(handler.isAsync()) {
+					scheduler.executeAsync(evt);
+				}else {
+					scheduler.execute(evt);
 				}
 			}
 		}

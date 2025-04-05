@@ -30,6 +30,8 @@ public enum EnumSubscribeEvents {
 	/** @see net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewOpenCloseEvent */
 	EVENT_TOGGLE_VOICE(2, 4);
 
+	public static final int total = values().length;
+
 	private final int id;
 	private final int bit;
 

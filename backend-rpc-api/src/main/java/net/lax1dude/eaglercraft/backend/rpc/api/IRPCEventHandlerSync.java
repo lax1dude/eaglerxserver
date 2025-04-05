@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 lax1dude. All Rights Reserved.
+ * Copyright (c) 2025 lax1dude. All Rights Reserved.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -16,10 +16,11 @@
 
 package net.lax1dude.eaglercraft.backend.rpc.api;
 
-public interface IRPCEventHandler<PlayerObject, T extends IRPCEvent> {
+public interface IRPCEventHandlerSync<PlayerObject, T extends IRPCEvent>
+		extends IRPCEventHandler<PlayerObject, IRPCEvent> {
 
-	void handleEvent(IEaglerPlayerRPC<PlayerObject> api, EnumSubscribeEvents event, T data);
-
-	boolean isAsync();
+	default boolean isAsync() {
+		return false;
+	}
 
 }
