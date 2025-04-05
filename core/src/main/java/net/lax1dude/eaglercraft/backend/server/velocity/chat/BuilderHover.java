@@ -50,14 +50,15 @@ class BuilderHover<ParentType> implements IBuilderHoverEvent<ParentType>, IAppen
 		buildChildren.add(comp);
 	}
 
-	void applyTo(Component ret) {
+	Component applyTo(Component ret) {
 		if(action == EnumHoverAction.SHOW_TEXT && buildChildren != null) {
 			if(buildChildren.size() > 1) {
-				ret.hoverEvent(HoverEvent.showText(Component.empty().children(buildChildren)));
+				ret = ret.hoverEvent(HoverEvent.showText(Component.empty().children(buildChildren)));
 			}else {
-				ret.hoverEvent(HoverEvent.showText(buildChildren.get(0)));
+				ret = ret.hoverEvent(HoverEvent.showText(buildChildren.get(0)));
 			}
 		}
+		return ret;
 	}
 
 }

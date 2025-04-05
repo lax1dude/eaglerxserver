@@ -95,7 +95,13 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private void handleChatMessage(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x03);
-		BufferUtils.writeLegacyMCString(bb, componentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767)), 32767);
+		String msg = BufferUtils.readMCString(in, 32767);
+		try {
+			msg = componentHelper().convertJSONToLegacySection(msg);
+		} catch (IllegalArgumentException ignored) {
+			//
+		}
+		BufferUtils.writeLegacyMCString(bb, msg, 32767);
 	}
 
 	private void handleTimeUpdate(ByteBuf in, ByteBuf bb) {
@@ -791,7 +797,11 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		}
 		bb.writeByte(windowId);
 		String windowTitle = BufferUtils.readMCString(in, 4095);
-		windowTitle = componentHelper().convertJSONToLegacySection(windowTitle);
+		try {
+			windowTitle = componentHelper().convertJSONToLegacySection(windowTitle);
+		} catch (IllegalArgumentException ignored) {
+			//
+		}
 		BufferUtils.writeLegacyMCString(bb, windowTitle, 255);
 		bb.writeByte(in.readUnsignedByte());
 		bb.writeBoolean(!windowTitle.isEmpty());
@@ -1153,7 +1163,12 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 						BufferUtils.readVarInt(in);
 						int tbPing = BufferUtils.readVarInt(in);
 						if (in.readBoolean()) {
-							displayName = componentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767));
+							displayName = BufferUtils.readMCString(in, 32767);
+							try {
+								displayName = componentHelper().convertJSONToLegacySection(displayName);
+							} catch (IllegalArgumentException ignored) {
+								//
+							}
 						}
 						TabListTracker.ListItem pliItem = tabList().handleAddPlayer(tempName, pliUuid, displayName, tbPing, serverAPI());
 						if(pliItem != null) {
@@ -1200,7 +1215,13 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					case 3: {
 						TabListTracker.ListItem pliItem;
 						if (in.readBoolean()) {
-							pliItem = tabList().handleUpdateDisplayName(pliUuid, componentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767)));
+							String tmp = BufferUtils.readMCString(in, 32767);
+							try {
+								tmp = componentHelper().convertJSONToLegacySection(tmp);
+							} catch (IllegalArgumentException ignored) {
+								//
+							}
+							pliItem = tabList().handleUpdateDisplayName(pliUuid, tmp);
 						}else {
 							pliItem = tabList().handleUpdateDisplayName(pliUuid, null);
 						}
@@ -1428,11 +1449,17 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private void handleDisconnect(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0xFF);
-		BufferUtils.writeLegacyMCString(bb, componentHelper().convertJSONToLegacySection(BufferUtils.readMCString(in, 32767)), 32767);
+		String msg = BufferUtils.readMCString(in, 32767);
+		try {
+			msg = componentHelper().convertJSONToLegacySection(msg);
+		} catch (IllegalArgumentException ignored) {
+			//
+		}
+		BufferUtils.writeLegacyMCString(bb, msg, 32767);
 	}
 
 	@Override
-	protected void encode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+	protected void encode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
 		int pktId = BufferUtils.readVarInt(in);
 		ByteBuf bb = null;
 		try {

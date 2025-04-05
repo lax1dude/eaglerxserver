@@ -33,29 +33,30 @@ class BuilderClick<ParentType> implements IBuilderClickEvent<ParentType> {
 		return this;
 	}
 
-	void applyTo(Component ret) {
+	Component applyTo(Component ret) {
 		if(action != null) {
 			switch(action) {
 			case OPEN_URL:
-				ret.clickEvent(ClickEvent.openUrl(value));
+				ret = ret.clickEvent(ClickEvent.openUrl(value));
 				break;
 			case OPEN_FILE:
-				ret.clickEvent(ClickEvent.openFile(value));
+				ret = ret.clickEvent(ClickEvent.openFile(value));
 				break;
 			case RUN_COMMAND:
-				ret.clickEvent(ClickEvent.runCommand(value));
+				ret = ret.clickEvent(ClickEvent.runCommand(value));
 				break;
 			case SUGGEST_COMMAND:
-				ret.clickEvent(ClickEvent.suggestCommand(value));
+				ret = ret.clickEvent(ClickEvent.suggestCommand(value));
 				break;
 			case CHANGE_PAGE:
-				ret.clickEvent(ClickEvent.changePage(value));
+				ret = ret.clickEvent(ClickEvent.changePage(value));
 				break;
 			case COPY_TO_CLIPBOARD:
-				ret.clickEvent(ClickEvent.copyToClipboard(value));
+				ret = ret.clickEvent(ClickEvent.copyToClipboard(value));
 				break;
 			}
 		}
+		return ret;
 	}
 
 }

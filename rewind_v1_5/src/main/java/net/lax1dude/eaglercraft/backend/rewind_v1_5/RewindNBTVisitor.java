@@ -118,7 +118,12 @@ public class RewindNBTVisitor implements INBTVisitor {
 
 		@Override
 		public void visitTagString(INBTValue<String> str) throws IOException {
-			String transformedText = componentHelper.convertJSONToLegacySection(str.value());
+			String transformedText = str.value();
+			try {
+				transformedText = componentHelper.convertJSONToLegacySection(transformedText);
+			} catch (IllegalArgumentException e) {
+				//
+			}
 			parent().visitTagString(context.wrapValue(transformedText));
 		}
 	}

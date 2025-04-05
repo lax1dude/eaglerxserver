@@ -118,19 +118,19 @@ abstract class BuilderTranslationBase<ParentType> implements IBuilderComponentTr
 			ret = Component.translatable(translation);
 		}
 		if(insertion != null) {
-			ret.insertion(insertion);
+			ret = ret.insertion(insertion);
 		}
 		if(style != null) {
-			style.applyTo(ret);
+			ret = style.applyTo(ret);
 		}
 		if(click != null) {
-			click.applyTo(ret);
+			ret = click.applyTo(ret);
 		}
 		if(hover != null) {
-			hover.applyTo(ret);
+			ret = hover.applyTo(ret);
 		}
 		if(buildChildren != null) {
-			ret.children(buildChildren);
+			ret = ret.children(buildChildren);
 		}
 		return ret;
 	}

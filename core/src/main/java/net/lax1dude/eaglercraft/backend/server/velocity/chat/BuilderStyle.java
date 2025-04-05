@@ -62,74 +62,75 @@ class BuilderStyle<ParentType> implements IBuilderStyle<ParentType> {
 		return this;
 	}
 
-	void applyTo(Component ret) {
+	Component applyTo(Component ret) {
 		if(color != null) {
 			switch(color) {
 			case BLACK:
-				ret.color(NamedTextColor.BLACK);
+				ret = ret.color(NamedTextColor.BLACK);
 				break;
 			case DARK_BLUE:
-				ret.color(NamedTextColor.DARK_BLUE);
+				ret = ret.color(NamedTextColor.DARK_BLUE);
 				break;
 			case DARK_GREEN:
-				ret.color(NamedTextColor.DARK_GREEN);
+				ret = ret.color(NamedTextColor.DARK_GREEN);
 				break;
 			case DARK_AQUA:
-				ret.color(NamedTextColor.DARK_AQUA);
+				ret = ret.color(NamedTextColor.DARK_AQUA);
 				break;
 			case DARK_RED:
-				ret.color(NamedTextColor.DARK_RED);
+				ret = ret.color(NamedTextColor.DARK_RED);
 				break;
 			case DARK_PURPLE:
-				ret.color(NamedTextColor.DARK_PURPLE);
+				ret = ret.color(NamedTextColor.DARK_PURPLE);
 				break;
 			case GOLD:
-				ret.color(NamedTextColor.GOLD);
+				ret = ret.color(NamedTextColor.GOLD);
 				break;
 			case GRAY:
-				ret.color(NamedTextColor.GRAY);
+				ret = ret.color(NamedTextColor.GRAY);
 				break;
 			case DARK_GRAY:
-				ret.color(NamedTextColor.DARK_GRAY);
+				ret = ret.color(NamedTextColor.DARK_GRAY);
 				break;
 			case BLUE:
-				ret.color(NamedTextColor.BLUE);
+				ret = ret.color(NamedTextColor.BLUE);
 				break;
 			case GREEN:
-				ret.color(NamedTextColor.GREEN);
+				ret = ret.color(NamedTextColor.GREEN);
 				break;
 			case AQUA:
-				ret.color(NamedTextColor.AQUA);
+				ret = ret.color(NamedTextColor.AQUA);
 				break;
 			case RED:
-				ret.color(NamedTextColor.RED);
+				ret = ret.color(NamedTextColor.RED);
 				break;
 			case LIGHT_PURPLE:
-				ret.color(NamedTextColor.LIGHT_PURPLE);
+				ret = ret.color(NamedTextColor.LIGHT_PURPLE);
 				break;
 			case YELLOW:
-				ret.color(NamedTextColor.YELLOW);
+				ret = ret.color(NamedTextColor.YELLOW);
 				break;
 			case WHITE:
-				ret.color(NamedTextColor.WHITE);
+				ret = ret.color(NamedTextColor.WHITE);
 				break;
 			}
 		}
 		if(bold) {
-			ret.decorate(TextDecoration.BOLD);
+			ret = ret.decorate(TextDecoration.BOLD);
 		}
 		if(italic) {
-			ret.decorate(TextDecoration.ITALIC);
+			ret = ret.decorate(TextDecoration.ITALIC);
 		}
 		if(strikethrough) {
-			ret.decorate(TextDecoration.STRIKETHROUGH);
+			ret = ret.decorate(TextDecoration.STRIKETHROUGH);
 		}
 		if(underline) {
-			ret.decorate(TextDecoration.UNDERLINED);
+			ret = ret.decorate(TextDecoration.UNDERLINED);
 		}
 		if(obfuscated) {
-			ret.decorate(TextDecoration.OBFUSCATED);
+			ret = ret.decorate(TextDecoration.OBFUSCATED);
 		}
+		return ret;
 	}
 
 }
