@@ -17,4 +17,9 @@ public abstract class RPCBiConsumerFuture<I1, I2, V> extends AbstractFuture<V> i
 		return executors;
 	}
 
+	@Override
+	public boolean isTimedOut() {
+		return false;
+	}
+
 }

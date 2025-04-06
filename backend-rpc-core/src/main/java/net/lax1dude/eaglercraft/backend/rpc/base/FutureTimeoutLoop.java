@@ -89,7 +89,7 @@ public class FutureTimeoutLoop {
 	}
 
 	private void expire(IRPCFutureExpiring<?> future) {
-		future.fireExceptionInternal(new RPCTimeoutException("RPC operation reached timeout"));
+		future.fireTimeoutExceptionInternal(new RPCTimeoutException("RPC operation reached timeout"));
 	}
 
 }

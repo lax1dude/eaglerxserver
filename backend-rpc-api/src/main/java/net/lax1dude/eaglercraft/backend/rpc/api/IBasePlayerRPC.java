@@ -34,47 +34,31 @@ public interface IBasePlayerRPC<PlayerObject> {
 
 	int getBaseRequestTimeout();
 
-	void setBaseCacheTTL(int seconds);
-
-	int getBaseCacheTTL();
-
 	default IRPCFuture<IEaglerPlayerSkin> getPlayerSkin() {
-		return getPlayerSkin(getBaseRequestTimeout(), getBaseCacheTTL());
+		return getPlayerSkin(getBaseRequestTimeout());
 	}
 
-	default IRPCFuture<IEaglerPlayerSkin> getPlayerSkin(int timeoutSec) {
-		return getPlayerSkin(timeoutSec, getBaseCacheTTL());
-	}
-
-	IRPCFuture<IEaglerPlayerSkin> getPlayerSkin(int timeoutSec, int cacheTTLSec);
+	IRPCFuture<IEaglerPlayerSkin> getPlayerSkin(int timeoutSec);
 
 	void changePlayerSkin(IEaglerPlayerSkin skin, boolean notifyOthers);
 
 	void changePlayerSkin(EnumPresetSkins skin, boolean notifyOthers);
 
 	default IRPCFuture<IEaglerPlayerCape> getPlayerCape() {
-		return getPlayerCape(getBaseRequestTimeout(), getBaseCacheTTL());
+		return getPlayerCape(getBaseRequestTimeout());
 	}
 
-	default IRPCFuture<IEaglerPlayerCape> getPlayerCape(int timeoutSec) {
-		return getPlayerCape(timeoutSec, getBaseCacheTTL());
-	}
-
-	IRPCFuture<IEaglerPlayerCape> getPlayerCape(int timeoutSec, int cacheTTLSec);
+	IRPCFuture<IEaglerPlayerCape> getPlayerCape(int timeoutSec);
 
 	void changePlayerCape(IEaglerPlayerCape cape, boolean notifyOthers);
 
 	void changePlayerCape(EnumPresetCapes cape, boolean notifyOthers);
 
 	default IRPCFuture<TexturesData> getPlayerTextures() {
-		return getPlayerTextures(getBaseRequestTimeout(), getBaseCacheTTL());
+		return getPlayerTextures(getBaseRequestTimeout());
 	}
 
-	default IRPCFuture<TexturesData> getPlayerTextures(int timeoutSec) {
-		return getPlayerTextures(timeoutSec, getBaseCacheTTL());
-	}
-
-	IRPCFuture<TexturesData> getPlayerTextures(int timeoutSec, int cacheTTLSec);
+	IRPCFuture<TexturesData> getPlayerTextures(int timeoutSec);
 
 	void changePlayerTextures(IEaglerPlayerSkin skin, IEaglerPlayerCape cape, boolean notifyOthers);
 
@@ -87,34 +71,22 @@ public interface IBasePlayerRPC<PlayerObject> {
 	void resetPlayerTextures(boolean notifyOthers);
 
 	default IRPCFuture<UUID> getProfileUUID() {
-		return getProfileUUID(getBaseRequestTimeout(), getBaseCacheTTL());
+		return getProfileUUID(getBaseRequestTimeout());
 	}
 
-	default IRPCFuture<UUID> getProfileUUID(int timeoutSec) {
-		return getProfileUUID(timeoutSec, getBaseCacheTTL());
-	}
-
-	IRPCFuture<UUID> getProfileUUID(int timeoutSec, int cacheTTLSec);
+	IRPCFuture<UUID> getProfileUUID(int timeoutSec);
 
 	default IRPCFuture<String> getMinecraftBrand() {
-		return getMinecraftBrand(getBaseRequestTimeout(), getBaseCacheTTL());
+		return getMinecraftBrand(getBaseRequestTimeout());
 	}
 
-	default IRPCFuture<String> getMinecraftBrand(int timeoutSec) {
-		return getMinecraftBrand(timeoutSec, getBaseCacheTTL());
-	}
-
-	IRPCFuture<String> getMinecraftBrand(int timeoutSec, int cacheTTLSec);
+	IRPCFuture<String> getMinecraftBrand(int timeoutSec);
 
 	default IRPCFuture<UUID> getBrandUUID() {
-		return getBrandUUID(getBaseRequestTimeout(), getBaseCacheTTL());
+		return getBrandUUID(getBaseRequestTimeout());
 	}
 
-	default IRPCFuture<UUID> getBrandUUID(int timeoutSec) {
-		return getBrandUUID(timeoutSec, getBaseCacheTTL());
-	}
-
-	IRPCFuture<UUID> getBrandUUID(int timeoutSec, int cacheTTLSec);
+	IRPCFuture<UUID> getBrandUUID(int timeoutSec);
 
 	void sendRawCustomPayloadPacket(String channel, byte[] data);
 

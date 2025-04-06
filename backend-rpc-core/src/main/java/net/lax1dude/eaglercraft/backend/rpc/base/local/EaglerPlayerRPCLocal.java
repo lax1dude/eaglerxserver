@@ -118,7 +118,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	}
 
 	@Override
-	public IRPCFuture<String> getRealIP(int timeoutSec, int cacheTTLSec) {
+	public IRPCFuture<String> getRealIP(int timeoutSec) {
 		return getRealIP();
 	}
 
@@ -129,7 +129,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	}
 
 	@Override
-	public IRPCFuture<String> getOrigin(int timeoutSec, int cacheTTLSec) {
+	public IRPCFuture<String> getOrigin(int timeoutSec) {
 		return getOrigin();
 	}
 
@@ -140,7 +140,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	}
 
 	@Override
-	public IRPCFuture<String> getUserAgent(int timeoutSec, int cacheTTLSec) {
+	public IRPCFuture<String> getUserAgent(int timeoutSec) {
 		return getUserAgent();
 	}
 
@@ -156,7 +156,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	}
 
 	@Override
-	public IRPCFuture<CookieData> getCookieData(int timeoutSec, int cacheTTLSec) {
+	public IRPCFuture<CookieData> getCookieData(int timeoutSec) {
 		return getCookieData();
 	}
 
@@ -167,7 +167,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	}
 
 	@Override
-	public IRPCFuture<BrandData> getBrandData(int timeoutSec, int cacheTTLSec) {
+	public IRPCFuture<BrandData> getBrandData(int timeoutSec) {
 		return getBrandData();
 	}
 
@@ -177,7 +177,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	}
 
 	@Override
-	public IRPCFuture<byte[]> getAuthUsername(int timeoutSec, int cacheTTLSec) {
+	public IRPCFuture<byte[]> getAuthUsername(int timeoutSec) {
 		return getAuthUsername();
 	}
 
@@ -215,7 +215,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	}
 
 	@Override
-	public void injectRawBinaryFrameV5(byte[] data) {
+	public void injectRawBinaryFrame(byte[] data) {
 		Channel channel = delegate.netty().getChannel();
 		if(channel.isActive()) {
 			channel.writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(data)), channel.voidPromise());

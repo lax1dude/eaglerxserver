@@ -54,4 +54,9 @@ public class RPCImmediateFuture<V> implements IRPCFutureAbstract<V> {
 		return value;
 	}
 
+	@Override
+	public boolean isTimedOut() {
+		return false;
+	}
+
 }

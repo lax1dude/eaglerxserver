@@ -1,9 +1,9 @@
 package net.lax1dude.eaglercraft.backend.rpc.base.local;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.UUID;
-
-import com.google.common.collect.Sets;
 
 import net.lax1dude.eaglercraft.backend.rpc.api.IBasePlayerRPC;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayerRPC;
@@ -28,7 +28,6 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 	protected final SchedulerExecutors schedulerExecutors;
 	protected Set<IRPCCloseHandler> closeListeners;
 	protected int dummyTimeout;
-	protected int dummyTTL;
 
 	BasePlayerRPCLocal(BasePlayerLocal<PlayerObject> player,
 			net.lax1dude.eaglercraft.backend.server.api.IBasePlayer<PlayerObject> delegate) {
@@ -37,7 +36,6 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 		this.owner = player;
 		this.delegate = delegate;
 		this.dummyTimeout = player.server.getBaseRequestTimeout();
-		this.dummyTTL = player.server.getBaseCacheTTL();
 	}
 
 	@Override
@@ -83,7 +81,7 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 	@Override
 	public synchronized void addCloseListener(IRPCCloseHandler handler) {
 		if(closeListeners == null) {
-			closeListeners = Sets.newIdentityHashSet();
+			closeListeners = Collections.newSetFromMap(new HashMap<>(4));
 		}
 		closeListeners.add(handler);
 	}
@@ -124,16 +122,6 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 	}
 
 	@Override
-	public void setBaseCacheTTL(int seconds) {
-		dummyTTL = seconds;
-	}
-
-	@Override
-	public int getBaseCacheTTL() {
-		return dummyTTL;
-	}
-
-	@Override
 	public IRPCFuture<IEaglerPlayerSkin> getPlayerSkin() {
 		ISkinManagerBase<PlayerObject> skinMgr = delegate.getSkinManager();
 		net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin skin;
@@ -154,7 +142,7 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 	}
 
 	@Override
-	public IRPCFuture<IEaglerPlayerSkin> getPlayerSkin(int timeoutSec, int cacheTTLSec) {
+	public IRPCFuture<IEaglerPlayerSkin> getPlayerSkin(int timeoutSec) {
 		return getPlayerSkin();
 	}
 
@@ -189,7 +177,7 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 	}
 
 	@Override
-	public IRPCFuture<IEaglerPlayerCape> getPlayerCape(int timeoutSec, int cacheTTLSec) {
+	public IRPCFuture<IEaglerPlayerCape> getPlayerCape(int timeoutSec) {
 		return getPlayerCape();
 	}
 
@@ -226,7 +214,7 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 	}
 
 	@Override
-	public IRPCFuture<TexturesData> getPlayerTextures(int timeoutSec, int cacheTTLSec) {
+	public IRPCFuture<TexturesData> getPlayerTextures(int timeoutSec) {
 		return getPlayerTextures();
 	}
 
@@ -256,17 +244,17 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 	}
 
 	@Override
-	public IRPCFuture<UUID> getProfileUUID(int timeoutSec, int cacheTTLSec) {
+	public IRPCFuture<UUID> getProfileUUID(int timeoutSec) {
 		return RPCImmediateFuture.create(schedulerExecutors, delegate.getUniqueId());
 	}
 
 	@Override
-	public IRPCFuture<String> getMinecraftBrand(int timeoutSec, int cacheTTLSec) {
+	public IRPCFuture<String> getMinecraftBrand(int timeoutSec) {
 		return RPCImmediateFuture.create(schedulerExecutors, delegate.getMinecraftBrand());
 	}
 
 	@Override
-	public IRPCFuture<UUID> getBrandUUID(int timeoutSec, int cacheTTLSec) {
+	public IRPCFuture<UUID> getBrandUUID(int timeoutSec) {
 		return RPCImmediateFuture.create(schedulerExecutors, delegate.getEaglerBrandUUID());
 	}
 

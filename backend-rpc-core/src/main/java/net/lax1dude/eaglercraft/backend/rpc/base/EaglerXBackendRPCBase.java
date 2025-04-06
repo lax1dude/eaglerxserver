@@ -25,7 +25,6 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 	protected SchedulerExecutors schedulerExecutors;
 	protected FutureTimeoutLoop timeoutLoop;
 	protected int baseRequestTimeout = 10;
-	protected int baseCacheTTL = 300;
 
 	public static <PlayerObject> EaglerXBackendRPCBase<PlayerObject> init() {
 		if(detectAPI()) {
@@ -127,16 +126,6 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 	@Override
 	public int getBaseRequestTimeout() {
 		return baseRequestTimeout;
-	}
-
-	@Override
-	public void setBaseCacheTTL(int seconds) {
-		baseCacheTTL = seconds;
-	}
-
-	@Override
-	public int getBaseCacheTTL() {
-		return baseCacheTTL;
 	}
 
 	public IPlatformLogger logger() {

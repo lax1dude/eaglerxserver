@@ -88,7 +88,7 @@ public class BasePlayerLocal<PlayerObject> extends RPCAttributeHolder
 	}
 
 	void handleDestroyed() {
-		
+		playerRPC.fireCloseListeners();
 	}
 
 }

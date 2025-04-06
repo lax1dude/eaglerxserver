@@ -17,4 +17,9 @@ public abstract class RPCConsumerFuture<I, V> extends AbstractFuture<V> implemen
 		return executors;
 	}
 
+	@Override
+	public boolean isTimedOut() {
+		return false;
+	}
+
 }

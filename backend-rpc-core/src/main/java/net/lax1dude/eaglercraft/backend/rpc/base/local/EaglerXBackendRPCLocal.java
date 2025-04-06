@@ -247,6 +247,11 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 	}
 
 	@Override
+	public UUID intern(UUID uuid) {
+		return serverAPI.intern(uuid);
+	}
+
+	@Override
 	public boolean isLocal() {
 		return true;
 	}

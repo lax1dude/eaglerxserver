@@ -6,6 +6,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import com.google.common.collect.MapMaker;
 
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCMessageChannel;
@@ -20,10 +22,13 @@ import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.IPauseMenuBuilder;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.ISkinImageLoader;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceServiceX;
 import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCBase;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.message.BackendRPCMessageChannel;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
 import net.lax1dude.eaglercraft.backend.voice.protocol.EaglerVCProtocol;
 
 public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase<PlayerObject> {
+
+	public static final Interner<UUID> uuidInterner = Interners.newWeakInterner();
 
 	private final ConcurrentMap<PlayerObject, PlayerInstanceRemote<PlayerObject>> basePlayerMap = (new MapMaker())
 			.initialCapacity(256).concurrencyLevel(16).makeMap();
@@ -63,24 +68,36 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 
 	void unregisterPlayer(PlayerInstanceRemote<PlayerObject> playerInstance) {
 		PlayerObject player = playerInstance.getPlayerObject();
-		if(basePlayerMap.remove(player) != null && playerInstance.isEaglerPlayer()) {
-			eaglerPlayerMap.remove(player);
+		if(basePlayerMap.remove(player) != null) {
+			if(playerInstance.isEaglerPlayer()) {
+				eaglerPlayerMap.remove(player);
+			}
+			playerInstance.handleDestroyed();
 		}
 	}
 
 	private void handleRPCMessage(IBackendRPCMessageChannel<PlayerObject> channel,
 			IPlatformPlayer<PlayerObject> player, byte[] contents) {
-
+		PlayerInstanceRemote<PlayerObject> playerInstance = player.getAttachment();
+		if(playerInstance != null) {
+			playerInstance.handleRPCMessage(contents);
+		}
 	}
 
 	private void handleReadyMessage(IBackendRPCMessageChannel<PlayerObject> channel,
 			IPlatformPlayer<PlayerObject> player, byte[] contents) {
-
+		PlayerInstanceRemote<PlayerObject> playerInstance = player.getAttachment();
+		if(playerInstance != null) {
+			playerInstance.handleReadyMessage(contents);
+		}
 	}
 
 	private void handleVoiceMessage(IBackendRPCMessageChannel<PlayerObject> channel,
 			IPlatformPlayer<PlayerObject> player, byte[] contents) {
-
+		PlayerInstanceRemote<PlayerObject> playerInstance = player.getAttachment();
+		if(playerInstance != null) {
+			playerInstance.handleVoiceMessage(contents);
+		}
 	}
 
 	@Override
@@ -209,6 +226,11 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	@Override
 	public Collection<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers() {
 		return ImmutableList.copyOf(eaglerPlayerMap.values());
+	}
+
+	@Override
+	public UUID intern(UUID uuid) {
+		return uuidInterner.intern(uuid);
 	}
 
 	@Override

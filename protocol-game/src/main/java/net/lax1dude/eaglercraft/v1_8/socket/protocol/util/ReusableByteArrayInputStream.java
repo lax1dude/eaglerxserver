@@ -20,7 +20,7 @@ import java.io.InputStream;
  */
 public class ReusableByteArrayInputStream extends InputStream {
 
-	private volatile byte[] currentBuffer = null;
+	private byte[] currentBuffer = null;
 	private int idx = 0;
 	private int markIDX = 0;
 

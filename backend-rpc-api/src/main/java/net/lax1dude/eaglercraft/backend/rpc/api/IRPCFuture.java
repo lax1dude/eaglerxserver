@@ -35,4 +35,6 @@ public interface IRPCFuture<V> extends ListenableFuture<V> {
 		Futures.addCallback(this, runnable, getSchedulerAsync());
 	}
 
+	boolean isTimedOut();
+
 }

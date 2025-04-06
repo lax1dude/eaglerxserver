@@ -1,82 +1,198 @@
 package net.lax1dude.eaglercraft.backend.rpc.base.remote;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
+import com.google.common.collect.MapMaker;
+
+import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.rpc.api.IBasePlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.IBasePlayerRPC;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayerRPC;
-import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXBackendRPC;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCCloseHandler;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCFuture;
+import net.lax1dude.eaglercraft.backend.rpc.api.RPCException;
+import net.lax1dude.eaglercraft.backend.rpc.api.RPCResponseException;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.TexturesData;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetCapes;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetSkins;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerSkin;
+import net.lax1dude.eaglercraft.backend.rpc.base.RPCRequestFuture;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.message.BackendRPCMessageController;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.skins.SkinRPCHelper;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.skins.type.InternUtils;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.util.DataSerializationContext;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCPacket;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCRequestPlayerInfo;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCResetPlayerMulti;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSendRawMessage;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSetPlayerSkin;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSetPlayerSkinPresetV2;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSetPlayerTexturesPresetV2;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSetPlayerTexturesV2;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.util.IInteger;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.util.IIntegerTuple;
 
-public class BasePlayerRPC<PlayerObject> implements IBasePlayerRPC<PlayerObject> {
+public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController implements IBasePlayerRPC<PlayerObject> {
+
+	protected final PlayerInstanceRemote<PlayerObject> player;
+	protected final int minecraftProtocol;
+	protected final int supervisorNodeId;
 
 	protected int baseRequestTimeout = 10;
-	protected int baseCacheTTL = 300;
+
+	protected final ConcurrentMap<Integer, RPCRequestFuture<?>> requestMap = (new MapMaker()).concurrencyLevel(4)
+			.initialCapacity(32).makeMap();
+
+	protected Set<IRPCCloseHandler> closeListeners;
+
+	private volatile int requestId;
+
+	private static final VarHandle REQUEST_ID_HANDLE;
+
+	static {
+		try {
+			MethodHandles.Lookup l = MethodHandles.lookup();
+			REQUEST_ID_HANDLE = l.findVarHandle(BasePlayerRPC.class, "requestId", int.class);
+		} catch (ReflectiveOperationException e) {
+			throw new ExceptionInInitializerError(e);
+		}
+	}
+
+	public BasePlayerRPC(PlayerInstanceRemote<PlayerObject> player, EaglerBackendRPCProtocol protocol,
+			DataSerializationContext serializeCtx, int minecraftProtocol, int supervisorNodeId) {
+		super(protocol, serializeCtx);
+		this.player = player;
+		this.minecraftProtocol = minecraftProtocol;
+		this.supervisorNodeId = supervisorNodeId;
+	}
+
+	protected int genRequest() {
+		return (int) REQUEST_ID_HANDLE.getAndAdd(this, 1);
+	}
+
+	protected <T> RPCRequestFuture<T> createRequest(int expiresAfter) {
+		long now = System.nanoTime();
+		Integer reqId = genRequest();
+		RPCRequestFuture<T> future = new RPCRequestFuture<T>(getServerAPI().schedulerExecutors(),
+				now + expiresAfter * 1000000000l, reqId, requestMap);
+		requestMap.put(reqId, future);
+		getServerAPI().timeoutLoop().addFuture(future);
+		return future;
+	}
+
+	protected <T> RPCRequestFuture<T> createRequest(int expiresAfter, Function<?, T> resultMapper) {
+		long now = System.nanoTime();
+		Integer reqId = genRequest();
+		RPCRequestFuture<T> future = new RPCRequestFuture<T>(getServerAPI().schedulerExecutors(),
+				now + expiresAfter * 1000000000l, reqId, requestMap) {
+			@Override
+			public boolean fireResponseInternal(Object value) {
+				if(value == null) {
+					return super.fireResponseInternal(null);
+				}
+				T res;
+				try {
+					res = ((Function<Object, T>) resultMapper).apply(value);
+				}catch(Exception ex) {
+					return super.fireExceptionInternal(new RPCException("Failed to process RPC response data", ex));
+				}
+				return super.fireResponseInternal(res);
+			}
+		};
+		requestMap.put(reqId, future);
+		getServerAPI().timeoutLoop().addFuture(future);
+		return future;
+	}
+
+	public void sendRPCPacket(EaglerBackendRPCPacket packet) {
+		//TODO
+	}
 
 	@Override
-	public IEaglerXBackendRPC<PlayerObject> getServerAPI() {
-		// TODO Auto-generated method stub
-		return null;
+	protected IPlatformLogger logger() {
+		return player.logger();
+	}
+
+	@Override
+	public EaglerXBackendRPCRemote<PlayerObject> getServerAPI() {
+		return player.server;
 	}
 
 	@Override
 	public IBasePlayer<PlayerObject> getPlayer() {
-		// TODO Auto-generated method stub
-		return null;
+		return player;
 	}
 
 	@Override
 	public boolean isEaglerPlayer() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public IEaglerPlayerRPC<PlayerObject> asEaglerPlayer() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public boolean isOpen() {
-		// TODO Auto-generated method stub
-		return false;
+		return player.player.isConnected();
 	}
 
 	@Override
 	public int getRPCProtocolVersion() {
-		// TODO Auto-generated method stub
-		return 0;
+		return getProtocol().vers;
 	}
 
 	@Override
 	public int getMinecraftProtocolVersion() {
-		// TODO Auto-generated method stub
-		return 0;
+		return minecraftProtocol;
 	}
 
 	@Override
 	public int getSupervisorNodeId() {
-		// TODO Auto-generated method stub
-		return 0;
+		return supervisorNodeId;
 	}
 
 	@Override
-	public void addCloseListener(IRPCCloseHandler handler) {
-		// TODO Auto-generated method stub
-		
+	public synchronized void addCloseListener(IRPCCloseHandler handler) {
+		if(closeListeners == null) {
+			closeListeners = Collections.newSetFromMap(new HashMap<>(4));
+		}
+		closeListeners.add(handler);
 	}
 
 	@Override
-	public void removeCloseListener(IRPCCloseHandler handler) {
-		// TODO Auto-generated method stub
-		
+	public synchronized void removeCloseListener(IRPCCloseHandler handler) {
+		if(closeListeners != null && closeListeners.remove(handler) && closeListeners.isEmpty()) {
+			closeListeners = null;
+		}
+	}
+
+	void fireCloseListeners() {
+		Object[] handlers;
+		synchronized(this) {
+			if(closeListeners == null) {
+				return;
+			}
+			handlers = closeListeners.toArray();
+		}
+		for(int i = 0; i < handlers.length; ++i) {
+			IRPCCloseHandler handler = (IRPCCloseHandler) handlers[i];
+			try {
+				handler.handleClosed();
+			}catch(Exception ex) {
+				player.logger().error("Caught exception while calling RPC close listener", ex);
+			}
+		}
 	}
 
 	@Override
@@ -89,110 +205,168 @@ public class BasePlayerRPC<PlayerObject> implements IBasePlayerRPC<PlayerObject>
 		return baseRequestTimeout;
 	}
 
-	@Override
-	public void setBaseCacheTTL(int seconds) {
-		baseCacheTTL = seconds;
-	}
+
+	private static final Function<Object, IEaglerPlayerSkin> PLAYER_SKIN_HANDLER = (res) -> {
+		if(res instanceof IInteger) {
+			return InternUtils.getPresetSkin(((IInteger)res).getIntValue());
+		}else if(res instanceof byte[]) {
+			return SkinRPCHelper.decodeSkinData((byte[]) res, false);
+		}else {
+			throw new ClassCastException("Don't know how to handle: " + res);
+		}
+	};
 
 	@Override
-	public int getBaseCacheTTL() {
-		return baseCacheTTL;
-	}
-
-	@Override
-	public IRPCFuture<IEaglerPlayerSkin> getPlayerSkin(int timeoutSec, int cacheTTLSec) {
-		// TODO Auto-generated method stub
-		return null;
+	public IRPCFuture<IEaglerPlayerSkin> getPlayerSkin(int timeoutSec) {
+		RPCRequestFuture<IEaglerPlayerSkin> ret = createRequest(timeoutSec, PLAYER_SKIN_HANDLER);
+		sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+				CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_SKIN_DATA));
+		return ret;
 	}
 
 	@Override
 	public void changePlayerSkin(IEaglerPlayerSkin skin, boolean notifyOthers) {
-		// TODO Auto-generated method stub
-		
+		if(!skin.isSuccess()) {
+			sendRPCPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, -1));
+		}else if(skin.isSkinPreset()) {
+			sendRPCPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, skin.getPresetSkinId()));
+		}else {
+			sendRPCPacket(new CPacketRPCSetPlayerSkin(notifyOthers, SkinRPCHelper.encodeSkinData(skin)));
+		}
 	}
 
 	@Override
 	public void changePlayerSkin(EnumPresetSkins skin, boolean notifyOthers) {
-		// TODO Auto-generated method stub
-		
+		changePlayerSkin(InternUtils.getPresetSkin(skin.getId()), notifyOthers);
 	}
 
+	private static final Function<Object, IEaglerPlayerCape> PLAYER_CAPE_HANDLER = (res) -> {
+		if(res instanceof IInteger) {
+			return InternUtils.getPresetCape(((IInteger)res).getIntValue());
+		}else if(res instanceof byte[]) {
+			return SkinRPCHelper.decodeCapeData((byte[]) res, false);
+		}else {
+			throw new ClassCastException("Don't know how to handle: " + res);
+		}
+	};
+
 	@Override
-	public IRPCFuture<IEaglerPlayerCape> getPlayerCape(int timeoutSec, int cacheTTLSec) {
-		// TODO Auto-generated method stub
-		return null;
+	public IRPCFuture<IEaglerPlayerCape> getPlayerCape(int timeoutSec) {
+		RPCRequestFuture<IEaglerPlayerCape> ret = createRequest(timeoutSec, PLAYER_CAPE_HANDLER);
+		sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+				CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CAPE_DATA));
+		return ret;
 	}
 
 	@Override
 	public void changePlayerCape(IEaglerPlayerCape cape, boolean notifyOthers) {
-		// TODO Auto-generated method stub
-		
+		if(!cape.isSuccess()) {
+			sendRPCPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, -1));
+		}else if(cape.isCapePreset()) {
+			sendRPCPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, cape.getPresetCapeId()));
+		}else {
+			sendRPCPacket(new CPacketRPCSetPlayerSkin(notifyOthers, SkinRPCHelper.encodeCapeData(cape)));
+		}
 	}
 
 	@Override
 	public void changePlayerCape(EnumPresetCapes cape, boolean notifyOthers) {
-		// TODO Auto-generated method stub
-		
+		changePlayerCape(InternUtils.getPresetCape(cape.getId()), notifyOthers);
 	}
 
+	private static final Function<Object, TexturesData> PLAYER_TEXTURES_HANDLER = (res) -> {
+		if(res instanceof IIntegerTuple) {
+			IIntegerTuple tuple = (IIntegerTuple) res;
+			return TexturesData.create(InternUtils.getPresetSkin(tuple.getIntValueA()), InternUtils.getPresetCape(tuple.getIntValueB()));
+		}else if(res instanceof byte[]) {
+			byte[] bytes = (byte[]) res;
+			IEaglerPlayerSkin skin = SkinRPCHelper.decodeTexturesSkinData(bytes);
+			IEaglerPlayerCape cape = SkinRPCHelper.decodeTexturesCapeData(bytes, skin);
+			return TexturesData.create(skin, cape);
+		}else {
+			throw new ClassCastException("Don't know how to handle: " + res);
+		}
+	};
+
 	@Override
-	public IRPCFuture<TexturesData> getPlayerTextures(int timeoutSec, int cacheTTLSec) {
-		// TODO Auto-generated method stub
-		return null;
+	public IRPCFuture<TexturesData> getPlayerTextures(int timeoutSec) {
+		RPCRequestFuture<TexturesData> ret = createRequest(timeoutSec, PLAYER_TEXTURES_HANDLER);
+		sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+				CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_TEXTURE_DATA));
+		return ret;
 	}
 
 	@Override
 	public void changePlayerTextures(IEaglerPlayerSkin skin, IEaglerPlayerCape cape, boolean notifyOthers) {
-		// TODO Auto-generated method stub
-		
+		if(skin.isSkinPreset() && cape.isCapePreset()) {
+			sendRPCPacket(new CPacketRPCSetPlayerTexturesPresetV2(notifyOthers,
+					skin.isSuccess() ? skin.getPresetSkinId() : -1, cape.isSuccess() ? cape.getPresetCapeId() : -1));
+		}else {
+			sendRPCPacket(new CPacketRPCSetPlayerTexturesV2(notifyOthers, SkinRPCHelper.encodeTexturesData(skin, cape)));
+		}
 	}
 
 	@Override
 	public void changePlayerTextures(EnumPresetSkins skin, EnumPresetCapes cape, boolean notifyOthers) {
-		// TODO Auto-generated method stub
-		
+		changePlayerTextures(InternUtils.getPresetSkin(skin.getId()), InternUtils.getPresetCape(cape.getId()), notifyOthers);
 	}
 
 	@Override
 	public void resetPlayerSkin(boolean notifyOthers) {
-		// TODO Auto-generated method stub
-		
+		sendRPCPacket(new CPacketRPCResetPlayerMulti(true, false, false, notifyOthers));
 	}
 
 	@Override
 	public void resetPlayerCape(boolean notifyOthers) {
-		// TODO Auto-generated method stub
-		
+		sendRPCPacket(new CPacketRPCResetPlayerMulti(false, true, false, notifyOthers));
 	}
 
 	@Override
 	public void resetPlayerTextures(boolean notifyOthers) {
-		// TODO Auto-generated method stub
-		
+		sendRPCPacket(new CPacketRPCResetPlayerMulti(true, true, false, notifyOthers));
 	}
 
 	@Override
-	public IRPCFuture<UUID> getProfileUUID(int timeoutSec, int cacheTTLSec) {
-		// TODO Auto-generated method stub
-		return null;
+	public IRPCFuture<UUID> getProfileUUID(int timeoutSec) {
+		RPCRequestFuture<UUID> ret = createRequest(timeoutSec);
+		sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+				CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REAL_UUID));
+		return ret;
 	}
 
 	@Override
-	public IRPCFuture<String> getMinecraftBrand(int timeoutSec, int cacheTTLSec) {
-		// TODO Auto-generated method stub
-		return null;
+	public IRPCFuture<String> getMinecraftBrand(int timeoutSec) {
+		RPCRequestFuture<String> ret = createRequest(timeoutSec);
+		sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+				CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_MINECRAFT_BRAND));
+		return ret;
 	}
 
 	@Override
-	public IRPCFuture<UUID> getBrandUUID(int timeoutSec, int cacheTTLSec) {
-		// TODO Auto-generated method stub
-		return null;
+	public IRPCFuture<UUID> getBrandUUID(int timeoutSec) {
+		RPCRequestFuture<UUID> ret = createRequest(timeoutSec);
+		sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+				CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_UUID));
+		return ret;
 	}
 
 	@Override
 	public void sendRawCustomPayloadPacket(String channel, byte[] data) {
-		// TODO Auto-generated method stub
-		
+		sendRPCPacket(new CPacketRPCSendRawMessage(channel, data));
+	}
+
+	public void handleResponseComplete(int requestID, Object object) {
+		RPCRequestFuture<Object> future = (RPCRequestFuture<Object>) requestMap.get(requestID);
+		if(future != null) {
+			future.fireResponseInternal(object);
+		}
+	}
+
+	public void handleResponseError(int requestID, String errorMessage) {
+		RPCRequestFuture<?> future = requestMap.get(requestID);
+		if(future != null) {
+			future.fireExceptionInternal(new RPCResponseException(errorMessage));
+		}
 	}
 
 }

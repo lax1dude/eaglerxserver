@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.rpc.base.remote;
+package net.lax1dude.eaglercraft.backend.rpc.base.remote.message;
 
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCMessageChannel;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCMessageHandler;

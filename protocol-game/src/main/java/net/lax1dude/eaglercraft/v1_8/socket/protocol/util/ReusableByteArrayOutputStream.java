@@ -21,7 +21,7 @@ import java.util.Arrays;
  */
 public class ReusableByteArrayOutputStream extends OutputStream {
 
-	private volatile byte[] currentBuffer = null;
+	private byte[] currentBuffer = null;
 	private int idx = 0;
 	private int originalSize = 0;
 	
@@ -37,6 +37,10 @@ public class ReusableByteArrayOutputStream extends OutputStream {
 
 	public byte[] returnBuffer() {
 		return currentBuffer.length == idx ? currentBuffer : Arrays.copyOf(currentBuffer, idx);
+	}
+
+	public byte[] returnBufferCopied() {
+		return Arrays.copyOf(currentBuffer, idx);
 	}
 
 	private void growBuffer(int i) {

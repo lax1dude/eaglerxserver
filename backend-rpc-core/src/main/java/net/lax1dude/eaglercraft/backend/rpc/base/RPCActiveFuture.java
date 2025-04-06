@@ -4,8 +4,13 @@ import com.google.common.util.concurrent.AbstractFuture;
 
 public class RPCActiveFuture<V> extends AbstractFuture<V> implements IRPCFutureExpiring<V> {
 
+	public static <V> RPCActiveFuture<V> create(SchedulerExecutors executors, long now, int expiresAfter) {
+		return new RPCActiveFuture<>(executors, now + expiresAfter * 1000000000l);
+	}
+
 	private final SchedulerExecutors executors;
 	private final long expiresAt;
+	private boolean timedOut;
 
 	RPCActiveFuture(SchedulerExecutors executors, long expiresAt) {
 		this.executors = executors;
@@ -22,12 +27,26 @@ public class RPCActiveFuture<V> extends AbstractFuture<V> implements IRPCFutureE
 		return expiresAt;
 	}
 
-	public void fireCompleteInternal(V value) {
-		this.set(value);
+	public boolean fireCompleteInternal(V value) {
+		return set(value);
 	}
 
-	public void fireExceptionInternal(Throwable value) {
-		this.setException(value);
+	public boolean fireExceptionInternal(Throwable value) {
+		return setException(value);
+	}
+
+	@Override
+	public boolean fireTimeoutExceptionInternal(Throwable value) {
+		if(fireExceptionInternal(value)) {
+			timedOut = true;
+			return true;
+		}else {
+			return false;
+		}
+	}
+
+	public boolean isTimedOut() {
+		return timedOut;
 	}
 
 }

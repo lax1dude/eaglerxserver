@@ -1,16 +1,19 @@
 package net.lax1dude.eaglercraft.backend.rpc.api.data;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
+
+import com.google.common.collect.ImmutableSet;
 
 public final class WebViewStateData {
 
 	public static WebViewStateData create(boolean webViewAllowed, boolean channelAllowed,
-			Set<String> openChannels) {
+			Collection<String> openChannels) {
 		if(openChannels == null) {
 			throw new NullPointerException("openChannels");
 		}
-		return new WebViewStateData(webViewAllowed, channelAllowed, openChannels);
+		return new WebViewStateData(webViewAllowed, channelAllowed, ImmutableSet.copyOf(openChannels));
 	}
 
 	private static final WebViewStateData DISABLED = new WebViewStateData(false, false, Collections.emptySet());

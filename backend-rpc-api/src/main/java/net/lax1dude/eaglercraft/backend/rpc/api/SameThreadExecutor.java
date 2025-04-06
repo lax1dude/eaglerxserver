@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 lax1dude. All Rights Reserved.
+ * Copyright (c) 2025 lax1dude. All Rights Reserved.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -18,24 +18,16 @@ package net.lax1dude.eaglercraft.backend.rpc.api;
 
 import java.util.concurrent.Executor;
 
-import com.google.common.util.concurrent.MoreExecutors;
+public final class SameThreadExecutor implements Executor {
 
-public class SameThreadExecutor {
+	public static final Executor SAME_THREAD_EXECUTOR = new SameThreadExecutor();
 
-	public static final Executor SAME_THREAD_EXECUTOR;
+	private SameThreadExecutor() {
+	}
 
-	static {
-		Executor fuck;
-		try {
-			fuck = (Executor) MoreExecutors.class.getDeclaredMethod("newDirectExecutorService").invoke(null);
-		}catch(Throwable t) {
-			try {
-				fuck = (Executor) MoreExecutors.class.getDeclaredMethod("sameThreadExecutor").invoke(null);
-			}catch(Throwable t2) {
-				throw new RuntimeException("Google fucked up!", t2);
-			}
-		}
-		SAME_THREAD_EXECUTOR = fuck;
+	@Override
+	public void execute(Runnable command) {
+		command.run();
 	}
 
 }

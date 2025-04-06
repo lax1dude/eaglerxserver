@@ -36,64 +36,40 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 	int getExtendedCapability(UUID extendedCapability);
 
 	default IRPCFuture<String> getRealIP() {
-		return getRealIP(getBaseRequestTimeout(), getBaseCacheTTL());
+		return getRealIP(getBaseRequestTimeout());
 	}
 
-	default IRPCFuture<String> getRealIP(int timeoutSec) {
-		return getRealIP(timeoutSec, getBaseCacheTTL());
-	}
-
-	IRPCFuture<String> getRealIP(int timeoutSec, int cacheTTLSec);
+	IRPCFuture<String> getRealIP(int timeoutSec);
 
 	default IRPCFuture<String> getOrigin() {
-		return getOrigin(getBaseRequestTimeout(), getBaseCacheTTL());
+		return getOrigin(getBaseRequestTimeout());
 	}
 
-	default IRPCFuture<String> getOrigin(int timeoutSec) {
-		return getOrigin(timeoutSec, getBaseCacheTTL());
-	}
-
-	IRPCFuture<String> getOrigin(int timeoutSec, int cacheTTLSec);
+	IRPCFuture<String> getOrigin(int timeoutSec);
 
 	default IRPCFuture<String> getUserAgent() {
-		return getUserAgent(getBaseRequestTimeout(), getBaseCacheTTL());
+		return getUserAgent(getBaseRequestTimeout());
 	}
 
-	default IRPCFuture<String> getUserAgent(int timeoutSec) {
-		return getUserAgent(timeoutSec, getBaseCacheTTL());
-	}
-
-	IRPCFuture<String> getUserAgent(int timeoutSec, int cacheTTLSec);
+	IRPCFuture<String> getUserAgent(int timeoutSec);
 
 	default IRPCFuture<CookieData> getCookieData() {
-		return getCookieData(getBaseRequestTimeout(), getBaseCacheTTL());
+		return getCookieData(getBaseRequestTimeout());
 	}
 
-	default IRPCFuture<CookieData> getCookieData(int timeoutSec) {
-		return getCookieData(timeoutSec, getBaseCacheTTL());
-	}
-
-	IRPCFuture<CookieData> getCookieData(int timeoutSec, int cacheTTLSec);
+	IRPCFuture<CookieData> getCookieData(int timeoutSec);
 
 	default IRPCFuture<BrandData> getBrandData() {
-		return getBrandData(getBaseRequestTimeout(), getBaseCacheTTL());
+		return getBrandData(getBaseRequestTimeout());
 	}
 
-	default IRPCFuture<BrandData> getBrandData(int timeoutSec) {
-		return getBrandData(timeoutSec, getBaseCacheTTL());
-	}
-
-	IRPCFuture<BrandData> getBrandData(int timeoutSec, int cacheTTLSec);
+	IRPCFuture<BrandData> getBrandData(int timeoutSec);
 
 	default IRPCFuture<byte[]> getAuthUsername() {
-		return getAuthUsername(getBaseRequestTimeout(), getBaseCacheTTL());
+		return getAuthUsername(getBaseRequestTimeout());
 	}
 
-	default IRPCFuture<byte[]> getAuthUsername(int timeoutSec) {
-		return getAuthUsername(timeoutSec, getBaseCacheTTL());
-	}
-
-	IRPCFuture<byte[]> getAuthUsername(int timeoutSec, int cacheTTLSec);
+	IRPCFuture<byte[]> getAuthUsername(int timeoutSec);
 
 	default IRPCFuture<EnumVoiceState> getVoiceState() {
 		return getVoiceState(getBaseRequestTimeout());
@@ -111,7 +87,7 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 		sendRawCustomPayloadPacket("EAG|1.8", data);
 	}
 
-	void injectRawBinaryFrameV5(byte[] data);
+	void injectRawBinaryFrame(byte[] data);
 
 	int getSubscribedEventsBits();
 

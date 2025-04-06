@@ -4,6 +4,6 @@ public interface IRPCFutureExpiring<V> extends IRPCFutureAbstract<V> {
 
 	long expiresAt();
 
-	void fireExceptionInternal(Throwable value);
+	boolean fireTimeoutExceptionInternal(Throwable value);
 
 }

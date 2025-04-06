@@ -76,9 +76,7 @@ public interface IEaglerXBackendRPC<PlayerObject> extends IEaglerVoiceAPI<Player
 
 	int getBaseRequestTimeout();
 
-	void setBaseCacheTTL(int seconds);
-
-	int getBaseCacheTTL();
+	UUID intern(UUID uuid);
 
 	boolean isLocal();
 

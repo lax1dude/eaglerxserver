@@ -6,8 +6,9 @@ import java.io.IOException;
 
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCHandler;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCPacket;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.util.IInteger;
 
-public class SPacketRPCResponseTypeIntegerSingleV2 implements EaglerBackendRPCPacket {
+public class SPacketRPCResponseTypeIntegerSingleV2 implements EaglerBackendRPCPacket, IInteger {
 
 	public int requestID;
 	public int value;
@@ -40,6 +41,11 @@ public class SPacketRPCResponseTypeIntegerSingleV2 implements EaglerBackendRPCPa
 	@Override
 	public int length() {
 		return 8;
+	}
+
+	@Override
+	public int getIntValue() {
+		return value;
 	}
 
 }

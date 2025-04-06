@@ -27,6 +27,7 @@ import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCPacket;
 
 public class SPacketRPCResponseTypeBrandDataV2 implements EaglerBackendRPCPacket {
 
+	public int requestID;
 	public String brand;
 	public String version;
 	public UUID uuid;
@@ -34,7 +35,8 @@ public class SPacketRPCResponseTypeBrandDataV2 implements EaglerBackendRPCPacket
 	public SPacketRPCResponseTypeBrandDataV2() {
 	}
 
-	public SPacketRPCResponseTypeBrandDataV2(String brand, String version, UUID uuid) {
+	public SPacketRPCResponseTypeBrandDataV2(int requestID, String brand, String version, UUID uuid) {
+		this.requestID = requestID;
 		this.brand = brand;
 		this.version = version;
 		this.uuid = uuid;
@@ -42,6 +44,7 @@ public class SPacketRPCResponseTypeBrandDataV2 implements EaglerBackendRPCPacket
 
 	@Override
 	public void readPacket(DataInput buffer) throws IOException {
+		requestID = buffer.readInt();
 		brand = EaglerBackendRPCPacket.readString(buffer, 255, false, StandardCharsets.US_ASCII);
 		version = EaglerBackendRPCPacket.readString(buffer, 255, false, StandardCharsets.US_ASCII);
 		uuid = new UUID(buffer.readLong(), buffer.readLong());
@@ -49,6 +52,7 @@ public class SPacketRPCResponseTypeBrandDataV2 implements EaglerBackendRPCPacket
 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
+		buffer.writeInt(requestID);
 		EaglerBackendRPCPacket.writeString(buffer, brand, false, StandardCharsets.US_ASCII);
 		EaglerBackendRPCPacket.writeString(buffer, version, false, StandardCharsets.US_ASCII);
 		buffer.writeLong(uuid.getMostSignificantBits());
@@ -62,7 +66,7 @@ public class SPacketRPCResponseTypeBrandDataV2 implements EaglerBackendRPCPacket
 
 	@Override
 	public int length() {
-		return 18 + brand.length() + version.length();
+		return 22 + brand.length() + version.length();
 	}
 
 }

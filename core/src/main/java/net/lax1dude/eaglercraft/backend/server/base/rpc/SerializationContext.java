@@ -3,7 +3,6 @@ package net.lax1dude.eaglercraft.backend.server.base.rpc;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCPacket;
@@ -15,31 +14,16 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.ReusableByteArrayOutpu
 abstract class SerializationContext {
 
 	private final EaglerBackendRPCProtocol protocol;
-	private final ReusableByteArrayInputStream byteInputStreamSingleton;
-	private final ReusableByteArrayOutputStream byteOutputStreamSingleton;
-	private final DataInputStream inputStreamSingleton;
-	private final DataOutputStream outputStreamSingleton;
-	private final AtomicBoolean inputStreamLock;
-	private final AtomicBoolean outputStreamLock;
+	private final DataSerializationContext ctx;
 
 	SerializationContext(EaglerBackendRPCProtocol protocol) {
 		this.protocol = protocol;
-		this.byteInputStreamSingleton = new ReusableByteArrayInputStream();
-		this.byteOutputStreamSingleton = new ReusableByteArrayOutputStream();
-		this.inputStreamSingleton = new DataInputStream(byteInputStreamSingleton);
-		this.outputStreamSingleton = new DataOutputStream(byteOutputStreamSingleton);
-		this.inputStreamLock = new AtomicBoolean(false);
-		this.outputStreamLock = new AtomicBoolean(false);
+		this.ctx = new DataSerializationContext();
 	}
 
 	SerializationContext(EaglerBackendRPCProtocol protocol, DataSerializationContext context) {
 		this.protocol = protocol;
-		this.byteInputStreamSingleton = context.byteInputStreamSingleton;
-		this.byteOutputStreamSingleton = context.byteOutputStreamSingleton;
-		this.inputStreamSingleton = context.inputStreamSingleton;
-		this.outputStreamSingleton = context.outputStreamSingleton;
-		this.inputStreamLock = context.inputStreamLock;
-		this.outputStreamLock = context.outputStreamLock;
+		this.ctx = context;
 	}
 
 	protected abstract IPlatformLogger logger();
@@ -52,13 +36,13 @@ abstract class SerializationContext {
 		if(packet.length == 0) {
 			throw new IOException("Empty packet recieved");
 		}
-		if(!inputStreamLock.getAndSet(true)) {
+		if(ctx.aquireInputStream()) {
 			try {
-				byteInputStreamSingleton.feedBuffer(packet);
-				return protocol.readPacket(inputStreamSingleton, EaglerBackendRPCProtocol.CLIENT_TO_SERVER);
+				ctx.byteInputStreamSingleton.feedBuffer(packet);
+				return protocol.readPacket(ctx.inputStreamSingleton, EaglerBackendRPCProtocol.CLIENT_TO_SERVER);
 			}finally {
-				byteInputStreamSingleton.feedBuffer(null);
-				inputStreamLock.set(false);
+				ctx.byteInputStreamSingleton.feedBuffer(null);
+				ctx.releaseInputStream();
 			}
 		}else {
 			ReusableByteArrayInputStream tmp = new ReusableByteArrayInputStream();
@@ -70,13 +54,14 @@ abstract class SerializationContext {
 	byte[] serialize(EaglerBackendRPCPacket packet) throws IOException {
 		int len = packet.length() + 1;
 		byte[] ret;
-		if(!outputStreamLock.getAndSet(true)) {
+		if(ctx.aquireOutputStream()) {
 			try {
-				byteOutputStreamSingleton.feedBuffer(new byte[len == 0 ? 64 : len]);
-				protocol.writePacket(outputStreamSingleton, EaglerBackendRPCProtocol.SERVER_TO_CLIENT, packet);
-				ret = byteOutputStreamSingleton.returnBuffer();
+				ctx.byteOutputStreamSingleton.feedBuffer(len == 0 ? ctx.outputTempBuffer : new byte[len]);
+				protocol.writePacket(ctx.outputStreamSingleton, EaglerBackendRPCProtocol.SERVER_TO_CLIENT, packet);
+				ret = len == 0 ? ctx.byteOutputStreamSingleton.returnBufferCopied()
+						: ctx.byteOutputStreamSingleton.returnBuffer();
 			}finally {
-				outputStreamLock.set(false);
+				ctx.releaseOutputStream();
 			}
 		}else {
 			ReusableByteArrayOutputStream bao = new ReusableByteArrayOutputStream();
