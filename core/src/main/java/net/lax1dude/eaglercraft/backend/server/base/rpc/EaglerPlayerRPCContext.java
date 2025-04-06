@@ -147,7 +147,7 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 
 	void handleRequestBrandData(int requestID) {
 		EaglerPlayerInstance<PlayerObject> player = manager().getPlayer();
-		sendRPCPacket(new SPacketRPCResponseTypeBrandDataV2(player.getEaglerBrandString(),
+		sendRPCPacket(new SPacketRPCResponseTypeBrandDataV2(requestID, player.getEaglerBrandString(),
 				player.getEaglerVersionString(), player.getEaglerBrandUUID()));
 	}
 
