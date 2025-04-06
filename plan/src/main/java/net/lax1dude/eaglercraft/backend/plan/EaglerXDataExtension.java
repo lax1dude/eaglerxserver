@@ -157,6 +157,17 @@ public class EaglerXDataExtension implements DataExtension {
         return serverAPI.getEaglerPlayerByUUID(playerUUID).isEaglerXRewindPlayer();
     }
 
+    @Conditional("isEaglerPlayer")
+    @BooleanProvider(
+            text = "Has Brand Desc",
+            description = "Whether the Eaglercraft player has a brand description",
+            conditionName = "hasBrandDesc",
+            hidden = true
+    )
+    public boolean hasBrandDesc(UUID playerUUID) {
+        return serverAPI.getEaglerPlayerByUUID(playerUUID).getEaglerBrandDesc() != null;
+    }
+
     @Conditional("rewind")
     @StringProvider(
             text = "Rewind Version",
@@ -170,7 +181,7 @@ public class EaglerXDataExtension implements DataExtension {
         return "" + serverAPI.getEaglerPlayerByUUID(playerUUID).getRewindProtocolVersion();
     }
 
-    @Conditional("isEaglerPlayer")
+    @Conditional("hasBrandDesc")
     @BooleanProvider(
             text = "Hacked Client",
             description = "Whether the Eaglercraft player is using a hacked client",
@@ -179,13 +190,11 @@ public class EaglerXDataExtension implements DataExtension {
             iconFamily = Family.SOLID,
             iconColor = Color.RED
     )
-    public Boolean hackedClient(UUID playerUUID) {
-        IBrandRegistration brand = serverAPI.getEaglerPlayerByUUID(playerUUID).getEaglerBrandDesc();
-        if (brand == null) return null;
-        return brand.isHackedClient();
+    public boolean hackedClient(UUID playerUUID) {
+        return serverAPI.getEaglerPlayerByUUID(playerUUID).getEaglerBrandDesc().isHackedClient();
     }
 
-    @Conditional("isEaglerPlayer")
+    @Conditional("hasBrandDesc")
     @BooleanProvider(
             text = "Vanilla Eagler",
             description = "Whether the Eaglercraft player is using a vanilla Eaglercraft client",
@@ -194,13 +203,11 @@ public class EaglerXDataExtension implements DataExtension {
             iconFamily = Family.SOLID,
             iconColor = Color.GREY
     )
-    public Boolean vanillaEagler(UUID playerUUID) {
-        IBrandRegistration brand = serverAPI.getEaglerPlayerByUUID(playerUUID).getEaglerBrandDesc();
-        if (brand == null) return null;
-        return brand.isVanillaEagler();
+    public boolean vanillaEagler(UUID playerUUID) {
+        return serverAPI.getEaglerPlayerByUUID(playerUUID).getEaglerBrandDesc().isVanillaEagler();
     }
 
-    @Conditional("isEaglerPlayer")
+    @Conditional("hasBrandDesc")
     @BooleanProvider(
             text = "Vanilla Minecraft",
             description = "Whether the Eaglercraft player is using vanilla Minecraft",
@@ -209,13 +216,11 @@ public class EaglerXDataExtension implements DataExtension {
             iconFamily = Family.SOLID,
             iconColor = Color.GREY
     )
-    public Boolean vanillaMinecraft(UUID playerUUID) {
-        IBrandRegistration brand = serverAPI.getEaglerPlayerByUUID(playerUUID).getEaglerBrandDesc();
-        if (brand == null) return null;
-        return brand.isVanillaMinecraft();
+    public boolean vanillaMinecraft(UUID playerUUID) {
+        return serverAPI.getEaglerPlayerByUUID(playerUUID).getEaglerBrandDesc().isVanillaMinecraft();
     }
 
-    @Conditional("isEaglerPlayer")
+    @Conditional("hasBrandDesc")
     @BooleanProvider(
             text = "Legacy Client",
             description = "Whether the Eaglercraft player is using a legacy client",
@@ -225,9 +230,7 @@ public class EaglerXDataExtension implements DataExtension {
             iconColor = Color.AMBER
     )
     public Boolean legacyClient(UUID playerUUID) {
-        IBrandRegistration brand = serverAPI.getEaglerPlayerByUUID(playerUUID).getEaglerBrandDesc();
-        if (brand == null) return null;
-        return brand.isLegacyClient();
+        return serverAPI.getEaglerPlayerByUUID(playerUUID).getEaglerBrandDesc().isLegacyClient();
     }
 
     private static final String superscript = "\u2070\u00B9\u00B2\u00B3\u2074\u2075\u2076\u2077\u2078\u2079";
