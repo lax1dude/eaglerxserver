@@ -7,6 +7,7 @@ netty = "4.1.119.Final"
 
 [libraries]
 bungeecord-api = { module = "net.md-5:bungeecord-api", version.ref = "bungeecord" }
+bungeecord-chat = { module = "net.md-5:bungeecord-chat", version.ref = "bungeecord" }
 velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity" }
 velocity-nightconfig = "com.electronwill.night-config:toml:3.6.7"
 velocity-legacy-serializer = { module = "net.kyori:adventure-text-serializer-json-legacy-impl", version.ref = "velocity-adventure" }

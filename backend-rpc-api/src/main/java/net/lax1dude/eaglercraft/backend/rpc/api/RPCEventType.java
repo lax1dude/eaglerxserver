@@ -11,7 +11,7 @@ public final class RPCEventType<T extends IRPCEvent> {
 			EnumSubscribeEvents.EVENT_WEBVIEW_MESSAGE);
 
 	public static final RPCEventType<WebViewOpenCloseEvent> EVENT_TOGGLE_VOICE = new RPCEventType<>(
-			EnumSubscribeEvents.EVENT_TOGGLE_VOICE);
+			EnumSubscribeEvents.EVENT_VOICE_CHANGE);
 
 	private final EnumSubscribeEvents eventType;
 

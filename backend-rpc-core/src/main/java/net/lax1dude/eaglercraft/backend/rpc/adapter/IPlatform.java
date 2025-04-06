@@ -68,4 +68,6 @@ public interface IPlatform<PlayerObject> {
 
 	IPlatformScheduler getScheduler();
 
+	IPlatformComponentHelper getComponentHelper();
+
 }

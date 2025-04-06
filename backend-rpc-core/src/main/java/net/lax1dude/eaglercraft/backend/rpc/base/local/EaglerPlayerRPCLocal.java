@@ -19,7 +19,7 @@ import net.lax1dude.eaglercraft.backend.rpc.api.IRPCFuture;
 import net.lax1dude.eaglercraft.backend.rpc.api.SHA1Sum;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.BrandData;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.CookieData;
-import net.lax1dude.eaglercraft.backend.rpc.api.data.ToggledVoiceEvent;
+import net.lax1dude.eaglercraft.backend.rpc.api.data.VoiceChangeEvent;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewMessageEvent;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewOpenCloseEvent;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewStateData;
@@ -294,8 +294,8 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	public void fireLocalVoiceChange(IEaglercraftVoiceChangeEvent<PlayerObject> evt) {
 		RPCEventBus<PlayerObject> eventBus = this.eventBus;
 		if(eventBus != null) {
-			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_TOGGLE_VOICE, evt,
-					(evt2) -> ToggledVoiceEvent.create(evt2.getVoiceStateOld(), evt2.getVoiceStateNew()),
+			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_VOICE_CHANGE, evt,
+					(evt2) -> VoiceChangeEvent.create(evt2.getVoiceStateOld(), evt2.getVoiceStateNew()),
 					getPlayer().logger());
 		}
 	}

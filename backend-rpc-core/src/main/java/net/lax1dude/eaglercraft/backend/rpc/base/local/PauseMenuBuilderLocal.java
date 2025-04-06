@@ -100,6 +100,11 @@ public class PauseMenuBuilderLocal implements IPauseMenuBuilder {
 	}
 
 	@Override
+	public String getServerInfoButtonBlobAlias() {
+		return null;
+	}
+
+	@Override
 	public EnumDiscordInviteButton getDiscordInviteButtonMode() {
 		return PauseMenuHelper.wrap(delegate.getDiscordInviteButtonMode());
 	}

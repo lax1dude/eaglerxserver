@@ -22,6 +22,7 @@ import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCMessageChannel;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCMessageHandler;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatform;
+import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformComponentHelper;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayerInitializer;
@@ -43,6 +44,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	protected IBackendRPCPlayerInitializer<Object, Player> playerInitializer;
 	protected boolean post_v1_13;
 	protected IPlatformScheduler schedulerImpl;
+	protected IPlatformComponentHelper componentHelper;
 
 	protected boolean localMode;
 	protected Collection<IBackendRPCMessageChannel<Player>> channelsList;
@@ -60,6 +62,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		loggerImpl = new JavaLogger(getLogger());
 		eventDispatcher = new BukkitEventDispatchAdapter(this, server.getPluginManager());
 		schedulerImpl = new BukkitScheduler(this, server.getScheduler());
+		componentHelper = new BukkitComponentHelper();
 		Init<Player> init = new Init<Player>() {
 			@Override
 			public void setOnServerEnable(Runnable enable) {
@@ -229,6 +232,11 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public IPlatformScheduler getScheduler() {
 		return schedulerImpl;
+	}
+
+	@Override
+	public IPlatformComponentHelper getComponentHelper() {
+		return componentHelper;
 	}
 
 	void initializePlayer(Player player) {

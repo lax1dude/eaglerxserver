@@ -27,8 +27,8 @@ public enum EnumSubscribeEvents {
 	/** @see net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewMessageEvent */
 	EVENT_WEBVIEW_MESSAGE(1, 2),
 
-	/** @see net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewOpenCloseEvent */
-	EVENT_TOGGLE_VOICE(2, 4);
+	/** @see net.lax1dude.eaglercraft.backend.rpc.api.data.VoiceChangeEvent */
+	EVENT_VOICE_CHANGE(2, 4);
 
 	public static final int total = values().length;
 
@@ -60,7 +60,7 @@ public enum EnumSubscribeEvents {
 		Set<EnumSubscribeEvents> set = EnumSet.noneOf(EnumSubscribeEvents.class);
 		if((bits & 1) != 0) set.add(EVENT_WEBVIEW_OPEN_CLOSE);
 		if((bits & 2) != 0) set.add(EVENT_WEBVIEW_MESSAGE);
-		if((bits & 4) != 0) set.add(EVENT_TOGGLE_VOICE);
+		if((bits & 4) != 0) set.add(EVENT_VOICE_CHANGE);
 		return set;
 	}
 

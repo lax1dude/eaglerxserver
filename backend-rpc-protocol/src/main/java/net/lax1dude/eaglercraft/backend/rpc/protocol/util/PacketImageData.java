@@ -19,8 +19,9 @@ package net.lax1dude.eaglercraft.backend.rpc.protocol.util;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Arrays;
 
-public class PacketImageData {
+public final class PacketImageData {
 
 	public final int width;
 	public final int height;
@@ -34,6 +35,31 @@ public class PacketImageData {
 
 	public int getByteLengthRGB16() {
 		return 2 + (rgba.length << 1);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 1;
+		result = 31 * result + height;
+		result = 31 * result + Arrays.hashCode(rgba);
+		result = 31 * result + width;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!(obj instanceof PacketImageData))
+			return false;
+		PacketImageData other = (PacketImageData) obj;
+		if (height != other.height)
+			return false;
+		if (!Arrays.equals(rgba, other.rgba))
+			return false;
+		if (width != other.width)
+			return false;
+		return true;
 	}
 
 	public static PacketImageData readRGB16(DataInput buffer) throws IOException {

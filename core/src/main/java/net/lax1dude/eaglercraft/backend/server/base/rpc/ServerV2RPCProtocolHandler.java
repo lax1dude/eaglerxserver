@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.rpc;
 
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.*;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCResponseTypeError;
 import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
 import net.lax1dude.eaglercraft.backend.server.api.webview.EnumWebViewPerms;
 
@@ -15,28 +16,32 @@ public class ServerV2RPCProtocolHandler extends ServerV1RPCProtocolHandler {
 	}
 
 	public void handleClient(CPacketRPCRequestPlayerInfo packet) {
-		switch(packet.requestType) {
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_WEBVIEW_STATUS:
-			throw wrongPacket();
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_TEXTURE_DATA:
-			rpcContext.handleRequestTextureData(packet.requestID);
-			break;
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_DATA:
-			rpcContext.handleRequestBrandData(packet.requestID);
-			break;
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_MINECRAFT_BRAND:
-			rpcContext.handleRequestMinecraftBrand(packet.requestID);
-			break;
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_AUTH_USERNAME:
-			rpcContext.handleRequestAuthUsername(packet.requestID);
-			break;
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_WEBVIEW_STATUS_V2:
-			rpcContext.handleRequestWebViewStatus(packet.requestID);
-			break;
-		default:
-			super.handleClient(packet);
-			break;
+		try {
+			switch(packet.requestType) {
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_WEBVIEW_STATUS:
+				throw wrongPacket();
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_TEXTURE_DATA:
+				rpcContext.handleRequestTextureData(packet.requestID);
+				return;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_DATA:
+				rpcContext.handleRequestBrandData(packet.requestID);
+				return;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_MINECRAFT_BRAND:
+				rpcContext.handleRequestMinecraftBrand(packet.requestID);
+				return;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_AUTH_USERNAME:
+				rpcContext.handleRequestAuthUsername(packet.requestID);
+				return;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_WEBVIEW_STATUS_V2:
+				rpcContext.handleRequestWebViewStatus(packet.requestID);
+				return;
+			}
+		}catch(Exception ex) {
+			rpcContext.sendRPCPacket(new SPacketRPCResponseTypeError(packet.requestID, ex.toString()));
+			rpcContext.manager().handleException(ex);
+			return;
 		}
+		super.handleClient(packet);
 	}
 
 	public void handleClient(CPacketRPCSetPlayerSkinPresetV2 packet) {

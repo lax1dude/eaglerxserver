@@ -48,6 +48,8 @@ public interface IPauseMenuBuilder {
 
 	SHA1Sum getServerInfoButtonBlobHash();
 
+	String getServerInfoButtonBlobAlias();
+
 	EnumDiscordInviteButton getDiscordInviteButtonMode();
 
 	IPauseMenuBuilder setDiscordInviteButtonModeNone();

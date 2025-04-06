@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.rpc.base.remote;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -26,12 +28,25 @@ import net.lax1dude.eaglercraft.backend.rpc.api.notifications.IconDef;
 import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.ICustomPauseMenu;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumEnableFNAW;
 import net.lax1dude.eaglercraft.backend.rpc.api.webview.EnumWebViewPerms;
+import net.lax1dude.eaglercraft.backend.rpc.base.RPCEventBus;
+import net.lax1dude.eaglercraft.backend.rpc.base.RPCFailedFuture;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCRequestFuture;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.util.DataSerializationContext;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.util.Util;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCDisplayWebViewAliasV2;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCDisplayWebViewBlobV2;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCDisplayWebViewURLV2;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCInjectRawBinaryFrameV2;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCNotifBadgeHide;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCNotifIconRegister;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCNotifIconRelease;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCRedirectPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCRequestPlayerInfo;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCResetPlayerMulti;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSendWebViewMessage;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSetPlayerCookie;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSetPlayerFNAWEn;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCEnabledSuccessEaglerV2;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCEnabledSuccessEaglerV2.ExtCapability;
 import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
@@ -45,6 +60,9 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	protected final int eaglerStandardCaps;
 	protected final byte[] eaglerStandardCapsVersions;
 	protected final Map<UUID, Byte> eaglerExtendedCapsVersions;
+	protected volatile RPCEventBus<PlayerObject> eventBus;
+	protected volatile int subscribedEvents;
+	protected final boolean webviewCap;
 
 	public EaglerPlayerRPC(PlayerInstanceRemote<PlayerObject> player, EaglerBackendRPCProtocol protocol,
 			DataSerializationContext serializeCtx, SPacketRPCEnabledSuccessEaglerV2 enablePacket) {
@@ -55,6 +73,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 		this.eaglerStandardCaps = enablePacket.eaglerStandardCaps;
 		this.eaglerStandardCapsVersions = enablePacket.eaglerStandardCapsVersions != null
 				? enablePacket.eaglerStandardCapsVersions : Util.ZERO_BYTES;
+		this.webviewCap = hasCapability(EnumCapabilitySpec.WEBVIEW_V0);
 		if(enablePacket.eaglerExtendedCaps != null && !enablePacket.eaglerExtendedCaps.isEmpty()) {
 			ImmutableMap.Builder<UUID, Byte> builder = ImmutableMap.builder();
 			for(ExtCapability cap : enablePacket.eaglerExtendedCaps) {
@@ -125,224 +144,383 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public IRPCFuture<String> getRealIP(int timeoutSec) {
-		RPCRequestFuture<String> ret = createRequest(timeoutSec);
-		sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
-				CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REAL_IP));
-		return ret;
+		if(open) {
+			RPCRequestFuture<String> ret = createRequest(timeoutSec);
+			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REAL_IP));
+			return ret;
+		}else {
+			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
+		}
 	}
 
 	@Override
 	public IRPCFuture<String> getOrigin(int timeoutSec) {
-		RPCRequestFuture<String> ret = createRequest(timeoutSec);
-		sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
-				CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_ORIGIN));
-		return ret;
+		if(open) {
+			RPCRequestFuture<String> ret = createRequest(timeoutSec);
+			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_ORIGIN));
+			return ret;
+		}else {
+			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
+		}
 	}
 
 	@Override
 	public IRPCFuture<String> getUserAgent(int timeoutSec) {
-		RPCRequestFuture<String> ret = createRequest(timeoutSec);
-		sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
-				CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_USER_AGENT));
-		return ret;
+		if(open) {
+			RPCRequestFuture<String> ret = createRequest(timeoutSec);
+			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_USER_AGENT));
+			return ret;
+		}else {
+			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
+		}
 	}
 
 	@Override
 	public IRPCFuture<CookieData> getCookieData(int timeoutSec) {
-		RPCRequestFuture<CookieData> ret = createRequest(timeoutSec);
-		sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
-				CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_COOKIE));
-		return ret;
+		if(open) {
+			RPCRequestFuture<CookieData> ret = createRequest(timeoutSec);
+			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_COOKIE));
+			return ret;
+		}else {
+			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
+		}
 	}
 
 	@Override
 	public IRPCFuture<BrandData> getBrandData(int timeoutSec) {
-		RPCRequestFuture<BrandData> ret = createRequest(timeoutSec);
-		sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
-				CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_DATA));
-		return ret;
+		if(open) {
+			RPCRequestFuture<BrandData> ret = createRequest(timeoutSec);
+			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_DATA));
+			return ret;
+		}else {
+			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
+		}
 	}
 
 	@Override
 	public IRPCFuture<byte[]> getAuthUsername(int timeoutSec) {
-		RPCRequestFuture<byte[]> ret = createRequest(timeoutSec);
-		sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
-				CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_AUTH_USERNAME));
-		return ret;
+		if(open) {
+			RPCRequestFuture<byte[]> ret = createRequest(timeoutSec);
+			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_AUTH_USERNAME));
+			return ret;
+		}else {
+			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
+		}
 	}
 
 	@Override
 	public IRPCFuture<EnumVoiceState> getVoiceState(int timeoutSec) {
-		RPCRequestFuture<EnumVoiceState> ret = createRequest(timeoutSec);
-		sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
-				CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_VOICE_STATUS));
-		return ret;
+		if(open) {
+			RPCRequestFuture<EnumVoiceState> ret = createRequest(timeoutSec);
+			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_VOICE_STATUS));
+			return ret;
+		}else {
+			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
+		}
 	}
 
 	@Override
 	public IRPCFuture<WebViewStateData> getWebViewState(int timeoutSec) {
-		RPCRequestFuture<WebViewStateData> ret = createRequest(timeoutSec);
-		sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
-				CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_WEBVIEW_STATUS_V2));
-		return ret;
+		if(open) {
+			RPCRequestFuture<WebViewStateData> ret = createRequest(timeoutSec);
+			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_WEBVIEW_STATUS_V2));
+			return ret;
+		}else {
+			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
+		}
 	}
 
 	@Override
 	public void injectRawBinaryFrame(byte[] data) {
-		sendRPCPacket(new CPacketRPCInjectRawBinaryFrameV2(data));
+		if(open) {
+			sendRPCPacket(new CPacketRPCInjectRawBinaryFrameV2(data));
+		}else {
+			printClosedError();
+		}
 	}
 
 	@Override
 	public int getSubscribedEventsBits() {
-		// TODO Auto-generated method stub
-		return 0;
+		return subscribedEvents;
 	}
 
 	@Override
-	public void addGenericEventListener(EnumSubscribeEvents eventType,
+	public synchronized void addGenericEventListener(EnumSubscribeEvents eventType,
 			IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler) {
-		// TODO Auto-generated method stub
-		
+		RPCEventBus<PlayerObject> eventBus = this.eventBus;
+		if (eventBus == null) {
+			eventBus = new RPCEventBus<PlayerObject>(this,
+					((EaglerXBackendRPCRemote<PlayerObject>) getServerAPI()).getPlatform().getScheduler());
+			int i = eventBus.addEventListener(eventType, handler);
+			if(i > 0) {
+				this.eventBus = eventBus;
+				subscribedEvents = i;
+			}
+		}else {
+			int i = eventBus.addEventListener(eventType, handler);
+			if(i != -1) {
+				subscribedEvents = i;
+			}
+		}
 	}
 
 	@Override
-	public void removeGenericEventListener(EnumSubscribeEvents eventType,
+	public synchronized void removeGenericEventListener(EnumSubscribeEvents eventType,
 			IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler) {
-		// TODO Auto-generated method stub
-		
+		RPCEventBus<PlayerObject> eventBus = this.eventBus;
+		if(eventBus != null) {
+			int i = eventBus.removeEventListener(eventType, handler);
+			if(i != -1 && (subscribedEvents = i) == 0) {
+				this.eventBus = null;
+			}
+		}
+	}
+
+	@Override
+	public void fireRemoteEvent(IRPCEvent event) {
+		RPCEventBus<PlayerObject> eventBus = this.eventBus;
+		if(eventBus != null) {
+			eventBus.dispatchEvent(event, logger());
+		}
 	}
 
 	@Override
 	public boolean isRedirectPlayerSupported() {
-		// TODO Auto-generated method stub
-		return false;
+		return hasCapability(EnumCapabilitySpec.REDIRECT_V0);
 	}
 
 	@Override
 	public void redirectPlayerToWebSocket(String webSocketURI) {
-		// TODO Auto-generated method stub
-		
+		if(hasCapability(EnumCapabilitySpec.REDIRECT_V0)) {
+			if(open) {
+				sendRPCPacket(new CPacketRPCRedirectPlayer(webSocketURI));
+			}else {
+				printClosedError();
+			}
+		}else {
+			logger().error("Tried to redirect a player using an unsupported client");
+		}
 	}
 
 	@Override
 	public boolean isPauseMenuCustomizationSupported() {
-		// TODO Auto-generated method stub
-		return false;
+		return hasCapability(EnumCapabilitySpec.PAUSE_MENU_V0);
 	}
 
 	@Override
 	public void setPauseMenuCustomizationState(ICustomPauseMenu packet) {
-		// TODO Auto-generated method stub
-		
+		if(hasCapability(EnumCapabilitySpec.PAUSE_MENU_V0)) {
+			if(open) {
+				sendRPCPacket(CustomPauseMenuWrapper.unwrap(packet));
+			}else {
+				printClosedError();
+			}
+		}else {
+			logger().error("Tried to send custom pause menu to an unsupported client");
+		}
 	}
 
 	@Override
 	public void sendWebViewMessageString(String channelName, String data) {
-		// TODO Auto-generated method stub
-		
+		if(webviewCap) {
+			if(open) {
+				sendRPCPacket(new CPacketRPCSendWebViewMessage(channelName,
+						CPacketRPCSendWebViewMessage.MESSAGE_TYPE_STRING, data.getBytes(StandardCharsets.UTF_8)));
+			}else {
+				printClosedError();
+			}
+		}else {
+			logger().error("Tried to send webview message to an unsupported client");
+		}
 	}
 
 	@Override
 	public void sendWebViewMessageString(String channelName, byte[] data) {
-		// TODO Auto-generated method stub
-		
+		if (webviewCap) {
+			if(open) {
+				sendRPCPacket(new CPacketRPCSendWebViewMessage(channelName, CPacketRPCSendWebViewMessage.MESSAGE_TYPE_STRING, data));
+			}else {
+				printClosedError();
+			}
+		}else {
+			logger().error("Tried to send webview message to an unsupported client");
+		}
 	}
 
 	@Override
 	public void sendWebViewMessageBytes(String channelName, byte[] data) {
-		// TODO Auto-generated method stub
-		
+		if (webviewCap) {
+			if(open) {
+				sendRPCPacket(new CPacketRPCSendWebViewMessage(channelName, CPacketRPCSendWebViewMessage.MESSAGE_TYPE_BINARY, data));
+			}else {
+				printClosedError();
+			}
+		}else {
+			logger().error("Tried to send webview message to an unsupported client");
+		}
 	}
 
 	@Override
 	public boolean isCookieSupported() {
-		// TODO Auto-generated method stub
-		return false;
+		return hasCapability(EnumCapabilitySpec.COOKIE_V0);
 	}
 
 	@Override
 	public void setCookieData(byte[] cookieData, long expiresAfterSec, boolean revokeQuerySupported,
 			boolean saveToDisk) {
-		// TODO Auto-generated method stub
-		
+		if(expiresAfterSec < 0L || expiresAfterSec > 0xFFFFFFFFL) {
+			throw new IllegalArgumentException("Cookie expiresAfterSec out of range: " + expiresAfterSec);
+		}
+		if(hasCapability(EnumCapabilitySpec.COOKIE_V0)) {
+			if(open) {
+				sendRPCPacket(new CPacketRPCSetPlayerCookie(revokeQuerySupported, saveToDisk, (int) expiresAfterSec, cookieData));
+			}else {
+				printClosedError();
+			}
+		}else {
+			logger().error("Tried to send webview message to an unsupported client");
+		}
 	}
 
 	@Override
 	public void setEnableFNAWSkins(EnumEnableFNAW state) {
-		// TODO Auto-generated method stub
-		
+		switch(state) {
+		case DISABLED:
+			sendRPCPacket(new CPacketRPCSetPlayerFNAWEn(false, false));
+			break;
+		case ENABLED:
+			sendRPCPacket(new CPacketRPCSetPlayerFNAWEn(true, false));
+			break;
+		case FORCED:
+			sendRPCPacket(new CPacketRPCSetPlayerFNAWEn(true, true));
+			break;
+		}
 	}
 
 	@Override
 	public void resetEnableFNAWSkins() {
-		// TODO Auto-generated method stub
-		
+		if(open) {
+			sendRPCPacket(new CPacketRPCResetPlayerMulti(false, false, true, false));
+		}else {
+			printClosedError();
+		}
 	}
 
 	@Override
 	public boolean isNotificationSupported() {
-		// TODO Auto-generated method stub
-		return false;
+		return hasCapability(EnumCapabilitySpec.NOTIFICATION_V0);
 	}
 
 	@Override
 	public void registerNotificationIcon(UUID iconUUID, IPacketImageData icon) {
-		// TODO Auto-generated method stub
-		
+		if(open) {
+			sendRPCPacket(new CPacketRPCNotifIconRegister(Arrays
+					.asList(new CPacketRPCNotifIconRegister.RegisterIcon(iconUUID, PacketImageDataWrapper.unwrap(icon)))));
+		}else {
+			printClosedError();
+		}
 	}
 
 	@Override
 	public void registerNotificationIcons(Collection<IconDef> icons) {
-		// TODO Auto-generated method stub
-		
+		if(open) {
+			sendRPCPacket(new CPacketRPCNotifIconRegister(
+					icons.stream().map((icn) -> new CPacketRPCNotifIconRegister.RegisterIcon(icn.getUUID(),
+							PacketImageDataWrapper.unwrap(icn.getIcon()))).toList()));
+		}else {
+			printClosedError();
+		}
 	}
 
 	@Override
 	public void releaseNotificationIcon(UUID iconUUID) {
-		// TODO Auto-generated method stub
-		
+		if(open) {
+			sendRPCPacket(new CPacketRPCNotifIconRelease(Arrays.asList(iconUUID)));
+		}else {
+			printClosedError();
+		}
 	}
 
 	@Override
 	public void releaseNotificationIcons(Collection<UUID> iconUUIDs) {
-		// TODO Auto-generated method stub
-		
+		if(open) {
+			sendRPCPacket(new CPacketRPCNotifIconRelease(iconUUIDs));
+		}else {
+			printClosedError();
+		}
 	}
 
 	@Override
 	public void showNotificationBadge(INotificationBadge badge) {
-		// TODO Auto-generated method stub
-		
+		if(open) {
+			sendRPCPacket(NotificationBadgeWrapper.unwrap(badge));
+		}else {
+			printClosedError();
+		}
 	}
 
 	@Override
 	public void hideNotificationBadge(UUID badgeUUID) {
-		// TODO Auto-generated method stub
-		
+		if(open) {
+			sendRPCPacket(new CPacketRPCNotifBadgeHide(badgeUUID));
+		}else {
+			printClosedError();
+		}
 	}
 
 	@Override
 	public boolean isDisplayWebViewSupported() {
-		// TODO Auto-generated method stub
-		return false;
+		return webviewCap && eaglerProtocol >= 5;
 	}
 
 	@Override
 	public void displayWebViewURL(String title, String url, Set<EnumWebViewPerms> permissions) {
-		// TODO Auto-generated method stub
-		
+		if(isDisplayWebViewSupported()) {
+			if(open) {
+				sendRPCPacket(new CPacketRPCDisplayWebViewURLV2(
+						permissions != null ? EnumWebViewPerms.toBits(permissions) : 0, title, url));
+			}else {
+				printClosedError();
+			}
+		}else {
+			logger().error("Tried to display webview screen to an unsupported client");
+		}
 	}
 
 	@Override
 	public void displayWebViewBlob(String title, SHA1Sum hash, Set<EnumWebViewPerms> permissions) {
-		// TODO Auto-generated method stub
-		
+		if(isDisplayWebViewSupported()) {
+			if(open) {
+				sendRPCPacket(new CPacketRPCDisplayWebViewBlobV2(
+						permissions != null ? EnumWebViewPerms.toBits(permissions) : 0, title, hash.asBytes()));
+			}else {
+				printClosedError();
+			}
+		}else {
+			logger().error("Tried to display webview screen to an unsupported client");
+		}
 	}
 
 	@Override
 	public void displayWebViewBlob(String title, String alias, Set<EnumWebViewPerms> permissions) {
-		// TODO Auto-generated method stub
-		
+		if(isDisplayWebViewSupported()) {
+			if(open) {
+				sendRPCPacket(new CPacketRPCDisplayWebViewAliasV2(
+						permissions != null ? EnumWebViewPerms.toBits(permissions) : 0, title, alias));
+			}else {
+				printClosedError();
+			}
+		}else {
+			logger().error("Tried to display webview screen to an unsupported client");
+		}
 	}
 
 }

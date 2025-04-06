@@ -5,5 +5,6 @@ public enum EnumServerInfoButton {
 	EXTERNAL_URL,
 	WEBVIEW_URL,
 	WEBVIEW_BLOB,
+	WEBVIEW_ALIAS,
 	INHERIT_DEFAULT
 }

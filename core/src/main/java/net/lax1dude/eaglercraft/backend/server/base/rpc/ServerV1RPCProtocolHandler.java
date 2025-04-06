@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.rpc;
 
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.*;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCResponseTypeError;
 
 public class ServerV1RPCProtocolHandler extends ServerRPCProtocolHandler {
 
@@ -9,46 +10,54 @@ public class ServerV1RPCProtocolHandler extends ServerRPCProtocolHandler {
 	}
 
 	public void handleClient(CPacketRPCRequestPlayerInfo packet) {
-		switch(packet.requestType) {
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REAL_UUID:
-			rpcContext.handleRequestRealUUID(packet.requestID);
-			break;
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REAL_IP:
-			rpcContext.handleRequestRealIP(packet.requestID);
-			break;
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_ORIGIN:
-			rpcContext.handleRequestOrigin(packet.requestID);
-			break;
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_USER_AGENT:
-			rpcContext.handleRequestUserAgent(packet.requestID);
-			break;
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_SKIN_DATA:
-			rpcContext.handleRequestSkinData(packet.requestID);
-			break;
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CAPE_DATA:
-			rpcContext.handleRequestCapeData(packet.requestID);
-			break;
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_COOKIE:
-			rpcContext.handleRequestCookie(packet.requestID);
-			break;
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_STR:
-			rpcContext.handleRequestBrandOld(packet.requestID);
-			break;
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_VERSION_STR:
-			rpcContext.handleRequestVersionOld(packet.requestID);
-			break;
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_VERSION_STR:
-			rpcContext.handleRequestBrandVersionOld(packet.requestID);
-			break;
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_UUID:
-			rpcContext.handleRequestBrandUUID(packet.requestID);
-			break;
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_VOICE_STATUS:
-			rpcContext.handleRequestVoiceStatus(packet.requestID);
-			break;
-		case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_WEBVIEW_STATUS:
-			rpcContext.handleRequestWebViewStatus(packet.requestID);
-			break;
+		try {
+			switch(packet.requestType) {
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REAL_UUID:
+				rpcContext.handleRequestRealUUID(packet.requestID);
+				break;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REAL_IP:
+				rpcContext.handleRequestRealIP(packet.requestID);
+				break;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_ORIGIN:
+				rpcContext.handleRequestOrigin(packet.requestID);
+				break;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_USER_AGENT:
+				rpcContext.handleRequestUserAgent(packet.requestID);
+				break;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_SKIN_DATA:
+				rpcContext.handleRequestSkinData(packet.requestID);
+				break;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CAPE_DATA:
+				rpcContext.handleRequestCapeData(packet.requestID);
+				break;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_COOKIE:
+				rpcContext.handleRequestCookie(packet.requestID);
+				break;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_STR:
+				rpcContext.handleRequestBrandOld(packet.requestID);
+				break;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_VERSION_STR:
+				rpcContext.handleRequestVersionOld(packet.requestID);
+				break;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_VERSION_STR:
+				rpcContext.handleRequestBrandVersionOld(packet.requestID);
+				break;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_UUID:
+				rpcContext.handleRequestBrandUUID(packet.requestID);
+				break;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_VOICE_STATUS:
+				rpcContext.handleRequestVoiceStatus(packet.requestID);
+				break;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_WEBVIEW_STATUS:
+				rpcContext.handleRequestWebViewStatus(packet.requestID);
+				break;
+			default:
+				rpcContext.sendRPCPacket(new SPacketRPCResponseTypeError(packet.requestID, "Unknown request type"));
+				break;
+			}
+		}catch(Exception ex) {
+			rpcContext.sendRPCPacket(new SPacketRPCResponseTypeError(packet.requestID, ex.toString()));
+			rpcContext.manager().handleException(ex);
 		}
 	}
 
@@ -67,7 +76,8 @@ public class ServerV1RPCProtocolHandler extends ServerRPCProtocolHandler {
 	}
 
 	public void handleClient(CPacketRPCSetPlayerCookie packet) {
-		rpcContext.handleSetPlayerCookie(packet.cookieData, packet.expires, packet.revokeQuerySupported, packet.saveToDisk);
+		rpcContext.handleSetPlayerCookie(packet.cookieData, (long) packet.expires & 0xFFFFFFFFL,
+				packet.revokeQuerySupported, packet.saveToDisk);
 	}
 
 	public void handleClient(CPacketRPCSetPlayerFNAWEn packet) {

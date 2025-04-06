@@ -2,8 +2,12 @@ package net.lax1dude.eaglercraft.backend.rpc.base.remote.message;
 
 import net.lax1dude.eaglercraft.backend.rpc.api.data.BrandData;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.CookieData;
+import net.lax1dude.eaglercraft.backend.rpc.api.data.VoiceChangeEvent;
+import net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewMessageEvent;
+import net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewOpenCloseEvent;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewStateData;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.BasePlayerRPC;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.WrongRPCPacketException;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.*;
 import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
 
@@ -56,15 +60,36 @@ public class BackendV2RPCProtocolHandler extends BackendRPCProtocolHandler {
 	}
 
 	public void handleServer(SPacketRPCEventWebViewOpenClose packet) {
-		//TODO
+		rpcContext.fireRemoteEvent(WebViewOpenCloseEvent.create(packet.channelName, packet.channelOpen));
 	}
 
 	public void handleServer(SPacketRPCEventWebViewMessage packet) {
-		//TODO
+		switch(packet.messageType) {
+		case SPacketRPCEventWebViewMessage.MESSAGE_TYPE_STRING:
+			rpcContext.fireRemoteEvent(WebViewMessageEvent.string(packet.channelName, packet.messageContent));
+			break;
+		case SPacketRPCEventWebViewMessage.MESSAGE_TYPE_BINARY:
+			rpcContext.fireRemoteEvent(WebViewMessageEvent.binary(packet.channelName, packet.messageContent));
+			break;
+		default:
+			throw new WrongRPCPacketException("Unknown WebView message type");
+		}
 	}
 
 	public void handleServer(SPacketRPCEventToggledVoice packet) {
-		//TODO
+		rpcContext.fireRemoteEvent(VoiceChangeEvent.create(mapVoiceState(packet.oldVoiceState), mapVoiceState(packet.newVoiceState)));
+	}
+
+	private EnumVoiceState mapVoiceState(int i) {
+		switch(i) {
+		case SPacketRPCEventToggledVoice.VOICE_STATE_SERVER_DISABLE:
+		default:
+			return EnumVoiceState.SERVER_DISABLE;
+		case SPacketRPCEventToggledVoice.VOICE_STATE_DISABLED:
+			return EnumVoiceState.DISABLED;
+		case SPacketRPCEventToggledVoice.VOICE_STATE_ENABLED:
+			return EnumVoiceState.ENABLED;
+		}
 	}
 
 	public void handleServer(SPacketRPCResponseTypeBrandDataV2 packet) {

@@ -4,16 +4,16 @@ import net.lax1dude.eaglercraft.backend.rpc.api.EnumSubscribeEvents;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCEvent;
 import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
 
-public final class ToggledVoiceEvent implements IRPCEvent {
+public final class VoiceChangeEvent implements IRPCEvent {
 
-	public static ToggledVoiceEvent create(EnumVoiceState oldState, EnumVoiceState newState) {
-		return new ToggledVoiceEvent(oldState, newState);
+	public static VoiceChangeEvent create(EnumVoiceState oldState, EnumVoiceState newState) {
+		return new VoiceChangeEvent(oldState, newState);
 	}
 
 	private final EnumVoiceState oldState;
 	private final EnumVoiceState newState;
 
-	private ToggledVoiceEvent(EnumVoiceState oldState, EnumVoiceState newState) {
+	private VoiceChangeEvent(EnumVoiceState oldState, EnumVoiceState newState) {
 		this.oldState = oldState;
 		this.newState = newState;
 	}
@@ -28,7 +28,7 @@ public final class ToggledVoiceEvent implements IRPCEvent {
 
 	@Override
 	public EnumSubscribeEvents getEventType() {
-		return EnumSubscribeEvents.EVENT_TOGGLE_VOICE;
+		return EnumSubscribeEvents.EVENT_VOICE_CHANGE;
 	}
 
 }
