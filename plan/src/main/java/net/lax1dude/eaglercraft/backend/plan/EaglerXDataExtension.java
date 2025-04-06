@@ -229,7 +229,7 @@ public class EaglerXDataExtension implements DataExtension {
             iconFamily = Family.SOLID,
             iconColor = Color.AMBER
     )
-    public Boolean legacyClient(UUID playerUUID) {
+    public boolean legacyClient(UUID playerUUID) {
         return serverAPI.getEaglerPlayerByUUID(playerUUID).getEaglerBrandDesc().isLegacyClient();
     }
 
