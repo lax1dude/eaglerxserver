@@ -146,7 +146,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	public IRPCFuture<String> getRealIP(int timeoutSec) {
 		if(open) {
 			RPCRequestFuture<String> ret = createRequest(timeoutSec);
-			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REAL_IP));
 			return ret;
 		}else {
@@ -158,7 +158,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	public IRPCFuture<String> getOrigin(int timeoutSec) {
 		if(open) {
 			RPCRequestFuture<String> ret = createRequest(timeoutSec);
-			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_ORIGIN));
 			return ret;
 		}else {
@@ -170,7 +170,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	public IRPCFuture<String> getUserAgent(int timeoutSec) {
 		if(open) {
 			RPCRequestFuture<String> ret = createRequest(timeoutSec);
-			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_USER_AGENT));
 			return ret;
 		}else {
@@ -182,7 +182,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	public IRPCFuture<CookieData> getCookieData(int timeoutSec) {
 		if(open) {
 			RPCRequestFuture<CookieData> ret = createRequest(timeoutSec);
-			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_COOKIE));
 			return ret;
 		}else {
@@ -194,7 +194,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	public IRPCFuture<BrandData> getBrandData(int timeoutSec) {
 		if(open) {
 			RPCRequestFuture<BrandData> ret = createRequest(timeoutSec);
-			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_DATA));
 			return ret;
 		}else {
@@ -206,7 +206,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	public IRPCFuture<byte[]> getAuthUsername(int timeoutSec) {
 		if(open) {
 			RPCRequestFuture<byte[]> ret = createRequest(timeoutSec);
-			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_AUTH_USERNAME));
 			return ret;
 		}else {
@@ -218,7 +218,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	public IRPCFuture<EnumVoiceState> getVoiceState(int timeoutSec) {
 		if(open) {
 			RPCRequestFuture<EnumVoiceState> ret = createRequest(timeoutSec);
-			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_VOICE_STATUS));
 			return ret;
 		}else {
@@ -230,7 +230,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	public IRPCFuture<WebViewStateData> getWebViewState(int timeoutSec) {
 		if(open) {
 			RPCRequestFuture<WebViewStateData> ret = createRequest(timeoutSec);
-			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_WEBVIEW_STATUS_V2));
 			return ret;
 		}else {
@@ -241,7 +241,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	@Override
 	public void injectRawBinaryFrame(byte[] data) {
 		if(open) {
-			sendRPCPacket(new CPacketRPCInjectRawBinaryFrameV2(data));
+			writeOutboundPacket(new CPacketRPCInjectRawBinaryFrameV2(data));
 		}else {
 			printClosedError();
 		}
@@ -301,7 +301,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	public void redirectPlayerToWebSocket(String webSocketURI) {
 		if(hasCapability(EnumCapabilitySpec.REDIRECT_V0)) {
 			if(open) {
-				sendRPCPacket(new CPacketRPCRedirectPlayer(webSocketURI));
+				writeOutboundPacket(new CPacketRPCRedirectPlayer(webSocketURI));
 			}else {
 				printClosedError();
 			}
@@ -319,7 +319,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	public void setPauseMenuCustomizationState(ICustomPauseMenu packet) {
 		if(hasCapability(EnumCapabilitySpec.PAUSE_MENU_V0)) {
 			if(open) {
-				sendRPCPacket(CustomPauseMenuWrapper.unwrap(packet));
+				writeOutboundPacket(CustomPauseMenuWrapper.unwrap(packet));
 			}else {
 				printClosedError();
 			}
@@ -332,7 +332,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	public void sendWebViewMessageString(String channelName, String data) {
 		if(webviewCap) {
 			if(open) {
-				sendRPCPacket(new CPacketRPCSendWebViewMessage(channelName,
+				writeOutboundPacket(new CPacketRPCSendWebViewMessage(channelName,
 						CPacketRPCSendWebViewMessage.MESSAGE_TYPE_STRING, data.getBytes(StandardCharsets.UTF_8)));
 			}else {
 				printClosedError();
@@ -346,7 +346,8 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	public void sendWebViewMessageString(String channelName, byte[] data) {
 		if (webviewCap) {
 			if(open) {
-				sendRPCPacket(new CPacketRPCSendWebViewMessage(channelName, CPacketRPCSendWebViewMessage.MESSAGE_TYPE_STRING, data));
+				writeOutboundPacket(new CPacketRPCSendWebViewMessage(channelName,
+						CPacketRPCSendWebViewMessage.MESSAGE_TYPE_STRING, data));
 			}else {
 				printClosedError();
 			}
@@ -359,7 +360,8 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	public void sendWebViewMessageBytes(String channelName, byte[] data) {
 		if (webviewCap) {
 			if(open) {
-				sendRPCPacket(new CPacketRPCSendWebViewMessage(channelName, CPacketRPCSendWebViewMessage.MESSAGE_TYPE_BINARY, data));
+				writeOutboundPacket(new CPacketRPCSendWebViewMessage(channelName,
+						CPacketRPCSendWebViewMessage.MESSAGE_TYPE_BINARY, data));
 			}else {
 				printClosedError();
 			}
@@ -380,8 +382,9 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 			throw new IllegalArgumentException("Cookie expiresAfterSec out of range: " + expiresAfterSec);
 		}
 		if(hasCapability(EnumCapabilitySpec.COOKIE_V0)) {
-			if(open) {
-				sendRPCPacket(new CPacketRPCSetPlayerCookie(revokeQuerySupported, saveToDisk, (int) expiresAfterSec, cookieData));
+			if (open) {
+				writeOutboundPacket(new CPacketRPCSetPlayerCookie(revokeQuerySupported, saveToDisk,
+						(int) expiresAfterSec, cookieData));
 			}else {
 				printClosedError();
 			}
@@ -394,13 +397,13 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	public void setEnableFNAWSkins(EnumEnableFNAW state) {
 		switch(state) {
 		case DISABLED:
-			sendRPCPacket(new CPacketRPCSetPlayerFNAWEn(false, false));
+			writeOutboundPacket(new CPacketRPCSetPlayerFNAWEn(false, false));
 			break;
 		case ENABLED:
-			sendRPCPacket(new CPacketRPCSetPlayerFNAWEn(true, false));
+			writeOutboundPacket(new CPacketRPCSetPlayerFNAWEn(true, false));
 			break;
 		case FORCED:
-			sendRPCPacket(new CPacketRPCSetPlayerFNAWEn(true, true));
+			writeOutboundPacket(new CPacketRPCSetPlayerFNAWEn(true, true));
 			break;
 		}
 	}
@@ -408,7 +411,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	@Override
 	public void resetEnableFNAWSkins() {
 		if(open) {
-			sendRPCPacket(new CPacketRPCResetPlayerMulti(false, false, true, false));
+			writeOutboundPacket(new CPacketRPCResetPlayerMulti(false, false, true, false));
 		}else {
 			printClosedError();
 		}
@@ -422,7 +425,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	@Override
 	public void registerNotificationIcon(UUID iconUUID, IPacketImageData icon) {
 		if(open) {
-			sendRPCPacket(new CPacketRPCNotifIconRegister(Arrays
+			writeOutboundPacket(new CPacketRPCNotifIconRegister(Arrays
 					.asList(new CPacketRPCNotifIconRegister.RegisterIcon(iconUUID, PacketImageDataWrapper.unwrap(icon)))));
 		}else {
 			printClosedError();
@@ -432,7 +435,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	@Override
 	public void registerNotificationIcons(Collection<IconDef> icons) {
 		if(open) {
-			sendRPCPacket(new CPacketRPCNotifIconRegister(
+			writeOutboundPacket(new CPacketRPCNotifIconRegister(
 					icons.stream().map((icn) -> new CPacketRPCNotifIconRegister.RegisterIcon(icn.getUUID(),
 							PacketImageDataWrapper.unwrap(icn.getIcon()))).toList()));
 		}else {
@@ -443,7 +446,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	@Override
 	public void releaseNotificationIcon(UUID iconUUID) {
 		if(open) {
-			sendRPCPacket(new CPacketRPCNotifIconRelease(Arrays.asList(iconUUID)));
+			writeOutboundPacket(new CPacketRPCNotifIconRelease(Arrays.asList(iconUUID)));
 		}else {
 			printClosedError();
 		}
@@ -452,7 +455,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	@Override
 	public void releaseNotificationIcons(Collection<UUID> iconUUIDs) {
 		if(open) {
-			sendRPCPacket(new CPacketRPCNotifIconRelease(iconUUIDs));
+			writeOutboundPacket(new CPacketRPCNotifIconRelease(iconUUIDs));
 		}else {
 			printClosedError();
 		}
@@ -461,7 +464,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	@Override
 	public void showNotificationBadge(INotificationBadge badge) {
 		if(open) {
-			sendRPCPacket(NotificationBadgeWrapper.unwrap(badge));
+			writeOutboundPacket(NotificationBadgeWrapper.unwrap(badge));
 		}else {
 			printClosedError();
 		}
@@ -470,7 +473,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	@Override
 	public void hideNotificationBadge(UUID badgeUUID) {
 		if(open) {
-			sendRPCPacket(new CPacketRPCNotifBadgeHide(badgeUUID));
+			writeOutboundPacket(new CPacketRPCNotifBadgeHide(badgeUUID));
 		}else {
 			printClosedError();
 		}
@@ -485,7 +488,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	public void displayWebViewURL(String title, String url, Set<EnumWebViewPerms> permissions) {
 		if(isDisplayWebViewSupported()) {
 			if(open) {
-				sendRPCPacket(new CPacketRPCDisplayWebViewURLV2(
+				writeOutboundPacket(new CPacketRPCDisplayWebViewURLV2(
 						permissions != null ? EnumWebViewPerms.toBits(permissions) : 0, title, url));
 			}else {
 				printClosedError();
@@ -499,7 +502,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	public void displayWebViewBlob(String title, SHA1Sum hash, Set<EnumWebViewPerms> permissions) {
 		if(isDisplayWebViewSupported()) {
 			if(open) {
-				sendRPCPacket(new CPacketRPCDisplayWebViewBlobV2(
+				writeOutboundPacket(new CPacketRPCDisplayWebViewBlobV2(
 						permissions != null ? EnumWebViewPerms.toBits(permissions) : 0, title, hash.asBytes()));
 			}else {
 				printClosedError();
@@ -513,7 +516,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	public void displayWebViewBlob(String title, String alias, Set<EnumWebViewPerms> permissions) {
 		if(isDisplayWebViewSupported()) {
 			if(open) {
-				sendRPCPacket(new CPacketRPCDisplayWebViewAliasV2(
+				writeOutboundPacket(new CPacketRPCDisplayWebViewAliasV2(
 						permissions != null ? EnumWebViewPerms.toBits(permissions) : 0, title, alias));
 			}else {
 				printClosedError();

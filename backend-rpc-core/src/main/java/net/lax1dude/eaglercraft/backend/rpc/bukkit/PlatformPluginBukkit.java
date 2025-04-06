@@ -17,7 +17,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapMaker;
 
 import net.lax1dude.eaglercraft.backend.rpc.adapter.EnumAdapterPlatformType;
-import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCImpl;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCMessageChannel;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCMessageHandler;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCPlayerInitializer;
@@ -57,7 +56,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	@Override
 	public void onLoad() {
-		post_v1_13 = isPost_v1_13();
+		post_v1_13 = checkPost_v1_13();
 		Server server = getServer();
 		loggerImpl = new JavaLogger(getLogger());
 		eventDispatcher = new BukkitEventDispatchAdapter(this, server.getPluginManager());
@@ -287,7 +286,11 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		}
 	}
 
-	private boolean isPost_v1_13() {
+	public boolean isPost_v1_13() {
+		return post_v1_13;
+	}
+
+	private boolean checkPost_v1_13() {
 		String[] ver = getServer().getVersion().split("[\\.\\-]");
 		if(ver.length >= 2) {
 			try {

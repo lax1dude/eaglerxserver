@@ -1,5 +1,8 @@
 package net.lax1dude.eaglercraft.backend.rpc.base.remote;
 
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayer;
@@ -10,21 +13,41 @@ import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayerRPC;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXBackendRPC;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCFuture;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCHandle;
+import net.lax1dude.eaglercraft.backend.rpc.api.RPCException;
 import net.lax1dude.eaglercraft.backend.rpc.api.RPCTimeoutException;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceManagerX;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCActiveFuture;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCAttributeHolder;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.message.BackendRPCMessageController;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.util.DataSerializationContext;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCPacket;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCEnabled;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCEnabledFailure;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCEnabledSuccess;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCEnabledSuccessEaglerV2;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCEnabledSuccessVanillaV2;
 
 public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 		implements IEaglerPlayer<PlayerObject>, IRPCHandle<IBasePlayerRPC<PlayerObject>> {
 
+	private static final VarHandle READY_HANDLE;
+
+	static {
+		try {
+			MethodHandles.Lookup l = MethodHandles.lookup();
+			READY_HANDLE = l.findVarHandle(PlayerInstanceRemote.class, "ready", int.class);
+		} catch (ReflectiveOperationException e) {
+			throw new ExceptionInInitializerError(e);
+		}
+	}
+
 	protected final EaglerXBackendRPCRemote<PlayerObject> server;
 	protected final IPlatformPlayer<PlayerObject> player;
 	protected final IPlatformSubLogger logger;
-	protected boolean ready;
+	protected volatile int ready = 0;
 	protected boolean eaglerPlayer;
-	protected BasePlayerRPC<PlayerObject> context;
+	protected volatile BasePlayerRPC<PlayerObject> context;
 	protected volatile RPCActiveFuture<IBasePlayerRPC<PlayerObject>> future;
 	protected final DataSerializationContext serializationContext = new DataSerializationContext();
 
@@ -52,7 +75,7 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 
 	@Override
 	public boolean isRPCReady() {
-		return ready;
+		return ready != 0;
 	}
 
 	@Override
@@ -112,28 +135,119 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 			return ret;
 		}else {
 			long now;
+			boolean isReady;
 			synchronized(this) {
 				ret = future;
 				if(ret != null) {
 					return ret;
 				}
 				now = System.nanoTime();
+				isReady = ready != 0;
 				future = ret = RPCActiveFuture.create(server.schedulerExecutors(), now, server.getBaseRequestTimeout());
 			}
-			server.timeoutLoop().addFuture(now, ret);
-			attemptHandshake(ret);
+			if(isReady) {
+				beginHandshake(ret);
+			}
+			if(!ret.isDone()) {
+				server.timeoutLoop().addFuture(now, ret);
+			}
 			return ret;
 		}
 	}
 
 	void handleRPCMessage(byte[] contents) {
-		// TODO Auto-generated method stub
-		
+		BasePlayerRPC<PlayerObject> ctx = context;
+		if(ctx != null) {
+			ctx.handleRPCMessage(contents);
+		}else {
+			RPCActiveFuture<IBasePlayerRPC<PlayerObject>> res = future;
+			if(res != null) {
+				handleRPCHandshake(contents, res);
+			}
+		}
 	}
 
-	void handleReadyMessage(byte[] contents) {
-		// TODO Auto-generated method stub
-		
+	private void handleRPCHandshake(byte[] contents, RPCActiveFuture<IBasePlayerRPC<PlayerObject>> res) {
+		EaglerBackendRPCPacket pkt;
+		try {
+			pkt = BackendRPCMessageController.deserializeINIT(contents, serializationContext);
+			if(pkt instanceof SPacketRPCEnabledSuccess) {
+				throw new IOException("Received unexpected legacy SPacketRPCEnabledSuccess response");
+			}
+		} catch (IOException e) {
+			logger().error("Failed to handle RPC init message!", e);
+			res.fireExceptionInternal(new RPCException("Failed to handle RPC init message!", e));
+			return;
+		}
+		if(pkt instanceof SPacketRPCEnabledSuccessEaglerV2) {
+			SPacketRPCEnabledSuccessEaglerV2 pktt = (SPacketRPCEnabledSuccessEaglerV2) pkt;
+			if(pktt.selectedRPCProtocol == 2) {
+				handleContextCreate(res, new EaglerPlayerRPC<PlayerObject>(this, EaglerBackendRPCProtocol.V2,
+						serializationContext, pktt));
+			}else {
+				logger().error("Unexpected RPC protocol version in enable response!");
+				res.fireExceptionInternal(new RPCException("Unexpected RPC protocol version in enable response!"));
+			}
+		}else if(pkt instanceof SPacketRPCEnabledSuccessVanillaV2) {
+			SPacketRPCEnabledSuccessVanillaV2 pktt = (SPacketRPCEnabledSuccessVanillaV2) pkt;
+			if(pktt.selectedRPCProtocol == 2) {
+				handleContextCreate(res, new BasePlayerRPC<PlayerObject>(this, EaglerBackendRPCProtocol.V2,
+						serializationContext, pktt.minecraftProtocol, pktt.supervisorNode));
+			}else {
+				logger().error("Unexpected RPC protocol version in enable response!");
+				res.fireExceptionInternal(new RPCException("Unexpected RPC protocol version in enable response!"));
+			}
+		}else if(pkt instanceof SPacketRPCEnabledFailure) {
+			String str;
+			int code = ((SPacketRPCEnabledFailure)pkt).failureCode;
+			switch(code) {
+			case SPacketRPCEnabledFailure.FAILURE_CODE_NOT_ENABLED:
+				str = "FAILURE_CODE_NOT_ENABLED";
+				break;
+			case SPacketRPCEnabledFailure.FAILURE_CODE_NOT_EAGLER_PLAYER:
+				str = "FAILURE_CODE_NOT_EAGLER_PLAYER";
+				break;
+			case SPacketRPCEnabledFailure.FAILURE_CODE_OUTDATED_SERVER:
+				str = "FAILURE_CODE_OUTDATED_SERVER";
+				break;
+			case SPacketRPCEnabledFailure.FAILURE_CODE_OUTDATED_CLIENT:
+				str = "FAILURE_CODE_OUTDATED_CLIENT";
+				break;
+			case SPacketRPCEnabledFailure.FAILURE_CODE_INTERNAL_ERROR:
+				str = "FAILURE_CODE_INTERNAL_ERROR";
+				break;
+			default:
+				str = "Unknown (" + code + ")";
+				break;
+			}
+			res.fireExceptionInternal(new RPCException("Received failure code: " + str));
+		}else {
+			logger().error("Unknown RPC init message: " + pkt.getClass().getSimpleName());
+			res.fireExceptionInternal(new RPCException("Failed to handle RPC init message!"));
+		}
+	}
+
+	private void handleContextCreate(RPCActiveFuture<IBasePlayerRPC<PlayerObject>> res, BasePlayerRPC<PlayerObject> context) {
+		this.eaglerPlayer = context.isEaglerPlayer(); // just to be safe...?
+		this.context = context;
+		res.fireCompleteInternal(context);
+	}
+
+	void handleReadyMessage(boolean eagler) {
+		eaglerPlayer = eagler;
+		RPCActiveFuture<IBasePlayerRPC<PlayerObject>> f;
+		synchronized(this) {
+			if((int)READY_HANDLE.compareAndExchange(this, 0, 1) != 0) {
+				return;
+			}
+			f = future;
+		}
+		if(f != null) {
+			beginHandshake(f);
+		}
+		if(eagler) {
+			server.getPlatform().eventDispatcher().dispatchPlayerReadyEvent(this);
+		}
 	}
 
 	void handleVoiceMessage(byte[] contents) {
@@ -141,8 +255,21 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 		
 	}
 
-	private void attemptHandshake(RPCActiveFuture<IBasePlayerRPC<PlayerObject>> ret) {
-		
+	private void beginHandshake(RPCActiveFuture<IBasePlayerRPC<PlayerObject>> future) {
+		if(!player.isConnected()) {
+			future.fireTimeoutExceptionInternal(new RPCTimeoutException("Player is no longer connected to the server"));
+			return;
+		}
+		byte[] data;
+		try {
+			data = BackendRPCMessageController.serializeINIT(
+					new CPacketRPCEnabled(new int[] { EaglerBackendRPCProtocol.V2.vers }), serializationContext);
+		} catch (IOException e) {
+			logger().error("Failed to write RPC init message!", e);
+			future.fireExceptionInternal(new RPCException("Failed to write RPC init message!", e));
+			return;
+		}
+		player.sendData(server.getChannelRPCName(), data);
 	}
 
 	void handleDestroyed() {

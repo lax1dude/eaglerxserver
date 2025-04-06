@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.rpc.base.remote;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
@@ -23,6 +24,7 @@ import net.lax1dude.eaglercraft.backend.rpc.api.skins.ISkinImageLoader;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceServiceX;
 import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCBase;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.message.BackendRPCMessageChannel;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.skins.SkinImageLoaderImpl;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
 import net.lax1dude.eaglercraft.backend.voice.protocol.EaglerVCProtocol;
 
@@ -36,6 +38,11 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	private final ConcurrentMap<PlayerObject, PlayerInstanceRemote<PlayerObject>> eaglerPlayerMap = (new MapMaker())
 			.initialCapacity(256).concurrencyLevel(16).makeMap();
 
+	private Class<?> componentClass;
+	private Set<Class<?>> componentTypes;
+	private String channelRPCName;
+	private String channelVoiceName;
+
 	@Override
 	protected void load0(Init<PlayerObject> platf) {
 		platf.setOnServerEnable(this::enableHandler);
@@ -48,6 +55,12 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 						EaglerBackendRPCProtocol.CHANNEL_NAME_READY_MODERN, this::handleReadyMessage),
 				new BackendRPCMessageChannel<PlayerObject>(EaglerVCProtocol.CHANNEL_NAME,
 						EaglerVCProtocol.CHANNEL_NAME_MODERN, this::handleVoiceMessage)));
+		componentClass = platform.getComponentHelper().getComponentType();
+		componentTypes = Collections.singleton(componentClass);
+		channelRPCName = platform.isPost_v1_13() ? EaglerBackendRPCProtocol.CHANNEL_NAME_MODERN
+				: EaglerBackendRPCProtocol.CHANNEL_NAME;
+		channelVoiceName = platform.isPost_v1_13() ? EaglerVCProtocol.CHANNEL_NAME_MODERN
+				: EaglerVCProtocol.CHANNEL_NAME;
 	}
 
 	private void enableHandler() {
@@ -86,9 +99,15 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 
 	private void handleReadyMessage(IBackendRPCMessageChannel<PlayerObject> channel,
 			IPlatformPlayer<PlayerObject> player, byte[] contents) {
-		PlayerInstanceRemote<PlayerObject> playerInstance = player.getAttachment();
-		if(playerInstance != null) {
-			playerInstance.handleReadyMessage(contents);
+		if(contents.length > 0) {
+			PlayerInstanceRemote<PlayerObject> playerInstance = player.getAttachment();
+			if(playerInstance != null) {
+				playerInstance.handleReadyMessage(contents[0] != (byte)0);
+			}
+		}else {
+			logger().error("Zero-length ready plugin message recieved, you are most likely "
+					+ "still running the old EaglerXBungee/EaglerXVelocity plugin instead of "
+					+ "EaglerXServer on your proxy");
 		}
 	}
 
@@ -108,8 +127,7 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 
 	@Override
 	public ISkinImageLoader getSkinImageLoader(boolean enableCache) {
-		// TODO Auto-generated method stub
-		return null;
+		return SkinImageLoaderImpl.getSkinLoader(enableCache);
 	}
 
 	@Override
@@ -120,21 +138,21 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 
 	@Override
 	public Set<Class<?>> getComponentTypes() {
-		// TODO Auto-generated method stub
-		return null;
+		return componentTypes;
 	}
 
 	@Override
 	public IPauseMenuBuilder createPauseMenuBuilder() {
-		// TODO Auto-generated method stub
-		return null;
+		return new PauseMenuBuilder();
 	}
 
 	@Override
 	public <ComponentType> INotificationBuilder<ComponentType> createNotificationBadgeBuilder(
 			Class<ComponentType> componentType) {
-		// TODO Auto-generated method stub
-		return null;
+		if(componentType != this.componentClass) {
+			throw new ClassCastException("Component class " + componentType.getName() + " is not supported on this platform!");
+		}
+		return new NotificationBuilder<ComponentType>(platform.getComponentHelper());
 	}
 
 	@Override
@@ -236,6 +254,14 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	@Override
 	public boolean isLocal() {
 		return false;
+	}
+
+	public String getChannelRPCName() {
+		return channelRPCName;
+	}
+
+	public String getChannelVoiceName() {
+		return channelVoiceName;
 	}
 
 }

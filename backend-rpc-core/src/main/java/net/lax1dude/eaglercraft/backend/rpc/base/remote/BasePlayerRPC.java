@@ -26,9 +26,10 @@ import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetSkins;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCFailedFuture;
-import net.lax1dude.eaglercraft.backend.rpc.base.RPCImmediateFuture;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCRequestFuture;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.message.BackendRPCMessageController;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.message.BackendRPCProtocolHandler;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.message.BackendV2RPCProtocolHandler;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.skins.SkinRPCHelper;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.skins.type.InternUtils;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.util.DataSerializationContext;
@@ -49,6 +50,7 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	protected final PlayerInstanceRemote<PlayerObject> player;
 	protected final int minecraftProtocol;
 	protected final int supervisorNodeId;
+	protected final BackendRPCProtocolHandler handler;
 
 	protected int baseRequestTimeout = 10;
 
@@ -78,6 +80,7 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 		this.player = player;
 		this.minecraftProtocol = minecraftProtocol;
 		this.supervisorNodeId = supervisorNodeId;
+		this.handler = new BackendV2RPCProtocolHandler(this);
 	}
 
 	protected int genRequest() {
@@ -118,8 +121,27 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 		return future;
 	}
 
+	final void handleRPCMessage(byte[] contents) {
+		handleInboundMessage(contents);
+	}
+
 	public void sendRPCPacket(EaglerBackendRPCPacket packet) {
-		//TODO
+		writeOutboundPacket(packet);
+	}
+
+	@Override
+	protected BackendRPCProtocolHandler handler() {
+		return handler;
+	}
+
+	@Override
+	protected void onException(Exception ex) {
+		logger().error("Caught exception while processing backend RPC packets!", ex);
+	}
+
+	@Override
+	protected void writeOutboundMessage(byte[] data) {
+		player.player.sendData(player.server.getChannelRPCName(), data);
 	}
 
 	@Override
@@ -226,7 +248,7 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	public IRPCFuture<IEaglerPlayerSkin> getPlayerSkin(int timeoutSec) {
 		if(open) {
 			RPCRequestFuture<IEaglerPlayerSkin> ret = createRequest(timeoutSec, PLAYER_SKIN_HANDLER);
-			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_SKIN_DATA));
 			return ret;
 		}else {
@@ -237,11 +259,11 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	@Override
 	public void changePlayerSkin(IEaglerPlayerSkin skin, boolean notifyOthers) {
 		if(!skin.isSuccess()) {
-			sendRPCPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, -1));
+			writeOutboundPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, -1));
 		}else if(skin.isSkinPreset()) {
-			sendRPCPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, skin.getPresetSkinId()));
+			writeOutboundPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, skin.getPresetSkinId()));
 		}else {
-			sendRPCPacket(new CPacketRPCSetPlayerSkin(notifyOthers, SkinRPCHelper.encodeSkinData(skin)));
+			writeOutboundPacket(new CPacketRPCSetPlayerSkin(notifyOthers, SkinRPCHelper.encodeSkinData(skin)));
 		}
 	}
 
@@ -268,7 +290,7 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	public IRPCFuture<IEaglerPlayerCape> getPlayerCape(int timeoutSec) {
 		if(open) {
 			RPCRequestFuture<IEaglerPlayerCape> ret = createRequest(timeoutSec, PLAYER_CAPE_HANDLER);
-			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CAPE_DATA));
 			return ret;
 		}else {
@@ -279,11 +301,11 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	@Override
 	public void changePlayerCape(IEaglerPlayerCape cape, boolean notifyOthers) {
 		if(!cape.isSuccess()) {
-			sendRPCPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, -1));
+			writeOutboundPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, -1));
 		}else if(cape.isCapePreset()) {
-			sendRPCPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, cape.getPresetCapeId()));
+			writeOutboundPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, cape.getPresetCapeId()));
 		}else {
-			sendRPCPacket(new CPacketRPCSetPlayerSkin(notifyOthers, SkinRPCHelper.encodeCapeData(cape)));
+			writeOutboundPacket(new CPacketRPCSetPlayerSkin(notifyOthers, SkinRPCHelper.encodeCapeData(cape)));
 		}
 	}
 
@@ -314,7 +336,7 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	public IRPCFuture<TexturesData> getPlayerTextures(int timeoutSec) {
 		if(open) {
 			RPCRequestFuture<TexturesData> ret = createRequest(timeoutSec, PLAYER_TEXTURES_HANDLER);
-			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_TEXTURE_DATA));
 			return ret;
 		}else {
@@ -326,10 +348,10 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	public void changePlayerTextures(IEaglerPlayerSkin skin, IEaglerPlayerCape cape, boolean notifyOthers) {
 		if(open) {
 			if(skin.isSkinPreset() && cape.isCapePreset()) {
-				sendRPCPacket(new CPacketRPCSetPlayerTexturesPresetV2(notifyOthers,
+				writeOutboundPacket(new CPacketRPCSetPlayerTexturesPresetV2(notifyOthers,
 						skin.isSuccess() ? skin.getPresetSkinId() : -1, cape.isSuccess() ? cape.getPresetCapeId() : -1));
 			}else {
-				sendRPCPacket(new CPacketRPCSetPlayerTexturesV2(notifyOthers, SkinRPCHelper.encodeTexturesData(skin, cape)));
+				writeOutboundPacket(new CPacketRPCSetPlayerTexturesV2(notifyOthers, SkinRPCHelper.encodeTexturesData(skin, cape)));
 			}
 		}else {
 			printClosedError();
@@ -348,7 +370,7 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	@Override
 	public void resetPlayerSkin(boolean notifyOthers) {
 		if(open) {
-			sendRPCPacket(new CPacketRPCResetPlayerMulti(true, false, false, notifyOthers));
+			writeOutboundPacket(new CPacketRPCResetPlayerMulti(true, false, false, notifyOthers));
 		}else {
 			printClosedError();
 		}
@@ -357,7 +379,7 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	@Override
 	public void resetPlayerCape(boolean notifyOthers) {
 		if(open) {
-			sendRPCPacket(new CPacketRPCResetPlayerMulti(false, true, false, notifyOthers));
+			writeOutboundPacket(new CPacketRPCResetPlayerMulti(false, true, false, notifyOthers));
 		}else {
 			printClosedError();
 		}
@@ -366,7 +388,7 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	@Override
 	public void resetPlayerTextures(boolean notifyOthers) {
 		if(open) {
-			sendRPCPacket(new CPacketRPCResetPlayerMulti(true, true, false, notifyOthers));
+			writeOutboundPacket(new CPacketRPCResetPlayerMulti(true, true, false, notifyOthers));
 		}else {
 			printClosedError();
 		}
@@ -376,7 +398,7 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	public IRPCFuture<UUID> getProfileUUID(int timeoutSec) {
 		if(open) {
 			RPCRequestFuture<UUID> ret = createRequest(timeoutSec);
-			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REAL_UUID));
 			return ret;
 		}else {
@@ -388,7 +410,7 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	public IRPCFuture<String> getMinecraftBrand(int timeoutSec) {
 		if(open) {
 			RPCRequestFuture<String> ret = createRequest(timeoutSec);
-			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_MINECRAFT_BRAND));
 			return ret;
 		}else {
@@ -400,7 +422,7 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	public IRPCFuture<UUID> getBrandUUID(int timeoutSec) {
 		if(open) {
 			RPCRequestFuture<UUID> ret = createRequest(timeoutSec);
-			sendRPCPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_UUID));
 			return ret;
 		}else {
@@ -411,7 +433,7 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	@Override
 	public void sendRawCustomPayloadPacket(String channel, byte[] data) {
 		if(open) {
-			sendRPCPacket(new CPacketRPCSendRawMessage(channel, data));
+			writeOutboundPacket(new CPacketRPCSendRawMessage(channel, data));
 		}else {
 			printClosedError();
 		}
