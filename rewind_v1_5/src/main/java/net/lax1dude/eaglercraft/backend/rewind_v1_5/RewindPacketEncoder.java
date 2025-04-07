@@ -723,6 +723,11 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 	private ByteBuf handleChangeGameState(ByteBuf in, ByteBufAllocator alloc) {
 		short cgsReason = in.readUnsignedByte();
 		if (cgsReason >= 0 && cgsReason <= 4) {
+			if (cgsReason == 1) {
+				cgsReason = 0;
+			} else if (cgsReason == 0) {
+				cgsReason = 1;
+			}
 			ByteBuf bb = alloc.buffer();
 			try {
 				bb.writeByte(0x46);
