@@ -201,6 +201,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 			handler = new BackendV1VCProtocolHandler(this);
 			SERVER_ENABLE_HANDLE.setRelease(this, 1);
 			player.getPlatformPlayer().sendData(server.getChannelVoiceName(), packet);
+			player.getEaglerXBackendRPC().getPlatform().eventDispatcher().dispatchVoiceCapableEvent(player);
 		}
 	}
 
