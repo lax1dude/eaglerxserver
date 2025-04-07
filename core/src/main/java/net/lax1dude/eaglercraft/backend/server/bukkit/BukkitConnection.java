@@ -5,6 +5,8 @@ import java.lang.invoke.VarHandle;
 import java.net.SocketAddress;
 import java.util.UUID;
 
+import org.bukkit.entity.Player;
+
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.bukkit.BukkitUnsafe.LoginConnectionHolder;
