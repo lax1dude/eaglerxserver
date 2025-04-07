@@ -113,7 +113,7 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	public EaglerPendingStateAdapter pendingConnection;
 	public EaglerLoginStateAdapter loginConnection;
 
-	private volatile IPlatformTask disconnectTask = null;
+	private IPlatformTask disconnectTask = null;
 
 	public NettyPipelineData(Channel channel, EaglerXServer<?> server, EaglerListener listenerInfo,
 			EaglerAttributeManager.EaglerAttributeHolder attributeHolder, Consumer<SocketAddress> realAddressHandle,

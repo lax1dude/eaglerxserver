@@ -47,8 +47,8 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 		implements IEaglerPlayerRPC<PlayerObject> {
 
 	protected final net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject> delegate;
-	protected volatile RPCEventBus<PlayerObject> eventBus;
-	protected volatile int subscribedEvents;
+	protected RPCEventBus<PlayerObject> eventBus;
+	protected int subscribedEvents;
 
 	EaglerPlayerRPCLocal(EaglerPlayerLocal<PlayerObject> player,
 			net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject> delegate) {

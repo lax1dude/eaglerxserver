@@ -265,9 +265,8 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	void confirmPlayer(Player player) {
 		BukkitPlayer p = playerInstanceMap.get(player);
 		if(p != null) {
-			BukkitTask conf = p.confirmTask;
+			BukkitTask conf = p.xchgConfirmTask();
 			if(conf != null) {
-				p.confirmTask = null;
 				conf.cancel();
 			}
 			playerInitializer.confirmPlayer(p);
@@ -277,9 +276,8 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	void dropPlayer(Player player) {
 		BukkitPlayer p = playerInstanceMap.remove(player);
 		if(p != null) {
-			BukkitTask conf = p.confirmTask;
+			BukkitTask conf = p.xchgConfirmTask();
 			if(conf != null) {
-				p.confirmTask = null;
 				conf.cancel();
 			}
 			playerInitializer.destroyPlayer(p);

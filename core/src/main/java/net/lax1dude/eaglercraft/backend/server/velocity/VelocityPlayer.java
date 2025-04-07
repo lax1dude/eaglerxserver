@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.velocity;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,6 +17,17 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 
 class VelocityPlayer implements IPlatformPlayer<Player> {
 
+	private static final VarHandle CONFIRM_TASK_HANDLE;
+
+	static {
+		try {
+			MethodHandles.Lookup l = MethodHandles.lookup();
+			CONFIRM_TASK_HANDLE = l.findVarHandle(VelocityPlayer.class, "confirmTask", ScheduledTask.class);
+		} catch (ReflectiveOperationException e) {
+			throw new ExceptionInInitializerError(e);
+		}
+	}
+
 	private final Player player;
 	private final VelocityConnection connection;
 	volatile ScheduledTask confirmTask;
@@ -25,6 +38,10 @@ class VelocityPlayer implements IPlatformPlayer<Player> {
 		this.player = player;
 		this.connection = connection;
 		this.connection.playerInstance = player;
+	}
+
+	ScheduledTask xchgConfirmTask() {
+		return (ScheduledTask)CONFIRM_TASK_HANDLE.getAndSetAcquire(this, null);
 	}
 
 	@Override

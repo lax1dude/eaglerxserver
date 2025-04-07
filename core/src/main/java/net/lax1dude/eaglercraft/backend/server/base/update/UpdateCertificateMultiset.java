@@ -27,7 +27,7 @@ public class UpdateCertificateMultiset {
 				create = true;
 				return new AtomicInteger(1);
 			}else {
-				refCnt.incrementAndGet();
+				refCnt.getAndIncrement();
 				return refCnt;
 			}
 		}
@@ -41,7 +41,7 @@ public class UpdateCertificateMultiset {
 	}
 
 	public void remove(IUpdateCertificateImpl cert) {
-		updateCertSet.computeIfPresent(cert, (certt, refCnt) -> refCnt.decrementAndGet() > 0 ? refCnt : null);
+		updateCertSet.computeIfPresent(cert, (certt, refCnt) -> refCnt.getAndDecrement() > 1 ? refCnt : null);
 	}
 
 	public List<IUpdateCertificateImpl> dump() {

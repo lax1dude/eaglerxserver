@@ -661,9 +661,8 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	public void confirmPlayer(Player player) {
 		BukkitPlayer p = playerInstanceMap.get(player);
 		if(p != null) {
-			BukkitTask conf = p.confirmTask;
+			BukkitTask conf = p.xchgConfirmTask();
 			if(conf != null) {
-				p.confirmTask = null;
 				conf.cancel();
 			}
 			IEaglerXServerJoinListener<Player> listener = serverJoinListener;
@@ -676,9 +675,8 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	public void dropPlayer(Player player) {
 		BukkitPlayer p = playerInstanceMap.remove(player);
 		if(p != null) {
-			BukkitTask conf = p.confirmTask;
+			BukkitTask conf = p.xchgConfirmTask();
 			if(conf != null) {
-				p.confirmTask = null;
 				conf.cancel();
 			}
 			playerInitializer.destroyPlayer(p);

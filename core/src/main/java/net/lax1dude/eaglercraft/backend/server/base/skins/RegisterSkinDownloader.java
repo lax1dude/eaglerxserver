@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.skins;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.function.BiConsumer;
 
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
@@ -10,15 +11,26 @@ import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 
 class RegisterSkinDownloader {
 
+	private static final VarHandle COUNT_DOWN_HANDLE;
+
+	static {
+		try {
+			MethodHandles.Lookup l = MethodHandles.lookup();
+			COUNT_DOWN_HANDLE = l.findVarHandle(RegisterSkinDownloader.class, "countDownValue", int.class);
+		} catch (ReflectiveOperationException e) {
+			throw new ExceptionInInitializerError(e);
+		}
+	}
+
+	private volatile int countDownValue = 2;
+
 	private final SkinService<?> skinService;
 	private final EaglerPlayerInstance<?> player;
 	private final RegisterSkinDelegate state;
 	private final BiConsumer<IEaglerPlayerSkin, IEaglerPlayerCape> onComplete;
 
-	private volatile IEaglerPlayerSkin skinResult;
-	private volatile IEaglerPlayerCape capeResult;
-
-	private AtomicInteger countDown = new AtomicInteger(2);
+	private IEaglerPlayerSkin skinResult;
+	private IEaglerPlayerCape capeResult;
 
 	RegisterSkinDownloader(SkinService<?> skinService, EaglerPlayerInstance<?> player, RegisterSkinDelegate state,
 			BiConsumer<IEaglerPlayerSkin, IEaglerPlayerCape> onComplete) {
@@ -59,7 +71,7 @@ class RegisterSkinDownloader {
 	}
 
 	private void countDown() {
-		if(countDown.decrementAndGet() == 0) {
+		if((int)COUNT_DOWN_HANDLE.getAndAdd(this, -1) == 0) {
 			state.handleComplete(player, skinResult, capeResult, onComplete);
 		}
 	}

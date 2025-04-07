@@ -107,7 +107,7 @@ public class BukkitUnsafe {
 
 	}
 
-	private static volatile Class<?> class_NetworkManager = null;
+	private static Class<?> class_NetworkManager = null;
 	private static Field field_NetworkManager_channel = null;
 	private static Method method_NetworkManager_getPacketListener = null;
 	private static Class<?> class_LoginListener_maybe = null;
@@ -169,7 +169,7 @@ public class BukkitUnsafe {
 		}
 	}
 
-	private static volatile Class<?> class_CraftPlayer = null;
+	private static Class<?> class_CraftPlayer = null;
 	private static Method method_CraftPlayer_getHandle = null;
 	private static Class<?> class_EntityPlayer = null;
 	private static Field field_EntityPlayer_playerConnection = null;
@@ -344,7 +344,7 @@ public class BukkitUnsafe {
 		}
 	}
 
-	private static volatile Class<?> class_realAddr_NetworkManager = null;
+	private static Class<?> class_realAddr_NetworkManager = null;
 	private static Field field_realAddr_NetworkManager_address = null;
 
 	private static synchronized void bindRealAddress(Object networkManager) {
@@ -630,7 +630,7 @@ public class BukkitUnsafe {
 		}
 	}
 
-	private static volatile Class<?> class_PacketCompressor_maybe = null;
+	private static Class<?> class_PacketCompressor_maybe = null;
 	private static Field field_PacketCompressor_deflater = null;
 
 	private static synchronized void bindPacketCompressor(Class<?> packetCompressor) {

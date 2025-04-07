@@ -13,12 +13,19 @@ import net.lax1dude.eaglercraft.backend.voice.api.IVoicePlayer;
 public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<PlayerObject> {
 
 	private final EaglerXBackendRPCRemote<PlayerObject> server;
+	private final IVoiceChannel globalChannel;
 	private Collection<ICEServerEntry> iceServers;
 	private String[] iceServersStr;
 	private boolean iceOverride = false;
 
 	public VoiceServiceRemote(EaglerXBackendRPCRemote<PlayerObject> server) {
 		this.server = server;
+		this.globalChannel = new ManagedChannel<>(this);
+	}
+
+	@Override
+	public VoiceManagerRemote<PlayerObject> createVoiceManager(PlayerInstanceRemote<PlayerObject> player) {
+		return new VoiceManagerRemote<>(player, this);
 	}
 
 	@Override
@@ -70,32 +77,31 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 
 	@Override
 	public IVoiceChannel createVoiceChannel() {
-		// TODO Auto-generated method stub
-		return null;
+		return new VoiceChannel<>(this);
 	}
 
 	@Override
 	public IVoiceChannel getGlobalVoiceChannel() {
-		// TODO Auto-generated method stub
-		return null;
+		return globalChannel;
 	}
 
 	@Override
 	public IVoiceChannel getDisabledVoiceChannel() {
-		// TODO Auto-generated method stub
-		return null;
+		return DisabledChannel.INSTANCE;
 	}
 
 	@Override
 	public Collection<IVoicePlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public VoiceManagerRemote<PlayerObject> createVoiceManager(PlayerInstanceRemote<PlayerObject> player) {
-		// TODO Auto-generated method stub
-		return null;
+		if(channel == null) {
+			throw new NullPointerException("Voice channel cannot be null!");
+		}
+		if(channel == DisabledChannel.INSTANCE) {
+			throw new UnsupportedOperationException("Cannot list players connected to the disabled channel");
+		}
+		if(!(channel instanceof VoiceChannel) || ((VoiceChannel<?>)channel).owner != this) {
+			throw new IllegalArgumentException("Unknown voice channel");
+		}
+		return ((VoiceChannel<PlayerObject>)channel).listConnectedPlayers();
 	}
 
 }

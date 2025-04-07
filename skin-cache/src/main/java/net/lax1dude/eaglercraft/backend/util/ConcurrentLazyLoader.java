@@ -28,7 +28,7 @@ public abstract class ConcurrentLazyLoader<T> {
 	private static final Logger logger = LoggerFactory.getLogger("ConcurrentLazyLoader");
 
 	private List<Consumer<T>> waitingCallbacks = null;
-	private volatile T result = null;
+	private T result = null;
 
 	protected abstract void loadImpl(Consumer<T> callback);
 

@@ -621,9 +621,8 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	public void confirmPlayer(Player player) {
 		VelocityPlayer p = playerInstanceMap.get(player);
 		if(p != null) {
-			ScheduledTask conf = p.confirmTask;
+			ScheduledTask conf = p.xchgConfirmTask();
 			if(conf != null) {
-				p.confirmTask = null;
 				conf.cancel();
 			}
 		}
@@ -639,9 +638,8 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	public void dropPlayer(Player player) {
 		VelocityPlayer p = playerInstanceMap.remove(player);
 		if(p != null) {
-			ScheduledTask conf = p.confirmTask;
+			ScheduledTask conf = p.xchgConfirmTask();
 			if(conf != null) {
-				p.confirmTask = null;
 				conf.cancel();
 			}
 			playerInitializer.destroyPlayer(p);

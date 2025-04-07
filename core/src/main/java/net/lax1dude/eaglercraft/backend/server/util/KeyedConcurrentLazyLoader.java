@@ -55,7 +55,7 @@ public abstract class KeyedConcurrentLazyLoader<K, T> {
 	}
 
 	private KeyedConsumerList<K, T> waitingCallbacks = null;
-	protected volatile T result = null;
+	protected T result = null;
 
 	protected abstract void loadImpl(Consumer<T> callback);
 

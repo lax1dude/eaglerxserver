@@ -84,7 +84,7 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	}
 
 	protected int genRequest() {
-		return (int) REQUEST_ID_HANDLE.getAndAdd(this, 1);
+		return (int) REQUEST_ID_HANDLE.getAndAddAcquire(this, 1);
 	}
 
 	protected <T> RPCRequestFuture<T> createRequest(int expiresAfter) {

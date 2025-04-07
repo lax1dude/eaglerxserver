@@ -1,9 +1,9 @@
 package net.lax1dude.eaglercraft.backend.server.bukkit;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.net.SocketAddress;
 import java.util.UUID;
-
-import org.bukkit.entity.Player;
 
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
@@ -11,6 +11,17 @@ import net.lax1dude.eaglercraft.backend.server.bukkit.BukkitUnsafe.LoginConnecti
 import net.md_5.bungee.api.chat.BaseComponent;
 
 class BukkitConnection implements IPlatformConnection {
+
+	private static final VarHandle PLAYER_INSTANCE_HANDLE;
+
+	static {
+		try {
+			MethodHandles.Lookup l = MethodHandles.lookup();
+			PLAYER_INSTANCE_HANDLE = l.findVarHandle(BukkitConnection.class, "playerInstance", Player.class);
+		} catch (ReflectiveOperationException e) {
+			throw new ExceptionInInitializerError(e);
+		}
+	}
 
 	private final PlatformPluginBukkit plugin;
 	private LoginConnectionHolder loginConnection;
@@ -26,7 +37,7 @@ class BukkitConnection implements IPlatformConnection {
 	}
 
 	void bindPlayer(Player player) {
-		playerInstance = player;
+		PLAYER_INSTANCE_HANDLE.setVolatile(player);
 		loginConnection = null;
 	}
 
@@ -46,7 +57,7 @@ class BukkitConnection implements IPlatformConnection {
 
 	@Override
 	public String getUsername() {
-		Player player = playerInstance;
+		Player player = (Player)PLAYER_INSTANCE_HANDLE.getAcquire(this);
 		if(player != null) {
 			return player.getName();
 		}else {
@@ -56,7 +67,7 @@ class BukkitConnection implements IPlatformConnection {
 
 	@Override
 	public UUID getUniqueId() {
-		Player player = playerInstance;
+		Player player = (Player)PLAYER_INSTANCE_HANDLE.getAcquire(this);
 		if(player != null) {
 			return player.getUniqueId();
 		}else {
@@ -66,7 +77,7 @@ class BukkitConnection implements IPlatformConnection {
 
 	@Override
 	public SocketAddress getSocketAddress() {
-		Player player = playerInstance;
+		Player player = (Player)PLAYER_INSTANCE_HANDLE.getAcquire(this);
 		if(player != null) {
 			return player.getAddress();
 		}else {
@@ -86,7 +97,7 @@ class BukkitConnection implements IPlatformConnection {
 
 	@Override
 	public boolean isConnected() {
-		Player player = playerInstance;
+		Player player = (Player)PLAYER_INSTANCE_HANDLE.getAcquire(this);
 		if(player != null) {
 			Channel c = BukkitUnsafe.getPlayerChannel(player);
 			return c != null && c.isActive();
@@ -97,7 +108,7 @@ class BukkitConnection implements IPlatformConnection {
 
 	@Override
 	public void disconnect() {
-		Player player = playerInstance;
+		Player player = (Player)PLAYER_INSTANCE_HANDLE.getAcquire(this);
 		if(player != null) {
 			player.kickPlayer("Connection Closed");
 		}else {
@@ -108,7 +119,7 @@ class BukkitConnection implements IPlatformConnection {
 	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
 		String msg = ((BaseComponent)kickMessage).toLegacyText();
-		Player player = playerInstance;
+		Player player = (Player)PLAYER_INSTANCE_HANDLE.getAcquire(this);
 		if(player != null) {
 			player.kickPlayer(msg);
 		}else {

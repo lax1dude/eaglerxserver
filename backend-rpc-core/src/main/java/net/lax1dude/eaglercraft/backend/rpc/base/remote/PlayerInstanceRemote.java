@@ -33,11 +33,13 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 		implements IEaglerPlayer<PlayerObject>, IRPCHandle<IBasePlayerRPC<PlayerObject>> {
 
 	private static final VarHandle READY_HANDLE;
+	private static final VarHandle CONTEXT_HANDLE;
 
 	static {
 		try {
 			MethodHandles.Lookup l = MethodHandles.lookup();
 			READY_HANDLE = l.findVarHandle(PlayerInstanceRemote.class, "ready", int.class);
+			CONTEXT_HANDLE = l.findVarHandle(PlayerInstanceRemote.class, "context", BasePlayerRPC.class);
 		} catch (ReflectiveOperationException e) {
 			throw new ExceptionInInitializerError(e);
 		}
@@ -47,10 +49,10 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 	protected final IPlatformPlayer<PlayerObject> player;
 	protected final IPlatformSubLogger logger;
 	protected final VoiceManagerRemote<PlayerObject> voiceManager;
-	protected volatile int ready = 0;
 	protected boolean eaglerPlayer;
-	protected volatile BasePlayerRPC<PlayerObject> context;
-	protected volatile RPCActiveFuture<IBasePlayerRPC<PlayerObject>> future;
+	private volatile int ready = 0;
+	private volatile BasePlayerRPC<PlayerObject> context;
+	private RPCActiveFuture<IBasePlayerRPC<PlayerObject>> future;
 	public final DataSerializationContext serializationContext = new DataSerializationContext();
 
 	public PlayerInstanceRemote(EaglerXBackendRPCRemote<PlayerObject> server, IPlatformPlayer<PlayerObject> player,
@@ -86,7 +88,7 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 
 	@Override
 	public boolean isRPCReady() {
-		return ready != 0;
+		return (int)READY_HANDLE.getAcquire(this) != 0;
 	}
 
 	@Override
@@ -136,7 +138,7 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 
 	@Override
 	public IBasePlayerRPC<PlayerObject> getIfOpen() {
-		return context;
+		return (IBasePlayerRPC<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
 	}
 
 	@Override
@@ -153,7 +155,7 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 					return ret;
 				}
 				now = System.nanoTime();
-				isReady = ready != 0;
+				isReady = (int)READY_HANDLE.getAcquire(this) != 0;
 				future = ret = RPCActiveFuture.create(server.schedulerExecutors(), now, server.getBaseRequestTimeout());
 			}
 			if(isReady) {
@@ -167,7 +169,7 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 	}
 
 	void handleRPCMessage(byte[] contents) {
-		BasePlayerRPC<PlayerObject> ctx = context;
+		BasePlayerRPC<PlayerObject> ctx = (BasePlayerRPC<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
 		if(ctx != null) {
 			ctx.handleRPCMessage(contents);
 		}else {
@@ -239,16 +241,24 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 	}
 
 	private void handleContextCreate(RPCActiveFuture<IBasePlayerRPC<PlayerObject>> res, BasePlayerRPC<PlayerObject> context) {
-		this.eaglerPlayer = context.isEaglerPlayer(); // just to be safe...?
-		this.context = context;
+		boolean eag = eaglerPlayer;
+		if(eag != context.isEaglerPlayer()) {
+			RPCException ret = new RPCException("Context type mismatch for player type: " + (eag ? "eagler" : "base"));
+			res.fireExceptionInternal(ret);
+			throw ret;
+		}
+		CONTEXT_HANDLE.setRelease(this, context);
 		res.fireCompleteInternal(context);
 	}
 
 	void handleReadyMessage(boolean eagler) {
 		eaglerPlayer = eagler;
+		if(eagler) {
+			server.registerPlayerEagler(this);
+		}
 		RPCActiveFuture<IBasePlayerRPC<PlayerObject>> f;
 		synchronized(this) {
-			if((int)READY_HANDLE.compareAndExchange(this, 0, 1) != 0) {
+			if((int)READY_HANDLE.compareAndExchangeAcquire(this, 0, 1) != 0) {
 				return;
 			}
 			f = future;
@@ -285,13 +295,13 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 	}
 
 	void handleDestroyed() {
+		BasePlayerRPC<PlayerObject> ctx = (BasePlayerRPC<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
+		if(ctx != null) {
+			ctx.fireCloseListeners();
+		}
 		RPCActiveFuture<IBasePlayerRPC<PlayerObject>> ret = future;
 		if(ret != null && !ret.isDone()) {
 			ret.fireTimeoutExceptionInternal(new RPCTimeoutException("Player left before the connection was established"));
-		}
-		BasePlayerRPC<PlayerObject> ctx = context;
-		if(ctx != null) {
-			ctx.fireCloseListeners();
 		}
 	}
 

@@ -6,7 +6,7 @@ public abstract class AbstractScheduler implements IPlatformScheduler {
 
 		private final Runnable runnable;
 		private final Runnable reschedule;
-		private volatile IPlatformTask task;
+		private IPlatformTask task;
 
 		protected RepeatingTaskBase(Runnable runnable, long interval) {
 			this.runnable = runnable;
@@ -43,10 +43,10 @@ public abstract class AbstractScheduler implements IPlatformScheduler {
 			}
 			IPlatformTask t;
 			synchronized(this) {
-				if(task == null) {
+				t = task;
+				if(t == null) {
 					return;
 				}
-				t = task;
 				task = null;
 			}
 			t.cancel();

@@ -60,8 +60,8 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	protected final int eaglerStandardCaps;
 	protected final byte[] eaglerStandardCapsVersions;
 	protected final Map<UUID, Byte> eaglerExtendedCapsVersions;
-	protected volatile RPCEventBus<PlayerObject> eventBus;
-	protected volatile int subscribedEvents;
+	protected RPCEventBus<PlayerObject> eventBus;
+	protected int subscribedEvents;
 	protected final boolean webviewCap;
 
 	public EaglerPlayerRPC(PlayerInstanceRemote<PlayerObject> player, EaglerBackendRPCProtocol protocol,

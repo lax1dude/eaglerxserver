@@ -17,14 +17,14 @@ import io.netty.channel.Channel;
 
 public class BukkitUnsafe {
 
-	private static volatile Class<?> class_CraftPlayer = null;
+	private static Class<?> class_CraftPlayer = null;
 	private static Method method_CraftPlayer_getHandle = null;
 	private static Class<?> class_EntityPlayer = null;
 	private static Field field_EntityPlayer_playerConnection = null;
 	private static Method method_EntityPlayer_getProfile = null;
 	private static Class<?> class_PlayerConnection = null;
 	private static Field field_PlayerConnection_networkManager = null;
-	private static volatile Class<?> class_NetworkManager = null;
+	private static Class<?> class_NetworkManager = null;
 	private static Field field_NetworkManager_channel = null;
 
 	private static synchronized void bindCraftPlayer(Player playerObject) {

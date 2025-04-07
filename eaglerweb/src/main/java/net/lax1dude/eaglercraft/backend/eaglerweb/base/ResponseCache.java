@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -26,7 +28,7 @@ class ResponseCache {
 	class ResponseLoader {
 
 		private final ResponseCacheKey key;
-		private volatile byte[] data;
+		private byte[] data;
 		private List<Consumer<byte[]>> waitingCallbacks;
 
 		protected ResponseLoader(ResponseCacheKey key) {
@@ -91,7 +93,7 @@ class ResponseCache {
 		protected ResponseLoaderContext(int i) {
 			loaderBuffer = new byte[1024 * 1024];
 			thread = new Thread(() -> {
-				while(!disposed) {
+				while((int)DISPOSED_HANDLE.getAcquire(ResponseCache.this) == 0) {
 					try {
 						ResponseLoaderRunnable runnable = null;
 						synchronized(queue) {
@@ -147,9 +149,21 @@ class ResponseCache {
 		void run(ResponseLoaderContext ctx);
 	}
 
+	private static final VarHandle DISPOSED_HANDLE;
+
+	static {
+		try {
+			MethodHandles.Lookup l = MethodHandles.lookup();
+			DISPOSED_HANDLE = l.findVarHandle(ResponseCache.class, "disposed", int.class);
+		} catch (ReflectiveOperationException e) {
+			throw new ExceptionInInitializerError(e);
+		}
+	}
+
+
 	protected final LoadingCache<ResponseCacheKey, ResponseLoader> cache;
 	protected final IEaglerWebLogger logger;
-	protected volatile boolean disposed = false;
+	protected volatile int disposed = 0;
 	protected final ResponseLoaderContext[] threads;
 	protected final Queue<ResponseLoaderRunnable> queue;
 	protected final CountDownLatch disposeLatch;
@@ -197,7 +211,7 @@ class ResponseCache {
 	}
 
 	void dispose() {
-		disposed = true;
+		disposed = 1;
 		synchronized(queue) {
 			queue.clear();
 			queue.notifyAll();

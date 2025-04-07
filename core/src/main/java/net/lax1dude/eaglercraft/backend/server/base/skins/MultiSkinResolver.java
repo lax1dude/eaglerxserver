@@ -1,19 +1,32 @@
 package net.lax1dude.eaglercraft.backend.server.base.skins;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 
-abstract class MultiSkinResolver<SkinManager extends ISkinManagerImpl, PlayerObject> extends AtomicInteger {
+abstract class MultiSkinResolver<SkinManager extends ISkinManagerImpl, PlayerObject> {
+
+	private static final VarHandle COUNT_DOWN_HANDLE;
+
+	static {
+		try {
+			MethodHandles.Lookup l = MethodHandles.lookup();
+			COUNT_DOWN_HANDLE = l.findVarHandle(MultiSkinResolver.class, "countDownValue", int.class);
+		} catch (ReflectiveOperationException e) {
+			throw new ExceptionInInitializerError(e);
+		}
+	}
+
+	private volatile int countDownValue = 2;
 
 	private final SkinManager skinManager;
-	private volatile IEaglerPlayerSkin skin;
-	private volatile IEaglerPlayerCape cape;
+	private IEaglerPlayerSkin skin;
+	private IEaglerPlayerCape cape;
 
 	protected MultiSkinResolver(SkinManager skinManager, IEaglerPlayerSkin skin, IEaglerPlayerCape cape, UUID uuid) {
-		super(2);
 		this.skinManager = skinManager;
 		if(skin == null) {
 			skinManager.resolvePlayerSkinKeyed(uuid, (res) -> {
@@ -36,7 +49,7 @@ abstract class MultiSkinResolver<SkinManager extends ISkinManagerImpl, PlayerObj
 	}
 
 	private void countDown() {
-		if(decrementAndGet() == 0) {
+		if((int)COUNT_DOWN_HANDLE.getAndAdd(this, -1) == 0) {
 			onComplete(skinManager, skin, cape);
 		}
 	}

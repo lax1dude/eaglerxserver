@@ -19,7 +19,7 @@ class BungeeConnection implements IPlatformConnection {
 	String texturesPropertyValue;
 	String texturesPropertySignature;
 	boolean eaglerPlayerProperty;
-	volatile ProxiedPlayer playerInstance;
+	ProxiedPlayer playerInstance;
 	Object attachment;
 
 	BungeeConnection(PlatformPluginBungee platformPlugin, PendingConnection pendingConnection) {

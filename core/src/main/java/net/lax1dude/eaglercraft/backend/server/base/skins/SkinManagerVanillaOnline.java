@@ -27,10 +27,10 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 	private final EnumSkinModel skinModel;
 	private final String capeURL;
 
-	private volatile IEaglerPlayerSkin skin = null;
+	private IEaglerPlayerSkin skin = null;
 	private KeyedConsumerList<UUID, IEaglerPlayerSkin> waitingSkinCallbacks = null;
 
-	private volatile IEaglerPlayerCape cape = null;
+	private IEaglerPlayerCape cape = null;
 	private final Object capeLock = new Object();
 	private KeyedConsumerList<UUID, IEaglerPlayerCape> waitingCapeCallbacks = null;
 

@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.webview;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -20,6 +22,7 @@ import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.pause_menu.PauseMenuManager;
 import net.lax1dude.eaglercraft.backend.server.base.rpc.EaglerPlayerRPCManager;
+import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceManagerRemote;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketDisplayWebViewBlobV5EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketDisplayWebViewURLV5EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketServerInfoDataChunkV4EAG;
@@ -27,10 +30,21 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketWebViewMe
 
 public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObject> {
 
+	private static final VarHandle CHANNEL_NAME_HANDLE;
+
+	static {
+		try {
+			MethodHandles.Lookup l = MethodHandles.lookup();
+			CHANNEL_NAME_HANDLE = l.findVarHandle(VoiceManagerRemote.class, "channelName", String.class);
+		} catch (ReflectiveOperationException e) {
+			throw new ExceptionInInitializerError(e);
+		}
+	}
+
 	private final EaglerPlayerInstance<PlayerObject> player;
 	private final WebViewService<PlayerObject> service;
 
-	private volatile IWebViewProvider<PlayerObject> provider = null;
+	private IWebViewProvider<PlayerObject> provider = null;
 	private volatile String channelName = null;
 
 	public WebViewManager(EaglerPlayerInstance<PlayerObject> player, WebViewService<PlayerObject> service) {
@@ -98,18 +112,18 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 	}
 
 	public boolean isChannelOpen() {
-		return channelName != null;
+		return getOpenChannel() != null;
 	}
 
 	@Override
 	public boolean isChannelOpen(String channelName) {
-		String str = this.channelName;
+		String str = getOpenChannel();
 		return str != null && channelName.equals(str);
 	}
 
 	@Override
 	public Set<String> getOpenChannels() {
-		String str = this.channelName;
+		String str = getOpenChannel();
 		if(str != null) {
 			return Collections.singleton(str);
 		}else {
@@ -117,12 +131,12 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 		}
 	}
 
-	public String getOpenChannel() {
-		return channelName;
+	public final String getOpenChannel() {
+		return (String)CHANNEL_NAME_HANDLE.getAcquire(this);
 	}
 
 	private boolean validateChannel(String channelName) {
-		String str = this.channelName;
+		String str = getOpenChannel();
 		if(str != null && channelName.equals(str)) {
 			return true;
 		}else {
@@ -257,18 +271,18 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 		String nextChannel = null;
 		boolean allowed = open && isChannelAllowed();
 		synchronized(this) {
-			prevChannel = channelName;
+			prevChannel = (String)CHANNEL_NAME_HANDLE.getAcquire(this);
 			if(channel.equals(prevChannel)) {
 				if(open) {
 					prevChannel = null;
 				}else {
-					channelName = null;
+					CHANNEL_NAME_HANDLE.setRelease(this, null);
 				}
 			}else {
 				if(open) {
 					nextChannel = channel;
 					if(allowed) {
-						channelName = channel;
+						CHANNEL_NAME_HANDLE.setRelease(this, channel);
 					}
 				}else {
 					prevChannel = null;
@@ -304,7 +318,7 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 					.color(EnumChatColor.RED).end().text("Too many WebView messages!").end());
 			return;
 		}
-		String channel = channelName;
+		String channel = getOpenChannel();
 		if(channel != null) {
 			service.getEaglerXServer().eventDispatcher().dispatchWebViewMessageEvent(player, channel,
 					binary ? EnumMessageType.BINARY : EnumMessageType.STRING, data, null);
