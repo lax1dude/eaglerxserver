@@ -13,6 +13,15 @@ public class SPacketVCConnectPeer implements EaglerVCPacket {
 	public long uuidLeast;
 	public boolean offer;
 
+	public SPacketVCConnectPeer() {
+	}
+
+	public SPacketVCConnectPeer(long uuidMost, long uuidLeast, boolean offer) {
+		this.uuidMost = uuidMost;
+		this.uuidLeast = uuidLeast;
+		this.offer = offer;
+	}
+
 	@Override
 	public void readPacket(DataInput buffer) throws IOException {
 		uuidMost = buffer.readLong();

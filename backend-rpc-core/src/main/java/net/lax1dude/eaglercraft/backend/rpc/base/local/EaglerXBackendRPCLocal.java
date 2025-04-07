@@ -93,6 +93,9 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 	void confirmEaglerPlayer(EaglerPlayerLocal<PlayerObject> player) {
 		if(eaglerPlayerMap.get(player.getPlayerObject()) != null) {
 			platform.eventDispatcher().dispatchPlayerReadyEvent(player);
+			if(((EaglerPlayerRPCLocal<PlayerObject>) player.playerRPC).delegate.isVoiceCapable()) {
+				platform.eventDispatcher().dispatchVoiceCapableEvent(player);
+			}
 		}
 	}
 

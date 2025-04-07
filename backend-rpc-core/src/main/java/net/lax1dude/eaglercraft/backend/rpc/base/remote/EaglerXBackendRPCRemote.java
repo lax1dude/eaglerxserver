@@ -21,10 +21,10 @@ import net.lax1dude.eaglercraft.backend.rpc.api.IPacketImageLoader;
 import net.lax1dude.eaglercraft.backend.rpc.api.notifications.INotificationBuilder;
 import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.IPauseMenuBuilder;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.ISkinImageLoader;
-import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceServiceX;
 import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCBase;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.message.BackendRPCMessageChannel;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.skins.SkinImageLoaderImpl;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.voice.VoiceServiceRemote;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
 import net.lax1dude.eaglercraft.backend.voice.protocol.EaglerVCProtocol;
 
@@ -120,7 +120,7 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	}
 
 	@Override
-	public IVoiceServiceX<PlayerObject> getVoiceService() {
+	public VoiceServiceRemote<PlayerObject> getVoiceService() {
 		// TODO Auto-generated method stub
 		return null;
 	}

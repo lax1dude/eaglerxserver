@@ -71,20 +71,12 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceServiceImpl<Player
 		String[] newArray = new String[newICEServers.size()];
 		int i = 0;
 		for(ICEServerEntry etr : newICEServers) {
-			newArray[i++] = iceServerToStr(etr);
+			newArray[i++] = etr.toString();
 		}
 		if(i != newArray.length) {
 			throw new IllegalStateException("fuck you");
 		}
 		return newArray;
-	}
-
-	private static String iceServerToStr(ICEServerEntry etr) {
-		if(etr.isAuthenticated()) {
-			return etr.getURI() + ";" + etr.getUsername() + ";" + etr.getPassword();
-		}else {
-			return etr.getURI();
-		}
 	}
 
 	@Override

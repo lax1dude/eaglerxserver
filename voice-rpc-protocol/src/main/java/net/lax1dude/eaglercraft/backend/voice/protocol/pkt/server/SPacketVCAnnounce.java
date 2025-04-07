@@ -12,6 +12,14 @@ public class SPacketVCAnnounce implements EaglerVCPacket {
 	public long uuidMost;
 	public long uuidLeast;
 
+	public SPacketVCAnnounce() {
+	}
+
+	public SPacketVCAnnounce(long uuidMost, long uuidLeast) {
+		this.uuidMost = uuidMost;
+		this.uuidLeast = uuidLeast;
+	}
+
 	@Override
 	public void readPacket(DataInput buffer) throws IOException {
 		uuidMost = buffer.readLong();

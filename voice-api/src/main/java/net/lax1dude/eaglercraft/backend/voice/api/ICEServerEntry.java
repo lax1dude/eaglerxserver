@@ -49,4 +49,39 @@ public final class ICEServerEntry {
 		return password;
 	}
 
+	@Override
+	public String toString() {
+		return auth ? (uri + ';' + username + ';' + password) : uri;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 1;
+		result = 31 * result + (auth ? 1231 : 1237);
+		result = 31 * result + uri.hashCode();
+		result = 31 * result + (auth ? password.hashCode() : 0);
+		result = 31 * result + (auth ? username.hashCode() : 0);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!(obj instanceof ICEServerEntry))
+			return false;
+		ICEServerEntry other = (ICEServerEntry) obj;
+		if (auth != other.auth)
+			return false;
+		if (!uri.equals(other.uri))
+			return false;
+		if (auth) {
+			if (!password.equals(other.password))
+				return false;
+			if (!username.equals(other.username))
+				return false;
+		}
+		return true;
+	}
+
 }

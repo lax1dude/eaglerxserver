@@ -20,6 +20,7 @@ import net.lax1dude.eaglercraft.backend.rpc.base.RPCActiveFuture;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCAttributeHolder;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.message.BackendRPCMessageController;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.util.DataSerializationContext;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.voice.VoiceManagerRemote;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCPacket;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCEnabled;
@@ -45,17 +46,19 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 	protected final EaglerXBackendRPCRemote<PlayerObject> server;
 	protected final IPlatformPlayer<PlayerObject> player;
 	protected final IPlatformSubLogger logger;
+	protected final VoiceManagerRemote<PlayerObject> voiceManager;
 	protected volatile int ready = 0;
 	protected boolean eaglerPlayer;
 	protected volatile BasePlayerRPC<PlayerObject> context;
 	protected volatile RPCActiveFuture<IBasePlayerRPC<PlayerObject>> future;
-	protected final DataSerializationContext serializationContext = new DataSerializationContext();
+	public final DataSerializationContext serializationContext = new DataSerializationContext();
 
 	public PlayerInstanceRemote(EaglerXBackendRPCRemote<PlayerObject> server, IPlatformPlayer<PlayerObject> player,
 			boolean eaglerPlayer) {
 		this.server = server;
 		this.player = player;
 		this.logger = server.logger().createSubLogger(player.getUsername());
+		this.voiceManager = server.getVoiceService().createVoiceManager(this);
 		this.eaglerPlayer = eaglerPlayer;
 	}
 
@@ -64,8 +67,16 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 		return server;
 	}
 
+	public EaglerXBackendRPCRemote<PlayerObject> getEaglerXBackendRPC() {
+		return server;
+	}
+
 	public IPlatformSubLogger logger() {
 		return logger;
+	}
+
+	public IPlatformPlayer<PlayerObject> getPlatformPlayer() {
+		return player;
 	}
 
 	@Override
@@ -105,17 +116,17 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 
 	@Override
 	public boolean isVoiceCapable() {
-		return false; //TODO
+		return voiceManager != null && voiceManager.isVoiceCapable();
 	}
 
 	@Override
 	public boolean hasVoiceManager() {
-		return false; //TODO
+		return isVoiceCapable();
 	}
 
 	@Override
 	public IVoiceManagerX<PlayerObject> getVoiceManager() {
-		return null; //TODO
+		return isVoiceCapable() ? voiceManager : null;
 	}
 
 	@Override
@@ -251,8 +262,9 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 	}
 
 	void handleVoiceMessage(byte[] contents) {
-		// TODO Auto-generated method stub
-		
+		if(voiceManager != null) {
+			voiceManager.handleInboundVoiceMessage(contents);
+		}
 	}
 
 	private void beginHandshake(RPCActiveFuture<IBasePlayerRPC<PlayerObject>> future) {

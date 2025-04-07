@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.base.voice;
+package net.lax1dude.eaglercraft.backend.rpc.base.remote.voice;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -10,30 +10,29 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.google.common.collect.ImmutableList;
 
-import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.PlayerInstanceRemote;
 import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.voice.api.IVoicePlayer;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalConnectAnnounceV4EAG;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalConnectV3EAG;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalConnectV4EAG;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalDescEAG;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalDisconnectPeerEAG;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalGlobalEAG;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalICEEAG;
+import net.lax1dude.eaglercraft.backend.voice.protocol.pkt.EaglerVCPacket;
+import net.lax1dude.eaglercraft.backend.voice.protocol.pkt.server.SPacketVCAnnounce;
+import net.lax1dude.eaglercraft.backend.voice.protocol.pkt.server.SPacketVCConnectPeer;
+import net.lax1dude.eaglercraft.backend.voice.protocol.pkt.server.SPacketVCDescription;
+import net.lax1dude.eaglercraft.backend.voice.protocol.pkt.server.SPacketVCDisconnectPeer;
+import net.lax1dude.eaglercraft.backend.voice.protocol.pkt.server.SPacketVCICECandidate;
+import net.lax1dude.eaglercraft.backend.voice.protocol.pkt.server.SPacketVCPlayerList;
 
 class VoiceChannel<PlayerObject> implements IVoiceChannel {
 
 	public static final long REQUEST_TIMEOUT = 2000l;
 
-	final VoiceServiceLocal<PlayerObject> owner;
+	final VoiceServiceRemote<PlayerObject> owner;
 	final ConcurrentMap<UUID, Context> connectedPlayers = new ConcurrentHashMap<>();
 
-	VoiceChannel(VoiceServiceLocal<PlayerObject> owner) {
+	VoiceChannel(VoiceServiceRemote<PlayerObject> owner) {
 		this.owner = owner;
 	}
 
-	void addToChannel(VoiceManagerLocal<PlayerObject> mgr) {
+	void addToChannel(VoiceManagerRemote<PlayerObject> mgr) {
 		Context oldContext = mgr.xchgActiveChannel(null);
 		if(oldContext != null) {
 			oldContext.finish(false);
@@ -44,7 +43,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 		}
 	}
 
-	void removeFromChannel(VoiceManagerLocal<PlayerObject> mgr, boolean dead) {
+	void removeFromChannel(VoiceManagerRemote<PlayerObject> mgr, boolean dead) {
 		Context oldContext = mgr.xchgActiveChannel(null);
 		if(oldContext != null) {
 			oldContext.finish(dead);
@@ -74,12 +73,12 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 
 	class Context extends HashMap<Context, IVoiceState> {
 
-		final VoiceManagerLocal<PlayerObject> mgr;
+		final VoiceManagerRemote<PlayerObject> mgr;
 		final UUID selfUUID;
 		long lastFlush = 0;
 		boolean expirable = false;
 
-		private Context(VoiceManagerLocal<PlayerObject> mgr) {
+		private Context(VoiceManagerRemote<PlayerObject> mgr) {
 			this.mgr = mgr;
 			this.selfUUID = mgr.player.getUniqueId();
 		}
@@ -97,30 +96,20 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 			}
 			Object[] allPlayers = connectedPlayers.values().toArray();
 			int len = allPlayers.length;
-			GameMessagePacket v3p = null;
-			GameMessagePacket v4p = null;
-			SPacketVoiceSignalGlobalEAG.UserData[] userDatas = new SPacketVoiceSignalGlobalEAG.UserData[len];
+			EaglerVCPacket announcePacket = new SPacketVCAnnounce(selfUUID.getMostSignificantBits(),
+					selfUUID.getLeastSignificantBits());
+			SPacketVCPlayerList.UserData[] userDatas = new SPacketVCPlayerList.UserData[len];
 			for(int i = 0; i < len; ++i) {
 				Context ctx = (Context) allPlayers[i];
-				EaglerPlayerInstance<PlayerObject> ctxPlayer = ctx.mgr.player;
-				UUID ctxUUID = ctxPlayer.getUniqueId();
-				userDatas[i] = new SPacketVoiceSignalGlobalEAG.UserData(ctxUUID.getMostSignificantBits(),
-						ctxUUID.getLeastSignificantBits(), ctxPlayer.getUsername());
-				if (ctxPlayer.getEaglerProtocol().ver <= 3) {
-					ctxPlayer.sendEaglerMessage(v3p == null
-							? (v3p = new SPacketVoiceSignalConnectV3EAG(selfUUID.getMostSignificantBits(),
-									selfUUID.getLeastSignificantBits(), true, false))
-							: v3p);
-				} else {
-					ctxPlayer.sendEaglerMessage(v4p == null
-							? (v4p = new SPacketVoiceSignalConnectAnnounceV4EAG(
-									selfUUID.getMostSignificantBits(), selfUUID.getLeastSignificantBits()))
-							: v4p);
-				}
+				VoiceManagerRemote<PlayerObject> ctxMgr = ctx.mgr;
+				UUID ctxUUID = ctxMgr.player.getUniqueId();
+				userDatas[i] = new SPacketVCPlayerList.UserData(ctxUUID.getMostSignificantBits(),
+						ctxUUID.getLeastSignificantBits(), ctxMgr.player.getUsername());
+				ctxMgr.writeOutboundVoicePacket(announcePacket);
 			}
-			GameMessagePacket packetToBroadcast = new SPacketVoiceSignalGlobalEAG(Arrays.asList(userDatas));
+			EaglerVCPacket packetToBroadcast = new SPacketVCPlayerList(Arrays.asList(userDatas));
 			for(int i = 0; i < len; ++i) {
-				((Context) allPlayers[i]).mgr.player.sendEaglerMessage(packetToBroadcast);
+				((Context) allPlayers[i]).mgr.writeOutboundVoicePacket(packetToBroadcast);
 			}
 		}
 
@@ -189,22 +178,10 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 						put(other, newState);
 					}
 				}
-				EaglerPlayerInstance<PlayerObject> otherPlayer = other.mgr.player;
-				if (otherPlayer.getEaglerProtocol().ver <= 3) {
-					otherPlayer.sendEaglerMessage(new SPacketVoiceSignalConnectV3EAG(
-							selfUUID.getMostSignificantBits(), selfUUID.getLeastSignificantBits(), false, false));
-				} else {
-					otherPlayer.sendEaglerMessage(new SPacketVoiceSignalConnectV4EAG(
-							selfUUID.getMostSignificantBits(), selfUUID.getLeastSignificantBits(), false));
-				}
-				EaglerPlayerInstance<PlayerObject> self = mgr.player;
-				if (self.getEaglerProtocol().ver <= 3) {
-					self.sendEaglerMessage(new SPacketVoiceSignalConnectV3EAG(
-							player.getMostSignificantBits(), player.getLeastSignificantBits(), false, true));
-				} else {
-					self.sendEaglerMessage(new SPacketVoiceSignalConnectV4EAG(
-							player.getMostSignificantBits(), player.getLeastSignificantBits(), true));
-				}
+				other.mgr.writeOutboundVoicePacket(new SPacketVCConnectPeer(selfUUID.getMostSignificantBits(),
+						selfUUID.getLeastSignificantBits(), false));
+				mgr.writeOutboundVoicePacket(new SPacketVCConnectPeer(player.getMostSignificantBits(),
+						player.getLeastSignificantBits(), true));
 			}
 		}
 
@@ -219,7 +196,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 						return;
 					}
 				}
-				other.mgr.player.sendEaglerMessage(new SPacketVoiceSignalICEEAG(selfUUID.getMostSignificantBits(),
+				other.mgr.writeOutboundVoicePacket(new SPacketVCICECandidate(selfUUID.getMostSignificantBits(),
 						selfUUID.getLeastSignificantBits(), str));
 			}
 		}
@@ -235,7 +212,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 						return;
 					}
 				}
-				other.mgr.player.sendEaglerMessage(new SPacketVoiceSignalDescEAG(selfUUID.getMostSignificantBits(),
+				other.mgr.writeOutboundVoicePacket(new SPacketVCDescription(selfUUID.getMostSignificantBits(),
 						selfUUID.getLeastSignificantBits(), str));
 			}
 		}
@@ -251,9 +228,9 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 					synchronized(other) {
 						other.remove(this);
 					}
-					other.mgr.player.sendEaglerMessage(new SPacketVoiceSignalDisconnectPeerEAG(
+					other.mgr.writeOutboundVoicePacket(new SPacketVCDisconnectPeer(
 							selfUUID.getMostSignificantBits(), selfUUID.getLeastSignificantBits()));
-					mgr.player.sendEaglerMessage(new SPacketVoiceSignalDisconnectPeerEAG(
+					mgr.writeOutboundVoicePacket(new SPacketVCDisconnectPeer(
 							player.getMostSignificantBits(), player.getLeastSignificantBits()));
 				}
 			}
@@ -281,7 +258,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 			}
 			int cnt = toNotify.length;
 			if(cnt > 0) {
-				GameMessagePacket pkt = new SPacketVoiceSignalDisconnectPeerEAG(selfUUID.getMostSignificantBits(),
+				EaglerVCPacket pkt = new SPacketVCDisconnectPeer(selfUUID.getMostSignificantBits(),
 						selfUUID.getLeastSignificantBits());
 				for(int i = 0; i < cnt; ++i) {
 					Context ctx = (Context) toNotify[i];
@@ -292,27 +269,27 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 					if(voice != null) {
 						if(!dead) {
 							UUID uuid = ctx.selfUUID;
-							mgr.player.sendEaglerMessage(new SPacketVoiceSignalDisconnectPeerEAG(uuid.getMostSignificantBits(),
+							mgr.writeOutboundVoicePacket(new SPacketVCDisconnectPeer(uuid.getMostSignificantBits(),
 									uuid.getLeastSignificantBits()));
 						}
 						if(voice == ESTABLISHED) {
-							ctx.mgr.player.sendEaglerMessage(pkt);
+							ctx.mgr.writeOutboundVoicePacket(pkt);
 						}
 					}
 				}
 			}
 			if(len > 0) {
-				SPacketVoiceSignalGlobalEAG.UserData[] userDatas = new SPacketVoiceSignalGlobalEAG.UserData[len];
+				SPacketVCPlayerList.UserData[] userDatas = new SPacketVCPlayerList.UserData[len];
 				for(int i = 0; i < len; ++i) {
 					Context ctx = (Context) allPlayers[i];
-					EaglerPlayerInstance<PlayerObject> ctxPlayer = ctx.mgr.player;
+					PlayerInstanceRemote<PlayerObject> ctxPlayer = ctx.mgr.player;
 					UUID ctxUUID = ctxPlayer.getUniqueId();
-					userDatas[i] = new SPacketVoiceSignalGlobalEAG.UserData(ctxUUID.getMostSignificantBits(),
+					userDatas[i] = new SPacketVCPlayerList.UserData(ctxUUID.getMostSignificantBits(),
 							ctxUUID.getLeastSignificantBits(), ctxPlayer.getUsername());
 				}
-				GameMessagePacket packetToBroadcast = new SPacketVoiceSignalGlobalEAG(Arrays.asList(userDatas));
+				EaglerVCPacket packetToBroadcast = new SPacketVCPlayerList(Arrays.asList(userDatas));
 				for(int i = 0; i < len; ++i) {
-					((Context) allPlayers[i]).mgr.player.sendEaglerMessage(packetToBroadcast);
+					((Context) allPlayers[i]).mgr.writeOutboundVoicePacket(packetToBroadcast);
 				}
 			}
 		}

@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.rpc.base.local;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import io.netty.buffer.Unpooled;
@@ -259,45 +260,54 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 		}
 	}
 
+	private static final Function<IEaglercraftWebViewChannelEvent<?>, WebViewOpenCloseEvent> WEBVIEW_OPEN_CLOSE_CONV = (
+			evt2) -> {
+		switch (evt2.getType()) {
+		case CHANNEL_OPEN:
+			return WebViewOpenCloseEvent.create(evt2.getChannel(), true);
+		case CHANNEL_CLOSE:
+			return WebViewOpenCloseEvent.create(evt2.getChannel(), false);
+		default:
+			throw new IllegalStateException();
+		}
+	};
+
 	public void fireLocalWebViewChannel(IEaglercraftWebViewChannelEvent<PlayerObject> evt) {
 		RPCEventBus<PlayerObject> eventBus = this.eventBus;
 		if(eventBus != null) {
-			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_WEBVIEW_OPEN_CLOSE, evt, (evt2) -> {
-				switch(evt2.getType()) {
-				case CHANNEL_OPEN:
-					return WebViewOpenCloseEvent.create(evt2.getChannel(), true);
-				case CHANNEL_CLOSE:
-					return WebViewOpenCloseEvent.create(evt2.getChannel(), false);
-				default:
-					throw new IllegalStateException();
-				}
-			}, getPlayer().logger());
+			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_WEBVIEW_OPEN_CLOSE, evt, WEBVIEW_OPEN_CLOSE_CONV, getPlayer().logger());
 		}
 	}
+
+	private static final Function<IEaglercraftWebViewMessageEvent<?>, WebViewMessageEvent> WEBVIEW_MESSAGE_CONV = (
+			evt2) -> {
+		switch (evt2.getType()) {
+		case STRING:
+			return WebViewMessageEvent.string(evt2.getChannel(), evt2.getAsBinary());
+		case BINARY:
+			return WebViewMessageEvent.binary(evt2.getChannel(), evt2.getAsBinary());
+		default:
+			throw new IllegalStateException();
+		}
+	};
 
 	public void fireLocalWebViewMessage(IEaglercraftWebViewMessageEvent<PlayerObject> evt) {
 		RPCEventBus<PlayerObject> eventBus = this.eventBus;
 		if(eventBus != null) {
-			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_WEBVIEW_MESSAGE, evt, (evt2) -> {
-				switch(evt2.getType()) {
-				case STRING:
-					return WebViewMessageEvent.string(evt2.getChannel(), evt2.getAsBinary());
-				case BINARY:
-					return WebViewMessageEvent.binary(evt2.getChannel(), evt2.getAsBinary());
-				default:
-					throw new IllegalStateException();
-				}
-			}, getPlayer().logger());
+			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_WEBVIEW_MESSAGE, evt, WEBVIEW_MESSAGE_CONV, getPlayer().logger());
 		}
 	}
+
+	private static final Function<IEaglercraftVoiceChangeEvent<?>, VoiceChangeEvent> VOICE_CHANGE_CONV = (
+			evt2) -> VoiceChangeEvent.create(evt2.getVoiceStateOld(), evt2.getVoiceStateNew());
 
 	public void fireLocalVoiceChange(IEaglercraftVoiceChangeEvent<PlayerObject> evt) {
 		RPCEventBus<PlayerObject> eventBus = this.eventBus;
 		if(eventBus != null) {
-			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_VOICE_CHANGE, evt,
-					(evt2) -> VoiceChangeEvent.create(evt2.getVoiceStateOld(), evt2.getVoiceStateNew()),
-					getPlayer().logger());
+			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_VOICE_CHANGE, evt, VOICE_CHANGE_CONV, getPlayer().logger());
 		}
+		owner.server.getPlatform().eventDispatcher().dispatchVoiceChangeEvent(getPlayer(), evt.getVoiceStateOld(),
+				evt.getVoiceStateNew());
 	}
 
 	@Override
