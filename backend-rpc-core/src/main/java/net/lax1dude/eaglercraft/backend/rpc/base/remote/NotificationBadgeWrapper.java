@@ -46,10 +46,10 @@ public final class NotificationBadgeWrapper implements INotificationBadge {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (!(obj instanceof NotificationBadgeWrapper))
+		if (!(obj instanceof NotificationBadgeWrapper o2))
 			return false;
 		CPacketRPCNotifBadgeShow self = this.packet;
-		CPacketRPCNotifBadgeShow other = ((NotificationBadgeWrapper)obj).packet;
+		CPacketRPCNotifBadgeShow other = o2.packet;
 		if (self.backgroundColor != other.backgroundColor)
 			return false;
 		if (self.badgeUUID == null) {

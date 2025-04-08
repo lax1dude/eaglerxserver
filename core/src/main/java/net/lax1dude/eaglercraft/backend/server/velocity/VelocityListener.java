@@ -97,8 +97,7 @@ class VelocityListener {
 	public void onPermissionsSetupEvent(PermissionsSetupEvent permissionsSetupEvent) {
 		// Fired right before compression is enabled
 		PermissionSubject p = permissionsSetupEvent.getSubject();
-		if(p instanceof Player) {
-			Player player = (Player) p;
+		if(p instanceof Player player) {
 			VelocityConnection conn = VelocityUnsafe.getInboundChannel(player)
 					.attr(PipelineAttributes.<VelocityConnection>connectionData()).get();
 			if(conn.compressionDisable) {
@@ -157,16 +156,16 @@ class VelocityListener {
 			ChannelMessageSink dst = evt.getTarget();
 			if(handler.backend) {
 				IEaglerXServerMessageHandler<Player> ls = handler.handler;
-				if(ls != null && (src instanceof ServerConnection) && (dst instanceof Player)) {
-					IPlatformPlayer<Player> player = plugin.getPlayer((Player)dst);
+				if(ls != null && (src instanceof ServerConnection) && (dst instanceof Player dst2)) {
+					IPlatformPlayer<Player> player = plugin.getPlayer(dst2);
 					if(player != null) {
 						ls.handle(handler.channel, player, evt.getData());
 					}
 				}
 			}else {
 				IEaglerXServerMessageHandler<Player> ls = handler.handler;
-				if(ls != null && (src instanceof Player) && (dst instanceof ServerConnection)) {
-					IPlatformPlayer<Player> player = plugin.getPlayer((Player)src);
+				if(ls != null && (src instanceof Player src2) && (dst instanceof ServerConnection)) {
+					IPlatformPlayer<Player> player = plugin.getPlayer(src2);
 					if(player != null) {
 						ls.handle(handler.channel, player, evt.getData());
 					}

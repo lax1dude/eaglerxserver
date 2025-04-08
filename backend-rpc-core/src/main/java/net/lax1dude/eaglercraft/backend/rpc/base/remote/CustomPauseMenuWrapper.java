@@ -43,10 +43,10 @@ public final class CustomPauseMenuWrapper implements ICustomPauseMenu {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (!(obj instanceof CustomPauseMenuWrapper))
+		if (!(obj instanceof CustomPauseMenuWrapper o2))
 			return false;
 		CPacketRPCSetPauseMenuCustom self = this.packet;
-		CPacketRPCSetPauseMenuCustom other = ((CustomPauseMenuWrapper) obj).packet;
+		CPacketRPCSetPauseMenuCustom other = o2.packet;
 		if (self.discordButtonMode != other.discordButtonMode)
 			return false;
 		if (self.discordButtonText == null) {

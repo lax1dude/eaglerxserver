@@ -92,8 +92,8 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 				setLegacyHover(extra.get(0), legacy);
 			}
 		}
-		if(component instanceof TranslatableComponent) {
-			List<BaseComponent> with = ((TranslatableComponent) component).getWith();
+		if(component instanceof TranslatableComponent cmp) {
+			List<BaseComponent> with = cmp.getWith();
 			if(with != null) {
 				for(int i = 0, l = with.size(); i < l; ++i) {
 					setLegacyHover(with.get(0), legacy);

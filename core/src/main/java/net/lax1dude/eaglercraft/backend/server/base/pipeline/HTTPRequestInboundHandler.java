@@ -103,8 +103,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 			if(!ctx.channel().isActive()) {
 				return;
 			}
-			if(msgRaw instanceof FullHttpRequest) {
-				FullHttpRequest msg = (FullHttpRequest) msgRaw;
+			if(msgRaw instanceof FullHttpRequest msg) {
 				if(msg.protocolVersion() != HttpVersion.HTTP_1_1) {
 					ctx.close();
 					return;

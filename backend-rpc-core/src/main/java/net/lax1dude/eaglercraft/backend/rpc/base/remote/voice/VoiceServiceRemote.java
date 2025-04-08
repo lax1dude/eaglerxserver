@@ -98,10 +98,10 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 		if(channel == DisabledChannel.INSTANCE) {
 			throw new UnsupportedOperationException("Cannot list players connected to the disabled channel");
 		}
-		if(!(channel instanceof VoiceChannel) || ((VoiceChannel<?>)channel).owner != this) {
+		if(!(channel instanceof VoiceChannel ch) || ch.owner != this) {
 			throw new IllegalArgumentException("Unknown voice channel");
 		}
-		return ((VoiceChannel<PlayerObject>)channel).listConnectedPlayers();
+		return ch.listConnectedPlayers();
 	}
 
 }

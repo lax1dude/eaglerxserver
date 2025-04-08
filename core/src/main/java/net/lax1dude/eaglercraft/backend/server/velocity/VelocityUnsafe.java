@@ -115,8 +115,8 @@ public class VelocityUnsafe {
 	}
 
 	private static MinecraftConnection getMinecraftConnection(InboundConnection connection) {
-		if(connection instanceof VelocityInboundConnection) {
-			return ((VelocityInboundConnection) connection).getConnection();
+		if(connection instanceof VelocityInboundConnection conn) {
+			return conn.getConnection();
 		}else if(class_LoginInboundConnection.isAssignableFrom(connection.getClass())) {
 			try {
 				return (MinecraftConnection) method_LoginInboundConnection_delegatedConnection.invoke(connection);
@@ -129,8 +129,8 @@ public class VelocityUnsafe {
 	}
 
 	private static MinecraftConnection getBackendConnection(ServerConnection connection) {
-		if(connection instanceof VelocityServerConnection) {
-			return ((VelocityServerConnection) connection).getConnection();
+		if(connection instanceof VelocityServerConnection conn) {
+			return conn.getConnection();
 		}else {
 			throw new RuntimeException("Unknown ServerConnection type: " + connection.getClass().getName());
 		}

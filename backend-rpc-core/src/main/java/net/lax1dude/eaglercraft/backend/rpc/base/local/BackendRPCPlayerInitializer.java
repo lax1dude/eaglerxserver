@@ -33,8 +33,8 @@ class BackendRPCPlayerInitializer<PlayerObject> implements
 	public void confirmPlayer(IPlatformPlayer<PlayerObject> player) {
 		BasePlayerLocal<PlayerObject> playerInstance = player.getAttachment();
 		if(playerInstance != null) {
-			if(playerInstance instanceof EaglerPlayerLocal) {
-				server.confirmEaglerPlayer((EaglerPlayerLocal<PlayerObject>) playerInstance);
+			if(playerInstance instanceof EaglerPlayerLocal<PlayerObject> playerInstanceLocal) {
+				server.confirmEaglerPlayer(playerInstanceLocal);
 			}else {
 				server.confirmVanillaPlayer(playerInstance);
 			}
@@ -45,8 +45,8 @@ class BackendRPCPlayerInitializer<PlayerObject> implements
 	public void destroyPlayer(IPlatformPlayer<PlayerObject> player) {
 		BasePlayerLocal<PlayerObject> playerInstance = player.getAttachment();
 		if(playerInstance != null) {
-			if(playerInstance instanceof EaglerPlayerLocal) {
-				server.unregisterEaglerPlayer((EaglerPlayerLocal<PlayerObject>)playerInstance);
+			if(playerInstance instanceof EaglerPlayerLocal<PlayerObject> playerInstanceLocal) {
+				server.unregisterEaglerPlayer(playerInstanceLocal);
 			}else {
 				server.unregisterVanillaPlayer(playerInstance);
 			}

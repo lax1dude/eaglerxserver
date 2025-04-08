@@ -368,8 +368,8 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	IPlatformCommandSender<ProxiedPlayer> getCommandSender(CommandSender obj) {
 		if(obj == null) {
 			return null;
-		}else if(obj instanceof ProxiedPlayer) {
-			return getPlayer((ProxiedPlayer) obj);
+		}else if(obj instanceof ProxiedPlayer player) {
+			return getPlayer(player);
 		}else if(obj == cacheConsoleCommandSenderInstance) {
 			return cacheConsoleCommandSenderHandle;
 		}else {
@@ -491,7 +491,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	}
 
 	public void initializeConnection(PendingConnection conn, Object pipelineData, Consumer<BungeeConnection> setAttr) {
-		if((pipelineData instanceof IPipelineData) && ((IPipelineData)pipelineData).isEaglerPlayer()) {
+		if((pipelineData instanceof IPipelineData pipelineDataImpl) && pipelineDataImpl.isEaglerPlayer()) {
 			BungeeUnsafe.injectCompressionDisable(conn);
 		}
 		BungeeConnection c = new BungeeConnection(this, conn);

@@ -43,9 +43,8 @@ public final class TexturesData {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (!(obj instanceof TexturesData))
+		if (!(obj instanceof TexturesData other))
 			return false;
-		TexturesData other = (TexturesData) obj;
 		if (!cape.equals(other.cape))
 			return false;
 		if (!skin.equals(other.skin))

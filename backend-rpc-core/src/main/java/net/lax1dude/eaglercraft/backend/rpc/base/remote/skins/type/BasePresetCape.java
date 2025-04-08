@@ -11,7 +11,7 @@ abstract class BasePresetCape implements IEaglerPlayerCape {
 	}
 
 	public boolean equals(Object obj) {
-		return this == obj || ((obj instanceof BasePresetCape) && ((BasePresetCape)this).presetId() == presetId());
+		return this == obj || ((obj instanceof BasePresetCape other) && presetId() == other.presetId());
 	}
 
 }

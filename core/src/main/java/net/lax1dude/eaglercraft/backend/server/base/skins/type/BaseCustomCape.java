@@ -22,8 +22,8 @@ abstract class BaseCustomCape implements IEaglerPlayerCape {
 	}
 
 	public boolean equals(Object obj) {
-		return this == obj || ((obj instanceof BaseCustomCape) && (hashCode() == obj.hashCode())
-				&& Arrays.equals(((BaseCustomCape) obj).textureData(), textureData()));
+		return this == obj || ((obj instanceof BaseCustomCape obj2) && (hashCode() == obj2.hashCode())
+				&& Arrays.equals(textureData(), obj2.textureData()));
 	}
 
 }

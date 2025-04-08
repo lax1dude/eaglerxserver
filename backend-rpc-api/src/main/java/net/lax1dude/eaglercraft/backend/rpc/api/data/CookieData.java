@@ -42,9 +42,8 @@ public final class CookieData {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (!(obj instanceof CookieData))
+		if (!(obj instanceof CookieData other))
 			return false;
-		CookieData other = (CookieData) obj;
 		if (!Arrays.equals(cookieBytes, other.cookieBytes))
 			return false;
 		if (cookieEnabled != other.cookieEnabled)

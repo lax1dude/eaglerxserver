@@ -82,8 +82,7 @@ public final class RouteDesc {
 	}
 
 	public boolean equals(Object obj) {
-		RouteDesc r;
-		return this == obj || ((obj instanceof RouteDesc) && Objects.equals((r = (RouteDesc) obj).pattern, pattern)
+		return this == obj || ((obj instanceof RouteDesc r) && Objects.equals(r.pattern, pattern)
 				&& Objects.equals(r.listenerName, listenerName) && r.methods == methods);
 	}
 

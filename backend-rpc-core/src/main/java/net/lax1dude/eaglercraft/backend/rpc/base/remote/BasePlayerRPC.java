@@ -235,10 +235,10 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 
 
 	private static final Function<Object, IEaglerPlayerSkin> PLAYER_SKIN_HANDLER = (res) -> {
-		if(res instanceof IInteger) {
-			return InternUtils.getPresetSkin(((IInteger)res).getIntValue());
-		}else if(res instanceof byte[]) {
-			return SkinRPCHelper.decodeSkinData((byte[]) res, false);
+		if(res instanceof IInteger i) {
+			return InternUtils.getPresetSkin(i.getIntValue());
+		}else if(res instanceof byte[] b) {
+			return SkinRPCHelper.decodeSkinData(b, false);
 		}else {
 			throw new ClassCastException("Don't know how to handle: " + res);
 		}
@@ -277,10 +277,10 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	}
 
 	private static final Function<Object, IEaglerPlayerCape> PLAYER_CAPE_HANDLER = (res) -> {
-		if(res instanceof IInteger) {
-			return InternUtils.getPresetCape(((IInteger)res).getIntValue());
-		}else if(res instanceof byte[]) {
-			return SkinRPCHelper.decodeCapeData((byte[]) res, false);
+		if(res instanceof IInteger i) {
+			return InternUtils.getPresetCape(i.getIntValue());
+		}else if(res instanceof byte[] b) {
+			return SkinRPCHelper.decodeCapeData(b, false);
 		}else {
 			throw new ClassCastException("Don't know how to handle: " + res);
 		}
@@ -319,11 +319,9 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	}
 
 	private static final Function<Object, TexturesData> PLAYER_TEXTURES_HANDLER = (res) -> {
-		if(res instanceof IIntegerTuple) {
-			IIntegerTuple tuple = (IIntegerTuple) res;
+		if(res instanceof IIntegerTuple tuple) {
 			return TexturesData.create(InternUtils.getPresetSkin(tuple.getIntValueA()), InternUtils.getPresetCape(tuple.getIntValueB()));
-		}else if(res instanceof byte[]) {
-			byte[] bytes = (byte[]) res;
+		}else if(res instanceof byte[] bytes) {
 			IEaglerPlayerSkin skin = SkinRPCHelper.decodeTexturesSkinData(bytes);
 			IEaglerPlayerCape cape = SkinRPCHelper.decodeTexturesCapeData(bytes, skin);
 			return TexturesData.create(skin, cape);

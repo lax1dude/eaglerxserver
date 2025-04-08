@@ -54,9 +54,8 @@ public final class ExtendedCapabilitySpec {
 				return true;
 			if (obj == null)
 				return false;
-			if (!(obj instanceof Version))
+			if (!(obj instanceof Version other))
 				return false;
-			Version other = (Version) obj;
 			if (majorVersion == null) {
 				if (other.majorVersion != null)
 					return false;
@@ -90,9 +89,8 @@ public final class ExtendedCapabilitySpec {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof ExtendedCapabilitySpec))
+		if (!(obj instanceof ExtendedCapabilitySpec other))
 			return false;
-		ExtendedCapabilitySpec other = (ExtendedCapabilitySpec) obj;
 		if (!Arrays.equals(majorVersions, other.majorVersions))
 			return false;
 		return true;

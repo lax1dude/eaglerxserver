@@ -11,7 +11,7 @@ abstract class BasePresetSkin implements IEaglerPlayerSkin {
 	}
 
 	public boolean equals(Object obj) {
-		return this == obj || ((obj instanceof BasePresetSkin) && ((BasePresetSkin)this).presetId() == presetId());
+		return this == obj || ((obj instanceof BasePresetSkin other) && presetId() == other.presetId());
 	}
 
 }

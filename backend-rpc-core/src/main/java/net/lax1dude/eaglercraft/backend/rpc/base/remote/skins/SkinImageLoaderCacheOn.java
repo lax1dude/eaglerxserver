@@ -27,10 +27,10 @@ class SkinImageLoaderCacheOn extends SkinImageLoaderCacheOff {
 			}), modelId);
 		} catch (ExecutionException e) {
 			Throwable cause = e.getCause();
-			if(cause instanceof IOException) {
-				throw (IOException) cause;
-			}else if(cause instanceof RuntimeException) {
-				throw (RuntimeException) cause;
+			if(cause instanceof IOException c2) {
+				throw c2;
+			}else if(cause instanceof RuntimeException c3) {
+				throw c3;
 			}else {
 				throw new RuntimeException("Uncaught exception in lambda", cause);
 			}
@@ -45,10 +45,10 @@ class SkinImageLoaderCacheOn extends SkinImageLoaderCacheOff {
 			});
 		} catch (ExecutionException e) {
 			Throwable cause = e.getCause();
-			if(cause instanceof IOException) {
-				throw (IOException) cause;
-			}else if(cause instanceof RuntimeException) {
-				throw (RuntimeException) cause;
+			if(cause instanceof IOException c2) {
+				throw c2;
+			}else if(cause instanceof RuntimeException c3) {
+				throw c3;
 			}else {
 				throw new RuntimeException("Uncaught exception in lambda", cause);
 			}

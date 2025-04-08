@@ -41,8 +41,7 @@ public final class TexturesResult {
 	}
 
 	public boolean equals(Object o) {
-		TexturesResult t;
-		return this == o || ((o instanceof TexturesResult) && Objects.equal((t = (TexturesResult) o).skinURL, skinURL)
+		return this == o || ((o instanceof TexturesResult t) && Objects.equal(t.skinURL, skinURL)
 				&& Objects.equal(t.skinModel, skinModel) && Objects.equal(t.capeURL, capeURL));
 	}
 

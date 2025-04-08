@@ -29,8 +29,8 @@ class EaglerXServerNettyPipelineInitializer<PlayerObject> implements IEaglerXSer
 			CompoundRateLimiterMap map = eagListener.getRateLimiter();
 			if(map != null) {
 				SocketAddress addr = initializer.getChannel().remoteAddress();
-				if(addr instanceof InetSocketAddress) {
-					rateLimits = map.rateLimit(((InetSocketAddress)addr).getAddress());
+				if(addr instanceof InetSocketAddress inetAddr) {
+					rateLimits = map.rateLimit(inetAddr.getAddress());
 					if(rateLimits == null) {
 						initializer.getChannel().close();
 						return;

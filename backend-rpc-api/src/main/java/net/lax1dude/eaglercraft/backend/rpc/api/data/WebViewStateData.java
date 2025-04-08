@@ -58,9 +58,8 @@ public final class WebViewStateData {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (!(obj instanceof WebViewStateData))
+		if (!(obj instanceof WebViewStateData other))
 			return false;
-		WebViewStateData other = (WebViewStateData) obj;
 		if (channelAllowed != other.channelAllowed)
 			return false;
 		if (!openChannels.equals(other.openChannels))

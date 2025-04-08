@@ -94,8 +94,7 @@ public class NightConfigList implements IEaglerConfList {
 	public IEaglerConfSection getIfSection(int index) {
 		if(index < 0 || index >= data.size()) return null;
 		Object val = data.get(index);
-		return (val instanceof CommentedConfig) ? 
-				new NightConfigSection(owner, (CommentedConfig) val, null, true) : null;
+		return (val instanceof CommentedConfig vall) ? new NightConfigSection(owner, vall, null, true) : null;
 	}
 
 	@Override
@@ -123,7 +122,7 @@ public class NightConfigList implements IEaglerConfList {
 	public int getIfInteger(int index, int defaultVal) {
 		if(index < 0 || index >= data.size()) return defaultVal;
 		Object val = data.get(index);
-		return (val instanceof Number) ? ((Number)val).intValue() : defaultVal;
+		return (val instanceof Number num) ? num.intValue() : defaultVal;
 	}
 
 	@Override
@@ -136,7 +135,7 @@ public class NightConfigList implements IEaglerConfList {
 	public String getIfString(int index, String defaultVal) {
 		if(index < 0 || index >= data.size()) return defaultVal;
 		Object val = data.get(index);
-		return (val instanceof String) ? (String) val: defaultVal;
+		return (val instanceof String str) ? str : defaultVal;
 	}
 
 }

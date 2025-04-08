@@ -50,10 +50,10 @@ public class YAMLConfigLoader {
 		}catch(YAMLException ex) {
 			throw new IOException("YAML config file has a syntax error: " + file.getAbsolutePath(), ex);
 		}
-		if(!(obj instanceof MappingNode)) {
+		if(!(obj instanceof MappingNode obj2)) {
 			throw new IOException("Root node " + obj.getClass().getSimpleName() + " is not a map!");
 		}
-		return getConfigFile(file, (MappingNode) obj);
+		return getConfigFile(file, obj2);
 	}
 
 	public static IEaglerConfig getConfigFile(File file, MappingNode node) throws IOException {

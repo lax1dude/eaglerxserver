@@ -166,8 +166,7 @@ public class HTTPClient {
 
 		@Override
 		protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
-			if (msg instanceof HttpResponse) {
-				HttpResponse response = (HttpResponse) msg;
+			if (msg instanceof HttpResponse response) {
 				responseCode = response.status().code();
 				if (responseCode == 301 || responseCode == 302 || responseCode == 303 || responseCode == 307
 						|| responseCode == 308) {
@@ -183,8 +182,7 @@ public class HTTPClient {
 					return;
 				}
 			}
-			if (msg instanceof HttpContent) {
-				HttpContent content = (HttpContent) msg;
+			if (msg instanceof HttpContent content) {
 				if(buffer == null) {
 					buffer = ctx.alloc().buffer();
 				}

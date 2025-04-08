@@ -151,8 +151,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	}
 
 	private void handleBackendHandshake(EaglerVCPacket packet) {
-		if(packet instanceof SPacketVCCapable) {
-			SPacketVCCapable pkt = (SPacketVCCapable) packet;
+		if(packet instanceof SPacketVCCapable pkt) {
 			if(pkt.version != 1) {
 				throw new IllegalStateException("Wrong protocol version selected: " + pkt.version);
 			}

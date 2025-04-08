@@ -71,7 +71,7 @@ public class MutableSubSequence implements CharSequence {
 
 	@Override
 	public boolean equals(Object obj) {
-		return this == obj || ((obj instanceof CharSequence) && subEquals((CharSequence)obj));
+		return this == obj || ((obj instanceof CharSequence obj2) && subEquals(obj2));
 	}
 
 	private boolean subEquals(CharSequence obj) {

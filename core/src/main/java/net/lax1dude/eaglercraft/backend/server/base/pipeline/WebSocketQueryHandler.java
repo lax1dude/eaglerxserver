@@ -88,8 +88,8 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 			}else {
 				if(!handled) {
 					handled = true;
-					if(msg instanceof TextWebSocketFrame) {
-						String accept = ((TextWebSocketFrame)msg).text();
+					if(msg instanceof TextWebSocketFrame msg2) {
+						String accept = msg2.text();
 						if(accept.length() < 128) {
 							accept = accept.toLowerCase(Locale.US);
 							if(accept.startsWith("accept:")) {
@@ -109,8 +109,8 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 					WAITING_PROMISE_HANDLE.setRelease(this, 0);
 					ctx.close();
 				}else {
-					if(msg instanceof TextWebSocketFrame) {
-						String txt = ((TextWebSocketFrame)msg).text();
+					if(msg instanceof TextWebSocketFrame msg2) {
+						String txt = msg2.text();
 						if(jsonHandler != null) {
 							JsonElement el = null;
 							try {
@@ -128,9 +128,9 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 							WAITING_PROMISE_HANDLE.setRelease(this, 0);
 							ctx.close();
 						}
-					}else if(msg instanceof BinaryWebSocketFrame) {
+					}else if(msg instanceof BinaryWebSocketFrame msg2) {
 						if(binaryHandler != null) {
-							ByteBuf buf = ((BinaryWebSocketFrame)msg).content();
+							ByteBuf buf = msg2.content();
 							byte[] data = new byte[buf.readableBytes()];
 							buf.readBytes(data);
 							binaryHandler.handleBinary(this, data);
@@ -221,8 +221,7 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 	}
 
 	public boolean equals(Object o) {
-		return this == o || ((o instanceof IIdentifiedConnection)
-				&& ((IIdentifiedConnection) o).getIdentityToken() == pipelineData.attributeHolder);
+		return this == o || ((o instanceof IIdentifiedConnection oo) && oo.getIdentityToken() == pipelineData.attributeHolder);
 	}
 
 	@Override

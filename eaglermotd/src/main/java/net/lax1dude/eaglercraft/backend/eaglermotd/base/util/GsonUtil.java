@@ -42,7 +42,7 @@ public class GsonUtil {
 	}
 
 	public static JsonArray optJSONArray(JsonElement el) {
-		return (el != null && el instanceof JsonArray) ? (JsonArray)el : null;
+		return (el != null && el instanceof JsonArray ell) ? ell : null;
 	}
 
 	public static JsonObject loadJSONFile(File phile) throws IOException {

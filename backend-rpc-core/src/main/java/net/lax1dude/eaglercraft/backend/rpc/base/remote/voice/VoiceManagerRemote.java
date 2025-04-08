@@ -105,8 +105,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 		if(channel == null) {
 			throw new NullPointerException("Voice channel cannot be null!");
 		}
-		if (channel != DisabledChannel.INSTANCE
-				&& (!(channel instanceof VoiceChannel) || ((VoiceChannel<?>) channel).owner != voice)) {
+		if (channel != DisabledChannel.INSTANCE && (!(channel instanceof VoiceChannel ch) || ch.owner != voice)) {
 			throw new IllegalArgumentException("Unknown voice channel");
 		}
 		IVoiceChannel oldChannel;

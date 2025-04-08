@@ -70,8 +70,7 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 				handleException(e);
 				return;
 			}
-			if(packet instanceof CPacketRPCEnabled) {
-				CPacketRPCEnabled pkt = (CPacketRPCEnabled) packet;
+			if(packet instanceof CPacketRPCEnabled pkt) {
 				boolean V1 = false, V2 = false;
 				for(int i : pkt.supportedProtocols) {
 					if(i == 1) V1 = true;

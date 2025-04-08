@@ -70,8 +70,7 @@ public class RateLimiterExclusions {
 				addr = InetAddresses.forString(str);
 				subnet = -1;
 			}
-			if(addr instanceof Inet6Address) {
-				Inet6Address addr6 = (Inet6Address) addr;
+			if(addr instanceof Inet6Address addr6) {
 				byte[] addrBytes = addr6.getAddress();
 				long addrHi = ((long) (addrBytes[0] & 0xFF) << 56l) | ((long) (addrBytes[1] & 0xFF) << 48l)
 						| ((long) (addrBytes[2] & 0xFF) << 40l) | ((long) (addrBytes[3] & 0xFF) << 32l)
@@ -82,8 +81,7 @@ public class RateLimiterExclusions {
 						| ((long) (addrBytes[12] & 0xFF) << 24l) | ((long) (addrBytes[13] & 0xFF) << 16l)
 						| ((long) (addrBytes[14] & 0xFF) << 8l) | (long) (addrBytes[15] & 0xFF);
 				lst6.add(new Exclusion6(addrHi, addrLo, subnet != -1 ? subnet : 128));
-			}else if(addr instanceof Inet4Address) {
-				Inet4Address addr4 = (Inet4Address) addr;
+			}else if(addr instanceof Inet4Address addr4) {
 				byte[] addrBytes = addr4.getAddress();
 				int addrInt = ((addrBytes[0] & 0xFF) << 24) | ((addrBytes[1] & 0xFF) << 16)
 						| ((addrBytes[2] & 0xFF) << 8) | (addrBytes[3] & 0xFF);
@@ -106,10 +104,10 @@ public class RateLimiterExclusions {
 	}
 
 	public boolean testExclusion(InetAddress addr) {
-		if(addr instanceof Inet6Address) {
-			return testExclusion6((Inet6Address) addr);
-		}else if(addr instanceof Inet4Address) {
-			return testExclusion4((Inet4Address) addr);
+		if(addr instanceof Inet6Address addr2) {
+			return testExclusion6(addr2);
+		}else if(addr instanceof Inet4Address addr2) {
+			return testExclusion4(addr2);
 		}else {
 			return false;
 		}

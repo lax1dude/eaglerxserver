@@ -75,7 +75,7 @@ class VoiceChannelHelper {
 
 		@Override
 		public boolean equals(Object obj) {
-			return this == obj || ((obj instanceof VoiceChannelLocal) && channel.equals(((VoiceChannelLocal)obj).channel));
+			return this == obj || ((obj instanceof VoiceChannelLocal other) && channel.equals(other.channel));
 		}
 
 	}

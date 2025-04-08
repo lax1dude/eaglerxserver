@@ -389,8 +389,8 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	IPlatformCommandSender<Player> getCommandSender(CommandSender obj) {
 		if(obj == null) {
 			return null;
-		}else if(obj instanceof Player) {
-			return getPlayer((Player) obj);
+		}else if(obj instanceof Player player) {
+			return getPlayer(player);
 		}else if(obj == cacheConsoleCommandSenderInstance) {
 			return cacheConsoleCommandSenderHandle;
 		}else {

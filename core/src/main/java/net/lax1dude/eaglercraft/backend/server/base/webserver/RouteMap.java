@@ -204,8 +204,8 @@ public class RouteMap<L, T> {
 			}else if(endpoint.allListener()) {
 				if(methId != -1) {
 					IRouteMethods<T> method = endpoint.getForListener(null);
-					if(method instanceof RouteMethodPerMethod) {
-						return addMethod((RouteMethodPerMethod<T>)method, methId, value);
+					if(method instanceof RouteMethodPerMethod<T> meth) {
+						return addMethod(meth, methId, value);
 					}else {
 						return false;
 					}
@@ -221,13 +221,12 @@ public class RouteMap<L, T> {
 				tmp1.entries.put(listener, boostrapMethods(methId, value));
 				path.setEndpoint(dir, tmp1);
 				return true;
-			}else if(endpoint instanceof RouteEndpointPerListener) {
-				RouteEndpointPerListener<L, T> tmp1 = (RouteEndpointPerListener<L, T>) endpoint;
+			}else if(endpoint instanceof RouteEndpointPerListener<L, T> tmp1) {
 				IRouteMethods<T> method = tmp1.entries.get(listener);
 				if(method != null) {
 					if(methId != -1) {
-						if(method instanceof RouteMethodPerMethod) {
-							return addMethod((RouteMethodPerMethod<T>)method, methId, value);
+						if(method instanceof RouteMethodPerMethod<T> meth) {
+							return addMethod(meth, methId, value);
 						}else {
 							return false;
 						}
@@ -275,11 +274,9 @@ public class RouteMap<L, T> {
 			return false;
 		}else {
 			if(listener == null) {
-				if(endpoint instanceof RouteEndpointAllListener) {
-					RouteEndpointAllListener<L, T> tmp = (RouteEndpointAllListener<L, T>) endpoint;
+				if(endpoint instanceof RouteEndpointAllListener<L, T> tmp) {
 					if(methId != -1) {
-						if(tmp.method instanceof RouteMethodPerMethod) {
-							RouteMethodPerMethod<T> tmp2 = (RouteMethodPerMethod<T>) tmp.method;
+						if(tmp.method instanceof RouteMethodPerMethod<T> tmp2) {
 							if(tmp2.obj[methId] == value) {
 								tmp2.obj[methId] = null;
 								if(--tmp2.count == 0) {
@@ -293,8 +290,7 @@ public class RouteMap<L, T> {
 							return false;
 						}
 					}else {
-						if(tmp.method instanceof RouteMethodAllMethods) {
-							RouteMethodAllMethods<T> tmp2 = (RouteMethodAllMethods<T>) tmp.method;
+						if(tmp.method instanceof RouteMethodAllMethods<T> tmp2) {
 							if(tmp2.obj == value) {
 								deleteEndpoint(endpointNode, dir);
 								return true;
@@ -309,13 +305,11 @@ public class RouteMap<L, T> {
 					return false;
 				}
 			}else {
-				if(endpoint instanceof RouteEndpointPerListener) {
-					RouteEndpointPerListener<L, T> tmp = (RouteEndpointPerListener<L, T>) endpoint;
+				if(endpoint instanceof RouteEndpointPerListener<L, T> tmp) {
 					IRouteMethods<T> method = tmp.entries.get(listener);
 					if(method != null) {
 						if(methId != -1) {
-							if(method instanceof RouteMethodPerMethod) {
-								RouteMethodPerMethod<T> tmp2 = (RouteMethodPerMethod<T>) method;
+							if(method instanceof RouteMethodPerMethod<T> tmp2) {
 								if(tmp2.obj[methId] == value) {
 									tmp2.obj[methId] = null;
 									if(--tmp2.count == 0) {
@@ -332,8 +326,7 @@ public class RouteMap<L, T> {
 								return false;
 							}
 						}else {
-							if(method instanceof RouteMethodAllMethods) {
-								RouteMethodAllMethods<T> tmp2 = (RouteMethodAllMethods<T>) method;
+							if(method instanceof RouteMethodAllMethods<T> tmp2) {
 								if(tmp2.obj == value) {
 									tmp.entries.remove(listener);
 									if(tmp.entries.isEmpty()) {

@@ -50,9 +50,8 @@ public final class PacketImageData {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (!(obj instanceof PacketImageData))
+		if (!(obj instanceof PacketImageData other))
 			return false;
-		PacketImageData other = (PacketImageData) obj;
 		if (height != other.height)
 			return false;
 		if (!Arrays.equals(rgba, other.rgba))

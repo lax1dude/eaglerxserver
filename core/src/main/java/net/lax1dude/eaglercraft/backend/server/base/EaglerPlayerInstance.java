@@ -268,13 +268,12 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public void offerUpdateCertificate(IUpdateCertificate cert) {
-		if(!(cert instanceof IUpdateCertificateImpl)) {
+		if(!(cert instanceof IUpdateCertificateImpl impl)) {
 			throw new UnsupportedOperationException("Unknown certificate: " + cert);
 		}
 		if(updateSent == null) {
 			return;
 		}
-		IUpdateCertificateImpl impl = (IUpdateCertificateImpl) cert;
 		if(impl == updateCertificate) {
 			return;
 		}
@@ -300,11 +299,11 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public void sendUpdateCertificate(IUpdateCertificate cert) {
-		if(!(cert instanceof IUpdateCertificateImpl)) {
+		if(!(cert instanceof IUpdateCertificateImpl c2)) {
 			throw new UnsupportedOperationException("Unknown certificate: " + cert);
 		}
 		if(updateSupport) {
-			sendEaglerMessage(((IUpdateCertificateImpl) cert).packet());
+			sendEaglerMessage(c2.packet());
 		}
 	}
 

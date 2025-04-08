@@ -50,8 +50,8 @@ public class NightConfigSection implements IEaglerConfSection {
 	public IEaglerConfSection getIfSection(String name) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		return (o instanceof CommentedConfig)
-				? new NightConfigSection(owner, (CommentedConfig) o, (str) -> config.setComment(k, str), true)
+		return (o instanceof CommentedConfig o2)
+				? new NightConfigSection(owner, o2, (str) -> config.setComment(k, str), true)
 				: null;
 	}
 
@@ -59,8 +59,8 @@ public class NightConfigSection implements IEaglerConfSection {
 	public IEaglerConfSection getSection(String name) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		if(o instanceof CommentedConfig) {
-			return new NightConfigSection(owner, (CommentedConfig)o, (str) -> config.setComment(k, str), true);
+		if(o instanceof CommentedConfig o2) {
+			return new NightConfigSection(owner, o2, (str) -> config.setComment(k, str), true);
 		}else {
 			CommentedConfig sub = config.createSubConfig();
 			config.set(k, sub);
@@ -122,15 +122,15 @@ public class NightConfigSection implements IEaglerConfSection {
 	public boolean getBoolean(String name) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		return (o instanceof Boolean) && (Boolean) o;
+		return (o instanceof Boolean o2) && o2;
 	}
 
 	@Override
 	public boolean getBoolean(String name, boolean defaultValue, String comment) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		if(o instanceof Boolean) {
-			return (Boolean) o;
+		if(o instanceof Boolean o2) {
+			return o2;
 		}else {
 			config.set(k, defaultValue);
 			if(comment != null) {
@@ -146,8 +146,8 @@ public class NightConfigSection implements IEaglerConfSection {
 	public boolean getBoolean(String name, Supplier<Boolean> defaultValue, String comment) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		if(o instanceof Boolean) {
-			return (Boolean) o;
+		if(o instanceof Boolean o2) {
+			return o2;
 		}else {
 			Boolean d = defaultValue.get();
 			config.set(k, d);
@@ -171,8 +171,8 @@ public class NightConfigSection implements IEaglerConfSection {
 	public int getInteger(String name, int defaultValue, String comment) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		if(o instanceof Number) {
-			return ((Number)o).intValue();
+		if(o instanceof Number o2) {
+			return o2.intValue();
 		}else {
 			config.set(k, defaultValue);
 			if(comment != null) {
@@ -188,8 +188,8 @@ public class NightConfigSection implements IEaglerConfSection {
 	public int getInteger(String name, Supplier<Integer> defaultValue, String comment) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		if(o instanceof Number) {
-			return ((Number)o).intValue();
+		if(o instanceof Number o2) {
+			return o2.intValue();
 		}else {
 			Integer d = defaultValue.get();
 			config.set(k, d);
@@ -213,15 +213,15 @@ public class NightConfigSection implements IEaglerConfSection {
 	public String getIfString(String name) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		return (o instanceof String) ? (String) o : null;
+		return (o instanceof String str) ? str : null;
 	}
 
 	@Override
 	public String getString(String name, String defaultValue, String comment) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		if(o instanceof String) {
-			return (String) o;
+		if(o instanceof String str) {
+			return str;
 		}else {
 			config.set(k, defaultValue);
 			if(comment != null) {
@@ -237,8 +237,8 @@ public class NightConfigSection implements IEaglerConfSection {
 	public String getString(String name, Supplier<String> defaultValue, String comment) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		if(o instanceof String) {
-			return (String) o;
+		if(o instanceof String str) {
+			return str;
 		}else {
 			String d = defaultValue.get();
 			config.set(k, d);

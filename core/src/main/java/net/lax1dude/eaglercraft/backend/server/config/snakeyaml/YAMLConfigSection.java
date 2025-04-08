@@ -54,8 +54,8 @@ public class YAMLConfigSection implements IEaglerConfSection {
 		accelerator.clear();
 		for(NodeTuple t : yaml.getValue()) {
 			Node key = t.getKeyNode();
-			if(key instanceof ScalarNode) {
-				accelerator.put(((ScalarNode)t.getKeyNode()).getValue(), t);
+			if(key instanceof ScalarNode key2) {
+				accelerator.put(key2.getValue(), t);
 			}
 		}
 	}
@@ -71,8 +71,8 @@ public class YAMLConfigSection implements IEaglerConfSection {
 	@Override
 	public IEaglerConfSection getIfSection(String name) {
 		NodeTuple t = accelerator.get(name);
-		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof MappingNode)) {
-			return new YAMLConfigSection(owner, (MappingNode) t.getValueNode(), (comment) -> {
+		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof MappingNode value2)) {
+			return new YAMLConfigSection(owner, value2, (comment) -> {
 				YAMLConfigLoader.createCommentHelper(comment, (ScalarNode) t.getKeyNode());
 				owner.modified = true;
 			}, true);
@@ -84,8 +84,8 @@ public class YAMLConfigSection implements IEaglerConfSection {
 	@Override
 	public IEaglerConfSection getSection(String name) {
 		NodeTuple t = accelerator.get(name);
-		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof MappingNode)) {
-			return new YAMLConfigSection(owner, (MappingNode) t.getValueNode(), (comment) -> {
+		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof MappingNode value2)) {
+			return new YAMLConfigSection(owner, value2, (comment) -> {
 				YAMLConfigLoader.createCommentHelper(comment, (ScalarNode) t.getKeyNode());
 				owner.modified = true;
 			}, true);
@@ -107,8 +107,8 @@ public class YAMLConfigSection implements IEaglerConfSection {
 	@Override
 	public IEaglerConfList getIfList(String name) {
 		NodeTuple t = accelerator.get(name);
-		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof SequenceNode)) {
-			return new YAMLConfigList(owner, (SequenceNode) t.getValueNode(), (comment) -> {
+		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof SequenceNode value2)) {
+			return new YAMLConfigList(owner, value2, (comment) -> {
 				YAMLConfigLoader.createCommentHelper(comment, (ScalarNode) t.getKeyNode());
 				owner.modified = true;
 			}, true);
@@ -120,8 +120,8 @@ public class YAMLConfigSection implements IEaglerConfSection {
 	@Override
 	public IEaglerConfList getList(String name) {
 		NodeTuple t = accelerator.get(name);
-		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof SequenceNode)) {
-			return new YAMLConfigList(owner, (SequenceNode) t.getValueNode(), (comment) -> {
+		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof SequenceNode value2)) {
+			return new YAMLConfigList(owner, value2, (comment) -> {
 				YAMLConfigLoader.createCommentHelper(comment, (ScalarNode) t.getKeyNode());
 				owner.modified = true;
 			}, true);
@@ -145,8 +145,8 @@ public class YAMLConfigSection implements IEaglerConfSection {
 		ImmutableList.Builder<String> builder = ImmutableList.builder();
 		for(NodeTuple t : yaml.getValue()) {
 			Node key = t.getKeyNode();
-			if(key instanceof ScalarNode) {
-				builder.add(((ScalarNode)t.getKeyNode()).getValue());
+			if(key instanceof ScalarNode key2) {
+				builder.add(key2.getValue());
 			}
 		}
 		return builder.build();
@@ -155,8 +155,8 @@ public class YAMLConfigSection implements IEaglerConfSection {
 	@Override
 	public boolean isBoolean(String name) {
 		NodeTuple t = accelerator.get(name);
-		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode)) {
-			String str = ((ScalarNode)t.getValueNode()).getValue().toLowerCase();
+		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode value2)) {
+			String str = value2.getValue().toLowerCase();
 			return "false".equals(str) || "true".equals(str);
 		}else {
 			return false;
@@ -166,15 +166,15 @@ public class YAMLConfigSection implements IEaglerConfSection {
 	@Override
 	public boolean getBoolean(String name) {
 		NodeTuple t = accelerator.get(name);
-		return t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode)
-				&& Boolean.valueOf(((ScalarNode) t.getValueNode()).getValue());
+		return t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode value2)
+				&& Boolean.valueOf(value2.getValue());
 	}
 
 	@Override
 	public boolean getBoolean(String name, boolean defaultValue, String comment) {
 		NodeTuple t = accelerator.get(name);
-		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode)) {
-			String str = ((ScalarNode) t.getValueNode()).getValue().toLowerCase();
+		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode value2)) {
+			String str = value2.getValue().toLowerCase();
 			boolean b = false;
 			if("false".equals(str) || (b = "true".equals(str))) {
 				return b;
@@ -198,8 +198,8 @@ public class YAMLConfigSection implements IEaglerConfSection {
 	@Override
 	public boolean getBoolean(String name, Supplier<Boolean> defaultValue, String comment) {
 		NodeTuple t = accelerator.get(name);
-		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode)) {
-			String str = ((ScalarNode) t.getValueNode()).getValue().toLowerCase();
+		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode value2)) {
+			String str = value2.getValue().toLowerCase();
 			boolean b = false;
 			if("false".equals(str) || (b = "true".equals(str))) {
 				return b;
@@ -224,9 +224,9 @@ public class YAMLConfigSection implements IEaglerConfSection {
 	@Override
 	public boolean isInteger(String name) {
 		NodeTuple t = accelerator.get(name);
-		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode)) {
+		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode value2)) {
 			try {
-				Double.parseDouble(((ScalarNode) t.getValueNode()).getValue());
+				Double.parseDouble(value2.getValue());
 			}catch(NumberFormatException ex) {
 				return false;
 			}
@@ -238,9 +238,9 @@ public class YAMLConfigSection implements IEaglerConfSection {
 	@Override
 	public int getInteger(String name, int defaultValue, String comment) {
 		NodeTuple t = accelerator.get(name);
-		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode)) {
+		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode value2)) {
 			try {
-				return (int) Double.parseDouble(((ScalarNode) t.getValueNode()).getValue());
+				return (int) Double.parseDouble(value2.getValue());
 			}catch(NumberFormatException ex) {
 			}
 		}
@@ -262,9 +262,9 @@ public class YAMLConfigSection implements IEaglerConfSection {
 	@Override
 	public int getInteger(String name, Supplier<Integer> defaultValue, String comment) {
 		NodeTuple t = accelerator.get(name);
-		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode)) {
+		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode value2)) {
 			try {
-				return (int) Double.parseDouble(((ScalarNode) t.getValueNode()).getValue());
+				return (int) Double.parseDouble(value2.getValue());
 			}catch(NumberFormatException ex) {
 			}
 		}
@@ -296,8 +296,8 @@ public class YAMLConfigSection implements IEaglerConfSection {
 	@Override
 	public String getIfString(String name) {
 		NodeTuple t = accelerator.get(name);
-		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode)) {
-			return ((ScalarNode) t.getValueNode()).getValue();
+		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode value2)) {
+			return value2.getValue();
 		}
 		return null;
 	}
@@ -305,8 +305,8 @@ public class YAMLConfigSection implements IEaglerConfSection {
 	@Override
 	public String getString(String name, String defaultValue, String comment) {
 		NodeTuple t = accelerator.get(name);
-		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode)) {
-			return ((ScalarNode) t.getValueNode()).getValue();
+		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode value2)) {
+			return value2.getValue();
 		}
 		ScalarNode key = new ScalarNode(Tag.STR, name, null, null, ScalarStyle.PLAIN);
 		if(comment != null) {
@@ -326,8 +326,8 @@ public class YAMLConfigSection implements IEaglerConfSection {
 	@Override
 	public String getString(String name, Supplier<String> defaultValue, String comment) {
 		NodeTuple t = accelerator.get(name);
-		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode)) {
-			return ((ScalarNode) t.getValueNode()).getValue();
+		if(t != null && t.getValueNode() != null && (t.getValueNode() instanceof ScalarNode value2)) {
+			return value2.getValue();
 		}
 		String str = defaultValue.get();
 		ScalarNode key = new ScalarNode(Tag.STR, name, null, null, ScalarStyle.PLAIN);

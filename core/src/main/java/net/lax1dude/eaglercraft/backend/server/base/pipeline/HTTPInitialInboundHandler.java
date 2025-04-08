@@ -41,8 +41,7 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 				return;
 			}
 			NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
-			if(!pipelineData.initStall && (msgRaw instanceof FullHttpRequest)) {
-				FullHttpRequest msg = (FullHttpRequest) msgRaw;
+			if(!pipelineData.initStall && (msgRaw instanceof FullHttpRequest msg)) {
 				if(msg.protocolVersion() != HttpVersion.HTTP_1_1) {
 					pipelineData.initStall = true;
 					ctx.close();
@@ -223,8 +222,8 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 			CompoundRateLimiterMap rateLimiter = pipelineData.listenerInfo.getRateLimiter();
 			if(rateLimiter != null) {
 				SocketAddress addr = ctx.channel().remoteAddress();
-				if(addr instanceof InetSocketAddress) {
-					pipelineData.rateLimits = rateLimiter.getRateLimit(((InetSocketAddress)addr).getAddress());
+				if(addr instanceof InetSocketAddress inetAddr) {
+					pipelineData.rateLimits = rateLimiter.getRateLimit(inetAddr.getAddress());
 				}else {
 					pipelineData.connectionLogger.warn("Unable to ratelimit unknown address type: " + addr.getClass().getName()
 							+ " - \"" + addr + "\"");

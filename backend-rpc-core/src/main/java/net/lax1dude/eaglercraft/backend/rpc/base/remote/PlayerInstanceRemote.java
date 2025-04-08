@@ -187,8 +187,7 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 			res.fireExceptionInternal(new RPCException("Failed to handle RPC init message!", e));
 			return;
 		}
-		if(pkt instanceof SPacketRPCEnabledSuccessEaglerV2) {
-			SPacketRPCEnabledSuccessEaglerV2 pktt = (SPacketRPCEnabledSuccessEaglerV2) pkt;
+		if(pkt instanceof SPacketRPCEnabledSuccessEaglerV2 pktt) {
 			if(pktt.selectedRPCProtocol == 2) {
 				handleContextCreate(res, new EaglerPlayerRPC<PlayerObject>(this, EaglerBackendRPCProtocol.V2,
 						serializationContext, pktt));
@@ -196,8 +195,7 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 				logger().error("Unexpected RPC protocol version in enable response!");
 				res.fireExceptionInternal(new RPCException("Unexpected RPC protocol version in enable response!"));
 			}
-		}else if(pkt instanceof SPacketRPCEnabledSuccessVanillaV2) {
-			SPacketRPCEnabledSuccessVanillaV2 pktt = (SPacketRPCEnabledSuccessVanillaV2) pkt;
+		}else if(pkt instanceof SPacketRPCEnabledSuccessVanillaV2 pktt) {
 			if(pktt.selectedRPCProtocol == 2) {
 				handleContextCreate(res, new BasePlayerRPC<PlayerObject>(this, EaglerBackendRPCProtocol.V2,
 						serializationContext, pktt.minecraftProtocol, pktt.supervisorNode));
@@ -205,9 +203,9 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 				logger().error("Unexpected RPC protocol version in enable response!");
 				res.fireExceptionInternal(new RPCException("Unexpected RPC protocol version in enable response!"));
 			}
-		}else if(pkt instanceof SPacketRPCEnabledFailure) {
+		}else if(pkt instanceof SPacketRPCEnabledFailure pktt) {
 			String str;
-			int code = ((SPacketRPCEnabledFailure)pkt).failureCode;
+			int code = pktt.failureCode;
 			switch(code) {
 			case SPacketRPCEnabledFailure.FAILURE_CODE_NOT_ENABLED:
 				str = "FAILURE_CODE_NOT_ENABLED";

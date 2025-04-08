@@ -31,7 +31,7 @@ public class WebViewBlob implements IWebViewBlob {
 	}
 
 	public boolean equals(Object o) {
-		return this == o || ((o instanceof WebViewBlob) && ((WebViewBlob)o).hash.equals(hash));
+		return this == o || ((o instanceof WebViewBlob o2) && o2.hash.equals(hash));
 	}
 
 }

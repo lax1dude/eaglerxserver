@@ -89,8 +89,8 @@ public class YAMLConfigList implements IEaglerConfList {
 		List<Node> lst = yaml.getValue();
 		if(index < 0 || index >= lst.size()) return null;
 		Node t = lst.get(index);
-		if(t instanceof MappingNode) {
-			return new YAMLConfigSection(owner, (MappingNode) t, null, true);
+		if(t instanceof MappingNode tt) {
+			return new YAMLConfigSection(owner, tt, null, true);
 		}else {
 			return null;
 		}
@@ -101,8 +101,8 @@ public class YAMLConfigList implements IEaglerConfList {
 		List<Node> lst = yaml.getValue();
 		if(index < 0 || index >= lst.size()) return null;
 		Node t = lst.get(index);
-		if(t instanceof SequenceNode) {
-			return new YAMLConfigList(owner, (SequenceNode) t, null, true);
+		if(t instanceof SequenceNode tt) {
+			return new YAMLConfigList(owner, tt, null, true);
 		}else {
 			return null;
 		}
@@ -113,9 +113,9 @@ public class YAMLConfigList implements IEaglerConfList {
 		List<Node> lst = yaml.getValue();
 		if(index < 0 || index >= lst.size()) return false;
 		Node t = lst.get(index);
-		if(t != null && (t instanceof ScalarNode)) {
+		if(t != null && (t instanceof ScalarNode tt)) {
 			try {
-				Double.parseDouble(((ScalarNode) t).getValue());
+				Double.parseDouble(tt.getValue());
 			}catch(NumberFormatException ex) {
 				return false;
 			}
@@ -129,9 +129,9 @@ public class YAMLConfigList implements IEaglerConfList {
 		List<Node> lst = yaml.getValue();
 		if(index < 0 || index >= lst.size()) return defaultVal;
 		Node t = lst.get(index);
-		if(t != null && (t instanceof ScalarNode)) {
+		if(t != null && (t instanceof ScalarNode tt)) {
 			try {
-				return (int) Double.parseDouble(((ScalarNode) t).getValue());
+				return (int) Double.parseDouble(tt.getValue());
 			}catch(NumberFormatException ex) {
 			}
 		}
@@ -154,8 +154,8 @@ public class YAMLConfigList implements IEaglerConfList {
 		List<Node> lst = yaml.getValue();
 		if(index < 0 || index >= lst.size()) return defaultVal;
 		Node t = lst.get(index);
-		if(t != null && (t instanceof ScalarNode)) {
-			return ((ScalarNode) t).getValue();
+		if(t != null && (t instanceof ScalarNode tt)) {
+			return tt.getValue();
 		}
 		return defaultVal;
 	}

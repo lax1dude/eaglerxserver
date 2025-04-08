@@ -135,7 +135,7 @@ class SkinTypesHelper implements ISkinImageLoader {
 
 		@Override
 		public boolean equals(Object obj) {
-			return this == obj || ((obj instanceof PlayerSkinLocal) && skin.equals(((PlayerSkinLocal) obj).skin));
+			return this == obj || ((obj instanceof PlayerSkinLocal other) && skin.equals(other.skin));
 		}
 
 	}
@@ -195,7 +195,7 @@ class SkinTypesHelper implements ISkinImageLoader {
 
 		@Override
 		public boolean equals(Object obj) {
-			return this == obj || ((obj instanceof PlayerCapeLocal) && cape.equals(((PlayerCapeLocal) obj).cape));
+			return this == obj || ((obj instanceof PlayerCapeLocal other) && cape.equals(other.cape));
 		}
 
 	}

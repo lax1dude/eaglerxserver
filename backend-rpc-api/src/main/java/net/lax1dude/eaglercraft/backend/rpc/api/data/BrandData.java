@@ -52,9 +52,8 @@ public final class BrandData {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (!(obj instanceof BrandData))
+		if (!(obj instanceof BrandData other))
 			return false;
-		BrandData other = (BrandData) obj;
 		if (!brandName.equals(other.brandName))
 			return false;
 		if (!brandVersion.equals(other.brandVersion))

@@ -12,8 +12,8 @@ public interface IIdentifiedConnection {
 		}
 
 		public boolean equals(Object o) {
-			return this == o || ((o instanceof IIdentifiedConnection)
-					&& ((IIdentifiedConnection) o).getIdentityToken() == getIdentityToken());
+			return this == o || ((o instanceof IIdentifiedConnection o2)
+					&& getIdentityToken() == o2.getIdentityToken());
 		}
 
 	}

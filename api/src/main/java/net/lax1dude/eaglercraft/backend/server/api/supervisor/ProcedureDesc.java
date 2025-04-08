@@ -40,8 +40,7 @@ public final class ProcedureDesc<In extends ISupervisorData, Out extends ISuperv
 	}
 
 	public boolean equals(Object o) {
-		ProcedureDesc<?, ?> v;
-		return this == o || ((o instanceof ProcedureDesc<?, ?>) && (v = (ProcedureDesc<?, ?>) o).name.equals(name)
+		return this == o || ((o instanceof ProcedureDesc<?, ?> v) && v.name.equals(name)
 				&& v.inputType == inputType && v.outputType == outputType);
 	}
 

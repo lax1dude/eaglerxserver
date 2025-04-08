@@ -19,8 +19,8 @@ public class PlayerChannelHelper {
 			BasePlayerInstance<PlayerObject> basePlayer = player.<BasePlayerInstance<PlayerObject>>getPlayerAttachment();
 			if(basePlayer.isEaglerPlayer()) {
 				MessageController msgController = basePlayer.asEaglerPlayer().getMessageController();
-				if(msgController instanceof LegacyMessageController) {
-					((LegacyMessageController)msgController).readPacket(ch.getLegacyName(), data);
+				if(msgController instanceof LegacyMessageController msgController2) {
+					msgController2.readPacket(ch.getLegacyName(), data);
 				}
 			}
 		};

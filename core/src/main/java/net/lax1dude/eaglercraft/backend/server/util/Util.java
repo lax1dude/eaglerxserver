@@ -20,16 +20,16 @@ public class Util {
 	}
 
 	public static RuntimeException propagateReflectThrowable(Exception ex) {
-		if(ex instanceof InvocationTargetException) {
-			Throwable cause = ((InvocationTargetException)ex).getCause();
+		if(ex instanceof InvocationTargetException exx) {
+			Throwable cause = exx.getCause();
 			if(cause != null) {
-				if(cause instanceof RuntimeException) {
-					return (RuntimeException) cause;
+				if(cause instanceof RuntimeException cause2) {
+					return cause2;
 				}
 				return new RuntimeException("Encountered an InvocationTargetException while performing reflection", cause);
 			}
-		}else if(ex instanceof RuntimeException) {
-			return (RuntimeException) ex;
+		}else if(ex instanceof RuntimeException exx) {
+			return exx;
 		}
 		return new RuntimeException("Could not perform reflection!", ex);
 	}

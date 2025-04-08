@@ -317,8 +317,8 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 				}
 				int port = 65535;
 				SocketAddress addr2 = channel.remoteAddress();
-				if((addr2 instanceof InetSocketAddress)) {
-					port = ((InetSocketAddress)addr2).getPort();
+				if((addr2 instanceof InetSocketAddress inetAddr)) {
+					port = inetAddr.getPort();
 				}
 				handle.accept(realSocketAddressInstance = new InetSocketAddress(addr, port));
 			}

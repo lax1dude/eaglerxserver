@@ -22,7 +22,7 @@ public class WebSocketInitialHandler extends ChannelInboundHandlerAdapter {
 			if(!ctx.channel().isActive()) {
 				return;
 			}
-			if(msg instanceof BinaryWebSocketFrame) {
+			if(msg instanceof BinaryWebSocketFrame msg2) {
 				NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
 				if(pipelineData.initStall) {
 					return;
@@ -43,8 +43,8 @@ public class WebSocketInitialHandler extends ChannelInboundHandlerAdapter {
 				pipeline.replace(PipelineTransformer.HANDLER_WS_INITIAL, PipelineTransformer.HANDLER_FRAME_CODEC,
 						WebSocketEaglerFrameCodec.INSTANCE);
 				pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_INJECTED_FRAME_HANDLERS);
-				ctx.fireChannelRead(((BinaryWebSocketFrame)msg).content().retain());
-			}else if(msg instanceof TextWebSocketFrame) {
+				ctx.fireChannelRead(msg2.content().retain());
+			}else if(msg instanceof TextWebSocketFrame msg2) {
 				NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
 				if(pipelineData.initStall) {
 					return;
@@ -58,7 +58,7 @@ public class WebSocketInitialHandler extends ChannelInboundHandlerAdapter {
 				pipeline.replace(PipelineTransformer.HANDLER_WS_INITIAL, PipelineTransformer.HANDLER_QUERY,
 						new WebSocketQueryHandler(pipelineData.server, pipelineData));
 				pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_STATE_WEBSOCKET_QUERY);
-				ctx.fireChannelRead(((TextWebSocketFrame)msg).retain());
+				ctx.fireChannelRead(msg2.retain());
 			}else {
 				ctx.close();
 			}

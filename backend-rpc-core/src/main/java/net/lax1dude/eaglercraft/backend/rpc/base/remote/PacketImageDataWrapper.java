@@ -36,7 +36,7 @@ public final class PacketImageDataWrapper implements IPacketImageData {
 
 	@Override
 	public boolean equals(Object obj) {
-		return this == obj || ((obj instanceof PacketImageDataWrapper) && image.equals(((PacketImageDataWrapper)obj).image));
+		return this == obj || ((obj instanceof PacketImageDataWrapper o2) && image.equals(o2.image));
 	}
 
 	@Override

@@ -473,8 +473,8 @@ public class BukkitUnsafe {
 			for(Field f : serverConnectionClass.getDeclaredFields()) {
 				if(List.class.isAssignableFrom(f.getType())) {
 					Type t = f.getGenericType();
-					if(t instanceof ParameterizedType) {
-						Type[] params = ((ParameterizedType) t).getActualTypeArguments();
+					if(t instanceof ParameterizedType tt) {
+						Type[] params = tt.getActualTypeArguments();
 						if(params.length == 1 && ChannelFuture.class.isAssignableFrom(params[0].getClass())) {
 							channelFuturesList = f;
 							channelFuturesList.setAccessible(true);
@@ -739,8 +739,8 @@ public class BukkitUnsafe {
 				Class<?> clz = field.getClass();
 				if(clz.getSimpleName().equals("LazyInitVar")) {
 					Type type = field.getGenericType();
-					if(type instanceof ParameterizedType) {
-						Type[] args = ((ParameterizedType)type).getActualTypeArguments();
+					if(type instanceof ParameterizedType tt) {
+						Type[] args = tt.getActualTypeArguments();
 						if(args.length == 1 && "io.netty.channel.epoll.EpollEventLoopGroup".equals(args[0].getTypeName())) {
 							try {
 								return (EventLoopGroup) clz.getMethod("init").invoke(field.get(null));
@@ -757,8 +757,8 @@ public class BukkitUnsafe {
 			Class<?> clz = field.getClass();
 			if(clz.getSimpleName().equals("LazyInitVar")) {
 				Type type = field.getGenericType();
-				if(type instanceof ParameterizedType) {
-					Type[] args = ((ParameterizedType)type).getActualTypeArguments();
+				if(type instanceof ParameterizedType tt) {
+					Type[] args = tt.getActualTypeArguments();
 					if(args.length == 1 && "io.netty.channel.nio.NioEventLoopGroup".equals(args[0].getTypeName())) {
 						try {
 							return (EventLoopGroup) clz.getMethod("init").invoke(field.get(null));

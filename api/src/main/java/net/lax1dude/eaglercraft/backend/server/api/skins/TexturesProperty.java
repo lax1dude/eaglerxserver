@@ -33,8 +33,7 @@ public final class TexturesProperty {
 	}
 
 	public boolean equals(Object o) {
-		TexturesProperty t;
-		return this == o || ((o instanceof TexturesProperty) && (t = (TexturesProperty) o).value.equals(value)
+		return this == o || ((o instanceof TexturesProperty t) && t.value.equals(value)
 				&& t.signature.equals(signature));
 	}
 

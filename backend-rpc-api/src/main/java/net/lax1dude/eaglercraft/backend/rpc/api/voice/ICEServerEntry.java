@@ -68,9 +68,8 @@ public final class ICEServerEntry {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (!(obj instanceof ICEServerEntry))
+		if (!(obj instanceof ICEServerEntry other))
 			return false;
-		ICEServerEntry other = (ICEServerEntry) obj;
 		if (auth != other.auth)
 			return false;
 		if (!uri.equals(other.uri))

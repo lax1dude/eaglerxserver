@@ -126,8 +126,7 @@ public final class SHA1Sum {
 
 	@Override
 	public boolean equals(Object obj) {
-		SHA1Sum other;
-		return this == obj || ((obj instanceof SHA1Sum) && (other = (SHA1Sum) obj).a == a && other.b == b
+		return this == obj || ((obj instanceof SHA1Sum other) && other.a == a && other.b == b
 				&& other.c == c && other.d == d && other.e == e);
 	}
 

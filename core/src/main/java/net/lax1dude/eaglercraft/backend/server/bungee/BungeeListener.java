@@ -122,16 +122,16 @@ class BungeeListener implements Listener {
 			Connection dst = event.getReceiver();
 			if(handler.backend) {
 				IEaglerXServerMessageHandler<ProxiedPlayer> ls = handler.handler;
-				if(ls != null && (src instanceof Server) && (dst instanceof ProxiedPlayer)) {
-					IPlatformPlayer<ProxiedPlayer> player = plugin.getPlayer((ProxiedPlayer)dst);
+				if(ls != null && (src instanceof Server) && (dst instanceof ProxiedPlayer dst2)) {
+					IPlatformPlayer<ProxiedPlayer> player = plugin.getPlayer(dst2);
 					if(player != null) {
 						ls.handle(handler.channel, player, event.getData());
 					}
 				}
 			}else {
 				IEaglerXServerMessageHandler<ProxiedPlayer> ls = handler.handler;
-				if(ls != null && (src instanceof ProxiedPlayer) && (dst instanceof Server)) {
-					IPlatformPlayer<ProxiedPlayer> player = plugin.getPlayer((ProxiedPlayer)src);
+				if(ls != null && (src instanceof ProxiedPlayer src2) && (dst instanceof Server)) {
+					IPlatformPlayer<ProxiedPlayer> player = plugin.getPlayer(src2);
 					if(player != null) {
 						ls.handle(handler.channel, player, event.getData());
 					}

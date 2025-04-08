@@ -26,16 +26,8 @@ abstract class BaseCustomSkin implements IEaglerPlayerSkin {
 	}
 
 	public boolean equals(Object obj) {
-		if(this == obj) {
-			return true;
-		}else {
-			if((obj instanceof BaseCustomSkin) && (hashCode() == obj.hashCode())) {
-				BaseCustomSkin cc = (BaseCustomSkin) obj;
-				return cc.modelId() == modelId() && Arrays.equals(cc.textureDataV4(), textureDataV4());
-			}else {
-				return false;
-			}
-		}
+		return this == obj || ((obj instanceof BaseCustomSkin cc) && (hashCode() == cc.hashCode())
+				&& modelId() == cc.modelId() && Arrays.equals(textureDataV4(), cc.textureDataV4()));
 	}
 
 }

@@ -412,8 +412,8 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	IPlatformCommandSender<Player> getCommandSender(CommandSource obj) {
 		if(obj == null) {
 			return null;
-		}else if(obj instanceof Player) {
-			return getPlayer((Player) obj);
+		}else if(obj instanceof Player player) {
+			return getPlayer(player);
 		}else if(obj == cacheConsoleCommandSenderInstance) {
 			return cacheConsoleCommandSenderHandle;
 		}else {
@@ -553,7 +553,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	public void initializeConnection(InboundConnection conn, String username, UUID uuid, Object pipelineData,
 			Consumer<VelocityConnection> setAttr) {
 		VelocityConnection c = new VelocityConnection(this, conn, username, uuid);
-		if((pipelineData instanceof IPipelineData) && ((IPipelineData)pipelineData).isEaglerPlayer()) {
+		if((pipelineData instanceof IPipelineData pipelineDataImpl) && pipelineDataImpl.isEaglerPlayer()) {
 			c.compressionDisable = true;
 		}
 		setAttr.accept(c);

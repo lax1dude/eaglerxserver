@@ -39,8 +39,8 @@ public class SkinImageLoaderImpl {
 	}
 
 	public static IEaglerPlayerSkin rewriteCustomSkinModelId(IEaglerPlayerSkin skin, EnumSkinModel modelId) {
-		if(skin instanceof IModelRewritable) {
-			return ((IModelRewritable)skin).rewriteModelInternal(modelId.getId());
+		if(skin instanceof IModelRewritable rw) {
+			return rw.rewriteModelInternal(modelId.getId());
 		}else {
 			return skin;
 		}
