@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.rpc.base.remote;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
@@ -22,8 +23,13 @@ import net.lax1dude.eaglercraft.backend.rpc.api.notifications.INotificationBuild
 import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.IPauseMenuBuilder;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.ISkinImageLoader;
 import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCBase;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.config.BackendRPCConfigLoader;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.config.ConfigDataRoot;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.config.ConfigDataSettings;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.message.BackendRPCMessageChannel;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.skins.SkinImageLoaderImpl;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.voice.IVoiceServiceImpl;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.voice.VoiceServiceDisabled;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.voice.VoiceServiceRemote;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
 import net.lax1dude.eaglercraft.backend.voice.protocol.EaglerVCProtocol;
@@ -42,9 +48,24 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	private Set<Class<?>> componentTypes;
 	private String channelRPCName;
 	private String channelVoiceName;
+	private ConfigDataRoot config;
+	private IVoiceServiceImpl<PlayerObject> voiceService;
 
 	@Override
 	protected void load0(Init<PlayerObject> platf) {
+		componentClass = platform.getComponentHelper().getComponentType();
+		componentTypes = Collections.singleton(componentClass);
+		
+		try {
+			config = BackendRPCConfigLoader.loadConfig(platform.getDataFolder());
+		}catch(IOException ex) {
+			throw new IllegalStateException("Failed to read EaglerXBackendRPC config file!", ex);
+		}
+		
+		if(config.getConfigSettings().isForceModernizedChannelNames()) {
+			platform.setForcePost_v1_13(true);
+		}
+		
 		platf.setOnServerEnable(this::enableHandler);
 		platf.setOnServerDisable(this::disableHandler);
 		InitRemoteMode<PlayerObject> platfRemote = platf.remoteMode();
@@ -55,12 +76,27 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 						EaglerBackendRPCProtocol.CHANNEL_NAME_READY_MODERN, this::handleReadyMessage),
 				new BackendRPCMessageChannel<PlayerObject>(EaglerVCProtocol.CHANNEL_NAME,
 						EaglerVCProtocol.CHANNEL_NAME_MODERN, this::handleVoiceMessage)));
-		componentClass = platform.getComponentHelper().getComponentType();
-		componentTypes = Collections.singleton(componentClass);
+		
+		if(platform.isPost_v1_13()) {
+			logger().info("Using modernized 1.13+ channel names for RPC, make sure EaglerXServer is configured to use modernized channel names!");
+		}
+		
+		ConfigDataSettings.ConfigDataBackendRPC confBackendRPC = config.getConfigSettings().getConfigBackendRPC();
+		setBaseRequestTimeout(confBackendRPC.getBaseRequestTimeoutSec());
+		createTimeoutLoop((long)(1000000000.0 * confBackendRPC.getTimeoutResolutionSec()));
+		
 		channelRPCName = platform.isPost_v1_13() ? EaglerBackendRPCProtocol.CHANNEL_NAME_MODERN
 				: EaglerBackendRPCProtocol.CHANNEL_NAME;
 		channelVoiceName = platform.isPost_v1_13() ? EaglerVCProtocol.CHANNEL_NAME_MODERN
 				: EaglerVCProtocol.CHANNEL_NAME;
+		
+		if(config.getConfigSettings().getConfigBackendVoice().isEnableBackendVoiceService()) {
+			voiceService = new VoiceServiceRemote<>(this);
+			voiceService.setICEServers(config.getConfigICEServers().getICEServers());
+			voiceService.setOverrideICEServers(config.getConfigICEServers().isReplaceICEServerList());
+		}else {
+			voiceService = new VoiceServiceDisabled<>(this);
+		}
 	}
 
 	private void enableHandler() {
@@ -68,7 +104,7 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	}
 
 	private void disableHandler() {
-		
+		cancelTimeoutLoop();
 	}
 
 	void registerPlayer(PlayerInstanceRemote<PlayerObject> playerInstance) {
@@ -89,7 +125,6 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	}
 
 	void confirmPlayer(PlayerInstanceRemote<PlayerObject> playerInstance) {
-		
 	}
 
 	void unregisterPlayer(PlayerInstanceRemote<PlayerObject> playerInstance) {
@@ -104,19 +139,13 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 
 	private void handleRPCMessage(IBackendRPCMessageChannel<PlayerObject> channel,
 			IPlatformPlayer<PlayerObject> player, byte[] contents) {
-		PlayerInstanceRemote<PlayerObject> playerInstance = player.getAttachment();
-		if(playerInstance != null) {
-			playerInstance.handleRPCMessage(contents);
-		}
+		player.<PlayerInstanceRemote<PlayerObject>>getAttachment().handleRPCMessage(contents);
 	}
 
 	private void handleReadyMessage(IBackendRPCMessageChannel<PlayerObject> channel,
 			IPlatformPlayer<PlayerObject> player, byte[] contents) {
 		if(contents.length > 0) {
-			PlayerInstanceRemote<PlayerObject> playerInstance = player.getAttachment();
-			if(playerInstance != null) {
-				playerInstance.handleReadyMessage(contents[0] != (byte)0);
-			}
+			player.<PlayerInstanceRemote<PlayerObject>>getAttachment().handleReadyMessage(contents[0] != (byte)0);
 		}else {
 			logger().error("Zero-length ready plugin message recieved, you are most likely "
 					+ "still running the old EaglerXBungee/EaglerXVelocity plugin instead of "
@@ -126,16 +155,12 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 
 	private void handleVoiceMessage(IBackendRPCMessageChannel<PlayerObject> channel,
 			IPlatformPlayer<PlayerObject> player, byte[] contents) {
-		PlayerInstanceRemote<PlayerObject> playerInstance = player.getAttachment();
-		if(playerInstance != null) {
-			playerInstance.handleVoiceMessage(contents);
-		}
+		player.<PlayerInstanceRemote<PlayerObject>>getAttachment().handleVoiceMessage(contents);
 	}
 
 	@Override
-	public VoiceServiceRemote<PlayerObject> getVoiceService() {
-		// TODO Auto-generated method stub
-		return null;
+	public IVoiceServiceImpl<PlayerObject> getVoiceService() {
+		return voiceService;
 	}
 
 	@Override
@@ -145,8 +170,7 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 
 	@Override
 	public IPacketImageLoader getPacketImageLoader() {
-		// TODO Auto-generated method stub
-		return null;
+		return PacketImageLoader.INSTANCE;
 	}
 
 	@Override
@@ -200,10 +224,7 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	public IEaglerPlayer<PlayerObject> getEaglerPlayerByName(String playerName) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
 		if(platformPlayer != null) {
-			PlayerInstanceRemote<PlayerObject> basePlayer = platformPlayer.getAttachment();
-			if(basePlayer != null) {
-				return basePlayer.asEaglerPlayer();
-			}
+			return platformPlayer.<PlayerInstanceRemote<PlayerObject>>getAttachment().asEaglerPlayer();
 		}
 		return null;
 	}
@@ -212,10 +233,7 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	public IEaglerPlayer<PlayerObject> getEaglerPlayerByUUID(UUID playerUUID) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
 		if(platformPlayer != null) {
-			PlayerInstanceRemote<PlayerObject> basePlayer = platformPlayer.getAttachment();
-			if(basePlayer != null) {
-				return basePlayer.asEaglerPlayer();
-			}
+			return platformPlayer.<PlayerInstanceRemote<PlayerObject>>getAttachment().asEaglerPlayer();
 		}
 		return null;
 	}
@@ -229,10 +247,7 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	public boolean isEaglerPlayerByName(String playerName) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
 		if(platformPlayer != null) {
-			PlayerInstanceRemote<PlayerObject> basePlayer = platformPlayer.getAttachment();
-			if(basePlayer != null) {
-				return basePlayer.isEaglerPlayer();
-			}
+			return platformPlayer.<PlayerInstanceRemote<PlayerObject>>getAttachment().isEaglerPlayer();
 		}
 		return false;
 	}
@@ -241,10 +256,7 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	public boolean isEaglerPlayerByUUID(UUID playerUUID) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
 		if(platformPlayer != null) {
-			PlayerInstanceRemote<PlayerObject> basePlayer = platformPlayer.getAttachment();
-			if(basePlayer != null) {
-				return basePlayer.isEaglerPlayer();
-			}
+			return platformPlayer.<PlayerInstanceRemote<PlayerObject>>getAttachment().isEaglerPlayer();
 		}
 		return false;
 	}

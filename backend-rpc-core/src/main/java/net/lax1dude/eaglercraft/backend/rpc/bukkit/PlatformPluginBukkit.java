@@ -284,8 +284,14 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		}
 	}
 
+	@Override
 	public boolean isPost_v1_13() {
 		return post_v1_13;
+	}
+
+	@Override
+	public void setForcePost_v1_13(boolean force) {
+		post_v1_13 = force;
 	}
 
 	private boolean checkPost_v1_13() {

@@ -1,0 +1,6 @@
+force_modernized_channel_names: false
+backend_rpc:
+  base_request_timeout_sec: 10
+  timeout_resolution_sec: 0.25
+backend_voice:
+  enable_backend_voice_service: false

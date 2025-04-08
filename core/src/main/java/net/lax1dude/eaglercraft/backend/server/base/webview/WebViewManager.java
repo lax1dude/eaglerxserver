@@ -22,7 +22,6 @@ import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.pause_menu.PauseMenuManager;
 import net.lax1dude.eaglercraft.backend.server.base.rpc.EaglerPlayerRPCManager;
-import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceManagerRemote;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketDisplayWebViewBlobV5EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketDisplayWebViewURLV5EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketServerInfoDataChunkV4EAG;
@@ -35,7 +34,7 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 	static {
 		try {
 			MethodHandles.Lookup l = MethodHandles.lookup();
-			CHANNEL_NAME_HANDLE = l.findVarHandle(VoiceManagerRemote.class, "channelName", String.class);
+			CHANNEL_NAME_HANDLE = l.findVarHandle(WebViewManager.class, "channelName", String.class);
 		} catch (ReflectiveOperationException e) {
 			throw new ExceptionInInitializerError(e);
 		}

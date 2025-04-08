@@ -189,7 +189,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 				return;
 			}
 			EaglerXBackendRPCRemote<PlayerObject> server = player.getEaglerXBackendRPC();
-			VoiceServiceRemote<PlayerObject> service = server.getVoiceService();
+			VoiceServiceRemote<PlayerObject> service = (VoiceServiceRemote<PlayerObject>) server.getVoiceService();
 			try {
 				packet = serialize(EaglerVCProtocol.INIT,
 						new SPacketVCCapable(1, false, service.getOverrideICEServers(), service.getICEServersStr()));

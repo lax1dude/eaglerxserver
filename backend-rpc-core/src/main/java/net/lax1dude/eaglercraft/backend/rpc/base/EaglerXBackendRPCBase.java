@@ -55,7 +55,6 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 		playerClassSet = Collections.singleton(playerClass);
 
 		schedulerExecutors = new SchedulerExecutors(platform.getScheduler());
-		timeoutLoop = new FutureTimeoutLoop(platform.getScheduler());
 
 		platformType = switch(platform.getType()) {
 		case BUKKIT -> EnumPlatformType.BUKKIT;
@@ -142,6 +141,14 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 		RPCActiveFuture<V> ret = new RPCActiveFuture<V>(schedulerExecutors, now + expiresAfter * 1000000000l);
 		timeoutLoop.addFuture(now, ret);
 		return ret;
+	}
+
+	protected void createTimeoutLoop(long resolution) {
+		timeoutLoop = new FutureTimeoutLoop(platform.getScheduler(), resolution);
+	}
+
+	protected void cancelTimeoutLoop() {
+		timeoutLoop.cancelAll();
 	}
 
 }

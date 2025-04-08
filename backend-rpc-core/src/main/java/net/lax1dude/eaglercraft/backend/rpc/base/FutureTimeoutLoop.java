@@ -11,8 +11,6 @@ import net.lax1dude.eaglercraft.backend.rpc.api.RPCTimeoutException;
 
 public class FutureTimeoutLoop {
 
-	private static final long RESOLUTION = 250l * 1000000l;
-
 	private class TimeoutEvent implements Runnable {
 
 		protected final Long key;
@@ -26,11 +24,12 @@ public class FutureTimeoutLoop {
 
 		@Override
 		public void run() {
-			timeoutEvents.remove(key);
-			for(int i = 0, l = queue.size(); i < l; ++i) {
-				IRPCFutureExpiring<?> future = queue.get(i);
-				if(!future.isDone()) {
-					expire(future);
+			if(timeoutEvents.remove(key) != null) {
+				for(int i = 0, l = queue.size(); i < l; ++i) {
+					IRPCFutureExpiring<?> future = queue.get(i);
+					if(!future.isDone()) {
+						expire(future);
+					}
 				}
 			}
 		}
@@ -40,9 +39,11 @@ public class FutureTimeoutLoop {
 	private final ConcurrentMap<Long, TimeoutEvent> timeoutEvents = new ConcurrentHashMap<>();
 
 	private final IPlatformScheduler scheduler;
+	private final long resolution;
 
-	public FutureTimeoutLoop(IPlatformScheduler scheduler) {
+	public FutureTimeoutLoop(IPlatformScheduler scheduler, long resolution) {
 		this.scheduler = scheduler;
+		this.resolution = resolution;
 	}
 
 	private class Witness implements BiFunction<Long, TimeoutEvent, TimeoutEvent> {
@@ -79,17 +80,21 @@ public class FutureTimeoutLoop {
 			expire(future);
 			return;
 		}
-		long bucket = (expires + (RESOLUTION - 1)) / RESOLUTION;
+		long bucket = (expires + (resolution - 1)) / resolution;
 		Witness witness = new Witness(future);
 		TimeoutEvent te = timeoutEvents.compute(bucket, witness);
 		if(witness.schedule) {
-			long l = (bucket * RESOLUTION - now) / 1000l;
+			long l = (bucket * resolution - now) / 1000000l;
 			scheduler.executeAsyncDelayed(te, l > 0l ? l : 1l);
 		}
 	}
 
 	private void expire(IRPCFutureExpiring<?> future) {
 		future.fireTimeoutExceptionInternal(new RPCTimeoutException("RPC operation reached timeout"));
+	}
+
+	public void cancelAll() {
+		timeoutEvents.clear();
 	}
 
 }

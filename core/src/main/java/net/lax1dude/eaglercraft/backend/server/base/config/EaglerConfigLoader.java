@@ -129,13 +129,14 @@ public class EaglerConfigLoader {
 			boolean enableBackendRPCAPI = config.getBoolean(
 				"enable_backend_rpc_api", false,
 				"Default value is false, if support for servers running the "
-				+ "EaglerXBukkitAPI plugin should be enabled or not."
+				+ "EaglerXBackendRPC plugin should be enabled or not."
 			);
 			boolean useModernizedChannelNames = config.getBoolean(
 				"use_modernized_channel_names", false,
 				"Default value is false, if \"modernized\" plugin channel names "
-				+ "compatible with Minecraft 1.13+ should be used for EaglerXBukkitAPI "
-				+ "plugin message packets"
+				+ "compatible with Minecraft 1.13+ should be used for EaglerXBackendRPC "
+				+ "plugin message packets. Enable this if you use Minecraft 1.13+ on your "
+				+ "backend Spigot servers."
 			);
 			int protocolV4DefragSendDelay = config.getInteger(
 				"protocol_v4_defrag_send_delay", 10,
