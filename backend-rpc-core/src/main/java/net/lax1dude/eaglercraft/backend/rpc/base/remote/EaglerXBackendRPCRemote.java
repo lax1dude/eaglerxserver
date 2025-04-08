@@ -146,7 +146,7 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 			IPlatformPlayer<PlayerObject> player, byte[] contents) {
 		if(contents.length > 0) {
 			boolean eagler = contents[0] != (byte)0;
-			int viewDistance = eagler ? (int)contents[1] : -1;
+			int viewDistance = (eagler && contents.length > 1) ? (int)contents[1] : -1;
 			player.<PlayerInstanceRemote<PlayerObject>>getAttachment().handleReadyMessage(eagler, viewDistance);
 		}else {
 			logger().error("Zero-length ready plugin message recieved, you are most likely "
