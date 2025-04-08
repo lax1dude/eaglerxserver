@@ -7,7 +7,7 @@ import org.bukkit.plugin.PluginManager;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXBackendRPC;
-import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.EnumVoiceState;
 
 public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player> {
 

@@ -12,10 +12,12 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.PacketImageData;
 class PacketImageDataHelper implements IPacketImageLoader {
 
 	static IPacketImageData wrap(PacketImageData image) {
+		if(image == null) return null;
 		return new PacketImageDataLocal(image);
 	}
 
 	static PacketImageData unwrap(IPacketImageData image) {
+		if(image == null) return null;
 		return ((PacketImageDataLocal)image).image;
 	}
 

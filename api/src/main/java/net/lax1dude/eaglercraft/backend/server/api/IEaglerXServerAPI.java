@@ -24,13 +24,12 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.IProfileResolver;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesProperty;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceX;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IWebServer;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewService;
-import net.lax1dude.eaglercraft.backend.voice.api.IEaglerVoiceAPI;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
-public interface IEaglerXServerAPI<PlayerObject> extends IEaglerVoiceAPI<PlayerObject>, IAttributeHolder {
+public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	public static <PlayerObject> IEaglerXServerAPI<PlayerObject> instance(Class<PlayerObject> playerObj) {
 		return EaglerXServerAPIFactory.INSTANCE.getAPI(playerObj);
@@ -132,7 +131,7 @@ public interface IEaglerXServerAPI<PlayerObject> extends IEaglerVoiceAPI<PlayerO
 
 	ISkinService<PlayerObject> getSkinService();
 
-	IVoiceServiceX<PlayerObject> getVoiceService();
+	IVoiceService<PlayerObject> getVoiceService();
 
 	IBrandService<PlayerObject> getBrandService();
 

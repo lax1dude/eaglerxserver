@@ -28,6 +28,7 @@ import net.lax1dude.eaglercraft.backend.rpc.api.notifications.INotificationBadge
 import net.lax1dude.eaglercraft.backend.rpc.api.notifications.IconDef;
 import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.ICustomPauseMenu;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumEnableFNAW;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.EnumVoiceState;
 import net.lax1dude.eaglercraft.backend.rpc.api.webview.EnumWebViewPerms;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCEventBus;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCImmediateFuture;
@@ -38,10 +39,9 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChan
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent;
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationManager;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuManager;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewManager;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewProvider;
-import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
-import net.lax1dude.eaglercraft.backend.voice.api.IVoiceManager;
 
 public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<PlayerObject>
 		implements IEaglerPlayerRPC<PlayerObject> {
@@ -186,7 +186,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	public IRPCFuture<EnumVoiceState> getVoiceState() {
 		IVoiceManager<PlayerObject> voiceMgr = delegate.getVoiceManager();
 		if(voiceMgr != null) {
-			return RPCImmediateFuture.create(schedulerExecutors, voiceMgr.getVoiceState());
+			return RPCImmediateFuture.create(schedulerExecutors, VoiceChannelHelper.wrap(voiceMgr.getVoiceState()));
 		}else {
 			return RPCImmediateFuture.create(schedulerExecutors, EnumVoiceState.SERVER_DISABLE);
 		}
@@ -299,15 +299,16 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	}
 
 	private static final Function<IEaglercraftVoiceChangeEvent<?>, VoiceChangeEvent> VOICE_CHANGE_CONV = (
-			evt2) -> VoiceChangeEvent.create(evt2.getVoiceStateOld(), evt2.getVoiceStateNew());
+			evt2) -> VoiceChangeEvent.create(VoiceChannelHelper.wrap(evt2.getVoiceStateOld()),
+					VoiceChannelHelper.wrap(evt2.getVoiceStateNew()));
 
 	public void fireLocalVoiceChange(IEaglercraftVoiceChangeEvent<PlayerObject> evt) {
 		RPCEventBus<PlayerObject> eventBus = this.eventBus;
 		if(eventBus != null) {
 			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_VOICE_CHANGE, evt, VOICE_CHANGE_CONV, getPlayer().logger());
 		}
-		owner.server.getPlatform().eventDispatcher().dispatchVoiceChangeEvent(getPlayer(), evt.getVoiceStateOld(),
-				evt.getVoiceStateNew());
+		owner.server.getPlatform().eventDispatcher().dispatchVoiceChangeEvent(getPlayer(),
+				VoiceChannelHelper.wrap(evt.getVoiceStateOld()), VoiceChannelHelper.wrap(evt.getVoiceStateNew()));
 	}
 
 	@Override

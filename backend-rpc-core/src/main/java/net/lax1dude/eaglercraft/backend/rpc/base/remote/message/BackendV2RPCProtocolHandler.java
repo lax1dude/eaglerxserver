@@ -6,10 +6,10 @@ import net.lax1dude.eaglercraft.backend.rpc.api.data.VoiceChangeEvent;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewMessageEvent;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewOpenCloseEvent;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewStateData;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.EnumVoiceState;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.BasePlayerRPC;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.WrongRPCPacketException;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.*;
-import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
 
 public class BackendV2RPCProtocolHandler extends BackendRPCProtocolHandler {
 

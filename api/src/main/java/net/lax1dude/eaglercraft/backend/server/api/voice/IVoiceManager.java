@@ -1,13 +1,18 @@
 package net.lax1dude.eaglercraft.backend.server.api.voice;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
-import net.lax1dude.eaglercraft.backend.voice.api.IVoiceManager;
 
-public interface IVoiceManagerX<PlayerObject> extends IVoiceManager<PlayerObject> {
+public interface IVoiceManager<PlayerObject> {
 
 	IEaglerPlayer<PlayerObject> getPlayer();
 
-	IVoiceServiceX<PlayerObject> getVoiceService();
+	IVoiceService<PlayerObject> getVoiceService();
+
+	EnumVoiceState getVoiceState();
+
+	IVoiceChannel getVoiceChannel();
+
+	void setVoiceChannel(IVoiceChannel channel);
 
 	boolean isServerManaged();
 

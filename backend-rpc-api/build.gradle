@@ -6,7 +6,6 @@ plugins {
 
 dependencies {
 	compileOnly(libs.guava)
-	implementation project(":voice-api")
 }
 
 java {

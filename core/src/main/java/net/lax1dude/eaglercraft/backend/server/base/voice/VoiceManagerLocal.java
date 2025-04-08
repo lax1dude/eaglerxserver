@@ -5,11 +5,11 @@ import java.lang.invoke.VarHandle;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceX;
+import net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.rpc.EaglerPlayerRPCManager;
-import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
-import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalAllowedEAG;
 
 public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<PlayerObject> {
@@ -60,7 +60,7 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 	}
 
 	@Override
-	public IVoiceServiceX<PlayerObject> getVoiceService() {
+	public IVoiceService<PlayerObject> getVoiceService() {
 		return voice;
 	}
 

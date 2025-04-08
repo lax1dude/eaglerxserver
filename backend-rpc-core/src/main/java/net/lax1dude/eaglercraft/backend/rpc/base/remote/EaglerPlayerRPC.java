@@ -27,6 +27,7 @@ import net.lax1dude.eaglercraft.backend.rpc.api.notifications.INotificationBadge
 import net.lax1dude.eaglercraft.backend.rpc.api.notifications.IconDef;
 import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.ICustomPauseMenu;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumEnableFNAW;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.EnumVoiceState;
 import net.lax1dude.eaglercraft.backend.rpc.api.webview.EnumWebViewPerms;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCEventBus;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCFailedFuture;
@@ -49,7 +50,6 @@ import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSetPla
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSetPlayerFNAWEn;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCEnabledSuccessEaglerV2;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCEnabledSuccessEaglerV2.ExtCapability;
-import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
 
 public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 		implements IEaglerPlayerRPC<PlayerObject> {

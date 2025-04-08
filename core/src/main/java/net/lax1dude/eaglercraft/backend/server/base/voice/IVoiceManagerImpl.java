@@ -1,8 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.base.voice;
 
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManagerX;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager;
 
-public interface IVoiceManagerImpl<PlayerObject> extends IVoiceManagerX<PlayerObject> {
+public interface IVoiceManagerImpl<PlayerObject> extends IVoiceManager<PlayerObject> {
 
 	void handleServerChanged(String serverName);
 

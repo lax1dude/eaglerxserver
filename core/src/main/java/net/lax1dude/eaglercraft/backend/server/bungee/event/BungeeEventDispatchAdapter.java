@@ -29,7 +29,7 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMess
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent.EnumMessageType;
 import net.lax1dude.eaglercraft.backend.server.api.query.IMOTDConnection;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryConnection;
-import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
+import net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState;
 import net.md_5.bungee.api.Callback;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;

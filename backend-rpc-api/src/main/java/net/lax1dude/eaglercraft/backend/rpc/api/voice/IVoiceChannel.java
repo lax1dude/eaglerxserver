@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.voice.api;
+package net.lax1dude.eaglercraft.backend.rpc.api.voice;
 
 public interface IVoiceChannel {
 

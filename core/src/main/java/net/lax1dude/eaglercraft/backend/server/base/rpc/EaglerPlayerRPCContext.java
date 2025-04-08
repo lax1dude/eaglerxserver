@@ -12,6 +12,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW;
+import net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState;
 import net.lax1dude.eaglercraft.backend.server.api.webview.EnumWebViewPerms;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewProvider;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
@@ -19,7 +20,6 @@ import net.lax1dude.eaglercraft.backend.server.base.notifications.NotificationMa
 import net.lax1dude.eaglercraft.backend.server.base.pause_menu.PauseMenuManager;
 import net.lax1dude.eaglercraft.backend.server.base.voice.IVoiceManagerImpl;
 import net.lax1dude.eaglercraft.backend.server.base.webview.WebViewManager;
-import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketNotifBadgeShowV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketNotifIconsRegisterV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketWebViewMessageV4EAG;

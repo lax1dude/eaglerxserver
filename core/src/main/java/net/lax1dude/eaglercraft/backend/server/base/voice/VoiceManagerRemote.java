@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceX;
+import net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
-import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
-import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.voice.protocol.EaglerVCProtocol;
 import net.lax1dude.eaglercraft.backend.voice.protocol.pkt.EaglerVCPacket;
 import net.lax1dude.eaglercraft.backend.voice.protocol.pkt.WrongVCPacketException;
@@ -69,7 +69,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	}
 
 	@Override
-	public IVoiceServiceX<PlayerObject> getVoiceService() {
+	public IVoiceService<PlayerObject> getVoiceService() {
 		return voice;
 	}
 

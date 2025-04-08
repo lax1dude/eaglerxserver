@@ -4,11 +4,11 @@ import java.util.Collection;
 
 import com.google.common.collect.ImmutableList;
 
+import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.ICEServerEntry;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.EaglerXBackendRPCRemote;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.PlayerInstanceRemote;
-import net.lax1dude.eaglercraft.backend.voice.api.ICEServerEntry;
-import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
-import net.lax1dude.eaglercraft.backend.voice.api.IVoicePlayer;
 
 public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<PlayerObject> {
 
@@ -91,7 +91,7 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 	}
 
 	@Override
-	public Collection<IVoicePlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel) {
+	public Collection<IEaglerPlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel) {
 		if(channel == null) {
 			throw new NullPointerException("Voice channel cannot be null!");
 		}

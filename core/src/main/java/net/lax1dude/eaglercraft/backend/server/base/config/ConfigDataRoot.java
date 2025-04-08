@@ -3,7 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.base.config;
 import java.util.List;
 import java.util.Map;
 
-import net.lax1dude.eaglercraft.backend.voice.api.ICEServerEntry;
+import net.lax1dude.eaglercraft.backend.server.api.voice.ICEServerEntry;
 
 public class ConfigDataRoot {
 

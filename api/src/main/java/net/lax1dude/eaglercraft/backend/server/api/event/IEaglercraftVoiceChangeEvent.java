@@ -1,16 +1,16 @@
 package net.lax1dude.eaglercraft.backend.server.api.event;
 
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManagerX;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceServiceX;
-import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
+import net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceService;
 
 public interface IEaglercraftVoiceChangeEvent<PlayerObject> extends IBasePlayerEvent<PlayerObject> {
 
-	default IVoiceManagerX<PlayerObject> getVoiceManager() {
+	default IVoiceManager<PlayerObject> getVoiceManager() {
 		return getPlayer().getVoiceManager();
 	}
 
-	default IVoiceServiceX<PlayerObject> getVoiceService() {
+	default IVoiceService<PlayerObject> getVoiceService() {
 		return getServerAPI().getVoiceService();
 	}
 

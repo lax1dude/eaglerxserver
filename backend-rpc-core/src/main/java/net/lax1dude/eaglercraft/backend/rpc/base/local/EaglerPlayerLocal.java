@@ -4,7 +4,7 @@ import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayerRPC;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCHandle;
-import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceManagerX;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceManager;
 
 public class EaglerPlayerLocal<PlayerObject> extends BasePlayerLocal<PlayerObject> implements IEaglerPlayer<PlayerObject> {
 
@@ -45,16 +45,11 @@ public class EaglerPlayerLocal<PlayerObject> extends BasePlayerLocal<PlayerObjec
 
 	@Override
 	public boolean isVoiceCapable() {
-		return voiceCapable;
-	}
-
-	@Override
-	public boolean hasVoiceManager() {
 		return voiceManager != null;
 	}
 
 	@Override
-	public IVoiceManagerX<PlayerObject> getVoiceManager() {
+	public IVoiceManager<PlayerObject> getVoiceManager() {
 		return voiceManager;
 	}
 

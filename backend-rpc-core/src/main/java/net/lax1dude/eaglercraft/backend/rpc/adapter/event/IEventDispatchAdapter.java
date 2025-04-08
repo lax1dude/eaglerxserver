@@ -2,7 +2,7 @@ package net.lax1dude.eaglercraft.backend.rpc.adapter.event;
 
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXBackendRPC;
-import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.EnumVoiceState;
 
 public interface IEventDispatchAdapter<PlayerObject> {
 

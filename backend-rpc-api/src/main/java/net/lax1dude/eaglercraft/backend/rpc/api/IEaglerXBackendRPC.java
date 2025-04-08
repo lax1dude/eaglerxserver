@@ -9,10 +9,9 @@ import net.lax1dude.eaglercraft.backend.rpc.api.internal.factory.IEaglerRPCFacto
 import net.lax1dude.eaglercraft.backend.rpc.api.notifications.INotificationBuilder;
 import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.IPauseMenuBuilder;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.ISkinImageLoader;
-import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceServiceX;
-import net.lax1dude.eaglercraft.backend.voice.api.IEaglerVoiceAPI;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceService;
 
-public interface IEaglerXBackendRPC<PlayerObject> extends IEaglerVoiceAPI<PlayerObject>, IRPCAttributeHolder {
+public interface IEaglerXBackendRPC<PlayerObject> extends IRPCAttributeHolder {
 
 	public static <PlayerObject> IEaglerXBackendRPC<PlayerObject> instance(Class<PlayerObject> playerObj) {
 		return EaglerXBackendRPCFactory.INSTANCE.getAPI(playerObj);
@@ -36,7 +35,7 @@ public interface IEaglerXBackendRPC<PlayerObject> extends IEaglerVoiceAPI<Player
 
 	Class<PlayerObject> getPlayerClass();
 
-	IVoiceServiceX<PlayerObject> getVoiceService();
+	IVoiceService<PlayerObject> getVoiceService();
 
 	ISkinImageLoader getSkinImageLoader(boolean cacheEnabled);
 

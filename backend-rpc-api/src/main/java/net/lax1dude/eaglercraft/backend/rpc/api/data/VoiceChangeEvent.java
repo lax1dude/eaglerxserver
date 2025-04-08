@@ -2,7 +2,7 @@ package net.lax1dude.eaglercraft.backend.rpc.api.data;
 
 import net.lax1dude.eaglercraft.backend.rpc.api.EnumSubscribeEvents;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCEvent;
-import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.EnumVoiceState;
 
 public final class VoiceChangeEvent implements IRPCEvent {
 

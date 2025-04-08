@@ -35,7 +35,7 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMess
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent.EnumMessageType;
 import net.lax1dude.eaglercraft.backend.server.api.query.IMOTDConnection;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryConnection;
-import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
+import net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState;
 
 public class VelocityEventDispatchAdapter implements IEventDispatchAdapter<Player, Component> {
 

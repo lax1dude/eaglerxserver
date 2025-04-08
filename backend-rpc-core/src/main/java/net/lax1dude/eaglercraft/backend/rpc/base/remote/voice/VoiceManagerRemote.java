@@ -7,19 +7,19 @@ import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
-import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceManagerX;
-import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceServiceX;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.EnumVoiceState;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceChannel;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceManager;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceService;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.EaglerXBackendRPCRemote;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.PlayerInstanceRemote;
-import net.lax1dude.eaglercraft.backend.voice.api.EnumVoiceState;
-import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.voice.protocol.EaglerVCProtocol;
 import net.lax1dude.eaglercraft.backend.voice.protocol.pkt.EaglerVCPacket;
 import net.lax1dude.eaglercraft.backend.voice.protocol.pkt.client.CPacketVCCapable;
 import net.lax1dude.eaglercraft.backend.voice.protocol.pkt.server.SPacketVCAllowed;
 import net.lax1dude.eaglercraft.backend.voice.protocol.pkt.server.SPacketVCCapable;
 
-public class VoiceManagerRemote<PlayerObject> extends SerializationContext implements IVoiceManagerX<PlayerObject> {
+public class VoiceManagerRemote<PlayerObject> extends SerializationContext implements IVoiceManager<PlayerObject> {
 
 	private static final VarHandle SERVER_ENABLE_HANDLE;
 	private static final VarHandle LAST_STATE_HANDLE;
@@ -66,7 +66,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	}
 
 	@Override
-	public IVoiceServiceX<PlayerObject> getVoiceService() {
+	public IVoiceService<PlayerObject> getVoiceService() {
 		return voice;
 	}
 

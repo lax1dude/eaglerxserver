@@ -1,8 +1,10 @@
-package net.lax1dude.eaglercraft.backend.voice.api;
+package net.lax1dude.eaglercraft.backend.rpc.api.voice;
+
+import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
 
 public interface IVoiceManager<PlayerObject> {
 
-	IVoicePlayer<PlayerObject> getPlayer();
+	IEaglerPlayer<PlayerObject> getPlayer();
 
 	IVoiceService<PlayerObject> getVoiceService();
 

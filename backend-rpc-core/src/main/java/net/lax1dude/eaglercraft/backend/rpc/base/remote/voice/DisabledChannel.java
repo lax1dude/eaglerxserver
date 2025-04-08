@@ -1,6 +1,6 @@
 package net.lax1dude.eaglercraft.backend.rpc.base.remote.voice;
 
-import net.lax1dude.eaglercraft.backend.voice.api.IVoiceChannel;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceChannel;
 
 class DisabledChannel implements IVoiceChannel {
 

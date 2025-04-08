@@ -9,7 +9,6 @@ dependencies {
 	compileOnly(libs.gson)
 	compileOnly(libs.guava)
 	implementation project(":protocol-game")
-	implementation project(":voice-api")
 }
 
 java {

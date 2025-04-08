@@ -30,9 +30,9 @@ import io.netty.channel.unix.DomainSocketAddress;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
+import net.lax1dude.eaglercraft.backend.server.api.voice.ICEServerEntry;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfList;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfSection;
-import net.lax1dude.eaglercraft.backend.voice.api.ICEServerEntry;
 
 public class EaglerConfigLoader {
 

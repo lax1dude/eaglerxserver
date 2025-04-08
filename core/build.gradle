@@ -7,7 +7,6 @@ plugins {
 dependencies {
 	implementation project(":protocol-game")
 	implementation project(":backend-rpc-protocol")
-	implementation project(":voice-api")
 	implementation project(":voice-rpc-protocol")
 	implementation project(":api")
 	implementation project(":api-bukkit")

@@ -267,25 +267,34 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 					.color(EnumChatColor.RED).end().text("Too many WebView messages!").end());
 			return;
 		}
-		String prevChannel = null;
-		String nextChannel = null;
+		String nextChannel;
+		String prevChannel;
 		boolean allowed = open && isChannelAllowed();
-		synchronized(this) {
+		for(;;) {
+			nextChannel = null;
 			prevChannel = (String)CHANNEL_NAME_HANDLE.getAcquire(this);
 			if(channel.equals(prevChannel)) {
 				if(open) {
 					prevChannel = null;
+					break;
 				}else {
-					CHANNEL_NAME_HANDLE.setRelease(this, null);
+					if(CHANNEL_NAME_HANDLE.compareAndExchangeRelease(this, prevChannel, null) == prevChannel) {
+						break;
+					}
 				}
 			}else {
 				if(open) {
 					nextChannel = channel;
 					if(allowed) {
-						CHANNEL_NAME_HANDLE.setRelease(this, channel);
+						if(CHANNEL_NAME_HANDLE.compareAndExchangeRelease(this, prevChannel, channel) == prevChannel) {
+							break;
+						}
+					}else {
+						break;
 					}
 				}else {
 					prevChannel = null;
+					break;
 				}
 			}
 		}

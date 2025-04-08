@@ -8,13 +8,11 @@ import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuManager;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerEagler;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManagerX;
+import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewManager;
-import net.lax1dude.eaglercraft.backend.voice.api.IVoicePlayer;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 
-public interface IEaglerPlayer<PlayerObject>
-		extends IBasePlayer<PlayerObject>, IVoicePlayer<PlayerObject>, IEaglerLoginConnection {
+public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject>, IEaglerLoginConnection {
 
 	void sendEaglerMessage(GameMessagePacket packet);
 
@@ -32,7 +30,7 @@ public interface IEaglerPlayer<PlayerObject>
 
 	boolean hasVoiceManager();
 
-	IVoiceManagerX<PlayerObject> getVoiceManager();
+	IVoiceManager<PlayerObject> getVoiceManager();
 
 	default void setCookieData(byte[] data, long expiresAfter, TimeUnit timeUnit) {
 		setCookieData(data, timeUnit.toSeconds(expiresAfter), false, true);
