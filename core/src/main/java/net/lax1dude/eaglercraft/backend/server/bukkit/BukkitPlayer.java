@@ -2,6 +2,8 @@ package net.lax1dude.eaglercraft.backend.server.bukkit;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
@@ -19,6 +21,8 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 	private static final VarHandle CONFIRM_TASK_HANDLE;
 
 	private static final boolean PAPER_VIEW_DISTANCE_SUPPORT;
+	private static final Method PAPER_SET_VIEW_DISTANCE_SEND;
+	private static final Method PAPER_SET_VIEW_DISTANCE;
 
 	static {
 		try {
@@ -28,13 +32,25 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 			throw new ExceptionInInitializerError(e);
 		}
 		boolean support;
+		Method viewDistance;
+		Method viewDistanceSend;
 		try {
-			Player.class.getMethod("setSendViewDistance", int.class);
+			viewDistanceSend = Player.class.getMethod("setSendViewDistance", int.class);
+			viewDistance = null;
 			support = true;
 		}catch(NoSuchMethodException ex) {
-			support = false;
+			viewDistanceSend = null;
+			try {
+				viewDistance = Player.class.getMethod("setViewDistance", int.class);
+				support = true;
+			}catch(NoSuchMethodException exx) {
+				viewDistance = null;
+				support = false;
+			}
 		}
 		PAPER_VIEW_DISTANCE_SUPPORT = support;
+		PAPER_SET_VIEW_DISTANCE_SEND = viewDistanceSend;
+		PAPER_SET_VIEW_DISTANCE = viewDistance;
 	}
 
 	private final Player player;
@@ -112,8 +128,18 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 
 	@Override
 	public void setViewDistancePaper(int distance) {
-		if(PAPER_VIEW_DISTANCE_SUPPORT) {
-			player.setSendViewDistance(distance);
+		if(PAPER_SET_VIEW_DISTANCE_SEND != null) {
+			try {
+				PAPER_SET_VIEW_DISTANCE_SEND.invoke(player, distance);
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				throw new RuntimeException("Reflection failed!");
+			}
+		}else if(PAPER_SET_VIEW_DISTANCE != null) {
+			try {
+				PAPER_SET_VIEW_DISTANCE.invoke(player, distance);
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				throw new RuntimeException("Reflection failed!");
+			}
 		}
 	}
 
