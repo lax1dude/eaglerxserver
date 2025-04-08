@@ -91,32 +91,22 @@ public class ConfigDataSettings {
 		}
 
 		public boolean isEaglerHandshakeSupported(int vers) {
-			switch(vers) {
-			case 1:
-			case 2:
-				return protocolLegacyAllowed;
-			case 3:
-				return protocolV3Allowed;
-			case 4:
-				return protocolV4Allowed;
-			case 5:
-				return protocolV5Allowed;
-			default:
-				return false;
-			}
+			return switch(vers) {
+			case 1, 2 -> protocolLegacyAllowed;
+			case 3 -> protocolV3Allowed;
+			case 4 -> protocolV4Allowed;
+			case 5 -> protocolV5Allowed;
+			default -> false;
+			};
 		}
 
 		public boolean isEaglerProtocolSupported(int vers) {
-			switch(vers) {
-			case 3:
-				return protocolLegacyAllowed || protocolV3Allowed;
-			case 4:
-				return protocolV4Allowed;
-			case 5:
-				return protocolV5Allowed;
-			default:
-				return false;
-			}
+			return switch(vers) {
+			case 3 -> protocolLegacyAllowed || protocolV3Allowed;
+			case 4 -> protocolV4Allowed;
+			case 5 -> protocolV5Allowed;
+			default -> false;
+			};
 		}
 
 		public boolean isMinecraftProtocolSupported(int vers) {

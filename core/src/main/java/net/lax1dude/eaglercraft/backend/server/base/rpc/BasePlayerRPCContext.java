@@ -27,16 +27,11 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 
 	BasePlayerRPCContext(EaglerBackendRPCProtocol protocol, DataSerializationContext dataCtx) {
 		super(protocol, dataCtx);
-		switch(protocol) {
-		case V1:
-			packetHandler = new ServerV1RPCProtocolHandler(this);
-			break;
-		case V2:
-			packetHandler = new ServerV2RPCProtocolHandler(this);
-			break;
-		default:
-			throw new IllegalStateException();
-		}
+		packetHandler = switch(protocol) {
+		case V1 -> new ServerV1RPCProtocolHandler(this);
+		case V2 -> new ServerV2RPCProtocolHandler(this);
+		default -> throw new IllegalStateException();
+		};
 	}
 
 	protected abstract BasePlayerRPCManager<PlayerObject> manager();

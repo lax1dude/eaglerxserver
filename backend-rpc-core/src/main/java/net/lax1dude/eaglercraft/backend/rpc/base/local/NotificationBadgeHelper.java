@@ -7,31 +7,21 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketNotifBadg
 class NotificationBadgeHelper {
 
 	static EnumBadgePriority wrap(net.lax1dude.eaglercraft.backend.server.api.notifications.EnumBadgePriority priority) {
-		switch(priority) {
-		case HIGHEST:
-			return EnumBadgePriority.HIGHEST;
-		case HIGHER:
-			return EnumBadgePriority.HIGHER;
-		case NORMAL:
-		default:
-			return EnumBadgePriority.NORMAL;
-		case LOW:
-			return EnumBadgePriority.LOW;
-		}
+		return switch(priority) {
+		case HIGHEST -> EnumBadgePriority.HIGHEST;
+		case HIGHER -> EnumBadgePriority.HIGHER;
+		default -> EnumBadgePriority.NORMAL;
+		case LOW -> EnumBadgePriority.LOW;
+		};
 	}
 
 	static net.lax1dude.eaglercraft.backend.server.api.notifications.EnumBadgePriority unwrap(EnumBadgePriority priority) {
-		switch(priority) {
-		case HIGHEST:
-			return net.lax1dude.eaglercraft.backend.server.api.notifications.EnumBadgePriority.HIGHEST;
-		case HIGHER:
-			return net.lax1dude.eaglercraft.backend.server.api.notifications.EnumBadgePriority.HIGHER;
-		case NORMAL:
-		default:
-			return net.lax1dude.eaglercraft.backend.server.api.notifications.EnumBadgePriority.NORMAL;
-		case LOW:
-			return net.lax1dude.eaglercraft.backend.server.api.notifications.EnumBadgePriority.LOW;
-		}
+		return switch(priority) {
+		case HIGHEST -> net.lax1dude.eaglercraft.backend.server.api.notifications.EnumBadgePriority.HIGHEST;
+		case HIGHER -> net.lax1dude.eaglercraft.backend.server.api.notifications.EnumBadgePriority.HIGHER;
+		default -> net.lax1dude.eaglercraft.backend.server.api.notifications.EnumBadgePriority.NORMAL;
+		case LOW -> net.lax1dude.eaglercraft.backend.server.api.notifications.EnumBadgePriority.LOW;
+		};
 	}
 
 	static INotificationBadge wrap(SPacketNotifBadgeShowV4EAG badge, boolean managed) {

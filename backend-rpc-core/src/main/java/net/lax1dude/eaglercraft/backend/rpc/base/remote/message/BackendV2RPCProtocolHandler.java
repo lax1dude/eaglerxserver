@@ -39,20 +39,12 @@ public class BackendV2RPCProtocolHandler extends BackendRPCProtocolHandler {
 	}
 
 	public void handleServer(SPacketRPCResponseTypeVoiceStatus packet) {
-		EnumVoiceState state;
-		switch(packet.voiceState) {
-		case SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_SERVER_DISABLE:
-		default:
-			state = EnumVoiceState.SERVER_DISABLE;
-			break;
-		case SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_DISABLED:
-			state = EnumVoiceState.DISABLED;
-			break;
-		case SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_ENABLED:
-			state = EnumVoiceState.ENABLED;
-			break;
-		}
-		rpcContext.handleResponseComplete(packet.requestID, state);
+		rpcContext.handleResponseComplete(packet.requestID, switch(packet.voiceState) {
+		case SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_SERVER_DISABLE -> EnumVoiceState.SERVER_DISABLE;
+		case SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_DISABLED -> EnumVoiceState.DISABLED;
+		case SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_ENABLED -> EnumVoiceState.ENABLED;
+		default -> EnumVoiceState.SERVER_DISABLE;
+		});
 	}
 
 	public void handleServer(SPacketRPCResponseTypeError packet) {
@@ -81,15 +73,11 @@ public class BackendV2RPCProtocolHandler extends BackendRPCProtocolHandler {
 	}
 
 	private EnumVoiceState mapVoiceState(int i) {
-		switch(i) {
-		case SPacketRPCEventToggledVoice.VOICE_STATE_SERVER_DISABLE:
-		default:
-			return EnumVoiceState.SERVER_DISABLE;
-		case SPacketRPCEventToggledVoice.VOICE_STATE_DISABLED:
-			return EnumVoiceState.DISABLED;
-		case SPacketRPCEventToggledVoice.VOICE_STATE_ENABLED:
-			return EnumVoiceState.ENABLED;
-		}
+		return switch(i) {
+		default -> EnumVoiceState.SERVER_DISABLE;
+		case SPacketRPCEventToggledVoice.VOICE_STATE_DISABLED -> EnumVoiceState.DISABLED;
+		case SPacketRPCEventToggledVoice.VOICE_STATE_ENABLED -> EnumVoiceState.ENABLED;
+		};
 	}
 
 	public void handleServer(SPacketRPCResponseTypeBrandDataV2 packet) {

@@ -78,21 +78,12 @@ public class NotificationBuilder<ComponentObject> implements INotificationBuilde
 		}
 		originalTimestampSec = input.originalTimestampSec;
 		silent = input.silent;
-		switch(input.priority) {
-		case LOW:
-		default:
-			priority = EnumBadgePriority.LOW;
-			break;
-		case NORMAL:
-			priority = EnumBadgePriority.NORMAL;
-			break;
-		case HIGHER:
-			priority = EnumBadgePriority.HIGHER;
-			break;
-		case HIGHEST:
-			priority = EnumBadgePriority.HIGHEST;
-			break;
-		}
+		priority = switch(input.priority) {
+		case LOW -> EnumBadgePriority.LOW;
+		default -> EnumBadgePriority.NORMAL;
+		case HIGHER -> EnumBadgePriority.HIGHER;
+		case HIGHEST -> EnumBadgePriority.HIGHEST;
+		};
 		mainIconUUID = (input.mainIconUUIDMost != 0l || input.mainIconUUIDLeast != 0l)
 				? new UUID(input.mainIconUUIDMost, input.mainIconUUIDLeast) : null;
 		titleIconUUID = (input.titleIconUUIDMost != 0l || input.titleIconUUIDLeast != 0l)
@@ -327,21 +318,12 @@ public class NotificationBuilder<ComponentObject> implements INotificationBuilde
 				throw new IllegalStateException("Badge UUID cannot be 0!");
 			}
 			SPacketNotifBadgeShowV4EAG.EnumBadgePriority internalPriority;
-			switch(priority) {
-			case LOW:
-			default:
-				internalPriority = SPacketNotifBadgeShowV4EAG.EnumBadgePriority.LOW;
-				break;
-			case NORMAL:
-				internalPriority = SPacketNotifBadgeShowV4EAG.EnumBadgePriority.NORMAL;
-				break;
-			case HIGHER:
-				internalPriority = SPacketNotifBadgeShowV4EAG.EnumBadgePriority.HIGHER;
-				break;
-			case HIGHEST:
-				internalPriority = SPacketNotifBadgeShowV4EAG.EnumBadgePriority.HIGHEST;
-				break;
-			}
+			internalPriority = switch(priority) {
+			case LOW -> SPacketNotifBadgeShowV4EAG.EnumBadgePriority.LOW;
+			default -> SPacketNotifBadgeShowV4EAG.EnumBadgePriority.NORMAL;
+			case HIGHER -> SPacketNotifBadgeShowV4EAG.EnumBadgePriority.HIGHER;
+			case HIGHEST -> SPacketNotifBadgeShowV4EAG.EnumBadgePriority.HIGHEST;
+			};
 			String bodyComp = bodyComponent != null ? componentHelper.serializeLegacyJSON(bodyComponent) : "";
 			if(bodyComp.length() > 32767) {
 				throw new IllegalStateException("Body component is longer than 32767 chars serialized!");

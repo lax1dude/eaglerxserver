@@ -29,16 +29,12 @@ public class MessageControllerFactory {
 	}
 
 	private static ServerMessageHandler createHandler(int ver, EaglerPlayerInstance<?> instance) {
-		switch(ver) {
-		case 5:
-			return new ServerV5MessageHandler(instance);
-		case 4:
-			return new ServerV4MessageHandler(instance);
-		case 3:
-			return new ServerV3MessageHandler(instance);
-		default:
-			throw new IllegalStateException();
-		}
+		return switch(ver) {
+		case 5 -> new ServerV5MessageHandler(instance);
+		case 4 -> new ServerV4MessageHandler(instance);
+		case 3 -> new ServerV3MessageHandler(instance);
+		default -> throw new IllegalStateException();
+		};
 	}
 
 }

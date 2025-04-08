@@ -88,14 +88,11 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 
 	@Override
 	public EnumVoiceState getVoiceState() {
-		switch((int)STATE_HANDLE.getAcquire(this)) {
-		default:
-			return EnumVoiceState.SERVER_DISABLE;
-		case 1:
-			return EnumVoiceState.DISABLED;
-		case 2:
-			return EnumVoiceState.ENABLED;
-		}
+		return switch((int)STATE_HANDLE.getAcquire(this)) {
+		default -> EnumVoiceState.SERVER_DISABLE;
+		case 1 -> EnumVoiceState.DISABLED;
+		case 2 -> EnumVoiceState.ENABLED;
+		};
 	}
 
 	private boolean isVoiceEnabled() {

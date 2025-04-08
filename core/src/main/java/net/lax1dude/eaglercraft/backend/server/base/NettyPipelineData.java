@@ -183,22 +183,15 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 
 	@Override
 	public String getWebSocketHeader(EnumWebSocketHeader header) {
-		switch(header) {
-		case HEADER_HOST:
-			return headerHost;
-		case HEADER_ORIGIN:
-			return headerOrigin;
-		case HEADER_USER_AGENT:
-			return headerUserAgent;
-		case HEADER_COOKIE:
-			return headerCookie;
-		case HEADER_AUTHORIZATION:
-			return headerAuthorization;
-		case REQUEST_PATH:
-			return requestPath;
-		default:
-			return null;
-		}
+		return switch(header) {
+		case HEADER_HOST -> headerHost;
+		case HEADER_ORIGIN -> headerOrigin;
+		case HEADER_USER_AGENT -> headerUserAgent;
+		case HEADER_COOKIE -> headerCookie;
+		case HEADER_AUTHORIZATION -> headerAuthorization;
+		case REQUEST_PATH -> requestPath;
+		default -> null;
+		};
 	}
 
 	public void scheduleLoginTimeoutHelper() {

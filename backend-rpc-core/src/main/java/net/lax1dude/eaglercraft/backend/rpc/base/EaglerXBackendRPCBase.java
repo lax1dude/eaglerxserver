@@ -57,13 +57,10 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 		schedulerExecutors = new SchedulerExecutors(platform.getScheduler());
 		timeoutLoop = new FutureTimeoutLoop(platform.getScheduler());
 
-		switch(platform.getType()) {
-		case BUKKIT:
-			platformType = EnumPlatformType.BUKKIT;
-			break;
-		default:
-			throw new IllegalStateException();
-		}
+		platformType = switch(platform.getType()) {
+		case BUKKIT -> EnumPlatformType.BUKKIT;
+		default -> throw new IllegalStateException();
+		};
 
 		load0(platf);
 

@@ -119,11 +119,11 @@ public enum EaglerVCProtocol {
 	}
 
 	public static EaglerVCProtocol getByID(int id) {
-		switch(id) {
-		case 0: return INIT;
-		case 1: return V1;
-		default: return null;
-		}
+		return switch(id) {
+		case 0 -> INIT;
+		case 1 -> V1;
+		default -> null;
+		};
 	}
 
 }

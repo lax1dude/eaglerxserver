@@ -57,27 +57,19 @@ class SkinTypesHelper implements ISkinImageLoader {
 	}
 
 	static EnumEnableFNAW wrap(net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW en) {
-		switch(en) {
-		case DISABLED:
-		default:
-			return EnumEnableFNAW.DISABLED;
-		case ENABLED:
-			return EnumEnableFNAW.ENABLED;
-		case FORCED:
-			return EnumEnableFNAW.FORCED;
-		}
+		return switch(en) {
+		default -> EnumEnableFNAW.DISABLED;
+		case ENABLED -> EnumEnableFNAW.ENABLED;
+		case FORCED -> EnumEnableFNAW.FORCED;
+		};
 	}
 
 	static net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW unwrap(EnumEnableFNAW en) {
-		switch(en) {
-		case DISABLED:
-		default:
-			return net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW.DISABLED;
-		case ENABLED:
-			return net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW.ENABLED;
-		case FORCED:
-			return net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW.FORCED;
-		}
+		return switch(en) {
+		default -> net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW.DISABLED;
+		case ENABLED -> net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW.ENABLED;
+		case FORCED -> net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW.FORCED;
+		};
 	}
 
 	static class PlayerSkinLocal implements IEaglerPlayerSkin {

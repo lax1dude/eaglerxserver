@@ -26,21 +26,12 @@ class NotificationRPCHelper {
 			titleIconUUIDLeast = 0l;
 		}
 		EnumBadgePriority priority;
-		switch(packet.priority) {
-		case HIGHEST:
-			priority = EnumBadgePriority.HIGHEST;
-			break;
-		case HIGHER:
-			priority = EnumBadgePriority.HIGHER;
-			break;
-		case NORMAL:
-		default:
-			priority = EnumBadgePriority.NORMAL;
-			break;
-		case LOW:
-			priority = EnumBadgePriority.LOW;
-			break;
-		}
+		priority = switch(packet.priority) {
+		case HIGHEST -> EnumBadgePriority.HIGHEST;
+		case HIGHER ->  EnumBadgePriority.HIGHER;
+		default -> EnumBadgePriority.NORMAL;
+		case LOW -> EnumBadgePriority.LOW;
+		};
 		return new SPacketNotifBadgeShowV4EAG(badgeUUIDMost, badgeUUIDLeast, packet.bodyComponent,
 				packet.titleComponent, packet.sourceComponent, packet.originalTimestampSec, packet.silent, priority,
 				mainIconUUIDMost, mainIconUUIDLeast, titleIconUUIDMost, titleIconUUIDLeast, packet.hideAfterSec,

@@ -15,27 +15,21 @@ class VoiceChannelHelper {
 	}
 
 	static EnumVoiceState wrap(net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState state) {
-		switch(state) {
-		case SERVER_DISABLE:
-		default:
-			return EnumVoiceState.SERVER_DISABLE;
-		case DISABLED:
-			return EnumVoiceState.DISABLED;
-		case ENABLED:
-			return EnumVoiceState.ENABLED;
-		}
+		return switch(state) {
+		case SERVER_DISABLE -> EnumVoiceState.SERVER_DISABLE;
+		case DISABLED -> EnumVoiceState.DISABLED;
+		case ENABLED -> EnumVoiceState.ENABLED;
+		default -> EnumVoiceState.SERVER_DISABLE;
+		};
 	}
 
 	static net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState unwrap(EnumVoiceState state) {
-		switch(state) {
-		case SERVER_DISABLE:
-		default:
-			return net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState.SERVER_DISABLE;
-		case DISABLED:
-			return net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState.DISABLED;
-		case ENABLED:
-			return net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState.ENABLED;
-		}
+		return switch (state) {
+		case SERVER_DISABLE -> net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState.SERVER_DISABLE;
+		case DISABLED -> net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState.DISABLED;
+		case ENABLED -> net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState.ENABLED;
+		default -> net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState.SERVER_DISABLE;
+		};
 	}
 
 	static ICEServerEntry wrap(net.lax1dude.eaglercraft.backend.server.api.voice.ICEServerEntry etr) {

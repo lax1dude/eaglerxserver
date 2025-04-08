@@ -104,18 +104,11 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 		IVoiceManagerImpl<PlayerObject> voice = manager().getPlayer().getVoiceManager();
 		int response;
 		if(voice != null) {
-			switch(voice.getVoiceState()) {
-			case SERVER_DISABLE:
-			default:
-				response = SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_SERVER_DISABLE;
-				break;
-			case DISABLED:
-				response = SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_DISABLED;
-				break;
-			case ENABLED:
-				response = SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_ENABLED;
-				break;
-			}
+			response = switch(voice.getVoiceState()) {
+			default -> SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_SERVER_DISABLE;
+			case DISABLED -> SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_DISABLED;
+			case ENABLED -> SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_ENABLED;
+			};
 		}else {
 			response = SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_SERVER_DISABLE;
 		}
@@ -198,15 +191,11 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 	}
 
 	private int mapToggleVoice(EnumVoiceState state) {
-		switch(state) {
-		case SERVER_DISABLE:
-		default:
-			return SPacketRPCEventToggledVoice.VOICE_STATE_SERVER_DISABLE;
-		case DISABLED:
-			return SPacketRPCEventToggledVoice.VOICE_STATE_DISABLED;
-		case ENABLED:
-			return SPacketRPCEventToggledVoice.VOICE_STATE_ENABLED;
-		}
+		return switch(state) {
+		default -> SPacketRPCEventToggledVoice.VOICE_STATE_SERVER_DISABLE;
+		case DISABLED -> SPacketRPCEventToggledVoice.VOICE_STATE_DISABLED;
+		case ENABLED -> SPacketRPCEventToggledVoice.VOICE_STATE_ENABLED;
+		};
 	}
 
 	void handleSetPlayerCookie(byte[] cookieData, long expiresSec, boolean revokeQuerySupported, boolean saveToDisk) {

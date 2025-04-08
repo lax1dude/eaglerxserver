@@ -262,14 +262,11 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	private static final Function<IEaglercraftWebViewChannelEvent<?>, WebViewOpenCloseEvent> WEBVIEW_OPEN_CLOSE_CONV = (
 			evt2) -> {
-		switch (evt2.getType()) {
-		case CHANNEL_OPEN:
-			return WebViewOpenCloseEvent.create(evt2.getChannel(), true);
-		case CHANNEL_CLOSE:
-			return WebViewOpenCloseEvent.create(evt2.getChannel(), false);
-		default:
-			throw new IllegalStateException();
-		}
+		return switch (evt2.getType()) {
+		case CHANNEL_OPEN -> WebViewOpenCloseEvent.create(evt2.getChannel(), true);
+		case CHANNEL_CLOSE -> WebViewOpenCloseEvent.create(evt2.getChannel(), false);
+		default -> throw new IllegalStateException();
+		};
 	};
 
 	public void fireLocalWebViewChannel(IEaglercraftWebViewChannelEvent<PlayerObject> evt) {
@@ -281,14 +278,11 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	private static final Function<IEaglercraftWebViewMessageEvent<?>, WebViewMessageEvent> WEBVIEW_MESSAGE_CONV = (
 			evt2) -> {
-		switch (evt2.getType()) {
-		case STRING:
-			return WebViewMessageEvent.string(evt2.getChannel(), evt2.getAsBinary());
-		case BINARY:
-			return WebViewMessageEvent.binary(evt2.getChannel(), evt2.getAsBinary());
-		default:
-			throw new IllegalStateException();
-		}
+		return switch (evt2.getType()) {
+		case STRING -> WebViewMessageEvent.string(evt2.getChannel(), evt2.getAsBinary());
+		case BINARY -> WebViewMessageEvent.binary(evt2.getChannel(), evt2.getAsBinary());
+		default -> throw new IllegalStateException();
+		};
 	};
 
 	public void fireLocalWebViewMessage(IEaglercraftWebViewMessageEvent<PlayerObject> evt) {

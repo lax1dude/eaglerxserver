@@ -121,16 +121,12 @@ public class HandshakerV2 extends HandshakerV1 {
 	}
 
 	protected int getAuthTypeId(IEaglercraftAuthCheckRequiredEvent.EnumAuthType meth) {
-		switch(meth) {
-		case PLAINTEXT:
-			return 255; // plaintext authentication
-		case EAGLER_SHA256:
-			return 1; // eagler_sha256 authentication
-		case AUTHME_SHA256:
-			return 2; // authme_sha256 authentication
-		default:
-			return -1;
-		}
+		return switch(meth) {
+		case PLAINTEXT -> 255; // plaintext authentication
+		case EAGLER_SHA256 -> 1; // eagler_sha256 authentication
+		case AUTHME_SHA256 -> 2; // authme_sha256 authentication
+		default -> -1;
+		};
 	}
 
 }

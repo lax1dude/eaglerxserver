@@ -941,28 +941,20 @@ public class EaglerConfigLoader {
 	}
 
 	private static String mapPlatformName(EnumAdapterPlatformType platform) {
-		switch(platform) {
-		case BUNGEE:
-			return "BungeeCord";
-		case BUKKIT:
-			return "Bukkit";
-		case VELOCITY:
-			return "Velocity";
-		default:
-			return platform.name();
-		}
+		return switch(platform) {
+		case BUNGEE -> "BungeeCord";
+		case BUKKIT -> "Bukkit";
+		case VELOCITY -> "Velocity";
+		default -> platform.name();
+		};
 	}
 
 	private static String mapDefaultListener(EnumAdapterPlatformType platform) {
-		switch(platform) {
-		case BUNGEE:
-			return "0.0.0.0:25577";
-		case VELOCITY:
-		case BUKKIT:
-			return "0.0.0.0:25565";
-		default:
-			return "0.0.0.0:8081";
-		}
+		return switch(platform) {
+		case BUNGEE -> "0.0.0.0:25577";
+		case VELOCITY, BUKKIT -> "0.0.0.0:25565";
+		default -> "0.0.0.0:8081";
+		};
 	}
 
 	private static void extractDefaultPauseMenuAssets(File baseDir) throws IOException {

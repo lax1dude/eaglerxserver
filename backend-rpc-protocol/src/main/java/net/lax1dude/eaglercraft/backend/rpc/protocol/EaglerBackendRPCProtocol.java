@@ -194,12 +194,12 @@ public enum EaglerBackendRPCProtocol {
 	}
 
 	public static EaglerBackendRPCProtocol getByID(int id) {
-		switch(id) {
-		case 0: return INIT;
-		case 1: return V1;
-		case 2: return V2;
-		default: return null;
-		}
+		return switch(id) {
+		case 0 -> INIT;
+		case 1 -> V1;
+		case 2 -> V2;
+		default -> null;
+		};
 	}
 
 }
