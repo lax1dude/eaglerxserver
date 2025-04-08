@@ -50,6 +50,7 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	private String channelVoiceName;
 	private ConfigDataRoot config;
 	private IVoiceServiceImpl<PlayerObject> voiceService;
+	private boolean modernChannelNames;
 
 	@Override
 	protected void load0(Init<PlayerObject> platf) {
@@ -62,9 +63,7 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 			throw new IllegalStateException("Failed to read EaglerXBackendRPC config file!", ex);
 		}
 		
-		if(config.getConfigSettings().isForceModernizedChannelNames()) {
-			platform.setForcePost_v1_13(true);
-		}
+		modernChannelNames = platform.isPost_v1_13() || config.getConfigSettings().isForceModernizedChannelNames();
 		
 		platf.setOnServerEnable(this::enableHandler);
 		platf.setOnServerDisable(this::disableHandler);
@@ -77,7 +76,7 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 				new BackendRPCMessageChannel<PlayerObject>(EaglerVCProtocol.CHANNEL_NAME,
 						EaglerVCProtocol.CHANNEL_NAME_MODERN, this::handleVoiceMessage)));
 		
-		if(platform.isPost_v1_13()) {
+		if(modernChannelNames) {
 			logger().info("Using modernized 1.13+ channel names for RPC, make sure EaglerXServer is configured to use modernized channel names!");
 		}
 		
@@ -85,9 +84,9 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 		setBaseRequestTimeout(confBackendRPC.getBaseRequestTimeoutSec());
 		createTimeoutLoop((long)(1000000000.0 * confBackendRPC.getTimeoutResolutionSec()));
 		
-		channelRPCName = platform.isPost_v1_13() ? EaglerBackendRPCProtocol.CHANNEL_NAME_MODERN
+		channelRPCName = modernChannelNames ? EaglerBackendRPCProtocol.CHANNEL_NAME_MODERN
 				: EaglerBackendRPCProtocol.CHANNEL_NAME;
-		channelVoiceName = platform.isPost_v1_13() ? EaglerVCProtocol.CHANNEL_NAME_MODERN
+		channelVoiceName = modernChannelNames ? EaglerVCProtocol.CHANNEL_NAME_MODERN
 				: EaglerVCProtocol.CHANNEL_NAME;
 		
 		if(config.getConfigSettings().getConfigBackendVoice().isEnableBackendVoiceService()) {

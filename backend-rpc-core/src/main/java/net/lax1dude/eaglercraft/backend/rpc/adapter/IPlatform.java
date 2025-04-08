@@ -72,6 +72,4 @@ public interface IPlatform<PlayerObject> {
 
 	boolean isPost_v1_13();
 
-	void setForcePost_v1_13(boolean force);
-
 }

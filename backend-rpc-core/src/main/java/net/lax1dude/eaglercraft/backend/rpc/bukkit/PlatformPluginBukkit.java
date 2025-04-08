@@ -289,11 +289,6 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		return post_v1_13;
 	}
 
-	@Override
-	public void setForcePost_v1_13(boolean force) {
-		post_v1_13 = force;
-	}
-
 	private boolean checkPost_v1_13() {
 		String[] ver = getServer().getVersion().split("[\\.\\-]");
 		if(ver.length >= 2) {
