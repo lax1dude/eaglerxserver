@@ -12,7 +12,6 @@ repositories {
 
 dependencies {
     compileOnly project(":protocol-game")
-    compileOnly project(":voice-api")
     compileOnly project(":api")
     compileOnly project(":api-bukkit")
     compileOnly project(":api-bungee")

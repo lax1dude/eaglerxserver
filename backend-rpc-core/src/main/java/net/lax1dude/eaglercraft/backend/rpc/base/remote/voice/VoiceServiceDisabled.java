@@ -72,7 +72,7 @@ public class VoiceServiceDisabled<PlayerObject> implements IVoiceServiceImpl<Pla
 	}
 
 	private static RuntimeException disabledError() {
-		return new IllegalStateException("Voice service is disabled!");
+		return new IllegalStateException("RPC voice service is disabled!");
 	}
 
 }
