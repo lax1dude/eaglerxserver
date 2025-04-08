@@ -131,7 +131,7 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 	}
 
 	public final String getOpenChannel() {
-		return (String)CHANNEL_NAME_HANDLE.getAcquire(this);
+		return (String)CHANNEL_NAME_HANDLE.getOpaque(this);
 	}
 
 	private boolean validateChannel(String channelName) {
@@ -271,13 +271,13 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 		boolean allowed = open && isChannelAllowed();
 		for(;;) {
 			nextChannel = null;
-			prevChannel = (String)CHANNEL_NAME_HANDLE.getAcquire(this);
+			prevChannel = (String)CHANNEL_NAME_HANDLE.getOpaque(this);
 			if(channel.equals(prevChannel)) {
 				if(open) {
 					prevChannel = null;
 					break;
 				}else {
-					if(CHANNEL_NAME_HANDLE.compareAndExchangeRelease(this, prevChannel, null) == prevChannel) {
+					if(CHANNEL_NAME_HANDLE.compareAndExchange(this, prevChannel, null) == prevChannel) {
 						break;
 					}
 				}
@@ -285,7 +285,7 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 				if(open) {
 					nextChannel = channel;
 					if(allowed) {
-						if(CHANNEL_NAME_HANDLE.compareAndExchangeRelease(this, prevChannel, channel) == prevChannel) {
+						if(CHANNEL_NAME_HANDLE.compareAndExchange(this, prevChannel, channel) == prevChannel) {
 							break;
 						}
 					}else {

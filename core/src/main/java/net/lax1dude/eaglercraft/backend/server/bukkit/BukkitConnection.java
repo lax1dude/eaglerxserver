@@ -14,12 +14,12 @@ import net.md_5.bungee.api.chat.BaseComponent;
 
 class BukkitConnection implements IPlatformConnection {
 
-	private static final VarHandle PLAYER_INSTANCE_HANDLE;
+	private static final VarHandle LOGIN_CONNECTION_HANDLE;
 
 	static {
 		try {
 			MethodHandles.Lookup l = MethodHandles.lookup();
-			PLAYER_INSTANCE_HANDLE = l.findVarHandle(BukkitConnection.class, "playerInstance", Player.class);
+			LOGIN_CONNECTION_HANDLE = l.findVarHandle(BukkitConnection.class, "loginConnection", LoginConnectionHolder.class);
 		} catch (ReflectiveOperationException e) {
 			throw new ExceptionInInitializerError(e);
 		}
@@ -27,10 +27,10 @@ class BukkitConnection implements IPlatformConnection {
 
 	private final PlatformPluginBukkit plugin;
 	private LoginConnectionHolder loginConnection;
+	private Player playerInstance;
 	String texturesPropertyValue;
 	String texturesPropertySignature;
 	boolean eaglerPlayerProperty;
-	private volatile Player playerInstance;
 	Object attachment;
 
 	BukkitConnection(PlatformPluginBukkit plugin, LoginConnectionHolder loginConnection) {
@@ -39,8 +39,8 @@ class BukkitConnection implements IPlatformConnection {
 	}
 
 	void bindPlayer(Player player) {
-		PLAYER_INSTANCE_HANDLE.setVolatile(player);
-		loginConnection = null;
+		playerInstance = player;
+		LOGIN_CONNECTION_HANDLE.setRelease(this, null);
 	}
 
 	@Override
@@ -59,31 +59,46 @@ class BukkitConnection implements IPlatformConnection {
 
 	@Override
 	public String getUsername() {
-		Player player = (Player)PLAYER_INSTANCE_HANDLE.getAcquire(this);
+		Player player = playerInstance;
 		if(player != null) {
 			return player.getName();
 		}else {
-			return loginConnection.getUsername();
+			LoginConnectionHolder loginConn = (LoginConnectionHolder)LOGIN_CONNECTION_HANDLE.getAcquire(this);
+			if(loginConn == null) {
+				return playerInstance.getName();
+			}else {
+				return loginConn.getUsername();
+			}
 		}
 	}
 
 	@Override
 	public UUID getUniqueId() {
-		Player player = (Player)PLAYER_INSTANCE_HANDLE.getAcquire(this);
+		Player player = playerInstance;
 		if(player != null) {
 			return player.getUniqueId();
 		}else {
-			return loginConnection.getUniqueId();
+			LoginConnectionHolder loginConn = (LoginConnectionHolder)LOGIN_CONNECTION_HANDLE.getAcquire(this);
+			if(loginConn == null) {
+				return playerInstance.getUniqueId();
+			}else {
+				return loginConn.getUniqueId();
+			}
 		}
 	}
 
 	@Override
 	public SocketAddress getSocketAddress() {
-		Player player = (Player)PLAYER_INSTANCE_HANDLE.getAcquire(this);
+		Player player = playerInstance;
 		if(player != null) {
 			return player.getAddress();
 		}else {
-			return loginConnection.getRemoteAddress();
+			LoginConnectionHolder loginConn = (LoginConnectionHolder)LOGIN_CONNECTION_HANDLE.getAcquire(this);
+			if(loginConn == null) {
+				return playerInstance.getAddress();
+			}else {
+				return loginConn.getRemoteAddress();
+			}
 		}
 	}
 
@@ -99,33 +114,50 @@ class BukkitConnection implements IPlatformConnection {
 
 	@Override
 	public boolean isConnected() {
-		Player player = (Player)PLAYER_INSTANCE_HANDLE.getAcquire(this);
+		Player player = playerInstance;
 		if(player != null) {
 			Channel c = BukkitUnsafe.getPlayerChannel(player);
 			return c != null && c.isActive();
 		}else {
-			return loginConnection.isConnected();
+			LoginConnectionHolder loginConn = (LoginConnectionHolder)LOGIN_CONNECTION_HANDLE.getAcquire(this);
+			if(loginConn == null) {
+				player = playerInstance;
+				Channel c = BukkitUnsafe.getPlayerChannel(player);
+				return c != null && c.isActive();
+			}else {
+				return loginConn.isConnected();
+			}
 		}
 	}
 
 	@Override
 	public void disconnect() {
-		Player player = (Player)PLAYER_INSTANCE_HANDLE.getAcquire(this);
+		Player player = playerInstance;
 		if(player != null) {
 			player.kickPlayer("Connection Closed");
 		}else {
-			loginConnection.disconnect();
+			LoginConnectionHolder loginConn = (LoginConnectionHolder)LOGIN_CONNECTION_HANDLE.getAcquire(this);
+			if(loginConn == null) {
+				playerInstance.kickPlayer("Connection Closed");
+			}else {
+				loginConn.disconnect();
+			}
 		}
 	}
 
 	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
 		String msg = ((BaseComponent)kickMessage).toLegacyText();
-		Player player = (Player)PLAYER_INSTANCE_HANDLE.getAcquire(this);
+		Player player = playerInstance;
 		if(player != null) {
 			player.kickPlayer(msg);
 		}else {
-			loginConnection.disconnect(msg);
+			LoginConnectionHolder loginConn = (LoginConnectionHolder)LOGIN_CONNECTION_HANDLE.getAcquire(this);
+			if(loginConn == null) {
+				playerInstance.kickPlayer(msg);
+			}else {
+				loginConn.disconnect(msg);
+			}
 		}
 	}
 

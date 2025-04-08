@@ -17,7 +17,6 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.ByteStreams;
 
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.ICEServerEntry;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.config.ConfigDataSettings.ConfigDataBackendRPC;
@@ -27,19 +26,19 @@ public class BackendRPCConfigLoader {
 
 	@SuppressWarnings("unchecked")
 	public static ConfigDataRoot loadConfig(File dir) throws IOException {
-		if(!dir.isDirectory() && dir.mkdirs()) {
+		if(!dir.isDirectory() && !dir.mkdirs()) {
 			throw new IOException("Failed to create config directory: " + dir.getAbsolutePath());
 		}
 		Yaml yaml = new Yaml();
 		Map<String, Object> map = loadConfigFile(yaml, dir, "settings");
-		boolean forceModernized = Boolean.parseBoolean((String)map.getOrDefault("force_modernized_channel_names", "false"));
+		boolean forceModernized = (boolean)map.getOrDefault("force_modernized_channel_names", Boolean.FALSE);
 		Map<String, Object> mapRPC = (Map<String, Object>) map.get("backend_rpc");
-		int baseRequestTimeout = Integer.parseInt((String)mapRPC.getOrDefault("base_request_timeout_sec", "10"));
-		double timeoutResolutionSec = Double.parseDouble((String)mapRPC.getOrDefault("timeout_resolution_sec", "0.25"));
+		int baseRequestTimeout = ((Number)mapRPC.getOrDefault("base_request_timeout_sec", 10)).intValue();
+		double timeoutResolutionSec = ((Number)mapRPC.getOrDefault("timeout_resolution_sec", 0.25)).doubleValue();
 		Map<String, Object> mapVoice = (Map<String, Object>) map.get("backend_voice");
-		boolean backendVoice = Boolean.parseBoolean((String)mapVoice.getOrDefault("enable_backend_voice_service", "false"));
+		boolean backendVoice = (boolean)mapVoice.getOrDefault("enable_backend_voice_service", Boolean.FALSE);
 		map = loadConfigFile(yaml, dir, "ice_servers");
-		boolean replaceICE = Boolean.parseBoolean((String)map.getOrDefault("replace_ice_server_list", "false"));
+		boolean replaceICE = (boolean)map.getOrDefault("replace_ice_server_list", Boolean.FALSE);
 		ImmutableList.Builder<ICEServerEntry> builder = ImmutableList.builder();
 		List<Object> noPasswdList = (List<Object>) map.get("ice_servers_no_passwd");
 		for(Object obj : noPasswdList) {
@@ -60,9 +59,9 @@ public class BackendRPCConfigLoader {
 	private static Map<String, Object> loadConfigFile(Yaml yaml, File folder, String file) throws IOException {
 		File f = new File(folder, file + ".yml");
 		if(!f.isFile()) {
-			try (InputStream is = BackendRPCConfigLoader.class.getResourceAsStream(file + "_default.yml");
+			try (InputStream is = BackendRPCConfigLoader.class.getResourceAsStream("default_" + file + ".yml");
 					OutputStream os = new FileOutputStream(f)) {
-				ByteStreams.copy(is, os);
+				is.transferTo(os);
 			}
 		}
 		try(Reader reader = new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8)) {

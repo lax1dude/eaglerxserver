@@ -67,6 +67,7 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 		
 		platf.setOnServerEnable(this::enableHandler);
 		platf.setOnServerDisable(this::disableHandler);
+		platf.setPlayerInitializer(new BackendRPCPlayerInitializer<>(this));
 		InitRemoteMode<PlayerObject> platfRemote = platf.remoteMode();
 		platfRemote.setEaglerPlayerChannels(ImmutableList.of(
 				new BackendRPCMessageChannel<PlayerObject>(EaglerBackendRPCProtocol.CHANNEL_NAME,

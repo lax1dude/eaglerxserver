@@ -1,3 +1,3 @@
 replace_ice_server_list: false
 ice_servers_no_passwd: []
-ice_servers_passwd: {}
+ice_servers_passwd: []

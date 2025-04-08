@@ -84,9 +84,6 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 		}
 
 		void handleVoiceSignalPacketTypeConnect() {
-			if(!mgr.ratelimitCon()) {
-				return;
-			}
 			boolean empty = connectedPlayers.isEmpty();
 			if(connectedPlayers.putIfAbsent(selfUUID, this) != null) {
 				return;
@@ -155,9 +152,6 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 		}
 
 		void handleVoiceSignalPacketTypeRequest(UUID player) {
-			if(!mgr.ratelimitReqV5()) {
-				return;
-			}
 			Context other = connectedPlayers.get(player);
 			if(other != null && other != this) {
 				IVoiceState newState = null;
@@ -186,9 +180,6 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 		}
 
 		void handleVoiceSignalPacketTypeICE(UUID player, byte[] str) {
-			if(!mgr.ratelimitICE()) {
-				return;
-			}
 			Context other = connectedPlayers.get(player);
 			if(other != null && other != this) {
 				synchronized(this) {
@@ -202,9 +193,6 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 		}
 
 		void handleVoiceSignalPacketTypeDesc(UUID player, byte[] str) {
-			if(!mgr.ratelimitICE()) {
-				return;
-			}
 			Context other = connectedPlayers.get(player);
 			if(other != null && other != this) {
 				synchronized(this) {

@@ -239,19 +239,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 		}
 	}
 
-	boolean ratelimitCon() {
-		return true; //TODO
-	}
-
-	boolean ratelimitReqV5() {
-		return true; //TODO
-	}
-
-	boolean ratelimitICE() {
-		return true; //TODO
-	}
-
-	public void handlePlayerSignalPacketTypeConnect() {
+	void handlePlayerSignalPacketTypeConnect() {
 		VoiceChannel<PlayerObject>.Context ch = aquireActiveChannel();
 		if(ch != null) {
 			ch.handleVoiceSignalPacketTypeConnect();

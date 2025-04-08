@@ -93,7 +93,7 @@ class ResponseCache {
 		protected ResponseLoaderContext(int i) {
 			loaderBuffer = new byte[1024 * 1024];
 			thread = new Thread(() -> {
-				while((int)DISPOSED_HANDLE.getAcquire(ResponseCache.this) == 0) {
+				while((int)DISPOSED_HANDLE.getOpaque(ResponseCache.this) == 0) {
 					try {
 						ResponseLoaderRunnable runnable = null;
 						synchronized(queue) {
@@ -211,7 +211,7 @@ class ResponseCache {
 	}
 
 	void dispose() {
-		disposed = 1;
+		DISPOSED_HANDLE.setOpaque(this, 1);
 		synchronized(queue) {
 			queue.clear();
 			queue.notifyAll();

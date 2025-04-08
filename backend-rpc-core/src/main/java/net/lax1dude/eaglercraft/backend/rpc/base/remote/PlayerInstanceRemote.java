@@ -88,7 +88,7 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 
 	@Override
 	public boolean isRPCReady() {
-		return (int)READY_HANDLE.getAcquire(this) != 0;
+		return (int)READY_HANDLE.getOpaque(this) != 0;
 	}
 
 	@Override
@@ -150,7 +150,7 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 					return ret;
 				}
 				now = System.nanoTime();
-				isReady = (int)READY_HANDLE.getAcquire(this) != 0;
+				isReady = (int)READY_HANDLE.getOpaque(this) != 0;
 				future = ret = RPCActiveFuture.create(server.schedulerExecutors(), now, server.getBaseRequestTimeout());
 			}
 			if(isReady) {
@@ -256,7 +256,7 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 		}
 		RPCActiveFuture<IBasePlayerRPC<PlayerObject>> f;
 		synchronized(this) {
-			if((int)READY_HANDLE.compareAndExchangeAcquire(this, 0, 1) != 0) {
+			if((int)READY_HANDLE.compareAndExchange(this, 0, 1) != 0) {
 				return;
 			}
 			f = future;
