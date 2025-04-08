@@ -471,6 +471,14 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 				return;
 			}
 			
+			IPlatformPlayer<PlayerObject> platformPlayer = playerInstance.getPlatformPlayer();
+			if(platformPlayer.isSetViewDistanceSupportedPaper()) {
+				int distance = config.getSettings().getEaglerPlayersViewDistance();
+				if(distance > 0) {
+					platformPlayer.setViewDistancePaper(Math.max(distance, 3));
+				}
+			}
+			
 			onComplete.run();
 		});
 	}

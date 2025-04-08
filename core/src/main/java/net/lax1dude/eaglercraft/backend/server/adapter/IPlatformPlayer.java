@@ -26,6 +26,10 @@ public interface IPlatformPlayer<PlayerObject> extends IPlatformCommandSender<Pl
 
 	void sendDataBackend(String channel, byte[] message);
 
+	boolean isSetViewDistanceSupportedPaper();
+
+	void setViewDistancePaper(int distance);
+
 	void disconnect();
 
 	<ComponentObject> void disconnect(ComponentObject kickMessage);

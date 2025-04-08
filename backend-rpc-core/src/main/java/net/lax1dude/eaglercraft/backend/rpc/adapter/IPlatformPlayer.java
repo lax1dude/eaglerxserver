@@ -16,4 +16,8 @@ public interface IPlatformPlayer<PlayerObject> {
 
 	void sendData(String channel, byte[] message);
 
+	boolean isSetViewDistanceSupportedPaper();
+
+	void setViewDistancePaper(int distance);
+
 }

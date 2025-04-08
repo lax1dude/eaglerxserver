@@ -138,6 +138,14 @@ public class EaglerConfigLoader {
 				+ "plugin message packets. Enable this if you use Minecraft 1.13+ on your "
 				+ "backend Spigot servers."
 			);
+			int eaglerPlayersViewDistance = config.getInteger(
+				"eagler_players_view_distance", -1,
+				"Default value is -1, allows you to set a separate view distance to use for "
+				+ "Eaglercraft players, must be between 3 an 15 chunks or -1 to use the same "
+				+ "view distance as vanilla players. Only supported on Paper, if EaglerXServer "
+				+ "is installed on the BungeeCord/Velocity proxy then EaglerXBackendRPC is "
+				+ "required on the backend Paper servers for the setting to have any effect."
+			);
 			int protocolV4DefragSendDelay = config.getInteger(
 				"protocol_v4_defrag_send_delay", 10,
 				"Default value is 10, the number of milliseconds to wait before flushing all "
@@ -363,7 +371,7 @@ public class EaglerConfigLoader {
 			return new ConfigDataSettings(serverName, serverUUID, eaglerLoginTimeout, httpMaxInitialLineLength,
 					httpMaxHeaderSize, httpMaxChunkSize, httpMaxContentLength, httpWebSocketCompressionLevel,
 					httpWebSocketFragmentSize, httpWebSocketMaxFrameLength, tlsCertRefreshRate,
-					enableAuthenticationEvents, enableBackendRPCAPI, useModernizedChannelNames,
+					enableAuthenticationEvents, enableBackendRPCAPI, useModernizedChannelNames, eaglerPlayersViewDistance,
 					eaglerPlayersVanillaSkin, enableIsEaglerPlayerProperty, protocolV4DefragSendDelay,
 					new ConfigDataSettings.ConfigDataProtocols(minMinecraftProtocol, maxMinecraftProtocol,
 							eaglerXRewindAllowed, protocolLegacyAllowed, protocolV3Allowed, protocolV4Allowed,

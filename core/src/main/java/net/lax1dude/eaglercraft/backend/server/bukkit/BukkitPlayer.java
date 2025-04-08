@@ -18,6 +18,8 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 
 	private static final VarHandle CONFIRM_TASK_HANDLE;
 
+	private static final boolean PAPER_VIEW_DISTANCE_SUPPORT;
+
 	static {
 		try {
 			MethodHandles.Lookup l = MethodHandles.lookup();
@@ -25,6 +27,14 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 		} catch (ReflectiveOperationException e) {
 			throw new ExceptionInInitializerError(e);
 		}
+		boolean support;
+		try {
+			Player.class.getMethod("setSendViewDistance", int.class);
+			support = true;
+		}catch(NoSuchMethodException ex) {
+			support = false;
+		}
+		PAPER_VIEW_DISTANCE_SUPPORT = support;
 	}
 
 	private final Player player;
@@ -93,6 +103,18 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 	@Override
 	public void sendDataBackend(String channel, byte[] message) {
 		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean isSetViewDistanceSupportedPaper() {
+		return PAPER_VIEW_DISTANCE_SUPPORT;
+	}
+
+	@Override
+	public void setViewDistancePaper(int distance) {
+		if(PAPER_VIEW_DISTANCE_SUPPORT) {
+			player.setSendViewDistance(distance);
+		}
 	}
 
 	@Override

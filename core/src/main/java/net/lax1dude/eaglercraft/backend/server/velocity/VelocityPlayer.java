@@ -98,6 +98,15 @@ class VelocityPlayer implements IPlatformPlayer<Player> {
 	}
 
 	@Override
+	public boolean isSetViewDistanceSupportedPaper() {
+		return false;
+	}
+
+	@Override
+	public void setViewDistancePaper(int distance) {
+	}
+
+	@Override
 	public String getTexturesProperty() {
 		GameProfile profile = player.getGameProfile();
 		if(profile != null) {

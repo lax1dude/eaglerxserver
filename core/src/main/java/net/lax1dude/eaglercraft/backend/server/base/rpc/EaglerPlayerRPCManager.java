@@ -43,11 +43,9 @@ public class EaglerPlayerRPCManager<PlayerObject> extends BasePlayerRPCManager<P
 		handleEnableContext(new EaglerPlayerRPCContext<>(this, protocol));
 	}
 
-	private static final byte[] READY_DATA = new byte[] { 1 };
-
 	@Override
 	protected void sendReadyMessage() {
-		player.getPlatformPlayer().sendDataBackend(service.getReadyChannel(), READY_DATA);
+		int renderDistance = player.getEaglerXServer().getConfig().getSettings().getEaglerPlayersViewDistance();
+		player.getPlatformPlayer().sendDataBackend(service.getReadyChannel(), new byte[] { (byte) 1, (byte) renderDistance });
 	}
-
 }

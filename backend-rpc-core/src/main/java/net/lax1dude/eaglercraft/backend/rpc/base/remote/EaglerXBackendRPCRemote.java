@@ -145,7 +145,9 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	private void handleReadyMessage(IBackendRPCMessageChannel<PlayerObject> channel,
 			IPlatformPlayer<PlayerObject> player, byte[] contents) {
 		if(contents.length > 0) {
-			player.<PlayerInstanceRemote<PlayerObject>>getAttachment().handleReadyMessage(contents[0] != (byte)0);
+			boolean eagler = contents[0] != (byte)0;
+			int viewDistance = eagler ? (int)contents[1] : -1;
+			player.<PlayerInstanceRemote<PlayerObject>>getAttachment().handleReadyMessage(eagler, viewDistance);
 		}else {
 			logger().error("Zero-length ready plugin message recieved, you are most likely "
 					+ "still running the old EaglerXBungee/EaglerXVelocity plugin instead of "

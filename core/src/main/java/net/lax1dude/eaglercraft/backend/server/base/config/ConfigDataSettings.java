@@ -354,6 +354,7 @@ public class ConfigDataSettings {
 	private final boolean enableAuthenticationEvents;
 	private final boolean enableBackendRPCAPI;
 	private final boolean useModernizedChannelNames;
+	private final int eaglerPlayersViewDistance;
 	private final String eaglerPlayersVanillaSkin;
 	private final boolean enableIsEaglerPlayerPropery;
 	private final int protocolV4DefragSendDelay;
@@ -366,9 +367,9 @@ public class ConfigDataSettings {
 			int httpMaxHeaderSize, int httpMaxChunkSize, int httpMaxContentLength, int httpWebSocketCompressionLevel,
 			int httpWebSocketFragmentSize, int httpWebSocketMaxFrameLength, int tlsCertRefreshRate,
 			boolean enableAuthenticationEvents, boolean enableBackendRPCAPI, boolean useModernizedChannelNames,
-			String eaglerPlayersVanillaSkin, boolean enableIsEaglerPlayerPropery, int protocolV4DefragSendDelay,
-			ConfigDataProtocols protocols, ConfigDataSkinService skinService, ConfigDataVoiceService voiceService,
-			ConfigDataUpdateService updateService) {
+			int eaglerPlayersViewDistance, String eaglerPlayersVanillaSkin, boolean enableIsEaglerPlayerPropery,
+			int protocolV4DefragSendDelay, ConfigDataProtocols protocols, ConfigDataSkinService skinService,
+			ConfigDataVoiceService voiceService, ConfigDataUpdateService updateService) {
 		this.serverName = serverName;
 		this.serverUUID = serverUUID;
 		this.serverUUIDString = serverUUID.toString();
@@ -384,6 +385,7 @@ public class ConfigDataSettings {
 		this.enableAuthenticationEvents = enableAuthenticationEvents;
 		this.enableBackendRPCAPI = enableBackendRPCAPI;
 		this.useModernizedChannelNames = useModernizedChannelNames;
+		this.eaglerPlayersViewDistance = eaglerPlayersViewDistance;
 		this.eaglerPlayersVanillaSkin = eaglerPlayersVanillaSkin;
 		this.enableIsEaglerPlayerPropery = enableIsEaglerPlayerPropery;
 		this.protocolV4DefragSendDelay = protocolV4DefragSendDelay;
@@ -451,6 +453,10 @@ public class ConfigDataSettings {
 
 	public boolean isUseModernizedChannelNames() {
 		return useModernizedChannelNames;
+	}
+
+	public int getEaglerPlayersViewDistance() {
+		return eaglerPlayersViewDistance;
 	}
 
 	public String getEaglerPlayersVanillaSkin() {

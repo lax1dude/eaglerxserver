@@ -244,10 +244,15 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 		res.fireCompleteInternal(context);
 	}
 
-	void handleReadyMessage(boolean eagler) {
+	void handleReadyMessage(boolean eagler, int viewDistance) {
 		eaglerPlayer = eagler;
 		if(eagler) {
 			server.registerPlayerEagler(this);
+			if(viewDistance > 0) {
+				if(player.isSetViewDistanceSupportedPaper()) {
+					player.setViewDistancePaper(Math.max(viewDistance, 3));
+				}
+			}
 		}
 		RPCActiveFuture<IBasePlayerRPC<PlayerObject>> f;
 		synchronized(this) {

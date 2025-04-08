@@ -88,6 +88,15 @@ class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
 	}
 
 	@Override
+	public boolean isSetViewDistanceSupportedPaper() {
+		return false;
+	}
+
+	@Override
+	public void setViewDistancePaper(int distance) {
+	}
+
+	@Override
 	public String getTexturesProperty() {
 		return BungeeUnsafe.getTexturesProperty(player.getPendingConnection());
 	}
