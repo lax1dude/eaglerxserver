@@ -54,7 +54,7 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 		playerClass = platform.getPlayerClass();
 		playerClassSet = Collections.singleton(playerClass);
 
-		schedulerExecutors = new SchedulerExecutors(platform.getScheduler());
+		schedulerExecutors = new SchedulerExecutors(platform.getScheduler(), platform.logger());
 
 		platformType = switch(platform.getType()) {
 		case BUKKIT -> EnumPlatformType.BUKKIT;

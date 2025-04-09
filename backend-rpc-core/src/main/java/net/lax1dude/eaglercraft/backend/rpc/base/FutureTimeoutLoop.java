@@ -85,7 +85,7 @@ public class FutureTimeoutLoop {
 		TimeoutEvent te = timeoutEvents.compute(bucket, witness);
 		if(witness.schedule) {
 			long l = (bucket * resolution - now) / 1000000l;
-			scheduler.executeAsyncDelayed(te, l > 0l ? l : 1l);
+			scheduler.executeAsyncDelayed(te, l > 0l ? l : 0l);
 		}
 	}
 

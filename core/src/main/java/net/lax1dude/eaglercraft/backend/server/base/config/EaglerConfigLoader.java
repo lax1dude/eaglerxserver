@@ -156,9 +156,9 @@ public class EaglerConfigLoader {
 			);
 			IEaglerConfSection protocols = config.getSection("protocols");
 			int minMinecraftProtocol = protocols.getInteger(
-				"min_minecraft_protocol", 47,
-				"Default value is 47, sets the minimum Minecraft protocol version that "
-				+ "EaglercraftX-based clients are allowed to connect with (47 = 1.8)"
+				"min_minecraft_protocol", 3,
+				"Default value is 3, sets the minimum Minecraft protocol version that "
+				+ "EaglercraftX-based clients are allowed to connect with (3 = 1.7)"
 			);
 			int maxMinecraftProtocol = protocols.getInteger(
 				"max_minecraft_protocol", 340,

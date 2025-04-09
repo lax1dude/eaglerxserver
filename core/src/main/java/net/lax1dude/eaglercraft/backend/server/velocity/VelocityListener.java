@@ -15,6 +15,7 @@ import com.velocitypowered.api.event.connection.PreLoginEvent;
 import com.velocitypowered.api.event.permission.PermissionsSetupEvent;
 import com.velocitypowered.api.event.player.GameProfileRequestEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
+import com.velocitypowered.api.event.player.ServerPostConnectEvent;
 import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
 import com.velocitypowered.api.network.ListenerType;
 import com.velocitypowered.api.permission.PermissionSubject;
@@ -129,20 +130,16 @@ class VelocityListener {
 	}
 
 	@Subscribe(priority = Short.MAX_VALUE)
-	public void onServerConnected(ServerConnectedEvent connectEvent) {
+	public void onServerConnected(ServerPostConnectEvent connectEvent) {
+		RegisteredServer server = connectEvent.getPlayer().getCurrentServer().get().getServer();
 		IPlatformPlayer<Player> platformPlayer = plugin.getPlayer(connectEvent.getPlayer());
 		if(platformPlayer != null) {
-			RegisteredServer server = connectEvent.getServer();
 			IPlatformServer<Player> platformServer = null;
-			if(server != null) {
-				platformServer = plugin.getRegisteredServers().get(server.getServerInfo().getName());
-				if(platformServer == null) {
-					platformServer = new VelocityServer(plugin, server, false);
-				}
-				((VelocityPlayer)platformPlayer).server = platformServer;
-			}else {
-				((VelocityPlayer)platformPlayer).server = null;
+			platformServer = plugin.getRegisteredServers().get(server.getServerInfo().getName());
+			if(platformServer == null) {
+				platformServer = new VelocityServer(plugin, server, false);
 			}
+			((VelocityPlayer)platformPlayer).server = platformServer;
 			plugin.handleServerJoin(platformPlayer, platformServer);
 		}
 	}

@@ -49,32 +49,32 @@ class BukkitScheduler implements IPlatformScheduler {
 
 	@Override
 	public void executeDelayed(Runnable runnable, long delay) {
-		scheduler.runTaskLater(plugin, runnable, delay);
+		scheduler.runTaskLater(plugin, runnable, delay / 50l);
 	}
 
 	@Override
 	public void executeAsyncDelayed(Runnable runnable, long delay) {
-		scheduler.runTaskLaterAsynchronously(plugin, runnable, delay);
+		scheduler.runTaskLaterAsynchronously(plugin, runnable, delay / 50l);
 	}
 
 	@Override
 	public IPlatformTask executeDelayedTask(Runnable runnable, long delay) {
-		return new Task(scheduler.runTaskLater(plugin, runnable, delay), runnable);
+		return new Task(scheduler.runTaskLater(plugin, runnable, delay / 50l), runnable);
 	}
 
 	@Override
 	public IPlatformTask executeAsyncDelayedTask(Runnable runnable, long delay) {
-		return new Task(scheduler.runTaskLaterAsynchronously(plugin, runnable, delay), runnable);
+		return new Task(scheduler.runTaskLaterAsynchronously(plugin, runnable, delay / 50l), runnable);
 	}
 
 	@Override
 	public IPlatformTask executeRepeatingTask(Runnable runnable, long delay, long interval) {
-		return new Task(scheduler.runTaskTimer(plugin, runnable, delay, interval), runnable);
+		return new Task(scheduler.runTaskTimer(plugin, runnable, delay / 50l, interval / 50l), runnable);
 	}
 
 	@Override
 	public IPlatformTask executeAsyncRepeatingTask(Runnable runnable, long delay, long interval) {
-		return new Task(scheduler.runTaskTimerAsynchronously(plugin, runnable, delay, interval), runnable);
+		return new Task(scheduler.runTaskTimerAsynchronously(plugin, runnable, delay / 50l, interval / 50l), runnable);
 	}
 
 }

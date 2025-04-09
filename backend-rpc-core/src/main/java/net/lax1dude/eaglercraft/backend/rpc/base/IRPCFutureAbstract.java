@@ -16,4 +16,8 @@ public interface IRPCFutureAbstract<V> extends IRPCFuture<V> {
 		return getSchedulerExecutors().async;
 	}
 
+	default Executor getSchedulerTiny() {
+		return getSchedulerExecutors().tiny;
+	}
+
 }

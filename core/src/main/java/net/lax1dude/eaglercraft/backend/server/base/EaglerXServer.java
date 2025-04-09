@@ -59,7 +59,6 @@ import net.lax1dude.eaglercraft.backend.server.api.internal.factory.IEaglerAPIFa
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTHelper;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesProperty;
-import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorService;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandBrand;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandConfirmCode;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandDomain;
@@ -84,6 +83,8 @@ import net.lax1dude.eaglercraft.backend.server.base.rpc.BackendRPCService;
 import net.lax1dude.eaglercraft.backend.server.base.skins.ProfileResolver;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SimpleProfileCache;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinService;
+import net.lax1dude.eaglercraft.backend.server.base.supervisor.ISupervisorServiceImpl;
+import net.lax1dude.eaglercraft.backend.server.base.supervisor.SupervisorServiceDisabled;
 import net.lax1dude.eaglercraft.backend.server.base.update.IUpdateCertificateImpl;
 import net.lax1dude.eaglercraft.backend.server.base.update.UpdateCertificate;
 import net.lax1dude.eaglercraft.backend.server.base.update.UpdateService;
@@ -147,6 +148,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private PauseMenuService<PlayerObject> pauseMenuService;
 	private UpdateService updateService;
 	private BackendRPCService<PlayerObject> backendRPCService;
+	private ISupervisorServiceImpl<PlayerObject> supervisorService;
 
 	public EaglerXServer() {
 	}
@@ -263,6 +265,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		
 		if(config.getSettings().isEnableBackendRPCAPI() && platform.getType().proxy) {
 			backendRPCService = new BackendRPCService<>(this);
+		}
+		
+		if(config.getSupervisor().isEnableSupervisor()) {
+			//TODO
+		}else {
+			supervisorService = new SupervisorServiceDisabled<>(this);
 		}
 		
 		init.setOnServerEnable(this::enableHandler);
@@ -862,9 +870,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public ISupervisorService<PlayerObject> getSupervisorService() {
-		// TODO
-		return null;
+	public ISupervisorServiceImpl<PlayerObject> getSupervisorService() {
+		return supervisorService;
 	}
 
 	@Override
