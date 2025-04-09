@@ -389,6 +389,11 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	}
 
 	@Override
+	public String getVersion() {
+		return proxy.getVersion().getVersion();
+	}
+
+	@Override
 	public String getPluginId() {
 		return PLUGIN_ID;
 	}

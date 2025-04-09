@@ -58,6 +58,8 @@ public interface IPlatform<PlayerObject> {
 
 	EnumAdapterPlatformType getType();
 
+	String getVersion();
+
 	Class<PlayerObject> getPlayerClass();
 
 	String getPluginId();

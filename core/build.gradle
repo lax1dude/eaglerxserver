@@ -8,6 +8,7 @@ dependencies {
 	implementation project(":protocol-game")
 	implementation project(":backend-rpc-protocol")
 	implementation project(":voice-rpc-protocol")
+	implementation project(":supervisor-protocol")
 	implementation project(":api")
 	implementation project(":api-bukkit")
 	implementation project(":api-bungee")

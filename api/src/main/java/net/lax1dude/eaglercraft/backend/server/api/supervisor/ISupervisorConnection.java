@@ -10,6 +10,8 @@ public interface ISupervisorConnection extends INettyChannel {
 
 	int getProtocolVersion();
 
+	int getNodeId();
+
 	long getPing();
 
 }

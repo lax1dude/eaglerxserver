@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.supervisor;
 
+import java.util.UUID;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorConnection;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorRPCHandler;
@@ -66,6 +68,19 @@ public class SupervisorServiceDisabled<PlayerObject> implements ISupervisorServi
 
 	private static UnsupportedOperationException supervisorDisable() {
 		return new UnsupportedOperationException("Supervisor is not enabled!");
+	}
+
+	@Override
+	public void handleEnable() {
+	}
+
+	@Override
+	public void handleDisable() {
+	}
+
+	@Override
+	public boolean shouldIgnoreUUID(UUID uuid) {
+		return true;
 	}
 
 }

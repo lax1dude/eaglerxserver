@@ -372,6 +372,11 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	}
 
 	@Override
+	public String getVersion() {
+		return getServer().getVersion();
+	}
+
+	@Override
 	public String getPluginId() {
 		return getDescription().getName();
 	}

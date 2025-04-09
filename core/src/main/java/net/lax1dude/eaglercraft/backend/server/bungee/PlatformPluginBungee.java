@@ -351,6 +351,11 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	}
 
 	@Override
+	public String getVersion() {
+		return getProxy().getVersion();
+	}
+
+	@Override
 	public String getPluginId() {
 		return getDescription().getName();
 	}

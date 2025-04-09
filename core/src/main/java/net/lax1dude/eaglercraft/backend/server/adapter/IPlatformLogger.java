@@ -1,6 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.adapter;
 
-public interface IPlatformLogger {
+import net.lax1dude.eaglercraft.backend.supervisor.protocol.util.ILoggerSv;
+
+public interface IPlatformLogger extends ILoggerSv {
 
 	void info(String msg);
 
