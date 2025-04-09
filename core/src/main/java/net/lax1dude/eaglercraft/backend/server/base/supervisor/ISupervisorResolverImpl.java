@@ -15,16 +15,8 @@ public interface ISupervisorResolverImpl extends ISupervisorResolver {
 
 	void resolvePlayerBrandKeyed(UUID requester, Consumer<UUID> callback);
 
-	boolean onForeignSkinReceivedPreset(UUID playerUUID, int presetId);
+	boolean onForeignSkinReceived(UUID playerUUID, IEaglerPlayerSkin skin);
 
-	boolean onForeignSkinReceivedCustom(UUID playerUUID, int modelId, byte[] pixels);
-
-	boolean onForeignSkinReceivedError(UUID playerUUID);
-
-	boolean onForeignCapeReceivedPreset(UUID playerUUID, int presetId);
-
-	boolean onForeignCapeReceivedCustom(UUID playerUUID, byte[] pixels);
-
-	boolean onForeignCapeReceivedError(UUID playerUUID);
+	boolean onForeignCapeReceived(UUID playerUUID, IEaglerPlayerCape cape);
 
 }

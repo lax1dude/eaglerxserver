@@ -22,33 +22,35 @@ import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
+import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
+import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingCape;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingSkin;
 import net.lax1dude.eaglercraft.backend.server.util.KeyedConcurrentLazyLoader.KeyedConsumerList;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvGetClientBrandUUID;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvGetOtherCape;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvGetOtherSkin;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketInvalidatePlayerCacheV4EAG;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.SkinPacketVersionCache;
 
 public class SupervisorPlayer {
 
 	private final SupervisorService<?> controller;
 	private final UUID playerUUID;
 
-	private volatile int nodeId = -1;
+	private volatile int nodeId = -1; //TODO
 
-	private volatile UUID brandUUID = null;
+	private UUID brandUUID = null;
 	private KeyedConsumerList<UUID, UUID> waitingBrandCallbacks = null;
 
-	private volatile SkinPacketVersionCache skin = null;
+	private IEaglerPlayerSkin skin = null;
 	private final Object skinLock = new Object();
-	private KeyedConsumerList<UUID, SkinPacketVersionCache> waitingSkinCallbacks = null;
+	private KeyedConsumerList<UUID, IEaglerPlayerSkin> waitingSkinCallbacks = null;
 
-	private volatile GameMessagePacket cape = null;
+	private IEaglerPlayerCape cape = null;
 	private final Object capeLock = new Object();
-	private KeyedConsumerList<UUID, GameMessagePacket> waitingCapeCallbacks = null;
+	private KeyedConsumerList<UUID, IEaglerPlayerCape> waitingCapeCallbacks = null;
 
 	public SupervisorPlayer(SupervisorService<?> controller, UUID playerUUID) {
 		this.controller = controller;
@@ -96,8 +98,8 @@ public class SupervisorPlayer {
 		}
 	}
 
-	public void loadSkinData(UUID requester, Consumer<SkinPacketVersionCache> callback) {
-		SkinPacketVersionCache val = skin;
+	public void loadSkinData(UUID requester, Consumer<IEaglerPlayerSkin> callback) {
+		IEaglerPlayerSkin val = skin;
 		if(val != null) {
 			callback.accept(val);
 		}else {
@@ -125,8 +127,8 @@ public class SupervisorPlayer {
 		}
 	}
 
-	public void loadCapeData(UUID requester, Consumer<GameMessagePacket> callback) {
-		GameMessagePacket val = cape;
+	public void loadCapeData(UUID requester, Consumer<IEaglerPlayerCape> callback) {
+		IEaglerPlayerCape val = cape;
 		if(val != null) {
 			callback.accept(val);
 		}else {
@@ -154,8 +156,8 @@ public class SupervisorPlayer {
 		}
 	}
 
-	void onSkinReceived(SkinPacketVersionCache skin) {
-		KeyedConsumerList<UUID, SkinPacketVersionCache> toCall;
+	void onSkinReceived(IEaglerPlayerSkin skin) {
+		KeyedConsumerList<UUID, IEaglerPlayerSkin> toCall;
 		synchronized(skinLock) {
 			if(this.skin != null) {
 				return; // ignore multiple results
@@ -165,7 +167,7 @@ public class SupervisorPlayer {
 			waitingSkinCallbacks = null;
 		}
 		if(toCall != null) {
-			List<Consumer<SkinPacketVersionCache>> toCallList = toCall.getList();
+			List<Consumer<IEaglerPlayerSkin>> toCallList = toCall.getList();
 			for(int i = 0, l = toCallList.size(); i < l; ++i) {
 				try {
 					toCallList.get(i).accept(skin);
@@ -180,7 +182,7 @@ public class SupervisorPlayer {
 		if(nodeId == -1) {
 			controller.onDropPlayer(playerUUID);
 		}else {
-			KeyedConsumerList<UUID, SkinPacketVersionCache> toCall;
+			KeyedConsumerList<UUID, IEaglerPlayerSkin> toCall;
 			synchronized(skinLock) {
 				if(this.skin != null) {
 					return; // ignore multiple results
@@ -189,10 +191,10 @@ public class SupervisorPlayer {
 				waitingSkinCallbacks = null;
 			}
 			if(toCall != null) {
-				List<Consumer<SkinPacketVersionCache>> toCallList = toCall.getList();
+				List<Consumer<IEaglerPlayerSkin>> toCallList = toCall.getList();
 				for(int i = 0, l = toCallList.size(); i < l; ++i) {
 					try {
-						toCallList.get(i).accept(null);
+						toCallList.get(i).accept(MissingSkin.MISSING_SKIN);
 					}catch(Exception ex) {
 						controller.logger().error("Caught error from lazy load callback", ex);
 					}
@@ -201,8 +203,8 @@ public class SupervisorPlayer {
 		}
 	}
 
-	void onCapeReceived(GameMessagePacket cape) {
-		KeyedConsumerList<UUID, GameMessagePacket> toCall;
+	void onCapeReceived(IEaglerPlayerCape cape) {
+		KeyedConsumerList<UUID, IEaglerPlayerCape> toCall;
 		synchronized(capeLock) {
 			if(this.cape != null) {
 				return; // ignore multiple results
@@ -212,7 +214,7 @@ public class SupervisorPlayer {
 			waitingCapeCallbacks = null;
 		}
 		if(toCall != null) {
-			List<Consumer<GameMessagePacket>> toCallList = toCall.getList();
+			List<Consumer<IEaglerPlayerCape>> toCallList = toCall.getList();
 			for(int i = 0, l = toCallList.size(); i < l; ++i) {
 				try {
 					toCallList.get(i).accept(cape);
@@ -227,7 +229,7 @@ public class SupervisorPlayer {
 		if(nodeId == -1) {
 			controller.onDropPlayer(playerUUID);
 		}else {
-			KeyedConsumerList<UUID, GameMessagePacket> toCall;
+			KeyedConsumerList<UUID, IEaglerPlayerCape> toCall;
 			synchronized(capeLock) {
 				if(this.cape != null) {
 					return; // ignore multiple results
@@ -236,10 +238,10 @@ public class SupervisorPlayer {
 				waitingCapeCallbacks = null;
 			}
 			if(toCall != null) {
-				List<Consumer<GameMessagePacket>> toCallList = toCall.getList();
+				List<Consumer<IEaglerPlayerCape>> toCallList = toCall.getList();
 				for(int i = 0, l = toCallList.size(); i < l; ++i) {
 					try {
-						toCallList.get(i).accept(null);
+						toCallList.get(i).accept(MissingCape.MISSING_CAPE);
 					}catch(Exception ex) {
 						controller.logger().error("Caught error from lazy load callback", ex);
 					}
@@ -298,8 +300,8 @@ public class SupervisorPlayer {
 
 	void playerDropped() {
 		KeyedConsumerList<UUID, UUID> toCallA;
-		KeyedConsumerList<UUID, SkinPacketVersionCache> toCallB;
-		KeyedConsumerList<UUID, GameMessagePacket> toCallC;
+		KeyedConsumerList<UUID, IEaglerPlayerSkin> toCallB;
+		KeyedConsumerList<UUID, IEaglerPlayerCape> toCallC;
 		synchronized(this) {
 			toCallA = waitingBrandCallbacks;
 			waitingBrandCallbacks = null;
@@ -319,7 +321,7 @@ public class SupervisorPlayer {
 			waitingSkinCallbacks = null;
 		}
 		if(toCallB != null) {
-			List<Consumer<SkinPacketVersionCache>> toCallBList = toCallB.getList();
+			List<Consumer<IEaglerPlayerSkin>> toCallBList = toCallB.getList();
 			for(int i = 0, l = toCallBList.size(); i < l; ++i) {
 				try {
 					toCallBList.get(i).accept(null);
@@ -333,7 +335,7 @@ public class SupervisorPlayer {
 			waitingCapeCallbacks = null;
 		}
 		if(toCallC != null) {
-			List<Consumer<GameMessagePacket>> toCallCList = toCallC.getList();
+			List<Consumer<IEaglerPlayerCape>> toCallCList = toCallC.getList();
 			for(int i = 0, l = toCallCList.size(); i < l; ++i) {
 				try {
 					toCallCList.get(i).accept(null);

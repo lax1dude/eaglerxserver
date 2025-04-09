@@ -16,15 +16,18 @@
 
 package net.lax1dude.eaglercraft.backend.server.base.supervisor;
 
-import java.nio.charset.StandardCharsets;
-
-import net.lax1dude.eaglercraft.backend.supervisor.protocol.netty.SupervisorPacketHandler;
+import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
+import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.CustomCapeGeneric;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.CustomCapePlayer;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.CustomSkinGeneric;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.CustomSkinPlayer;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.InternUtils;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingCape;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingSkin;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.EaglerSupervisorHandler;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.*;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.server.*;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherCapeCustomEAG;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherCapePresetEAG;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.SkinPacketVersionCache;
 
 public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 
@@ -73,11 +76,11 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleServer(SPacketSvOtherSkinPreset pkt) {
 		SupervisorPlayer player = service.loadPlayerIfPresent(pkt.uuid);
+		IEaglerPlayerSkin skin = InternUtils.getPresetSkin(pkt.presetSkin);
 		if (player != null) {
-			player.onSkinReceived(SkinPacketVersionCache.createPreset(pkt.uuid.getMostSignificantBits(),
-					pkt.uuid.getLeastSignificantBits(), pkt.presetSkin));
+			player.onSkinReceived(skin);
 		}else {
-			if(!service.resolver.onForeignSkinReceivedPreset(pkt.uuid, pkt.presetSkin)) {
+			if(!service.resolver.onForeignSkinReceived(pkt.uuid, skin)) {
 				service.logger().warn("Received skin response from supervisor for unknown skin " + pkt.uuid);
 			}
 		}
@@ -87,10 +90,10 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 	public void handleServer(SPacketSvOtherSkinCustom pkt) {
 		SupervisorPlayer player = service.loadPlayerIfPresent(pkt.uuid);
 		if (player != null) {
-			player.onSkinReceived(SkinPacketVersionCache.createCustomV4(pkt.uuid.getMostSignificantBits(),
+			player.onSkinReceived(CustomSkinPlayer.createV4(pkt.uuid.getMostSignificantBits(),
 					pkt.uuid.getLeastSignificantBits(), pkt.model, pkt.customSkin));
 		}else {
-			if(!service.resolver.onForeignSkinReceivedCustom(pkt.uuid, pkt.model, pkt.customSkin)) {
+			if(!service.resolver.onForeignSkinReceived(pkt.uuid, CustomSkinGeneric.createV4(pkt.model, pkt.customSkin))) {
 				service.logger().warn("Received skin response from supervisor for unknown skin " + pkt.uuid);
 			}
 		}
@@ -102,7 +105,7 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 		if (player != null) {
 			player.onSkinError();
 		}else {
-			if(!service.resolver.onForeignSkinReceivedError(pkt.uuid)) {
+			if(!service.resolver.onForeignSkinReceived(pkt.uuid, MissingSkin.MISSING_SKIN)) {
 				service.logger().warn("Received skin error from supervisor for unknown skin " + pkt.uuid);
 			}
 		}
@@ -116,11 +119,11 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleServer(SPacketSvOtherCapePreset pkt) {
 		SupervisorPlayer player = service.loadPlayerIfPresent(pkt.uuid);
+		IEaglerPlayerCape cape = InternUtils.getPresetCape(pkt.presetCape);
 		if (player != null) {
-			player.onCapeReceived(new SPacketOtherCapePresetEAG(pkt.uuid.getMostSignificantBits(),
-					pkt.uuid.getLeastSignificantBits(), pkt.presetCape));
+			player.onCapeReceived(cape);
 		}else {
-			if(!service.resolver.onForeignCapeReceivedPreset(pkt.uuid, pkt.presetCape)) {
+			if(!service.resolver.onForeignCapeReceived(pkt.uuid, cape)) {
 				service.logger().warn("Received cape response from supervisor for unknown cape " + pkt.uuid);
 			}
 		}
@@ -130,10 +133,10 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 	public void handleServer(SPacketSvOtherCapeCustom pkt) {
 		SupervisorPlayer player = service.loadPlayerIfPresent(pkt.uuid);
 		if (player != null) {
-			player.onCapeReceived(new SPacketOtherCapeCustomEAG(pkt.uuid.getMostSignificantBits(),
+			player.onCapeReceived(new CustomCapePlayer(pkt.uuid.getMostSignificantBits(),
 					pkt.uuid.getLeastSignificantBits(), pkt.customCape));
 		}else {
-			if(!service.resolver.onForeignCapeReceivedCustom(pkt.uuid, pkt.customCape)) {
+			if(!service.resolver.onForeignCapeReceived(pkt.uuid, new CustomCapeGeneric(pkt.customCape))) {
 				service.logger().warn("Received cape response from supervisor for unknown cape " + pkt.uuid);
 			}
 		}
@@ -145,7 +148,7 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 		if (player != null) {
 			player.onCapeError();
 		}else {
-			if(!service.resolver.onForeignCapeReceivedError(pkt.uuid)) {
+			if(!service.resolver.onForeignCapeReceived(pkt.uuid, MissingCape.MISSING_CAPE)) {
 				service.logger().warn("Received cape error from supervisor for unknown cape " + pkt.uuid);
 			}
 		}

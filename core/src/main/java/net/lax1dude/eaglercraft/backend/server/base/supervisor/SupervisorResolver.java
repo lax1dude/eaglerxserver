@@ -108,37 +108,13 @@ public class SupervisorResolver<PlayerObject> implements ISupervisorResolverImpl
 	}
 
 	@Override
-	public boolean onForeignSkinReceivedPreset(UUID playerUUID, int presetId) {
+	public boolean onForeignSkinReceived(UUID playerUUID, IEaglerPlayerSkin skin) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public boolean onForeignSkinReceivedCustom(UUID playerUUID, int modelId, byte[] pixels) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean onForeignSkinReceivedError(UUID playerUUID) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean onForeignCapeReceivedPreset(UUID playerUUID, int presetId) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean onForeignCapeReceivedCustom(UUID playerUUID, byte[] pixels) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean onForeignCapeReceivedError(UUID playerUUID) {
+	public boolean onForeignCapeReceived(UUID playerUUID, IEaglerPlayerCape cape) {
 		// TODO Auto-generated method stub
 		return false;
 	}
