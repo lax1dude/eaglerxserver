@@ -35,6 +35,7 @@ public class PlayerInstance<PlayerObject> {
 	private double z = 0;
 	private float yaw = 0;
 	private float pitch = 0;
+	private boolean isSneaking = false;
 
 	private byte[] temp;
 
@@ -136,6 +137,14 @@ public class PlayerInstance<PlayerObject> {
 	public void setLook(float yaw, float pitch) {
 		this.yaw = yaw;
 		this.pitch = pitch;
+	}
+
+	public boolean isSneaking() {
+		return isSneaking;
+	}
+
+	public void setSneaking(boolean sneaking) {
+		this.isSneaking = sneaking;
 	}
 
 	public byte[] getTempBuffer() {

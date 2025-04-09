@@ -16,12 +16,10 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketVoiceSign
 
 public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Decoder<PlayerObject> {
 
-	// TODO: look into 0x0C Steer Vehicle
 	// TODO: rewrite to use individual named methods for each packet
-	// TODO: on sneak, if riding, dismount
 
 	@Override
-	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
 		int pktId = in.readUnsignedByte();
 		ByteBuf bb = null;
 		try {
@@ -49,12 +47,37 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					bb.writeBoolean(in.readBoolean());
 					break;
 				case 0x0B:
-					bb = ctx.alloc().buffer();
-					BufferUtils.writeVarInt(bb, 0x04);
 					double ppx = in.readDouble();
 					double ppy = in.readDouble();
-					in.readDouble();
+					double ppyf = in.readDouble();
 					double ppz = in.readDouble();
+					if (ppy == -999.0D && ppyf == -999.0D) {
+						bb = ctx.alloc().buffer();
+						BufferUtils.writeVarInt(bb, 0x0C);
+						double tmp0 = Math.toRadians(player().getYaw());
+						double tmpc = Math.cos(tmp0);
+						double tmps = Math.sin(tmp0);
+						double tmpx = ppx * tmpc + ppz * tmps;
+						double tmpz = -ppx * tmps + ppz * tmpc;
+						float tmpfx = (float) tmpx * 32.0F;
+						float tmpfz = (float) tmpz * 32.0F;
+						if (tmpfx > 1.0F) {
+							tmpfx = 1.0F;
+						} else if (tmpfx < -1.0F) {
+							tmpfx = -1.0F;
+						}
+						if (tmpfz > 1.0F) {
+							tmpfz = 1.0F;
+						} else if (tmpfz < -1.0F) {
+							tmpfz = -1.0F;
+						}
+						bb.writeFloat(tmpfx);
+						bb.writeFloat(tmpfz);
+						bb.writeByte(player().isSneaking() ? 0x02 : 0x00);
+						break;
+					}
+					bb = ctx.alloc().buffer();
+					BufferUtils.writeVarInt(bb, 0x04);
 					player().setPos(ppx, ppy, ppz);
 					bb.writeDouble(ppx);
 					bb.writeDouble(ppy);
@@ -72,14 +95,47 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					bb.writeBoolean(in.readBoolean());
 					break;
 				case 0x0D:
-					bb = ctx.alloc().buffer();
-					BufferUtils.writeVarInt(bb, 0x06);
 					double pplx = in.readDouble();
 					double pply = in.readDouble();
-					in.readDouble();
+					double pplyf = in.readDouble();
 					double pplz = in.readDouble();
 					float pplyaw = in.readFloat();
 					float pplpitch = in.readFloat();
+					boolean ong = in.readBoolean();
+					if (pply == -999.0D && pplyf == -999.0D) {
+						bb = ctx.alloc().buffer();
+						BufferUtils.writeVarInt(bb, 0x05);
+						player().setLook(pplyaw, pplpitch);
+						bb.writeFloat(pplyaw);
+						bb.writeFloat(pplpitch);
+						bb.writeBoolean(ong);
+						out.add(bb);
+						bb = ctx.alloc().buffer();
+						BufferUtils.writeVarInt(bb, 0x0C);
+						double tmp0 = Math.toRadians(pplyaw);
+						double tmpc = Math.cos(tmp0);
+						double tmps = Math.sin(tmp0);
+						double tmpx = pplx * tmpc + pplz * tmps;
+						double tmpz = -pplx * tmps + pplz * tmpc;
+						float tmpfx = (float) tmpx * 32.0F;
+						float tmpfz = (float) tmpz * 32.0F;
+						if (tmpfx > 1.0F) {
+							tmpfx = 1.0F;
+						} else if (tmpfx < -1.0F) {
+							tmpfx = -1.0F;
+						}
+						if (tmpfz > 1.0F) {
+							tmpfz = 1.0F;
+						} else if (tmpfz < -1.0F) {
+							tmpfz = -1.0F;
+						}
+						bb.writeFloat(tmpfx);
+						bb.writeFloat(tmpfz);
+						bb.writeByte(player().isSneaking() ? 0x02 : 0x00);
+						break;
+					}
+					bb = ctx.alloc().buffer();
+					BufferUtils.writeVarInt(bb, 0x06);
 					player().setPos(pplx, pply, pplz);
 					player().setLook(pplyaw, pplpitch);
 					bb.writeDouble(pplx);
@@ -87,7 +143,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					bb.writeDouble(pplz);
 					bb.writeFloat(pplyaw);
 					bb.writeFloat(pplpitch);
-					bb.writeBoolean(in.readBoolean());
+					bb.writeBoolean(ong);
 					break;
 				case 0x0E:
 					bb = ctx.alloc().buffer();
@@ -119,8 +175,14 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					bb = ctx.alloc().buffer();
 					BufferUtils.writeVarInt(bb, 0x0B);
 					BufferUtils.writeVarInt(bb, in.readInt());
-					BufferUtils.writeVarInt(bb, in.readUnsignedByte() - 1);
+					int action = in.readUnsignedByte() - 1;
+					BufferUtils.writeVarInt(bb, action);
 					BufferUtils.writeVarInt(bb, 0);
+					if (action == 0) {
+						player().setSneaking(true);
+					} else if (action == 1) {
+						player().setSneaking(false);
+					}
 					break;
 				case 0x65:
 					bb = ctx.alloc().buffer();
