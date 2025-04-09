@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentMap;
 import com.google.common.collect.ImmutableList;
 
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.EnumVoiceState;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.PlayerInstanceRemote;
 import net.lax1dude.eaglercraft.backend.voice.protocol.pkt.EaglerVCPacket;
@@ -88,6 +89,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 			if(connectedPlayers.putIfAbsent(selfUUID, this) != null) {
 				return;
 			}
+			mgr.onStateChanged(EnumVoiceState.ENABLED);
 			if(empty) {
 				return;
 			}
@@ -236,6 +238,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 			if(connectedPlayers.remove(selfUUID) == null) {
 				return;
 			}
+			mgr.onStateChanged(EnumVoiceState.DISABLED);
 			Object[] allPlayers = connectedPlayers.values().toArray();
 			int len = allPlayers.length;
 			Object[] toNotify;

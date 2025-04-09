@@ -10,6 +10,7 @@ import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCPacket;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.WrongRPCPacketException;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.*;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.*;
+import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
@@ -56,11 +57,7 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 		throw notEaglerPlayer();
 	}
 
-	void handleRequestOrigin(int requestID) {
-		throw notEaglerPlayer();
-	}
-
-	void handleRequestUserAgent(int requestID) {
+	void handleRequestHeader(int requestID, EnumWebSocketHeader header) {
 		throw notEaglerPlayer();
 	}
 

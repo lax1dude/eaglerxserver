@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.base.rpc;
 
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.*;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCResponseTypeError;
+import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 
 public class ServerV1RPCProtocolHandler extends ServerRPCProtocolHandler {
 
@@ -19,10 +20,10 @@ public class ServerV1RPCProtocolHandler extends ServerRPCProtocolHandler {
 				rpcContext.handleRequestRealIP(packet.requestID);
 				break;
 			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_ORIGIN:
-				rpcContext.handleRequestOrigin(packet.requestID);
+				rpcContext.handleRequestHeader(packet.requestID, EnumWebSocketHeader.HEADER_ORIGIN);
 				break;
 			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_USER_AGENT:
-				rpcContext.handleRequestUserAgent(packet.requestID);
+				rpcContext.handleRequestHeader(packet.requestID, EnumWebSocketHeader.HEADER_USER_AGENT);
 				break;
 			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_SKIN_DATA:
 				rpcContext.handleRequestSkinData(packet.requestID);

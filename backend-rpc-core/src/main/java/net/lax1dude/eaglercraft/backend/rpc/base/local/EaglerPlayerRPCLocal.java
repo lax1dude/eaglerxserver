@@ -12,6 +12,7 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import net.lax1dude.eaglercraft.backend.rpc.api.EnumCapabilitySpec;
 import net.lax1dude.eaglercraft.backend.rpc.api.EnumCapabilityType;
 import net.lax1dude.eaglercraft.backend.rpc.api.EnumSubscribeEvents;
+import net.lax1dude.eaglercraft.backend.rpc.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayerRPC;
 import net.lax1dude.eaglercraft.backend.rpc.api.IPacketImageData;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCEvent;
@@ -33,7 +34,6 @@ import net.lax1dude.eaglercraft.backend.rpc.api.webview.EnumWebViewPerms;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCEventBus;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCImmediateFuture;
 import net.lax1dude.eaglercraft.backend.rpc.base.local.NotificationBadgeHelper.NotificationBadgeLocal;
-import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftVoiceChangeEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChannelEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent;
@@ -114,35 +114,31 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	}
 
 	@Override
-	public IRPCFuture<String> getRealIP() {
+	public IRPCFuture<String> getRealAddress() {
 		return RPCImmediateFuture.create(schedulerExecutors, delegate.getRealAddress());
 	}
 
 	@Override
-	public IRPCFuture<String> getRealIP(int timeoutSec) {
-		return getRealIP();
+	public IRPCFuture<String> getRealAddress(int timeoutSec) {
+		return getRealAddress();
 	}
 
 	@Override
-	public IRPCFuture<String> getOrigin() {
-		return RPCImmediateFuture.create(schedulerExecutors,
-				delegate.getWebSocketHeader(EnumWebSocketHeader.HEADER_ORIGIN));
+	public IRPCFuture<String> getWebSocketHeader(EnumWebSocketHeader header) {
+		return RPCImmediateFuture.create(schedulerExecutors, switch(header) {
+		case HEADER_ORIGIN -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.REQUEST_PATH);
+		case HEADER_USER_AGENT -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.REQUEST_PATH);
+		case HEADER_HOST -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.REQUEST_PATH);
+		case HEADER_COOKIE -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.REQUEST_PATH);
+		case HEADER_AUTHORIZATION -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.REQUEST_PATH);
+		case REQUEST_PATH -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.REQUEST_PATH);
+		default -> null;
+		});
 	}
 
 	@Override
-	public IRPCFuture<String> getOrigin(int timeoutSec) {
-		return getOrigin();
-	}
-
-	@Override
-	public IRPCFuture<String> getUserAgent() {
-		return RPCImmediateFuture.create(schedulerExecutors,
-				delegate.getWebSocketHeader(EnumWebSocketHeader.HEADER_USER_AGENT));
-	}
-
-	@Override
-	public IRPCFuture<String> getUserAgent(int timeoutSec) {
-		return getUserAgent();
+	public IRPCFuture<String> getWebSocketHeader(EnumWebSocketHeader header, int timeoutSec) {
+		return getWebSocketHeader(header);
 	}
 
 	@Override

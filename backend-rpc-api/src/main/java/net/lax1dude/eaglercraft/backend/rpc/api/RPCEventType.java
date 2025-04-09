@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.rpc.api;
 
+import net.lax1dude.eaglercraft.backend.rpc.api.data.VoiceChangeEvent;
+import net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewMessageEvent;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewOpenCloseEvent;
 
 public final class RPCEventType<T extends IRPCEvent> {
@@ -7,10 +9,10 @@ public final class RPCEventType<T extends IRPCEvent> {
 	public static final RPCEventType<WebViewOpenCloseEvent> EVENT_WEBVIEW_OPEN_CLOSE = new RPCEventType<>(
 			EnumSubscribeEvents.EVENT_WEBVIEW_OPEN_CLOSE);
 
-	public static final RPCEventType<WebViewOpenCloseEvent> EVENT_WEBVIEW_MESSAGE = new RPCEventType<>(
+	public static final RPCEventType<WebViewMessageEvent> EVENT_WEBVIEW_MESSAGE = new RPCEventType<>(
 			EnumSubscribeEvents.EVENT_WEBVIEW_MESSAGE);
 
-	public static final RPCEventType<WebViewOpenCloseEvent> EVENT_TOGGLE_VOICE = new RPCEventType<>(
+	public static final RPCEventType<VoiceChangeEvent> EVENT_VOICE_CHANGE = new RPCEventType<>(
 			EnumSubscribeEvents.EVENT_VOICE_CHANGE);
 
 	private final EnumSubscribeEvents eventType;

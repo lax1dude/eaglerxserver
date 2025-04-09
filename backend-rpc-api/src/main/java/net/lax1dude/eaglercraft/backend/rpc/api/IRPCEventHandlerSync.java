@@ -17,10 +17,10 @@
 package net.lax1dude.eaglercraft.backend.rpc.api;
 
 public interface IRPCEventHandlerSync<PlayerObject, T extends IRPCEvent>
-		extends IRPCEventHandler<PlayerObject, IRPCEvent> {
+		extends IRPCEventHandler<PlayerObject, T> {
 
-	default boolean isAsync() {
-		return false;
+	default EnumExecutorType getExecutor() {
+		return EnumExecutorType.SYNC;
 	}
 
 }

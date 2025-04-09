@@ -16,11 +16,11 @@
 
 package net.lax1dude.eaglercraft.backend.rpc.api;
 
-public interface IRPCEventHandlerAsync<PlayerObject, T extends IRPCEvent>
+public interface IRPCEventHandlerTiny<PlayerObject, T extends IRPCEvent>
 		extends IRPCEventHandler<PlayerObject, T> {
 
 	default EnumExecutorType getExecutor() {
-		return EnumExecutorType.ASYNC;
+		return EnumExecutorType.TINY;
 	}
 
 }

@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.rpc.base.remote.message;
 
+import java.util.Collections;
+
 import net.lax1dude.eaglercraft.backend.rpc.api.data.BrandData;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.CookieData;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.VoiceChangeEvent;
@@ -87,7 +89,7 @@ public class BackendV2RPCProtocolHandler extends BackendRPCProtocolHandler {
 
 	public void handleServer(SPacketRPCResponseTypeWebViewStatusV2 packet) {
 		rpcContext.handleResponseComplete(packet.requestID, WebViewStateData.create(packet.webViewAllowed,
-				packet.channelAllowed, packet.openChannels));
+				packet.channelAllowed, packet.openChannels != null ? packet.openChannels : Collections.emptyList()));
 	}
 
 	public void handleServer(SPacketRPCResponseTypeIntegerSingleV2 packet) {

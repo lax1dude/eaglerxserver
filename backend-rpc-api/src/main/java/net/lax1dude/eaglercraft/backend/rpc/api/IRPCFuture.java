@@ -29,20 +29,20 @@ public interface IRPCFuture<V> extends ListenableFuture<V> {
 		addListener(runnable, getSchedulerTiny());
 	}
 
-	default void addCallback(FutureCallback<V> runnable, Executor executor) {
-		Futures.addCallback(this, runnable, executor);
+	default void addCallback(FutureCallback<V> callback, Executor executor) {
+		Futures.addCallback(this, callback, executor);
 	}
 
-	default void addCallback(FutureCallback<V> runnable) {
-		Futures.addCallback(this, runnable, getScheduler());
+	default void addCallback(FutureCallback<V> callback) {
+		Futures.addCallback(this, callback, getScheduler());
 	}
 
-	default void addCallbackAsync(FutureCallback<V> runnable) {
-		Futures.addCallback(this, runnable, getSchedulerAsync());
+	default void addCallbackAsync(FutureCallback<V> callback) {
+		Futures.addCallback(this, callback, getSchedulerAsync());
 	}
 
-	default void addCallbackTiny(FutureCallback<V> runnable) {
-		Futures.addCallback(this, runnable, getSchedulerTiny());
+	default void addCallbackTiny(FutureCallback<V> callback) {
+		Futures.addCallback(this, callback, getSchedulerTiny());
 	}
 
 	boolean isTimedOut();

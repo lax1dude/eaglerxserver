@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.base.rpc;
 
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.*;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCResponseTypeError;
+import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
 import net.lax1dude.eaglercraft.backend.server.api.webview.EnumWebViewPerms;
 
@@ -33,7 +34,19 @@ public class ServerV2RPCProtocolHandler extends ServerV1RPCProtocolHandler {
 				rpcContext.handleRequestAuthUsername(packet.requestID);
 				return;
 			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_WEBVIEW_STATUS_V2:
-				rpcContext.handleRequestWebViewStatus(packet.requestID);
+				rpcContext.handleRequestWebViewStatusV2(packet.requestID);
+				return;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_HEADER_HOST:
+				rpcContext.handleRequestHeader(packet.requestID, EnumWebSocketHeader.HEADER_HOST);
+				return;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_HEADER_COOKIE:
+				rpcContext.handleRequestHeader(packet.requestID, EnumWebSocketHeader.HEADER_COOKIE);
+				return;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_HEADER_AUTHORIZATION:
+				rpcContext.handleRequestHeader(packet.requestID, EnumWebSocketHeader.HEADER_AUTHORIZATION);
+				return;
+			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REQUEST_PATH:
+				rpcContext.handleRequestHeader(packet.requestID, EnumWebSocketHeader.REQUEST_PATH);
 				return;
 			}
 		}catch(Exception ex) {

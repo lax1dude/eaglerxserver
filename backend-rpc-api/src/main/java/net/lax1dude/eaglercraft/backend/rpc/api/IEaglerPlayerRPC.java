@@ -35,23 +35,17 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 
 	int getExtendedCapability(UUID extendedCapability);
 
-	default IRPCFuture<String> getRealIP() {
-		return getRealIP(getBaseRequestTimeout());
+	default IRPCFuture<String> getRealAddress() {
+		return getRealAddress(getBaseRequestTimeout());
 	}
 
-	IRPCFuture<String> getRealIP(int timeoutSec);
+	IRPCFuture<String> getRealAddress(int timeoutSec);
 
-	default IRPCFuture<String> getOrigin() {
-		return getOrigin(getBaseRequestTimeout());
+	default IRPCFuture<String> getWebSocketHeader(EnumWebSocketHeader header) {
+		return getWebSocketHeader(header, getBaseRequestTimeout());
 	}
 
-	IRPCFuture<String> getOrigin(int timeoutSec);
-
-	default IRPCFuture<String> getUserAgent() {
-		return getUserAgent(getBaseRequestTimeout());
-	}
-
-	IRPCFuture<String> getUserAgent(int timeoutSec);
+	IRPCFuture<String> getWebSocketHeader(EnumWebSocketHeader header, int timeoutSec);
 
 	default IRPCFuture<CookieData> getCookieData() {
 		return getCookieData(getBaseRequestTimeout());
@@ -108,6 +102,10 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 	}
 
 	default <T extends IRPCEvent> void addEventListenerAsync(RPCEventType<T> eventType, IRPCEventHandlerAsync<PlayerObject, T> handler) {
+		addGenericEventListener(eventType.getEventType(), handler);
+	}
+
+	default <T extends IRPCEvent> void addEventListenerTiny(RPCEventType<T> eventType, IRPCEventHandlerTiny<PlayerObject, T> handler) {
 		addGenericEventListener(eventType.getEventType(), handler);
 	}
 

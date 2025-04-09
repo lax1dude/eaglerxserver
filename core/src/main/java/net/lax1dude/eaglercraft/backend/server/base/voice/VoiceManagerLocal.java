@@ -173,7 +173,11 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 		}
 	}
 
-	private void onStateChanged() {
+	void onStateChanged() {
+		onStateChanged(getVoiceState());
+	}
+
+	void onStateChanged(EnumVoiceState state) {
 		EnumVoiceState newState = getVoiceState();
 		EnumVoiceState oldState = (EnumVoiceState) LAST_STATE_HANDLE.getAndSet(this, newState);
 		if(newState != oldState) {

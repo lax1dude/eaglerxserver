@@ -58,19 +58,10 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 		}
 	}
 
-	void handleRequestOrigin(int requestID) {
-		String origin = manager().getPlayer().getWebSocketHeader(EnumWebSocketHeader.HEADER_ORIGIN);
-		if(origin != null) {
-			sendRPCPacket(new SPacketRPCResponseTypeString(requestID, origin));
-		}else {
-			sendRPCPacket(new SPacketRPCResponseTypeNull(requestID));
-		}
-	}
-
-	void handleRequestUserAgent(int requestID) {
-		String origin = manager().getPlayer().getWebSocketHeader(EnumWebSocketHeader.HEADER_USER_AGENT);
-		if(origin != null) {
-			sendRPCPacket(new SPacketRPCResponseTypeString(requestID, origin));
+	void handleRequestHeader(int requestID, EnumWebSocketHeader header) {
+		String str = manager().getPlayer().getWebSocketHeader(header);
+		if(str != null) {
+			sendRPCPacket(new SPacketRPCResponseTypeString(requestID, str));
 		}else {
 			sendRPCPacket(new SPacketRPCResponseTypeNull(requestID));
 		}
@@ -247,6 +238,7 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 	}
 
 	void handleNotifIconRegister(Collection<CPacketRPCNotifIconRegister.RegisterIcon> icons) {
+		if(icons.isEmpty()) return;
 		NotificationManagerPlayer<PlayerObject> notifManager = manager().getPlayer().getNotificationManager();
 		if(notifManager != null) {
 			int l = icons.size();
@@ -256,7 +248,7 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 				if(i >= l) {
 					break;
 				}
-				arr[i] = new SPacketNotifIconsRegisterV4EAG.CreateIcon(etr.uuid.getMostSignificantBits(),
+				arr[i++] = new SPacketNotifIconsRegisterV4EAG.CreateIcon(etr.uuid.getMostSignificantBits(),
 						etr.uuid.getLeastSignificantBits(), TextureDataHelper.packetImageDataRPCToCore(etr.image));
 			}
 			if(i != l) {
@@ -267,6 +259,7 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 	}
 
 	void handleNotifIconRelease(Collection<UUID> icons) {
+		if(icons.isEmpty()) return;
 		NotificationManagerPlayer<PlayerObject> notifManager = manager().getPlayer().getNotificationManager();
 		if(notifManager != null) {
 			notifManager.releaseUnmanagedNotificationIcons(icons);

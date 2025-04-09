@@ -13,6 +13,7 @@ import com.google.common.collect.ImmutableMap;
 import net.lax1dude.eaglercraft.backend.rpc.api.EnumCapabilitySpec;
 import net.lax1dude.eaglercraft.backend.rpc.api.EnumCapabilityType;
 import net.lax1dude.eaglercraft.backend.rpc.api.EnumSubscribeEvents;
+import net.lax1dude.eaglercraft.backend.rpc.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayerRPC;
 import net.lax1dude.eaglercraft.backend.rpc.api.IPacketImageData;
@@ -31,6 +32,7 @@ import net.lax1dude.eaglercraft.backend.rpc.api.voice.EnumVoiceState;
 import net.lax1dude.eaglercraft.backend.rpc.api.webview.EnumWebViewPerms;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCEventBus;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCFailedFuture;
+import net.lax1dude.eaglercraft.backend.rpc.base.RPCImmediateFuture;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCRequestFuture;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.util.DataSerializationContext;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.util.Util;
@@ -48,6 +50,7 @@ import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCResetP
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSendWebViewMessage;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSetPlayerCookie;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSetPlayerFNAWEn;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSubscribeEvents;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCEnabledSuccessEaglerV2;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCEnabledSuccessEaglerV2.ExtCapability;
 
@@ -143,7 +146,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	}
 
 	@Override
-	public IRPCFuture<String> getRealIP(int timeoutSec) {
+	public IRPCFuture<String> getRealAddress(int timeoutSec) {
 		if(open) {
 			RPCRequestFuture<String> ret = createRequest(timeoutSec);
 			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
@@ -155,23 +158,33 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	}
 
 	@Override
-	public IRPCFuture<String> getOrigin(int timeoutSec) {
+	public IRPCFuture<String> getWebSocketHeader(EnumWebSocketHeader header, int timeoutSec) {
 		if(open) {
+			int type;
+			switch(header) {
+			case HEADER_ORIGIN:
+				type = CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_ORIGIN;
+				break;
+			case HEADER_USER_AGENT:
+				type = CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_USER_AGENT;
+				break;
+			case HEADER_HOST:
+				type = CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_HEADER_HOST;
+				break;
+			case HEADER_COOKIE:
+				type = CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_HEADER_COOKIE;
+				break;
+			case HEADER_AUTHORIZATION:
+				type = CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_HEADER_AUTHORIZATION;
+				break;
+			case REQUEST_PATH:
+				type = CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REQUEST_PATH;
+				break;
+			default:
+				return RPCImmediateFuture.create(getServerAPI().schedulerExecutors(), (String) null);
+			}
 			RPCRequestFuture<String> ret = createRequest(timeoutSec);
-			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
-					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_ORIGIN));
-			return ret;
-		}else {
-			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
-		}
-	}
-
-	@Override
-	public IRPCFuture<String> getUserAgent(int timeoutSec) {
-		if(open) {
-			RPCRequestFuture<String> ret = createRequest(timeoutSec);
-			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
-					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_USER_AGENT));
+			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(), type));
 			return ret;
 		}else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
@@ -253,22 +266,34 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	}
 
 	@Override
-	public synchronized void addGenericEventListener(EnumSubscribeEvents eventType,
+	public void addGenericEventListener(EnumSubscribeEvents eventType,
 			IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler) {
-		RPCEventBus<PlayerObject> eventBus = this.eventBus;
-		if (eventBus == null) {
-			eventBus = new RPCEventBus<PlayerObject>(this,
-					((EaglerXBackendRPCRemote<PlayerObject>) getServerAPI()).getPlatform().getScheduler());
-			int i = eventBus.addEventListener(eventType, handler);
-			if(i > 0) {
-				this.eventBus = eventBus;
-				subscribedEvents = i;
+		int i;
+		synchronized(this) {
+			RPCEventBus<PlayerObject> eventBus = this.eventBus;
+			if (eventBus == null) {
+				eventBus = new RPCEventBus<PlayerObject>(this,
+						((EaglerXBackendRPCRemote<PlayerObject>) getServerAPI()).getPlatform().getScheduler());
+				i = eventBus.addEventListener(eventType, handler);
+				if(i > 0) {
+					this.eventBus = eventBus;
+					subscribedEvents = i;
+				}else {
+					return;
+				}
+			}else {
+				i = eventBus.addEventListener(eventType, handler);
+				if(i != -1) {
+					subscribedEvents = i;
+				}else {
+					return;
+				}
 			}
+		}
+		if(open) {
+			writeOutboundPacket(new CPacketRPCSubscribeEvents(i));
 		}else {
-			int i = eventBus.addEventListener(eventType, handler);
-			if(i != -1) {
-				subscribedEvents = i;
-			}
+			printClosedError();
 		}
 	}
 

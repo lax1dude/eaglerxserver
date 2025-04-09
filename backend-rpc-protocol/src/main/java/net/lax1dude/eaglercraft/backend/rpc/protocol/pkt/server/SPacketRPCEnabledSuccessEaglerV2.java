@@ -76,7 +76,11 @@ public class SPacketRPCEnabledSuccessEaglerV2 implements EaglerBackendRPCPacket 
 		supervisorNode = buffer.readInt();
 		eaglerHandshake = buffer.readUnsignedShort();
 		eaglerProtocol = buffer.readUnsignedShort();
-		eaglerRewindProtocol = buffer.readUnsignedByte();
+		int rw = buffer.readUnsignedByte();
+		if(rw == 255) {
+			rw = -1;
+		}
+		eaglerRewindProtocol = rw;
 		eaglerStandardCaps = buffer.readInt();
 		eaglerStandardCapsVersions = new byte[Integer.bitCount(eaglerStandardCaps)];
 		buffer.readFully(eaglerStandardCapsVersions);

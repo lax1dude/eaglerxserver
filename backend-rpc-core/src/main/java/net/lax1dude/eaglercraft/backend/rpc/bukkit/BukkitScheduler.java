@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.rpc.bukkit;
 
+import org.bukkit.Server;
 import org.bukkit.scheduler.BukkitTask;
 
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformScheduler;
@@ -8,6 +9,7 @@ import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformTask;
 class BukkitScheduler implements IPlatformScheduler {
 
 	private final PlatformPluginBukkit plugin;
+	private final Server server;
 	private final org.bukkit.scheduler.BukkitScheduler scheduler;
 
 	private static class Task implements IPlatformTask {
@@ -34,12 +36,21 @@ class BukkitScheduler implements IPlatformScheduler {
 
 	public BukkitScheduler(PlatformPluginBukkit plugin, org.bukkit.scheduler.BukkitScheduler scheduler) {
 		this.plugin = plugin;
+		this.server = plugin.getServer();
 		this.scheduler = scheduler;
 	}
 
 	@Override
 	public void execute(Runnable runnable) {
-		scheduler.runTask(plugin, runnable);
+		if(server.isPrimaryThread()) {
+			try {
+				runnable.run();
+			}catch(Exception ex) {
+				plugin.logger().error("Scheduler failed to execute a task immediately", ex);
+			}
+		}else {
+			scheduler.runTask(plugin, runnable);
+		}
 	}
 
 	@Override

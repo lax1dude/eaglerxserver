@@ -9,6 +9,7 @@ import com.google.common.collect.Sets;
 
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformScheduler;
+import net.lax1dude.eaglercraft.backend.rpc.api.EnumExecutorType;
 import net.lax1dude.eaglercraft.backend.rpc.api.EnumSubscribeEvents;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayerRPC;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCEvent;
@@ -67,10 +68,13 @@ public class RPCEventBus<PlayerObject> {
 		for(int i = 0; i < tmp.length; ++i) {
 			IRPCEventHandler<PlayerObject, T> handler = (IRPCEventHandler<PlayerObject, T>) tmp[i];
 			RPCEventWrapper<T> evt = new RPCEventWrapper<>(handler, logger, event);
-			if(handler.isAsync()) {
+			EnumExecutorType type = handler.getExecutor();
+			if(type == EnumExecutorType.SYNC) {
+				scheduler.execute(evt);
+			}else if(type == EnumExecutorType.ASYNC) {
 				scheduler.executeAsync(evt);
 			}else {
-				scheduler.execute(evt);
+				evt.run();
 			}
 		}
 	}
@@ -94,10 +98,13 @@ public class RPCEventBus<PlayerObject> {
 			for(int i = 0; i < j; ++i) {
 				IRPCEventHandler<PlayerObject, T> handler = (IRPCEventHandler<PlayerObject, T>) tmp[i];
 				RPCEventWrapper<T> evt = new RPCEventWrapper<>(handler, logger, evtObj);
-				if(handler.isAsync()) {
+				EnumExecutorType type = handler.getExecutor();
+				if(type == EnumExecutorType.SYNC) {
+					scheduler.execute(evt);
+				}else if(type == EnumExecutorType.ASYNC) {
 					scheduler.executeAsync(evt);
 				}else {
-					scheduler.execute(evt);
+					evt.run();
 				}
 			}
 		}

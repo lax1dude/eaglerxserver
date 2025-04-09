@@ -20,6 +20,6 @@ public interface IRPCEventHandler<PlayerObject, T extends IRPCEvent> {
 
 	void handleEvent(IEaglerPlayerRPC<PlayerObject> api, EnumSubscribeEvents event, T data);
 
-	boolean isAsync();
+	EnumExecutorType getExecutor();
 
 }

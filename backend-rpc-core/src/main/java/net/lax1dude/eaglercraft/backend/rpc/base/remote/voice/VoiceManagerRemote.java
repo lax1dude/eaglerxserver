@@ -231,8 +231,11 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 		}
 	}
 
-	private void onStateChanged() {
-		EnumVoiceState newState = getVoiceState();
+	void onStateChanged() {
+		onStateChanged(getVoiceState());
+	}
+
+	void onStateChanged(EnumVoiceState newState) {
 		EnumVoiceState oldState = (EnumVoiceState) LAST_STATE_HANDLE.getAndSet(this, newState);
 		if(newState != oldState) {
 			player.getEaglerXBackendRPC().getPlatform().eventDispatcher().dispatchVoiceChangeEvent(player, oldState, newState);
