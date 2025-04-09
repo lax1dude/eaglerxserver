@@ -1,6 +1,5 @@
 package net.lax1dude.eaglercraft.backend.rpc.bukkit;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -13,19 +12,12 @@ import com.google.common.collect.Multimap;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
-import io.netty.channel.Channel;
-
 public class BukkitUnsafe {
 
 	private static Class<?> class_CraftPlayer = null;
 	private static Method method_CraftPlayer_getHandle = null;
 	private static Class<?> class_EntityPlayer = null;
-	private static Field field_EntityPlayer_playerConnection = null;
 	private static Method method_EntityPlayer_getProfile = null;
-	private static Class<?> class_PlayerConnection = null;
-	private static Field field_PlayerConnection_networkManager = null;
-	private static Class<?> class_NetworkManager = null;
-	private static Field field_NetworkManager_channel = null;
 
 	private static synchronized void bindCraftPlayer(Player playerObject) {
 		if(class_CraftPlayer != null) {
@@ -36,31 +28,10 @@ public class BukkitUnsafe {
 			method_CraftPlayer_getHandle = clz.getMethod("getHandle");
 			Object entityPlayer = method_CraftPlayer_getHandle.invoke(playerObject);
 			Class<?> clz2 = entityPlayer.getClass();
-			field_EntityPlayer_playerConnection = clz2.getField("playerConnection");
-			Object playerConnection = field_EntityPlayer_playerConnection.get(entityPlayer);
-			Class<?> clz3 = playerConnection.getClass();
-			field_PlayerConnection_networkManager = clz3.getField("networkManager");
-			Object networkManager = field_PlayerConnection_networkManager.get(playerConnection);
-			Class<?> clz4 = networkManager.getClass();
-			field_NetworkManager_channel = clz4.getField("channel");
 			method_EntityPlayer_getProfile = clz2.getMethod("getProfile");
-			class_NetworkManager = clz4;
-			class_PlayerConnection = clz3;
 			class_EntityPlayer = clz2;
 			class_CraftPlayer = clz;
 		}catch(Exception ex) {
-			throw new RuntimeException("Reflection failed!", ex);
-		}
-	}
-
-	public static Channel getPlayerChannel(Player playerObject) {
-		if(class_CraftPlayer == null) {
-			bindCraftPlayer(playerObject);
-		}
-		try {
-			return (Channel) field_NetworkManager_channel.get(field_PlayerConnection_networkManager
-					.get(field_EntityPlayer_playerConnection.get(method_CraftPlayer_getHandle.invoke(playerObject))));
-		} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException ex) {
 			throw new RuntimeException("Reflection failed!", ex);
 		}
 	}

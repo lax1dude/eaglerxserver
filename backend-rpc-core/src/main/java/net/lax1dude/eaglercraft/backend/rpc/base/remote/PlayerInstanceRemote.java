@@ -276,10 +276,6 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 	}
 
 	private void beginHandshake(RPCActiveFuture<IBasePlayerRPC<PlayerObject>> future) {
-		if(!player.isConnected()) {
-			future.fireTimeoutExceptionInternal(new RPCTimeoutException("Player is no longer connected to the server"));
-			return;
-		}
 		byte[] data;
 		try {
 			data = BackendRPCMessageController.serializeINIT(
