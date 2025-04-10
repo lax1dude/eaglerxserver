@@ -6,15 +6,16 @@ import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
+import net.lax1dude.eaglercraft.backend.server.base.supervisor.ISupervisorResolverImpl;
 
-abstract class MultiSkinResolver<SkinManager extends ISkinManagerImpl, PlayerObject> {
+abstract class MultiSvSkinResolver<SkinManager extends ISkinManagerImpl, PlayerObject> {
 
 	private static final VarHandle COUNT_DOWN_HANDLE;
 
 	static {
 		try {
 			MethodHandles.Lookup l = MethodHandles.lookup();
-			COUNT_DOWN_HANDLE = l.findVarHandle(MultiSkinResolver.class, "countDownValue", int.class);
+			COUNT_DOWN_HANDLE = l.findVarHandle(MultiSvSkinResolver.class, "countDownValue", int.class);
 		} catch (ReflectiveOperationException e) {
 			throw new ExceptionInInitializerError(e);
 		}
@@ -26,26 +27,16 @@ abstract class MultiSkinResolver<SkinManager extends ISkinManagerImpl, PlayerObj
 	private IEaglerPlayerSkin skin;
 	private IEaglerPlayerCape cape;
 
-	protected MultiSkinResolver(SkinManager skinManager, ISkinManagerImpl lookup, IEaglerPlayerSkin skin, IEaglerPlayerCape cape, UUID uuid) {
+	protected MultiSvSkinResolver(SkinManager skinManager, ISupervisorResolverImpl lookup, UUID lookupUUID, UUID uuid) {
 		this.skinManager = skinManager;
-		if(skin == null) {
-			lookup.resolvePlayerSkinKeyed(uuid, (res) -> {
-				this.skin = res;
-				countDown();
-			});
-		}else {
-			this.skin = skin;
+		lookup.resolvePlayerSkinKeyed(uuid, lookupUUID, (res) -> {
+			this.skin = res;
 			countDown();
-		}
-		if(cape == null) {
-			lookup.resolvePlayerCapeKeyed(uuid, (res) -> {
-				this.cape = res;
-				countDown();
-			});
-		}else {
-			this.cape = cape;
+		});
+		lookup.resolvePlayerCapeKeyed(uuid, lookupUUID, (res) -> {
+			this.cape = res;
 			countDown();
-		}
+		});
 	}
 
 	private void countDown() {

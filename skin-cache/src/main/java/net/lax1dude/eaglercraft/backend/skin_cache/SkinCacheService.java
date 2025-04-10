@@ -114,10 +114,14 @@ public class SkinCacheService implements ISkinCacheService {
 	}
 
 	public SkinCacheService(ISkinCacheDownloader downloader, ISkinCacheDatastore datastore, int expireAfterSec, int maxSize) {
+		this(downloader, datastore, expireAfterSec, Math.min(256, maxSize), maxSize);
+	}
+
+	public SkinCacheService(ISkinCacheDownloader downloader, ISkinCacheDatastore datastore, int expireAfterSec, int initialSize, int maxSize) {
 		this.downloader = downloader;
 		this.datastore = datastore;
 		this.skinCache = CacheBuilder.newBuilder().expireAfterAccess(expireAfterSec, TimeUnit.SECONDS)
-				.initialCapacity(Math.min(256, maxSize)).maximumSize(maxSize).concurrencyLevel(16)
+				.initialCapacity(initialSize).maximumSize(maxSize).concurrencyLevel(16)
 				.build(new CacheLoader<String, ConcurrentLazyLoader<byte[]>>() {
 					@Override
 					public ConcurrentLazyLoader<byte[]> load(String key) throws Exception {
@@ -125,7 +129,7 @@ public class SkinCacheService implements ISkinCacheService {
 					}
 				});
 		this.capeCache = CacheBuilder.newBuilder().expireAfterAccess(expireAfterSec, TimeUnit.SECONDS)
-				.initialCapacity(Math.min(256, maxSize)).maximumSize(maxSize).concurrencyLevel(16)
+				.initialCapacity(initialSize).maximumSize(maxSize).concurrencyLevel(16)
 				.build(new CacheLoader<String, ConcurrentLazyLoader<byte[]>>() {
 					@Override
 					public ConcurrentLazyLoader<byte[]> load(String key) throws Exception {

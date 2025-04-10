@@ -16,6 +16,8 @@
 
 package net.lax1dude.eaglercraft.backend.server.base.supervisor;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -34,12 +36,23 @@ import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSv
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvGetOtherSkin;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketInvalidatePlayerCacheV4EAG;
 
-public class SupervisorPlayer {
+class SupervisorPlayer {
 
-	private final SupervisorService<?> controller;
+	private static final VarHandle NODE_ID_HANDLE;
+
+	static {
+		try {
+			MethodHandles.Lookup l = MethodHandles.lookup();
+			NODE_ID_HANDLE = l.findVarHandle(SupervisorPlayer.class, "nodeId", int.class);
+		} catch (ReflectiveOperationException e) {
+			throw new ExceptionInInitializerError(e);
+		}
+	}
+
+	private final SupervisorConnection connection;
 	private final UUID playerUUID;
 
-	private volatile int nodeId = -1; //TODO
+	private volatile int nodeId = -1;
 
 	private UUID brandUUID = null;
 	private KeyedConsumerList<UUID, UUID> waitingBrandCallbacks = null;
@@ -52,13 +65,17 @@ public class SupervisorPlayer {
 	private final Object capeLock = new Object();
 	private KeyedConsumerList<UUID, IEaglerPlayerCape> waitingCapeCallbacks = null;
 
-	public SupervisorPlayer(SupervisorService<?> controller, UUID playerUUID) {
-		this.controller = controller;
+	SupervisorPlayer(SupervisorConnection connection, UUID playerUUID) {
+		this.connection = connection;
 		this.playerUUID = playerUUID;
 	}
 
+	public SupervisorConnection getConnection() {
+		return connection;
+	}
+
 	public SupervisorService<?> getController() {
-		return controller;
+		return connection.service;
 	}
 
 	public UUID getPlayerUUID() {
@@ -66,7 +83,7 @@ public class SupervisorPlayer {
 	}
 
 	public int getNodeId() {
-		return nodeId;
+		return (int)NODE_ID_HANDLE.getOpaque(this);
 	}
 
 	public void loadBrandUUID(UUID requester, Consumer<UUID> callback) {
@@ -91,10 +108,7 @@ public class SupervisorPlayer {
 				callback.accept(val);
 				return;
 			}
-			SupervisorConnection handler = controller.getConnection();
-			if(handler != null) {
-				handler.sendSupervisorPacket(new CPacketSvGetClientBrandUUID(playerUUID));
-			}
+			connection.sendSupervisorPacket(new CPacketSvGetClientBrandUUID(playerUUID));
 		}
 	}
 
@@ -120,10 +134,7 @@ public class SupervisorPlayer {
 				callback.accept(val);
 				return;
 			}
-			SupervisorConnection handler = controller.getConnection();
-			if(handler != null) {
-				handler.sendSupervisorPacket(new CPacketSvGetOtherSkin(playerUUID));
-			}
+			connection.sendSupervisorPacket(new CPacketSvGetOtherSkin(playerUUID));
 		}
 	}
 
@@ -149,10 +160,7 @@ public class SupervisorPlayer {
 				callback.accept(val);
 				return;
 			}
-			SupervisorConnection handler = controller.getConnection();
-			if(handler != null) {
-				handler.sendSupervisorPacket(new CPacketSvGetOtherCape(playerUUID));
-			}
+			connection.sendSupervisorPacket(new CPacketSvGetOtherCape(playerUUID));
 		}
 	}
 
@@ -172,15 +180,15 @@ public class SupervisorPlayer {
 				try {
 					toCallList.get(i).accept(skin);
 				}catch(Exception ex) {
-					controller.logger().error("Caught error from lazy load callback", ex);
+					connection.logger().error("Caught error from lazy load callback", ex);
 				}
 			}
 		}
 	}
 
 	void onSkinError() {
-		if(nodeId == -1) {
-			controller.onDropPlayer(playerUUID);
+		if((int)NODE_ID_HANDLE.getOpaque(this) == -1) {
+			connection.onDropPlayer(playerUUID);
 		}else {
 			KeyedConsumerList<UUID, IEaglerPlayerSkin> toCall;
 			synchronized(skinLock) {
@@ -196,7 +204,7 @@ public class SupervisorPlayer {
 					try {
 						toCallList.get(i).accept(MissingSkin.MISSING_SKIN);
 					}catch(Exception ex) {
-						controller.logger().error("Caught error from lazy load callback", ex);
+						connection.logger().error("Caught error from lazy load callback", ex);
 					}
 				}
 			}
@@ -219,15 +227,15 @@ public class SupervisorPlayer {
 				try {
 					toCallList.get(i).accept(cape);
 				}catch(Exception ex) {
-					controller.logger().error("Caught error from lazy load callback", ex);
+					connection.logger().error("Caught error from lazy load callback", ex);
 				}
 			}
 		}
 	}
 
 	void onCapeError() {
-		if(nodeId == -1) {
-			controller.onDropPlayer(playerUUID);
+		if((int)NODE_ID_HANDLE.getOpaque(this) == -1) {
+			connection.onDropPlayer(playerUUID);
 		}else {
 			KeyedConsumerList<UUID, IEaglerPlayerCape> toCall;
 			synchronized(capeLock) {
@@ -243,7 +251,7 @@ public class SupervisorPlayer {
 					try {
 						toCallList.get(i).accept(MissingCape.MISSING_CAPE);
 					}catch(Exception ex) {
-						controller.logger().error("Caught error from lazy load callback", ex);
+						connection.logger().error("Caught error from lazy load callback", ex);
 					}
 				}
 			}
@@ -251,7 +259,7 @@ public class SupervisorPlayer {
 	}
 
 	void onNodeIDReceived(int nodeId, UUID brandUUID) {
-		this.nodeId = nodeId;
+		NODE_ID_HANDLE.setOpaque(this, nodeId);
 		KeyedConsumerList<UUID, UUID> toCall;
 		synchronized(this) {
 			if(this.brandUUID != null) {
@@ -267,15 +275,15 @@ public class SupervisorPlayer {
 				try {
 					toCallList.get(i).accept(brandUUID);
 				}catch(Exception ex) {
-					controller.logger().error("Caught error from lazy load callback", ex);
+					connection.logger().error("Caught error from lazy load callback", ex);
 				}
 			}
 		}
 	}
 
 	void onNodeIDError() {
-		if(nodeId == -1) {
-			controller.onDropPlayer(playerUUID);
+		if((int)NODE_ID_HANDLE.getOpaque(this) == -1) {
+			connection.onDropPlayer(playerUUID);
 		}else {
 			KeyedConsumerList<UUID, UUID> toCall;
 			synchronized(this) {
@@ -291,7 +299,7 @@ public class SupervisorPlayer {
 					try {
 						toCallList.get(i).accept(null);
 					}catch(Exception ex) {
-						controller.logger().error("Caught error from lazy load callback", ex);
+						connection.logger().error("Caught error from lazy load callback", ex);
 					}
 				}
 			}
@@ -312,7 +320,7 @@ public class SupervisorPlayer {
 				try {
 					toCallAList.get(i).accept(null);
 				}catch(Exception ex) {
-					controller.logger().error("Caught error from lazy load callback", ex);
+					connection.logger().error("Caught error from lazy load callback", ex);
 				}
 			}
 		}
@@ -326,7 +334,7 @@ public class SupervisorPlayer {
 				try {
 					toCallBList.get(i).accept(null);
 				}catch(Exception ex) {
-					controller.logger().error("Caught error from lazy load callback", ex);
+					connection.logger().error("Caught error from lazy load callback", ex);
 				}
 			}
 		}
@@ -340,7 +348,7 @@ public class SupervisorPlayer {
 				try {
 					toCallCList.get(i).accept(null);
 				}catch(Exception ex) {
-					controller.logger().error("Caught error from lazy load callback", ex);
+					connection.logger().error("Caught error from lazy load callback", ex);
 				}
 			}
 		}
@@ -354,7 +362,7 @@ public class SupervisorPlayer {
 			this.cape = null;
 		}
 		if(serverNotify != null) {
-			IPlatformServer<?> svr = controller.getEaglerXServer().getPlatform().getRegisteredServers().get(serverNotify);
+			IPlatformServer<?> svr = connection.getEaglerXServer().getPlatform().getRegisteredServers().get(serverNotify);
 			if(svr != null) {
 				SPacketInvalidatePlayerCacheV4EAG pkt = new SPacketInvalidatePlayerCacheV4EAG(skin, cape,
 						playerUUID.getMostSignificantBits(), playerUUID.getLeastSignificantBits());
@@ -367,7 +375,7 @@ public class SupervisorPlayer {
 					}
 				}
 			}else {
-				controller.logger().warn("Received skin change for unknown server: " + serverNotify);
+				connection.logger().warn("Received skin change for unknown server: " + serverNotify);
 			}
 		}
 	}

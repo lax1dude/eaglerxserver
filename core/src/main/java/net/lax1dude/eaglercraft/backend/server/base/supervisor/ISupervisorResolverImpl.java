@@ -13,10 +13,10 @@ public interface ISupervisorResolverImpl extends ISupervisorResolver {
 
 	void resolvePlayerCapeKeyed(UUID requester, UUID playerUUID, Consumer<IEaglerPlayerCape> callback);
 
-	void resolvePlayerBrandKeyed(UUID requester, Consumer<UUID> callback);
+	void resolvePlayerBrandKeyed(UUID requester, UUID playerUUID, Consumer<UUID> callback);
 
-	boolean onForeignSkinReceived(UUID playerUUID, IEaglerPlayerSkin skin);
+	void resolveForeignSkinKeyed(UUID requester, int modelId, String skinURL, Consumer<IEaglerPlayerSkin> callback);
 
-	boolean onForeignCapeReceived(UUID playerUUID, IEaglerPlayerCape cape);
+	void resolveForeignCapeKeyed(UUID requester, String capeURL, Consumer<IEaglerPlayerCape> callback);
 
 }

@@ -16,6 +16,9 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinService;
 import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.InternUtils;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingCape;
+import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingSkin;
+import net.lax1dude.eaglercraft.backend.server.base.supervisor.ISupervisorServiceImpl;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketEnableFNAWSkinsEAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherCapeCustomEAG;
@@ -268,6 +271,16 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 					player.sendEaglerMessage(res.getSkinPacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
 				});
 			}
+		}else {
+			ISupervisorServiceImpl<PlayerObject> supervisorService = player.getEaglerXServer().getSupervisorService();
+			if(supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(targetUUID)) {
+				supervisorService.getRemoteOnlyResolver().resolvePlayerSkinKeyed(player.getUniqueId(), targetUUID, (res) -> {
+					//TODO: track antagonist
+					if(res != MissingSkin.UNAVAILABLE_SKIN) {
+						player.sendEaglerMessage(res.getSkinPacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
+					}
+				});
+			}
 		}
 	}
 
@@ -285,6 +298,16 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 			}else {
 				skinMgr.resolvePlayerCapeKeyed(player.getUniqueId(), (res) -> {
 					player.sendEaglerMessage(res.getCapePacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
+				});
+			}
+		}else {
+			ISupervisorServiceImpl<PlayerObject> supervisorService = player.getEaglerXServer().getSupervisorService();
+			if(supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(targetUUID)) {
+				supervisorService.getRemoteOnlyResolver().resolvePlayerCapeKeyed(player.getUniqueId(), targetUUID, (res) -> {
+					//TODO: track antagonist
+					if(res != MissingCape.UNAVAILABLE_CAPE) {
+						player.sendEaglerMessage(res.getCapePacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
+					}
 				});
 			}
 		}
@@ -312,10 +335,27 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 			if(skin != null && cape != null) {
 				player.sendEaglerMessage(createV5Textures(uuidMost, uuidLeast, skin, cape));
 			}else {
-				new MultiSkinResolver<SkinManagerEagler<PlayerObject>, PlayerObject>(this, skin, cape, player.getUniqueId()) {
+				new MultiSkinResolver<SkinManagerEagler<PlayerObject>, PlayerObject>(this, skinMgr, skin, cape,
+						player.getUniqueId()) {
 					@Override
-					protected void onComplete(SkinManagerEagler<PlayerObject> mgr, IEaglerPlayerSkin skin, IEaglerPlayerCape cape) {
+					protected void onComplete(SkinManagerEagler<PlayerObject> mgr, IEaglerPlayerSkin skin,
+							IEaglerPlayerCape cape) {
 						mgr.player.sendEaglerMessage(mgr.createV5Textures(uuidMost, uuidLeast, skin, cape));
+					}
+				};
+			}
+		}else {
+			ISupervisorServiceImpl<PlayerObject> supervisorService = player.getEaglerXServer().getSupervisorService();
+			if(supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(targetUUID)) {
+				new MultiSvSkinResolver<SkinManagerEagler<PlayerObject>, PlayerObject>(this,
+						supervisorService.getRemoteOnlyResolver(), targetUUID, player.getUniqueId()) {
+					@Override
+					protected void onComplete(SkinManagerEagler<PlayerObject> mgr, IEaglerPlayerSkin skin,
+							IEaglerPlayerCape cape) {
+						//TODO: track antagonist
+						if(skin != MissingSkin.UNAVAILABLE_SKIN && cape != MissingCape.UNAVAILABLE_CAPE) {
+							mgr.player.sendEaglerMessage(mgr.createV5Textures(uuidMost, uuidLeast, skin, cape));
+						}
 					}
 				};
 			}

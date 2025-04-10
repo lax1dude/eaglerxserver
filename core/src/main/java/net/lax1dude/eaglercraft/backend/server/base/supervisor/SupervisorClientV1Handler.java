@@ -56,13 +56,13 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 
 	@Override
 	public void handleServer(SPacketSvDropPlayer pkt) {
-		service.onDropPlayer(pkt.uuid);
+		connection.onDropPlayer(pkt.uuid);
 	}
 
 	@Override
 	public void handleServer(SPacketSvDropPlayerPartial pkt) {
 		if(pkt.bitmask != 0) {
-			service.loadPlayer(pkt.uuid).onDropPartial(pkt.serverNotify,
+			connection.loadPlayer(pkt.uuid).onDropPartial(pkt.serverNotify,
 					(pkt.bitmask & SPacketSvDropPlayerPartial.DROP_PLAYER_SKIN) != 0,
 					(pkt.bitmask & SPacketSvDropPlayerPartial.DROP_PLAYER_CAPE) != 0);
 		}
@@ -75,7 +75,7 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 
 	@Override
 	public void handleServer(SPacketSvOtherSkinPreset pkt) {
-		SupervisorPlayer player = service.loadPlayerIfPresent(pkt.uuid);
+		SupervisorPlayer player = connection.loadPlayerIfPresent(pkt.uuid);
 		IEaglerPlayerSkin skin = InternUtils.getPresetSkin(pkt.presetSkin);
 		if (player != null) {
 			player.onSkinReceived(skin);
@@ -88,7 +88,7 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 
 	@Override
 	public void handleServer(SPacketSvOtherSkinCustom pkt) {
-		SupervisorPlayer player = service.loadPlayerIfPresent(pkt.uuid);
+		SupervisorPlayer player = connection.loadPlayerIfPresent(pkt.uuid);
 		if (player != null) {
 			player.onSkinReceived(CustomSkinPlayer.createV4(pkt.uuid.getMostSignificantBits(),
 					pkt.uuid.getLeastSignificantBits(), pkt.model, pkt.customSkin));
@@ -101,7 +101,7 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 
 	@Override
 	public void handleServer(SPacketSvOtherSkinError pkt) {
-		SupervisorPlayer player = service.loadPlayerIfPresent(pkt.uuid);
+		SupervisorPlayer player = connection.loadPlayerIfPresent(pkt.uuid);
 		if (player != null) {
 			player.onSkinError();
 		}else {
@@ -118,7 +118,7 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 
 	@Override
 	public void handleServer(SPacketSvOtherCapePreset pkt) {
-		SupervisorPlayer player = service.loadPlayerIfPresent(pkt.uuid);
+		SupervisorPlayer player = connection.loadPlayerIfPresent(pkt.uuid);
 		IEaglerPlayerCape cape = InternUtils.getPresetCape(pkt.presetCape);
 		if (player != null) {
 			player.onCapeReceived(cape);
@@ -131,7 +131,7 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 
 	@Override
 	public void handleServer(SPacketSvOtherCapeCustom pkt) {
-		SupervisorPlayer player = service.loadPlayerIfPresent(pkt.uuid);
+		SupervisorPlayer player = connection.loadPlayerIfPresent(pkt.uuid);
 		if (player != null) {
 			player.onCapeReceived(new CustomCapePlayer(pkt.uuid.getMostSignificantBits(),
 					pkt.uuid.getLeastSignificantBits(), pkt.customCape));
@@ -144,7 +144,7 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 
 	@Override
 	public void handleServer(SPacketSvOtherCapeError pkt) {
-		SupervisorPlayer player = service.loadPlayerIfPresent(pkt.uuid);
+		SupervisorPlayer player = connection.loadPlayerIfPresent(pkt.uuid);
 		if (player != null) {
 			player.onCapeError();
 		}else {
@@ -156,17 +156,17 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 
 	@Override
 	public void handleServer(SPacketSvPlayerNodeID pkt) {
-		service.loadPlayer(pkt.playerUUID).onNodeIDReceived(pkt.nodeId, pkt.brandUUID);
+		connection.loadPlayer(pkt.playerUUID).onNodeIDReceived(pkt.nodeId, pkt.brandUUID);
 	}
 
 	@Override
 	public void handleServer(SPacketSvDropAllPlayers pkt) {
-		service.onDropAllPlayers(pkt.nodeId);
+		connection.onDropAllPlayers(pkt.nodeId);
 	}
 
 	@Override
 	public void handleServer(SPacketSvAcceptPlayer pkt) {
-		service.onPlayerAccept(pkt.playerUUID, EnumAcceptPlayer.ACCEPT);
+		connection.onPlayerAccept(pkt.playerUUID, EnumAcceptPlayer.ACCEPT);
 	}
 
 	@Override
@@ -183,12 +183,12 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 			result = EnumAcceptPlayer.REJECT_UNKNOWN;
 			break;
 		}
-		service.onPlayerAccept(pkt.playerUUID, result);
+		connection.onPlayerAccept(pkt.playerUUID, result);
 	}
 
 	@Override
 	public void handleServer(SPacketSvClientBrandError pkt) {
-		service.loadPlayer(pkt.playerUUID).onNodeIDError();
+		connection.loadPlayer(pkt.playerUUID).onNodeIDError();
 	}
 
 	@Override

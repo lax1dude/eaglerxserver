@@ -11,6 +11,9 @@ public class MissingCape extends BasePresetCape {
 
 	public static final IEaglerPlayerCape MISSING_CAPE = new MissingCape();
 
+	// used for supervisor
+	public static final IEaglerPlayerCape UNAVAILABLE_CAPE = new MissingCape();
+
 	private MissingCape() {
 	}
 

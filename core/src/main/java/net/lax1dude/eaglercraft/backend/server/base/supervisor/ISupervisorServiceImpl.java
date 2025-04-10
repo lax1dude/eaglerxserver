@@ -12,4 +12,6 @@ public interface ISupervisorServiceImpl<PlayerObject> extends ISupervisorService
 
 	boolean shouldIgnoreUUID(UUID uuid);
 
+	ISupervisorResolverImpl getRemoteOnlyResolver();
+
 }

@@ -3,13 +3,19 @@ package net.lax1dude.eaglercraft.backend.server.base.supervisor;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistry;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorRPCHandler;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorResolver;
+import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSupervisor;
+import net.lax1dude.eaglercraft.backend.server.util.Util;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.EaglerSupervisorProtocol;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.netty.SupervisorPacketHandler;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvHandshake;
@@ -32,16 +38,23 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 
 	private final EaglerXServer<PlayerObject> server;
 	private final ConfigDataSupervisor config;
+	private final SupervisorTimeoutLoop timeoutLoop;
 	private final boolean ignoreV2UUID;
-	final SupervisorResolver<PlayerObject> resolver;
+	final SupervisorResolver resolver;
+	final SupervisorResolverAll resolverAll;
 	private int serviceStateTracker = 0;
 	private SupervisorConnection currentConnection = null;
+
+	private IPlatformTask pingTask;
+	private IPlatformTask timeoutHandshakeTask;
 
 	public SupervisorService(EaglerXServer<PlayerObject> server) {
 		this.server = server;
 		this.config = server.getConfig().getSupervisor();
+		this.timeoutLoop = new SupervisorTimeoutLoop(server.getPlatform().getScheduler(), 250000000l);
 		this.ignoreV2UUID = config.isSupervisorLookupIgnoreV2UUID();
-		this.resolver = new SupervisorResolver<>(this);
+		this.resolver = new SupervisorResolver(this);
+		this.resolverAll = new SupervisorResolverAll(resolver, server);
 	}
 
 	@Override
@@ -57,6 +70,10 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 		return server.logger();
 	}
 
+	final SupervisorTimeoutLoop timeoutLoop() {
+		return timeoutLoop;
+	}
+
 	@Override
 	public boolean isSupervisorEnabled() {
 		return true;
@@ -64,29 +81,29 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 
 	@Override
 	public boolean isSupervisorConnected() {
-		return (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getOpaque(this) != null;
+		return (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this) != null;
 	}
 
 	@Override
 	public SupervisorConnection getConnection() {
-		return (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getOpaque(this);
+		return (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
 	}
 
 	@Override
 	public int getNodeId() {
-		SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getOpaque(this);
+		SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
 		return conn != null ? conn.getNodeId() : -1;
 	}
 
 	@Override
 	public int getPlayerTotal() {
-		SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getOpaque(this);
+		SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
 		return conn != null ? conn.getPlayerTotal() : server.getPlatform().getPlayerTotal();
 	}
 
 	@Override
 	public int getPlayerMax() {
-		SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getOpaque(this);
+		SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
 		return conn != null ? conn.getPlayerMax() : server.getPlatform().getPlayerMax();
 	}
 
@@ -97,8 +114,7 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 
 	@Override
 	public ISupervisorResolver getPlayerResolver() {
-		// TODO Auto-generated method stub
-		return null;
+		return resolverAll;
 	}
 
 	@Override
@@ -109,6 +125,24 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 	@Override
 	public void handleEnable() {
 		initiateConnection();
+		if(pingTask != null) {
+			pingTask.cancel();
+		}
+		pingTask = server.getPlatform().getScheduler().executeAsyncRepeatingTask(() -> {
+			SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
+			if(conn != null) {
+				conn.updatePing(Util.steadyTime());
+			}
+		}, 500l, 1000l);
+		if(timeoutHandshakeTask != null) {
+			timeoutHandshakeTask.cancel();
+		}
+		timeoutHandshakeTask = server.getPlatform().getScheduler().executeAsyncRepeatingTask(() -> {
+			SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
+			if(conn != null) {
+				conn.expireHandshakes(Util.steadyTime());
+			}
+		}, 5000l, 5000l);
 	}
 
 	@Override
@@ -122,7 +156,16 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 			} catch (InterruptedException e) {
 			}
 		}
-		onConnectionEnd(true);
+		onConnectionEnd();
+		if(pingTask != null) {
+			pingTask.cancel();
+			pingTask = null;
+		}
+		if(timeoutHandshakeTask != null) {
+			timeoutHandshakeTask.cancel();
+			timeoutHandshakeTask = null;
+		}
+		timeoutLoop.cancelAll();
 	}
 
 	@Override
@@ -183,7 +226,7 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 				return;
 			}
 		}while(!SERVICE_STATE_TRACKER_HANDLE.compareAndSet(this, state, 0));
-		onConnectionEnd(false);
+		onConnectionEnd();
 		server.logger().error("Connection to supervisor was lost! Attempting to reconnect...");
 		server.getPlatform().getScheduler().executeAsyncDelayed(this::initiateConnection, 1000l);
 	}
@@ -195,47 +238,51 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 		default -> CPacketSvProxyBrand.PROXY_TYPE_EAGLER_STANDALONE;
 		}, server.getPlatform().getVersion(), CPacketSvProxyBrand.PLUGIN_TYPE_EAGLERXSERVER, server.getServerBrand(),
 				server.getServerVersion()));
-		//TODO: register players
-		CURRENT_CONNECTION_HANDLE.setOpaque(this, new SupervisorConnection(this, handler, nodeId));
+		SupervisorConnection newConnection = new SupervisorConnection(this, handler, nodeId);
+		for(BasePlayerInstance<PlayerObject> player : server.getAllPlayersInternal()) {
+			EaglerPlayerInstance<PlayerObject> dat = player.asEaglerPlayer();
+			acceptPlayer(player.getUniqueId(),
+					dat != null ? dat.getEaglerBrandUUID() : IBrandRegistry.BRAND_VANILLA,
+					player.getMinecraftProtocol(), dat != null ? dat.getEaglerProtocol().ver : 0,
+					player.getUsername(), (res) -> {
+						if(res != EnumAcceptPlayer.ACCEPT) {
+							logger().error("Could not reregister player '" + player.getUsername()
+									+ "' with supervisor! Result: " + res.name());
+							player.disconnect(server.componentBuilder().buildTextComponent()
+									.text("Failed to reinitialize connection to supervisor").end());
+						}
+					});
+		}
+		CURRENT_CONNECTION_HANDLE.setRelease(this, newConnection);
 	}
 
-	private void onConnectionEnd(boolean shuttingDown) {
-		CURRENT_CONNECTION_HANDLE.setOpaque(this, null);
-		//TODO: unregister players
+	private void onConnectionEnd() {
+		SupervisorConnection handler = (SupervisorConnection) CURRENT_CONNECTION_HANDLE.getAndSet(this, null);
+		if(handler != null) {
+			handler.onConnectionEnd();
+		}
+		resolver.onConnectionEnd();
 	}
 
-	SupervisorPlayer loadPlayer(UUID uuid) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	SupervisorPlayer loadPlayerIfPresent(UUID uuid) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	void onPlayerAccept(UUID playerUUID, EnumAcceptPlayer reason) {
-		//TODO
+	public void acceptPlayer(UUID playerUUID, UUID brandUUID, int gameProtocol, int eaglerProtocol, String username,
+			Consumer<EnumAcceptPlayer> callback) {
+		SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
+		if(conn != null) {
+			conn.acceptPlayer(playerUUID, brandUUID, gameProtocol, eaglerProtocol, username, callback);
+		}else {
+			try {
+				callback.accept(EnumAcceptPlayer.SUPERVISOR_UNAVAILABLE);
+			}catch(Exception ex) {
+				logger().error("Caught exception from supervisor player accept callback", ex);
+			}
+		}
 	}
 
 	public void dropOwnPlayer(UUID clientUUID) {
-		//TODO
-	}
-
-	void setRemotePlayerNode(UUID playerUUID, int nodeId) {
-		//TODO
-	}
-
-	void dropPlayerFromNode(UUID playerUUID, int nodeId) {
-		//TODO
-	}
-
-	void onDropAllPlayers(int nodeId) {
-		//TODO
-	}
-
-	void onDropPlayer(UUID playerUUID) {
-		//TODO
+		SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
+		if(conn != null) {
+			conn.dropOwnPlayer(clientUUID);
+		}
 	}
 
 }

@@ -15,6 +15,9 @@ public class MissingSkin extends BasePresetSkin {
 	public static final IEaglerPlayerSkin MISSING_SKIN = new MissingSkin(EnumPresetSkins.DEFAULT_STEVE);
 	public static final IEaglerPlayerSkin MISSING_SKIN_ALEX = new MissingSkin(EnumPresetSkins.DEFAULT_ALEX);
 
+	// used for supervisor
+	public static final IEaglerPlayerSkin UNAVAILABLE_SKIN = new MissingSkin(EnumPresetSkins.DEFAULT_STEVE);
+
 	private final int skinId;
 	private final EnumPresetSkins enumSkin;
 

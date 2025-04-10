@@ -24,6 +24,7 @@ import net.lax1dude.eaglercraft.backend.server.base.skins.type.CustomSkinGeneric
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.CustomSkinPlayer;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingCape;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingSkin;
+import net.lax1dude.eaglercraft.backend.server.base.supervisor.ISupervisorServiceImpl;
 import net.lax1dude.eaglercraft.backend.skin_cache.ISkinCacheService;
 
 public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
@@ -31,17 +32,22 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 	private final EaglerXServer<PlayerObject> server;
 	private final ISkinCacheService skinCache;
 	private final Predicate<String> fnawSkinsEnabled;
+	private final ISupervisorServiceImpl<PlayerObject> supervisor;
+	private final boolean downloadEnabled;
 
 	public SkinService(EaglerXServer<PlayerObject> server, ISkinCacheService skinCache,
-			Predicate<String> fnawSkinsEnabled) {
+			Predicate<String> fnawSkinsEnabled, boolean downloadEnabled) {
 		this.server = server;
 		this.skinCache = skinCache;
 		this.fnawSkinsEnabled = fnawSkinsEnabled;
+		ISupervisorServiceImpl<PlayerObject> service = server.getSupervisorService();
+		this.supervisor = service.isSupervisorEnabled() ? service : null;
+		this.downloadEnabled = downloadEnabled;
 	}
 
 	@Override
 	public boolean isSkinDownloadEnabled() {
-		return skinCache != null;
+		return downloadEnabled;
 	}
 
 	@Override
@@ -60,8 +66,11 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 		if(player != null) {
 			player.getSkinManager().resolvePlayerSkin(callback);
 		}else {
-			callback.accept(MissingSkin.forPlayerUUID(playerUUID));
-			//TODO: supervisor
+			if(supervisor != null) {
+				supervisor.getRemoteOnlyResolver().resolvePlayerSkin(playerUUID, callback);
+			}else {
+				callback.accept(MissingSkin.forPlayerUUID(playerUUID));
+			}
 		}
 	}
 
@@ -71,69 +80,92 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 		if(player != null) {
 			player.getSkinManager().resolvePlayerCape(callback);
 		}else {
-			callback.accept(MissingCape.MISSING_CAPE);
-			//TODO: supervisor
+			if(supervisor != null) {
+				supervisor.getRemoteOnlyResolver().resolvePlayerCape(playerUUID, callback);
+			}else {
+				callback.accept(MissingCape.MISSING_CAPE);
+			}
 		}
 	}
 
 	@Override
 	public void loadCacheSkinFromURL(String skinURL, EnumSkinModel modelId, Consumer<IEaglerPlayerSkin> callback) {
-		if(skinCache != null) {
-			skinCache.resolveSkinByURL(skinURL, (data) -> {
-				if(data != ISkinCacheService.ERROR) {
-					callback.accept(CustomSkinGeneric.createV4(modelId.getId(), data));
-				}else {
-					callback.accept(MissingSkin.MISSING_SKIN);
-				}
-			});
-		}else {
-			callback.accept(MissingSkin.MISSING_SKIN);
+		if(downloadEnabled) {
+			if(supervisor != null) {
+				supervisor.getRemoteOnlyResolver().loadCacheSkinFromURL(skinURL, modelId, callback);
+				return;
+			}else if(skinCache != null) {
+				skinCache.resolveSkinByURL(skinURL, (data) -> {
+					if(data != ISkinCacheService.ERROR) {
+						callback.accept(CustomSkinGeneric.createV4(modelId.getId(), data));
+					}else {
+						callback.accept(MissingSkin.MISSING_SKIN);
+					}
+				});
+				return;
+			}
 		}
+		callback.accept(MissingSkin.MISSING_SKIN);
 	}
 
 	void loadPlayerSkinFromURL(String skinURL, UUID playerUUID, EnumSkinModel modelId, Consumer<IEaglerPlayerSkin> callback) {
-		if(skinCache != null) {
-			skinCache.resolveSkinByURL(skinURL, (data) -> {
-				if(data != ISkinCacheService.ERROR) {
-					callback.accept(CustomSkinPlayer.createV4(playerUUID.getMostSignificantBits(),
-							playerUUID.getLeastSignificantBits(), modelId.getId(), data));
-				} else {
-					callback.accept(MissingSkin.forPlayerUUID(playerUUID));
-				}
-			});
-		}else {
-			callback.accept(MissingSkin.forPlayerUUID(playerUUID));
+		if(downloadEnabled) {
+			if(supervisor != null) {
+				supervisor.getRemoteOnlyResolver().loadCacheSkinFromURL(skinURL, modelId, callback);
+				return;
+			}else if(skinCache != null) {
+				skinCache.resolveSkinByURL(skinURL, (data) -> {
+					if(data != ISkinCacheService.ERROR) {
+						callback.accept(CustomSkinPlayer.createV4(playerUUID.getMostSignificantBits(),
+								playerUUID.getLeastSignificantBits(), modelId.getId(), data));
+					} else {
+						callback.accept(MissingSkin.forPlayerUUID(playerUUID));
+					}
+				});
+				return;
+			}
 		}
+		callback.accept(MissingSkin.forPlayerUUID(playerUUID));
 	}
 
 	@Override
 	public void loadCacheCapeFromURL(String capeURL, Consumer<IEaglerPlayerCape> callback) {
-		if(skinCache != null) {
-			skinCache.resolveCapeByURL(capeURL, (data) -> {
-				if(data != ISkinCacheService.ERROR) {
-					callback.accept(new CustomCapeGeneric(data));
-				}else {
-					callback.accept(MissingCape.MISSING_CAPE);
-				}
-			});
-		}else {
-			callback.accept(MissingCape.MISSING_CAPE);
+		if(downloadEnabled) {
+			if(supervisor != null) {
+				supervisor.getRemoteOnlyResolver().loadCacheCapeFromURL(capeURL, callback);
+				return;
+			}else if(skinCache != null) {
+				skinCache.resolveCapeByURL(capeURL, (data) -> {
+					if(data != ISkinCacheService.ERROR) {
+						callback.accept(new CustomCapeGeneric(data));
+					}else {
+						callback.accept(MissingCape.MISSING_CAPE);
+					}
+				});
+				return;
+			}
 		}
+		callback.accept(MissingCape.MISSING_CAPE);
 	}
 
 	void loadPlayerCapeFromURL(String capeURL, UUID playerUUID, Consumer<IEaglerPlayerCape> callback) {
-		if(skinCache != null) {
-			skinCache.resolveCapeByURL(capeURL, (data) -> {
-				if(data != ISkinCacheService.ERROR) {
-					callback.accept(new CustomCapePlayer(playerUUID.getMostSignificantBits(),
-							playerUUID.getLeastSignificantBits(), data));
-				}else {
-					callback.accept(MissingCape.MISSING_CAPE);
-				}
-			});
-		}else {
-			callback.accept(MissingCape.MISSING_CAPE);
+		if(downloadEnabled) {
+			if(supervisor != null) {
+				supervisor.getRemoteOnlyResolver().loadCacheCapeFromURL(capeURL, callback);
+				return;
+			}else if(skinCache != null) {
+				skinCache.resolveCapeByURL(capeURL, (data) -> {
+					if(data != ISkinCacheService.ERROR) {
+						callback.accept(new CustomCapePlayer(playerUUID.getMostSignificantBits(),
+								playerUUID.getLeastSignificantBits(), data));
+					}else {
+						callback.accept(MissingCape.MISSING_CAPE);
+					}
+				});
+				return;
+			}
 		}
+		callback.accept(MissingCape.MISSING_CAPE);
 	}
 
 	@Override
