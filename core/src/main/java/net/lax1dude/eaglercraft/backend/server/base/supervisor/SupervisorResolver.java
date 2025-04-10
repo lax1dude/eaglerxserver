@@ -224,7 +224,7 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 		if(conn != null) {
 			conn.loadPlayer(playerUUID).loadBrandUUID(requester, callback);
 		}else {
-			callback.accept(null);
+			callback.accept(ISupervisorResolverImpl.UNAVAILABLE);
 		}
 	}
 

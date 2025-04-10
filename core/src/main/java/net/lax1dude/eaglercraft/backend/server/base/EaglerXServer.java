@@ -150,6 +150,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private UpdateService updateService;
 	private BackendRPCService<PlayerObject> backendRPCService;
 	private ISupervisorServiceImpl<PlayerObject> supervisorService;
+	private PlayerRateLimits.RateLimitParams ratelimitParams;
 
 	public EaglerXServer() {
 	}
@@ -275,6 +276,14 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		if(config.getSettings().isEnableBackendRPCAPI() && platform.getType().proxy) {
 			backendRPCService = new BackendRPCService<>(this);
 		}
+		
+		ratelimitParams = new PlayerRateLimits.RateLimitParams(skinSvcConf.getSkinLookupRatelimit(),
+				skinSvcConf.getCapeLookupRatelimit(), voiceConfig.getVoiceConnectRatelimit(),
+				voiceConfig.getVoiceRequestRatelimit(), voiceConfig.getVoiceICERatelimit(),
+				config.getSettings().getBrandLookupRatelimit(), config.getSettings().getWebviewDownloadRatelimit(),
+				config.getSettings().getWebviewMessageRatelimit(), skinSvcConf.getSkinCacheAntagonistsRatelimit(),
+				supervisorConf.getSupervisorSkinAntagonistsRatelimit(),
+				supervisorConf.getSupervisorBrandAntagonistsRatelimit());
 		
 		init.setOnServerEnable(this::enableHandler);
 		init.setOnServerDisable(this::disableHandler);
@@ -998,6 +1007,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	public IPlatformComponentBuilder componentBuilder() {
 		return platform.getComponentHelper().builder();
+	}
+
+	public PlayerRateLimits.RateLimitParams rateLimitParams() {
+		return ratelimitParams;
 	}
 
 	public void setServerListConfirmCode(String code) {

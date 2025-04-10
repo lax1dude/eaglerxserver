@@ -117,11 +117,10 @@ public class ConfigDataSettings {
 
 	public static class ConfigDataSkinService {
 
-		private final int skinLookupRatelimitPlayer;
+		private final int skinLookupRatelimit;
+		private final int capeLookupRatelimit;
 		private final boolean downloadVanillaSkinsToClients;
 		private final Set<String> validSkinDownloadURLs;
-		private final int skinDownloadRatelimit;
-		private final int skinDownloadRatelimitGlobal;
 		private final String skinCacheDBURI;
 		private final String skinCacheDriverClass;
 		private final String skinCacheDriverPath;
@@ -136,18 +135,17 @@ public class ConfigDataSettings {
 		private final boolean enableFNAWSkinModelsGlobal;
 		private final Set<String> enableFNAWSkinModelsOnServers;
 
-		public ConfigDataSkinService(int skinLookupRatelimitPlayer, boolean downloadVanillaSkinsToClients,
-				Set<String> validSkinDownloadURLs, int skinDownloadRatelimit, int skinDownloadRatelimitGlobal,
-				String skinCacheDBURI, String skinCacheDriverClass, String skinCacheDriverPath,
-				boolean skinCacheSQLiteCompatible, int skinCacheThreadCount, int skinCacheCompressionLevel,
-				int skinCacheMemoryKeepSeconds, int skinCacheMemoryMaxObjects, int skinCacheDiskKeepObjectsDays,
-				int skinCacheDiskMaxObjects, int skinCacheAntagonistsRatelimit, boolean enableFNAWSkinModelsGlobal,
+		public ConfigDataSkinService(int skinLookupRatelimit, int capeLookupRatelimit,
+				boolean downloadVanillaSkinsToClients, Set<String> validSkinDownloadURLs, String skinCacheDBURI,
+				String skinCacheDriverClass, String skinCacheDriverPath, boolean skinCacheSQLiteCompatible,
+				int skinCacheThreadCount, int skinCacheCompressionLevel, int skinCacheMemoryKeepSeconds,
+				int skinCacheMemoryMaxObjects, int skinCacheDiskKeepObjectsDays, int skinCacheDiskMaxObjects,
+				int skinCacheAntagonistsRatelimit, boolean enableFNAWSkinModelsGlobal,
 				Set<String> enableFNAWSkinModelsOnServers) {
-			this.skinLookupRatelimitPlayer = skinLookupRatelimitPlayer;
+			this.skinLookupRatelimit = skinLookupRatelimit;
+			this.capeLookupRatelimit = capeLookupRatelimit;
 			this.downloadVanillaSkinsToClients = downloadVanillaSkinsToClients;
 			this.validSkinDownloadURLs = validSkinDownloadURLs;
-			this.skinDownloadRatelimit = skinDownloadRatelimit;
-			this.skinDownloadRatelimitGlobal = skinDownloadRatelimitGlobal;
 			this.skinCacheDBURI = skinCacheDBURI;
 			this.skinCacheDriverClass = skinCacheDriverClass;
 			this.skinCacheDriverPath = skinCacheDriverPath;
@@ -163,8 +161,12 @@ public class ConfigDataSettings {
 			this.enableFNAWSkinModelsOnServers = enableFNAWSkinModelsOnServers;
 		}
 
-		public int getSkinLookupRatelimitPlayer() {
-			return skinLookupRatelimitPlayer;
+		public int getSkinLookupRatelimit() {
+			return skinLookupRatelimit;
+		}
+
+		public int getCapeLookupRatelimit() {
+			return capeLookupRatelimit;
 		}
 
 		public boolean isDownloadVanillaSkinsToClients() {
@@ -173,14 +175,6 @@ public class ConfigDataSettings {
 
 		public Set<String> getValidSkinDownloadURLs() {
 			return validSkinDownloadURLs;
-		}
-
-		public int getSkinDownloadRatelimit() {
-			return skinDownloadRatelimit;
-		}
-
-		public int getSkinDownloadRatelimitGlobal() {
-			return skinDownloadRatelimitGlobal;
 		}
 
 		public String getSkinCacheDBURI() {
@@ -254,15 +248,22 @@ public class ConfigDataSettings {
 		private final Set<String> enableVoiceChatOnServers;
 		private final boolean separateVoiceChannelsPerServer;
 		private final boolean voiceBackendRelayMode;
+		private final int voiceConnectRatelimit;
+		private final int voiceRequestRatelimit;
+		private final int voiceICERatelimit;
 
 		public ConfigDataVoiceService(boolean enableVoiceService, boolean enableVoiceChatAllServers,
 				Set<String> enableVoiceChatOnServers, boolean separateVoiceChannelsPerServer,
-				boolean voiceBackendRelayMode) {
+				boolean voiceBackendRelayMode, int voiceConnectRatelimit, int voiceRequestRatelimit,
+				int voiceICERatelimit) {
 			this.enableVoiceService = enableVoiceService;
 			this.enableVoiceChatAllServers = enableVoiceChatAllServers;
 			this.enableVoiceChatOnServers = enableVoiceChatOnServers;
 			this.separateVoiceChannelsPerServer = separateVoiceChannelsPerServer;
 			this.voiceBackendRelayMode = voiceBackendRelayMode;
+			this.voiceConnectRatelimit = voiceConnectRatelimit;
+			this.voiceRequestRatelimit = voiceRequestRatelimit;
+			this.voiceICERatelimit = voiceICERatelimit;
 		}
 
 		public boolean isEnableVoiceService() {
@@ -283,6 +284,18 @@ public class ConfigDataSettings {
 
 		public boolean isVoiceBackendRelayMode() {
 			return voiceBackendRelayMode;
+		}
+
+		public int getVoiceConnectRatelimit() {
+			return voiceConnectRatelimit;
+		}
+
+		public int getVoiceRequestRatelimit() {
+			return voiceRequestRatelimit;
+		}
+
+		public int getVoiceICERatelimit() {
+			return voiceICERatelimit;
 		}
 
 	}
@@ -358,6 +371,9 @@ public class ConfigDataSettings {
 	private final String eaglerPlayersVanillaSkin;
 	private final boolean enableIsEaglerPlayerPropery;
 	private final int protocolV4DefragSendDelay;
+	private final int brandLookupRatelimit;
+	private final int webviewDownloadRatelimit;
+	private final int webviewMessageRatelimit;
 	private final ConfigDataProtocols protocols;
 	private final ConfigDataSkinService skinService;
 	private final ConfigDataVoiceService voiceService;
@@ -368,7 +384,8 @@ public class ConfigDataSettings {
 			int httpWebSocketFragmentSize, int httpWebSocketMaxFrameLength, int tlsCertRefreshRate,
 			boolean enableAuthenticationEvents, boolean enableBackendRPCAPI, boolean useModernizedChannelNames,
 			int eaglerPlayersViewDistance, String eaglerPlayersVanillaSkin, boolean enableIsEaglerPlayerPropery,
-			int protocolV4DefragSendDelay, ConfigDataProtocols protocols, ConfigDataSkinService skinService,
+			int protocolV4DefragSendDelay, int brandLookupRatelimit, int webviewDownloadRatelimit,
+			int webviewMessageRatelimit, ConfigDataProtocols protocols, ConfigDataSkinService skinService,
 			ConfigDataVoiceService voiceService, ConfigDataUpdateService updateService) {
 		this.serverName = serverName;
 		this.serverUUID = serverUUID;
@@ -389,6 +406,9 @@ public class ConfigDataSettings {
 		this.eaglerPlayersVanillaSkin = eaglerPlayersVanillaSkin;
 		this.enableIsEaglerPlayerPropery = enableIsEaglerPlayerPropery;
 		this.protocolV4DefragSendDelay = protocolV4DefragSendDelay;
+		this.brandLookupRatelimit = brandLookupRatelimit;
+		this.webviewDownloadRatelimit = webviewDownloadRatelimit;
+		this.webviewMessageRatelimit = webviewMessageRatelimit;
 		this.protocols = protocols;
 		this.skinService = skinService;
 		this.voiceService = voiceService;
@@ -469,6 +489,18 @@ public class ConfigDataSettings {
 
 	public int getProtocolV4DefragSendDelay() {
 		return protocolV4DefragSendDelay;
+	}
+
+	public int getBrandLookupRatelimit() {
+		return brandLookupRatelimit;
+	}
+
+	public int getWebviewDownloadRatelimit() {
+		return webviewDownloadRatelimit;
+	}
+
+	public int getWebviewMessageRatelimit() {
+		return webviewMessageRatelimit;
 	}
 
 	public ConfigDataProtocols getProtocols() {

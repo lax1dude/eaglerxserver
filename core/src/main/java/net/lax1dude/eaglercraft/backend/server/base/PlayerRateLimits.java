@@ -4,32 +4,65 @@ import net.lax1dude.eaglercraft.backend.server.util.RateLimiterBasic;
 
 public class PlayerRateLimits {
 
-	private static final int LIMIT_SKIN = 240;
-	private RateLimiterBasic ratelimitSkin;
-	private static final int LIMIT_CAPE = 180;
-	private RateLimiterBasic ratelimitCape;
-	private static final int LIMIT_VOICE_CON = 20;
-	private RateLimiterBasic ratelimitVoiceCon;
-	private static final int LIMIT_VOICE_REQ = 120;
-	private RateLimiterBasic ratelimitVoiceReq;
-	private static final int LIMIT_VOICE_ICE = 600;
-	private RateLimiterBasic ratelimitVoiceICE;
-	private static final int LIMIT_BRAND = 240;
-	private RateLimiterBasic ratelimitBrand;
-	private static final int LIMIT_WEBVIEW_DATA = 8;
-	private RateLimiterBasic ratelimitWebViewData;
-	private static final int LIMIT_WEBVIEW_MSG = 120;
-	private RateLimiterBasic ratelimitWebViewMsg;
+	public static class RateLimitParams {
 
-	// Note that the below functions are not perfectly thread safe,
-	// but unlikely to cause the rate limiting to be unreliable
+		public final int limitSkin;
+		public final int limitCape;
+		public final int limitVoiceCon;
+		public final int limitVoiceReq;
+		public final int limitVoiceICE;
+		public final int limitBrand;
+		public final int limitWebViewData;
+		public final int limitWebViewMsg;
+		public final int limitSkinAntagonist;
+		public final int limitSvSkinAntagonist;
+		public final int limitSvBrandAntagonist;
+
+		public RateLimitParams(int limitSkin, int limitCape, int limitVoiceCon, int limitVoiceReq, int limitVoiceICE,
+				int limitBrand, int limitWebViewData, int limitWebViewMsg, int limitSkinAntagonist,
+				int limitSvSkinAntagonist, int limitSvBrandAntagonist) {
+			this.limitSkin = limitSkin;
+			this.limitCape = limitCape;
+			this.limitVoiceCon = limitVoiceCon;
+			this.limitVoiceReq = limitVoiceReq;
+			this.limitVoiceICE = limitVoiceICE;
+			this.limitBrand = limitBrand;
+			this.limitWebViewData = limitWebViewData;
+			this.limitWebViewMsg = limitWebViewMsg;
+			this.limitSkinAntagonist = limitSkinAntagonist;
+			this.limitSvSkinAntagonist = limitSvSkinAntagonist;
+			this.limitSvBrandAntagonist = limitSvBrandAntagonist;
+		}
+
+	}
+
+	private final RateLimitParams params;
+
+	private RateLimiterBasic ratelimitSkin;
+	private RateLimiterBasic ratelimitCape;
+	private RateLimiterBasic ratelimitVoiceCon;
+	private RateLimiterBasic ratelimitVoiceReq;
+	private RateLimiterBasic ratelimitVoiceICE;
+	private RateLimiterBasic ratelimitBrand;
+	private RateLimiterBasic ratelimitWebViewData;
+	private RateLimiterBasic ratelimitWebViewMsg;
+	private RateLimiterBasic skinAntagonistTracker;
+	private RateLimiterBasic svSkinAntagonistTracker;
+	private RateLimiterBasic svBrandAntagonistTracker;
+
+	public PlayerRateLimits(RateLimitParams params) {
+		this.params = params;
+	}
+
+	// Note that the below functions will cause a data race initializing
+	// in multi-threaded environments, but java is memory-safe so fuck it
 
 	public boolean ratelimitSkin() {
 		RateLimiterBasic limiter = ratelimitSkin;
 		if(limiter == null) {
 			limiter = ratelimitSkin = new RateLimiterBasic();
 		}
-		return limiter.rateLimit(LIMIT_SKIN);
+		return limiter.rateLimit(params.limitSkin);
 	}
 
 	public boolean ratelimitCape() {
@@ -37,7 +70,7 @@ public class PlayerRateLimits {
 		if(limiter == null) {
 			limiter = ratelimitCape = new RateLimiterBasic();
 		}
-		return limiter.rateLimit(LIMIT_CAPE);
+		return limiter.rateLimit(params.limitCape);
 	}
 
 	public boolean ratelimitVoiceCon() {
@@ -45,7 +78,7 @@ public class PlayerRateLimits {
 		if(limiter == null) {
 			limiter = ratelimitVoiceCon = new RateLimiterBasic();
 		}
-		return limiter.rateLimit(LIMIT_VOICE_CON);
+		return limiter.rateLimit(params.limitVoiceCon);
 	}
 
 	public boolean ratelimitVoiceReq() {
@@ -53,7 +86,7 @@ public class PlayerRateLimits {
 		if(limiter == null) {
 			limiter = ratelimitVoiceReq = new RateLimiterBasic();
 		}
-		return limiter.rateLimit(LIMIT_VOICE_REQ);
+		return limiter.rateLimit(params.limitVoiceReq);
 	}
 
 	public boolean ratelimitVoiceICE() {
@@ -61,7 +94,7 @@ public class PlayerRateLimits {
 		if(limiter == null) {
 			limiter = ratelimitVoiceICE = new RateLimiterBasic();
 		}
-		return limiter.rateLimit(LIMIT_VOICE_ICE);
+		return limiter.rateLimit(params.limitVoiceICE);
 	}
 
 	public boolean ratelimitBrand() {
@@ -69,7 +102,7 @@ public class PlayerRateLimits {
 		if(limiter == null) {
 			limiter = ratelimitBrand = new RateLimiterBasic();
 		}
-		return limiter.rateLimit(LIMIT_BRAND);
+		return limiter.rateLimit(params.limitBrand);
 	}
 
 	public boolean ratelimitWebViewData() {
@@ -77,7 +110,7 @@ public class PlayerRateLimits {
 		if(limiter == null) {
 			limiter = ratelimitWebViewData = new RateLimiterBasic();
 		}
-		return limiter.rateLimit(LIMIT_WEBVIEW_DATA);
+		return limiter.rateLimit(params.limitWebViewData);
 	}
 
 	public boolean ratelimitWebViewMsg() {
@@ -85,7 +118,46 @@ public class PlayerRateLimits {
 		if(limiter == null) {
 			limiter = ratelimitWebViewMsg = new RateLimiterBasic();
 		}
-		return limiter.rateLimit(LIMIT_WEBVIEW_MSG);
+		return limiter.rateLimit(params.limitWebViewMsg);
+	}
+
+	public boolean checkSkinAntagonist() {
+		RateLimiterBasic limiter = skinAntagonistTracker;
+		return limiter != null && limiter.isLimited(params.limitSkinAntagonist);
+	}
+
+	public boolean ratelimitSkinAntagonist() {
+		RateLimiterBasic limiter = skinAntagonistTracker;
+		if(limiter == null) {
+			limiter = skinAntagonistTracker = new RateLimiterBasic();
+		}
+		return limiter.rateLimit(params.limitSkinAntagonist);
+	}
+
+	public boolean checkSvSkinAntagonist() {
+		RateLimiterBasic limiter = svSkinAntagonistTracker;
+		return limiter != null && limiter.isLimited(params.limitSvSkinAntagonist);
+	}
+
+	public boolean ratelimitSvSkinAntagonist() {
+		RateLimiterBasic limiter = svSkinAntagonistTracker;
+		if(limiter == null) {
+			limiter = svSkinAntagonistTracker = new RateLimiterBasic();
+		}
+		return limiter.rateLimit(params.limitSvSkinAntagonist);
+	}
+
+	public boolean checkSvBrandAntagonist() {
+		RateLimiterBasic limiter = svBrandAntagonistTracker;
+		return limiter != null && limiter.isLimited(params.limitSvBrandAntagonist);
+	}
+
+	public boolean ratelimitSvBrandAntagonist() {
+		RateLimiterBasic limiter = svBrandAntagonistTracker;
+		if(limiter == null) {
+			limiter = svBrandAntagonistTracker = new RateLimiterBasic();
+		}
+		return limiter.rateLimit(params.limitSvBrandAntagonist);
 	}
 
 }

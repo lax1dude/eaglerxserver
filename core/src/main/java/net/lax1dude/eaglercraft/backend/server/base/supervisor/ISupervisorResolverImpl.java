@@ -9,6 +9,8 @@ import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorResolve
 
 public interface ISupervisorResolverImpl extends ISupervisorResolver {
 
+	public static final UUID UNAVAILABLE = UUID.randomUUID();
+
 	void resolvePlayerSkinKeyed(UUID requester, UUID playerUUID, Consumer<IEaglerPlayerSkin> callback);
 
 	void resolvePlayerCapeKeyed(UUID requester, UUID playerUUID, Consumer<IEaglerPlayerCape> callback);

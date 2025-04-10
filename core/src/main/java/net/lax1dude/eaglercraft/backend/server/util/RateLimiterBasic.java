@@ -35,4 +35,28 @@ public class RateLimiterBasic extends AtomicInteger {
 		}
 	}
 
+	public boolean isLimited(int limitVal) {
+		if(get() >= limitVal) {
+			synchronized(this) {
+				int v = get();
+				if(v < limitVal) {
+					return true;
+				}
+				long period = (long)(60000 / limitVal);
+				long delta = (Util.steadyTime() - timer) / period;
+				if(delta > 0l) {
+					timer += delta * period;
+					int correction = v - (limitVal << 1);
+					if(correction > 0) {
+						delta += correction;
+					}
+					return addAndGet(-Math.min((int)delta, v)) < limitVal;
+				}
+				return false;
+			}
+		}else {
+			return true;
+		}
+	}
+
 }

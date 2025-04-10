@@ -20,6 +20,7 @@ import net.lax1dude.eaglercraft.backend.server.base.notifications.NotificationMa
 import net.lax1dude.eaglercraft.backend.server.base.pause_menu.PauseMenuManager;
 import net.lax1dude.eaglercraft.backend.server.base.rpc.EaglerPlayerRPCManager;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinManagerEagler;
+import net.lax1dude.eaglercraft.backend.server.base.supervisor.ISupervisorResolverImpl;
 import net.lax1dude.eaglercraft.backend.server.base.supervisor.ISupervisorServiceImpl;
 import net.lax1dude.eaglercraft.backend.server.base.update.IUpdateCertificateImpl;
 import net.lax1dude.eaglercraft.backend.server.base.voice.IVoiceManagerImpl;
@@ -54,7 +55,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 		playerLogger = connectionInstance.logger();
 		redirectSupport = connectionInstance.hasCapability(EnumCapabilitySpec.REDIRECT_V0);
 		updateSupport = connectionInstance.hasCapability(EnumCapabilitySpec.UPDATE_V0);
-		rateLimits = new PlayerRateLimits();
+		rateLimits = new PlayerRateLimits(server.rateLimitParams());
 		if(updateSupport && server.getUpdateService() != null) {
 			updateSent = new HashSet<>();
 		}else {
@@ -347,15 +348,24 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 			sendEaglerMessage(new SPacketOtherPlayerClientUUIDV4EAG(requestId, brandUUID.getMostSignificantBits(),
 					brandUUID.getLeastSignificantBits()));
 		} else {
-			ISupervisorServiceImpl<PlayerObject> supervisorService = player.getEaglerXServer().getSupervisorService();
+			ISupervisorServiceImpl<PlayerObject> supervisorService = server.getSupervisorService();
 			if(supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(uuid)) {
+				if(!rateLimits.checkSvBrandAntagonist()) {
+					return;
+				}
 				supervisorService.getRemoteOnlyResolver().resolvePlayerBrandKeyed(getUniqueId(), uuid, (res) -> {
-					//TODO: track antagonist
-					if(res != null) {
-						sendEaglerMessage(new SPacketOtherPlayerClientUUIDV4EAG(requestId, res.getMostSignificantBits(),
-								res.getLeastSignificantBits()));
+					if(res != ISupervisorResolverImpl.UNAVAILABLE) {
+						if(res != null) {
+							sendEaglerMessage(new SPacketOtherPlayerClientUUIDV4EAG(requestId, res.getMostSignificantBits(),
+									res.getLeastSignificantBits()));
+						}else {
+							rateLimits.ratelimitSvBrandAntagonist();
+							sendEaglerMessage(new SPacketOtherPlayerClientUUIDV4EAG(requestId, 0l, 0l));
+						}
 					}
 				});
+			} else {
+				sendEaglerMessage(new SPacketOtherPlayerClientUUIDV4EAG(requestId, 0l, 0l));
 			}
 		}
 	}

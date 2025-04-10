@@ -154,6 +154,18 @@ public class EaglerConfigLoader {
 				+ "the same effect on clientbound packets as setting eaglerNoDelay to true does "
 				+ "on a post-u37 client for all serverbound packets."
 			);
+			int brandLookupRatelimit = config.getInteger(
+				"brand_lookup_ratelimit", 240,
+				"Default value is 240, sets the rate limit per minute for client brand lookup requests."
+			);
+			int webviewDownloadRatelimit = config.getInteger(
+				"webview_download_ratelimit", 8,
+				"Default value is 8, sets the rate limit per minute for webview download requests."
+			);
+			int webviewMessageRatelimit = config.getInteger(
+				"webview_message_ratelimit", 120,
+				"Default value is 120, sets the rate limit per minute for webview message packets."
+			);
 			IEaglerConfSection protocols = config.getSection("protocols");
 			int minMinecraftProtocol = protocols.getInteger(
 				"min_minecraft_protocol", 3,
@@ -188,11 +200,6 @@ public class EaglerConfigLoader {
 				"If v5 clients should be allowed to join."
 			);
 			IEaglerConfSection skinService = config.getSection("skin_service");
-			int skinLookupRatelimitPlayer = skinService.getInteger(
-				"skin_lookup_ratelimit_player", 1000,
-				"Default value is 1000, limit of how many skin lookups an eaglercraft player is "
-				+ "allowed to attempt per minute."
-			);
 			boolean downloadVanillaSkinsToClients = skinService.getBoolean(
 				"download_vanilla_skins_to_clients", true,
 				"Default value is true, sets if the server should download the textures of "
@@ -207,17 +214,15 @@ public class EaglerConfigLoader {
 							+ "sets the allowed domains to download custom skulls and skins from "
 							+ "that are requested by EaglercraftX clients, only relevant if "
 							+ "download_vanilla_skins_to_clients is enabled."));
-			int skinDownloadRatelimit = skinService.getInteger(
-				"skin_download_ratelimit_player", 250,
-				"Default value is 250, limit of how many texture downloads a single player "
-				+ "is allowed to trigger per minute, only relevant if download_vanilla_skins_to_clients "
-				+ "is enabled."
+			int skinLookupRatelimit = skinService.getInteger(
+				"skin_lookup_ratelimit", 240,
+				"Default value is 240, sets the primary rate limit per minute for player skin "
+				+ "requests, including requests for custom skull textures."
 			);
-			int skinDownloadRatelimitGlobal = skinService.getInteger(
-				"skin_download_ratelimit_global", 30000,
-				"Default value is 30000, limit of how many texture downloads the entire server "
-				+ "is allowed to perform per minute, only relevant if download_vanilla_skins_to_clients "
-				+ "is enabled."
+			int capeLookupRatelimit = skinService.getInteger(
+				"cape_lookup_ratelimit", 180,
+				"Default value is 180, sets the primary rate limit per minute for player cape "
+				+ "requests."
 			);
 			String skinCacheDBURI = skinService.getString(
 				"skin_cache_db_uri", "jdbc:sqlite:eagler_skins_cache.db",
@@ -285,7 +290,7 @@ public class EaglerConfigLoader {
 				"enable_fnaw_skin_models_global", true,
 				"Default value is true, set to false to make the Five Nights At Winston's skins "
 				+ "render with regular player models, can be used to avoid confused people "
-				+ "complaining about hitboxes"
+				+ "complaining about hitboxes."
 			);
 			IEaglerConfList enableFNAWSkinsOnServersConf = skinService.getList("enable_fnaw_skin_models_servers");
 			Set<String> enableFNAWSkinModelsOnServers = ImmutableSet
@@ -295,23 +300,25 @@ public class EaglerConfigLoader {
 			IEaglerConfSection voiceService = config.getSection("voice_service");
 			boolean enableVoiceService = voiceService.getBoolean(
 				"enable_voice_service", false,
-				"Default value is false, if the voice service should be enabled"
+				"Default value is false, if the voice service should be enabled, using voice chat on "
+				+ "large public servers is discouraged since the eagler voice protocol is very easy "
+				+ "to stress and abuse and lacks proper validation for certain packets"
 			);
 			boolean enableVoiceChatAllServers = voiceService.getBoolean(
 				"enable_voice_all_servers", true,
-				"Default value is true, if voice chat should be enabled on all servers"
+				"Default value is true, if voice chat should be enabled on all servers."
 			);
 			IEaglerConfList enableVoiceChatOnServersConf = voiceService.getList("enable_voice_on_servers");
 			if(!enableVoiceChatOnServersConf.exists()) {
 				enableVoiceChatOnServersConf.setComment("If enable_voice_all_servers is false, "
-						+ "sets the list of servers (by name) where voice chat should be enabled");
+						+ "sets the list of servers (by name) where voice chat should be enabled.");
 			}
 			Set<String> enableVoiceChatOnServers = ImmutableSet
 					.copyOf(enableVoiceChatOnServersConf.getAsStringList(() -> Collections.emptyList()));
 			boolean separateVoiceChannelsPerServer = voiceService.getBoolean(
 				"separate_server_voice_channels", true,
 				"Default value is true, if each server should get its own global voice channel, or "
-				+ "if players on all servers should share the same global voice channel"
+				+ "if players on all servers should share the same global voice channel."
 			);
 			boolean voiceBackendRelayMode = platform.proxy ? voiceService.getBoolean(
 				"voice_backend_relayed_mode", false,
@@ -320,11 +327,26 @@ public class EaglerConfigLoader {
 				+ "full control of the eagler voice service, also allows the voice service to work "
 				+ "while using the supervisor. Requires the EaglerXBackendRPC plugin."
 			) : false;
+			int voiceConnectRatelimit = voiceService.getInteger(
+				"voice_connect_ratelimit", 20,
+				"Default value is 20, sets the rate limit per minute for players to toggle voice."
+			);
+			int voiceRequestRatelimit = voiceService.getInteger(
+				"voice_request_ratelimit", 120,
+				"Default value is 120, sets the rate limit per minute for players initiating a "
+				+ "WebRTC handshake with another client on the server, ignored on older client "
+				+ "versions due to a bug that causes the client to spam requests excessively."
+			);
+			int voiceICERatelimit = voiceService.getInteger(
+				"voice_ice_ratelimit", 600,
+				"Default value is 600, sets the rate limit per minute for players to exchange "
+				+ "WebRTC descriptions and ICE candidates once handshaking."
+			);
 			IEaglerConfSection updateService = config.getSection("update_service");
 			boolean enableUpdateSystem = updateService.getBoolean(
 				"enable_update_system", true,
 				"Default value is true, if relaying certificates for the client update system "
-				+ "should be enabled"
+				+ "should be enabled."
 			);
 			boolean discardLoginPacketCerts = updateService.getBoolean(
 				"discard_login_packet_certs", false,
@@ -340,12 +362,12 @@ public class EaglerConfigLoader {
 			boolean enableEagcertFolder = updateService.getBoolean(
 				"enable_eagcert_folder", true,
 				"Default value is true, can be used to enable or disable the \"eagcert\" folder "
-				+ "used for distributing specific certificates as locally provided .cert files"
+				+ "used for distributing specific certificates as locally provided .cert files."
 			);
 			boolean downloadLatestCerts = updateService.getBoolean(
 				"download_latest_certs", true,
 				"Default value is true, can be used to automaticlly download the latest certificates "
-				+ "to the \"eagcert\" folder"
+				+ "to the \"eagcert\" folder."
 			);
 			IEaglerConfList downloadCertsFromConf = updateService.getList("download_certs_from");
 			if(!downloadCertsFromConf.exists()) {
@@ -371,20 +393,21 @@ public class EaglerConfigLoader {
 			return new ConfigDataSettings(serverName, serverUUID, eaglerLoginTimeout, httpMaxInitialLineLength,
 					httpMaxHeaderSize, httpMaxChunkSize, httpMaxContentLength, httpWebSocketCompressionLevel,
 					httpWebSocketFragmentSize, httpWebSocketMaxFrameLength, tlsCertRefreshRate,
-					enableAuthenticationEvents, enableBackendRPCAPI, useModernizedChannelNames, eaglerPlayersViewDistance,
-					eaglerPlayersVanillaSkin, enableIsEaglerPlayerProperty, protocolV4DefragSendDelay,
+					enableAuthenticationEvents, enableBackendRPCAPI, useModernizedChannelNames,
+					eaglerPlayersViewDistance, eaglerPlayersVanillaSkin, enableIsEaglerPlayerProperty,
+					protocolV4DefragSendDelay, brandLookupRatelimit, webviewDownloadRatelimit, webviewMessageRatelimit,
 					new ConfigDataSettings.ConfigDataProtocols(minMinecraftProtocol, maxMinecraftProtocol,
 							eaglerXRewindAllowed, protocolLegacyAllowed, protocolV3Allowed, protocolV4Allowed,
 							protocolV5Allowed),
-					new ConfigDataSettings.ConfigDataSkinService(skinLookupRatelimitPlayer,
-							downloadVanillaSkinsToClients, validSkinDownloadURLs, skinDownloadRatelimit,
-							skinDownloadRatelimitGlobal, skinCacheDBURI, skinCacheDriverClass, skinCacheDriverPath,
-							skinCacheSQLiteCompatible, skinCacheThreadCount, skinCacheCompressionLevel,
-							skinCacheMemoryKeepSeconds, skinCacheMemoryMaxObjects, skinCacheDiskKeepObjectsDays,
-							skinCacheDiskMaxObjects, skinCacheAntagonistsRatelimit, enableFNAWSkinModelsGlobal,
-							enableFNAWSkinModelsOnServers),
+					new ConfigDataSettings.ConfigDataSkinService(skinLookupRatelimit, capeLookupRatelimit,
+							downloadVanillaSkinsToClients, validSkinDownloadURLs, skinCacheDBURI, skinCacheDriverClass,
+							skinCacheDriverPath, skinCacheSQLiteCompatible, skinCacheThreadCount,
+							skinCacheCompressionLevel, skinCacheMemoryKeepSeconds, skinCacheMemoryMaxObjects,
+							skinCacheDiskKeepObjectsDays, skinCacheDiskMaxObjects, skinCacheAntagonistsRatelimit,
+							enableFNAWSkinModelsGlobal, enableFNAWSkinModelsOnServers),
 					new ConfigDataSettings.ConfigDataVoiceService(enableVoiceService, enableVoiceChatAllServers,
-							enableVoiceChatOnServers, separateVoiceChannelsPerServer, voiceBackendRelayMode),
+							enableVoiceChatOnServers, separateVoiceChannelsPerServer, voiceBackendRelayMode,
+							voiceConnectRatelimit, voiceRequestRatelimit, voiceICERatelimit),
 					new ConfigDataSettings.ConfigDataUpdateService(enableUpdateSystem, discardLoginPacketCerts,
 							certPacketDataRateLimit, enableEagcertFolder, downloadLatestCerts, downloadCertsFrom,
 							checkForUpdateEvery));
