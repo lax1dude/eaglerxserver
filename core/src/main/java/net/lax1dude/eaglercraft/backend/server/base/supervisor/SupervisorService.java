@@ -232,16 +232,18 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 	}
 
 	private void onNewConnection(SupervisorPacketHandler handler, int nodeId) {
+		SupervisorConnection newConnection = new SupervisorConnection(this, handler, nodeId);
+		handler.setConnectionProtocol(EaglerSupervisorProtocol.V1);
+		handler.setConnectionHandler(new SupervisorClientV1Handler(newConnection));
 		handler.channelWrite(new CPacketSvProxyBrand(switch (server.getPlatform().getType()) {
 		case BUNGEE -> CPacketSvProxyBrand.PROXY_TYPE_BUNGEE;
 		case VELOCITY -> CPacketSvProxyBrand.PROXY_TYPE_VELOCITY;
 		default -> CPacketSvProxyBrand.PROXY_TYPE_EAGLER_STANDALONE;
 		}, server.getPlatform().getVersion(), CPacketSvProxyBrand.PLUGIN_TYPE_EAGLERXSERVER, server.getServerBrand(),
 				server.getServerVersion()));
-		SupervisorConnection newConnection = new SupervisorConnection(this, handler, nodeId);
 		for(BasePlayerInstance<PlayerObject> player : server.getAllPlayersInternal()) {
 			EaglerPlayerInstance<PlayerObject> dat = player.asEaglerPlayer();
-			acceptPlayer(player.getUniqueId(),
+			newConnection.acceptPlayer(player.getUniqueId(),
 					dat != null ? dat.getEaglerBrandUUID() : IBrandRegistry.BRAND_VANILLA,
 					player.getMinecraftProtocol(), dat != null ? dat.getEaglerProtocol().ver : 0,
 					player.getUsername(), (res) -> {
@@ -254,6 +256,7 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 					});
 		}
 		CURRENT_CONNECTION_HANDLE.setRelease(this, newConnection);
+		resolver.flushDeferred();
 	}
 
 	private void onConnectionEnd() {

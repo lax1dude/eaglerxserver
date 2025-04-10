@@ -62,7 +62,7 @@ public class SupervisorServiceDisabled<PlayerObject> implements ISupervisorServi
 	}
 
 	@Override
-	public ISupervisorResolver getRemoteOnlyResolver() {
+	public ISupervisorResolverImpl getRemoteOnlyResolver() {
 		throw supervisorDisable();
 	}
 

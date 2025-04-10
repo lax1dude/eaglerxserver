@@ -68,6 +68,7 @@ import net.lax1dude.eaglercraft.backend.server.base.command.CommandVersion;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataPauseMenu;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataRoot;
+import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSupervisor;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings.ConfigDataSkinService;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings.ConfigDataVoiceService;
 import net.lax1dude.eaglercraft.backend.server.base.message.MessageControllerFactory;
@@ -84,6 +85,7 @@ import net.lax1dude.eaglercraft.backend.server.base.skins.ProfileResolver;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SimpleProfileCache;
 import net.lax1dude.eaglercraft.backend.server.base.skins.SkinService;
 import net.lax1dude.eaglercraft.backend.server.base.supervisor.ISupervisorServiceImpl;
+import net.lax1dude.eaglercraft.backend.server.base.supervisor.SupervisorService;
 import net.lax1dude.eaglercraft.backend.server.base.supervisor.SupervisorServiceDisabled;
 import net.lax1dude.eaglercraft.backend.server.base.update.IUpdateCertificateImpl;
 import net.lax1dude.eaglercraft.backend.server.base.update.UpdateCertificate;
@@ -96,7 +98,6 @@ import net.lax1dude.eaglercraft.backend.server.base.webserver.WebServer;
 import net.lax1dude.eaglercraft.backend.server.base.webview.WebViewService;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 import net.lax1dude.eaglercraft.backend.skin_cache.HTTPClient;
-import net.lax1dude.eaglercraft.backend.skin_cache.ISkinCacheService;
 import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheDatastore;
 import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheDownloader;
 import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheService;
@@ -203,11 +204,19 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		profileResolver = new ProfileResolver(this, httpClient);
 		
 		ConfigDataSkinService skinSvcConf = config.getSettings().getSkinService();
-		if(skinSvcConf.isDownloadVanillaSkinsToClients()) {
-			skinCacheService = new DeferredStartSkinCache();
-			skinService = new SkinService<>(this, skinCacheService, skinSvcConf.getFNAWSkinsPredicate());
+		ConfigDataSupervisor supervisorConf = config.getSupervisor();
+		if(supervisorConf.isEnableSupervisor()) {
+			supervisorService = new SupervisorService<>(this);
+			skinService = new SkinService<>(this, null, skinSvcConf.getFNAWSkinsPredicate(),
+					skinSvcConf.isDownloadVanillaSkinsToClients());
 		}else {
-			skinService = new SkinService<>(this, null, skinSvcConf.getFNAWSkinsPredicate());
+			supervisorService = new SupervisorServiceDisabled<>(this);
+			if(skinSvcConf.isDownloadVanillaSkinsToClients()) {
+				skinCacheService = new DeferredStartSkinCache();
+				skinService = new SkinService<>(this, skinCacheService, skinSvcConf.getFNAWSkinsPredicate(), true);
+			}else {
+				skinService = new SkinService<>(this, null, skinSvcConf.getFNAWSkinsPredicate(), false);
+			}
 		}
 		
 		isEaglerPlayerProperyEnabled = config.getSettings().isEnableIsEaglerPlayerProperty();
@@ -265,12 +274,6 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		
 		if(config.getSettings().isEnableBackendRPCAPI() && platform.getType().proxy) {
 			backendRPCService = new BackendRPCService<>(this);
-		}
-		
-		if(config.getSupervisor().isEnableSupervisor()) {
-			//TODO
-		}else {
-			supervisorService = new SupervisorServiceDisabled<>(this);
 		}
 		
 		init.setOnServerEnable(this::enableHandler);
@@ -399,6 +402,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		if(updateService != null) {
 			updateService.start();
 		}
+		
+		if(supervisorService != null) {
+			supervisorService.handleEnable();
+		}
 	}
 
 	private void disableHandler() {
@@ -428,6 +435,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		
 		if(updateService != null) {
 			updateService.stop();
+		}
+		
+		if(supervisorService != null) {
+			supervisorService.handleDisable();
 		}
 	}
 
@@ -838,10 +849,6 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	public SkinService<PlayerObject> getSkinService() {
 		return skinService;
-	}
-
-	public ISkinCacheService getSkinCacheService() {
-		return skinCacheService;
 	}
 
 	@Override

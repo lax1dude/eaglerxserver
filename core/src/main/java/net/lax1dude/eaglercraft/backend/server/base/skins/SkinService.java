@@ -34,6 +34,7 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 	private final Predicate<String> fnawSkinsEnabled;
 	private final ISupervisorServiceImpl<PlayerObject> supervisor;
 	private final boolean downloadEnabled;
+	private final boolean keyedLookupHelper;
 
 	public SkinService(EaglerXServer<PlayerObject> server, ISkinCacheService skinCache,
 			Predicate<String> fnawSkinsEnabled, boolean downloadEnabled) {
@@ -43,6 +44,7 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 		ISupervisorServiceImpl<PlayerObject> service = server.getSupervisorService();
 		this.supervisor = service.isSupervisorEnabled() ? service : null;
 		this.downloadEnabled = downloadEnabled;
+		this.keyedLookupHelper = downloadEnabled && supervisor == null;
 	}
 
 	@Override
@@ -102,6 +104,30 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 						callback.accept(MissingSkin.MISSING_SKIN);
 					}
 				});
+				return;
+			}
+		}
+		callback.accept(MissingSkin.MISSING_SKIN);
+	}
+
+	void loadCacheSkinFromURLKeyed(SkinManagerEagler<PlayerObject> requester, String skinURL, EnumSkinModel modelId,
+			Consumer<IEaglerPlayerSkin> callback) {
+		if(downloadEnabled) {
+			if(supervisor != null) {
+				supervisor.getRemoteOnlyResolver().resolveForeignSkinKeyed(requester.player.getUniqueId(),
+						modelId.getId(), skinURL, callback);
+				return;
+			}else if(skinCache != null) {
+				Consumer<IEaglerPlayerSkin> callback2 = requester.keyedSkinLookupHelper.add(skinURL, callback);
+				if(callback2 != null) {
+					skinCache.resolveSkinByURL(skinURL, (data) -> {
+						if(data != ISkinCacheService.ERROR) {
+							callback2.accept(CustomSkinGeneric.createV4(modelId.getId(), data));
+						}else {
+							callback2.accept(MissingSkin.MISSING_SKIN);
+						}
+					});
+				}
 				return;
 			}
 		}
@@ -206,7 +232,7 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 		}
 		IEaglerPlayerCape cape = SkinHandshake.loadCapeDataV1(playerInstance.getUniqueId(), profileData.capeDataInit);
 		handleRegisterSkin(playerInstance, skin, cape, (skin2, cape2) -> {
-			onComplete.accept(new SkinManagerEagler<>(playerInstance, skin2, cape2, true));
+			onComplete.accept(new SkinManagerEagler<>(playerInstance, skin2, cape2, true, keyedLookupHelper));
 		});
 	}
 

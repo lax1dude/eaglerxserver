@@ -36,14 +36,16 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 	private final IEaglerPlayerCape oldCape;
 	private EnumEnableFNAW fnawSkinsEnabled;
 	private boolean fnawSkinsManaged = true;
+	final KeyedRequestHelper<IEaglerPlayerSkin> keyedSkinLookupHelper;
 
 	SkinManagerEagler(EaglerPlayerInstance<PlayerObject> player, IEaglerPlayerSkin skin, IEaglerPlayerCape cape,
-			boolean fnawSkinsEnabled) {
+			boolean fnawSkinsEnabled, boolean keyedLookupHelper) {
 		this.player = player;
 		this.skinService = player.getEaglerXServer().getSkinService();
 		this.skin = oldSkin = skin;
 		this.cape = oldCape = cape;
 		this.fnawSkinsEnabled = fnawSkinsEnabled ? EnumEnableFNAW.ENABLED : EnumEnableFNAW.DISABLED;
+		this.keyedSkinLookupHelper = keyedLookupHelper ? new KeyedRequestHelper<>() : null;
 	}
 
 	@Override
@@ -317,7 +319,7 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 		if(!player.getRateLimits().ratelimitSkin()) {
 			return;
 		}
-		skinService.loadCacheSkinFromURL(url, EnumSkinModel.STEVE, (res) -> {
+		skinService.loadCacheSkinFromURLKeyed(this, url, EnumSkinModel.STEVE, (res) -> {
 			player.sendEaglerMessage(res.getSkinPacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
 		});
 	}

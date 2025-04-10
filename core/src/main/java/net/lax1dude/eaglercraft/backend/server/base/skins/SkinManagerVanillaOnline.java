@@ -206,7 +206,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 		if(val1 != null && val2 != null) {
 			callback.accept(val1, val2);
 		}else {
-			new MultiSkinResolver<SkinManagerVanillaOnline<PlayerObject>, PlayerObject>(this, val1, val2, requester) {
+			new MultiSkinResolver<SkinManagerVanillaOnline<PlayerObject>, PlayerObject>(this, this, val1, val2, requester) {
 				@Override
 				protected void onComplete(SkinManagerVanillaOnline<PlayerObject> mgr, IEaglerPlayerSkin skin, IEaglerPlayerCape cape) {
 					callback.accept(skin, cape);

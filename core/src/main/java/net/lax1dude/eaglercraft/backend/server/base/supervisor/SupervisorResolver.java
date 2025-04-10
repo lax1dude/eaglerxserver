@@ -1,5 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.base.supervisor;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -30,6 +33,7 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 	private final LoadingCache<String, ForeignCape> foreignCapeCache;
 	private final ConcurrentMap<UUID, PendingSkinLookup> pendingSkinLookups;
 	private final ConcurrentMap<UUID, PendingCapeLookup> pendingCapeLookups;
+	private List<IDeferredLoad> deferred = new LinkedList<>();
 
 	SupervisorResolver(SupervisorService<?> service) {
 		this.service = service;
@@ -333,6 +337,42 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 			return true;
 		}
 		return false;
+	}
+
+	interface IDeferredLoad {
+		void complete(boolean fail);
+	}
+
+	void addDeferred(IDeferredLoad runnable) {
+		eag: {
+			eagler: synchronized(this) {
+				if(deferred == null) {
+					break eag;
+				}
+				if(getConnection() != null) {
+					break eagler;
+				}
+				deferred.add(runnable);
+				return;
+			}
+			runnable.complete(false);
+			return;
+		}
+		runnable.complete(true);
+	}
+
+	void flushDeferred() {
+		List<IDeferredLoad> lst;
+		synchronized(this) {
+			if(deferred == null) {
+				return;
+			}
+			lst = new ArrayList<>(deferred);
+			deferred = null;
+		}
+		for(IDeferredLoad run : lst) {
+			run.complete(false);
+		}
 	}
 
 	void onConnectionEnd() {

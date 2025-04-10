@@ -34,7 +34,13 @@ class ForeignSkin extends KeyedConcurrentLazyLoader<UUID, IEaglerPlayerSkin> {
 			owner.addWaitingForeignURLSkinLookup(lookupUUID, callback);
 			handler.sendSupervisorPacket(new CPacketSvGetSkinByURL(lookupUUID, skinModel, url));
 		}else {
-			callback.accept(MissingSkin.UNAVAILABLE_SKIN);
+			owner.addDeferred((fail) -> {
+				if(fail) {
+					callback.accept(MissingSkin.UNAVAILABLE_SKIN);
+				}else {
+					loadImpl(callback);
+				}
+			});
 		}
 	}
 

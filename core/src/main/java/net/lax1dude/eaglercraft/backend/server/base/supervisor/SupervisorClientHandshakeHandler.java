@@ -16,7 +16,6 @@
 
 package net.lax1dude.eaglercraft.backend.server.base.supervisor;
 
-import net.lax1dude.eaglercraft.backend.supervisor.protocol.EaglerSupervisorProtocol;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.netty.SupervisorPacketHandler;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.EaglerSupervisorHandler;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.server.SPacketSvHandshakeFailure;
@@ -34,8 +33,6 @@ public class SupervisorClientHandshakeHandler implements EaglerSupervisorHandler
 
 	@Override
 	public void handleServer(SPacketSvHandshakeSuccess pkt) {
-		handler.setConnectionProtocol(EaglerSupervisorProtocol.V1);
-		//handler.setConnectionHandler(new SupervisorClientV1Handler(controller, handler));
 		if(pkt.selectedProtocol == 1) {
 			controller.handleHandshakeSuccess(handler, pkt.nodeId);
 		}else {
