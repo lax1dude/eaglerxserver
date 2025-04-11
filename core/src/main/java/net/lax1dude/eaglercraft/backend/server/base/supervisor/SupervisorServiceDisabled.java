@@ -5,9 +5,9 @@ import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorConnection;
-import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorRPCHandler;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorResolver;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
+import net.lax1dude.eaglercraft.backend.server.base.supervisor.rpc.SupervisorRPCHandler;
 
 public class SupervisorServiceDisabled<PlayerObject> implements ISupervisorServiceImpl<PlayerObject> {
 
@@ -53,7 +53,7 @@ public class SupervisorServiceDisabled<PlayerObject> implements ISupervisorServi
 	}
 
 	@Override
-	public ISupervisorRPCHandler getRPCHandler() {
+	public SupervisorRPCHandler getRPCHandler() {
 		throw supervisorDisable();
 	}
 

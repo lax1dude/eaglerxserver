@@ -17,55 +17,68 @@
 package net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.server;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.util.ReferenceCounted;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.EaglerSupervisorHandler;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.EaglerSupervisorPacket;
+import net.lax1dude.eaglercraft.backend.supervisor.protocol.util.IInjectedPayload;
+import net.lax1dude.eaglercraft.backend.supervisor.protocol.util.IRefCountedHolder;
 
-public class SPacketSvRPCExecuteVoid implements EaglerSupervisorPacket {
+public class SPacketSvRPCExecuteVoid implements EaglerSupervisorPacket, IRefCountedHolder {
 
 	public int sourceNodeId;
-	public byte[] name;
-	public byte[] dataBuffer;
+	public int nameLength;
+	public ByteBuf payload;
+	private IInjectedPayload injected;
 
 	public SPacketSvRPCExecuteVoid() {
 	}
 
-	public SPacketSvRPCExecuteVoid(int sourceNodeId, byte[] name, byte[] dataBuffer) {
+	public SPacketSvRPCExecuteVoid(int sourceNodeId, int nameLength, ByteBuf payload) {
 		this.sourceNodeId = sourceNodeId;
-		this.name = name;
-		this.dataBuffer = dataBuffer;
+		this.nameLength = nameLength;
+		this.payload = payload;
+	}
+
+	public SPacketSvRPCExecuteVoid(int sourceNodeId, IInjectedPayload injected) {
+		this.sourceNodeId = sourceNodeId;
+		this.injected = injected;
 	}
 
 	@Override
 	public void readPacket(ByteBuf buffer) {
 		sourceNodeId = EaglerSupervisorPacket.readVarInt(buffer);
-		int len = EaglerSupervisorPacket.readVarInt(buffer);
-		name = new byte[len];
-		buffer.readBytes(name);
-		len = EaglerSupervisorPacket.readVarInt(buffer);
-		if(len > 0) {
-			dataBuffer = new byte[len];
-			buffer.readBytes(dataBuffer);
-		}else {
-			dataBuffer = null;
+		nameLength = buffer.readUnsignedByte();
+		int payloadLen = buffer.readUnsignedMedium();
+		if(payload != null) {
+			payload.release();
 		}
+		payload = buffer.readRetainedSlice(payloadLen);
 	}
 
 	@Override
 	public void writePacket(ByteBuf buffer) {
 		EaglerSupervisorPacket.writeVarInt(buffer, sourceNodeId);
-		EaglerSupervisorPacket.writeVarInt(buffer, name.length);
-		buffer.writeBytes(name);
-		if(dataBuffer != null && dataBuffer.length > 0) {
-			EaglerSupervisorPacket.writeVarInt(buffer, dataBuffer.length);
-			buffer.writeBytes(dataBuffer);
+		if(injected != null) {
+			buffer.writeIntLE(0);
+			int pos = buffer.writerIndex();
+			buffer.setByte(pos - 4, injected.writePayload(buffer));
+			buffer.setMedium(pos - 3, buffer.writerIndex() - pos);
 		}else {
-			buffer.writeByte(0);
+			buffer.writeByte(nameLength);
+			int l = payload.readableBytes();
+			buffer.writeMedium(l);
+			buffer.writeBytes(payload, payload.readerIndex(), l);
 		}
 	}
 
 	@Override
 	public void handlePacket(EaglerSupervisorHandler handler) {
 		handler.handleServer(this);
+	}
+
+	@Override
+	public ReferenceCounted delegate() {
+		return payload;
 	}
 
 }

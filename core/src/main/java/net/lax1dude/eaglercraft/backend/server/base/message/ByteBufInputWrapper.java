@@ -13,6 +13,13 @@ public class ByteBufInputWrapper implements GamePacketInputBuffer {
 
 	public ByteBuf buffer;
 
+	public ByteBufInputWrapper() {
+	}
+
+	public ByteBufInputWrapper(ByteBuf buffer) {
+		this.buffer = buffer;
+	}
+
 	@Override
 	public void readFully(byte[] b) throws IOException {
 		buffer.readBytes(b);

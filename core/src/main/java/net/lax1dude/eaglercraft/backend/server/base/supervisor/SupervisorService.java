@@ -9,12 +9,12 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistry;
-import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorRPCHandler;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorResolver;
 import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSupervisor;
+import net.lax1dude.eaglercraft.backend.server.base.supervisor.rpc.SupervisorRPCHandler;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.EaglerSupervisorProtocol;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.netty.SupervisorPacketHandler;
@@ -39,9 +39,10 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 	private final EaglerXServer<PlayerObject> server;
 	private final ConfigDataSupervisor config;
 	private final SupervisorTimeoutLoop timeoutLoop;
-	private final boolean ignoreV2UUID;
+	private final SupervisorRPCHandler rpcHandler;
 	final SupervisorResolver resolver;
 	final SupervisorResolverAll resolverAll;
+	private final boolean ignoreV2UUID;
 	private int serviceStateTracker = 0;
 	private SupervisorConnection currentConnection = null;
 
@@ -52,9 +53,10 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 		this.server = server;
 		this.config = server.getConfig().getSupervisor();
 		this.timeoutLoop = new SupervisorTimeoutLoop(server.getPlatform().getScheduler(), 250000000l);
-		this.ignoreV2UUID = config.isSupervisorLookupIgnoreV2UUID();
+		this.rpcHandler = new SupervisorRPCHandler(this);
 		this.resolver = new SupervisorResolver(this);
 		this.resolverAll = new SupervisorResolverAll(resolver, server);
+		this.ignoreV2UUID = config.isSupervisorLookupIgnoreV2UUID();
 	}
 
 	@Override
@@ -66,11 +68,11 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 		return server;
 	}
 
-	final IPlatformLogger logger() {
+	public final IPlatformLogger logger() {
 		return server.logger();
 	}
 
-	final SupervisorTimeoutLoop timeoutLoop() {
+	public final SupervisorTimeoutLoop timeoutLoop() {
 		return timeoutLoop;
 	}
 
@@ -108,8 +110,8 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 	}
 
 	@Override
-	public ISupervisorRPCHandler getRPCHandler() {
-		return null; // TODO
+	public SupervisorRPCHandler getRPCHandler() {
+		return rpcHandler;
 	}
 
 	@Override

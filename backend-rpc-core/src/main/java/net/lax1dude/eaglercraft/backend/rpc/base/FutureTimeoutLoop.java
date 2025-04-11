@@ -2,9 +2,10 @@ package net.lax1dude.eaglercraft.backend.rpc.base;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiFunction;
+
+import com.google.common.collect.MapMaker;
 
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformScheduler;
 import net.lax1dude.eaglercraft.backend.rpc.api.RPCTimeoutException;
@@ -36,7 +37,8 @@ public class FutureTimeoutLoop {
 
 	}
 
-	private final ConcurrentMap<Long, TimeoutEvent> timeoutEvents = new ConcurrentHashMap<>();
+	private final ConcurrentMap<Long, TimeoutEvent> timeoutEvents = (new MapMaker()).initialCapacity(128)
+			.concurrencyLevel(8).makeMap();
 
 	private final IPlatformScheduler scheduler;
 	private final long resolution;

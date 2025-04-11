@@ -21,29 +21,37 @@ import java.util.Collection;
 import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.util.AbstractReferenceCounted;
+import io.netty.util.ReferenceCounted;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.EaglerSupervisorHandler;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.EaglerSupervisorPacket;
+import net.lax1dude.eaglercraft.backend.supervisor.protocol.util.IRefCountedHolder;
 
-public class SPacketSvRPCResultMulti implements EaglerSupervisorPacket {
+public class SPacketSvRPCResultMulti extends AbstractReferenceCounted implements EaglerSupervisorPacket {
 
-	public static class ResultEntry {
+	public static class ResultEntry implements IRefCountedHolder {
 
 		public final int nodeId;
 		public final int status;
-		public final byte[] dataBuffer;
+		public final ByteBuf dataBuffer;
 
-		protected ResultEntry(int nodeId, int status, byte[] dataBuffer) {
+		protected ResultEntry(int nodeId, int status, ByteBuf dataBuffer) {
 			this.nodeId = nodeId;
 			this.status = status;
 			this.dataBuffer = dataBuffer;
 		}
 
-		public static ResultEntry success(int nodeId, byte[] dataBuffer) {
+		public static ResultEntry success(int nodeId, ByteBuf dataBuffer) {
 			return new ResultEntry(nodeId, 0, dataBuffer);
 		}
 
 		public static ResultEntry failure(int nodeId, int failureCode) {
 			return new ResultEntry(nodeId, failureCode + 1, null);
+		}
+
+		@Override
+		public ReferenceCounted delegate() {
+			return dataBuffer;
 		}
 
 	}
@@ -68,10 +76,9 @@ public class SPacketSvRPCResultMulti implements EaglerSupervisorPacket {
 			int nodeId = EaglerSupervisorPacket.readVarInt(buffer);
 			int var2 = EaglerSupervisorPacket.readVarInt(buffer);
 			if(var2 > 0) {
-				byte[] data = null;
+				ByteBuf data = null;
 				if(var2 > 1) {
-					data = new byte[var2 - 1];
-					buffer.readBytes(data);
+					data = buffer.readRetainedSlice(var2 - 1);
 				}
 				results.add(ResultEntry.success(nodeId, data));
 			}else {
@@ -88,9 +95,10 @@ public class SPacketSvRPCResultMulti implements EaglerSupervisorPacket {
 		for(ResultEntry etr : results) {
 			EaglerSupervisorPacket.writeVarInt(buffer, etr.nodeId);
 			if(etr.status == 0) {
-				if(etr.dataBuffer != null && etr.dataBuffer.length > 0) {
-					EaglerSupervisorPacket.writeVarInt(buffer, etr.dataBuffer.length + 1);
-					buffer.writeBytes(etr.dataBuffer);
+				int l;
+				if(etr.dataBuffer != null && (l = etr.dataBuffer.readableBytes()) > 0) {
+					EaglerSupervisorPacket.writeVarInt(buffer, l + 1);
+					buffer.writeBytes(etr.dataBuffer, etr.dataBuffer.readerIndex(), l);
 				}else {
 					buffer.writeByte(1);
 				}
@@ -104,6 +112,18 @@ public class SPacketSvRPCResultMulti implements EaglerSupervisorPacket {
 	@Override
 	public void handlePacket(EaglerSupervisorHandler handler) {
 		handler.handleServer(this);
+	}
+
+	@Override
+	public ReferenceCounted touch(Object hint) {
+		return this;
+	}
+
+	@Override
+	protected void deallocate() {
+		for(ResultEntry etr : results) {
+			etr.release();
+		}
 	}
 
 }

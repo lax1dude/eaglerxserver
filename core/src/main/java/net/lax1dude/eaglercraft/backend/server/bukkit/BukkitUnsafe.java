@@ -1,7 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.bukkit;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -84,7 +83,7 @@ public class BukkitUnsafe {
 		public void disconnect() {
 			try {
 				method_LoginListener_disconnect.invoke(loginListener, "Connection Closed");
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		}
@@ -92,7 +91,7 @@ public class BukkitUnsafe {
 		public void disconnect(String message) {
 			try {
 				method_LoginListener_disconnect.invoke(loginListener, message);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		}
@@ -100,7 +99,7 @@ public class BukkitUnsafe {
 		public Channel getChannel() {
 			try {
 				return (Channel) field_NetworkManager_channel.get(networkManager);
-			} catch (IllegalArgumentException | IllegalAccessException e) {
+			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		}
@@ -164,7 +163,7 @@ public class BukkitUnsafe {
 				throw new IllegalStateException("LoginListener.gameProfile is null!");
 			}
 			return new LoginConnectionHolder(networkManager, packetListener, gameProfile);
-		} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 	}
@@ -210,7 +209,7 @@ public class BukkitUnsafe {
 		try {
 			return (Channel) field_NetworkManager_channel.get(field_PlayerConnection_networkManager
 					.get(field_EntityPlayer_playerConnection.get(method_CraftPlayer_getHandle.invoke(playerObject))));
-		} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 	}
@@ -242,7 +241,7 @@ public class BukkitUnsafe {
 				if(!tex.isEmpty()) {
 					return tex.iterator().next().getValue();
 				}
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 			return null;
@@ -338,7 +337,7 @@ public class BukkitUnsafe {
 			try {
 				return new BukkitPropertyInjector(((GameProfile) method_EntityPlayer_getProfile
 						.invoke(method_CraftPlayer_getHandle.invoke(player))).getProperties());
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		}
@@ -437,12 +436,11 @@ public class BukkitUnsafe {
 			return () -> {
 				try {
 					removeListener.invoke(null, eaglerKey);
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				} catch (ReflectiveOperationException e) {
 					throw Util.propagateReflectThrowable(e);
 				}
 			};
-		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException e) {
+		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 	}
@@ -505,8 +503,7 @@ public class BukkitUnsafe {
 			};
 			channelFuturesList.set(serverConnection, hackList);
 			return cleanupList;
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
-				| SecurityException e) {
+		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 	}
@@ -575,7 +572,7 @@ public class BukkitUnsafe {
 			protected void callParent(Channel channel) {
 				try {
 					initChannel.invoke(parent, channel);
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				} catch (ReflectiveOperationException e) {
 					throw Util.propagateReflectThrowable(e);
 				}
 			}
@@ -623,8 +620,7 @@ public class BukkitUnsafe {
 				Method m = server.getClass().getDeclaredMethod("getCommandMap");
 				m.setAccessible(true);
 				return (CommandMap) m.invoke(server);
-			} catch(IllegalAccessException | IllegalArgumentException | SecurityException | InvocationTargetException
-					| NoSuchMethodException ex1) {
+			} catch(ReflectiveOperationException ex1) {
 				throw Util.propagateReflectThrowable(ex1);
 			}
 		}
@@ -713,8 +709,7 @@ public class BukkitUnsafe {
 			Object propertyManager = dedicatedServer.getClass().getMethod("getPropertyManager").invoke(dedicatedServer);
 			return (Boolean) propertyManager.getClass().getMethod("getBoolean", String.class, boolean.class)
 					.invoke(propertyManager, "use-native-transport", true);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
-				| SecurityException e) {
+		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 	}
@@ -725,8 +720,7 @@ public class BukkitUnsafe {
 			Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
 			Object minecraftServer = dedicatedPlayerList.getClass().getMethod("getServer").invoke(dedicatedPlayerList);
 			serverConnection = minecraftServer.getClass().getMethod("getServerConnection").getReturnType();
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
-				| NoSuchMethodException | SecurityException e) {
+		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 		return getEventLoopGroup(serverConnection, enableNativeTransport);
@@ -744,8 +738,7 @@ public class BukkitUnsafe {
 						if(args.length == 1 && "io.netty.channel.epoll.EpollEventLoopGroup".equals(args[0].getTypeName())) {
 							try {
 								return (EventLoopGroup) clz.getMethod("init").invoke(field.get(null));
-							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
-									| NoSuchMethodException | SecurityException e) {
+							} catch (ReflectiveOperationException e) {
 								throw Util.propagateReflectThrowable(e);
 							}
 						}
@@ -762,8 +755,7 @@ public class BukkitUnsafe {
 					if(args.length == 1 && "io.netty.channel.nio.NioEventLoopGroup".equals(args[0].getTypeName())) {
 						try {
 							return (EventLoopGroup) clz.getMethod("init").invoke(field.get(null));
-						} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
-								| NoSuchMethodException | SecurityException e) {
+						} catch (ReflectiveOperationException e) {
 							throw Util.propagateReflectThrowable(e);
 						}
 					}

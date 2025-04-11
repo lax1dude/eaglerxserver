@@ -2,9 +2,10 @@ package net.lax1dude.eaglercraft.backend.server.base.supervisor;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiFunction;
+
+import com.google.common.collect.MapMaker;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformScheduler;
 
@@ -32,7 +33,8 @@ public class SupervisorTimeoutLoop {
 
 	}
 
-	private final ConcurrentMap<Long, TimeoutEvent> timeoutEvents = new ConcurrentHashMap<>();
+	private final ConcurrentMap<Long, TimeoutEvent> timeoutEvents = (new MapMaker()).initialCapacity(256)
+			.concurrencyLevel(16).makeMap();
 
 	private final IPlatformScheduler scheduler;
 	private final long resolution;

@@ -16,6 +16,8 @@
 
 package net.lax1dude.eaglercraft.backend.server.base.supervisor;
 
+import java.nio.charset.StandardCharsets;
+
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.CustomCapeGeneric;
@@ -25,6 +27,7 @@ import net.lax1dude.eaglercraft.backend.server.base.skins.type.CustomSkinPlayer;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.InternUtils;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingCape;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingSkin;
+import net.lax1dude.eaglercraft.backend.server.base.supervisor.rpc.SupervisorRPCHandler;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.EaglerSupervisorHandler;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.*;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.server.*;
@@ -33,10 +36,12 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 
 	private final SupervisorService<?> service;
 	private final SupervisorConnection connection;
+	private final SupervisorRPCHandler rpcHandler;
 
 	public SupervisorClientV1Handler(SupervisorConnection connection) {
 		this.service = connection.service;
 		this.connection = connection;
+		this.rpcHandler = service.getRPCHandler();
 	}
 
 	@Override
@@ -193,29 +198,29 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 
 	@Override
 	public void handleServer(SPacketSvRPCExecute pkt) {
-		//controller.getRPCHandler().onRPCExecute(pkt.requestUUID, pkt.sourceNodeId,
-		//		new String(pkt.name, StandardCharsets.US_ASCII), pkt.dataBuffer);
+		rpcHandler.onRPCExecute(pkt.requestUUID, pkt.sourceNodeId,
+				pkt.payload.readCharSequence(pkt.nameLength, StandardCharsets.US_ASCII).toString(), pkt.payload);
 	}
 
 	@Override
 	public void handleServer(SPacketSvRPCExecuteVoid pkt) {
-		//controller.getRPCHandler().onRPCExecuteVoid(pkt.sourceNodeId,
-		//		new String(pkt.name, StandardCharsets.US_ASCII), pkt.dataBuffer);
+		rpcHandler.onRPCExecuteVoid(pkt.sourceNodeId,
+				pkt.payload.readCharSequence(pkt.nameLength, StandardCharsets.US_ASCII).toString(), pkt.payload);
 	}
 
 	@Override
 	public void handleServer(SPacketSvRPCResultSuccess pkt) {
-		//controller.getRPCHandler().onRPCResultSuccess(pkt.requestUUID, pkt.dataBuffer);
+		rpcHandler.onRPCResultSuccess(pkt.requestUUID, pkt.dataBuffer);
 	}
 
 	@Override
 	public void handleServer(SPacketSvRPCResultFail pkt) {
-		//controller.getRPCHandler().onRPCResultFail(pkt.requestUUID, pkt.failureType);
+		rpcHandler.onRPCResultFail(pkt.requestUUID, pkt.failureType);
 	}
 
 	@Override
 	public void handleServer(SPacketSvRPCResultMulti pkt) {
-		//controller.getRPCHandler().onRPCResultMulti(pkt.requestUUID, pkt.results);
+		rpcHandler.onRPCResultMulti(pkt.requestUUID, pkt.results);
 	}
 
 	@Override

@@ -13,6 +13,13 @@ public class ByteBufOutputWrapper implements GamePacketOutputBuffer {
 
 	public ByteBuf buffer;
 
+	public ByteBufOutputWrapper() {
+	}
+
+	public ByteBufOutputWrapper(ByteBuf buffer) {
+		this.buffer = buffer;
+	}
+
 	@Override
 	public void write(int b) throws IOException {
 		buffer.writeByte(b);

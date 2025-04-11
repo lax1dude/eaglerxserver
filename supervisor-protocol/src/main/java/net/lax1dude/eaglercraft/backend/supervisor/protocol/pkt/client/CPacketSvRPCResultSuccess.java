@@ -19,18 +19,20 @@ package net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client;
 import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.util.ReferenceCounted;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.EaglerSupervisorHandler;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.EaglerSupervisorPacket;
+import net.lax1dude.eaglercraft.backend.supervisor.protocol.util.IRefCountedHolder;
 
-public class CPacketSvRPCResultSuccess implements EaglerSupervisorPacket {
+public class CPacketSvRPCResultSuccess implements EaglerSupervisorPacket, IRefCountedHolder {
 
 	public UUID requestUUID;
-	public byte[] dataBuffer;
+	public ByteBuf dataBuffer;
 
 	public CPacketSvRPCResultSuccess() {
 	}
 
-	public CPacketSvRPCResultSuccess(UUID requestUUID, byte[] dataBuffer) {
+	public CPacketSvRPCResultSuccess(UUID requestUUID, ByteBuf dataBuffer) {
 		this.requestUUID = requestUUID;
 		this.dataBuffer = dataBuffer;
 	}
@@ -40,10 +42,7 @@ public class CPacketSvRPCResultSuccess implements EaglerSupervisorPacket {
 		requestUUID = new UUID(buffer.readLong(), buffer.readLong());
 		int len = EaglerSupervisorPacket.readVarInt(buffer);
 		if(len > 0) {
-			dataBuffer = new byte[len];
-			buffer.readBytes(dataBuffer);
-		}else {
-			dataBuffer = null;
+			dataBuffer = buffer.readRetainedSlice(len);
 		}
 	}
 
@@ -51,9 +50,10 @@ public class CPacketSvRPCResultSuccess implements EaglerSupervisorPacket {
 	public void writePacket(ByteBuf buffer) {
 		buffer.writeLong(requestUUID.getMostSignificantBits());
 		buffer.writeLong(requestUUID.getLeastSignificantBits());
-		if(dataBuffer != null && dataBuffer.length > 0) {
-			EaglerSupervisorPacket.writeVarInt(buffer, dataBuffer.length);
-			buffer.writeBytes(dataBuffer);
+		int l;
+		if(dataBuffer != null && (l = dataBuffer.readableBytes()) > 0) {
+			EaglerSupervisorPacket.writeVarInt(buffer, l);
+			buffer.writeBytes(dataBuffer, dataBuffer.readerIndex(), l);
 		}else {
 			buffer.writeByte(0);
 		}
@@ -62,6 +62,11 @@ public class CPacketSvRPCResultSuccess implements EaglerSupervisorPacket {
 	@Override
 	public void handlePacket(EaglerSupervisorHandler handler) {
 		handler.handleClient(this);
+	}
+
+	@Override
+	public ReferenceCounted delegate() {
+		return dataBuffer;
 	}
 
 }

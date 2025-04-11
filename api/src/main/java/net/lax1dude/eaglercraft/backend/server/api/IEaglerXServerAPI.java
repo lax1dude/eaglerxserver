@@ -81,6 +81,12 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	IEaglerPlayer<PlayerObject> getEaglerPlayerByUUID(UUID playerUUID);
 
+	boolean isPlayer(PlayerObject player);
+
+	boolean isPlayerByName(String playerName);
+
+	boolean isPlayerByUUID(UUID playerUUID);
+
 	boolean isEaglerPlayer(PlayerObject player);
 
 	boolean isEaglerPlayerByName(String playerName);

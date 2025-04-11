@@ -3,7 +3,6 @@ package net.lax1dude.eaglercraft.backend.server.bungee;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.SocketAddress;
@@ -122,8 +121,8 @@ public class BungeeUnsafe {
 			class_HandlerBoss = Class.forName("net.md_5.bungee.netty.HandlerBoss");
 			field_HandlerBoss_channel = class_HandlerBoss.getDeclaredField("channel");
 			field_HandlerBoss_channel.setAccessible(true);
-		}catch(Exception ex) {
-			throw Util.propagateReflectThrowable(ex);
+		}catch(ReflectiveOperationException ex) {
+			throw new ExceptionInInitializerError(ex);
 		}
 	}
 
@@ -135,7 +134,7 @@ public class BungeeUnsafe {
 					return null;
 				}
 				return (byte[]) method_PluginMessage_getData.invoke(obj);
-			}catch(IllegalArgumentException | IllegalAccessException | InvocationTargetException ex) {
+			}catch(ReflectiveOperationException ex) {
 				throw Util.propagateReflectThrowable(ex);
 			}
 		}else {
@@ -147,7 +146,7 @@ public class BungeeUnsafe {
 		if(class_InitialHandler.isAssignableFrom(pendingConnection.getClass())) {
 			try {
 				return ((ChannelWrapper)field_InitialHandler_ch.get(pendingConnection)).getHandle();
-			} catch (IllegalArgumentException | IllegalAccessException ex) {
+			} catch (ReflectiveOperationException ex) {
 				throw Util.propagateReflectThrowable(ex);
 			}
 		}else {
@@ -160,7 +159,7 @@ public class BungeeUnsafe {
 		if(class_InitialHandler.isAssignableFrom(pendingConnection.getClass())) {
 			try {
 				method_ChannelWrapper_close.invoke(field_InitialHandler_ch.get(pendingConnection));
-			} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException ex) {
+			} catch (ReflectiveOperationException ex) {
 				throw Util.propagateReflectThrowable(ex);
 			}
 		}else {
@@ -176,7 +175,7 @@ public class BungeeUnsafe {
 	public static boolean isOnlineMode(ProxyServer proxy) {
 		try {
 			return (Boolean) method_Configuration_isOnlineMode.invoke(field_BungeeCord_config.get(proxy));
-		}catch(IllegalArgumentException | IllegalAccessException | SecurityException | InvocationTargetException e) {
+		}catch(ReflectiveOperationException e) {
 			return proxy.getConfig().isOnlineMode();
 		}
 	}
@@ -185,7 +184,7 @@ public class BungeeUnsafe {
 	public static int getPlayerMax(ProxyServer proxy) {
 		try {
 			return (Integer) method_Configuration_getPlayerLimit.invoke(field_BungeeCord_config.get(proxy));
-		}catch(IllegalArgumentException | IllegalAccessException | SecurityException | InvocationTargetException e) {
+		}catch(ReflectiveOperationException e) {
 			return proxy.getConfig().getPlayerLimit();
 		}
 	}
@@ -217,7 +216,7 @@ public class BungeeUnsafe {
 						}
 					});
 				}
-			} catch (IllegalArgumentException | IllegalAccessException e) {
+			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		}else {
@@ -241,7 +240,7 @@ public class BungeeUnsafe {
 					}
 				}
 				return null;
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		}else {
@@ -253,7 +252,7 @@ public class BungeeUnsafe {
 		if(class_HandlerBoss.isAssignableFrom(handler.getClass())) {
 			try {
 				((ChannelWrapper) field_HandlerBoss_channel.get(handler)).setRemoteAddress(addr);
-			} catch (IllegalArgumentException | IllegalAccessException e) {
+			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		}
@@ -319,7 +318,7 @@ public class BungeeUnsafe {
 				}
 			};
 			field_BungeeCord_listeners.set(server, hackSet);
-		} catch (IllegalArgumentException | IllegalAccessException ex) {
+		} catch (ReflectiveOperationException ex) {
 			throw Util.propagateReflectThrowable(ex);
 		}
 		return cleanupList;
@@ -340,7 +339,7 @@ public class BungeeUnsafe {
 						foundField.setAccessible(true);
 						foundHandler = handler;
 						break eagler;
-					}catch (IllegalArgumentException | NoSuchFieldException | SecurityException ex) {
+					}catch (ReflectiveOperationException ex) {
 					}
 				}
 			}
@@ -350,7 +349,7 @@ public class BungeeUnsafe {
 					foundField = foundHandler.getClass().getDeclaredField("childHandler");
 					foundField.setAccessible(true);
 					break eagler;
-				}catch (IllegalArgumentException | NoSuchFieldException | SecurityException ex) {
+				}catch (ReflectiveOperationException ex) {
 					IEaglerXServerListener listener = initList.offer(channel.localAddress());
 					if (listener != null) {
 						throw new RuntimeException("Could not find ChannelBootstrapAccelerator to inject into for " + listener);
@@ -376,7 +375,7 @@ public class BungeeUnsafe {
 			parent = (ChannelInitializer<Channel>) foundField.get(foundHandler);
 			initChannel = parent.getClass().getDeclaredMethod("initChannel", Channel.class);
 			initChannel.setAccessible(true);
-		} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException e) {
+		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 		ChannelInitializerHijacker newInit = new ChannelInitializerHijacker(init) {
@@ -385,7 +384,7 @@ public class BungeeUnsafe {
 			protected void callParent(Channel channel) {
 				try {
 					initChannel.invoke(parent, channel);
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				} catch (ReflectiveOperationException e) {
 					throw Util.propagateReflectThrowable(e);
 				}
 			}
@@ -413,7 +412,7 @@ public class BungeeUnsafe {
 		};
 		try {
 			foundField.set(foundHandler, newInit);
-		} catch (IllegalArgumentException | IllegalAccessException | SecurityException e) {
+		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 		cleanupCallback.accept(newInit);
@@ -428,7 +427,7 @@ public class BungeeUnsafe {
 		if(field_BungeeCord_bossEventLoopGroup != null) {
 			try {
 				return (EventLoopGroup) field_BungeeCord_eventLoops.get(proxy);
-			} catch (IllegalArgumentException | IllegalAccessException e) {
+			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		}else {
@@ -440,13 +439,13 @@ public class BungeeUnsafe {
 		if(field_BungeeCord_workerEventLoopGroup != null) {
 			try {
 				return (EventLoopGroup) field_BungeeCord_workerEventLoopGroup.get(proxy);
-			} catch (IllegalArgumentException | IllegalAccessException e) {
+			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		}else if(field_BungeeCord_eventLoops != null) {
 			try {
 				return (EventLoopGroup) field_BungeeCord_eventLoops.get(proxy);
-			} catch (IllegalArgumentException | IllegalAccessException e) {
+			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		}else {
@@ -466,8 +465,7 @@ public class BungeeUnsafe {
 		return (addr) -> {
 			try {
 				return factoryCache.get((Class<Channel>) method_PipelineUtils_getChannel.invoke(addr));
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
-					| ExecutionException e) {
+			} catch (ReflectiveOperationException | ExecutionException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		};
@@ -479,8 +477,7 @@ public class BungeeUnsafe {
 			try {
 				return (ChannelFactory<? extends ServerChannel>) factoryCache
 						.get((Class<Channel>) method_PipelineUtils_getServerChannel.invoke(addr));
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
-					| ExecutionException e) {
+			} catch (ReflectiveOperationException | ExecutionException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		};
@@ -489,7 +486,7 @@ public class BungeeUnsafe {
 	private static final Predicate<Object> removeTexturesProperty = (obj) -> {
 		try {
 			return "textures".equals(method_Property_getName.invoke(obj));
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 	};
@@ -497,7 +494,7 @@ public class BungeeUnsafe {
 	private static final Predicate<Object> removeEaglerPlayerProperty = (obj) -> {
 		try {
 			return "isEaglerPlayer".equals(method_Property_getName.invoke(obj));
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 	};
@@ -521,7 +518,7 @@ public class BungeeUnsafe {
 			Object o;
 			try {
 				o = constructor_Property.newInstance("textures", value, signature);
-			}catch(IllegalAccessException | IllegalArgumentException | InstantiationException | InvocationTargetException e) {
+			}catch(ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 			propList.removeIf(removeTexturesProperty);
@@ -537,8 +534,7 @@ public class BungeeUnsafe {
 			try {
 				method_LoginResult_setProperties.invoke(loginResult,
 						propList.toArray((Object[]) Array.newInstance(class_Property, propList.size())));
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
-					| NegativeArraySizeException e) {
+			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		}
@@ -551,7 +547,7 @@ public class BungeeUnsafe {
 				Object loginResult = method_InitialHandler_getLoginProfile.invoke(conn);
 				Object[] oldPropertyList = (Object[]) method_LoginResult_getProperties.invoke(loginResult);
 				return new PropertyInjector(loginResult, oldPropertyList);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		}else {

@@ -702,6 +702,21 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
+	public boolean isPlayer(PlayerObject player) {
+		return platform.getPlayer(player) != null;
+	}
+
+	@Override
+	public boolean isPlayerByName(String playerName) {
+		return platform.getPlayer(playerName) != null;
+	}
+
+	@Override
+	public boolean isPlayerByUUID(UUID playerUUID) {
+		return platform.getPlayer(playerUUID) != null;
+	}
+
+	@Override
 	public boolean isEaglerPlayer(PlayerObject player) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
 		return platformPlayer != null && platformPlayer.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().isEaglerPlayer();

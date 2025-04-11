@@ -20,7 +20,7 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
  * POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-public class SupervisorDataVoid implements ISupervisorData {
+public final class SupervisorDataVoid implements ISupervisorData {
 
 	static final SupervisorDataVoid _INSTANCE = new SupervisorDataVoid();
 

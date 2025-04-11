@@ -2,7 +2,6 @@ package net.lax1dude.eaglercraft.backend.server.velocity;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -109,8 +108,8 @@ public class VelocityUnsafe {
 			method_ServerChannelInitializerHolder_set = class_ServerChannelInitializerHolder.getMethod("set", ChannelInitializer.class);
 			method_ChannelInitializer_initChannel = ChannelInitializer.class.getDeclaredMethod("initChannel", Channel.class);
 			method_ChannelInitializer_initChannel.setAccessible(true);
-		}catch(Exception ex) {
-			throw Util.propagateReflectThrowable(ex);
+		}catch(ReflectiveOperationException ex) {
+			throw new ExceptionInInitializerError(ex);
 		}
 	}
 
@@ -120,7 +119,7 @@ public class VelocityUnsafe {
 		}else if(class_LoginInboundConnection.isAssignableFrom(connection.getClass())) {
 			try {
 				return (MinecraftConnection) method_LoginInboundConnection_delegatedConnection.invoke(connection);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		}else {
@@ -157,7 +156,7 @@ public class VelocityUnsafe {
 		try {
 			conn.closeWith(method_DisconnectPacket_create.invoke(null, kickMessage, conn.getProtocolVersion(),
 					method_MinecraftConnection_getState.invoke(minecraftConnection)));
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+		} catch (ReflectiveOperationException ex) {
 			throw Util.propagateReflectThrowable(ex);
 		}
 	}
@@ -205,7 +204,7 @@ public class VelocityUnsafe {
 			VelocityEaglerChannelInitializer impl = new VelocityEaglerChannelInitializer((ch) -> {
 				try {
 					method_ChannelInitializer_initChannel.invoke(parent, ch);
-				} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+				} catch (ReflectiveOperationException e) {
 					throw Util.propagateReflectThrowable(e);
 				}
 				Channel pc = ch.parent();
@@ -221,7 +220,7 @@ public class VelocityUnsafe {
 				impl.impl = (ch) -> {
 					try {
 						method_ChannelInitializer_initChannel.invoke(parent, ch);
-					} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+					} catch (ReflectiveOperationException e) {
 						throw Util.propagateReflectThrowable(e);
 					}
 				};
@@ -230,11 +229,11 @@ public class VelocityUnsafe {
 					if(self == impl) {
 						method_ServerChannelInitializerHolder_set.invoke(holder, parent);
 					}
-				} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+				} catch (ReflectiveOperationException e) {
 					throw Util.propagateReflectThrowable(e);
 				}
 			};
-		} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 	}
@@ -262,7 +261,7 @@ public class VelocityUnsafe {
 					listener.reportVelocityInjected(ch);
 				}
 			}
-		} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 	}
@@ -287,7 +286,7 @@ public class VelocityUnsafe {
 			}else {
 				throw new RuntimeException("Unexpected session handler type: " + o.getClass().getName());
 			}
-		} catch (IllegalArgumentException | IllegalAccessException e) {
+		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 	}
@@ -303,7 +302,7 @@ public class VelocityUnsafe {
 	public static EventLoopGroup getBossEventLoopGroup(ProxyServer proxyIn) {
 		try {
 			return (EventLoopGroup) field_ConnectionManager_bossGroup.get(field_VelocityServer_cm.get(proxyIn));
-		} catch (IllegalArgumentException | IllegalAccessException e) {
+		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 	}
@@ -311,7 +310,7 @@ public class VelocityUnsafe {
 	public static EventLoopGroup getWorkerEventLoopGroup(ProxyServer proxyIn) {
 		try {
 			return (EventLoopGroup) field_ConnectionManager_workerGroup.get(field_VelocityServer_cm.get(proxyIn));
-		} catch (IllegalArgumentException | IllegalAccessException e) {
+		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 	}
@@ -320,7 +319,7 @@ public class VelocityUnsafe {
 		try {
 			return (ChannelFactory<? extends Channel>) field_TransportType_socketChannelFactory
 					.get(field_ConnectionManager_transportType.get(field_VelocityServer_cm.get(proxyIn)));
-		} catch (IllegalArgumentException | IllegalAccessException e) {
+		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 	}
@@ -333,7 +332,7 @@ public class VelocityUnsafe {
 		try {
 			return (ChannelFactory<? extends ServerChannel>) field_TransportType_serverSocketChannelFactory
 					.get(field_ConnectionManager_transportType.get(field_VelocityServer_cm.get(proxyIn)));
-		} catch (IllegalArgumentException | IllegalAccessException e) {
+		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 	}
