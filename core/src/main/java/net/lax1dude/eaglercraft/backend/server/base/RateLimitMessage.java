@@ -17,6 +17,7 @@ class RateLimitMessage {
 		ByteBuf buf = Unpooled.buffer();
 		try {
 			buf.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_ERROR);
+			buf.writeByte(code);
 			buf.writeByte(msg.length());
 			buf.writeCharSequence(msg, StandardCharsets.US_ASCII);
 			return buf.retain();
