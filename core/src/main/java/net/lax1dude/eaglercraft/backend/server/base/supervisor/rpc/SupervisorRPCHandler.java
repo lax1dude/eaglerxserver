@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.base.supervisor.rpc;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,15 +24,20 @@ import net.lax1dude.eaglercraft.backend.server.api.supervisor.ProcedureDesc;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorData;
 import net.lax1dude.eaglercraft.backend.server.base.supervisor.SupervisorConnection;
 import net.lax1dude.eaglercraft.backend.server.base.supervisor.SupervisorService;
+import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvRPCExecuteAll;
+import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvRPCExecuteNode;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvRPCExecutePlayerName;
+import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvRPCExecutePlayerUUID;
+import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvRPCResultFail;
+import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvRPCResultSuccess;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.server.SPacketSvRPCResultFail;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.server.SPacketSvRPCResultMulti;
 
 public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 
-	private static final Consumer<? super ISupervisorData> NOP = new Consumer<ISupervisorData>() {
+	private static final Consumer<? super ISupervisorData> NOP = new Consumer<Object>() {
 		@Override
-		public void accept(ISupervisorData t) {
+		public void accept(Object t) {
 		}
 	};
 
@@ -90,18 +96,13 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 		}
 	}
 
-	private SupervisorProcedure getProcedure(String procName) {
-		SupervisorProcedure ret;
+	private SupervisorProcedure getProcedureQuiet(String procName) {
 		mapLock.readLock().lock();
 		try {
-			ret = procNameToImplMap.get(procName);
+			return procNameToImplMap.get(procName);
 		}finally {
 			mapLock.readLock().unlock();
 		}
-		if(ret == null) {
-			throw new IllegalArgumentException("Unknown procedure name: " + procName);
-		}
-		return ret;
 	}
 
 	private SupervisorProcedure getProcedure(ProcedureDesc<?, ?> procDesc) {
@@ -143,11 +144,11 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 					protected void onResultTimeout() {
 						logWarningForResult(SPacketSvRPCResultFail.FAILURE_TIMEOUT, procedure.name,
 								"player name \"" + username + "\"");
-						output.accept(null);
+						acceptSafe(output, null, true);
 					}
 					@Override
 					protected void onResultComplete(Out data) {
-						output.accept(data);
+						acceptSafe(output, data, false);
 					}
 				}));
 			}else {
@@ -155,13 +156,13 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 				if(handler != null) {
 					UUID uuid = UUID.randomUUID();
 					long now = System.nanoTime();
-					addWaitingCallback(now, new ProcedureCallback(uuid, waitingProcedures, now + timeout * 1000000l) {
+					addWaitingCallback(now, new ProcedureCallback(uuid, waitingProcedures, now + (timeout + 5) * 1000000l) {
 						@Override
 						protected void onResultFail(int type) {
 							if(isLogWarningForResult(type)) {
 								logWarningForResult(type, procedure.name, "player name \"" + username + "\"");
 							}
-							output.accept(null);
+							acceptSafe(output, null, true);
 						}
 						@Override
 						protected void onResultSuccess(ByteBuf dataBuffer) {
@@ -169,22 +170,22 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 							try {
 								res = (Out)InjectedRPCPayload.deserialize(dataBuffer, procedure.outputType);
 							} catch (Exception e) {
-								logIOWarningForResult(procedure.name, e, "player name \"" + username + "\"");
-								output.accept(null);
+								logIOWarningForResult(procedure.name, e);
+								acceptSafe(output, null, true);
 								return;
 							}
-							output.accept(res);
+							acceptSafe(output, res, true);
 						}
 						@Override
 						protected void onResultMulti(Collection<SPacketSvRPCResultMulti.ResultEntry> list) {
-							logIOWarningForMultiResult(procedure.name, "player name \"" + username + "\"");
-							output.accept(null);
+							logIOWarningForMultiResult(procedure.name);
+							acceptSafe(output, null, true);
 						}
 					});
 					handler.sendSupervisorPacket(new CPacketSvRPCExecutePlayerName(uuid, timeout, username,
 							new InjectedRPCPayload(procedure.name, input)));
 				}else {
-					output.accept(null);
+					acceptSafe(output, null, false);
 				}
 			}
 		}else {
@@ -203,29 +204,313 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 	@Override
 	public <In extends ISupervisorData, Out extends ISupervisorData> void invokeAtPlayer(UUID player,
 			ProcedureDesc<In, Out> desc, int timeout, In input, Consumer<? super Out> output) {
-		// TODO Auto-generated method stub
-		
+		if(timeout <= 0 && output != null) {
+			throw new IllegalArgumentException("Invalid timeout: " + timeout);
+		}
+		SupervisorProcedure procedure = getProcedure(desc);
+		if(input == null) {
+			throw new NullPointerException("Input must not be null!");
+		}
+		if(input.getClass() != procedure.inputType.clazz) {
+			throw new IllegalArgumentException("Input object is the wrong type, " + input.getClass().getName() + " != "
+					+ procedure.inputType.clazz.getName());
+		}
+		if(output != null) {
+			if(service.getEaglerXServer().getPlatform().getPlayer(player) != null) {
+				long now = System.nanoTime();
+				((ISupervisorProc<In, Out>) procedure.proc).call(service.getNodeId(), input,
+						setLocalTimeout(now, new LocalTimeout<Out>(waitingLocalTimeouts, now + timeout * 1000000l) {
+					@Override
+					protected void onResultTimeout() {
+						logWarningForResult(SPacketSvRPCResultFail.FAILURE_TIMEOUT, procedure.name,
+								"player uuid \"" + player + "\"");
+						acceptSafe(output, null, true);
+					}
+					@Override
+					protected void onResultComplete(Out data) {
+						acceptSafe(output, data, false);
+					}
+				}));
+			}else {
+				SupervisorConnection handler = service.getConnection();
+				if(handler != null) {
+					UUID uuid = UUID.randomUUID();
+					long now = System.nanoTime();
+					addWaitingCallback(now, new ProcedureCallback(uuid, waitingProcedures, now + (timeout + 5) * 1000000l) {
+						@Override
+						protected void onResultFail(int type) {
+							if(isLogWarningForResult(type)) {
+								logWarningForResult(type, procedure.name, "player uuid \"" + player + "\"");
+							}
+							acceptSafe(output, null, true);
+						}
+						@Override
+						protected void onResultSuccess(ByteBuf dataBuffer) {
+							Out res;
+							try {
+								res = (Out)InjectedRPCPayload.deserialize(dataBuffer, procedure.outputType);
+							} catch (Exception e) {
+								logIOWarningForResult(procedure.name, e);
+								acceptSafe(output, null, true);
+								return;
+							}
+							acceptSafe(output, res, true);
+						}
+						@Override
+						protected void onResultMulti(Collection<SPacketSvRPCResultMulti.ResultEntry> list) {
+							logIOWarningForMultiResult(procedure.name);
+							acceptSafe(output, null, true);
+						}
+					});
+					handler.sendSupervisorPacket(new CPacketSvRPCExecutePlayerUUID(uuid, timeout, player,
+							new InjectedRPCPayload(procedure.name, input)));
+				}else {
+					acceptSafe(output, null, false);
+				}
+			}
+		}else {
+			if(service.getEaglerXServer().getPlatform().getPlayer(player) != null) {
+				((ISupervisorProc<In, Out>)procedure.proc).call(service.getNodeId(), input, (Consumer<Out>)NOP);
+			}else {
+				SupervisorConnection handler = service.getConnection();
+				if(handler != null) {
+					handler.sendSupervisorPacket(new CPacketSvRPCExecutePlayerUUID(null, 0, player,
+							new InjectedRPCPayload(procedure.name, input)));
+				}
+			}
+		}
 	}
 
 	@Override
 	public <In extends ISupervisorData, Out extends ISupervisorData> void invokeAtNode(int nodeId,
 			ProcedureDesc<In, Out> desc, int timeout, In input, Consumer<? super Out> output) {
-		// TODO Auto-generated method stub
-		
+		if(timeout <= 0 && output != null) {
+			throw new IllegalArgumentException("Invalid timeout: " + timeout);
+		}
+		SupervisorProcedure procedure = getProcedure(desc);
+		if(input == null) {
+			throw new NullPointerException("Input must not be null!");
+		}
+		if(input.getClass() != procedure.inputType.clazz) {
+			throw new IllegalArgumentException("Input object is the wrong type, " + input.getClass().getName() + " != "
+					+ procedure.inputType.clazz.getName());
+		}
+		if(output != null) {
+			if(nodeId == -1) {
+				long now = System.nanoTime();
+				((ISupervisorProc<In, Out>) procedure.proc).call(-1, input,
+						setLocalTimeout(now, new LocalTimeout<Out>(waitingLocalTimeouts, now + timeout * 1000000l) {
+					@Override
+					protected void onResultTimeout() {
+						logWarningForResult(SPacketSvRPCResultFail.FAILURE_TIMEOUT, procedure.name, "node [self]");
+						acceptSafe(output, null, true);
+					}
+					@Override
+					protected void onResultComplete(Out data) {
+						acceptSafe(output, data, false);
+					}
+				}));
+			}else {
+				SupervisorConnection handler = service.getConnection();
+				if(handler != null) {
+					if(nodeId == handler.getNodeId()) {
+						long now = System.nanoTime();
+						((ISupervisorProc<In, Out>) procedure.proc).call(nodeId, input,
+								setLocalTimeout(now, new LocalTimeout<Out>(waitingLocalTimeouts, now + timeout * 1000000l) {
+							@Override
+							protected void onResultTimeout() {
+								logWarningForResult(SPacketSvRPCResultFail.FAILURE_TIMEOUT, procedure.name, "node [self]");
+								acceptSafe(output, null, true);
+							}
+							@Override
+							protected void onResultComplete(Out data) {
+								acceptSafe(output, data, false);
+							}
+						}));
+					}else {
+						UUID uuid = UUID.randomUUID();
+						long now = System.nanoTime();
+						addWaitingCallback(now, new ProcedureCallback(uuid, waitingProcedures, now + (timeout + 5) * 1000000l) {
+							@Override
+							protected void onResultFail(int type) {
+								if(isLogWarningForResult(type)) {
+									logWarningForResult(type, procedure.name, "node " + nodeId);
+								}
+								acceptSafe(output, null, true);
+							}
+							@Override
+							protected void onResultSuccess(ByteBuf dataBuffer) {
+								Out res;
+								try {
+									res = (Out)InjectedRPCPayload.deserialize(dataBuffer, procedure.outputType);
+								} catch (Exception e) {
+									logIOWarningForResult(procedure.name, e);
+									acceptSafe(output, null, true);
+									return;
+								}
+								acceptSafe(output, res, true);
+							}
+							@Override
+							protected void onResultMulti(Collection<SPacketSvRPCResultMulti.ResultEntry> list) {
+								logIOWarningForMultiResult(procedure.name);
+								acceptSafe(output, null, true);
+							}
+						});
+						handler.sendSupervisorPacket(new CPacketSvRPCExecuteNode(uuid, timeout, nodeId,
+								new InjectedRPCPayload(procedure.name, input)));
+					}
+				}else {
+					acceptSafe(output, null, false);
+				}
+			}
+		}else {
+			if(nodeId == -1) {
+				((ISupervisorProc<In, Out>)procedure.proc).call(-1, input, (Consumer<Out>)NOP);
+			}else {
+				SupervisorConnection handler = service.getConnection();
+				if(handler != null) {
+					if(nodeId == handler.getNodeId()) {
+						((ISupervisorProc<In, Out>)procedure.proc).call(nodeId, input, (Consumer<Out>)NOP);
+					}else {
+						if(handler != null) {
+							handler.sendSupervisorPacket(new CPacketSvRPCExecuteNode(null, 0, nodeId,
+									new InjectedRPCPayload(procedure.name, input)));
+						}
+					}
+				}
+			}
+		}
 	}
 
 	@Override
 	public <In extends ISupervisorData, Out extends ISupervisorData> void invokeAllNodes(ProcedureDesc<In, Out> desc,
 			int timeout, In input, Consumer<Collection<NodeResult<? super Out>>> output) {
-		// TODO Auto-generated method stub
-		
+		if(timeout <= 0 && output != null) {
+			throw new IllegalArgumentException("Invalid timeout: " + timeout);
+		}
+		SupervisorProcedure procedure = getProcedure(desc);
+		if(input == null) {
+			throw new NullPointerException("Input must not be null!");
+		}
+		if(input.getClass() != procedure.inputType.clazz) {
+			throw new IllegalArgumentException("Input object is the wrong type, " + input.getClass().getName() + " != "
+					+ procedure.inputType.clazz.getName());
+		}
+		SupervisorConnection handler = service.getConnection();
+		int selfId = handler.getNodeId();
+		if(output != null) {
+			InvokeAllNodesHelper<Out> invokeAll = new InvokeAllNodesHelper<Out>(output,
+					service.getEaglerXServer().getPlatform().getScheduler(), service.logger());
+			long now = System.nanoTime();
+			((ISupervisorProc<In, Out>) procedure.proc).call(selfId, input,
+					setLocalTimeout(now, new LocalTimeout<Out>(waitingLocalTimeouts, now + timeout * 1000000l) {
+				@Override
+				protected void onResultTimeout() {
+					onResultComplete(null);
+				}
+				@Override
+				protected void onResultComplete(Out data) {
+					invokeAll.acceptLocal(NodeResult.create(selfId, data));
+				}
+			}));
+			invokeAllOtherNodes0(procedure, handler, timeout, input, false, invokeAll);
+		}else {
+			invokeAllOtherNodes0(procedure, handler, 0, input, false, null);
+			((ISupervisorProc<In, Out>)procedure.proc).call(selfId, input, (Consumer<Out>)NOP);
+		}
 	}
 
 	@Override
 	public <In extends ISupervisorData, Out extends ISupervisorData> void invokeAllOtherNodes(
 			ProcedureDesc<In, Out> desc, int timeout, In input, Consumer<Collection<NodeResult<? super Out>>> output) {
-		// TODO Auto-generated method stub
-		
+		if(timeout <= 0 && output != null) {
+			throw new IllegalArgumentException("Invalid timeout: " + timeout);
+		}
+		SupervisorProcedure procedure = getProcedure(desc);
+		if(input == null) {
+			throw new NullPointerException("Input must not be null!");
+		}
+		if(input.getClass() != procedure.inputType.clazz) {
+			throw new IllegalArgumentException("Input object is the wrong type, " + input.getClass().getName() + " != "
+					+ procedure.inputType.clazz.getName());
+		}
+		invokeAllOtherNodes0(procedure, service.getConnection(), timeout, input, true, output);
+	}
+
+	private <In extends ISupervisorData, Out extends ISupervisorData> void invokeAllOtherNodes0(
+			SupervisorProcedure procedure, SupervisorConnection handler, int timeout, In input, boolean async,
+			Consumer<Collection<NodeResult<? super Out>>> output) {
+		if(output != null) {
+			if(handler != null) {
+				UUID uuid = UUID.randomUUID();
+				long now = System.nanoTime();
+				addWaitingCallback(now, new ProcedureCallback(uuid, waitingProcedures, now + (timeout + 5) * 1000000l) {
+					@Override
+					protected void onResultFail(int type) {
+						if(isLogWarningForResult(type)) {
+							logWarningForResult(type, procedure.name, "supervisor");
+						}
+						acceptSafe(output, null, async);
+					}
+					@Override
+					protected void onResultSuccess(ByteBuf dataBuffer) {
+						service.logger().warn("Parsing result for procedure \"" + procedure.name + "\" failed, received unexpected non-multi-result");
+						acceptSafe(output, null, async);
+					}
+					@Override
+					protected void onResultMulti(Collection<SPacketSvRPCResultMulti.ResultEntry> list) {
+						Collection<NodeResult<? super Out>> ret = new ArrayList<>(list.size());
+						for(SPacketSvRPCResultMulti.ResultEntry etr : list) {
+							if(etr.status == 0) {
+								Out res;
+								try {
+									res = (Out)InjectedRPCPayload.deserialize(etr.dataBuffer, procedure.outputType);
+								} catch (Exception e) {
+									logIOWarningForResult(procedure.name, e);
+									acceptSafe(output, null, async);
+									return;
+								}
+								ret.add(NodeResult.create(etr.nodeId, res));
+							}else {
+								int type = etr.status - 1;
+								if(isLogWarningForResult(type)) {
+									logWarningForResult(type, procedure.name, "node " + etr.nodeId);
+								}
+								ret.add(NodeResult.create(etr.nodeId, null));
+							}
+						}
+						acceptSafe(output, ret, async);
+					}
+				});
+				handler.sendSupervisorPacket(new CPacketSvRPCExecuteAll(uuid, timeout,
+						new InjectedRPCPayload(procedure.name, input)));
+			}else {
+				acceptSafe(output, null, false);
+			}
+		}else {
+			if(handler != null) {
+				handler.sendSupervisorPacket(new CPacketSvRPCExecuteAll(null, 0,
+						new InjectedRPCPayload(procedure.name, input)));
+			}
+		}
+	}
+
+	private <T> void acceptSafe(Consumer<T> consumer, T value, boolean async) {
+		if(async) {
+			service.getEaglerXServer().getPlatform().getScheduler().executeAsync(() -> {
+				try {
+					consumer.accept(value);
+				}catch(Exception ex) {
+					service.logger().error("Caught exception from RPC result callback", ex);
+				}
+			});
+		}else {
+			try {
+				consumer.accept(value);
+			}catch(Exception ex) {
+				service.logger().error("Caught exception from RPC result callback", ex);
+			}
+		}
 	}
 
 	private void addWaitingCallback(long now, ProcedureCallback callback) {
@@ -239,14 +524,65 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 		return callback;
 	}
 
-	public void onRPCExecute(UUID requestUUID, int sourceNodeId, String name, ByteBuf dataBuffer) {
-		// TODO Auto-generated method stub
-		
+	public void onRPCExecute(SupervisorConnection conn, UUID requestUUID, int sourceNodeId, String name,
+			ByteBuf dataBuffer) {
+		SupervisorProcedure proc = getProcedureQuiet(name);
+		if(proc != null) {
+			ISupervisorData data;
+			try {
+				data = InjectedRPCPayload.deserialize(dataBuffer, proc.outputType);
+			}catch(Exception ex) {
+				service.logger().error("Could not deserialize type " + proc.inputType.clazz.getName(), ex);
+				return;
+			}
+			service.getEaglerXServer().getPlatform().getScheduler().executeAsync(() -> {
+				try {
+					((ISupervisorProc<ISupervisorData, ISupervisorData>)proc.proc).call(sourceNodeId, data, (res) -> {
+						if(conn.getChannel().isActive()) {
+							if(res != null) {
+								conn.getChannel().eventLoop().execute(() -> {
+									ByteBuf buf = conn.getChannel().alloc().buffer();
+									try {
+										InjectedRPCPayload.serialize(buf, res);
+										conn.sendSupervisorPacket(new CPacketSvRPCResultSuccess(requestUUID, buf.retain()));
+									}finally {
+										buf.release();
+									}
+								});
+							}else {
+								conn.sendSupervisorPacket(new CPacketSvRPCResultFail(requestUUID));
+							}
+						}
+					});
+				}catch(Exception ex) {
+					service.logger().error("Could not invoke procedure \"" + name + "\"", ex);
+				}
+			});
+		}else {
+			service.logger().warn("Supervisor attempted to invoke unknown procedure \"" + name + "\"");
+		}
 	}
 
 	public void onRPCExecuteVoid(int sourceNodeId, String name, ByteBuf dataBuffer) {
-		// TODO Auto-generated method stub
-		
+		SupervisorProcedure proc = getProcedureQuiet(name);
+		if(proc != null) {
+			ISupervisorData data;
+			try {
+				data = InjectedRPCPayload.deserialize(dataBuffer, proc.outputType);
+			}catch(Exception ex) {
+				service.logger().error("Could not deserialize type " + proc.inputType.clazz.getName(), ex);
+				return;
+			}
+			service.getEaglerXServer().getPlatform().getScheduler().executeAsync(() -> {
+				try {
+					((ISupervisorProc<ISupervisorData, ISupervisorData>)proc.proc).call(sourceNodeId, data, (Consumer<ISupervisorData>)NOP);
+				}catch(Exception ex) {
+					service.logger().error("Could not invoke procedure \"" + name + "\"", ex);
+				}
+			});
+		}else {
+			service.logger().warn("Supervisor attempted to invoke unknown procedure \"" + name + "\"");
+		}
 	}
 
 	public void onRPCResultSuccess(UUID uuid, ByteBuf dataBuffer) {
@@ -296,12 +632,12 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 		service.logger().warn("Procedure \"" + procName + "\" failed for " + str + ", reason: " + str2);
 	}
 
-	private void logIOWarningForResult(String procName, Exception ex, String str) {
-		service.logger().warn("Parsing result for procedure \"" + procName + "\" failed for " + str, ex);
+	private void logIOWarningForResult(String procName, Exception ex) {
+		service.logger().warn("Parsing result for procedure \"" + procName + "\" failed", ex);
 	}
 
-	private void logIOWarningForMultiResult(String procName, String str) {
-		service.logger().warn("Parsing result for procedure \"" + procName + "\" failed for " + str + ", received unexpected multi-result");
+	private void logIOWarningForMultiResult(String procName) {
+		service.logger().warn("Parsing result for procedure \"" + procName + "\" failed, received unexpected multi-result");
 	}
 
 }

@@ -23,12 +23,16 @@ class InjectedRPCPayload implements IInjectedPayload {
 	@Override
 	public int writePayload(ByteBuf buf) {
 		int ret = buf.writeCharSequence(name, StandardCharsets.US_ASCII);
+		serialize(buf, data);
+		return ret;
+	}
+
+	static void serialize(ByteBuf buf, ISupervisorData data) {
 		try {
 			data.write(new ByteBufOutputWrapper(buf));
 		} catch (Exception e) {
 			throw new IllegalStateException("Failed to serialize supervisor data: " + data, e);
 		}
-		return ret;
 	}
 
 	static ISupervisorData deserialize(ByteBuf buf, SupervisorDataType dataType) throws Exception {

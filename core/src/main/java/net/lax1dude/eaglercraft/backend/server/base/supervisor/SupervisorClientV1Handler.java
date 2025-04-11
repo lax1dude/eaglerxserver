@@ -198,7 +198,7 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 
 	@Override
 	public void handleServer(SPacketSvRPCExecute pkt) {
-		rpcHandler.onRPCExecute(pkt.requestUUID, pkt.sourceNodeId,
+		rpcHandler.onRPCExecute(connection, pkt.requestUUID, pkt.sourceNodeId,
 				pkt.payload.readCharSequence(pkt.nameLength, StandardCharsets.US_ASCII).toString(), pkt.payload);
 	}
 
