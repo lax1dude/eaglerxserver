@@ -74,6 +74,7 @@ import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
 import net.lax1dude.eaglercraft.backend.server.util.CompressionDisablerHack;
 import net.lax1dude.eaglercraft.backend.server.util.DecompressionDisablerHack;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 
 public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player>, IPlatformServer<Player> {
 
@@ -123,7 +124,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		loggerImpl = new JavaLogger(getLogger());
 		eventDispatcherImpl = new BukkitEventDispatchAdapter(this, server.getPluginManager(), server.getScheduler());
 		schedulerImpl = new BukkitScheduler(this, server.getScheduler());
-		componentHelperImpl = new BungeeComponentHelper();
+		componentHelperImpl = new BungeeComponentHelper(new TextComponent("Username is already connected to this server!"));
 		cacheConsoleCommandSenderInstance = server.getConsoleSender();
 		cacheConsoleCommandSenderHandle = new BukkitConsole(cacheConsoleCommandSenderInstance);
 		enableNativeTransport = Epoll.isAvailable() && BukkitUnsafe.isEnableNativeTransport(server);

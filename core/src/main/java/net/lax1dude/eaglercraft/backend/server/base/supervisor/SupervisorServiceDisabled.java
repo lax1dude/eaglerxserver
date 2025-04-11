@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.supervisor;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorConnection;
@@ -81,6 +82,12 @@ public class SupervisorServiceDisabled<PlayerObject> implements ISupervisorServi
 	@Override
 	public boolean shouldIgnoreUUID(UUID uuid) {
 		return true;
+	}
+
+	@Override
+	public void acceptPlayer(UUID playerUUID, UUID brandUUID, int gameProtocol, int eaglerProtocol, String username,
+			Consumer<EnumAcceptPlayer> callback) {
+		throw supervisorDisable();
 	}
 
 }

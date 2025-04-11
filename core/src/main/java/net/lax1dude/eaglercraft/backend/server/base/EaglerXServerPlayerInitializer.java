@@ -3,6 +3,9 @@ package net.lax1dude.eaglercraft.backend.server.base;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayerInitializer;
+import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistry;
+import net.lax1dude.eaglercraft.backend.server.base.supervisor.EnumAcceptPlayer;
+import net.lax1dude.eaglercraft.backend.server.base.supervisor.ISupervisorServiceImpl;
 
 class EaglerXServerPlayerInitializer<PlayerObject> implements
 		IEaglerXServerPlayerInitializer<BaseConnectionInstance, BasePlayerInstance<PlayerObject>, PlayerObject> {
@@ -19,6 +22,55 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 		if(conn == null) {
 			return;
 		}
+		ISupervisorServiceImpl<PlayerObject> supervisor = server.getSupervisorService();
+		if(supervisor.isSupervisorEnabled()) {
+			supervisor.acceptPlayer(conn.getUniqueId(),
+					conn.isEaglerPlayer() ? conn.asEaglerPlayer().getEaglerBrandUUID() : IBrandRegistry.BRAND_VANILLA,
+					conn.getMinecraftProtocol(),
+					conn.isEaglerPlayer() ? conn.asEaglerPlayer().getHandshakeEaglerProtocol() : 0, conn.getUsername(),
+					(res) -> {
+				if(res == EnumAcceptPlayer.ACCEPT) {
+					server.getPlatform().getScheduler().executeAsync(() -> {
+						acceptPlayer(initializer);
+					});
+				}else {
+					switch(res) {
+					case REJECT_ALREADY_WAITING:
+					case REJECT_DUPLICATE_USERNAME:
+					case REJECT_DUPLICATE_UUID:
+						try {
+							initializer.getPlayer().disconnect(server.componentHelper().getStandardKickAlreadyPlaying());
+						}finally {
+							initializer.cancel();
+						}
+						break;
+					case REJECT_UNKNOWN:
+					default:
+						try {
+							initializer.getPlayer().disconnect(server.componentBuilder().buildTextComponent()
+									.text("Internal Supervisor Error").end());
+						}finally {
+							initializer.cancel();
+						}
+						break;
+					case SUPERVISOR_UNAVAILABLE:
+						try {
+							initializer.getPlayer().disconnect(server.componentBuilder().buildTextComponent()
+									.text(server.getConfig().getSupervisor().getSupervisorUnavailableMessage()).end());
+						}finally {
+							initializer.cancel();
+						}
+						break;
+					}
+				}
+			});
+		}else {
+			acceptPlayer(initializer);
+		}
+	}
+
+	private void acceptPlayer(IPlatformPlayerInitializer<BaseConnectionInstance, BasePlayerInstance<PlayerObject>, PlayerObject> initializer) {
+		BaseConnectionInstance conn = initializer.getConnectionAttachment();
 		if(conn.isEaglerPlayer()) {
 			EaglerPlayerInstance<PlayerObject> instance = new EaglerPlayerInstance<>(initializer.getPlayer(), server);
 			initializer.setPlayerAttachment(instance);
@@ -29,7 +81,7 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 							initializer.complete();
 						}else {
 							try {
-								server.logger().error("Uncaught exception handling initialize player event", err);
+								instance.logger().error("Uncaught exception handling initialize player event", err);
 								initializer.getPlayer().disconnect(
 										server.componentBuilder().buildTextComponent().text("Internal Server Error").end());
 							}finally {

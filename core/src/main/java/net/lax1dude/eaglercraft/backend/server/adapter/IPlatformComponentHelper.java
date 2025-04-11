@@ -6,6 +6,8 @@ public interface IPlatformComponentHelper {
 
 	Class<?> getComponentType();
 
+	Object getStandardKickAlreadyPlaying();
+
 	String serializeLegacySection(Object component);
 
 	String serializePlainText(Object component);

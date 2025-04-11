@@ -97,7 +97,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	}
 
 	@Override
-	public IEaglerLoginConnection asEaglerPlayer() {
+	public EaglerConnectionInstance asEaglerPlayer() {
 		return this;
 	}
 

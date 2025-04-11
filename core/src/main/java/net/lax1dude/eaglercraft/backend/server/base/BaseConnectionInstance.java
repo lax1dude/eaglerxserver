@@ -6,7 +6,6 @@ import java.util.UUID;
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IBaseLoginConnection;
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.INettyChannel;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 
@@ -58,7 +57,7 @@ public class BaseConnectionInstance extends IIdentifiedConnection.Base
 	}
 
 	@Override
-	public IEaglerLoginConnection asEaglerPlayer() {
+	public EaglerConnectionInstance asEaglerPlayer() {
 		return null;
 	}
 

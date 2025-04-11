@@ -41,9 +41,21 @@ public interface ISupervisorRPCHandler {
 		} : null);
 	}
 
+	default void invokeAtPlayerVoid(String username, ProcedureDesc<SupervisorDataVoid, SupervisorDataVoid> desc,
+			int timeout, IVoidCallback onComplete) {
+		invokeAtPlayer(username, desc, timeout, ISupervisorData.VOID,
+				onComplete != null ? (Consumer<SupervisorDataVoid>) (res) -> {
+			onComplete.call(res != null);
+		} : null);
+	}
+
 	default <In extends ISupervisorData> void invokeAtPlayerVoid(String username,
 			ProcedureDesc<In, SupervisorDataVoid> desc, In input) {
 		invokeAtPlayerVoid(username, desc, 0, input, null);
+	}
+
+	default void invokeAtPlayerVoid(String username, ProcedureDesc<SupervisorDataVoid, SupervisorDataVoid> desc) {
+		invokeAtPlayerVoid(username, desc, 0, ISupervisorData.VOID, null);
 	}
 
 	<In extends ISupervisorData, Out extends ISupervisorData> void invokeAtPlayer(UUID player,
@@ -56,9 +68,21 @@ public interface ISupervisorRPCHandler {
 		} : null);
 	}
 
+	default void invokeAtPlayerVoid(UUID player, ProcedureDesc<SupervisorDataVoid, SupervisorDataVoid> desc,
+			int timeout, IVoidCallback onComplete) {
+		invokeAtPlayer(player, desc, timeout, ISupervisorData.VOID,
+				onComplete != null ? (Consumer<SupervisorDataVoid>) (res) -> {
+			onComplete.call(res != null);
+		} : null);
+	}
+
 	default <In extends ISupervisorData> void invokeAtPlayerVoid(UUID player,
 			ProcedureDesc<In, SupervisorDataVoid> desc, In input) {
 		invokeAtPlayerVoid(player, desc, 0, input, null);
+	}
+
+	default void invokeAtPlayerVoid(UUID player, ProcedureDesc<SupervisorDataVoid, SupervisorDataVoid> desc) {
+		invokeAtPlayerVoid(player, desc, 0, ISupervisorData.VOID, null);
 	}
 
 	<In extends ISupervisorData, Out extends ISupervisorData> void invokeAtNode(int nodeId, ProcedureDesc<In, Out> desc,
@@ -71,9 +95,21 @@ public interface ISupervisorRPCHandler {
 		} : null);
 	}
 
+	default void invokeAtNodeVoid(int nodeId, ProcedureDesc<SupervisorDataVoid, SupervisorDataVoid> desc, int timeout,
+			IVoidCallback onComplete) {
+		invokeAtNode(nodeId, desc, timeout, ISupervisorData.VOID,
+				onComplete != null ? (Consumer<SupervisorDataVoid>) (res) -> {
+			onComplete.call(res != null);
+		} : null);
+	}
+
 	default <In extends ISupervisorData> void invokeAtNodeVoid(int nodeId, ProcedureDesc<In, SupervisorDataVoid> desc,
 			In input) {
 		invokeAtNode(nodeId, desc, 0, input, null);
+	}
+
+	default void invokeAtNodeVoid(int nodeId, ProcedureDesc<SupervisorDataVoid, SupervisorDataVoid> desc) {
+		invokeAtNode(nodeId, desc, 0, ISupervisorData.VOID, null);
 	}
 
 	<In extends ISupervisorData, Out extends ISupervisorData> void invokeAllNodes(ProcedureDesc<In, Out> desc,
@@ -81,11 +117,26 @@ public interface ISupervisorRPCHandler {
 
 	default <In extends ISupervisorData> void invokeAllNodesVoid(ProcedureDesc<In, SupervisorDataVoid> desc,
 			int timeout, In input, Consumer<Set<Integer>> onComplete) {
-		invokeAllNodes(desc, timeout, input, onComplete != null ? (Consumer<Collection<NodeResult<SupervisorDataVoid>>>) (lst) -> {
+		invokeAllNodes(desc, timeout, input,
+				onComplete != null ? (Consumer<Collection<NodeResult<SupervisorDataVoid>>>) (lst) -> {
 			Set<Integer> ret = new HashSet<>();
 			for (NodeResult<SupervisorDataVoid> o : lst) {
 				if (o.isSuccessful()) {
-					ret.add(o.nodeId);
+					ret.add(o.getNodeId());
+				}
+			}
+			onComplete.accept(ret);
+		} : null);
+	}
+
+	default void invokeAllNodesVoid(ProcedureDesc<SupervisorDataVoid, SupervisorDataVoid> desc, int timeout,
+			Consumer<Set<Integer>> onComplete) {
+		invokeAllNodes(desc, timeout, ISupervisorData.VOID,
+				onComplete != null ? (Consumer<Collection<NodeResult<SupervisorDataVoid>>>) (lst) -> {
+			Set<Integer> ret = new HashSet<>();
+			for (NodeResult<SupervisorDataVoid> o : lst) {
+				if (o.isSuccessful()) {
+					ret.add(o.getNodeId());
 				}
 			}
 			onComplete.accept(ret);
@@ -94,6 +145,10 @@ public interface ISupervisorRPCHandler {
 
 	default <In extends ISupervisorData> void invokeAllNodesVoid(ProcedureDesc<In, SupervisorDataVoid> desc, In input) {
 		invokeAllNodes(desc, 0, input, null);
+	}
+
+	default void invokeAllNodesVoid(ProcedureDesc<SupervisorDataVoid, SupervisorDataVoid> desc) {
+		invokeAllNodes(desc, 0, ISupervisorData.VOID, null);
 	}
 
 	<In extends ISupervisorData, Out extends ISupervisorData> void invokeAllOtherNodes(ProcedureDesc<In, Out> desc,
@@ -105,7 +160,21 @@ public interface ISupervisorRPCHandler {
 			Set<Integer> ret = new HashSet<>();
 			for (NodeResult<SupervisorDataVoid> o : lst) {
 				if (o.isSuccessful()) {
-					ret.add(o.nodeId);
+					ret.add(o.getNodeId());
+				}
+			}
+			onComplete.accept(ret);
+		} : null);
+	}
+
+	default void invokeAllOtherNodesVoid(ProcedureDesc<SupervisorDataVoid, SupervisorDataVoid> desc, int timeout,
+			Consumer<Set<Integer>> onComplete) {
+		invokeAllOtherNodes(desc, timeout, ISupervisorData.VOID,
+				onComplete != null ? (Consumer<Collection<NodeResult<SupervisorDataVoid>>>) (lst) -> {
+			Set<Integer> ret = new HashSet<>();
+			for (NodeResult<SupervisorDataVoid> o : lst) {
+				if (o.isSuccessful()) {
+					ret.add(o.getNodeId());
 				}
 			}
 			onComplete.accept(ret);
@@ -115,6 +184,10 @@ public interface ISupervisorRPCHandler {
 	default <In extends ISupervisorData> void invokeAllOtherNodesVoid(ProcedureDesc<In, SupervisorDataVoid> desc,
 			In input) {
 		invokeAllOtherNodes(desc, 0, input, null);
+	}
+
+	default <In extends ISupervisorData> void invokeAllOtherNodesVoid(ProcedureDesc<SupervisorDataVoid, SupervisorDataVoid> desc) {
+		invokeAllOtherNodes(desc, 0, ISupervisorData.VOID, null);
 	}
 
 }

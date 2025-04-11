@@ -9,11 +9,13 @@ public final class ProcedureDesc<In extends ISupervisorData, Out extends ISuperv
 	private final Class<In> inputType;
 	private final Class<Out> outputType;
 
-	public static <In extends ISupervisorData, Out extends ISupervisorData> ProcedureDesc<In, Out> create(String name, Class<In> inputType, Class<Out> outputType) {
+	public static <In extends ISupervisorData, Out extends ISupervisorData> ProcedureDesc<In, Out> create(String name,
+			Class<In> inputType, Class<Out> outputType) {
 		return new ProcedureDesc<>(name.intern(), inputType, outputType);
 	}
 
-	public static <In extends ISupervisorData> ProcedureDesc<In, SupervisorDataVoid> create(String name, Class<In> inputType) {
+	public static <In extends ISupervisorData> ProcedureDesc<In, SupervisorDataVoid> create(String name,
+			Class<In> inputType) {
 		return create(name, inputType, SupervisorDataVoid.class);
 	}
 

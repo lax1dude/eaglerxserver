@@ -267,6 +267,7 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 		resolver.onConnectionEnd();
 	}
 
+	@Override
 	public void acceptPlayer(UUID playerUUID, UUID brandUUID, int gameProtocol, int eaglerProtocol, String username,
 			Consumer<EnumAcceptPlayer> callback) {
 		SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);

@@ -1,13 +1,17 @@
 package net.lax1dude.eaglercraft.backend.server.velocity.chat;
 
+import java.util.Locale;
+
 import com.google.gson.JsonParseException;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.json.JSONComponentSerializer;
 import net.kyori.adventure.text.serializer.json.LegacyHoverEventSerializer;
 import net.kyori.adventure.text.serializer.json.legacyimpl.NBTLegacyHoverEventSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.kyori.adventure.translation.GlobalTranslator;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
 
@@ -18,6 +22,7 @@ public class VelocityComponentHelper implements IPlatformComponentHelper {
 	private final JSONComponentSerializer legacyJSON;
 	private final JSONComponentSerializer modernJSON;
 	private final VelocityComponentBuilder builder;
+	private final Object standardKickAlreadyPlaying;
 
 	public VelocityComponentHelper() {
 		JSONComponentSerializer.Builder builder = JSONComponentSerializer.builder();
@@ -36,6 +41,8 @@ public class VelocityComponentHelper implements IPlatformComponentHelper {
 		this.legacyJSON = builder.build();
 		this.modernJSON = JSONComponentSerializer.json();
 		this.builder = new VelocityComponentBuilder();
+		this.standardKickAlreadyPlaying = GlobalTranslator.render(
+				Component.translatable("velocity.error.already-connected-proxy", NamedTextColor.RED), Locale.getDefault());
 	}
 
 	@Override
@@ -46,6 +53,11 @@ public class VelocityComponentHelper implements IPlatformComponentHelper {
 	@Override
 	public Class<?> getComponentType() {
 		return Component.class;
+	}
+
+	@Override
+	public Object getStandardKickAlreadyPlaying() {
+		return standardKickAlreadyPlaying;
 	}
 
 	@Override

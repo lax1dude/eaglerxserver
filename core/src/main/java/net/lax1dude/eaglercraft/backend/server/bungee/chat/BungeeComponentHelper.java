@@ -37,6 +37,11 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 	}
 
 	private final BungeeComponentBuilder builder = new BungeeComponentBuilder();
+	private final Object kickAlreadyPlayer;
+
+	public BungeeComponentHelper(Object kickAlreadyPlayer) {
+		this.kickAlreadyPlayer = kickAlreadyPlayer;
+	}
 
 	@Override
 	public IPlatformComponentBuilder builder() {
@@ -46,6 +51,11 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 	@Override
 	public Class<?> getComponentType() {
 		return BaseComponent.class;
+	}
+
+	@Override
+	public Object getStandardKickAlreadyPlaying() {
+		return kickAlreadyPlayer;
 	}
 
 	@Override

@@ -19,16 +19,28 @@ import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorDa
  */
 public final class NodeResult<Out extends ISupervisorData> {
 
-	public final int nodeId;
-	public final Out result;
+	public static <Out extends ISupervisorData> NodeResult<Out> create(int nodeId, Out result) {
+		return new NodeResult<>(nodeId, result);
+	}
 
-	public NodeResult(int nodeId, Out result) {
+	private final int nodeId;
+	private final Out result;
+
+	private NodeResult(int nodeId, Out result) {
 		this.nodeId = nodeId;
 		this.result = result;
 	}
 
 	public boolean isSuccessful() {
 		return result != null;
+	}
+
+	public int getNodeId() {
+		return nodeId;
+	}
+
+	public Out getResult() {
+		return result;
 	}
 
 }
