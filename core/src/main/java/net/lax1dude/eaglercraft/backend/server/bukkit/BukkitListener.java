@@ -13,6 +13,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import io.netty.channel.Channel;
 import io.netty.util.Attribute;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
+import net.md_5.bungee.api.chat.BaseComponent;
 
 class BukkitListener implements Listener {
 
@@ -31,8 +32,12 @@ class BukkitListener implements Listener {
 		Attribute<BukkitConnection> attr = channel.attr(PipelineAttributes.<BukkitConnection>connectionData());
 		CountDownLatch latch = new CountDownLatch(1);
 		thisIsSafe = false;
-		plugin.initializePlayer(player, attr.get(), attr::set, () -> {
+		plugin.initializePlayer(player, attr.get(), attr::set, (res) -> {
 			thisIsSafe = true;
+			if(res.closed) {
+				evt.disallow(PlayerLoginEvent.Result.KICK_OTHER,
+						res.msg != null ? ((BaseComponent) res.msg).toLegacyText() : "Connection Closed");
+			}
 			latch.countDown();
 		});
 		if(!thisIsSafe) {

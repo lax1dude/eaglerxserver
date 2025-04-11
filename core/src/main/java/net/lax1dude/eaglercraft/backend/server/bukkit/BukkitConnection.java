@@ -31,6 +31,8 @@ class BukkitConnection implements IPlatformConnection {
 	String texturesPropertyValue;
 	String texturesPropertySignature;
 	boolean eaglerPlayerProperty;
+	boolean closePending;
+	PlatformPluginBukkit.CloseRedirector closeRedirector;
 	Object attachment;
 
 	BukkitConnection(PlatformPluginBukkit plugin, LoginConnectionHolder loginConnection) {
@@ -114,6 +116,9 @@ class BukkitConnection implements IPlatformConnection {
 
 	@Override
 	public boolean isConnected() {
+		if(closePending) {
+			return false;
+		}
 		Player player = playerInstance;
 		if(player != null) {
 			Channel c = BukkitUnsafe.getPlayerChannel(player);
@@ -132,13 +137,26 @@ class BukkitConnection implements IPlatformConnection {
 
 	@Override
 	public void disconnect() {
+		if(closePending) {
+			return;
+		}
+		closePending = true;
+		PlatformPluginBukkit.CloseRedirector closer = this.closeRedirector;
+		if(closer != null) {
+			closer.accept(null);
+			return;
+		}
 		Player player = playerInstance;
 		if(player != null) {
-			player.kickPlayer("Connection Closed");
+			plugin.getScheduler().execute(() -> {
+				player.kickPlayer("Connection Closed");
+			});
 		}else {
 			LoginConnectionHolder loginConn = (LoginConnectionHolder)LOGIN_CONNECTION_HANDLE.getAcquire(this);
 			if(loginConn == null) {
-				playerInstance.kickPlayer("Connection Closed");
+				plugin.getScheduler().execute(() -> {
+					playerInstance.kickPlayer("Connection Closed");
+				});
 			}else {
 				loginConn.disconnect();
 			}
@@ -147,14 +165,27 @@ class BukkitConnection implements IPlatformConnection {
 
 	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
+		if(closePending) {
+			return;
+		}
+		closePending = true;
+		PlatformPluginBukkit.CloseRedirector closer = this.closeRedirector;
+		if(closer != null) {
+			closer.accept(kickMessage);
+			return;
+		}
 		String msg = ((BaseComponent)kickMessage).toLegacyText();
 		Player player = playerInstance;
 		if(player != null) {
-			player.kickPlayer(msg);
+			plugin.getScheduler().execute(() -> {
+				player.kickPlayer(msg);
+			});
 		}else {
 			LoginConnectionHolder loginConn = (LoginConnectionHolder)LOGIN_CONNECTION_HANDLE.getAcquire(this);
 			if(loginConn == null) {
-				playerInstance.kickPlayer(msg);
+				plugin.getScheduler().execute(() -> {
+					playerInstance.kickPlayer(msg);
+				});
 			}else {
 				loginConn.disconnect(msg);
 			}

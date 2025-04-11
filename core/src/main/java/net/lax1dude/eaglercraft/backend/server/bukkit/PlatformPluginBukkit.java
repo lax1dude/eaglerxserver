@@ -583,14 +583,28 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		});
 	}
 
+	static class CloseRedirector {
+
+		volatile boolean closed = false;
+		Object msg = null;
+
+		void accept(Object t) {
+			msg = t;
+			closed = true;
+		}
+
+	}
+
 	public void initializePlayer(Player player, BukkitConnection connection,
-			Consumer<BukkitConnection> setAttr, Runnable onComplete) {
+			Consumer<BukkitConnection> setAttr, Consumer<CloseRedirector> onComplete) {
 		BukkitPlayer p;
 		final BukkitConnection c;
+		final CloseRedirector cr;
 		if(connection == null) {
 			// vanilla players won't have an initialized connection
 			c = new BukkitConnection(this, null);
 			p = new BukkitPlayer(player, c);
+			c.closeRedirector = cr = new CloseRedirector();
 			setAttr.accept(c);
 			connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<Object, Object>() {
 				@Override
@@ -621,6 +635,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		}else {
 			c = connection;
 			p = new BukkitPlayer(player, c);
+			c.closeRedirector = cr = new CloseRedirector();
 		}
 		if(c.eaglerPlayerProperty || c.texturesPropertyValue != null) {
 			BukkitUnsafe.PropertyInjector injector = BukkitUnsafe.propertyInjector(player);
@@ -655,11 +670,15 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 					getLogger().warning("Player " + p.getUsername() + " was initialized, but never fired PlayerJoinEvent, dropping...");
 					dropPlayer(player);
 				}, 5000l);
-				onComplete.run();
+				CloseRedirector redir = c.closeRedirector;
+				c.closeRedirector = null;
+				onComplete.accept(redir);
 			}
 			@Override
 			public void cancel() {
-				onComplete.run();
+				CloseRedirector redir = c.closeRedirector;
+				c.closeRedirector = null;
+				onComplete.accept(redir);
 			}
 		});
 	}

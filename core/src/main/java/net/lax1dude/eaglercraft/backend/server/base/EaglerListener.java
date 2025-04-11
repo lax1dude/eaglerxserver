@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.Collections;
@@ -63,7 +64,15 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 		cachedServerMOTD = listenerConf.getServerMOTD();
 		String iconName = listenerConf.getServerIcon();
 		if(iconName != null && !iconName.isEmpty()) {
-			cachedServerIcon = server.getServerIconLoader().loadServerIcon(new File(iconName));
+			try {
+				cachedServerIcon = server.getServerIconLoader().loadServerIcon(new File(iconName));
+			}catch(FileNotFoundException ex) {
+				server.logger().error("Could not load server icon: " + iconName + " (not found)");
+				cachedServerIcon = null;
+			}catch(IOException ex) {
+				server.logger().error("Could not load server icon: " + iconName, ex);
+				cachedServerIcon = null;
+			}
 		}else {
 			cachedServerIcon = null;
 		}

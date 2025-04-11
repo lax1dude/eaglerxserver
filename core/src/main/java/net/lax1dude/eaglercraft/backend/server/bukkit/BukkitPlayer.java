@@ -6,11 +6,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
-import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
@@ -58,6 +58,7 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 	volatile BukkitTask confirmTask;
 	Object attachment;
 	private String brandString;
+	Consumer<Object> closeRedirector;
 
 	BukkitPlayer(Player player, BukkitConnection connection) {
 		this.player = player;
@@ -97,8 +98,7 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 
 	@Override
 	public boolean isConnected() {
-		Channel c = BukkitUnsafe.getPlayerChannel(player);
-		return c != null && c.isActive();
+		return connection.isConnected();
 	}
 
 	@Override
@@ -150,12 +150,12 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 
 	@Override
 	public void disconnect() {
-		player.kickPlayer("Connection Closed");
+		connection.disconnect();
 	}
 
 	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
-		player.kickPlayer(((BaseComponent)kickMessage).toLegacyText());
+		connection.disconnect(kickMessage);
 	}
 
 	@Override
