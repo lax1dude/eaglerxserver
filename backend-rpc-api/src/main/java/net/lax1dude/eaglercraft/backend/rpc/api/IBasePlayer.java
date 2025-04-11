@@ -18,6 +18,6 @@ public interface IBasePlayer<PlayerObject> extends IRPCAttributeHolder {
 
 	String getUsername();
 
-	IRPCHandle<IBasePlayerRPC<PlayerObject>> getHandleBase();
+	IRPCHandle<? extends IBasePlayerRPC<PlayerObject>> getHandle();
 
 }

@@ -8,6 +8,6 @@ public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject> {
 
 	IVoiceManager<PlayerObject> getVoiceManager();
 
-	IRPCHandle<IEaglerPlayerRPC<PlayerObject>> getHandleEagler();
+	IRPCHandle<IEaglerPlayerRPC<PlayerObject>> getHandle();
 
 }

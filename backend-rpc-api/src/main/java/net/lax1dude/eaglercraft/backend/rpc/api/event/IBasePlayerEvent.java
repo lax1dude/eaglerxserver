@@ -9,7 +9,7 @@ public interface IBasePlayerEvent<PlayerObject> extends IBaseServerEvent<PlayerO
 	IEaglerPlayer<PlayerObject> getPlayer();
 
 	default IRPCHandle<IEaglerPlayerRPC<PlayerObject>> getHandle() {
-		return getPlayer().getHandleEagler();
+		return getPlayer().getHandle();
 	}
 
 }

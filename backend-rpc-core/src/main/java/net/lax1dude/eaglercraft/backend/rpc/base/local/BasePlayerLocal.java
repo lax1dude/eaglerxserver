@@ -69,7 +69,7 @@ public class BasePlayerLocal<PlayerObject> extends RPCAttributeHolder
 	}
 
 	@Override
-	public IRPCHandle<IBasePlayerRPC<PlayerObject>> getHandleBase() {
+	public IRPCHandle<? extends IBasePlayerRPC<PlayerObject>> getHandle() {
 		return this;
 	}
 

@@ -93,23 +93,23 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 
 	void removeGenericEventListener(EnumSubscribeEvents eventType, IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler);
 
-	default <T extends IRPCEvent> void addEventListener(RPCEventType<T> eventType, IRPCEventHandler<PlayerObject, T> handler) {
+	default <T extends IRPCEvent> void addEventListener(RPCEventType<T> eventType, IRPCEventHandler<PlayerObject, ? super T> handler) {
 		addGenericEventListener(eventType.getEventType(), handler);
 	}
 
-	default <T extends IRPCEvent> void addEventListener(RPCEventType<T> eventType, IRPCEventHandlerSync<PlayerObject, T> handler) {
+	default <T extends IRPCEvent> void addEventListener(RPCEventType<T> eventType, IRPCEventHandlerSync<PlayerObject, ? super T> handler) {
 		addGenericEventListener(eventType.getEventType(), handler);
 	}
 
-	default <T extends IRPCEvent> void addEventListenerAsync(RPCEventType<T> eventType, IRPCEventHandlerAsync<PlayerObject, T> handler) {
+	default <T extends IRPCEvent> void addEventListenerAsync(RPCEventType<T> eventType, IRPCEventHandlerAsync<PlayerObject, ? super T> handler) {
 		addGenericEventListener(eventType.getEventType(), handler);
 	}
 
-	default <T extends IRPCEvent> void addEventListenerTiny(RPCEventType<T> eventType, IRPCEventHandlerTiny<PlayerObject, T> handler) {
+	default <T extends IRPCEvent> void addEventListenerTiny(RPCEventType<T> eventType, IRPCEventHandlerTiny<PlayerObject, ? super T> handler) {
 		addGenericEventListener(eventType.getEventType(), handler);
 	}
 
-	default <T extends IRPCEvent> void removeEventListener(RPCEventType<T> eventType, IRPCEventHandler<PlayerObject, T> handler) {
+	default <T extends IRPCEvent> void removeEventListener(RPCEventType<T> eventType, IRPCEventHandler<PlayerObject, ? super T> handler) {
 		removeGenericEventListener(eventType.getEventType(), handler);
 	}
 

@@ -112,8 +112,9 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 	}
 
 	@Override
-	public IRPCHandle<IBasePlayerRPC<PlayerObject>> getHandleBase() {
-		return this;
+	@SuppressWarnings("unchecked")
+	public IRPCHandle<IEaglerPlayerRPC<PlayerObject>> getHandle() {
+		return (IRPCHandle<IEaglerPlayerRPC<PlayerObject>>) (Object) this;
 	}
 
 	@Override
@@ -124,11 +125,6 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 	@Override
 	public IVoiceManager<PlayerObject> getVoiceManager() {
 		return isVoiceCapable() ? voiceManager : null;
-	}
-
-	@Override
-	public IRPCHandle<IEaglerPlayerRPC<PlayerObject>> getHandleEagler() {
-		return (IRPCHandle<IEaglerPlayerRPC<PlayerObject>>) (Object) this;
 	}
 
 	@Override

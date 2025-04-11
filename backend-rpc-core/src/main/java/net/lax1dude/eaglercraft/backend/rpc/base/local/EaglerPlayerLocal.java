@@ -54,7 +54,8 @@ public class EaglerPlayerLocal<PlayerObject> extends BasePlayerLocal<PlayerObjec
 	}
 
 	@Override
-	public IRPCHandle<IEaglerPlayerRPC<PlayerObject>> getHandleEagler() {
+	@SuppressWarnings("unchecked")
+	public IRPCHandle<IEaglerPlayerRPC<PlayerObject>> getHandle() {
 		// This is fine...
 		return (IRPCHandle<IEaglerPlayerRPC<PlayerObject>>) (Object) this;
 	}
