@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.adapter.event;
 
 import java.util.UUID;
 
+import io.netty.handler.codec.http.FullHttpRequest;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
@@ -72,7 +73,7 @@ public interface IEventDispatchAdapter<PlayerObject, ComponentObject> {
 	void dispatchVoiceChangeEvent(IEaglerPlayer<PlayerObject> player, EnumVoiceState voiceStateOld,
 			EnumVoiceState voiceStateNew, IEventDispatchCallback<IEaglercraftVoiceChangeEvent<PlayerObject>> onComplete);
 
-	void dispatchWebSocketOpenEvent(IEaglerConnection delegate,
+	void dispatchWebSocketOpenEvent(IEaglerConnection delegate, FullHttpRequest request,
 			IEventDispatchCallback<IEaglercraftWebSocketOpenEvent<PlayerObject>> onComplete);
 
 	void dispatchWebViewChannelEvent(IEaglerPlayer<PlayerObject> player, EnumEventType type, String channel,

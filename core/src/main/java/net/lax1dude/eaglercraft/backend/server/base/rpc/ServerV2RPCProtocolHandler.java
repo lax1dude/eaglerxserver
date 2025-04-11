@@ -46,7 +46,7 @@ public class ServerV2RPCProtocolHandler extends ServerV1RPCProtocolHandler {
 				rpcContext.handleRequestHeader(packet.requestID, EnumWebSocketHeader.HEADER_AUTHORIZATION);
 				return;
 			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REQUEST_PATH:
-				rpcContext.handleRequestHeader(packet.requestID, EnumWebSocketHeader.REQUEST_PATH);
+				rpcContext.handleRequestPath(packet.requestID);
 				return;
 			}
 		}catch(Exception ex) {

@@ -240,6 +240,11 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 	}
 
 	@Override
+	public String getWebSocketPath() {
+		return queryConnection.getWebSocketPath();
+	}
+
+	@Override
 	public long getAge() {
 		return queryConnection.getAge();
 	}

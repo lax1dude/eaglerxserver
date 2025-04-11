@@ -61,6 +61,10 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 		throw notEaglerPlayer();
 	}
 
+	void handleRequestPath(int requestID) {
+		throw notEaglerPlayer();
+	}
+
 	void handleRequestSkinData(int requestID) {
 		ISkinManagerBase<PlayerObject> skinMgr = manager().getPlayer().getSkinManager();
 		IEaglerPlayerSkin skin = skinMgr.getPlayerSkinIfLoaded();

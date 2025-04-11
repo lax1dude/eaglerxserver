@@ -158,7 +158,7 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 	}
 
 	@Override
-	public Iterable<String> getHeaders(String name) {
+	public List<String> getHeaders(String name) {
 		return request.headers().getAll(name);
 	}
 

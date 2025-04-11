@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.api.webserver;
 
 import java.net.SocketAddress;
 import java.nio.charset.Charset;
+import java.util.List;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -31,7 +32,7 @@ public interface IRequestContext {
 
 	String getHeader(String name);
 
-	Iterable<String> getHeaders(String name);
+	List<String> getHeaders(String name);
 
 	String getHost();
 

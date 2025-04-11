@@ -124,6 +124,11 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
+	public String getWebSocketPath() {
+		return connectionInstance.getWebSocketPath();
+	}
+
+	@Override
 	public String getEaglerVersionString() {
 		return connectionInstance.getEaglerVersionString();
 	}

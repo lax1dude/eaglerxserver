@@ -133,7 +133,7 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 		
 		IEventDispatchAdapter<?, ?> dispatch = pipelineData.server.eventDispatcher();
 		msg.retain();
-		dispatch.dispatchWebSocketOpenEvent(pipelineData, (evt, err) -> {
+		dispatch.dispatchWebSocketOpenEvent(pipelineData, msg, (evt, err) -> {
 			ctx.channel().eventLoop().execute(() -> {
 				try {
 					if(err == null) {

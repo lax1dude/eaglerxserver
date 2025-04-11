@@ -8,6 +8,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.scheduler.BukkitScheduler;
 
+import io.netty.handler.codec.http.FullHttpRequest;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchCallback;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IRegisterSkinDelegate;
@@ -163,9 +164,9 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player,
 	}
 
 	@Override
-	public void dispatchWebSocketOpenEvent(IEaglerConnection connection,
+	public void dispatchWebSocketOpenEvent(IEaglerConnection connection, FullHttpRequest request,
 			IEventDispatchCallback<IEaglercraftWebSocketOpenEvent<Player>> onComplete) {
-		fireSync(new BukkitWebSocketOpenEventImpl(api, connection), onComplete);
+		fireSync(new BukkitWebSocketOpenEventImpl(api, connection, request), onComplete);
 	}
 
 	@Override

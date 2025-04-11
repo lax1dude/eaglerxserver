@@ -177,14 +177,23 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 			case HEADER_AUTHORIZATION:
 				type = CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_HEADER_AUTHORIZATION;
 				break;
-			case REQUEST_PATH:
-				type = CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REQUEST_PATH;
-				break;
 			default:
 				return RPCImmediateFuture.create(getServerAPI().schedulerExecutors(), (String) null);
 			}
 			RPCRequestFuture<String> ret = createRequest(timeoutSec);
 			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(), type));
+			return ret;
+		}else {
+			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
+		}
+	}
+
+	@Override
+	public IRPCFuture<String> getWebSocketPath(int timeoutSec) {
+		if(open) {
+			RPCRequestFuture<String> ret = createRequest(timeoutSec);
+			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
+					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REQUEST_PATH));
 			return ret;
 		}else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());

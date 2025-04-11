@@ -7,6 +7,7 @@ import java.util.function.Function;
 import com.velocitypowered.api.event.EventManager;
 import com.velocitypowered.api.proxy.Player;
 
+import io.netty.handler.codec.http.FullHttpRequest;
 import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchCallback;
@@ -162,9 +163,9 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter<Playe
 	}
 
 	@Override
-	public void dispatchWebSocketOpenEvent(IEaglerConnection connection,
+	public void dispatchWebSocketOpenEvent(IEaglerConnection connection, FullHttpRequest request,
 			IEventDispatchCallback<IEaglercraftWebSocketOpenEvent<Player>> onComplete) {
-		fire(new VelocityWebSocketOpenEventImpl(api, connection), onComplete);
+		fire(new VelocityWebSocketOpenEventImpl(api, connection, request), onComplete);
 	}
 
 	@Override

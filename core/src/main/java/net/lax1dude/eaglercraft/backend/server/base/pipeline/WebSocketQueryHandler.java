@@ -277,6 +277,11 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 	}
 
 	@Override
+	public String getWebSocketPath() {
+		return pipelineData.getWebSocketPath();
+	}
+
+	@Override
 	public void setHandlers(IDuplexBaseHandler compositeHandler) {
 		if(compositeHandler instanceof IDuplexStringHandler) {
 			stringHandler = (IDuplexStringHandler) compositeHandler;

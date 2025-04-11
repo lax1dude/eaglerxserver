@@ -8,6 +8,12 @@ public interface IEaglerConnection extends IBaseConnection {
 
 	String getWebSocketHeader(EnumWebSocketHeader header);
 
+	default String getWebSocketHost() {
+		return getWebSocketHeader(EnumWebSocketHeader.HEADER_HOST);
+	}
+
+	String getWebSocketPath();
+
 	boolean isWebSocketSecure();
 
 }

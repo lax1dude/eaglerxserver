@@ -194,9 +194,13 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		case HEADER_USER_AGENT -> headerUserAgent;
 		case HEADER_COOKIE -> headerCookie;
 		case HEADER_AUTHORIZATION -> headerAuthorization;
-		case REQUEST_PATH -> requestPath;
 		default -> null;
 		};
+	}
+
+	@Override
+	public String getWebSocketPath() {
+		return requestPath;
 	}
 
 	@Override

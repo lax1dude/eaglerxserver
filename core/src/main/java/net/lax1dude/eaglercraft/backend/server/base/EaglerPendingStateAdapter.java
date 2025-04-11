@@ -27,6 +27,11 @@ public class EaglerPendingStateAdapter extends IIdentifiedConnection.Base implem
 	}
 
 	@Override
+	public String getWebSocketPath() {
+		return pipelineData.getWebSocketPath();
+	}
+
+	@Override
 	public boolean isWebSocketSecure() {
 		return pipelineData.wss;
 	}

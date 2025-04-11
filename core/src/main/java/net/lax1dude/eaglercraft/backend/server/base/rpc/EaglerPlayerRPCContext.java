@@ -67,6 +67,15 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 		}
 	}
 
+	void handleRequestPath(int requestID) {
+		String str = manager().getPlayer().getWebSocketPath();
+		if(str != null) {
+			sendRPCPacket(new SPacketRPCResponseTypeString(requestID, str));
+		}else {
+			sendRPCPacket(new SPacketRPCResponseTypeNull(requestID));
+		}
+	}
+
 	void handleRequestCookie(int requestID) {
 		EaglerPlayerInstance<PlayerObject> player = manager().getPlayer();
 		SPacketRPCResponseTypeCookie pkt;

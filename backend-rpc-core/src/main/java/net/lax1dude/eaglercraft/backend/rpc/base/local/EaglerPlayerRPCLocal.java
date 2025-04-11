@@ -126,12 +126,11 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	@Override
 	public IRPCFuture<String> getWebSocketHeader(EnumWebSocketHeader header) {
 		return RPCImmediateFuture.create(schedulerExecutors, switch(header) {
-		case HEADER_ORIGIN -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.REQUEST_PATH);
-		case HEADER_USER_AGENT -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.REQUEST_PATH);
-		case HEADER_HOST -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.REQUEST_PATH);
-		case HEADER_COOKIE -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.REQUEST_PATH);
-		case HEADER_AUTHORIZATION -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.REQUEST_PATH);
-		case REQUEST_PATH -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.REQUEST_PATH);
+		case HEADER_ORIGIN -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.HEADER_ORIGIN);
+		case HEADER_USER_AGENT -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.HEADER_USER_AGENT);
+		case HEADER_HOST -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.HEADER_HOST);
+		case HEADER_COOKIE -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.HEADER_COOKIE);
+		case HEADER_AUTHORIZATION -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.HEADER_AUTHORIZATION);
 		default -> null;
 		});
 	}
@@ -139,6 +138,16 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	@Override
 	public IRPCFuture<String> getWebSocketHeader(EnumWebSocketHeader header, int timeoutSec) {
 		return getWebSocketHeader(header);
+	}
+
+	@Override
+	public IRPCFuture<String> getWebSocketPath() {
+		return RPCImmediateFuture.create(schedulerExecutors, delegate.getWebSocketPath());
+	}
+
+	@Override
+	public IRPCFuture<String> getWebSocketPath(int timeoutSec) {
+		return getWebSocketPath();
 	}
 
 	@Override

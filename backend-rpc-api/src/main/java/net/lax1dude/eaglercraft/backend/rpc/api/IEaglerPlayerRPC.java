@@ -47,6 +47,20 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 
 	IRPCFuture<String> getWebSocketHeader(EnumWebSocketHeader header, int timeoutSec);
 
+	default IRPCFuture<String> getWebSocketHost() {
+		return getWebSocketHeader(EnumWebSocketHeader.HEADER_HOST, getBaseRequestTimeout());
+	}
+
+	default IRPCFuture<String> getWebSocketHost(int timeoutSec) {
+		return getWebSocketHeader(EnumWebSocketHeader.HEADER_HOST, timeoutSec);
+	}
+
+	default IRPCFuture<String> getWebSocketPath() {
+		return getWebSocketPath(getBaseRequestTimeout());
+	}
+
+	IRPCFuture<String> getWebSocketPath(int timeoutSec);
+
 	default IRPCFuture<CookieData> getCookieData() {
 		return getCookieData(getBaseRequestTimeout());
 	}

@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.bungee.event;
 
 import java.util.UUID;
 
+import io.netty.handler.codec.http.FullHttpRequest;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchCallback;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IRegisterSkinDelegate;
@@ -153,9 +154,9 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 	}
 
 	@Override
-	public void dispatchWebSocketOpenEvent(IEaglerConnection connection,
+	public void dispatchWebSocketOpenEvent(IEaglerConnection connection, FullHttpRequest request,
 			IEventDispatchCallback<IEaglercraftWebSocketOpenEvent<ProxiedPlayer>> onComplete) {
-		fireSync(new BungeeWebSocketOpenEventImpl(api, connection), onComplete);
+		fireSync(new BungeeWebSocketOpenEventImpl(api, connection, request), onComplete);
 	}
 
 	@Override
