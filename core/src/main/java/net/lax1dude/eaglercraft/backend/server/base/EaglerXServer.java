@@ -206,7 +206,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		
 		ConfigDataSkinService skinSvcConf = config.getSettings().getSkinService();
 		ConfigDataSupervisor supervisorConf = config.getSupervisor();
-		if(supervisorConf.isEnableSupervisor()) {
+		if(supervisorConf != null && supervisorConf.isEnableSupervisor()) {
 			supervisorService = new SupervisorService<>(this);
 			skinService = new SkinService<>(this, null, skinSvcConf.getFNAWSkinsPredicate(),
 					skinSvcConf.isDownloadVanillaSkinsToClients());
@@ -282,8 +282,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 				voiceConfig.getVoiceRequestRatelimit(), voiceConfig.getVoiceICERatelimit(),
 				config.getSettings().getBrandLookupRatelimit(), config.getSettings().getWebviewDownloadRatelimit(),
 				config.getSettings().getWebviewMessageRatelimit(), skinSvcConf.getSkinCacheAntagonistsRatelimit(),
-				supervisorConf.getSupervisorSkinAntagonistsRatelimit(),
-				supervisorConf.getSupervisorBrandAntagonistsRatelimit());
+				supervisorConf != null ? supervisorConf.getSupervisorSkinAntagonistsRatelimit() : 0,
+				supervisorConf != null ? supervisorConf.getSupervisorBrandAntagonistsRatelimit() : 0);
 		
 		init.setOnServerEnable(this::enableHandler);
 		init.setOnServerDisable(this::disableHandler);

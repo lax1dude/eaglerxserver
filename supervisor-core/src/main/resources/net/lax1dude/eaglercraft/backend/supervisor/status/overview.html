@@ -1,0 +1,31 @@
+<h2>Overview</h2>
+<div class="indent">
+<h4>Heap Usage: ${memory_used} MB / ${memory_max} MB</h4>
+<h4>Total Players: ${total_players} / ${max_players}</h4>
+<h4>Skin Cache: ${skin_cache_status}</h4>
+</div>
+<br>
+
+<h2>Proxies</h2>
+<div class="indent">
+<table class="eag_table">
+<thead><tr><th>ID</th><th>Remote Address</th><th>Protocol</th><th>Ping</th><th>Proxy Type</th><th>Proxy Version</th><th>Plugin Type</th><th>Plugin Brand</th><th>Plugin Version</th><th>System Time</th><th>Player Count</th><th>Max Players</th></tr></thead>
+<tbody>${proxies_table}</tbody>
+</table>
+<p>(${proxies_total} proxies total)</p>
+</div>
+<br>
+
+<h2>Skin Cache</h2>
+<div class="indent">
+<table class="eag_table">
+<thead><tr><th>Statistic</th><th>Skins</th><th>Capes</th></tr></thead>
+<tbody>
+<tr><td>Eagler Players - Preset</td><td>${eagler_players_preset_skins}</td><td>${eagler_players_preset_capes}</td></tr>
+<tr><td>Eagler Players - Custom</td><td>${eagler_players_custom_skins}</td><td>${eagler_players_custom_capes}</td></tr>
+<tr><td>Downloaded - In Memory</td><td>${downloaded_memory_skins}</td><td>${downloaded_memory_capes}</td></tr>
+<tr><td>Downloaded - Database</td><td>${downloaded_database_skins}</td><td>${downloaded_database_capes}</td></tr>
+</tbody>
+</table>
+</div>
+<br>

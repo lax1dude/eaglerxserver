@@ -475,7 +475,7 @@ public class EaglerConfigLoader {
 				return ImmutableMap.copyOf(map);
 			});
 		}
-		ConfigDataSupervisor supervisor = root.loadConfig("supervisor", (config) -> {
+		ConfigDataSupervisor supervisor = platform.proxy ? root.loadConfig("supervisor", (config) -> {
 			boolean enableSupervisor = config.getBoolean(
 				"enable_supervisor", false,
 				"Set to true to run the plugin in multi-proxy mode with a supervisor server (EaglerXSupervisor)"
@@ -520,7 +520,7 @@ public class EaglerConfigLoader {
 					supervisorConnectTimeout, supervisorReadTimeout, supervisorUnavailableMessage,
 					supervisorSkinAntagonistsRatelimit, supervisorBrandAntagonistsRatelimit,
 					supervisorLookupIgnoreV2UUID);
-		});
+		}) : null;
 		List<ICEServerEntry> iceServers = root.loadConfig("ice_servers", (config) -> {
 			ImmutableList.Builder<ICEServerEntry> builder = ImmutableList.builder();
 			IEaglerConfList noPasswdList = config.getList("ice_servers_no_passwd");

@@ -17,9 +17,12 @@ netty-codec = { module = "io.netty:netty-codec", version.ref = "netty" }
 netty-codec-http = { module = "io.netty:netty-codec-http", version.ref = "netty" }
 netty-codec-haproxy = { module = "io.netty:netty-codec-haproxy", version.ref = "netty" }
 netty-transport-epoll = { module = "io.netty:netty-transport-native-epoll", version.ref = "netty" }
+netty-transport-kqueue = { module = "io.netty:netty-transport-native-kqueue", version.ref = "netty" }
 guava = "com.google.guava:guava:21.0"
 gson = "com.google.code.gson:gson:2.8.0"
+logback = "ch.qos.logback:logback-classic:1.5.16"
 slf4j = "org.slf4j:slf4j-api:2.0.12"
+hppc = "com.carrotsearch:hppc:0.10.0"
 
 [bundles]
 netty-all = [
@@ -27,11 +30,17 @@ netty-all = [
 	"netty-codec",
 	"netty-codec-http",
 	"netty-codec-haproxy",
-	"netty-codec-haproxy",
 	"netty-transport-epoll"
 ]
 netty-api = [
 	"netty-handler",
 	"netty-codec",
 	"netty-codec-http"
+]
+netty-supervisor = [
+	"netty-handler",
+	"netty-codec",
+	"netty-codec-http",
+	"netty-transport-epoll",
+	"netty-transport-kqueue"
 ]

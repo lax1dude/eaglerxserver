@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+${auto_refresh}
+<title>${title}</title>
+<style type="text/css">
+body {
+	margin: 0px;
+	padding: 15px;
+	font-family: sans-serif;
+}
+#container {
+	margin: 15px;
+}
+.indent {
+	padding-left: 10px;
+}
+.eag_table {
+	background-color: #BBBBBB;
+}
+.eag_table td, .eag_table th {
+	margin: 2px;
+	padding: 4px 6px;
+	background-color: #FFFFFF;
+}
+.eag_table th {
+	background-color: #FCF4F4;
+}
+.tr_alt td {
+	background-color: #F8F8F8;
+}
+</style>
+</head>
+<body>
+<h1>${server_string}</h1>
+<hr>
+<h3><a href="overview">Overview</a> | <a href="proxies">Proxies</a> | <a href="players">Players</a></h3>
+<hr>
+<div id="container">
+${body}
+</div>
+</body>
+</html>
