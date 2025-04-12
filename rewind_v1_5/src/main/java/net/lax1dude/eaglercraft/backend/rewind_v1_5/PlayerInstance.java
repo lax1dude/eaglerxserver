@@ -2,16 +2,12 @@ package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
 import java.util.*;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
-import net.lax1dude.eaglercraft.backend.server.api.collect.IntIndexedContainer;
-import net.lax1dude.eaglercraft.backend.server.api.collect.IntProcedure;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.collect.HPPC;
 import net.lax1dude.eaglercraft.backend.server.api.collect.IntSet;
-import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectCursor;
 import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectObjectMap;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTContext;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IMessageController;
@@ -31,7 +27,8 @@ public class PlayerInstance<PlayerObject> {
 	private IComponentHelper componentHelper;
 	private TabListTracker tabList;
 	private ObjectObjectMap<UUID, SkinRequest> skinRequests;
-	private BiMap<UUID, String> voiceGlobalMap;
+	private ObjectObjectMap<UUID, String> voiceGlobalMap;
+	private ObjectObjectMap<String, UUID> voiceGlobalMapInv;
 
 	private final IntSet enchWindows;
 
@@ -174,18 +171,7 @@ public class PlayerInstance<PlayerObject> {
 
 	private void flushRequests(long nanoTime) {
 		if(skinRequests == null) return;
-		IntIndexedContainer toRemove = null;
-		for(ObjectCursor<SkinRequest> cur : skinRequests.values()) {
-			if(nanoTime - cur.value.createdAt > (30l * 1000l * 1000l * 1000l)) {
-				if(toRemove == null) {
-					toRemove = rewind.getServerAPI().getHPPC().createIntArrayList();
-				}
-				toRemove.add(cur.index);
-			}
-		}
-		if(toRemove != null) {
-			toRemove.forEach((IntProcedure)skinRequests::indexRemove);
-		}
+		skinRequests.removeAll((k, v) -> nanoTime - v.createdAt > (30l * 1000l * 1000l * 1000l));
 	}
 
 	public int removeSkinRequest(UUID uuid) {
@@ -196,12 +182,19 @@ public class PlayerInstance<PlayerObject> {
 
 	public void releaseVoiceGlobalMap() {
 		voiceGlobalMap = null;
+		voiceGlobalMapInv = null;
 	}
 
 	public void handleVoiceGlobal(Collection<SPacketVoiceSignalGlobalEAG.UserData> userDatas) {
-		voiceGlobalMap = HashBiMap.create();
+		IEaglerXServerAPI<?> api = rewind.getServerAPI();
+		HPPC hppc = api.getHPPC();
+		voiceGlobalMap = hppc.createObjectObjectHashMap(userDatas.size());
+		voiceGlobalMapInv = hppc.createObjectObjectHashMap(userDatas.size());
 		for(SPacketVoiceSignalGlobalEAG.UserData userData : userDatas) {
-			voiceGlobalMap.put(rewind.getServerAPI().intern(new UUID(userData.uuidMost, userData.uuidLeast)), userData.username.intern());
+			UUID uuid = api.intern(new UUID(userData.uuidMost, userData.uuidLeast));
+			String name = userData.username.intern();
+			voiceGlobalMap.put(uuid, name);
+			voiceGlobalMapInv.put(name, uuid);
 		}
 	}
 
@@ -210,7 +203,7 @@ public class PlayerInstance<PlayerObject> {
 	}
 
 	public UUID getVoicePlayerByName(String name) {
-		return voiceGlobalMap != null ? voiceGlobalMap.inverse().get(name) : null;
+		return voiceGlobalMapInv != null ? voiceGlobalMapInv.get(name) : null;
 	}
 
 	public void handlePlayerCreate(IEaglerPlayer<PlayerObject> eaglerPlayer) {

@@ -9,14 +9,10 @@ import java.util.concurrent.ConcurrentMap;
 import com.google.common.collect.ImmutableList;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
-import net.lax1dude.eaglercraft.backend.server.api.collect.IntIndexedContainer;
-import net.lax1dude.eaglercraft.backend.server.api.collect.IntProcedure;
-import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectCursor;
 import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectIndexedContainer;
 import net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
-import net.lax1dude.eaglercraft.backend.server.base.collect.IntArrayList;
 import net.lax1dude.eaglercraft.backend.server.base.collect.ObjectArrayList;
 import net.lax1dude.eaglercraft.backend.server.base.collect.ObjectObjectHashMap;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
@@ -148,25 +144,16 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 			long nanos = System.nanoTime();
 			if(expirable) {
 				if(nanos - lastFlush > (30l * 1000l * 1000l * 1000l)) {
-					lastFlush = nanos;
 					expirable = false;
-					int i;
-					IntIndexedContainer toRemove = null;
-					for(ObjectCursor<IVoiceState> cur : values()) {
-						IVoiceState state = cur.value;
-						i = state.expired(nanos);
+					this.removeAll((k, v) -> {
+						int i = v.expired(nanos);
 						if(i == 1) {
-							if(toRemove == null) {
-								toRemove = new IntArrayList();
-							}
-							toRemove.add(cur.index);
+							return true;
 						}else if(i == 0) {
 							expirable = true;
 						}
-					}
-					if(toRemove != null) {
-						toRemove.forEach((IntProcedure)this::indexRemove);
-					}
+						return false;
+					});
 					return get(other);
 				}
 			}

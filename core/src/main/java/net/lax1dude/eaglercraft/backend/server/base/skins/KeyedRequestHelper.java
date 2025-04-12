@@ -2,11 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.base.skins;
 
 import java.util.function.Consumer;
 
-import net.lax1dude.eaglercraft.backend.server.api.collect.IntIndexedContainer;
-import net.lax1dude.eaglercraft.backend.server.api.collect.IntProcedure;
-import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectCursor;
 import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectObjectMap;
-import net.lax1dude.eaglercraft.backend.server.base.collect.IntArrayList;
 import net.lax1dude.eaglercraft.backend.server.base.collect.ObjectObjectHashMap;
 
 class KeyedRequestHelper<T> {
@@ -68,21 +64,7 @@ class KeyedRequestHelper<T> {
 	}
 
 	private void flush(long now) {
-		IntIndexedContainer toRemove = null;
-		for(ObjectCursor<KeyedRequestHelper<T>.KeyedRequest> cur : internalMap.values()) {
-			if(now - cur.value.createdAt > 30l * 1000000000l) {
-				if(toRemove == null) {
-					toRemove = new IntArrayList();
-				}
-				toRemove.add(cur.index);
-			}
-		}
-		if(toRemove != null) {
-			toRemove.forEach((IntProcedure)internalMap::indexRemove);
-			if(internalMap.isEmpty()) {
-				internalMap = null;
-			}
-		}
+		internalMap.removeAll((k, v) -> now - v.createdAt > 30l * 1000000000l);
 	}
 
 }
