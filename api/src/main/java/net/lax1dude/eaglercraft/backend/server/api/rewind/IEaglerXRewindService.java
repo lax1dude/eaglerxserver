@@ -10,9 +10,9 @@ public interface IEaglerXRewindService<PlayerObject> {
 
 	boolean isActive();
 
-	<T> void registerLegacyProtocol(IEaglerXRewindProtocol<PlayerObject, T> protocolHandler);
+	void registerLegacyProtocol(IEaglerXRewindProtocol<PlayerObject, ?> protocolHandler);
 
-	<T> void unregisterLegacyProtocol(IEaglerXRewindProtocol<PlayerObject, T> protocolHandler);
+	void unregisterLegacyProtocol(IEaglerXRewindProtocol<PlayerObject, ?> protocolHandler);
 
 	boolean hasLegacyProtocol(int protocolVersion);
 

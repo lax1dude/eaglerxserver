@@ -7,10 +7,10 @@ plugins {
 dependencies {
 	implementation project(":supervisor-protocol")
 	implementation project(":skin-cache")
-	compileOnly(libs.guava)
-	compileOnly(libs.hppc)
-	compileOnly(libs.slf4j)
-	compileOnly(libs.bundles.netty.supervisor)
+	implementation(libs.guava)
+	implementation(libs.hppc)
+	implementation(libs.slf4j)
+	implementation(libs.bundles.netty.supervisor)
 	runtimeOnly(libs.logback)
 }
 

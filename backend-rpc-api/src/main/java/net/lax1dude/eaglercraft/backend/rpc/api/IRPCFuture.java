@@ -29,19 +29,19 @@ public interface IRPCFuture<V> extends ListenableFuture<V> {
 		addListener(runnable, getSchedulerTiny());
 	}
 
-	default void addCallback(FutureCallback<V> callback, Executor executor) {
+	default void addCallback(FutureCallback<? super V> callback, Executor executor) {
 		Futures.addCallback(this, callback, executor);
 	}
 
-	default void addCallback(FutureCallback<V> callback) {
+	default void addCallback(FutureCallback<? super V> callback) {
 		Futures.addCallback(this, callback, getScheduler());
 	}
 
-	default void addCallbackAsync(FutureCallback<V> callback) {
+	default void addCallbackAsync(FutureCallback<? super V> callback) {
 		Futures.addCallback(this, callback, getSchedulerAsync());
 	}
 
-	default void addCallbackTiny(FutureCallback<V> callback) {
+	default void addCallbackTiny(FutureCallback<? super V> callback) {
 		Futures.addCallback(this, callback, getSchedulerTiny());
 	}
 

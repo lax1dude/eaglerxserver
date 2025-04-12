@@ -50,7 +50,7 @@ public class RewindService<PlayerObject> implements IEaglerXRewindService<Player
 	}
 
 	@Override
-	public <T> void registerLegacyProtocol(IEaglerXRewindProtocol<PlayerObject, T> protocolHandler) {
+	public void registerLegacyProtocol(IEaglerXRewindProtocol<PlayerObject, ?> protocolHandler) {
 		if(!enabled) {
 			throw new UnsupportedOperationException("EaglerXRewind is not enabled on this server");
 		}
@@ -85,7 +85,7 @@ public class RewindService<PlayerObject> implements IEaglerXRewindService<Player
 	}
 
 	@Override
-	public <T> void unregisterLegacyProtocol(IEaglerXRewindProtocol<PlayerObject, T> protocolHandler) {
+	public void unregisterLegacyProtocol(IEaglerXRewindProtocol<PlayerObject, ?> protocolHandler) {
 		if(!enabled) {
 			return;
 		}
