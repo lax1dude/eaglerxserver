@@ -253,7 +253,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	public NettyPipelineData.ProfileDataHolder transferProfileData() {
 		NettyPipelineData.ProfileDataHolder ret = profileDataInit;
 		profileDataInit = null;
-		return ret;
+		return ret != null ? ret : NettyPipelineData.NULL_PROFILE;
 	}
 
 	public UUID getEaglerBrandUUID() {

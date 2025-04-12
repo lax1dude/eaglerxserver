@@ -20,6 +20,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.util.ReferenceCountUtil;
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestHandler;
@@ -442,7 +443,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		if (ctx.channel().isActive()) {
+		if(!(cause instanceof ReadTimeoutException) && ctx.channel().isActive()) {
 			pipelineData.connectionLogger.error("Uncaught exception in pipeline", cause);
 		}
 	}

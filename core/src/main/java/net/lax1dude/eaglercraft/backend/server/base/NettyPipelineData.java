@@ -55,6 +55,8 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 
 	}
 
+	static final ProfileDataHolder NULL_PROFILE = new ProfileDataHolder(null, null, null, null);
+
 	private static final Set<String> profileDataStandard = ImmutableSet.of(
 			"skin_v1", "skin_v2", "cape_v1", "update_cert_v1", "brand_uuid_v1");
 
