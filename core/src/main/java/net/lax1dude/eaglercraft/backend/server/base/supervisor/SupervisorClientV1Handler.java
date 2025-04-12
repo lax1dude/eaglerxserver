@@ -18,8 +18,12 @@ package net.lax1dude.eaglercraft.backend.server.base.supervisor;
 
 import java.nio.charset.StandardCharsets;
 
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
+import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.CustomCapeGeneric;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.CustomCapePlayer;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.CustomSkinGeneric;
@@ -31,6 +35,7 @@ import net.lax1dude.eaglercraft.backend.server.base.supervisor.rpc.SupervisorRPC
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.EaglerSupervisorHandler;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.*;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.server.*;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketInvalidatePlayerCacheV4EAG;
 
 public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 
@@ -67,9 +72,31 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleServer(SPacketSvDropPlayerPartial pkt) {
 		if(pkt.bitmask != 0) {
-			connection.loadPlayer(pkt.uuid).onDropPartial(pkt.serverNotify,
-					(pkt.bitmask & SPacketSvDropPlayerPartial.DROP_PLAYER_SKIN) != 0,
-					(pkt.bitmask & SPacketSvDropPlayerPartial.DROP_PLAYER_CAPE) != 0);
+			boolean skin = (pkt.bitmask & SPacketSvDropPlayerPartial.DROP_PLAYER_SKIN) != 0;
+			boolean cape = (pkt.bitmask & SPacketSvDropPlayerPartial.DROP_PLAYER_CAPE) != 0;
+			SupervisorPlayer player = connection.loadPlayerIfPresent(pkt.uuid);
+			if(player != null) {
+				player.onDropPartial(skin, cape);
+				if(pkt.serverNotify != null) {
+					IPlatformServer<?> svr = connection.getEaglerXServer().getPlatform().getRegisteredServers().get(pkt.serverNotify);
+					if(svr != null) {
+						SPacketInvalidatePlayerCacheV4EAG pkt2 = new SPacketInvalidatePlayerCacheV4EAG(skin, cape,
+								pkt.uuid.getMostSignificantBits(), pkt.uuid.getLeastSignificantBits());
+						for(IPlatformPlayer<?> otherPlayer : svr.getAllPlayers()) {
+							EaglerPlayerInstance<?> eagPlayer = otherPlayer.<BasePlayerInstance<?>>getPlayerAttachment().asEaglerPlayer();
+							if(eagPlayer != null) {
+								if(eagPlayer.getEaglerProtocol().ver >= 4) {
+									eagPlayer.sendEaglerMessage(pkt2);
+								}
+							}
+						}
+					}else {
+						connection.logger().warn("Received skin change for unknown server: " + pkt.serverNotify);
+					}
+				}
+			}else {
+				connection.logger().warn("Received skin change for unknown player: " + pkt.uuid);
+			}
 		}
 	}
 

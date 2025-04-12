@@ -90,4 +90,12 @@ public class SupervisorServiceDisabled<PlayerObject> implements ISupervisorServi
 		throw supervisorDisable();
 	}
 
+	@Override
+	public void dropOwnPlayer(UUID playerUUID) {
+	}
+
+	@Override
+	public void notifySkinChange(UUID playerUUID, String serverName, boolean skin, boolean cape) {
+	}
+
 }

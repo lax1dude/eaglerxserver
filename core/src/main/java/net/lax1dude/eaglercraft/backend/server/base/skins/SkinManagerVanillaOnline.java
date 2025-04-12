@@ -242,7 +242,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 					toCall = waitingSkinCallbacks;
 					waitingSkinCallbacks = null;
 				}else {
-					if(skin == null) {
+					if(skinURL == null || skin == null) {
 						return;
 					}
 					skin = null;
@@ -296,7 +296,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 					toCall = waitingCapeCallbacks;
 					waitingCapeCallbacks = null;
 				}else {
-					if(cape == null) {
+					if(capeURL == null || cape == null) {
 						return;
 					}
 					cape = null;
@@ -352,7 +352,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 						waitingSkinCallbacks = null;
 					}
 				}else {
-					if(skin != null) {
+					if(skinURL != null && skin != null) {
 						skin = null;
 						s = true;
 					}
@@ -379,7 +379,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 						waitingCapeCallbacks = null;
 					}
 				}else {
-					if(cape != null) {
+					if(capeURL != null && cape != null) {
 						cape = null;
 						c = true;
 					}
@@ -429,6 +429,26 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 	@Override
 	public void resetPlayerTextures(boolean notifyOthers) {
 		changePlayerTextures0(null, null, notifyOthers);
+	}
+
+	public String getEffectiveSkinURLInternal() {
+		if(skin == null || originalSkin == skin) {
+			return skinURL;
+		}else {
+			return null;
+		}
+	}
+
+	public EnumSkinModel getEffectiveSkinModelInternal() {
+		return skinModel;
+	}
+
+	public String getEffectiveCapeURLInternal() {
+		if(cape == null || originalCape == cape) {
+			return capeURL;
+		}else {
+			return null;
+		}
 	}
 
 }

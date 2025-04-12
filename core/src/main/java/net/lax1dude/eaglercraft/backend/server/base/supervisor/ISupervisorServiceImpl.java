@@ -21,4 +21,8 @@ public interface ISupervisorServiceImpl<PlayerObject> extends ISupervisorService
 	void acceptPlayer(UUID playerUUID, UUID brandUUID, int gameProtocol, int eaglerProtocol, String username,
 			Consumer<EnumAcceptPlayer> callback);
 
+	void dropOwnPlayer(UUID playerUUID);
+
+	void notifySkinChange(UUID playerUUID, String serverName, boolean skin, boolean cape);
+
 }

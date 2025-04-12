@@ -15,6 +15,7 @@ import com.google.common.collect.ImmutableSet;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistration;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandService;
+import net.lax1dude.eaglercraft.backend.server.base.supervisor.ISupervisorServiceImpl;
 
 public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 
@@ -202,8 +203,12 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 		if(player != null) {
 			callback.accept(player.getEaglerBrandUUID());
 		}else {
-			callback.accept(null);
-			//TODO: supervisor
+			ISupervisorServiceImpl<PlayerObject> supervisorService = server.getSupervisorService();
+			if(supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(playerUUID)) {
+				supervisorService.getRemoteOnlyResolver().resolvePlayerBrand(playerUUID, callback);
+			}else {
+				callback.accept(null);
+			}
 		}
 	}
 
@@ -214,8 +219,12 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 			UUID uuid = player.getEaglerBrandUUID();
 			callback.accept(uuid, lookupRegisteredBrand(uuid));
 		}else {
-			callback.accept(null, null);
-			//TODO: supervisor
+			ISupervisorServiceImpl<PlayerObject> supervisorService = server.getSupervisorService();
+			if(supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(playerUUID)) {
+				supervisorService.getRemoteOnlyResolver().resolvePlayerRegisteredBrand(playerUUID, callback);
+			}else {
+				callback.accept(null, null);
+			}
 		}
 	}
 

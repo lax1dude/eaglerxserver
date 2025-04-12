@@ -22,19 +22,14 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
-import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
-import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingCape;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingSkin;
 import net.lax1dude.eaglercraft.backend.server.util.KeyedConcurrentLazyLoader.KeyedConsumerList;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvGetClientBrandUUID;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvGetOtherCape;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvGetOtherSkin;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketInvalidatePlayerCacheV4EAG;
 
 class SupervisorPlayer {
 
@@ -354,29 +349,12 @@ class SupervisorPlayer {
 		}
 	}
 
-	void onDropPartial(String serverNotify, boolean skin, boolean cape) {
+	void onDropPartial(boolean skin, boolean cape) {
 		if(skin) {
 			this.skin = null;
 		}
 		if(cape) {
 			this.cape = null;
-		}
-		if(serverNotify != null) {
-			IPlatformServer<?> svr = connection.getEaglerXServer().getPlatform().getRegisteredServers().get(serverNotify);
-			if(svr != null) {
-				SPacketInvalidatePlayerCacheV4EAG pkt = new SPacketInvalidatePlayerCacheV4EAG(skin, cape,
-						playerUUID.getMostSignificantBits(), playerUUID.getLeastSignificantBits());
-				for(IPlatformPlayer<?> otherPlayer : svr.getAllPlayers()) {
-					EaglerPlayerInstance<?> eagPlayer = otherPlayer.<BasePlayerInstance<?>>getPlayerAttachment().asEaglerPlayer();
-					if(eagPlayer != null) {
-						if(eagPlayer.getEaglerProtocol().ver >= 4) {
-							eagPlayer.sendEaglerMessage(pkt);
-						}
-					}
-				}
-			}else {
-				connection.logger().warn("Received skin change for unknown server: " + serverNotify);
-			}
 		}
 	}
 

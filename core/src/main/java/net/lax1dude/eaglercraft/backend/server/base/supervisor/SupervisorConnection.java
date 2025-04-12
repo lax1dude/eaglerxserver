@@ -28,6 +28,7 @@ import net.lax1dude.eaglercraft.backend.server.util.Util;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.netty.SupervisorPacketHandler;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.EaglerSupervisorPacket;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvDropPlayer;
+import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvDropPlayerPartial;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvPing;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvProxyStatus;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvRegisterPlayer;
@@ -271,8 +272,18 @@ public class SupervisorConnection implements ISupervisorConnection, INettyChanne
 	}
 
 	void dropOwnPlayer(UUID playerUUID) {
+		remotePlayers.remove(playerUUID);
 		if(acceptedPlayers.remove(playerUUID)) {
 			sendSupervisorPacket(new CPacketSvDropPlayer(playerUUID));
+		}
+	}
+
+	void notifySkinChange(UUID uuid, String serverName, boolean skin, boolean cape) {
+		int mask = 0;
+		if(skin) mask |= CPacketSvDropPlayerPartial.DROP_PLAYER_SKIN;
+		if(cape) mask |= CPacketSvDropPlayerPartial.DROP_PLAYER_CAPE;
+		if(mask > 0) {
+			sendSupervisorPacket(new CPacketSvDropPlayerPartial(uuid, serverName, mask));
 		}
 	}
 

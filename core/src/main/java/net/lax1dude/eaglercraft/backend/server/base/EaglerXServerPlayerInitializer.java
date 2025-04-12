@@ -85,13 +85,21 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 								initializer.getPlayer().disconnect(
 										server.componentBuilder().buildTextComponent().text("Internal Server Error").end());
 							}finally {
-								initializer.cancel();
+								try {
+									server.getSupervisorService().dropOwnPlayer(instance.getUniqueId());
+								}finally {
+									initializer.cancel();
+								}
 							}
 						}
 					});
 				});
 			}catch(EaglerXServer.RegistrationStateException ex) {
-				initializer.cancel();
+				try {
+					server.getSupervisorService().dropOwnPlayer(initializer.getPlayer().getUniqueId());
+				}finally {
+					initializer.cancel();
+				}
 				return;
 			}
 		}else {
@@ -100,7 +108,11 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 			try {
 				server.registerPlayer(instance);
 			}catch(EaglerXServer.RegistrationStateException ex) {
-				initializer.cancel();
+				try {
+					server.getSupervisorService().dropOwnPlayer(instance.getUniqueId());
+				}finally {
+					initializer.cancel();
+				}
 				return;
 			}
 			initializer.complete();
@@ -111,19 +123,23 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 	public void destroyPlayer(IPlatformPlayer<PlayerObject> player) {
 		BasePlayerInstance<PlayerObject> instance = player.getPlayerAttachment();
 		if(instance != null) {
-			if(instance.isEaglerPlayer()) {
-				EaglerPlayerInstance<PlayerObject> eaglerInstance = (EaglerPlayerInstance<PlayerObject>) instance;
-				try {
-					server.unregisterEaglerPlayer(eaglerInstance);
-				}catch(EaglerXServer.RegistrationStateException ex) {
-					return;
+			try {
+				if(instance.isEaglerPlayer()) {
+					EaglerPlayerInstance<PlayerObject> eaglerInstance = (EaglerPlayerInstance<PlayerObject>) instance;
+					try {
+						server.unregisterEaglerPlayer(eaglerInstance);
+					}catch(EaglerXServer.RegistrationStateException ex) {
+						return;
+					}
+					server.eventDispatcher().dispatchDestroyPlayerEvent(eaglerInstance, null);
+				}else {
+					try {
+						server.unregisterPlayer(instance);
+					}catch(EaglerXServer.RegistrationStateException ex) {
+					}
 				}
-				server.eventDispatcher().dispatchDestroyPlayerEvent(eaglerInstance, null);
-			}else {
-				try {
-					server.unregisterPlayer(instance);
-				}catch(EaglerXServer.RegistrationStateException ex) {
-				}
+			}finally {
+				server.getSupervisorService().dropOwnPlayer(player.getUniqueId());
 			}
 		}
 	}

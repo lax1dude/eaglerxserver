@@ -284,10 +284,19 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 		}
 	}
 
+	@Override
 	public void dropOwnPlayer(UUID clientUUID) {
 		SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
 		if(conn != null) {
 			conn.dropOwnPlayer(clientUUID);
+		}
+	}
+
+	@Override
+	public void notifySkinChange(UUID playerUUID, String serverName, boolean skin, boolean cape) {
+		SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
+		if(conn != null) {
+			conn.notifySkinChange(playerUUID, serverName, skin, cape);
 		}
 	}
 
