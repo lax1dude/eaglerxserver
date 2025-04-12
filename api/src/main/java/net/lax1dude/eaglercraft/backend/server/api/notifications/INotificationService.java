@@ -20,10 +20,6 @@ public interface INotificationService<PlayerObject> extends IPacketImageLoader {
 		return eagPlayer != null ? eagPlayer.getNotificationManager() : null;
 	}
 
-	default INotificationManager<PlayerObject> getNotificationManager(IEaglerPlayer<PlayerObject> player) {
-		return player.getNotificationManager();
-	}
-
 	INotificationManager<PlayerObject> getNotificationManagerAll();
 
 	INotificationManager<PlayerObject> getNotificationManagerMulti(Collection<PlayerObject> players);

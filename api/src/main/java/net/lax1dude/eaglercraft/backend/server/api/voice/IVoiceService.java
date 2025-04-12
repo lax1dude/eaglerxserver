@@ -14,10 +14,6 @@ public interface IVoiceService<PlayerObject> {
 		return eagPlayer != null ? eagPlayer.getVoiceManager() : null;
 	}
 
-	default IVoiceManager<PlayerObject> getVoiceManager(IEaglerPlayer<PlayerObject> player) {
-		return player.getVoiceManager();
-	}
-
 	boolean isVoiceEnabled();
 
 	boolean isVoiceEnabledAllServers();

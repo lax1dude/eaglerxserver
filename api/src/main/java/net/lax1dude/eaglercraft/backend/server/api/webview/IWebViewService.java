@@ -21,10 +21,6 @@ public interface IWebViewService<PlayerObject> {
 		return eagPlayer != null ? eagPlayer.getWebViewManager() : null;
 	}
 
-	default IWebViewManager<PlayerObject> getWebViewManager(IEaglerPlayer<PlayerObject> player) {
-		return player.getWebViewManager();
-	}
-
 	IPauseMenuService<PlayerObject> getPauseMenuService();
 
 	IWebViewProvider<PlayerObject> getDefaultProvider();

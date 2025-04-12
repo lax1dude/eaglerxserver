@@ -14,10 +14,6 @@ public interface IPauseMenuService<PlayerObject> extends IPacketImageLoader {
 		return eagPlayer != null ? eagPlayer.getPauseMenuManager() : null;
 	}
 
-	default IPauseMenuManager<PlayerObject> getPauseMenuManager(IEaglerPlayer<PlayerObject> player) {
-		return player.getPauseMenuManager();
-	}
-
 	IWebViewService<PlayerObject> getWebViewService();
 
 	ICustomPauseMenu getVanillaPauseMenu();
