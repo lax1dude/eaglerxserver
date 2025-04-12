@@ -1,12 +1,14 @@
 package net.lax1dude.eaglercraft.backend.server.base.voice;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
+import com.google.common.base.Throwables;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 
 import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilitySpec;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
@@ -22,43 +24,25 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceServiceImpl<Player
 	private final EaglerXServer<PlayerObject> server;
 	private final boolean allServer;
 	private final boolean separateServer;
+	private final Set<String> configServersEnabled;
 	private final IVoiceChannel globalChannel;
-	private final Map<String, IVoiceChannel> serverChannels;
+	private final LoadingCache<String, IVoiceChannel> serverChannels;
 	private Collection<ICEServerEntry> iceServers;
 	private String[] iceServersStr;
 
 	public VoiceServiceLocal(EaglerXServer<PlayerObject> server, ConfigDataVoiceService config) {
 		this.server = server;
-		Collection<String> toEnable;
-		Set<String> registeredServers = server.getPlatform().getRegisteredServers().keySet();
-		if(config.isEnableVoiceChatAllServers()) {
-			this.allServer = true;
-			toEnable = registeredServers;
-		}else {
-			this.allServer = false;
-			toEnable = new HashSet<>();
-			for(String str : config.getEnableVoiceChatOnServers()) {
-				if(registeredServers.contains(str)) {
-					toEnable.add(str);
-				}else {
-					server.logger().warn("Unknown server defined in voice service config: \"" + str + "\"");
-				}
-			}
-		}
+		this.allServer = config.isEnableVoiceChatAllServers();
+		this.separateServer = config.isSeparateVoiceChannelsPerServer();
+		this.configServersEnabled = config.getEnableVoiceChatOnServers();
 		this.globalChannel = new ManagedChannel<>(this);
-		ImmutableMap.Builder<String, IVoiceChannel> builder = ImmutableMap.builder();
-		if(config.isSeparateVoiceChannelsPerServer()) {
-			this.separateServer = true;
-			for(String str : toEnable) {
-				builder.put(str, new ManagedChannel<>(this));
-			}
-		}else {
-			this.separateServer = false;
-			for(String str : toEnable) {
-				builder.put(str, this.globalChannel);
-			}
-		}
-		this.serverChannels = builder.build();
+		serverChannels = separateServer ? CacheBuilder.newBuilder().weakValues().concurrencyLevel(8).initialCapacity(32)
+				.build(new CacheLoader<String, IVoiceChannel>() {
+					@Override
+					public IVoiceChannel load(String key) throws Exception {
+						return new ManagedChannel<>(VoiceServiceLocal.this);
+					}
+				}) : null;
 	}
 
 	@Override
@@ -110,7 +94,7 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceServiceImpl<Player
 
 	@Override
 	public boolean isVoiceEnabledOnServer(String serverName) {
-		return serverChannels.containsKey(serverName);
+		return allServer || configServersEnabled.contains(serverName);
 	}
 
 	@Override
@@ -130,7 +114,20 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceServiceImpl<Player
 
 	@Override
 	public IVoiceChannel getServerVoiceChannel(String serverName) {
-		return serverChannels.getOrDefault(serverName, DisabledChannel.INSTANCE);
+		if(allServer || configServersEnabled.contains(serverName)) {
+			if(separateServer) {
+				try {
+					return serverChannels.get(serverName);
+				} catch (ExecutionException e) {
+					Throwables.throwIfUnchecked(e.getCause());
+					throw new RuntimeException(e.getCause());
+				}
+			}else {
+				return globalChannel;
+			}
+		}else {
+			return DisabledChannel.INSTANCE;
+		}
 	}
 
 	@Override
