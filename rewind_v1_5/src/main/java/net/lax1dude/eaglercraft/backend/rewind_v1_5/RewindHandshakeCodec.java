@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -18,6 +19,7 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 	private static final byte[] REWIND_STR = "rewind".getBytes(StandardCharsets.US_ASCII);
 	private static final byte[] SKIN_V1_STR = "skin_v1".getBytes(StandardCharsets.US_ASCII);
 	private static final byte[] CAPE_V1_STR = "cape_v1".getBytes(StandardCharsets.US_ASCII);
+	private static final byte[] BRAND_UUID_V1_STR = "brand_uuid_v1".getBytes(StandardCharsets.US_ASCII);
 	private static final byte[] ERR = new byte[0];
 
 	protected static final int STATE_STALLING = 0;
@@ -63,7 +65,7 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 		if(state == STATE_SENT_RECEIVED_ALLOW_LOGIN) {
 			state = STATE_STALLING;
 			boolean skin = false, cape = false;
-			int total = 0;
+			int total = 1;
 			if(skinData != null && skinData != ERR) {
 				skin = true;
 				++total;
@@ -90,6 +92,12 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 						packet.writeShort(capeData.length);
 						packet.writeBytes(capeData);
 					}
+					packet.writeByte(BRAND_UUID_V1_STR.length);
+					packet.writeBytes(BRAND_UUID_V1_STR);
+					packet.writeShort(16);
+					UUID uuid = RewindPluginProtocol.BRAND_EAGLERXREWIND_1_5_2;
+					packet.writeLong(uuid.getMostSignificantBits());
+					packet.writeLong(uuid.getLeastSignificantBits());
 					output.add(packet.retain());
 				}finally {
 					packet.release();

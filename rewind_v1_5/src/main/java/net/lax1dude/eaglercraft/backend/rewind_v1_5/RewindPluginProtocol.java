@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
@@ -12,6 +13,8 @@ import net.lax1dude.eaglercraft.backend.server.api.rewind.IOutboundInjector;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IPacket2ClientProtocol;
 
 public class RewindPluginProtocol<PlayerObject> implements IEaglerXRewindProtocol<PlayerObject, PlayerInstance<PlayerObject>> {
+
+	public static final UUID BRAND_EAGLERXREWIND_1_5_2 = UUID.fromString("65f7ac16-3354-4dfa-bd07-624922fd7962");
 
 	private final IRewindPlatform<PlayerObject> platform;
 
@@ -36,13 +39,15 @@ public class RewindPluginProtocol<PlayerObject> implements IEaglerXRewindProtoco
 	@Override
 	public void handleRegistered(IEaglerXServerAPI<PlayerObject> server) {
 		// On startup
-		logger().info("EaglerXRewind protocol for Eaglercraft 1.5.2 has been registered");
 		this.server = server;
+		server.getBrandService().registerBrand(BRAND_EAGLERXREWIND_1_5_2, "EaglerXRewind-1.5.2");
+		logger().info("EaglerXRewind protocol for Eaglercraft 1.5.2 has been registered");
 	}
 
 	@Override
 	public void handleUnregistered(IEaglerXServerAPI<PlayerObject> server) {
 		// On shutdown
+		server.getBrandService().unregisterBrand(BRAND_EAGLERXREWIND_1_5_2);
 		logger().info("EaglerXRewind protocol for Eaglercraft 1.5.2 has been unregistered");
 	}
 
