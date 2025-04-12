@@ -178,7 +178,7 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 	private void handleHTTP(ChannelHandlerContext ctx, NettyPipelineData pipelineData, FullHttpRequest msg) throws Exception {
 		ChannelPipeline pipeline = ctx.pipeline();
 		pipelineData.server.getPipelineTransformer().removeVanillaHandlers(pipeline);
-		pipeline.addAfter(PipelineTransformer.HANDLER_HTTP_INITIAL, PipelineTransformer.HANDLER_HTTP,
+		pipeline.addLast(PipelineTransformer.HANDLER_HTTP,
 				new HTTPRequestInboundHandler(pipelineData.server, pipelineData));
 		pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_STATE_HTTP_REQUEST);
 		ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
