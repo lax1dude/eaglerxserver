@@ -1,8 +1,13 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -11,6 +16,9 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistration;
@@ -87,6 +95,40 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 
 	}
 
+	private static class BrandRegistrationEagler112 implements IBrandRegistration {
+
+		@Override
+		public UUID getBrandUUID() {
+			return BRAND_EAGLERCRAFT_1_12;
+		}
+
+		@Override
+		public String getBrandDesc() {
+			return "Eaglercraft 1.12";
+		}
+
+		@Override
+		public boolean isVanillaMinecraft() {
+			return false;
+		}
+
+		@Override
+		public boolean isVanillaEagler() {
+			return true;
+		}
+
+		@Override
+		public boolean isLegacyClient() {
+			return false;
+		}
+
+		@Override
+		public boolean isHackedClient() {
+			return false;
+		}
+
+	}
+
 	private static class BrandRegistrationEaglerOld implements IBrandRegistration {
 
 		@Override
@@ -96,7 +138,7 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 
 		@Override
 		public String getBrandDesc() {
-			return "EaglercraftX-pre-u37";
+			return "EaglercraftX (pre-u37)";
 		}
 
 		@Override
@@ -175,6 +217,7 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 			.add(BRAND_VANILLA)
 			.add(BRAND_EAGLERCRAFTX_V4)
 			.add(BRAND_EAGLERCRAFTX_LEGACY)
+			.add(BRAND_EAGLERCRAFT_1_12)
 			.build();
 
 	private static final Set<UUID> invalidUUIDs = ImmutableSet.<UUID>builder()
@@ -190,6 +233,27 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 		map.put(BRAND_VANILLA, new BrandRegistrationVanilla());
 		map.put(BRAND_EAGLERCRAFTX_V4, new BrandRegistrationEaglerV4());
 		map.put(BRAND_EAGLERCRAFTX_LEGACY, new BrandRegistrationEaglerOld());
+		map.put(BRAND_EAGLERCRAFT_1_12, new BrandRegistrationEagler112());
+		InputStream brands = BrandService.class.getResourceAsStream("brands.json");
+		if(brands != null) {
+			JsonObject brandsFile = null;
+			try(Reader reader = new InputStreamReader(brands, StandardCharsets.UTF_8)) {
+				brandsFile = EaglerXServer.GSON_PRETTY.fromJson(reader, JsonObject.class);
+			}catch(IOException | JsonParseException ex) {
+				serverIn.logger().error("Could not read brands.json", ex);
+				return;
+			}
+			try {
+				for(Entry<String, JsonElement> etr : brandsFile.asMap().entrySet()) {
+					UUID uuid = UUID.fromString(etr.getKey());
+					JsonObject val = etr.getValue().getAsJsonObject();
+					map.put(uuid, new BrandRegistration(uuid, val.get("desc").getAsString(),
+							val.get("legacy").getAsBoolean(), val.get("hacked").getAsBoolean()));
+				}
+			}catch(Exception ex) {
+				serverIn.logger().error("brands.json is invalid", ex);
+			}
+		}
 	}
 
 	@Override

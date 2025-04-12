@@ -1,0 +1,107 @@
+{
+	"75d26b8e-d380-37e7-8df8-eeddda3bc4ae": {
+		"desc": "Resent",
+		"legacy": true,
+		"hacked": false
+	},
+	"d63c389f-be3b-3a63-b65a-f50df6c35d51": {
+		"desc": "Resent 5.0",
+		"legacy": false,
+		"hacked": false
+	},
+	"ba234c7c-48e6-3fe3-92fb-05f3ec92578e": {
+		"desc": "Astra Client",
+		"legacy": false,
+		"hacked": false
+	},
+	"905d41c7-6823-3339-a2f5-324a1e8fcb66": {
+		"desc": "Astra Client (Old)",
+		"legacy": true,
+		"hacked": false
+	},
+	"219f599b-9d15-3c05-8489-d32fd4d10134": {
+		"desc": "Eaglercraft Zeta",
+		"legacy": false,
+		"hacked": false
+	},
+	"10c97b2a-ef57-35d1-9ed5-04eefa41e096": {
+		"desc": "Eaglercraft Zeta (Old)",
+		"legacy": true,
+		"hacked": false
+	},
+	"dae42dd9-8ef3-37d2-9b29-7ccde3268464": {
+		"desc": "Shadow",
+		"legacy": false,
+		"hacked": false
+	},
+	"5afcc189-5025-3cd4-b42b-1bb94d290f8e": {
+		"desc": "Shadow (Old)",
+		"legacy": true,
+		"hacked": false
+	},
+	"dc4b2e43-7c90-38a5-831c-17aed726660c": {
+		"desc": "MesscraftX",
+		"legacy": false,
+		"hacked": false
+	},
+	"f2a37ea0-2e2d-3975-9613-4dbd4dad55fb": {
+		"desc": "MesscraftX (Old)",
+		"legacy": true,
+		"hacked": false
+	},
+	"6981200a-3d88-32ff-b7b8-050926037d4a": {
+		"desc": "PiClient",
+		"legacy": true,
+		"hacked": true
+	},
+	"816ab8a0-4df2-3d5f-9b0f-43e0382f4005": {
+		"desc": "PiClient (New)",
+		"legacy": false,
+		"hacked": true
+	},
+	"ffb0b0da-24a7-3a61-9585-9f575105167b": {
+		"desc": "EaglercraftLambda",
+		"legacy": false,
+		"hacked": false
+	},
+	"15466f41-a003-330d-94e7-faaff1187272": {
+		"desc": "EaglercraftLambda (Old)",
+		"legacy": true,
+		"hacked": false
+	},
+	"7122cfae-548c-36ff-9458-f5c39799d0ff": {
+		"desc": "DragonX V2",
+		"legacy": true,
+		"hacked": true
+	},
+	"1ea3c968-98a8-3c5e-b4df-8a0ce993057c": {
+		"desc": "WurstX",
+		"legacy": true,
+		"hacked": true
+	},
+	"c49b095c-2b61-3ce4-8c87-eb5d53cb7e90": {
+		"desc": "Starlike",
+		"legacy": false,
+		"hacked": false
+	},
+	"0b2de049-0340-32c2-a8eb-2aefbd931828": {
+		"desc": "EaglyMC",
+		"legacy": false,
+		"hacked": false
+	},
+	"e214f7b7-17b6-3e74-96b7-93ab32ced079": {
+		"desc": "EaglerForge",
+		"legacy": false,
+		"hacked": false
+	},
+	"92e0deda-3827-355a-83cb-275fe4e1b104": {
+		"desc": "EaglerForge (Old)",
+		"legacy": true,
+		"hacked": false
+	},
+	"5c2557c7-3dab-327a-bd10-ff374a409431": {
+		"desc": "Kone Client",
+		"legacy": true,
+		"hacked": false
+	}
+}

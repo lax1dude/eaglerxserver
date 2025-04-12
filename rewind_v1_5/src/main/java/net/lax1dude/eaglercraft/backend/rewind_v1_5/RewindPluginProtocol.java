@@ -40,7 +40,7 @@ public class RewindPluginProtocol<PlayerObject> implements IEaglerXRewindProtoco
 	public void handleRegistered(IEaglerXServerAPI<PlayerObject> server) {
 		// On startup
 		this.server = server;
-		server.getBrandService().registerBrand(BRAND_EAGLERXREWIND_1_5_2, "EaglerXRewind-1.5.2");
+		server.getBrandService().registerBrand(BRAND_EAGLERXREWIND_1_5_2, "EaglerXRewind 1.5.2");
 		logger().info("EaglerXRewind protocol for Eaglercraft 1.5.2 has been registered");
 	}
 
