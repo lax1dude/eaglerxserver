@@ -12,6 +12,10 @@ public class RateLimiterBasic extends AtomicInteger {
 	}
 
 	public boolean rateLimit(int limitVal) {
+		return rateLimit(60l * 1000000000l, limitVal);
+	}
+
+	public boolean rateLimit(long periodNanos, int limitVal) {
 		if(incrementAndGet() >= limitVal) {
 			synchronized(this) {
 				int v = getPlain();
