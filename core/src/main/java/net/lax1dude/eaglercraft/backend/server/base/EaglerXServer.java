@@ -55,10 +55,12 @@ import net.lax1dude.eaglercraft.backend.server.api.IServerIconLoader;
 import net.lax1dude.eaglercraft.backend.server.api.IUpdateCertificate;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
+import net.lax1dude.eaglercraft.backend.server.api.collect.HPPC;
 import net.lax1dude.eaglercraft.backend.server.api.internal.factory.IEaglerAPIFactory;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTHelper;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesProperty;
+import net.lax1dude.eaglercraft.backend.server.base.collect.HPPCFactory;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandBrand;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandConfirmCode;
 import net.lax1dude.eaglercraft.backend.server.base.command.CommandDomain;
@@ -976,6 +978,11 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	public IAttributeManager getAttributeManager() {
 		return attributeManager;
+	}
+
+	@Override
+	public HPPC getHPPC() {
+		return HPPCFactory.INSTANCE;
 	}
 
 	@Override

@@ -13,6 +13,7 @@ import io.netty.channel.ServerChannel;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeHolder;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandService;
+import net.lax1dude.eaglercraft.backend.server.api.collect.HPPC;
 import net.lax1dude.eaglercraft.backend.server.api.internal.factory.EaglerXServerAPIFactory;
 import net.lax1dude.eaglercraft.backend.server.api.internal.factory.IEaglerAPIFactory;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTHelper;
@@ -174,6 +175,8 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 	UUID intern(UUID uuid);
 
 	IAttributeManager getAttributeManager();
+
+	HPPC getHPPC();
 
 	boolean isNettyPlatform();
 
