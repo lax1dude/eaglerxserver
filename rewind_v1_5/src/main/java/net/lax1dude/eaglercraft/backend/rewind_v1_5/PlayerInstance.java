@@ -8,6 +8,11 @@ import com.google.common.collect.HashBiMap;
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
+import net.lax1dude.eaglercraft.backend.server.api.collect.IntIndexedContainer;
+import net.lax1dude.eaglercraft.backend.server.api.collect.IntProcedure;
+import net.lax1dude.eaglercraft.backend.server.api.collect.IntSet;
+import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectCursor;
+import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectObjectMap;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTContext;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IMessageController;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IOutboundInjector;
@@ -25,10 +30,10 @@ public class PlayerInstance<PlayerObject> {
 	private INBTContext nbtContext;
 	private IComponentHelper componentHelper;
 	private TabListTracker tabList;
-	private Map<UUID, SkinRequest> skinRequests;
+	private ObjectObjectMap<UUID, SkinRequest> skinRequests;
 	private BiMap<UUID, String> voiceGlobalMap;
 
-	private final Set<Short> enchWindows = new HashSet<>();
+	private final IntSet enchWindows;
 
 	private double x = 0;
 	private double y = 0;
@@ -57,6 +62,7 @@ public class PlayerInstance<PlayerObject> {
 		this.outboundInjector = outboundInjector;
 		this.channel = channel;
 		this.logger = rewind.logger().createSubLogger(logName);
+		this.enchWindows = rewind.getServerAPI().getHPPC().createIntHashSet();
 	}
 
 	public RewindPluginProtocol<PlayerObject> getRewind() {
@@ -104,7 +110,7 @@ public class PlayerInstance<PlayerObject> {
 		return this.tabList;
 	}
 
-	public Set<Short> getEnchWindows() {
+	public IntSet getEnchWindows() {
 		return this.enchWindows;
 	}
 
@@ -161,18 +167,24 @@ public class PlayerInstance<PlayerObject> {
 			flushRequests(nanoTime);
 		}
 		if(skinRequests == null) {
-			skinRequests = new HashMap<>();
+			skinRequests = rewind.getServerAPI().getHPPC().createObjectObjectHashMap(64);
 		}
 		skinRequests.put(uuid, new SkinRequest(nanoTime, cookie));
 	}
 
 	private void flushRequests(long nanoTime) {
 		if(skinRequests == null) return;
-		Iterator<SkinRequest> itr = skinRequests.values().iterator();
-		while(itr.hasNext()) {
-			if(nanoTime - itr.next().createdAt > (30l * 1000l * 1000l * 1000l)) {
-				itr.remove();
+		IntIndexedContainer toRemove = null;
+		for(ObjectCursor<SkinRequest> cur : skinRequests.values()) {
+			if(nanoTime - cur.value.createdAt > (30l * 1000l * 1000l * 1000l)) {
+				if(toRemove == null) {
+					toRemove = rewind.getServerAPI().getHPPC().createIntArrayList();
+				}
+				toRemove.add(cur.index);
 			}
+		}
+		if(toRemove != null) {
+			toRemove.forEach((IntProcedure)skinRequests::indexRemove);
 		}
 	}
 

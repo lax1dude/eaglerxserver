@@ -6,15 +6,22 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
+import net.lax1dude.eaglercraft.backend.server.api.collect.HPPC;
+import net.lax1dude.eaglercraft.backend.server.api.collect.IntIntMap;
+import net.lax1dude.eaglercraft.backend.server.api.collect.IntSet;
+import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectIntMap;
+import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectObjectCursor;
+import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectObjectMap;
 
 public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Encoder<PlayerObject> {
 
-	private final Map<String, Map<String, Integer>> scoreBoard = new HashMap<>();
+	private final HPPC hppc;
+	private final ObjectObjectMap<String, ObjectIntMap<String>> scoreBoard;
 
 	private byte playerDimension = 0;
-	private final Set<Short> furnWindows = new HashSet<>();
+	private final IntSet furnWindows;
 
-	private final Map<Integer, Integer> entityIdToType = new HashMap<>();
+	private final IntIntMap entityIdToType;
 
 	/**
 	 * Objects = no offset
@@ -69,6 +76,13 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			"", // take
 			"" // mobappearance
 	};
+
+	public RewindPacketEncoder(HPPC hppc) {
+		this.hppc = hppc;
+		this.scoreBoard = hppc.createObjectObjectHashMap(16);
+		this.furnWindows = hppc.createIntHashSet(4);
+		this.entityIdToType = hppc.createIntIntHashMap(256);
+	}
 
 	private void handleKeepAlive(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x00);
@@ -814,9 +828,9 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private void handleCloseWindow(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x65);
-		short windowUniqueId = in.readUnsignedByte();
-		player().getEnchWindows().remove(windowUniqueId);
-		furnWindows.remove(windowUniqueId);
+		int windowUniqueId = in.readUnsignedByte();
+		player().getEnchWindows().removeAll(windowUniqueId);
+		furnWindows.removeAll(windowUniqueId);
 		bb.writeByte(windowUniqueId);
 	}
 
@@ -1309,7 +1323,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		BufferUtils.writeLegacyMCString(bb, sboName, 255);
 		byte sboMode = in.readByte();
 		if (sboMode == 0) {
-			scoreBoard.put(sboName, new HashMap<>());
+			scoreBoard.put(sboName, hppc.createObjectIntHashMap());
 		} else if (sboMode == 1) {
 			scoreBoard.remove(sboName);
 		}
@@ -1326,11 +1340,11 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		String sbItem = BufferUtils.readMCString(in, 255);
 		byte usAction = in.readByte();
 		String sbName = BufferUtils.readMCString(in, 255);
-		if (scoreBoard.containsKey(sbName)) {
+		ObjectIntMap<String> stfu = scoreBoard.get(sbName);
+		if (stfu != null) {
 			if (usAction == 1) {
-				Map<String, Integer> guhhh = scoreBoard.get(sbName);
-				guhhh.remove(sbItem);
-				if (guhhh.isEmpty()) {
+				stfu.remove(sbItem);
+				if (stfu.isEmpty()) {
 					scoreBoard.remove(sbName);
 				}
 				bb = alloc.buffer();
@@ -1342,16 +1356,16 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				} finally {
 					bb.release();
 				}
-				for (String s : scoreBoard.keySet()) {
-					Map<String, Integer> argh = scoreBoard.get(s);
-					if (argh.containsKey(sbItem)) {
+				for (ObjectObjectCursor<String, ObjectIntMap<String>> etr : scoreBoard) {
+					int idx = etr.value.indexOf(sbItem);
+					if (idx >= 0) {
 						bb = alloc.buffer();
 						try {
 							bb.writeByte(0xCF);
 							BufferUtils.writeLegacyMCString(bb, sbItem, 16);
 							bb.writeByte(0);
-							BufferUtils.writeLegacyMCString(bb, s, 16);
-							bb.writeInt(argh.get(sbItem));
+							BufferUtils.writeLegacyMCString(bb, etr.key, 16);
+							bb.writeInt(etr.value.indexGet(idx));
 							out.add(bb.retain());
 						} finally {
 							bb.release();
@@ -1360,7 +1374,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				}
 			} else {
 				int sbVal = BufferUtils.readVarInt(in);
-				scoreBoard.get(sbName).put(sbItem, sbVal);
+				stfu.put(sbItem, sbVal);
 				bb = alloc.buffer();
 				try {
 					bb.writeByte(0xCF);

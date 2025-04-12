@@ -419,7 +419,7 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 	}
 
 	private void enterPlayState() {
-		handler().setEncoder(new RewindPacketEncoder<>());
+		handler().setEncoder(new RewindPacketEncoder<>(serverAPI().getHPPC()));
 		handler().setDecoder(new RewindPacketDecoder<>());
 	}
 
