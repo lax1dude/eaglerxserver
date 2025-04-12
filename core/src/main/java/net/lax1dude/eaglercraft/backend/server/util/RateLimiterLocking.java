@@ -12,10 +12,10 @@ public class RateLimiterLocking extends AtomicInteger {
 		public final long lockoutDuration;
 
 		public Config(int period, int limit, int limitLockout, long lockoutDuration) {
-			this.period = period * 1000l;
+			this.period = period * 1000000000l;
 			this.limit = limit;
 			this.limitLockout = limitLockout;
-			this.lockoutDuration = lockoutDuration * 1000l;
+			this.lockoutDuration = lockoutDuration * 1000000000l;
 		}
 
 	}
@@ -25,7 +25,7 @@ public class RateLimiterLocking extends AtomicInteger {
 
 	public RateLimiterLocking() {
 		super(0);
-		this.timer = Util.steadyTime();
+		this.timer = System.nanoTime();
 		this.lockedTimer = -1l;
 	}
 
@@ -33,15 +33,15 @@ public class RateLimiterLocking extends AtomicInteger {
 		int limitVal = conf.limit;
 		if(incrementAndGet() >= limitVal) {
 			synchronized(this) {
-				int v = get();
+				int v = getPlain();
 				if(v < limitVal) {
 					return EnumRateLimitState.OK;
 				}
-				long now = Util.steadyTime();
+				long now = System.nanoTime();
 				if(lockedTimer != -1l) {
 					if(now - lockedTimer > conf.lockoutDuration) {
 						lockedTimer = -1l;
-						set(0);
+						setPlain(0);
 						return EnumRateLimitState.OK;
 					}
 					return EnumRateLimitState.LOCKED;

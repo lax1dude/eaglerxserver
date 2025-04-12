@@ -8,18 +8,18 @@ public class RateLimiterBasic extends AtomicInteger {
 
 	public RateLimiterBasic() {
 		super(0);
-		this.timer = Util.steadyTime();
+		this.timer = System.nanoTime();
 	}
 
 	public boolean rateLimit(int limitVal) {
 		if(incrementAndGet() >= limitVal) {
 			synchronized(this) {
-				int v = get();
+				int v = getPlain();
 				if(v < limitVal) {
 					return true;
 				}
-				long period = (long)(60000 / limitVal);
-				long delta = (Util.steadyTime() - timer) / period;
+				long period = (long)(60000000000l / limitVal);
+				long delta = (System.nanoTime() - timer) / period;
 				if(delta > 0l) {
 					timer += delta * period;
 					int correction = v - (limitVal << 1);
@@ -36,14 +36,14 @@ public class RateLimiterBasic extends AtomicInteger {
 	}
 
 	public boolean isLimited(int limitVal) {
-		if(get() >= limitVal) {
+		if(getAcquire() >= limitVal) {
 			synchronized(this) {
-				int v = get();
+				int v = getPlain();
 				if(v < limitVal) {
 					return true;
 				}
-				long period = (long)(60000 / limitVal);
-				long delta = (Util.steadyTime() - timer) / period;
+				long period = (long)(60000000000l / limitVal);
+				long delta = (System.nanoTime() - timer) / period;
 				if(delta > 0l) {
 					timer += delta * period;
 					int correction = v - (limitVal << 1);
