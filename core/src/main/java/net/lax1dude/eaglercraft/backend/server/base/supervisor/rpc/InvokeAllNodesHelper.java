@@ -33,6 +33,8 @@ class InvokeAllNodesHelper<Out extends ISupervisorData> extends ArrayList<NodeRe
 				if(--cntDown > 0) {
 					return;
 				}
+			}else {
+				return;
 			}
 		}
 		done();
@@ -45,6 +47,8 @@ class InvokeAllNodesHelper<Out extends ISupervisorData> extends ArrayList<NodeRe
 				if(--cntDown > 0) {
 					return;
 				}
+			}else {
+				return;
 			}
 		}
 		done();

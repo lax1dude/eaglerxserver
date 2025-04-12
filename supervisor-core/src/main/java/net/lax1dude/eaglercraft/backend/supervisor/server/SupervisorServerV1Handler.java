@@ -16,26 +16,24 @@
 
 package net.lax1dude.eaglercraft.backend.supervisor.server;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.netty.buffer.ByteBuf;
 import net.lax1dude.eaglercraft.backend.skin_cache.ISkinCacheService;
 import net.lax1dude.eaglercraft.backend.supervisor.EaglerXSupervisorServer;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.netty.SupervisorPacketHandler;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.EaglerSupervisorHandler;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.*;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.server.*;
-import net.lax1dude.eaglercraft.backend.supervisor.server.SupervisorClientInstance.PendingRPC;
 import net.lax1dude.eaglercraft.backend.supervisor.server.player.SupervisorPlayerInstance;
 import net.lax1dude.eaglercraft.backend.supervisor.util.AlreadyRegisteredException;
 import net.lax1dude.eaglercraft.backend.supervisor.util.CachedTextureData;
 import net.lax1dude.eaglercraft.backend.supervisor.util.EnumPluginType;
 import net.lax1dude.eaglercraft.backend.supervisor.util.EnumProxyType;
-import net.lax1dude.eaglercraft.backend.util.SteadyTime;
 
 public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 
@@ -263,10 +261,10 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 
 	protected static int decodeFailure(int type) {
 		switch(type) {
-		case PendingRPC.FAILURE_PROCEDURE:
+		case RPCPending.FAILURE_PROCEDURE:
 			return SPacketSvRPCResultFail.FAILURE_PROCEDURE;
-		case PendingRPC.FAILURE_TIMEOUT:
-		case PendingRPC.FAILURE_HANGUP:
+		case RPCPending.FAILURE_TIMEOUT:
+		case RPCPending.FAILURE_HANGUP:
 			return SPacketSvRPCResultFail.FAILURE_TIMEOUT;
 		default:
 			return SPacketSvRPCResultFail.FAILURE_NOT_FOUND;
@@ -276,49 +274,52 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleClient(CPacketSvRPCExecuteAll pkt) {
 		List<SupervisorClientInstance> clientList = server.getClientList();
+		if(clientList.size() <= 1) {
+			if(pkt.timeout > 0) {
+				handler.channelWrite(new SPacketSvRPCResultMulti(pkt.requestUUID, Collections.emptyList()));
+			}
+			return;
+		}
 		if(pkt.timeout > 0) {
-			List<SPacketSvRPCResultMulti.ResultEntry> ret = new ArrayList<>(Math.max(clientList.size() - 1, 1));
-			AtomicInteger countDown = new AtomicInteger(clientList.size());
-			for(SupervisorClientInstance otherClient : clientList) {
-				if(otherClient != client) {
-					otherClient.invokeRPC(pkt.requestUUID, client.getNodeId(), pkt.name, pkt.dataBuffer, new PendingRPC(SteadyTime.millis() + pkt.timeout) {
-						@Override
-						protected void onSuccess(byte[] dataBuffer) {
-							synchronized(ret) {
-								SPacketSvRPCResultMulti.ResultEntry type2 = SPacketSvRPCResultMulti.ResultEntry
-										.success(otherClient.getNodeId(), dataBuffer);
-								synchronized(ret) {
-									ret.add(type2);
+			RPCMultiResultAggregator aggregator = new RPCMultiResultAggregator(clientList.size()) {
+				@Override
+				protected void onComplete() {
+					for(SPacketSvRPCResultMulti.ResultEntry etr : this) {
+						etr.retain();
+					}
+					handler.channelWrite(new SPacketSvRPCResultMulti(pkt.requestUUID, this));
+				}
+			};
+			if(client.addPendingResultAggregator(aggregator)) {
+				for(SupervisorClientInstance otherClient : clientList) {
+					if(otherClient != client) {
+						otherClient.invokeRPC(client.getNodeId(), pkt.nameLength, pkt.payload,
+								new RPCPending(pkt.requestUUID, System.nanoTime() + pkt.timeout * 1000000l) {
+							@Override
+							protected void onSuccess(ByteBuf dataBuffer) {
+								aggregator.push(SPacketSvRPCResultMulti.ResultEntry.success(otherClient.getNodeId(),
+										dataBuffer.retain()));
+							}
+							@Override
+							protected void onFailure(int type) {
+								if(type != RPCPending.FAILURE_HANGUP) {
+									aggregator.push(SPacketSvRPCResultMulti.ResultEntry.failure(otherClient.getNodeId(),
+											decodeFailure(type)));
+								}else {
+									aggregator.pushEmpty();
 								}
 							}
-							if(countDown.decrementAndGet() == 0) {
-								handler.channelWrite(new SPacketSvRPCResultMulti(pkt.requestUUID, ret));
-							}
-						}
-						@Override
-						protected void onFailure(int type) {
-							if(type != PendingRPC.FAILURE_HANGUP) {
-								SPacketSvRPCResultMulti.ResultEntry type2 = SPacketSvRPCResultMulti.ResultEntry
-										.failure(otherClient.getNodeId(), decodeFailure(type));
-								synchronized(ret) {
-									ret.add(type2);
-								}
-							}
-							if(countDown.decrementAndGet() == 0) {
-								handler.channelWrite(new SPacketSvRPCResultMulti(pkt.requestUUID, ret));
-							}
-						}
-					});
-				}else {
-					if(countDown.decrementAndGet() == 0) {
-						handler.channelWrite(new SPacketSvRPCResultMulti(pkt.requestUUID, ret));
-						return;
+						});
+					}else {
+						aggregator.pushEmpty();
 					}
 				}
 			}
 		}else {
 			for(SupervisorClientInstance otherClient : clientList) {
-				otherClient.invokeRPCVoid(client.getNodeId(), pkt.name, pkt.dataBuffer);
+				if(otherClient != client) {
+					otherClient.invokeRPCVoid(client.getNodeId(), pkt.nameLength, pkt.payload);
+				}
 			}
 		}
 	}
@@ -328,10 +329,11 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 		SupervisorClientInstance otherClient = server.getClient(pkt.nodeId);
 		if(pkt.timeout > 0) {
 			if(otherClient != null) {
-				otherClient.invokeRPC(pkt.requestUUID, client.getNodeId(), pkt.name, pkt.dataBuffer, new PendingRPC(SteadyTime.millis() + pkt.timeout) {
+				otherClient.invokeRPC(client.getNodeId(), pkt.nameLength, pkt.payload,
+						new RPCPending(pkt.requestUUID, System.nanoTime() + pkt.timeout * 1000000l) {
 					@Override
-					protected void onSuccess(byte[] dataBuffer) {
-						handler.channelWrite(new SPacketSvRPCResultSuccess(pkt.requestUUID, dataBuffer));
+					protected void onSuccess(ByteBuf dataBuffer) {
+						handler.channelWrite(new SPacketSvRPCResultSuccess(pkt.requestUUID, dataBuffer.retain()));
 					}
 					@Override
 					protected void onFailure(int type) {
@@ -343,7 +345,7 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 			}
 		}else {
 			if(otherClient != null) {
-				otherClient.invokeRPCVoid(client.getNodeId(), pkt.name, pkt.dataBuffer);
+				otherClient.invokeRPCVoid(client.getNodeId(), pkt.nameLength, pkt.payload);
 			}
 		}
 	}
@@ -353,10 +355,11 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 		SupervisorPlayerInstance player = server.getPlayerByUsername(pkt.playerName);
 		if(pkt.timeout > 0) {
 			if(player != null) {
-				player.getOwner().invokeRPC(pkt.requestUUID, client.getNodeId(), pkt.name, pkt.dataBuffer, new PendingRPC(SteadyTime.millis() + pkt.timeout) {
+				player.getOwner().invokeRPC(client.getNodeId(), pkt.nameLength, pkt.payload,
+						new RPCPending(pkt.requestUUID, System.nanoTime() + pkt.timeout * 1000000l) {
 					@Override
-					protected void onSuccess(byte[] dataBuffer) {
-						handler.channelWrite(new SPacketSvRPCResultSuccess(pkt.requestUUID, dataBuffer));
+					protected void onSuccess(ByteBuf dataBuffer) {
+						handler.channelWrite(new SPacketSvRPCResultSuccess(pkt.requestUUID, dataBuffer.retain()));
 					}
 					@Override
 					protected void onFailure(int type) {
@@ -368,7 +371,7 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 			}
 		}else {
 			if(player != null) {
-				player.getOwner().invokeRPCVoid(client.getNodeId(), pkt.name, pkt.dataBuffer);
+				player.getOwner().invokeRPCVoid(client.getNodeId(), pkt.nameLength, pkt.payload);
 			}
 		}
 	}
@@ -378,9 +381,10 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 		SupervisorPlayerInstance player = server.getPlayerByUUID(pkt.playerUUID);
 		if(pkt.timeout > 0) {
 			if(player != null) {
-				player.getOwner().invokeRPC(pkt.requestUUID, client.getNodeId(), pkt.name, pkt.dataBuffer, new PendingRPC(SteadyTime.millis() + pkt.timeout) {
+				player.getOwner().invokeRPC(client.getNodeId(), pkt.nameLength, pkt.payload,
+						new RPCPending(pkt.requestUUID, System.nanoTime() + pkt.timeout * 1000000l) {
 					@Override
-					protected void onSuccess(byte[] dataBuffer) {
+					protected void onSuccess(ByteBuf dataBuffer) {
 						handler.channelWrite(new SPacketSvRPCResultSuccess(pkt.requestUUID, dataBuffer));
 					}
 					@Override
@@ -393,7 +397,7 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 			}
 		}else {
 			if(player != null) {
-				player.getOwner().invokeRPCVoid(client.getNodeId(), pkt.name, pkt.dataBuffer);
+				player.getOwner().invokeRPCVoid(client.getNodeId(), pkt.nameLength, pkt.payload);
 			}
 		}
 	}
