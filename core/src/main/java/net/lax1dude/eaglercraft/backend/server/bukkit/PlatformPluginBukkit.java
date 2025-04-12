@@ -578,7 +578,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 			@Override
 			public void setEaglerPlayerProperty(boolean enable) {
-				c.eaglerPlayerProperty = enable;
+				c.eaglerPlayerProperty = enable ? (byte) 2 : (byte) 1;
 			}
 		});
 	}
@@ -629,7 +629,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 				}
 				@Override
 				public void setEaglerPlayerProperty(boolean enable) {
-					c.eaglerPlayerProperty = enable;
+					c.eaglerPlayerProperty = enable ? (byte) 2 : (byte) 1;
 				}
 			});
 		}else {
@@ -637,15 +637,15 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			p = new BukkitPlayer(player, c);
 			c.closeRedirector = cr = new CloseRedirector();
 		}
-		if(c.eaglerPlayerProperty || c.texturesPropertyValue != null) {
+		if(c.eaglerPlayerProperty != (byte) 0 || c.texturesPropertyValue != null) {
 			BukkitUnsafe.PropertyInjector injector = BukkitUnsafe.propertyInjector(player);
 			if(c.texturesPropertyValue != null) {
 				injector.injectTexturesProperty(c.texturesPropertyValue, c.texturesPropertySignature);
 				c.texturesPropertyValue = null;
 				c.texturesPropertySignature = null;
 			}
-			if(c.eaglerPlayerProperty) {
-				injector.injectIsEaglerPlayerProperty();
+			if(c.eaglerPlayerProperty != (byte) 0) {
+				injector.injectIsEaglerPlayerProperty(c.eaglerPlayerProperty == (byte) 2);
 			}
 			injector.complete();
 		}

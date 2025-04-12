@@ -585,7 +585,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			}
 			@Override
 			public void setEaglerPlayerProperty(boolean enable) {
-				c.eaglerPlayerProperty = enable;
+				c.eaglerPlayerProperty = enable ? (byte) 2 : (byte) 1;
 			}
 		});
 	}

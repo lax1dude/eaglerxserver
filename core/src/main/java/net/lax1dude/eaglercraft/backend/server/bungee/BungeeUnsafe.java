@@ -47,9 +47,7 @@ public class BungeeUnsafe {
 	private static final Method method_InitialHandler_getLoginProfile;
 	private static final Field field_InitialHandler_ch;
 	private static final Class<?> class_ChannelWrapper;
-	private static final Method method_ChannelWrapper_isClosing;
 	private static final Method method_ChannelWrapper_close;
-	private static final Method method_ChannelWrapper_setRemoteAddress;
 	private static final Class<?> class_PluginMessage;
 	private static final Method method_PluginMessage_getData;
 	private static final Class<?> class_LoginResult;
@@ -57,7 +55,8 @@ public class BungeeUnsafe {
 	private static final Method method_LoginResult_setProperties;
 	private static final Class<?> class_Property;
 	private static final Constructor<?> constructor_Property;
-	private static final Object isEaglerPlayerProperty;
+	private static final Object isEaglerPlayerPropertyT;
+	private static final Object isEaglerPlayerPropertyF;
 	private static final Method method_Property_getName;
 	private static final Method method_Property_getValue;
 	private static final Class<?> class_BungeeCord;
@@ -83,9 +82,7 @@ public class BungeeUnsafe {
 			field_InitialHandler_ch = class_InitialHandler.getDeclaredField("ch");
 			field_InitialHandler_ch.setAccessible(true);
 			class_ChannelWrapper = Class.forName("net.md_5.bungee.netty.ChannelWrapper");
-			method_ChannelWrapper_isClosing = class_ChannelWrapper.getMethod("isClosing");
 			method_ChannelWrapper_close = class_ChannelWrapper.getMethod("close");
-			method_ChannelWrapper_setRemoteAddress = class_ChannelWrapper.getMethod("setRemoteAddress", SocketAddress.class);
 			class_PluginMessage = Class.forName("net.md_5.bungee.connection.PluginMessage");
 			method_PluginMessage_getData = class_PluginMessage.getMethod("getData");
 			class_LoginResult = Class.forName("net.md_5.bungee.connection.LoginResult");
@@ -94,7 +91,8 @@ public class BungeeUnsafe {
 			method_LoginResult_setProperties = class_LoginResult.getMethod("setProperties",
 					Array.newInstance(class_Property, 0).getClass());
 			constructor_Property = class_Property.getConstructor(String.class, String.class, String.class);
-			isEaglerPlayerProperty = constructor_Property.newInstance("isEaglerPlayer", "true", null);
+			isEaglerPlayerPropertyT = constructor_Property.newInstance("isEaglerPlayer", "true", null);
+			isEaglerPlayerPropertyF = constructor_Property.newInstance("isEaglerPlayer", "false", null);
 			method_Property_getName = class_Property.getMethod("getName");
 			method_Property_getValue = class_Property.getMethod("getValue");
 			class_BungeeCord = Class.forName("net.md_5.bungee.BungeeCord");
@@ -525,9 +523,9 @@ public class BungeeUnsafe {
 			propList.add(o);
 		}
 
-		public void injectIsEaglerPlayerProperty() {
+		public void injectIsEaglerPlayerProperty(boolean val) {
 			propList.removeIf(removeEaglerPlayerProperty);
-			propList.add(isEaglerPlayerProperty);
+			propList.add(val ? isEaglerPlayerPropertyT : isEaglerPlayerPropertyF);
 		}
 
 		public void complete() {

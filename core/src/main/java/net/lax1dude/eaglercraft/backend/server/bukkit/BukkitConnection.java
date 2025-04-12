@@ -30,10 +30,10 @@ class BukkitConnection implements IPlatformConnection {
 	private Player playerInstance;
 	String texturesPropertyValue;
 	String texturesPropertySignature;
-	boolean eaglerPlayerProperty;
-	boolean closePending;
 	PlatformPluginBukkit.CloseRedirector closeRedirector;
 	Object attachment;
+	byte eaglerPlayerProperty;
+	boolean closePending;
 
 	BukkitConnection(PlatformPluginBukkit plugin, LoginConnectionHolder loginConnection) {
 		this.plugin = plugin;

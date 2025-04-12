@@ -45,7 +45,7 @@ class BungeeListener implements Listener {
 		PendingConnection conn = event.getConnection();
 		Channel channel = BungeeUnsafe.getInitialHandlerChannel(conn);
 		BungeeConnection connectionData = channel.attr(PipelineAttributes.<BungeeConnection>connectionData()).get();
-		if(connectionData != null && (connectionData.eaglerPlayerProperty || connectionData.texturesPropertyValue != null)) {
+		if(connectionData != null && (connectionData.eaglerPlayerProperty != (byte) 0 || connectionData.texturesPropertyValue != null)) {
 			BungeeUnsafe.PropertyInjector injector = BungeeUnsafe.propertyInjector(conn);
 			if(connectionData.texturesPropertyValue != null) {
 				injector.injectTexturesProperty(connectionData.texturesPropertyValue,
@@ -53,8 +53,8 @@ class BungeeListener implements Listener {
 				connectionData.texturesPropertyValue = null;
 				connectionData.texturesPropertySignature = null;
 			}
-			if(connectionData.eaglerPlayerProperty) {
-				injector.injectIsEaglerPlayerProperty();
+			if(connectionData.eaglerPlayerProperty != (byte) 0) {
+				injector.injectIsEaglerPlayerProperty(connectionData.eaglerPlayerProperty == (byte) 2);
 			}
 			injector.complete();
 		}

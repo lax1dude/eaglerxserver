@@ -223,7 +223,7 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 	private static final Set<UUID> invalidUUIDs = ImmutableSet.<UUID>builder()
 			.add(BRAND_VANILLA)
 			.add(new UUID(0x6969696969696969L, 0x6969696969696969L))
-			.add(new UUID(0xEEEEA64771094C4EL, 0x86E55B81D17E67EBL))
+			.add(ClientStateFlagUUIDs.LEGACY_EAGLER_PLAYER_FLAG_PRESENT)
 			.build();
 
 	public BrandService(EaglerXServer<PlayerObject> serverIn) {

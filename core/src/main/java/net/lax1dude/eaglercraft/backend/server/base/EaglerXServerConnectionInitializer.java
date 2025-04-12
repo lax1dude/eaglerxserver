@@ -33,10 +33,16 @@ class EaglerXServerConnectionInitializer<PlayerObject>
 			} else {
 				initializer.setConnectionAttachment(new BaseConnectionInstance(initializer.getConnection(),
 						nettyData.attributeHolder));
+				if(server.isEaglerPlayerPropertyEnabled()) {
+					initializer.setEaglerPlayerProperty(false);
+				}
 			}
 		} else {
 			initializer.setConnectionAttachment(new BaseConnectionInstance(initializer.getConnection(),
 					server.getEaglerAttribManager().createEaglerHolder()));
+			if(server.isEaglerPlayerPropertyEnabled()) {
+				initializer.setEaglerPlayerProperty(false);
+			}
 		}
 	}
 

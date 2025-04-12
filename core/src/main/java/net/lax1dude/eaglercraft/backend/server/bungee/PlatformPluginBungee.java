@@ -529,7 +529,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			}
 			@Override
 			public void setEaglerPlayerProperty(boolean enable) {
-				c.eaglerPlayerProperty = enable;
+				c.eaglerPlayerProperty = enable ? (byte) 2 : (byte) 1;
 			}
 		});
 	}

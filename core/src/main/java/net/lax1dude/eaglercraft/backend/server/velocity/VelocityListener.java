@@ -14,7 +14,6 @@ import com.velocitypowered.api.event.connection.PostLoginEvent;
 import com.velocitypowered.api.event.connection.PreLoginEvent;
 import com.velocitypowered.api.event.permission.PermissionsSetupEvent;
 import com.velocitypowered.api.event.player.GameProfileRequestEvent;
-import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.event.player.ServerPostConnectEvent;
 import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
 import com.velocitypowered.api.network.ListenerType;
@@ -39,7 +38,8 @@ class VelocityListener {
 
 	private final PlatformPluginVelocity plugin;
 
-	private static final Property isEaglerPlayer = new Property("isEaglerPlayer", "true", "");
+	private static final Property isEaglerPlayerT = new Property("isEaglerPlayer", "true", "");
+	private static final Property isEaglerPlayerF = new Property("isEaglerPlayer", "false", "");
 	private static final Predicate<Property> isEaglerPlayerPredicate = (prop) -> "isEaglerPlayer".equals(prop.getName());
 	private static final Predicate<Property> texturesPredicate = (prop) -> "textures".equals(prop.getName());
 
@@ -73,7 +73,7 @@ class VelocityListener {
 			gameProfile = gameProfile.withId(conn.uuid);
 			changed = true;
 		}
-		if(conn.texturesPropertyValue != null || conn.eaglerPlayerProperty) {
+		if(conn.texturesPropertyValue != null || conn.eaglerPlayerProperty != (byte) 0) {
 			List<GameProfile.Property> props = gameProfile.getProperties();
 			List<GameProfile.Property> fixedProps = new LinkedList<>(props);
 			if(conn.texturesPropertyValue != null) {
@@ -82,9 +82,9 @@ class VelocityListener {
 				conn.texturesPropertyValue = null;
 				conn.texturesPropertySignature = null;
 			}
-			if(conn.eaglerPlayerProperty) {
+			if(conn.eaglerPlayerProperty != (byte) 0) {
 				fixedProps.removeIf(isEaglerPlayerPredicate);
-				fixedProps.add(isEaglerPlayer);
+				fixedProps.add(conn.eaglerPlayerProperty == (byte) 2 ? isEaglerPlayerT : isEaglerPlayerF);
 			}
 			gameProfile = gameProfile.withProperties(fixedProps);
 			changed = true;

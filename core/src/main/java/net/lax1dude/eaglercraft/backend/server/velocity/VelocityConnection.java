@@ -20,10 +20,10 @@ class VelocityConnection implements IPlatformConnection {
 	UUID uuid;
 	String texturesPropertyValue;
 	String texturesPropertySignature;
-	boolean eaglerPlayerProperty;
-	boolean compressionDisable;
 	Player playerInstance;
 	Object attachment;
+	byte eaglerPlayerProperty;
+	boolean compressionDisable;
 
 	VelocityConnection(PlatformPluginVelocity plugin, InboundConnection connection,
 			String username, UUID uuid) {

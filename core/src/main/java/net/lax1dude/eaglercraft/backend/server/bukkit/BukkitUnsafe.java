@@ -264,17 +264,19 @@ public class BukkitUnsafe {
 
 		void injectTexturesProperty(String texturesPropertyValue, String texturesPropertySignature);
 
-		void injectIsEaglerPlayerProperty();
+		void injectIsEaglerPlayerProperty(boolean val);
 
 		void complete();
 
 	}
 
-	private static final Property isEaglerPlayerProperty = new Property("isEaglerPlayer", "true", null);
+	private static final Property isEaglerPlayerPropertyT = new Property("isEaglerPlayer", "true", null);
+	private static final Property isEaglerPlayerPropertyF = new Property("isEaglerPlayer", "false", null);
 
 	private static class PaperPropertyInjector implements PropertyInjector {
 
-		private static final ProfileProperty isEaglerPlayerPaperProperty = new ProfileProperty("isEaglerPlayer", "true");
+		private static final ProfileProperty isEaglerPlayerPaperPropertyT = new ProfileProperty("isEaglerPlayer", "true");
+		private static final ProfileProperty isEaglerPlayerPaperPropertyF = new ProfileProperty("isEaglerPlayer", "false");
 
 		private final Player player;
 		private final PlayerProfile profile;
@@ -290,8 +292,8 @@ public class BukkitUnsafe {
 		}
 
 		@Override
-		public void injectIsEaglerPlayerProperty() {
-			profile.setProperty(isEaglerPlayerPaperProperty);
+		public void injectIsEaglerPlayerProperty(boolean val) {
+			profile.setProperty(val ? isEaglerPlayerPaperPropertyT : isEaglerPlayerPaperPropertyF);
 		}
 
 		@Override
@@ -316,9 +318,9 @@ public class BukkitUnsafe {
 		}
 
 		@Override
-		public void injectIsEaglerPlayerProperty() {
+		public void injectIsEaglerPlayerProperty(boolean val) {
 			props.removeAll("isEaglerPlayer");
-			props.put("isEaglerPlayer", isEaglerPlayerProperty);
+			props.put("isEaglerPlayer", val ? isEaglerPlayerPropertyT : isEaglerPlayerPropertyF);
 		}
 
 		@Override

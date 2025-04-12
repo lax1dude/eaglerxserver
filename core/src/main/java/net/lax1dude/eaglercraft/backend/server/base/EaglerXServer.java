@@ -105,6 +105,8 @@ import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheDownloader;
 import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheService;
 import net.lax1dude.eaglercraft.backend.util.EaglerDrivers;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketClientStateFlagV5EAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherPlayerClientUUIDV4EAG;
 
 public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObject>, IEaglerAPIFactory,
 		IEaglerXServerAPI<PlayerObject>, IEaglerXServerAPI.NettyUnsafe {
@@ -485,6 +487,22 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		
 		if(backendRPCService != null) {
 			playerInstance.backendRPCManager = backendRPCService.createEaglerPlayerRPCManager(playerInstance);
+		}
+		
+		if(config.getSettings().isEnableIsEaglerPlayerProperty()) {
+			int ver = playerInstance.getEaglerProtocol().ver;
+			if(ver >= 5) {
+				playerInstance.sendEaglerMessage(new SPacketClientStateFlagV5EAG(
+						ClientStateFlagUUIDs.EAGLER_PLAYER_FLAG_PRESENT.getMostSignificantBits(),
+						ClientStateFlagUUIDs.EAGLER_PLAYER_FLAG_PRESENT.getLeastSignificantBits(),
+						supervisorService.isSupervisorEnabled() ? 3 : 1));
+			}else if(ver >= 4) {
+				if(supervisorService.isSupervisorEnabled()) {
+					playerInstance.sendEaglerMessage(new SPacketOtherPlayerClientUUIDV4EAG(-1,
+							ClientStateFlagUUIDs.LEGACY_EAGLER_PLAYER_FLAG_PRESENT.getMostSignificantBits(),
+							ClientStateFlagUUIDs.LEGACY_EAGLER_PLAYER_FLAG_PRESENT.getLeastSignificantBits()));
+				}
+			}
 		}
 		
 		skinService.createEaglerSkinManager(playerInstance, profileData, (mgr) -> {
