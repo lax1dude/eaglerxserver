@@ -17,11 +17,14 @@ import java.util.function.Consumer;
 import com.google.common.collect.MapMaker;
 
 import io.netty.buffer.ByteBuf;
+import net.lax1dude.eaglercraft.backend.server.api.collect.IntSet;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorProc;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ISupervisorRPCHandler;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.NodeResult;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.ProcedureDesc;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorData;
+import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.SupervisorDataVoid;
+import net.lax1dude.eaglercraft.backend.server.base.collect.IntHashSet;
 import net.lax1dude.eaglercraft.backend.server.base.supervisor.SupervisorConnection;
 import net.lax1dude.eaglercraft.backend.server.base.supervisor.SupervisorService;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvRPCExecuteAll;
@@ -638,6 +641,17 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 
 	private void logIOWarningForMultiResult(String procName) {
 		service.logger().warn("Parsing result for procedure \"" + procName + "\" failed, received unexpected multi-result");
+	}
+
+	@Override
+	public IntSet toIntSet(Collection<NodeResult<? super SupervisorDataVoid>> collection) {
+		IntSet ret = new IntHashSet(collection.size());
+		for (NodeResult<? super SupervisorDataVoid> o : collection) {
+			if (o.isSuccessful()) {
+				ret.add(o.getNodeId());
+			}
+		}
+		return ret;
 	}
 
 }

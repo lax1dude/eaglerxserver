@@ -14,6 +14,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.google.common.collect.ImmutableMap;
 
 import net.lax1dude.eaglercraft.backend.server.api.ExtendedCapabilitySpec;
+import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectIntMap;
 
 public class ExtCapabilityMap {
 
@@ -59,7 +60,7 @@ public class ExtCapabilityMap {
 		}
 	}
 
-	public Map<UUID, Byte> acceptExtendedCapabilities(Map<UUID, Integer> extCapabilities) {
+	public Map<UUID, Byte> acceptExtendedCapabilities(ObjectIntMap<UUID> extCapabilities) {
 		Map<UUID, Byte> builder;
 		lock.readLock().lock();
 		try {
@@ -73,10 +74,10 @@ public class ExtCapabilityMap {
 					ExtendedCapabilitySpec.Version[] vers = spec.getMajorVersions();
 					eagler: for(int j = vers.length - 1; j >= 0; --j) {
 						ExtendedCapabilitySpec.Version ver = vers[j];
-						Integer bitField = extCapabilities.get(ver.getMajorVersion());
-						if(bitField != null) {
+						int bitFieldIndex = extCapabilities.indexOf(ver.getMajorVersion());
+						if(bitFieldIndex >= 0) {
+							int bits = extCapabilities.indexGet(bitFieldIndex);
 							int maxVer = -1;
-							int bits = bitField.intValue();
 							for (int i : ver.getMinorVersions()) {
 								if(i > maxVer && (bits & (1 << i)) != 0) {
 									maxVer = i;

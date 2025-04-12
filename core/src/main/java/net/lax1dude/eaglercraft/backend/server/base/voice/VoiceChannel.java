@@ -2,8 +2,6 @@ package net.lax1dude.eaglercraft.backend.server.base.voice;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -11,9 +9,15 @@ import java.util.concurrent.ConcurrentMap;
 import com.google.common.collect.ImmutableList;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
+import net.lax1dude.eaglercraft.backend.server.api.collect.IntIndexedContainer;
+import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectCursor;
+import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectIndexedContainer;
 import net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState;
 import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
+import net.lax1dude.eaglercraft.backend.server.base.collect.IntArrayList;
+import net.lax1dude.eaglercraft.backend.server.base.collect.ObjectArrayList;
+import net.lax1dude.eaglercraft.backend.server.base.collect.ObjectObjectHashMap;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalConnectAnnounceV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalConnectV3EAG;
@@ -73,7 +77,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 
 	static final IVoiceState ESTABLISHED = (l) -> -1;
 
-	class Context extends HashMap<Context, IVoiceState> {
+	class Context extends ObjectObjectHashMap<Context, IVoiceState> {
 
 		final VoiceManagerLocal<PlayerObject> mgr;
 		final UUID selfUUID;
@@ -128,7 +132,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 
 		private boolean putRequest(Context other) {
 			long nanos = System.nanoTime();
-			if(putIfAbsent(other, new PendingState(nanos)) == null) {
+			if(putIfAbsent(other, new PendingState(nanos))) {
 				if(!expirable) {
 					lastFlush = nanos;
 					expirable = true;
@@ -145,16 +149,22 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 				if(nanos - lastFlush > (30l * 1000l * 1000l * 1000l)) {
 					lastFlush = nanos;
 					expirable = false;
-					Iterator<IVoiceState> itr = values().iterator();
 					int i;
-					while(itr.hasNext()) {
-						IVoiceState state = itr.next();
+					IntIndexedContainer toRemove = null;
+					for(ObjectCursor<IVoiceState> cur : values()) {
+						IVoiceState state = cur.value;
 						i = state.expired(nanos);
 						if(i == 1) {
-							itr.remove();
+							if(toRemove == null) {
+								toRemove = new IntArrayList();
+							}
+							toRemove.add(cur.index);
 						}else if(i == 0) {
 							expirable = true;
 						}
+					}
+					if(toRemove != null) {
+						toRemove.forEach(this::indexRemove);
 					}
 					return get(other);
 				}
@@ -276,18 +286,20 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 			mgr.onStateChanged(EnumVoiceState.DISABLED);
 			Object[] allPlayers = connectedPlayers.values().toArray();
 			int len = allPlayers.length;
-			Object[] toNotify;
+			ObjectIndexedContainer<Context> toNotify = null;
 			synchronized(this) {
-				toNotify = keySet().toArray();
-				clear();
+				if(size() > 0) {
+					toNotify = new ObjectArrayList<>(keys());
+					clear();
+				}
 				expirable = false;
 			}
-			int cnt = toNotify.length;
-			if(cnt > 0) {
+			if(toNotify != null) {
+				int cnt = toNotify.size();
 				GameMessagePacket pkt = new SPacketVoiceSignalDisconnectPeerEAG(selfUUID.getMostSignificantBits(),
 						selfUUID.getLeastSignificantBits());
 				for(int i = 0; i < cnt; ++i) {
-					Context ctx = (Context) toNotify[i];
+					Context ctx = toNotify.get(i);
 					IVoiceState voice;
 					synchronized(ctx) {
 						voice = ctx.remove(this);

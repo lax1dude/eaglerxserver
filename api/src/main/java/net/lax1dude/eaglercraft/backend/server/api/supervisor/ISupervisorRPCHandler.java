@@ -1,11 +1,10 @@
 package net.lax1dude.eaglercraft.backend.server.api.supervisor;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import net.lax1dude.eaglercraft.backend.server.api.collect.IntSet;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorData;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.SupervisorDataVoid;
 
@@ -43,8 +42,7 @@ public interface ISupervisorRPCHandler {
 
 	default void invokeAtPlayerVoid(String username, ProcedureDesc<SupervisorDataVoid, SupervisorDataVoid> desc,
 			int timeout, IVoidCallback onComplete) {
-		invokeAtPlayer(username, desc, timeout, ISupervisorData.VOID,
-				onComplete != null ? (res) -> {
+		invokeAtPlayer(username, desc, timeout, ISupervisorData.VOID, onComplete != null ? (res) -> {
 			onComplete.call(res != null);
 		} : null);
 	}
@@ -70,8 +68,7 @@ public interface ISupervisorRPCHandler {
 
 	default void invokeAtPlayerVoid(UUID player, ProcedureDesc<SupervisorDataVoid, SupervisorDataVoid> desc,
 			int timeout, IVoidCallback onComplete) {
-		invokeAtPlayer(player, desc, timeout, ISupervisorData.VOID,
-				onComplete != null ? (res) -> {
+		invokeAtPlayer(player, desc, timeout, ISupervisorData.VOID, onComplete != null ? (res) -> {
 			onComplete.call(res != null);
 		} : null);
 	}
@@ -97,8 +94,7 @@ public interface ISupervisorRPCHandler {
 
 	default void invokeAtNodeVoid(int nodeId, ProcedureDesc<SupervisorDataVoid, SupervisorDataVoid> desc, int timeout,
 			IVoidCallback onComplete) {
-		invokeAtNode(nodeId, desc, timeout, ISupervisorData.VOID,
-				onComplete != null ? (res) -> {
+		invokeAtNode(nodeId, desc, timeout, ISupervisorData.VOID, onComplete != null ? (res) -> {
 			onComplete.call(res != null);
 		} : null);
 	}
@@ -116,30 +112,16 @@ public interface ISupervisorRPCHandler {
 			int timeout, In input, Consumer<Collection<NodeResult<? super Out>>> output);
 
 	default <In extends ISupervisorData> void invokeAllNodesVoid(ProcedureDesc<In, SupervisorDataVoid> desc,
-			int timeout, In input, Consumer<Set<Integer>> onComplete) {
-		invokeAllNodes(desc, timeout, input,
-				onComplete != null ? (lst) -> {
-			Set<Integer> ret = new HashSet<>();
-			for (NodeResult<? super SupervisorDataVoid> o : lst) {
-				if (o.isSuccessful()) {
-					ret.add(o.getNodeId());
-				}
-			}
-			onComplete.accept(ret);
+			int timeout, In input, Consumer<IntSet> onComplete) {
+		invokeAllNodes(desc, timeout, input, onComplete != null ? (lst) -> {
+			onComplete.accept(toIntSet(lst));
 		} : null);
 	}
 
 	default void invokeAllNodesVoid(ProcedureDesc<SupervisorDataVoid, SupervisorDataVoid> desc, int timeout,
-			Consumer<Set<Integer>> onComplete) {
-		invokeAllNodes(desc, timeout, ISupervisorData.VOID,
-				onComplete != null ? (lst) -> {
-			Set<Integer> ret = new HashSet<>();
-			for (NodeResult<? super SupervisorDataVoid> o : lst) {
-				if (o.isSuccessful()) {
-					ret.add(o.getNodeId());
-				}
-			}
-			onComplete.accept(ret);
+			Consumer<IntSet> onComplete) {
+		invokeAllNodes(desc, timeout, ISupervisorData.VOID, onComplete != null ? (lst) -> {
+			onComplete.accept(toIntSet(lst));
 		} : null);
 	}
 
@@ -155,29 +137,16 @@ public interface ISupervisorRPCHandler {
 			int timeout, In input, Consumer<Collection<NodeResult<? super Out>>> output);
 
 	default <In extends ISupervisorData> void invokeAllOtherNodesVoid(ProcedureDesc<In, SupervisorDataVoid> desc,
-			int timeout, In input, Consumer<Set<Integer>> onComplete) {
+			int timeout, In input, Consumer<IntSet> onComplete) {
 		invokeAllOtherNodes(desc, timeout, input, onComplete != null ? (lst) -> {
-			Set<Integer> ret = new HashSet<>();
-			for (NodeResult<? super SupervisorDataVoid> o : lst) {
-				if (o.isSuccessful()) {
-					ret.add(o.getNodeId());
-				}
-			}
-			onComplete.accept(ret);
+			onComplete.accept(toIntSet(lst));
 		} : null);
 	}
 
 	default void invokeAllOtherNodesVoid(ProcedureDesc<SupervisorDataVoid, SupervisorDataVoid> desc, int timeout,
-			Consumer<Set<Integer>> onComplete) {
-		invokeAllOtherNodes(desc, timeout, ISupervisorData.VOID,
-				onComplete != null ? (lst) -> {
-			Set<Integer> ret = new HashSet<>();
-			for (NodeResult<? super SupervisorDataVoid> o : lst) {
-				if (o.isSuccessful()) {
-					ret.add(o.getNodeId());
-				}
-			}
-			onComplete.accept(ret);
+			Consumer<IntSet> onComplete) {
+		invokeAllOtherNodes(desc, timeout, ISupervisorData.VOID, onComplete != null ? (lst) -> {
+			onComplete.accept(toIntSet(lst));
 		} : null);
 	}
 
@@ -189,5 +158,7 @@ public interface ISupervisorRPCHandler {
 	default <In extends ISupervisorData> void invokeAllOtherNodesVoid(ProcedureDesc<SupervisorDataVoid, SupervisorDataVoid> desc) {
 		invokeAllOtherNodes(desc, 0, ISupervisorData.VOID, null);
 	}
+
+	IntSet toIntSet(Collection<NodeResult<? super SupervisorDataVoid>> collection);
 
 }

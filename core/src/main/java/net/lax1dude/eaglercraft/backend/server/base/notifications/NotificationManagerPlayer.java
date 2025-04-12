@@ -3,13 +3,14 @@ package net.lax1dude.eaglercraft.backend.server.base.notifications;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
+import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectCursor;
+import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectSet;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
+import net.lax1dude.eaglercraft.backend.server.base.collect.ObjectHashSet;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketNotifIconsRegisterV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketNotifIconsReleaseV4EAG;
@@ -17,7 +18,7 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketNotifIcon
 public class NotificationManagerPlayer<PlayerObject> extends NotificationManagerBase<PlayerObject> {
 
 	final EaglerPlayerInstance<PlayerObject> player;
-	Set<UUID> knownIcons;
+	ObjectSet<UUID> knownIcons;
 
 	public NotificationManagerPlayer(NotificationService<PlayerObject> service,
 			EaglerPlayerInstance<PlayerObject> player) {
@@ -34,7 +35,7 @@ public class NotificationManagerPlayer<PlayerObject> extends NotificationManager
 	protected void touchIcon(UUID uuid) {
 		if(uuid != null) {
 			synchronized(this) {
-				if(knownIcons == null) knownIcons = new HashSet<>();
+				if(knownIcons == null) knownIcons = new ObjectHashSet<>(8);
 				if(!knownIcons.add(uuid)) {
 					uuid = null;
 				}
@@ -52,7 +53,7 @@ public class NotificationManagerPlayer<PlayerObject> extends NotificationManager
 	protected void touchIcons(GameMessagePacket packet, UUID uuidA, UUID uuidB) {
 		eagler: if(uuidA != null || uuidB != null) {
 			synchronized(this) {
-				if(knownIcons == null) knownIcons = new HashSet<>();
+				if(knownIcons == null) knownIcons = new ObjectHashSet<>(8);
 				if(uuidA != null) {
 					if(!knownIcons.add(uuidA)) {
 						uuidA = null;
@@ -88,7 +89,7 @@ public class NotificationManagerPlayer<PlayerObject> extends NotificationManager
 		tmp.clear();
 		Iterator<UUID> itr = uuids.iterator();
 		synchronized(this) {
-			if(knownIcons == null) knownIcons = new HashSet<>();
+			if(knownIcons == null) knownIcons = new ObjectHashSet<>(8);
 			while(itr.hasNext()) {
 				UUID uuid = itr.next();
 				if(knownIcons.add(uuid)) {
@@ -108,7 +109,7 @@ public class NotificationManagerPlayer<PlayerObject> extends NotificationManager
 	@Override
 	protected void releaseIcon(UUID uuid) {
 		synchronized(this) {
-			if(knownIcons == null || !knownIcons.remove(uuid)) {
+			if(knownIcons == null || knownIcons.removeAll(uuid) == 0) {
 				return;
 			}
 			if(knownIcons.size() == 0) {
@@ -122,7 +123,7 @@ public class NotificationManagerPlayer<PlayerObject> extends NotificationManager
 
 	@Override
 	protected void releaseIcons() {
-		Collection<UUID> toRelease;
+		ObjectSet<UUID> toRelease;
 		synchronized(this) {
 			toRelease = knownIcons;
 			if(toRelease == null) {
@@ -132,9 +133,9 @@ public class NotificationManagerPlayer<PlayerObject> extends NotificationManager
 		}
 		int l = toRelease.size();
 		SPacketNotifIconsReleaseV4EAG.DestroyIcon[] icns = new SPacketNotifIconsReleaseV4EAG.DestroyIcon[l];
-		for(UUID uuid : toRelease) {
-			icns[--l] = new SPacketNotifIconsReleaseV4EAG.DestroyIcon(uuid.getMostSignificantBits(),
-					uuid.getLeastSignificantBits());
+		for(ObjectCursor<UUID> uuid : toRelease) {
+			icns[--l] = new SPacketNotifIconsReleaseV4EAG.DestroyIcon(uuid.value.getMostSignificantBits(),
+					uuid.value.getLeastSignificantBits());
 		}
 		player.sendEaglerMessage(new SPacketNotifIconsReleaseV4EAG(Arrays.asList(icns)));
 	}
@@ -146,16 +147,14 @@ public class NotificationManagerPlayer<PlayerObject> extends NotificationManager
 			if(knownIcons == null) {
 				return;
 			}
-			Iterator<UUID> itr = knownIcons.iterator();
-			while(itr.hasNext()) {
-				UUID n = itr.next();
-				if(uuids.contains(n)) {
-					tmp.add(n);
-					itr.remove();
+			for(UUID uuid : uuids) {
+				if(knownIcons.removeAll(uuid) > 0) {
+					tmp.add(uuid);
+					if(knownIcons.size() == 0) {
+						knownIcons = null;
+						break;
+					}
 				}
-			}
-			if(knownIcons.size() == 0) {
-				knownIcons = null;
 			}
 		}
 		int l = tmp.size();

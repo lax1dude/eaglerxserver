@@ -1,9 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
@@ -15,6 +12,7 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IUpdateCertificate;
 import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
+import net.lax1dude.eaglercraft.backend.server.base.collect.ObjectHashSet;
 import net.lax1dude.eaglercraft.backend.server.base.message.MessageController;
 import net.lax1dude.eaglercraft.backend.server.base.notifications.NotificationManagerPlayer;
 import net.lax1dude.eaglercraft.backend.server.base.pause_menu.PauseMenuManager;
@@ -37,7 +35,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	private final EaglerConnectionInstance connectionInstance;
 	private final IPlatformSubLogger playerLogger;
-	private final Set<SHA1Sum> updateSent;
+	private final ObjectHashSet<SHA1Sum> updateSent;
 	private final boolean redirectSupport;
 	private final boolean updateSupport;
 	private final PlayerRateLimits rateLimits;
@@ -57,7 +55,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 		updateSupport = connectionInstance.hasCapability(EnumCapabilitySpec.UPDATE_V0);
 		rateLimits = new PlayerRateLimits(server.rateLimitParams());
 		if(updateSupport && server.getUpdateService() != null) {
-			updateSent = new HashSet<>();
+			updateSent = new ObjectHashSet<>(16);
 		}else {
 			updateSent = null;
 		}
@@ -315,15 +313,8 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	private void removeRandomCertToken() {
-		long l = System.nanoTime();
-		if(l < 0l) l = -l;
-		int idx = (int)(l % updateSent.size());
-		Iterator<SHA1Sum> itr = updateSent.iterator();
-		itr.next();
-		while(--idx > 0 && itr.hasNext()) {
-			itr.next();
-		}
-		itr.remove();
+		// HPPC iteration order is randomized
+		updateSent.indexRemove(updateSent.iterator().next().index);
 	}
 
 	public IPlatformSubLogger logger() {

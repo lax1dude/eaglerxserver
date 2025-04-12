@@ -17,6 +17,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.MapMaker;
 
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistration;
+import net.lax1dude.eaglercraft.backend.server.api.collect.IntProcedure;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
@@ -106,24 +107,24 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 	}
 
 	@Override
-	public void resolvePlayerNodeId(UUID playerUUID, Consumer<Integer> callback) {
+	public void resolvePlayerNodeId(UUID playerUUID, IntProcedure callback) {
 		SupervisorConnection conn = service.getConnection();
 		if(conn != null) {
 			SupervisorPlayer player = conn.loadPlayer(playerUUID);
 			int node = player.getNodeId();
 			if(node != -1) {
-				callback.accept(node);
+				callback.apply(node);
 			}else {
 				player.loadBrandUUID(null, (trash) -> {
 					if(trash != null) {
-						callback.accept(player.getNodeId());
+						callback.apply(player.getNodeId());
 					}else {
-						callback.accept(null);
+						callback.apply(-1);
 					}
 				});
 			}
 		}else {
-			callback.accept(null);
+			callback.apply(-1);
 		}
 	}
 

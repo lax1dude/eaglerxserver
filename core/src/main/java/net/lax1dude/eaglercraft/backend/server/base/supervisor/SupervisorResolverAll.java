@@ -5,6 +5,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistration;
+import net.lax1dude.eaglercraft.backend.server.api.collect.IntProcedure;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
@@ -37,14 +38,9 @@ public class SupervisorResolverAll implements ISupervisorResolver {
 	}
 
 	@Override
-	public void resolvePlayerNodeId(UUID playerUUID, Consumer<Integer> callback) {
+	public void resolvePlayerNodeId(UUID playerUUID, IntProcedure callback) {
 		if(server.getPlayerByUUID(playerUUID) != null) {
-			int node = server.getSupervisorService().getNodeId();
-			if(node != -1) {
-				callback.accept(node);
-			}else {
-				callback.accept(null);
-			}
+			callback.apply(server.getSupervisorService().getNodeId());
 		}else {
 			resolver.resolvePlayerNodeId(playerUUID, callback);
 		}

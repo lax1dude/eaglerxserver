@@ -12,12 +12,14 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilityType;
+import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectIntMap;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCookieEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthPasswordEvent;
 import net.lax1dude.eaglercraft.backend.server.base.CapabilityBits;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
+import net.lax1dude.eaglercraft.backend.server.base.collect.ObjectIntHashMap;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler.IHandshaker;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
@@ -323,7 +325,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 				: Arrays.copyOf(acceptedVersions, acceptedIdx);
 		int extCnt = extendedCapabilities.length;
 		if(extCnt > 0) {
-			Map<UUID, Integer> tmpMap = new HashMap<>(extCnt);
+			ObjectIntMap<UUID> tmpMap = new ObjectIntHashMap<>(extCnt);
 			for(int i = 0; i < extCnt; ++i) {
 				tmpMap.put(extendedCapabilities[i], extendedCapabilityVersions[i]);
 			}
