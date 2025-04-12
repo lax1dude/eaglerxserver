@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.base.skins;
 import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.server.api.collect.IntIndexedContainer;
+import net.lax1dude.eaglercraft.backend.server.api.collect.IntProcedure;
 import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectCursor;
 import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectObjectMap;
 import net.lax1dude.eaglercraft.backend.server.base.collect.IntArrayList;
@@ -77,7 +78,7 @@ class KeyedRequestHelper<T> {
 			}
 		}
 		if(toRemove != null) {
-			toRemove.forEach(internalMap::indexRemove);
+			toRemove.forEach((IntProcedure)internalMap::indexRemove);
 			if(internalMap.isEmpty()) {
 				internalMap = null;
 			}

@@ -10,6 +10,7 @@ import com.google.common.collect.ImmutableList;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.collect.IntIndexedContainer;
+import net.lax1dude.eaglercraft.backend.server.api.collect.IntProcedure;
 import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectCursor;
 import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectIndexedContainer;
 import net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState;
@@ -164,7 +165,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 						}
 					}
 					if(toRemove != null) {
-						toRemove.forEach(this::indexRemove);
+						toRemove.forEach((IntProcedure)this::indexRemove);
 					}
 					return get(other);
 				}
