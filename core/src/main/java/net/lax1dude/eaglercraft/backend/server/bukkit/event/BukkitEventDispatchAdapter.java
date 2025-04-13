@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.bukkit.event;
 
+import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
@@ -129,9 +130,9 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player,
 	}
 
 	@Override
-	public void dispatchInitializePlayerEvent(IEaglerPlayer<Player> player,
+	public void dispatchInitializePlayerEvent(IEaglerPlayer<Player> player, Map<String, byte[]> extraProfileData,
 			IEventDispatchCallback<IEaglercraftInitializePlayerEvent<Player>> onComplete) {
-		fireSync(new BukkitInitializePlayerEventImpl(api, player), onComplete);
+		fireSync(new BukkitInitializePlayerEventImpl(api, player, extraProfileData), onComplete);
 	}
 
 	@Override

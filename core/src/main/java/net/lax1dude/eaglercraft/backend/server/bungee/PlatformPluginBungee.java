@@ -76,8 +76,8 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	protected Runnable cleanupListeners;
 	protected Runnable onServerEnable;
 	protected Runnable onServerDisable;
-	protected IEaglerXServerNettyPipelineInitializer<Object> pipelineInitializer;
-	protected IEaglerXServerConnectionInitializer<Object, Object> connectionInitializer;
+	protected IEaglerXServerNettyPipelineInitializer<IPipelineData> pipelineInitializer;
+	protected IEaglerXServerConnectionInitializer<IPipelineData, Object> connectionInitializer;
 	protected IEaglerXServerPlayerInitializer<Object, Object, ProxiedPlayer> playerInitializer;
 	protected IEaglerXServerJoinListener<ProxiedPlayer> serverJoinListener;
 	protected Collection<IEaglerXServerCommandType<ProxiedPlayer>> commandsList;
@@ -151,13 +151,13 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			}
 
 			@Override
-			public void setPipelineInitializer(IEaglerXServerNettyPipelineInitializer<?> initializer) {
-				pipelineInitializer = (IEaglerXServerNettyPipelineInitializer<Object>) initializer;
+			public void setPipelineInitializer(IEaglerXServerNettyPipelineInitializer<? extends IPipelineData> initializer) {
+				pipelineInitializer = (IEaglerXServerNettyPipelineInitializer<IPipelineData>) initializer;
 			}
 
 			@Override
-			public void setConnectionInitializer(IEaglerXServerConnectionInitializer<?, ?> initializer) {
-				connectionInitializer = (IEaglerXServerConnectionInitializer<Object, Object>) initializer;
+			public void setConnectionInitializer(IEaglerXServerConnectionInitializer<? extends IPipelineData, ?> initializer) {
+				connectionInitializer = (IEaglerXServerConnectionInitializer<IPipelineData, Object>) initializer;
 			}
 
 			@Override
@@ -298,10 +298,10 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 				}
 			}
 			
-			pipelineInitializer.initialize(new IPlatformNettyPipelineInitializer<Object>() {
+			pipelineInitializer.initialize(new IPlatformNettyPipelineInitializer<IPipelineData>() {
 				@Override
-				public void setAttachment(Object object) {
-					channel.attr(PipelineAttributes.<Object>pipelineData()).set(object);
+				public void setAttachment(IPipelineData object) {
+					channel.attr(PipelineAttributes.<IPipelineData>pipelineData()).set(object);
 				}
 				@Override
 				public List<IPipelineComponent> getPipeline() {
@@ -533,19 +533,21 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 		return workerEventLoopGroup;
 	}
 
-	public void initializeConnection(PendingConnection conn, Object pipelineData, Consumer<BungeeConnection> setAttr) {
-		if((pipelineData instanceof IPipelineData pipelineDataImpl) && pipelineDataImpl.isEaglerPlayer()) {
+	public void initializeConnection(PendingConnection conn, IPipelineData pipelineData,
+			Consumer<BungeeConnection> setAttr) {
+		if(pipelineData != null && pipelineData.isEaglerPlayer()) {
 			BungeeUnsafe.injectCompressionDisable(conn);
 		}
-		BungeeConnection c = new BungeeConnection(this, conn);
+		BungeeConnection c = new BungeeConnection(this, conn,
+				pipelineData != null ? pipelineData::awaitPlayState : null);
 		setAttr.accept(c);
-		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<Object, Object>() {
+		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<IPipelineData, Object>() {
 			@Override
 			public void setConnectionAttachment(Object attachment) {
 				c.attachment = attachment;
 			}
 			@Override
-			public Object getPipelineAttachment() {
+			public IPipelineData getPipelineAttachment() {
 				return pipelineData;
 			}
 			@Override

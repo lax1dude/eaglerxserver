@@ -45,13 +45,14 @@ public class BungeeUnsafe {
 
 	private static final Class<?> class_InitialHandler;
 	private static final Method method_InitialHandler_getBrandMessage;
-	private static final Method method_InitialHandler_getLoginProfile;
+	private static final Field field_InitialHandler_loginProfile;
 	private static final Field field_InitialHandler_ch;
 	private static final Class<?> class_ChannelWrapper;
 	private static final Method method_ChannelWrapper_close;
 	private static final Class<?> class_PluginMessage;
 	private static final Method method_PluginMessage_getData;
 	private static final Class<?> class_LoginResult;
+	private static final Constructor<?> constructor_LoginResult;
 	private static final Method method_LoginResult_getProperties;
 	private static final Method method_LoginResult_setProperties;
 	private static final Class<?> class_Property;
@@ -79,7 +80,8 @@ public class BungeeUnsafe {
 		try {
 			class_InitialHandler = Class.forName("net.md_5.bungee.connection.InitialHandler");
 			method_InitialHandler_getBrandMessage = class_InitialHandler.getMethod("getBrandMessage");
-			method_InitialHandler_getLoginProfile = class_InitialHandler.getMethod("getLoginProfile");
+			field_InitialHandler_loginProfile = class_InitialHandler.getDeclaredField("loginProfile");
+			field_InitialHandler_loginProfile.setAccessible(true);
 			field_InitialHandler_ch = class_InitialHandler.getDeclaredField("ch");
 			field_InitialHandler_ch.setAccessible(true);
 			class_ChannelWrapper = Class.forName("net.md_5.bungee.netty.ChannelWrapper");
@@ -88,9 +90,10 @@ public class BungeeUnsafe {
 			method_PluginMessage_getData = class_PluginMessage.getMethod("getData");
 			class_LoginResult = Class.forName("net.md_5.bungee.connection.LoginResult");
 			class_Property = Class.forName("net.md_5.bungee.protocol.Property");
+			Class<?> propArrayClass = Array.newInstance(class_Property, 0).getClass();
+			constructor_LoginResult = class_LoginResult.getConstructor(String.class, String.class, propArrayClass);
 			method_LoginResult_getProperties = class_LoginResult.getMethod("getProperties");
-			method_LoginResult_setProperties = class_LoginResult.getMethod("setProperties",
-					Array.newInstance(class_Property, 0).getClass());
+			method_LoginResult_setProperties = class_LoginResult.getMethod("setProperties", propArrayClass);
 			constructor_Property = class_Property.getConstructor(String.class, String.class, String.class);
 			isEaglerPlayerPropertyT = constructor_Property.newInstance("isEaglerPlayer", "true", null);
 			isEaglerPlayerPropertyF = constructor_Property.newInstance("isEaglerPlayer", "false", null);
@@ -226,7 +229,7 @@ public class BungeeUnsafe {
 	public static String getTexturesProperty(PendingConnection conn) {
 		if(class_InitialHandler.isAssignableFrom(conn.getClass())) {
 			try {
-				Object loginResult = method_InitialHandler_getLoginProfile.invoke(conn);
+				Object loginResult = field_InitialHandler_loginProfile.get(conn);
 				if(loginResult != null) {
 					Object[] props = (Object[]) method_LoginResult_getProperties.invoke(loginResult);
 					if(props != null) {
@@ -531,8 +534,8 @@ public class BungeeUnsafe {
 
 		public void complete() {
 			try {
-				method_LoginResult_setProperties.invoke(loginResult,
-						propList.toArray((Object[]) Array.newInstance(class_Property, propList.size())));
+				method_LoginResult_setProperties.invoke(loginResult, new Object[] {
+						propList.toArray((Object[]) Array.newInstance(class_Property, propList.size())) });
 			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
@@ -543,8 +546,15 @@ public class BungeeUnsafe {
 	public static BungeeUnsafe.PropertyInjector propertyInjector(PendingConnection conn) {
 		if(class_InitialHandler.isAssignableFrom(conn.getClass())) {
 			try {
-				Object loginResult = method_InitialHandler_getLoginProfile.invoke(conn);
-				Object[] oldPropertyList = (Object[]) method_LoginResult_getProperties.invoke(loginResult);
+				Object loginResult = field_InitialHandler_loginProfile.get(conn);
+				Object[] oldPropertyList = null;
+				if(loginResult == null) {
+					loginResult = constructor_LoginResult.newInstance(conn.getName(),
+							Util.toUUIDStringUndashed(conn.getUniqueId()).toString(), null);
+					field_InitialHandler_loginProfile.set(conn, loginResult);
+				}else {
+					oldPropertyList = (Object[]) method_LoginResult_getProperties.invoke(loginResult);
+				}
 				return new PropertyInjector(loginResult, oldPropertyList);
 			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);

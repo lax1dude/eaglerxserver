@@ -80,21 +80,8 @@ public class VanillaInitializer {
 						inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
 						return;
 					}
-					if(!playerUUID.equals(pipelineData.uuid)) {
-						inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
-						pipelineData.connectionLogger.error("Disconnecting, platform assigned UUID to client that does not "
-								+ "match the UUID the EaglerXServer sent to the client during the handshake, please use "
-								+ "EaglercraftLoginEvent or the auth events to customize Eaglercraft player profiles");
-					}else {
-						if(!BufferUtils.charSeqEqual(BufferUtils.readMCCharSequence(msg, 16), pipelineData.username)) {
-							inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
-							pipelineData.connectionLogger.error("Disconnecting, platform assigned username to client that "
-									+ "does not match the username the EaglerXServer sent to the client during the handshake, "
-									+ "please use EaglercraftLoginEvent or the auth events to customize Eaglercraft player profiles");
-						}else {
-							finish(ctx);
-						}
-					}
+					String usernameStr = BufferUtils.readMCString(msg, 16);
+					inboundHandler.handleBackendHandshakeSuccess(ctx, usernameStr, playerUUID);
 				}else if(pktId == 0x03) {
 					// S03PacketEnableCompression
 					int val = BufferUtils.readVarInt(msg, 5);
@@ -128,10 +115,6 @@ public class VanillaInitializer {
 		inboundHandler.terminateErrorCode(ctx, pipelineData.handshakeProtocol,
 				HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE, pkt);
 		connectionState = STATE_COMPLETE;
-	}
-
-	private void finish(ChannelHandlerContext ctx) {
-		inboundHandler.enterPlayState(ctx);
 	}
 
 }

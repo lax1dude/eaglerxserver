@@ -65,6 +65,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.adapter.JavaLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.bukkit.BukkitUnsafe.LoginConnectionHolder;
@@ -87,8 +88,8 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	protected Runnable cleanupListeners;
 	protected Runnable onServerEnable;
 	protected Runnable onServerDisable;
-	protected IEaglerXServerNettyPipelineInitializer<Object> pipelineInitializer;
-	protected IEaglerXServerConnectionInitializer<Object, Object> connectionInitializer;
+	protected IEaglerXServerNettyPipelineInitializer<IPipelineData> pipelineInitializer;
+	protected IEaglerXServerConnectionInitializer<IPipelineData, Object> connectionInitializer;
 	protected IEaglerXServerPlayerInitializer<Object, Object, Player> playerInitializer;
 	protected IEaglerXServerJoinListener<Player> serverJoinListener;
 	protected Collection<IEaglerXServerCommandType<Player>> commandsList;
@@ -146,13 +147,13 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 
 			@Override
-			public void setPipelineInitializer(IEaglerXServerNettyPipelineInitializer<?> initializer) {
-				pipelineInitializer = (IEaglerXServerNettyPipelineInitializer<Object>) initializer;
+			public void setPipelineInitializer(IEaglerXServerNettyPipelineInitializer<? extends IPipelineData> initializer) {
+				pipelineInitializer = (IEaglerXServerNettyPipelineInitializer<IPipelineData>) initializer;
 			}
 
 			@Override
-			public void setConnectionInitializer(IEaglerXServerConnectionInitializer<?, ?> initializer) {
-				connectionInitializer = (IEaglerXServerConnectionInitializer<Object, Object>) initializer;
+			public void setConnectionInitializer(IEaglerXServerConnectionInitializer<? extends IPipelineData, ?> initializer) {
+				connectionInitializer = (IEaglerXServerConnectionInitializer<IPipelineData, Object>) initializer;
 			}
 
 			@Override
@@ -302,10 +303,10 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 				}
 			}
 			
-			pipelineInitializer.initialize(new IPlatformNettyPipelineInitializer<Object>() {
+			pipelineInitializer.initialize(new IPlatformNettyPipelineInitializer<IPipelineData>() {
 				@Override
-				public void setAttachment(Object object) {
-					channel.attr(PipelineAttributes.<Object>pipelineData()).set(object);
+				public void setAttachment(IPipelineData object) {
+					channel.attr(PipelineAttributes.<IPipelineData>pipelineData()).set(object);
 				}
 				@Override
 				public List<IPipelineComponent> getPipeline() {
@@ -516,7 +517,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public void handleConnectionInitFallback(Channel channel) {
 		LoginConnectionHolder holder = BukkitUnsafe.getLoginConnection(channel.pipeline().get("packet_handler"));
-		Object pipelineData = channel.attr(PipelineAttributes.<Object>pipelineData()).getAndSet(null);
+		IPipelineData pipelineData = channel.attr(PipelineAttributes.<IPipelineData>pipelineData()).getAndSet(null);
 		Attribute<BukkitConnection> attr = channel.attr(PipelineAttributes.<BukkitConnection>connectionData());
 		initializeConnection(holder, pipelineData, attr::set);
 	}
@@ -561,17 +562,17 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		return eventLoopGroup;
 	}
 
-	public void initializeConnection(LoginConnectionHolder loginConnection, Object pipelineData,
+	public void initializeConnection(LoginConnectionHolder loginConnection, IPipelineData pipelineData,
 			Consumer<BukkitConnection> setAttr) {
 		BukkitConnection c = new BukkitConnection(this, loginConnection);
 		setAttr.accept(c);
-		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<Object, Object>() {
+		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<IPipelineData, Object>() {
 			@Override
 			public void setConnectionAttachment(Object attachment) {
 				c.attachment = attachment;
 			}
 			@Override
-			public Object getPipelineAttachment() {
+			public IPipelineData getPipelineAttachment() {
 				return pipelineData;
 			}
 			@Override
@@ -616,13 +617,13 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			p = new BukkitPlayer(player, c);
 			c.closeRedirector = cr = new CloseRedirector();
 			setAttr.accept(c);
-			connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<Object, Object>() {
+			connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<IPipelineData, Object>() {
 				@Override
 				public void setConnectionAttachment(Object attachment) {
 					c.attachment = attachment;
 				}
 				@Override
-				public Object getPipelineAttachment() {
+				public IPipelineData getPipelineAttachment() {
 					return null;
 				}
 				@Override

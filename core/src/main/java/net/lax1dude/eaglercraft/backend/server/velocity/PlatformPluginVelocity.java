@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
@@ -34,7 +33,6 @@ import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
-import com.velocitypowered.api.scheduler.ScheduledTask;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
@@ -107,8 +105,8 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	protected boolean aborted = false;
 	protected Runnable onServerEnable;
 	protected Runnable onServerDisable;
-	protected IEaglerXServerNettyPipelineInitializer<Object> pipelineInitializer;
-	protected IEaglerXServerConnectionInitializer<Object, Object> connectionInitializer;
+	protected IEaglerXServerNettyPipelineInitializer<IPipelineData> pipelineInitializer;
+	protected IEaglerXServerConnectionInitializer<IPipelineData, Object> connectionInitializer;
 	protected IEaglerXServerPlayerInitializer<Object, Object, Player> playerInitializer;
 	protected IEaglerXServerJoinListener<Player> serverJoinListener;
 	protected Collection<IEaglerXServerCommandType<Player>> commandsList;
@@ -192,13 +190,13 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			}
 
 			@Override
-			public void setPipelineInitializer(IEaglerXServerNettyPipelineInitializer<?> initializer) {
-				pipelineInitializer = (IEaglerXServerNettyPipelineInitializer<Object>) initializer;
+			public void setPipelineInitializer(IEaglerXServerNettyPipelineInitializer<? extends IPipelineData> initializer) {
+				pipelineInitializer = (IEaglerXServerNettyPipelineInitializer<IPipelineData>) initializer;
 			}
 
 			@Override
-			public void setConnectionInitializer(IEaglerXServerConnectionInitializer<?, ?> initializer) {
-				connectionInitializer = (IEaglerXServerConnectionInitializer<Object, Object>) initializer;
+			public void setConnectionInitializer(IEaglerXServerConnectionInitializer<? extends IPipelineData, ?> initializer) {
+				connectionInitializer = (IEaglerXServerConnectionInitializer<IPipelineData, Object>) initializer;
 			}
 
 			@Override
@@ -330,10 +328,10 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 					});
 				}
 			}
-			pipelineInitializer.initialize(new IPlatformNettyPipelineInitializer<Object>() {
+			pipelineInitializer.initialize(new IPlatformNettyPipelineInitializer<IPipelineData>() {
 				@Override
-				public void setAttachment(Object object) {
-					channel.attr(PipelineAttributes.<Object>pipelineData()).set(object);
+				public void setAttachment(IPipelineData object) {
+					channel.attr(PipelineAttributes.<IPipelineData>pipelineData()).set(object);
 				}
 				@Override
 				public List<IPipelineComponent> getPipeline() {
@@ -579,20 +577,21 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		return workerEventLoopGroup;
 	}
 
-	public void initializeConnection(InboundConnection conn, String username, UUID uuid, Object pipelineData,
+	public void initializeConnection(InboundConnection conn, String username, UUID uuid, IPipelineData pipelineData,
 			Consumer<VelocityConnection> setAttr) {
-		VelocityConnection c = new VelocityConnection(this, conn, username, uuid);
-		if((pipelineData instanceof IPipelineData pipelineDataImpl) && pipelineDataImpl.isEaglerPlayer()) {
+		VelocityConnection c = new VelocityConnection(this, conn, username, uuid,
+				pipelineData != null ? pipelineData::awaitPlayState : null);
+		if(pipelineData != null && pipelineData.isEaglerPlayer()) {
 			c.compressionDisable = true;
 		}
 		setAttr.accept(c);
-		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<Object, Object>() {
+		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<IPipelineData, Object>() {
 			@Override
 			public void setConnectionAttachment(Object attachment) {
 				c.attachment = attachment;
 			}
 			@Override
-			public Object getPipelineAttachment() {
+			public IPipelineData getPipelineAttachment() {
 				return pipelineData;
 			}
 			@Override
@@ -633,11 +632,6 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			@Override
 			public void complete() {
 				playerInstanceMap.put(player, p);
-				p.confirmTask = proxy.getScheduler().buildTask(PlatformPluginVelocity.this, () -> {
-					p.confirmTask = null;
-					proxyLogger.warn("Player {} was initialized, but never fired PostLoginEvent, dropping...", p.getUsername());
-					dropPlayer(player);
-				}).delay(5l, TimeUnit.SECONDS).schedule();
 				onComplete.run();
 			}
 			@Override
@@ -645,16 +639,6 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 				onComplete.run();
 			}
 		});
-	}
-
-	public void confirmPlayer(Player player) {
-		VelocityPlayer p = playerInstanceMap.get(player);
-		if(p != null) {
-			ScheduledTask conf = p.xchgConfirmTask();
-			if(conf != null) {
-				conf.cancel();
-			}
-		}
 	}
 
 	public void handleServerJoin(IPlatformPlayer<Player> player, IPlatformServer<Player> server) {
@@ -667,10 +651,6 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	public void dropPlayer(Player player) {
 		VelocityPlayer p = playerInstanceMap.remove(player);
 		if(p != null) {
-			ScheduledTask conf = p.xchgConfirmTask();
-			if(conf != null) {
-				conf.cancel();
-			}
 			playerInitializer.destroyPlayer(p);
 		}
 	}

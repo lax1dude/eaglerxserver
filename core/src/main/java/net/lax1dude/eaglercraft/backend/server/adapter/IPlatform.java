@@ -26,9 +26,9 @@ public interface IPlatform<PlayerObject> {
 
 		void setEaglerPlayerChannels(Collection<IEaglerXServerMessageChannel<PlayerObject>> channels);
 
-		void setPipelineInitializer(IEaglerXServerNettyPipelineInitializer<?> initializer);
+		void setPipelineInitializer(IEaglerXServerNettyPipelineInitializer<? extends IPipelineData> initializer);
 
-		void setConnectionInitializer(IEaglerXServerConnectionInitializer<?, ?> initializer);
+		void setConnectionInitializer(IEaglerXServerConnectionInitializer<? extends IPipelineData, ?> initializer);
 
 		void setPlayerInitializer(IEaglerXServerPlayerInitializer<?, ?, PlayerObject> initializer);
 

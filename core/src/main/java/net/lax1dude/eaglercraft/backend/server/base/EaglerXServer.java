@@ -470,13 +470,13 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	public static class RegistrationStateException extends IllegalStateException {
 	}
 
-	public void registerEaglerPlayer(EaglerPlayerInstance<PlayerObject> playerInstance, Runnable onComplete) {
+	public void registerEaglerPlayer(EaglerPlayerInstance<PlayerObject> playerInstance,
+			NettyPipelineData.ProfileDataHolder profileData, Runnable onComplete) {
 		if(!eaglerPlayers.add(playerInstance)) {
 			throw new RegistrationStateException();
 		}
 
 		EaglerConnectionInstance pendingConnection = playerInstance.connectionImpl();
-		NettyPipelineData.ProfileDataHolder profileData = pendingConnection.transferProfileData();
 
 		playerInstance.messageController = MessageControllerFactory.initializePlayer(playerInstance);
 		

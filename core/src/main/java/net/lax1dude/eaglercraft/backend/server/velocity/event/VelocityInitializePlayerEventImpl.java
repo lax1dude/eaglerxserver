@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.velocity.event;
 
+import java.util.Map;
+
 import com.velocitypowered.api.proxy.Player;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
@@ -10,10 +12,13 @@ class VelocityInitializePlayerEventImpl extends EaglercraftInitializePlayerEvent
 
 	private final IEaglerXServerAPI<Player> api;
 	private final IEaglerPlayer<Player> player;
+	private final Map<String, byte[]> extraProfileData;
 
-	VelocityInitializePlayerEventImpl(IEaglerXServerAPI<Player> api, IEaglerPlayer<Player> player) {
+	VelocityInitializePlayerEventImpl(IEaglerXServerAPI<Player> api, IEaglerPlayer<Player> player,
+			Map<String, byte[]> extraProfileData) {
 		this.api = api;
 		this.player = player;
+		this.extraProfileData = extraProfileData;
 	}
 
 	@Override
@@ -24,6 +29,11 @@ class VelocityInitializePlayerEventImpl extends EaglercraftInitializePlayerEvent
 	@Override
 	public IEaglerPlayer<Player> getPlayer() {
 		return player;
+	}
+
+	@Override
+	public Map<String, byte[]> getExtraProfileData() {
+		return extraProfileData;
 	}
 
 }

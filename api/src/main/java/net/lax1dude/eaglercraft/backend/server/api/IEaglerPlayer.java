@@ -1,6 +1,5 @@
 package net.lax1dude.eaglercraft.backend.server.api;
 
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationManager;
@@ -73,7 +72,5 @@ public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject>, 
 	void offerUpdateCertificate(IUpdateCertificate certificate);
 
 	void sendUpdateCertificate(IUpdateCertificate certificate);
-
-	Map<String, byte[]> getExtraProfileData();
 
 }

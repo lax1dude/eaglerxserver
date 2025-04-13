@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.adapter.event;
 
+import java.util.Map;
 import java.util.UUID;
 
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -55,7 +56,7 @@ public interface IEventDispatchAdapter<PlayerObject, ComponentObject> {
 	void dispatchLoginEvent(IEaglerLoginConnection loginConnection, boolean redirectSupport, String requestedServer,
 			IEventDispatchCallback<IEaglercraftLoginEvent<PlayerObject, ComponentObject>> onComplete);
 
-	void dispatchInitializePlayerEvent(IEaglerPlayer<PlayerObject> player,
+	void dispatchInitializePlayerEvent(IEaglerPlayer<PlayerObject> player, Map<String, byte[]> extraProfileData,
 			IEventDispatchCallback<IEaglercraftInitializePlayerEvent<PlayerObject>> onComplete);
 
 	void dispatchDestroyPlayerEvent(IEaglerPlayer<PlayerObject> player,

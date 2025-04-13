@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.bungee.event;
 
+import java.util.Map;
 import java.util.UUID;
 
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -62,10 +63,14 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 		try {
 			res = eventMgr.callEvent(event);
 		} catch (Throwable t) {
-			cont.complete(null, t);
+			if(cont != null) {
+				cont.complete(null, t);
+			}
 			return;
 		}
-		cont.complete((I) res, null);
+		if(cont != null) {
+			cont.complete((I) res, null);
+		}
 	}
 
 	@Override
@@ -117,9 +122,9 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 	}
 
 	@Override
-	public void dispatchInitializePlayerEvent(IEaglerPlayer<ProxiedPlayer> player,
+	public void dispatchInitializePlayerEvent(IEaglerPlayer<ProxiedPlayer> player, Map<String, byte[]> extraProfileData,
 			IEventDispatchCallback<IEaglercraftInitializePlayerEvent<ProxiedPlayer>> onComplete) {
-		fireSync(new BungeeInitializePlayerEventImpl(api, player), onComplete);
+		fireSync(new BungeeInitializePlayerEventImpl(api, player, extraProfileData), onComplete);
 	}
 
 	@Override

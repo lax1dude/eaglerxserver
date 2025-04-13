@@ -22,6 +22,9 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 		if(conn == null) {
 			return;
 		}
+		if(conn.isEaglerPlayer()) {
+			conn.asEaglerPlayer().processProfileData();
+		}
 		ISupervisorServiceImpl<PlayerObject> supervisor = server.getSupervisorService();
 		if(supervisor.isSupervisorEnabled()) {
 			supervisor.acceptPlayer(conn.getUniqueId(),
@@ -72,11 +75,12 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 	private void acceptPlayer(IPlatformPlayerInitializer<BaseConnectionInstance, BasePlayerInstance<PlayerObject>, PlayerObject> initializer) {
 		BaseConnectionInstance conn = initializer.getConnectionAttachment();
 		if(conn.isEaglerPlayer()) {
+			NettyPipelineData.ProfileDataHolder profileData = conn.asEaglerPlayer().transferProfileData();
 			EaglerPlayerInstance<PlayerObject> instance = new EaglerPlayerInstance<>(initializer.getPlayer(), server);
 			initializer.setPlayerAttachment(instance);
 			try {
-				server.registerEaglerPlayer(instance, () -> {
-					server.eventDispatcher().dispatchInitializePlayerEvent(instance, (evt, err) -> {
+				server.registerEaglerPlayer(instance, profileData, () -> {
+					server.eventDispatcher().dispatchInitializePlayerEvent(instance, profileData.extraData, (evt, err) -> {
 						if(err == null) {
 							initializer.complete();
 						}else {

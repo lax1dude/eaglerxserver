@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.bungee;
 
 import java.net.SocketAddress;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
@@ -20,11 +21,14 @@ class BungeeConnection implements IPlatformConnection {
 	String texturesPropertySignature;
 	ProxiedPlayer playerInstance;
 	Object attachment;
+	Consumer<Runnable> awaitPlayState;
 	byte eaglerPlayerProperty;
 
-	BungeeConnection(PlatformPluginBungee platformPlugin, PendingConnection pendingConnection) {
+	BungeeConnection(PlatformPluginBungee platformPlugin, PendingConnection pendingConnection,
+			Consumer<Runnable> awaitPlayState) {
 		this.platformPlugin = platformPlugin;
 		this.pendingConnection = pendingConnection;
+		this.awaitPlayState = awaitPlayState;
 	}
 
 	@Override
@@ -85,6 +89,15 @@ class BungeeConnection implements IPlatformConnection {
 			player.disconnect((BaseComponent)kickMessage);
 		}else {
 			pendingConnection.disconnect((BaseComponent)kickMessage);
+		}
+	}
+
+	public void awaitPlayState(Runnable runnable) {
+		if(awaitPlayState != null) {
+			awaitPlayState.accept(runnable);
+			awaitPlayState = null;
+		}else {
+			runnable.run();
 		}
 	}
 

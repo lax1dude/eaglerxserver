@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.base.pipeline;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import io.netty.buffer.ByteBuf;
@@ -36,6 +37,8 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 	public interface IHandshaker {
 
 		void handleInbound(ChannelHandlerContext ctx, ByteBuf buffer);
+
+		void handleBackendHandshakeSuccess(ChannelHandlerContext ctx, String acceptedUsername, UUID acceptedUUID);
 
 		void finish(ChannelHandlerContext ctx);
 
@@ -579,12 +582,16 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		pipelineData.cancelLoginTimeoutHelper();
 	}
 
-	public void finishLogin(ChannelHandlerContext ctx) {
+	public void beginBackendHandshake(ChannelHandlerContext ctx) {
 		ChannelPipeline pipeline = ctx.pipeline();
 		pipeline.remove(PipelineTransformer.HANDLER_OUTBOUND_THROW);
 		pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_OUTBOUND_THROW_REMOVED);
 		vanillaInitializer = new VanillaInitializer(server, pipelineData, this);
 		vanillaInitializer.init(ctx);
+	}
+
+	public void handleBackendHandshakeSuccess(ChannelHandlerContext ctx, String acceptedUsername, UUID acceptedUUID) {
+		handshaker.handleBackendHandshakeSuccess(ctx, acceptedUsername, acceptedUUID);
 	}
 
 	public void enterPlayState(ChannelHandlerContext ctx) {
@@ -593,6 +600,7 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		ChannelPipeline pipeline = ctx.pipeline();
 		pipeline.remove(PipelineTransformer.HANDLER_HANDSHAKE);
 		pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_HANDSHAKE_COMPLETE);
+		pipelineData.signalPlayState();
 	}
 
 }

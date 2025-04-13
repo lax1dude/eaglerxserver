@@ -29,6 +29,7 @@ import com.velocitypowered.api.util.GameProfile.Property;
 
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
@@ -58,7 +59,7 @@ public class VelocityListener {
 	public void onPreLoginEvent(PreLoginEvent handshakeEvent) {
 		InboundConnection conn = handshakeEvent.getConnection();
 		Channel channel = VelocityUnsafe.getInboundChannel(conn);
-		Object pipelineData = channel.attr(PipelineAttributes.<Object>pipelineData()).getAndSet(null);
+		IPipelineData pipelineData = channel.attr(PipelineAttributes.<IPipelineData>pipelineData()).getAndSet(null);
 		plugin.initializeConnection(conn, handshakeEvent.getUsername(), handshakeEvent.getUniqueId(), pipelineData,
 				channel.attr(PipelineAttributes.<VelocityConnection>connectionData())::set);
 	}
@@ -108,20 +109,17 @@ public class VelocityListener {
 	}
 
 	@Subscribe(priority = Short.MAX_VALUE, async = true)
-	public void onLoginEvent(LoginEvent loginEvent, Continuation cont) {
+	public void onPostLoginEvent(PostLoginEvent loginEvent, Continuation cont) {
 		Player player = loginEvent.getPlayer();
 		VelocityConnection conn = VelocityUnsafe.getInboundChannel(player)
 				.attr(PipelineAttributes.<VelocityConnection>connectionData()).get();
-		try {
-			plugin.initializePlayer(player, conn, cont::resume);
-		}catch(Exception ex) {
-			cont.resumeWithException(ex);
-		}
-	}
-
-	@Subscribe
-	public void onPostLoginEvent(PostLoginEvent loginEvent) {
-		plugin.confirmPlayer(loginEvent.getPlayer());
+		conn.awaitPlayState(() -> {
+			try {
+				plugin.initializePlayer(player, conn, cont::resume);
+			}catch(Exception ex) {
+				cont.resumeWithException(ex);
+			}
+		});
 	}
 
 	@Subscribe(priority = Short.MIN_VALUE)

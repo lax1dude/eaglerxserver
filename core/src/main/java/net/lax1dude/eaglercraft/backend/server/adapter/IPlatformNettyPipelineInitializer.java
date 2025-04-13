@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 
 import io.netty.channel.Channel;
 
-public interface IPlatformNettyPipelineInitializer<PipelineAttachment> {
+public interface IPlatformNettyPipelineInitializer<PipelineAttachment extends IPipelineData> {
 
 	List<IPipelineComponent> getPipeline();
 

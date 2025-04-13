@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.server.velocity.event;
 
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -127,9 +128,9 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter<Playe
 	}
 
 	@Override
-	public void dispatchInitializePlayerEvent(IEaglerPlayer<Player> player,
+	public void dispatchInitializePlayerEvent(IEaglerPlayer<Player> player, Map<String, byte[]> extraProfileData,
 			IEventDispatchCallback<IEaglercraftInitializePlayerEvent<Player>> onComplete) {
-		fire(new VelocityInitializePlayerEventImpl(api, player), onComplete);
+		fire(new VelocityInitializePlayerEventImpl(api, player, extraProfileData), onComplete);
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.velocity;
 
 import java.net.SocketAddress;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.Player;
@@ -22,15 +23,17 @@ class VelocityConnection implements IPlatformConnection {
 	String texturesPropertySignature;
 	Player playerInstance;
 	Object attachment;
+	Consumer<Runnable> awaitPlayState;
 	byte eaglerPlayerProperty;
 	boolean compressionDisable;
 
 	VelocityConnection(PlatformPluginVelocity plugin, InboundConnection connection,
-			String username, UUID uuid) {
+			String username, UUID uuid, Consumer<Runnable> awaitPlayState) {
 		this.plugin = plugin;
 		this.connection = connection;
 		this.username = username;
 		this.uuid = uuid;
+		this.awaitPlayState = awaitPlayState;
 	}
 
 	@Override
@@ -112,6 +115,15 @@ class VelocityConnection implements IPlatformConnection {
 			player.disconnect((Component)kickMessage);
 		}else {
 			VelocityUnsafe.disconnectInbound(connection, (Component)kickMessage);
+		}
+	}
+
+	public void awaitPlayState(Runnable runnable) {
+		if(awaitPlayState != null) {
+			awaitPlayState.accept(runnable);
+			awaitPlayState = null;
+		}else {
+			runnable.run();
 		}
 	}
 

@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.base;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
@@ -22,7 +23,6 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	private final IEaglerListenerInfo listenerInfo;
 	private final String eaglerBrandString;
 	private final String eaglerVersionString;
-	private final UUID eaglerBrandUUID;
 	private final boolean wss;
 	private final String headerHost;
 	private final String headerOrigin;
@@ -44,11 +44,12 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	private final IEaglerXRewindProtocol<?, ?> rewindProtocol;
 	private final int rewindProtocolVersion;
 	private final RewindMessageControllerHandle rewindMessageControllerHandle;
-	private final Map<String, byte[]> extraProfileData;
 	private final int acceptedCapabilitiesMask;
 	private final byte[] acceptedCapabilitiesVers;
 	private final Map<UUID, Byte> acceptedExtendedCapabilities;
-	private NettyPipelineData.ProfileDataHolder profileDataInit;
+	private Supplier<NettyPipelineData.ProfileDataHolder> profileDataInit;
+	private NettyPipelineData.ProfileDataHolder profileDataTmp;
+	private UUID eaglerBrandUUID;
 
 	public EaglerConnectionInstance(IPlatformConnection connection,
 			NettyPipelineData pipelineData) {
@@ -57,7 +58,6 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		this.listenerInfo = pipelineData.listenerInfo;
 		this.eaglerBrandString = pipelineData.eaglerBrandString;
 		this.eaglerVersionString = pipelineData.eaglerVersionString;
-		this.eaglerBrandUUID = pipelineData.brandUUIDHelper();
 		this.wss = pipelineData.wss;
 		this.headerHost = pipelineData.headerHost;
 		this.headerOrigin = pipelineData.headerOrigin;
@@ -79,11 +79,10 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		this.rewindProtocol = pipelineData.rewindProtocol;
 		this.rewindProtocolVersion = pipelineData.rewindProtocolVersion;
 		this.rewindMessageControllerHandle = pipelineData.rewindMessageControllerHandle;
-		this.profileDataInit = pipelineData.profileDataHelper();
-		this.extraProfileData = pipelineData.extraProfileDataHelper();
 		this.acceptedCapabilitiesMask = pipelineData.acceptedCapabilitiesMask;
 		this.acceptedCapabilitiesVers = pipelineData.acceptedCapabilitiesVers;
 		this.acceptedExtendedCapabilities = pipelineData.acceptedExtendedCapabilities;
+		this.profileDataInit = pipelineData::profileDataHelper;
 	}
 
 	@Override
@@ -250,18 +249,19 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		return connectionLogger;
 	}
 
-	public NettyPipelineData.ProfileDataHolder transferProfileData() {
-		NettyPipelineData.ProfileDataHolder ret = profileDataInit;
-		profileDataInit = null;
+	void processProfileData() {
+		profileDataTmp = profileDataInit.get();
+		eaglerBrandUUID = profileDataTmp.brandUUID;
+	}
+
+	NettyPipelineData.ProfileDataHolder transferProfileData() {
+		NettyPipelineData.ProfileDataHolder ret = profileDataTmp;
+		profileDataTmp = null;
 		return ret != null ? ret : NettyPipelineData.NULL_PROFILE;
 	}
 
-	public UUID getEaglerBrandUUID() {
+	UUID getEaglerBrandUUID() {
 		return eaglerBrandUUID;
-	}
-
-	public Map<String, byte[]> getExtraProfileData() {
-		return extraProfileData != null ? extraProfileData : Collections.emptyMap();
 	}
 
 }

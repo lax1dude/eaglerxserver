@@ -453,9 +453,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 					}
 					pipelineData.requestedServer = evt.getRequestedServer();
 					ctx.channel().eventLoop().execute(() -> {
-						state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
-						sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid, pipelineData.acceptedCapabilitiesMask,
-								pipelineData.acceptedCapabilitiesVers, pipelineData.acceptedExtendedCapabilities);
+						inboundHandler.beginBackendHandshake(ctx);
 					});
 				}
 			}else {
@@ -464,6 +462,14 @@ public abstract class HandshakerInstance implements IHandshaker {
 				pipelineData.connectionLogger.error("Caught exception dispatching login event", err);
 			}
 		});
+	}
+
+	public void handleBackendHandshakeSuccess(ChannelHandlerContext ctx, String acceptedUsername, UUID acceptedUUID) {
+		pipelineData.username = acceptedUsername;
+		pipelineData.uuid = acceptedUUID;
+		state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
+		sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid, pipelineData.acceptedCapabilitiesMask,
+				pipelineData.acceptedCapabilitiesVers, pipelineData.acceptedExtendedCapabilities);
 	}
 
 	protected abstract ChannelFuture sendPacketAllowLogin(ChannelHandlerContext ctx, String setUsername, UUID setUUID,
@@ -499,7 +505,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 	protected void handlePacketFinishLogin(ChannelHandlerContext ctx) {
 		if(state == HandshakePacketTypes.STATE_CLIENT_LOGIN) {
 			state = HandshakePacketTypes.STATE_STALLING;
-			inboundHandler.finishLogin(ctx);
+			inboundHandler.enterPlayState(ctx);
 		}else {
 			state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 			inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_WRONG_PACKET,

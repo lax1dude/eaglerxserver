@@ -1,6 +1,5 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
-import java.util.Map;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
@@ -139,11 +138,6 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	@Override
 	public UUID getEaglerBrandUUID() {
 		return connectionInstance.getEaglerBrandUUID();
-	}
-
-	@Override
-	public Map<String, byte[]> getExtraProfileData() {
-		return connectionInstance.getExtraProfileData();
 	}
 
 	@Override

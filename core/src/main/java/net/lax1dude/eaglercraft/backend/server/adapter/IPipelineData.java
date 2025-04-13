@@ -4,4 +4,6 @@ public interface IPipelineData {
 
 	boolean isEaglerPlayer();
 
+	void awaitPlayState(Runnable continueHandler);
+
 }
