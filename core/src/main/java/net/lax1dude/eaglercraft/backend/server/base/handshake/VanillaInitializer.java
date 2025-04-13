@@ -69,40 +69,42 @@ public class VanillaInitializer {
 	public void handleInbound(ChannelHandlerContext ctx, ByteBuf msg) {
 		try {
 			int pktId = BufferUtils.readVarInt(msg, 3);
-			if(connectionState == STATE_SENT_LOGIN) {
-				if(pktId == 0x02) {
-					// S02PacketLoginSuccess
-					UUID playerUUID;
-					String uuidStr = BufferUtils.readMCString(msg, 36);
-					try {
-						playerUUID = UUID.fromString(uuidStr);
-					}catch(IllegalArgumentException ex) {
-						inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
-						return;
-					}
-					String usernameStr = BufferUtils.readMCString(msg, 16);
-					inboundHandler.handleBackendHandshakeSuccess(ctx, usernameStr, playerUUID);
-				}else if(pktId == 0x03) {
-					// S03PacketEnableCompression
-					int val = BufferUtils.readVarInt(msg, 5);
-					if(val > 0) {
-						server.getPlatform().handleUndoCompression(ctx);
-						ctx.pipeline().fireUserEventTriggered(EnumPipelineEvent.EAGLER_DISABLE_COMPRESSION_HACK);
-					}
-				}else if(pktId == 0x01) {
-					// S01PacketEncryptionRequest
-					inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
-					pipelineData.connectionLogger.error("Disconnecting, server tried to enable online mode encryption, please make sure the server is not in online mode");
-				}else if(pktId == 0x00) {
-					// S00PacketDisconnect
-					handleKickPacket(ctx, msg);
-				}else {
-					inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
-					pipelineData.connectionLogger.error("Disconnecting, server sent unknown packet " + pktId + " while handshaking");
-				}
+			if(pktId == 0x00) {
+				// S00PacketDisconnect
+				handleKickPacket(ctx, msg);
 			}else {
-				pipelineData.connectionLogger.error("Disconnecting, server sent unexpected packet");
-				inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
+				if(connectionState == STATE_SENT_LOGIN) {
+					if(pktId == 0x02) {
+						// S02PacketLoginSuccess
+						UUID playerUUID;
+						String uuidStr = BufferUtils.readMCString(msg, 36);
+						try {
+							playerUUID = UUID.fromString(uuidStr);
+						}catch(IllegalArgumentException ex) {
+							inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
+							return;
+						}
+						String usernameStr = BufferUtils.readMCString(msg, 16);
+						inboundHandler.handleBackendHandshakeSuccess(ctx, usernameStr, playerUUID);
+					}else if(pktId == 0x03) {
+						// S03PacketEnableCompression
+						int val = BufferUtils.readVarInt(msg, 5);
+						if(val > 0) {
+							server.getPlatform().handleUndoCompression(ctx);
+							ctx.pipeline().fireUserEventTriggered(EnumPipelineEvent.EAGLER_DISABLE_COMPRESSION_HACK);
+						}
+					}else if(pktId == 0x01) {
+						// S01PacketEncryptionRequest
+						inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
+						pipelineData.connectionLogger.error("Disconnecting, server tried to enable online mode encryption, please make sure the server is not in online mode");
+					}else {
+						inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
+						pipelineData.connectionLogger.error("Disconnecting, server sent unknown packet " + pktId + " while handshaking");
+					}
+				}else {
+					pipelineData.connectionLogger.error("Disconnecting, server sent unexpected packet " + pktId);
+					inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
+				}
 			}
 		}catch(IndexOutOfBoundsException ex) {
 			ex.printStackTrace();

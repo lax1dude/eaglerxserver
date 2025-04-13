@@ -87,7 +87,7 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 							try {
 								instance.logger().error("Uncaught exception handling initialize player event", err);
 								initializer.getPlayer().disconnect(
-										server.componentBuilder().buildTextComponent().text("Internal Server Error").end());
+										server.componentBuilder().buildTextComponent().text("Internal Error").end());
 							}finally {
 								try {
 									server.getSupervisorService().dropOwnPlayer(instance.getUniqueId());
