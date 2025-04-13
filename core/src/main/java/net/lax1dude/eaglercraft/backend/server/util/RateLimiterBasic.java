@@ -39,7 +39,7 @@ public class RateLimiterBasic extends AtomicInteger {
 		}
 	}
 
-	public boolean isLimited(int limitVal) {
+	public boolean checkState(int limitVal) {
 		if(getAcquire() >= limitVal) {
 			synchronized(this) {
 				int v = getPlain();

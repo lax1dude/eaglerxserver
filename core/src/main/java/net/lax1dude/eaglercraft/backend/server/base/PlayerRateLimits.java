@@ -123,7 +123,7 @@ public class PlayerRateLimits {
 
 	public boolean checkSkinAntagonist() {
 		RateLimiterBasic limiter = skinAntagonistTracker;
-		return limiter != null && limiter.isLimited(params.limitSkinAntagonist);
+		return limiter == null || limiter.checkState(params.limitSkinAntagonist);
 	}
 
 	public boolean ratelimitSkinAntagonist() {
@@ -136,7 +136,7 @@ public class PlayerRateLimits {
 
 	public boolean checkSvSkinAntagonist() {
 		RateLimiterBasic limiter = svSkinAntagonistTracker;
-		return limiter != null && limiter.isLimited(params.limitSvSkinAntagonist);
+		return limiter == null || limiter.checkState(params.limitSvSkinAntagonist);
 	}
 
 	public boolean ratelimitSvSkinAntagonist() {
@@ -149,7 +149,7 @@ public class PlayerRateLimits {
 
 	public boolean checkSvBrandAntagonist() {
 		RateLimiterBasic limiter = svBrandAntagonistTracker;
-		return limiter != null && limiter.isLimited(params.limitSvBrandAntagonist);
+		return limiter == null || limiter.checkState(params.limitSvBrandAntagonist);
 	}
 
 	public boolean ratelimitSvBrandAntagonist() {

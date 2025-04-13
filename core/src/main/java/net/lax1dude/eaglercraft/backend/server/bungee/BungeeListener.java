@@ -19,10 +19,11 @@ import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.event.PreLoginEvent;
-import net.md_5.bungee.api.event.ServerConnectedEvent;
 import net.md_5.bungee.api.event.ServerDisconnectEvent;
+import net.md_5.bungee.api.event.ServerSwitchEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+import net.md_5.bungee.event.EventPriority;
 
 public class BungeeListener implements Listener {
 
@@ -32,7 +33,7 @@ public class BungeeListener implements Listener {
 		this.plugin = plugin;
 	}
 
-	@EventHandler(priority = 127)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void onPreLoginEvent(PreLoginEvent event) {
 		PendingConnection conn = event.getConnection();
 		Channel channel = BungeeUnsafe.getInitialHandlerChannel(conn);
@@ -42,7 +43,7 @@ public class BungeeListener implements Listener {
 		
 	}
 
-	@EventHandler(priority = -128)
+	@EventHandler(priority = EventPriority.HIGH)
 	public void onLoginEvent(LoginEvent event) {
 		BungeeConnection conn = BungeeUnsafe.getInitialHandlerChannel(event.getConnection())
 				.attr(PipelineAttributes.<BungeeConnection>connectionData()).get();
@@ -61,7 +62,7 @@ public class BungeeListener implements Listener {
 		}
 	}
 
-	@EventHandler(priority = 127)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void onPostLoginEvent(PostLoginEvent event) {
 		ProxiedPlayer player = event.getPlayer();
 		BungeeConnection conn = BungeeUnsafe.getInitialHandlerChannel(player.getPendingConnection())
@@ -84,31 +85,32 @@ public class BungeeListener implements Listener {
 		});
 	}
 
-	@EventHandler(priority = -128)
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onPlayerDisconnectedEvent(PlayerDisconnectEvent event) {
 		plugin.dropPlayer(event.getPlayer());
 	}
 
-	@EventHandler(priority = 127)
-	public void onServerConnectedEvent(ServerConnectedEvent event) {
-		IPlatformPlayer<ProxiedPlayer> player = plugin.getPlayer(event.getPlayer());
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void onServerConnectedEvent(ServerSwitchEvent event) {
+		ProxiedPlayer playerIn = event.getPlayer();
+		BungeePlayer player = (BungeePlayer) plugin.getPlayer(playerIn);
 		if(player != null) {
-			ServerInfo info = event.getServer().getInfo();
+			ServerInfo info = playerIn.getServer().getInfo();
 			IPlatformServer<ProxiedPlayer> server = null;
 			if(info != null) {
 				server = plugin.registeredServers.get(info.getName());
 				if(server == null) {
 					server = new BungeeServer(plugin, info, false);
 				}
-				((BungeePlayer)player).server = server;
+				player.server = server;
 			}else {
-				((BungeePlayer)player).server = null;
+				player.server = null;
 			}
 			plugin.handleServerJoin(player, server);
 		}
 	}
 
-	@EventHandler(priority = -128)
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onServerDisconnectedEvent(ServerDisconnectEvent event) {
 		IPlatformPlayer<ProxiedPlayer> player = plugin.getPlayer(event.getPlayer());
 		if(player != null) {

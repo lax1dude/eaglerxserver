@@ -12,7 +12,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformSubLogger;
 import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilityType;
 import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectIntMap;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
@@ -351,7 +350,9 @@ public abstract class HandshakerInstance implements IHandshaker {
 			}else if(response == IEaglercraftAuthPasswordEvent.EnumAuthResponse.ALLOW) {
 				ctx.channel().eventLoop().execute(() -> {
 					pipelineData.username = evt.getProfileUsername();
-					pipelineData.uuid = evt.getProfileUUID();
+					if(server.getPlatform().getType() != EnumAdapterPlatformType.BUKKIT) {
+						pipelineData.uuid = evt.getProfileUUID();
+					}
 					pipelineData.requestedServer = evt.getAuthRequestedServer();
 					handleContinueLogin(ctx);
 				});
@@ -383,7 +384,9 @@ public abstract class HandshakerInstance implements IHandshaker {
 			case ALLOW:
 				ctx.channel().eventLoop().execute(() -> {
 					pipelineData.username = evt.getProfileUsername();
-					pipelineData.uuid = evt.getProfileUUID();
+					if(server.getPlatform().getType() != EnumAdapterPlatformType.BUKKIT) {
+						pipelineData.uuid = evt.getProfileUUID();
+					}
 					pipelineData.requestedServer = evt.getAuthRequestedServer();
 					handleContinueLogin(ctx);
 				});
@@ -412,7 +415,6 @@ public abstract class HandshakerInstance implements IHandshaker {
 	}
 
 	private void handleContinueLogin(ChannelHandlerContext ctx) {
-		updateLoggerName();
 		server.eventDispatcher().dispatchLoginEvent(pipelineData.asLoginConnection(),
 				pipelineData.hasLoginStateRedirectCap(), pipelineData.requestedServer, (evt, err) -> {
 			if(!ctx.channel().isActive()) {
@@ -441,13 +443,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 					final Object msg2 = kickMsg;
 					ctx.channel().eventLoop().execute(() -> sendPacketDenyLogin(ctx, msg2).addListener(ChannelFutureListener.CLOSE));
 				}else {
-					if(!pipelineData.username.equals(evt.getProfileUsername())) {
-						pipelineData.username = evt.getProfileUsername();
-						if(pipelineData.connectionLogger.getParent() instanceof IPlatformSubLogger sub) {
-							pipelineData.connectionLogger = sub;
-						}
-						updateLoggerName();
-					}
+					pipelineData.username = evt.getProfileUsername();
 					if(server.getPlatform().getType() != EnumAdapterPlatformType.BUKKIT) {
 						pipelineData.uuid = evt.getProfileUUID();
 					}
@@ -466,6 +462,11 @@ public abstract class HandshakerInstance implements IHandshaker {
 
 	public void handleBackendHandshakeSuccess(ChannelHandlerContext ctx, String acceptedUsername, UUID acceptedUUID) {
 		pipelineData.username = acceptedUsername;
+		updateLoggerName();
+		if(server.getPlatform().getType() == EnumAdapterPlatformType.BUKKIT && !acceptedUUID.equals(pipelineData.uuid)) {
+			pipelineData.connectionLogger.warn("The underlying server assigned a UUID to this player that does not match "
+					+ "the expected offline-mode UUID for their username");
+		}
 		pipelineData.uuid = acceptedUUID;
 		state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
 		sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid, pipelineData.acceptedCapabilitiesMask,
