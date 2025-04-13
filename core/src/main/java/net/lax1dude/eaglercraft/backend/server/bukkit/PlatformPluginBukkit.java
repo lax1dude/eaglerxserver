@@ -119,6 +119,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	@Override
 	public void onLoad() {
+		aborted = true; // Will set to false if onLoad completes normally
 		post_v1_13 = isPost_v1_13();
 		Server server = getServer();
 		loggerImpl = new JavaLogger(getLogger());
@@ -198,9 +199,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			if(t != null) {
 				logger().error("Caused by: ", t);
 			}
-			aborted = true;
 			throw new IllegalStateException("Startup aborted");
 		}
+		aborted = false;
 	}
 
 	private static final ImmutableMap<String, EnumPipelineComponent> PIPELINE_COMPONENTS_MAP = 
@@ -227,6 +228,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		if(aborted) {
 			return;
 		}
+		aborted = true; // Will set to false if onEnable completes normally
 		Server server = getServer();
 		server.getPluginManager().registerEvents(new BukkitListener(this), this);
 		CommandMap cmdMap = BukkitUnsafe.getCommandMap(server);
@@ -329,9 +331,12 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			});
 			
 		}, listenerConf);
+
 		if(onServerEnable != null) {
 			onServerEnable.run();
 		}
+
+		aborted = false;
 	}
 
 	@Override
@@ -446,6 +451,11 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public Map<String, IPlatformServer<Player>> getRegisteredServers() {
 		return registeredServers;
+	}
+
+	@Override
+	public IPlatformServer<Player> getServer(String serverName) {
+		return registeredServers.get(serverName);
 	}
 
 	@Override

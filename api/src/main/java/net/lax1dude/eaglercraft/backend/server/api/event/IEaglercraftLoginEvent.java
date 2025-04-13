@@ -1,5 +1,10 @@
 package net.lax1dude.eaglercraft.backend.server.api.event;
 
+import java.util.UUID;
+
+import net.lax1dude.eaglercraft.backend.server.api.EnumPlatformType;
+import net.lax1dude.eaglercraft.backend.server.api.UnsupportedOn;
+
 public interface IEaglercraftLoginEvent<PlayerObject, ComponentObject>
 		extends IBaseLoginEvent<PlayerObject>, ICancellableEvent {
 
@@ -14,6 +19,19 @@ public interface IEaglercraftLoginEvent<PlayerObject, ComponentObject>
 	String getRedirectAddress();
 
 	void setRedirectAddress(String addr);
+
+	String getProfileUsername();
+
+	void setProfileUsername(String username);
+
+	UUID getProfileUUID();
+
+	@UnsupportedOn({ EnumPlatformType.BUKKIT })
+	void setProfileUUID(UUID uuid);
+
+	String getRequestedServer();
+
+	void setRequestedServer(String server);
 
 	default void setKickMessage(ComponentObject kickMessage) {
 		setCancelled(true);

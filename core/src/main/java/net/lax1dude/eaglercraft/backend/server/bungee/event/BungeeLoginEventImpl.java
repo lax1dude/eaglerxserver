@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.bungee.event;
 
+import java.util.UUID;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftLoginEvent;
@@ -17,13 +19,20 @@ class BungeeLoginEventImpl extends EaglercraftLoginEvent {
 	private final boolean redirectSupport;
 	private BaseComponent message;
 	private String redirect;
+	private String username;
+	private UUID uuid;
+	private String requestedServer;
 
 	BungeeLoginEventImpl(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerLoginConnection loginConnection,
-			boolean redirectSupport, Callback<IEaglercraftLoginEvent<ProxiedPlayer, BaseComponent>> cb) {
+			boolean redirectSupport, String requestedServer,
+			Callback<IEaglercraftLoginEvent<ProxiedPlayer, BaseComponent>> cb) {
 		super(cb);
 		this.api = api;
 		this.loginConnection = loginConnection;
 		this.redirectSupport = redirectSupport;
+		this.username = loginConnection.getUsername();
+		this.uuid = loginConnection.getUniqueId();
+		this.requestedServer = requestedServer;
 	}
 
 	@Override
@@ -74,6 +83,36 @@ class BungeeLoginEventImpl extends EaglercraftLoginEvent {
 	@Override
 	public void setRedirectAddress(String addr) {
 		this.redirect = addr;
+	}
+
+	@Override
+	public String getProfileUsername() {
+		return username;
+	}
+
+	@Override
+	public void setProfileUsername(String username) {
+		this.username = username;
+	}
+
+	@Override
+	public UUID getProfileUUID() {
+		return uuid;
+	}
+
+	@Override
+	public void setProfileUUID(UUID uuid) {
+		this.uuid = uuid;
+	}
+
+	@Override
+	public String getRequestedServer() {
+		return requestedServer;
+	}
+
+	@Override
+	public void setRequestedServer(String server) {
+		this.requestedServer = server;
 	}
 
 }

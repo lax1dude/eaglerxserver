@@ -82,6 +82,8 @@ public interface IPlatform<PlayerObject> {
 
 	Map<String, IPlatformServer<PlayerObject>> getRegisteredServers();
 
+	IPlatformServer<PlayerObject> getServer(String serverName);
+
 	IEventDispatchAdapter<PlayerObject, ?> eventDispatcher();
 
 	IPlatformScheduler getScheduler();

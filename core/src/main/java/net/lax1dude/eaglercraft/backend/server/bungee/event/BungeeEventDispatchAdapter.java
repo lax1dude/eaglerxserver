@@ -110,9 +110,10 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 	}
 
 	@Override
-	public void dispatchLoginEvent(IEaglerLoginConnection loginConnection, boolean redirectSupport,
+	public void dispatchLoginEvent(IEaglerLoginConnection loginConnection, boolean redirectSupport, String requestedServer,
 			IEventDispatchCallback<IEaglercraftLoginEvent<ProxiedPlayer, BaseComponent>> onComplete) {
-		eventMgr.callEvent(new BungeeLoginEventImpl(api, loginConnection, redirectSupport, transformCallback(onComplete)));
+		eventMgr.callEvent(new BungeeLoginEventImpl(api, loginConnection, redirectSupport, requestedServer,
+				transformCallback(onComplete)));
 	}
 
 	@Override

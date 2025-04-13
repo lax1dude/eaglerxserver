@@ -52,7 +52,7 @@ public interface IEventDispatchAdapter<PlayerObject, ComponentObject> {
 	void dispatchClientBrandEvent(IEaglerPendingConnection pendingConnection,
 			IEventDispatchCallback<IEaglercraftClientBrandEvent<PlayerObject, ComponentObject>> onComplete);
 
-	void dispatchLoginEvent(IEaglerLoginConnection loginConnection, boolean redirectSupport,
+	void dispatchLoginEvent(IEaglerLoginConnection loginConnection, boolean redirectSupport, String requestedServer,
 			IEventDispatchCallback<IEaglercraftLoginEvent<PlayerObject, ComponentObject>> onComplete);
 
 	void dispatchInitializePlayerEvent(IEaglerPlayer<PlayerObject> player,

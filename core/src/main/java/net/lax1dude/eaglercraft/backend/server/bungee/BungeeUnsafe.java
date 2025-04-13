@@ -83,7 +83,7 @@ public class BungeeUnsafe {
 			field_InitialHandler_ch.setAccessible(true);
 			class_ChannelWrapper = Class.forName("net.md_5.bungee.netty.ChannelWrapper");
 			method_ChannelWrapper_close = class_ChannelWrapper.getMethod("close");
-			class_PluginMessage = Class.forName("net.md_5.bungee.connection.PluginMessage");
+			class_PluginMessage = Class.forName("net.md_5.bungee.protocol.packet.PluginMessage");
 			method_PluginMessage_getData = class_PluginMessage.getMethod("getData");
 			class_LoginResult = Class.forName("net.md_5.bungee.connection.LoginResult");
 			class_Property = Class.forName("net.md_5.bungee.protocol.Property");
@@ -424,7 +424,7 @@ public class BungeeUnsafe {
 	public static EventLoopGroup getBossEventLoopGroup(ProxyServer proxy) {
 		if(field_BungeeCord_bossEventLoopGroup != null) {
 			try {
-				return (EventLoopGroup) field_BungeeCord_eventLoops.get(proxy);
+				return (EventLoopGroup) field_BungeeCord_bossEventLoopGroup.get(proxy);
 			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
@@ -462,7 +462,7 @@ public class BungeeUnsafe {
 	public static Function<SocketAddress, ChannelFactory<? extends Channel>> getChannelFactory() {
 		return (addr) -> {
 			try {
-				return factoryCache.get((Class<Channel>) method_PipelineUtils_getChannel.invoke(addr));
+				return factoryCache.get((Class<Channel>) method_PipelineUtils_getChannel.invoke(null, addr));
 			} catch (ReflectiveOperationException | ExecutionException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
@@ -474,7 +474,7 @@ public class BungeeUnsafe {
 		return (addr) -> {
 			try {
 				return (ChannelFactory<? extends ServerChannel>) factoryCache
-						.get((Class<Channel>) method_PipelineUtils_getServerChannel.invoke(addr));
+						.get((Class<Channel>) method_PipelineUtils_getServerChannel.invoke(null, addr));
 			} catch (ReflectiveOperationException | ExecutionException e) {
 				throw Util.propagateReflectThrowable(e);
 			}

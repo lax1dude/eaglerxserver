@@ -78,16 +78,14 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 			if(player != null) {
 				player.onDropPartial(skin, cape);
 				if(pkt.serverNotify != null) {
-					IPlatformServer<?> svr = connection.getEaglerXServer().getPlatform().getRegisteredServers().get(pkt.serverNotify);
+					IPlatformServer<?> svr = connection.getEaglerXServer().getPlatform().getServer(pkt.serverNotify);
 					if(svr != null) {
 						SPacketInvalidatePlayerCacheV4EAG pkt2 = new SPacketInvalidatePlayerCacheV4EAG(skin, cape,
 								pkt.uuid.getMostSignificantBits(), pkt.uuid.getLeastSignificantBits());
 						for(IPlatformPlayer<?> otherPlayer : svr.getAllPlayers()) {
 							EaglerPlayerInstance<?> eagPlayer = otherPlayer.<BasePlayerInstance<?>>getPlayerAttachment().asEaglerPlayer();
-							if(eagPlayer != null) {
-								if(eagPlayer.getEaglerProtocol().ver >= 4) {
-									eagPlayer.sendEaglerMessage(pkt2);
-								}
+							if(eagPlayer != null && eagPlayer.getEaglerProtocol().ver >= 4) {
+								eagPlayer.sendEaglerMessage(pkt2);
 							}
 						}
 					}else {

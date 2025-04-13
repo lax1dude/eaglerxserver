@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.bungee;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -117,6 +118,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 
 	@Override
 	public void onLoad() {
+		aborted = true; // Will set to false if onLoad completes normally
 		ProxyServer proxy = getProxy();
 		loggerImpl = new JavaLogger(getLogger());
 		eventDispatcherImpl = new BungeeEventDispatchAdapter(proxy.getPluginManager());
@@ -126,11 +128,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 		componentHelperImpl = new BungeeComponentHelper(alreadyConnected);
 		cacheConsoleCommandSenderInstance = proxy.getConsole();
 		cacheConsoleCommandSenderHandle = new BungeeConsole(cacheConsoleCommandSenderInstance);
-		ImmutableMap.Builder<String, IPlatformServer<ProxiedPlayer>> serverMapBuilder = ImmutableMap.builder();
-		for(Entry<String, ServerInfo> etr : proxy.getServers().entrySet()) {
-			serverMapBuilder.put(etr.getKey(), new BungeeServer(this, etr.getValue(), true));
-		}
-		registeredServers = serverMapBuilder.build();
+		registeredServers = Collections.emptyMap();
     	channelFactory = BungeeUnsafe.getChannelFactory();
     	serverChannelFactory = BungeeUnsafe.getServerChannelFactory();
     	bossEventLoopGroup = BungeeUnsafe.getBossEventLoopGroup(proxy);
@@ -201,9 +199,10 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			if(t != null) {
 				logger().error("Caused by: ", t);
 			}
-			aborted = true;
 			throw new IllegalStateException("Startup aborted");
 		}
+
+		aborted = false;
 	}
 
 	private static final ImmutableMap<String, EnumPipelineComponent> PIPELINE_COMPONENTS_MAP = 
@@ -230,6 +229,12 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 		if(aborted) {
 			return;
 		}
+		aborted = true; // Will set to false if onEnable returns normally
+		ImmutableMap.Builder<String, IPlatformServer<ProxiedPlayer>> serverMapBuilder = ImmutableMap.builder();
+		for(Entry<String, ServerInfo> etr : getProxy().getServers().entrySet()) {
+			serverMapBuilder.put(etr.getKey(), new BungeeServer(this, etr.getValue(), true));
+		}
+		registeredServers = serverMapBuilder.build();
 		ProxyServer bungee = getProxy();
 		PluginManager mgr = bungee.getPluginManager();
 		mgr.registerListener(this, new BungeeListener(this));
@@ -322,10 +327,22 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			});
 			
 		}, listenersList);
-		
+
 		if(onServerEnable != null) {
-			onServerEnable.run();
+			try {
+				onServerEnable.run();
+			}catch(AbortLoadException ex) {
+				logger().error("Server startup aborted: " + ex.getMessage());
+				Throwable t = ex.getCause();
+				if(t != null) {
+					logger().error("Caused by: ", t);
+				}
+				onDisable();
+				throw new IllegalStateException("Startup aborted");
+			}
 		}
+
+		aborted = false;
 	}
 
 	@Override
@@ -424,6 +441,23 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	@Override
 	public Map<String, IPlatformServer<ProxiedPlayer>> getRegisteredServers() {
 		return registeredServers;
+	}
+
+	@Override
+	public IPlatformServer<ProxiedPlayer> getServer(String serverName) {
+		IPlatformServer<ProxiedPlayer> ret = registeredServers.get(serverName);
+		if(ret != null) {
+			return ret;
+		}else {
+			Map<String, ServerInfo> servers = getProxy().getServers();
+			if(servers != null) {
+				ServerInfo info = servers.get(serverName);
+				if(info != null) {
+					return new BungeeServer(this, info, false);
+				}
+			}
+			return null;
+		}
 	}
 
 	@Override

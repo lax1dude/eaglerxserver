@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.velocity.event;
 
+import java.util.UUID;
+
 import com.velocitypowered.api.proxy.Player;
 
 import net.kyori.adventure.text.Component;
@@ -15,12 +17,18 @@ class VelocityLoginEventImpl extends EaglercraftLoginEvent {
 	private final boolean redirectSupport;
 	private Component message;
 	private String redirect;
+	private String username;
+	private UUID uuid;
+	private String requestedServer;
 
 	VelocityLoginEventImpl(IEaglerXServerAPI<Player> api, IEaglerLoginConnection loginConnection,
-			boolean redirectSupport) {
+			boolean redirectSupport, String requestedServer) {
 		this.api = api;
 		this.loginConnection = loginConnection;
 		this.redirectSupport = redirectSupport;
+		this.username = loginConnection.getUsername();
+		this.uuid = loginConnection.getUniqueId();
+		this.requestedServer = requestedServer;
 	}
 
 	@Override
@@ -71,6 +79,36 @@ class VelocityLoginEventImpl extends EaglercraftLoginEvent {
 	@Override
 	public void setRedirectAddress(String addr) {
 		this.redirect = addr;
+	}
+
+	@Override
+	public String getProfileUsername() {
+		return username;
+	}
+
+	@Override
+	public void setProfileUsername(String username) {
+		this.username = username;
+	}
+
+	@Override
+	public UUID getProfileUUID() {
+		return uuid;
+	}
+
+	@Override
+	public void setProfileUUID(UUID uuid) {
+		this.uuid = uuid;
+	}
+
+	@Override
+	public String getRequestedServer() {
+		return requestedServer;
+	}
+
+	@Override
+	public void setRequestedServer(String server) {
+		this.requestedServer = server;
 	}
 
 }

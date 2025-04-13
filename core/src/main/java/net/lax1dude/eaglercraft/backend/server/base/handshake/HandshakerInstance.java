@@ -11,6 +11,8 @@ import java.util.regex.Pattern;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformSubLogger;
 import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilityType;
 import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectIntMap;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
@@ -412,7 +414,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 	private void handleContinueLogin(ChannelHandlerContext ctx) {
 		updateLoggerName();
 		server.eventDispatcher().dispatchLoginEvent(pipelineData.asLoginConnection(),
-				pipelineData.hasLoginStateRedirectCap(), (evt, err) -> {
+				pipelineData.hasLoginStateRedirectCap(), pipelineData.requestedServer, (evt, err) -> {
 			if(!ctx.channel().isActive()) {
 				return;
 			}
@@ -439,6 +441,17 @@ public abstract class HandshakerInstance implements IHandshaker {
 					final Object msg2 = kickMsg;
 					ctx.channel().eventLoop().execute(() -> sendPacketDenyLogin(ctx, msg2).addListener(ChannelFutureListener.CLOSE));
 				}else {
+					if(!pipelineData.username.equals(evt.getProfileUsername())) {
+						pipelineData.username = evt.getProfileUsername();
+						if(pipelineData.connectionLogger.getParent() instanceof IPlatformSubLogger sub) {
+							pipelineData.connectionLogger = sub;
+						}
+						updateLoggerName();
+					}
+					if(server.getPlatform().getType() != EnumAdapterPlatformType.BUKKIT) {
+						pipelineData.uuid = evt.getProfileUUID();
+					}
+					pipelineData.requestedServer = evt.getRequestedServer();
 					ctx.channel().eventLoop().execute(() -> {
 						state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
 						sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid, pipelineData.acceptedCapabilitiesMask,

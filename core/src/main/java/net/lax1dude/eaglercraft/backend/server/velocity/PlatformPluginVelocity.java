@@ -268,6 +268,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		if(aborted) {
 			return;
 		}
+		aborted = true; // Will set to false if onProxyInit completes normally
     	proxy.getEventManager().register(this, new VelocityListener(this));
     	listenersToInit = new ListenerInitList(listenersList);
     	registeredCommandsList.clear();
@@ -329,7 +330,6 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 					});
 				}
 			}
-
 			pipelineInitializer.initialize(new IPlatformNettyPipelineInitializer<Object>() {
 				@Override
 				public void setAttachment(Object object) {
@@ -360,8 +360,19 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 
     	});
 		if(onServerEnable != null) {
-			onServerEnable.run();
+			try {
+				onServerEnable.run();
+			}catch(AbortLoadException ex) {
+				logger().error("Server startup aborted: " + ex.getMessage());
+				Throwable t = ex.getCause();
+				if(t != null) {
+					logger().error("Caused by: ", t);
+				}
+				onProxyShutdown(null);
+				throw new IllegalStateException("Startup aborted");
+			}
 		}
+		aborted = false;
 	}
 
 	@Subscribe
@@ -463,6 +474,20 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	@Override
 	public Map<String, IPlatformServer<Player>> getRegisteredServers() {
 		return registeredServers;
+	}
+
+	@Override
+	public IPlatformServer<Player> getServer(String serverName) {
+		IPlatformServer<Player> ret = registeredServers.get(serverName);
+		if(ret != null) {
+			return ret;
+		}else {
+			Optional<RegisteredServer> svr = proxy.getServer(serverName);
+			if(svr.isPresent()) {
+				return new VelocityServer(this, svr.get(), false);
+			}
+			return null;
+		}
 	}
 
 	@Override

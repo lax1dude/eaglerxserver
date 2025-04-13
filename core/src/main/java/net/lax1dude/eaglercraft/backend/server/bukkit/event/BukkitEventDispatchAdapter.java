@@ -124,8 +124,8 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player,
 
 	@Override
 	public void dispatchLoginEvent(IEaglerLoginConnection loginConnection, boolean redirectSupport,
-			IEventDispatchCallback<IEaglercraftLoginEvent<Player, BaseComponent>> onComplete) {
-		fireAsync(new BukkitLoginEventImpl(api, loginConnection, redirectSupport), onComplete);
+			String requestedServer, IEventDispatchCallback<IEaglercraftLoginEvent<Player, BaseComponent>> onComplete) {
+		fireAsync(new BukkitLoginEventImpl(api, loginConnection, redirectSupport, requestedServer), onComplete);
 	}
 
 	@Override

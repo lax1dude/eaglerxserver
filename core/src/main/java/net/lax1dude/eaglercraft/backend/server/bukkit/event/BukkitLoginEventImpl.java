@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.bukkit.event;
 
+import java.util.UUID;
+
 import org.bukkit.entity.Player;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
@@ -16,12 +18,16 @@ class BukkitLoginEventImpl extends EaglercraftLoginEvent {
 	private final boolean redirectSupport;
 	private BaseComponent message;
 	private String redirect;
+	private String username;
+	private String requestedServer;
 
 	BukkitLoginEventImpl(IEaglerXServerAPI<Player> api, IEaglerLoginConnection loginConnection,
-			boolean redirectSupport) {
+			boolean redirectSupport, String requestedServer) {
 		this.api = api;
 		this.loginConnection = loginConnection;
 		this.redirectSupport = redirectSupport;
+		this.username = loginConnection.getUsername();
+		this.requestedServer = requestedServer;
 	}
 
 	@Override
@@ -72,6 +78,36 @@ class BukkitLoginEventImpl extends EaglercraftLoginEvent {
 	@Override
 	public void setRedirectAddress(String addr) {
 		this.redirect = addr;
+	}
+
+	@Override
+	public String getProfileUsername() {
+		return username;
+	}
+
+	@Override
+	public void setProfileUsername(String username) {
+		this.username = username;
+	}
+
+	@Override
+	public UUID getProfileUUID() {
+		return loginConnection.getUniqueId();
+	}
+
+	@Override
+	public void setProfileUUID(UUID uuid) {
+		throw new UnsupportedOperationException("Cannot change player UUID on Bukkit platforms!");
+	}
+
+	@Override
+	public String getRequestedServer() {
+		return requestedServer;
+	}
+
+	@Override
+	public void setRequestedServer(String server) {
+		this.requestedServer = server;
 	}
 
 }

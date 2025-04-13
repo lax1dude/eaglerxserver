@@ -122,8 +122,8 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter<Playe
 
 	@Override
 	public void dispatchLoginEvent(IEaglerLoginConnection loginConnection, boolean redirectSupport,
-			IEventDispatchCallback<IEaglercraftLoginEvent<Player, Component>> onComplete) {
-		fire(new VelocityLoginEventImpl(api, loginConnection, redirectSupport), onComplete);
+			String requestedServer, IEventDispatchCallback<IEaglercraftLoginEvent<Player, Component>> onComplete) {
+		fire(new VelocityLoginEventImpl(api, loginConnection, redirectSupport, requestedServer), onComplete);
 	}
 
 	@Override

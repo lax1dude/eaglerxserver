@@ -179,7 +179,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		logger().info("Loading " + getServerBrand() + " " + getServerVersion() + "...");
 		logger().info("(Platform: " + platformType.getName() + ")");
 		
-		if(platform.isOnlineMode()) {
+		if(platformType != EnumPlatformType.BUNGEECORD && platform.isOnlineMode()) {
 			throw new AbortLoadException("Online mode is not supported yet!");
 		}
 		
@@ -372,6 +372,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	private void enableHandler() {
 		logger().info("Enabling " + getServerBrand() + " " + getServerVersion() + "...");
+		
+		if(platform.isOnlineMode()) {
+			throw new AbortLoadException("Online mode is not supported yet!");
+		}
 
 		webServer.refreshBuiltinPages();
 
