@@ -16,11 +16,14 @@ public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 	private final PipelineTransformer transformer;
 	private final NettyPipelineData pipelineData;
 	private final List<ChannelHandler> componentsToRemove;
+	private final String bungeeHack;
 
-	public MultiStackInitialInboundHandler(PipelineTransformer transformer, NettyPipelineData pipelineData, List<ChannelHandler> componentsToRemove) {
+	public MultiStackInitialInboundHandler(PipelineTransformer transformer, NettyPipelineData pipelineData,
+			List<ChannelHandler> componentsToRemove, String bungeeHack) {
 		this.transformer = transformer;
 		this.pipelineData = pipelineData;
 		this.componentsToRemove = componentsToRemove;
+		this.bungeeHack = bungeeHack;
 	}
 
 	@Override
@@ -255,6 +258,9 @@ public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 				for(ChannelHandler handler : componentsToRemove) {
 					p.remove(handler);
 				}
+			}
+			if(bungeeHack != null) {
+				p.addLast(bungeeHack, NOPDummyHandler.INSTANCE);
 			}
 			transformer.initializeHTTPHandler(pipelineData, ssl, p, PipelineTransformer.HANDLER_MULTI_STACK_INITIAL);
 			if (ctx.channel().isActive()) {

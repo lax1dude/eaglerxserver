@@ -67,9 +67,13 @@ public class PipelineTransformer {
 		String before = null;
 		String first = null;
 		boolean e = false;
+		String bungeeHack = null;
 		for(IPipelineComponent comp : components) {
 			if(VANILLA_FRAME_DECODERS.contains(comp.getIdentifiedType())) {
 				pipeline.remove(comp.getHandle());
+				if(comp.getIdentifiedType() == EnumPipelineComponent.BUNGEE_LEGACY_KICK_ENCODER) {
+					bungeeHack = comp.getName();
+				}
 			}else {
 				if(!e) {
 					if(comp.getIdentifiedType() != EnumPipelineComponent.HAPROXY_HANDLER) {
@@ -79,6 +83,9 @@ public class PipelineTransformer {
 					before = comp.getName();
 				}
 			}
+		}
+		if(bungeeHack != null) {
+			pipeline.addLast(bungeeHack, NOPDummyHandler.INSTANCE);
 		}
 		if(!e) {
 			return;
@@ -90,7 +97,7 @@ public class PipelineTransformer {
 				throw new IllegalStateException();
 			}
 			if(!eagListener.isTLSRequired()) {
-				MultiStackInitialInboundHandler ms = new MultiStackInitialInboundHandler(this, pipelineData, null);
+				MultiStackInitialInboundHandler ms = new MultiStackInitialInboundHandler(this, pipelineData, null, null);
 				if(first == null) {
 					channel.pipeline().addFirst(HANDLER_MULTI_STACK_INITIAL, ms);
 				}else {
@@ -108,9 +115,13 @@ public class PipelineTransformer {
 	public void injectDualStack(List<IPipelineComponent> components, Channel channel, NettyPipelineData pipelineData) {
 		List<ChannelHandler> toRemove = new ArrayList<>(4);
 		String first = null;
+		String bungeeHack = null;
 		for(IPipelineComponent comp : components) {
 			if(VANILLA_FRAME_DECODERS.contains(comp.getIdentifiedType())) {
 				toRemove.add(comp.getHandle());
+				if(comp.getIdentifiedType() == EnumPipelineComponent.BUNGEE_LEGACY_KICK_ENCODER) {
+					bungeeHack = comp.getName();
+				}
 			}else {
 				if(first == null && comp.getIdentifiedType() != EnumPipelineComponent.HAPROXY_HANDLER) {
 					first = comp.getName();
@@ -120,7 +131,7 @@ public class PipelineTransformer {
 		if(first == null) {
 			return;
 		}
-		channel.pipeline().addBefore(first, HANDLER_MULTI_STACK_INITIAL, new MultiStackInitialInboundHandler(this, pipelineData, toRemove));
+		channel.pipeline().addBefore(first, HANDLER_MULTI_STACK_INITIAL, new MultiStackInitialInboundHandler(this, pipelineData, toRemove, bungeeHack));
 		channel.pipeline().addLast(HANDLER_OUTBOUND_THROW, OutboundPacketThrowHandler.INSTANCE);
 	}
 

@@ -34,7 +34,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.velocity.PlatformPluginVelocity.PluginMessageHandler;
 
-class VelocityListener {
+public class VelocityListener {
 
 	private final PlatformPluginVelocity plugin;
 

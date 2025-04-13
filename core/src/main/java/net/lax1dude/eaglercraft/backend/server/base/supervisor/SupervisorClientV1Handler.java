@@ -82,12 +82,12 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 					if(svr != null) {
 						SPacketInvalidatePlayerCacheV4EAG pkt2 = new SPacketInvalidatePlayerCacheV4EAG(skin, cape,
 								pkt.uuid.getMostSignificantBits(), pkt.uuid.getLeastSignificantBits());
-						for(IPlatformPlayer<?> otherPlayer : svr.getAllPlayers()) {
+						svr.forEachPlayer((otherPlayer) -> {
 							EaglerPlayerInstance<?> eagPlayer = otherPlayer.<BasePlayerInstance<?>>getPlayerAttachment().asEaglerPlayer();
 							if(eagPlayer != null && eagPlayer.getEaglerProtocol().ver >= 4) {
 								eagPlayer.sendEaglerMessage(pkt2);
 							}
-						}
+						});
 					}else {
 						connection.logger().warn("Received skin change for unknown server: " + pkt.serverNotify);
 					}

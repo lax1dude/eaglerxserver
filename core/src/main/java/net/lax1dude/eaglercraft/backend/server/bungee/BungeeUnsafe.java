@@ -25,6 +25,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ReflectiveChannelFactory;
@@ -417,7 +418,7 @@ public class BungeeUnsafe {
 	}
 
 	private static boolean isServerInitializer(ChannelHandler handler) {
-		return handler != null && ChannelInitializer.class.isAssignableFrom(handler.getClass())
+		return handler != null && ChannelInboundHandlerAdapter.class.isAssignableFrom(handler.getClass())
 				&& !"net.md_5.bungee.query.QueryHandler".equals(handler.getClass().getName());
 	}
 

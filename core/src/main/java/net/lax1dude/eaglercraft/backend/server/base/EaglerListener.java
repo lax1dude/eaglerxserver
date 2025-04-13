@@ -3,6 +3,10 @@ package net.lax1dude.eaglercraft.backend.server.base;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.List;
@@ -172,7 +176,30 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 
 	@Override
 	public boolean matchListenerAddress(SocketAddress addr) {
-		return addr.equals(listenerConf.getInjectAddress());
+		if(addr.equals(listenerConf.getInjectAddress())) {
+			return true;
+		} else if ((addr instanceof InetSocketAddress addr2)
+				&& (listenerConf.getInjectAddress() instanceof InetSocketAddress addr3)
+				&& isAllZeros(addr2) && isAllZeros(addr3)) {
+			return addr2.getPort() == addr3.getPort();
+		} else {
+			return false;
+		}
+	}
+
+	private boolean isAllZeros(InetSocketAddress addr) {
+		InetAddress addr2 = addr.getAddress();
+		if (addr2 instanceof Inet4Address addr3) {
+			byte[] octets = addr3.getAddress();
+			return (octets[0] | octets[1] | octets[2] | octets[3]) == 0;
+		} else if (addr2 instanceof Inet6Address addr3) {
+			byte[] octets = addr3.getAddress();
+			return (octets[0] | octets[1] | octets[2] | octets[3] | octets[4] | octets[5] | octets[6] | octets[7]
+					| octets[8] | octets[9] | octets[10] | octets[11] | octets[12] | octets[13] | octets[14]
+					| octets[15]) == 0;
+		} else {
+			return false;
+		}
 	}
 
 	@Override
