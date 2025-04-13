@@ -70,8 +70,12 @@ public class BungeeListener implements Listener {
 		event.registerIntent(plugin);
 		conn.awaitPlayState(() -> {
 			try {
-				plugin.initializePlayer(player, conn, () -> {
-					event.completeIntent(plugin);
+				plugin.initializePlayer(player, conn, (b) -> {
+					if(b) {
+						event.completeIntent(plugin);
+					}else {
+						// Hang forever on cancel, connection is already dead, async callback will GC
+					}
 				});
 			}catch(Exception ex) {
 				try {

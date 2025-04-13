@@ -30,19 +30,16 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheTable.SkinCacheTableThreadEnv;
+import net.lax1dude.eaglercraft.backend.util.ILoggerAdapter;
 import net.lax1dude.eaglercraft.backend.util.SteadyTime;
 
 public class SkinCacheDatastore implements ISkinCacheDatastore {
 
-	static final Logger logger = LoggerFactory.getLogger("SkinCacheDatastore");
-
 	public static final int SKIN_LENGTH = 12288;
 	public static final int CAPE_LENGTH = 1173;
 
+	protected final ILoggerAdapter logger;
 	protected final SkinCacheDatastoreThreadEnv[] threads;
 	protected final Queue<SkinCacheDatastoreRunnable> databaseQueue = new LinkedList<>();
 	protected final Connection conn;
@@ -69,7 +66,7 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 
 		protected SkinCacheDatastoreThreadEnv(int i, int compressionLevel, Connection conn) throws SQLException {
 			skinEnv = skin.createThreadEnv(conn);
-			capeEnv = skin.createThreadEnv(conn);
+			capeEnv = cape.createThreadEnv(conn);
 			compressionTmp = new byte[65535];
 			deflater = compressionLevel > 0 ? new Deflater(compressionLevel) : null;
 			inflater = compressionLevel > 0 ? new Inflater() : null;
@@ -120,13 +117,14 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 	}
 
 	public SkinCacheDatastore(Connection conn, int threadCount, int keepObjectsDays, int maxObjects,
-			int compressionLevel, boolean sqliteCompatible) throws SQLException {
+			int compressionLevel, boolean sqliteCompatible, ILoggerAdapter logger) throws SQLException {
 		this.conn = conn;
 		this.keepObjectsDays = keepObjectsDays;
 		this.maxObjects = maxObjects;
 		this.sqliteCompatible = sqliteCompatible;
-		skin = new SkinCacheTable("eagler_skins", conn, sqliteCompatible);
-		cape = new SkinCacheTable("eagler_capes", conn, sqliteCompatible);
+		this.logger = logger;
+		skin = new SkinCacheTable("eagler_skins", conn, sqliteCompatible, logger);
+		cape = new SkinCacheTable("eagler_capes", conn, sqliteCompatible, logger);
 		disposed = false;
 		disposeLatch = new CountDownLatch(threadCount);
 		threads = new SkinCacheDatastoreThreadEnv[threadCount];
@@ -149,7 +147,7 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 			try {
 				result = skin.loadSkin(env.skinEnv, skinURL);
 			}catch(SQLException ex) {
-				logger.error("Could not load skin \"{}\" from database!", skinURL);
+				logger.error("Could not load skin \"" + skinURL + "\" from database!");
 				callback.accept(null);
 				return;
 			}
@@ -158,7 +156,7 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 				try {
 					res = decompressSkin(env, result, SKIN_LENGTH);
 				}catch(DataFormatException ex) {
-					logger.warn("Skin \"{}\" could not be decompressed!", skinURL);
+					logger.warn("Skin \"" + skinURL + "\" could not be decompressed!");
 					callback.accept(null);
 					return;
 				}
@@ -176,7 +174,7 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 			try {
 				result = cape.loadSkin(env.capeEnv, capeURL);
 			}catch(SQLException ex) {
-				logger.error("Could not load cape \"{}\" from database!", capeURL);
+				logger.error("Could not load cape \"" + capeURL + "\" from database!");
 				callback.accept(null);
 				return;
 			}
@@ -185,7 +183,7 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 				try {
 					res = decompressSkin(env, result, CAPE_LENGTH);
 				}catch(DataFormatException ex) {
-					logger.warn("Cape \"{}\" could not be decompressed!", capeURL);
+					logger.warn("Cape \"" + capeURL + "\" could not be decompressed!");
 					callback.accept(null);
 					return;
 				}
@@ -218,7 +216,7 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 			try {
 				skin.storeSkin(env.skinEnv, skinURL, sha1Digest(env, data), compressSkin(env, data));
 			} catch (IllegalStateException | SQLException e) {
-				logger.error("Skin \"{}\" could not be stored in the database!", skinURL, e);
+				logger.error("Skin \"" + skinURL + "\" could not be stored in the database!", e);
 			}
 		});
 	}
@@ -232,7 +230,7 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 			try {
 				cape.storeSkin(env.capeEnv, capeURL, sha1Digest(env, data), compressSkin(env, data));
 			} catch (IllegalStateException | SQLException e) {
-				logger.error("Cape \"{}\" could not be stored in the database!", capeURL, e);
+				logger.error("Cape \"" + capeURL + "\" could not be stored in the database!", e);
 			}
 		});
 	}

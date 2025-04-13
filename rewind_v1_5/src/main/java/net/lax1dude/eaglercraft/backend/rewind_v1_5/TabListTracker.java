@@ -1,10 +1,10 @@
 package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.collect.HPPC;
+import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectObjectMap;
 
 public class TabListTracker {
 
@@ -28,8 +28,13 @@ public class TabListTracker {
 
 	}
 
-	private final Map<UUID, ListItem> playerUUIDToItem = new HashMap<>();
-	private final Map<String, ListItem> playerNameToItem = new HashMap<>();
+	private final ObjectObjectMap<UUID, ListItem> playerUUIDToItem;
+	private final ObjectObjectMap<String, ListItem> playerNameToItem;
+
+	public TabListTracker(HPPC hppc) {
+		this.playerUUIDToItem = hppc.createObjectObjectHashMap(32);
+		this.playerNameToItem = hppc.createObjectObjectHashMap(32);
+	}
 
 	public ListItem getItemByUUID(UUID uuid) {
 		return playerUUIDToItem.get(uuid);
@@ -50,7 +55,7 @@ public class TabListTracker {
 				playerName.equals(displayName) ? playerName : displayName.intern(), pingValue);
 		ListItem oldItem = playerUUIDToItem.put(playerUUID, newItem);
 		if(oldItem != null) {
-			playerNameToItem.remove(oldItem.playerName, oldItem);
+			playerNameToItem.remove(oldItem.playerName);
 		}
 		playerNameToItem.put(playerName, newItem);
 		return oldItem;

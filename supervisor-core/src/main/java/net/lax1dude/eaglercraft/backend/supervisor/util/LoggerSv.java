@@ -17,10 +17,16 @@
 package net.lax1dude.eaglercraft.backend.supervisor.util;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.util.ILoggerSv;
+import net.lax1dude.eaglercraft.backend.util.ILoggerAdapter;
 
-public class LoggerSv implements ILoggerSv {
+public class LoggerSv implements ILoggerSv, ILoggerAdapter {
+
+	public static LoggerSv getLogger(String logger) {
+		return new LoggerSv(LoggerFactory.getLogger(logger));
+	}
 
 	private final Logger logger;
 

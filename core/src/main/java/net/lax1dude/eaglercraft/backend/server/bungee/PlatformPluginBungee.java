@@ -570,7 +570,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 		});
 	}
 
-	public void initializePlayer(ProxiedPlayer player, BungeeConnection connection, Runnable onComplete) {
+	public void initializePlayer(ProxiedPlayer player, BungeeConnection connection, Consumer<Boolean> onComplete) {
 		BungeePlayer p = new BungeePlayer(player, connection);
 		playerInitializer.initializePlayer(new IPlatformPlayerInitializer<Object, Object, ProxiedPlayer>() {
 			@Override
@@ -588,11 +588,11 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			@Override
 			public void complete() {
 				playerInstanceMap.put(player, p);
-				onComplete.run();
+				onComplete.accept(true);
 			}
 			@Override
 			public void cancel() {
-				onComplete.run();
+				onComplete.accept(false);
 			}
 		});
 	}

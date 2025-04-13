@@ -23,6 +23,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import net.lax1dude.eaglercraft.backend.util.ILoggerAdapter;
+
 class SkinCacheTable {
 
 	class SkinCacheTableThreadEnv {
@@ -64,6 +66,7 @@ class SkinCacheTable {
 
 	protected final String name;
 	protected final boolean sqlite;
+	protected final ILoggerAdapter logger;
 
 	protected final PreparedStatement statementCount;
 
@@ -77,9 +80,10 @@ class SkinCacheTable {
 	protected final PreparedStatement statementDeleteExpired;
 	protected final PreparedStatement statementDeleteOld;
 
-	SkinCacheTable(String name, Connection conn, boolean sqlite) throws SQLException {
+	SkinCacheTable(String name, Connection conn, boolean sqlite, ILoggerAdapter logger) throws SQLException {
 		this.name = name;
 		this.sqlite = sqlite;
+		this.logger = logger;
 		try(Statement stmt = conn.createStatement()) {
 			if(sqlite) {
 				// TextureID will be used by SQLite as rowid
@@ -202,8 +206,8 @@ class SkinCacheTable {
 		}
 		if(totalSkins > maxObjects) {
 			int deleteCount = totalSkins - maxObjects + (maxObjects >> 3);
-			SkinCacheDatastore.logger.warn("{} object cache has passed {} skins in size ({}), deleting {} skins from the cache to free space",
-					name, maxObjects, totalSkins, deleteCount);
+			logger.warn(name + " object cache has passed " + maxObjects + " skins in size (" + totalSkins
+					+ "), deleting " + deleteCount + " skins from the cache to free space");
 			if(sqlite) {
 				statementSQLiteListOld.setInt(1, deleteCount);
 				try(ResultSet resultSet = statementSQLiteListOld.executeQuery()) {
@@ -230,7 +234,7 @@ class SkinCacheTable {
 				return -1;
 			}
 		}catch(SQLException ex) {
-			SkinCacheDatastore.logger.error("Could not count stored {}!", name, ex);
+			logger.error("Could not count stored " + name + "!", ex);
 			return -1;
 		}
 	}

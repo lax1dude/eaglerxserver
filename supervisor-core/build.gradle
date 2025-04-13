@@ -23,6 +23,13 @@ jar {
 	compileJava.options.encoding = "UTF-8"
 	javadoc.options.encoding = "UTF-8"
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+	manifest {
+		attributes(
+			'Main-Class': 'net.lax1dude.eaglercraft.backend.supervisor.EaglerXSupervisorServer'
+		)
+	}
+
 	from {
 		configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
 	}

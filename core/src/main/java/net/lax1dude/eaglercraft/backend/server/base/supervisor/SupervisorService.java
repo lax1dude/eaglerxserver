@@ -196,7 +196,7 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 	void handleChannelFailure() {
 		int state;
 		do {
-			state = (int)SERVICE_STATE_TRACKER_HANDLE.getOpaque();
+			state = (int)SERVICE_STATE_TRACKER_HANDLE.getOpaque(this);
 			if(state <= 0) {
 				return;
 			}
@@ -223,7 +223,7 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 	void handleDisconnected() {
 		int state;
 		do {
-			state = (int)SERVICE_STATE_TRACKER_HANDLE.getOpaque();
+			state = (int)SERVICE_STATE_TRACKER_HANDLE.getOpaque(this);
 			if(state <= 0) {
 				return;
 			}

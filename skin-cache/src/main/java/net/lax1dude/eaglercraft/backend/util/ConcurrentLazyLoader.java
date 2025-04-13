@@ -20,17 +20,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public abstract class ConcurrentLazyLoader<T> {
-
-	private static final Logger logger = LoggerFactory.getLogger("ConcurrentLazyLoader");
 
 	private List<Consumer<T>> waitingCallbacks = null;
 	private T result = null;
 
 	protected abstract void loadImpl(Consumer<T> callback);
+
+	protected abstract ILoggerAdapter getLogger();
 
 	public void load(Consumer<T> callback) {
 		T val = result;
@@ -72,7 +69,7 @@ public abstract class ConcurrentLazyLoader<T> {
 						try {
 							toCall.get(i).accept(res);
 						}catch(Exception ex) {
-							logger.error("Caught error from lazy load callback", ex);
+							getLogger().error("Caught error from lazy load callback", ex);
 						}
 					}
 				}

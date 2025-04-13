@@ -49,7 +49,7 @@ abstract class MultiSkinResolver<SkinManager extends ISkinManagerImpl, PlayerObj
 	}
 
 	private void countDown() {
-		if((int)COUNT_DOWN_HANDLE.getAndAdd(this, -1) == 0) {
+		if((int)COUNT_DOWN_HANDLE.getAndAdd(this, -1) == 1) {
 			onComplete(skinManager, skin, cape);
 		}
 	}

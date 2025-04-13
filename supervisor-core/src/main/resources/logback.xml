@@ -17,7 +17,7 @@
 			<pattern>[%d{HH:mm:ss+SSS}][%thread/%level][%logger{48}]: %msg%n</pattern>
 		</encoder>
 	</appender>
-	<root level="INFO">
+	<root level="DEBUG">
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="FILE" />
 	</root>

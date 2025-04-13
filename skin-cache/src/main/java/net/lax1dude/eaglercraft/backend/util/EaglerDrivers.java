@@ -32,14 +32,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class EaglerDrivers {
 
-	private static final Logger logger = LoggerFactory.getLogger("EaglerDrivers");
-
-	private static Driver initializeDriver(String address, String driverClass) {
+	private static Driver initializeDriver(String address, String driverClass, ILoggerAdapter logger) {
 		ClassLoader classLoader;
 		if(address.equalsIgnoreCase("classpath")) {
 			classLoader = EaglerDrivers.class.getClassLoader();
@@ -53,7 +48,7 @@ public class EaglerDrivers {
 					if(!driver.exists()) {
 						try {
 							URL u = new URL("https://repo1.maven.org/maven2/org/xerial/sqlite-jdbc/3.48.0.0/sqlite-jdbc-3.48.0.0.jar");
-							logger.info("Downloading from maven: {}", u);
+							logger.info("Downloading from maven: " + u);
 							copyURLToFile(u, driver);
 						} catch (Throwable ex) {
 							logger.error("Could not download sqlite-jdbc.jar from repo1.maven.org!");
@@ -97,8 +92,8 @@ public class EaglerDrivers {
 	private static final Map<String, ClassLoader> driversJARs = new HashMap<>();
 	private static final Map<String, Driver> driversDrivers = new HashMap<>();
 
-	public static Connection connectToDatabase(String address, String driverClass, String driverPath, Properties props)
-			throws SQLException {
+	public static Connection connectToDatabase(String address, String driverClass, String driverPath, Properties props,
+			ILoggerAdapter logger) throws SQLException {
 		if(driverClass.equalsIgnoreCase("internal")) {
 			driverClass = "org.sqlite.JDBC";
 		}
@@ -113,7 +108,7 @@ public class EaglerDrivers {
 			String driverMapPath = "" + driverPath + "?" + driverClass;
 			Driver dv = driversDrivers.get(driverMapPath);
 			if(dv == null) {
-				dv = initializeDriver(driverPath, driverClass);
+				dv = initializeDriver(driverPath, driverClass, logger);
 				driversDrivers.put(driverMapPath, dv);
 			}
 			return dv.connect(address, props);

@@ -388,7 +388,7 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 							IEaglerPlayerCape cape) {
 						if(skin != MissingSkin.UNAVAILABLE_SKIN && cape != MissingCape.UNAVAILABLE_CAPE) {
 							if(!skin.isSuccess() && !cape.isSuccess()) {
-								player.getRateLimits().ratelimitSvSkinAntagonist();
+								mgr.player.getRateLimits().ratelimitSvSkinAntagonist();
 							}
 							mgr.player.sendEaglerMessage(mgr.createV5Textures(uuidMost, uuidLeast, skin, cape));
 						}

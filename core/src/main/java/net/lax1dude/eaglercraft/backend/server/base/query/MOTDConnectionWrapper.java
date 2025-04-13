@@ -71,8 +71,8 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 		EaglerListener listener = queryConnection.getListenerInfo();
 		motd = defaultMotd = listener.getServerMOTD();
 		IPlatform<?> platform = server.getPlatform();
-		playerTotal = defaultPlayerTotal = platform.getPlayerTotal();
-		playerMax = defaultPlayerMax = platform.getPlayerMax();
+		playerTotal = defaultPlayerTotal = server.getSupervisorService().getPlayerTotal();
+		playerMax = defaultPlayerMax = server.getSupervisorService().getPlayerMax();
 		if(listener.isShowMOTDPlayerList()) {
 			playerList = defaultPlayerList = new EaglerArrayList(10);
 			try {

@@ -68,6 +68,7 @@ import net.lax1dude.eaglercraft.backend.supervisor.server.player.SupervisorPlaye
 import net.lax1dude.eaglercraft.backend.supervisor.status.SkinCacheStatus;
 import net.lax1dude.eaglercraft.backend.supervisor.status.StatusRendererHTML;
 import net.lax1dude.eaglercraft.backend.supervisor.util.AlreadyRegisteredException;
+import net.lax1dude.eaglercraft.backend.supervisor.util.LoggerSv;
 import net.lax1dude.eaglercraft.backend.util.EaglerDrivers;
 
 public class EaglerXSupervisorServer implements Runnable {
@@ -134,10 +135,12 @@ public class EaglerXSupervisorServer implements Runnable {
 			
 			try {
 				skinJDBCConnection = EaglerDrivers.connectToDatabase(config.getSkinCacheDBURI(),
-						config.getSQLDriverClass(), config.getSQLDriverPath(), new Properties());
+						config.getSQLDriverClass(), config.getSQLDriverPath(), new Properties(),
+						LoggerSv.getLogger("EaglerDrivers"));
 				datastore = new SkinCacheDatastore(skinJDBCConnection, threads,
 						config.getDatabaseKeepObjectsDays(), config.getDatabaseMaxObjects(),
-						config.getDatabaseCompressionLevel(), config.getSkinCacheDBSQLiteCompatible());
+						config.getDatabaseCompressionLevel(), config.getSkinCacheDBSQLiteCompatible(),
+						LoggerSv.getLogger("SkinCacheDatastore"));
 				logger.info("Connected to database: '{}'", config.getSkinCacheDBURI());
 			}catch(SQLException ex) {
 				logger.info("Failed to connect to database!", ex);
@@ -150,7 +153,9 @@ public class EaglerXSupervisorServer implements Runnable {
 				return;
 			}
 			
-			skinCache = new SkinCacheService(downloader, datastore, config.getMemoryCacheKeepObjectsSeconds(), config.getMemoryCacheMaxObjects());
+			skinCache = new SkinCacheService(downloader, datastore, config.getMemoryCacheKeepObjectsSeconds(),
+					Math.min(1024, config.getMemoryCacheMaxObjects()), config.getMemoryCacheMaxObjects(),
+					LoggerSv.getLogger("SkinCacheService"));
 		}
 
 		logger.info("Starting listeners...");

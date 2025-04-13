@@ -395,10 +395,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			SkinCacheDatastore datastore;
 			try {
 				skinCacheJDBCHandle = EaglerDrivers.connectToDatabase(skinConf.getSkinCacheDBURI(),
-						skinConf.getSkinCacheDriverClass(), skinConf.getSkinCacheDriverPath(), new Properties());
+						skinConf.getSkinCacheDriverClass(), skinConf.getSkinCacheDriverPath(), new Properties(), logger());
 				datastore = new SkinCacheDatastore(skinCacheJDBCHandle, threadCount,
 						skinConf.getSkinCacheDiskKeepObjectsDays(), skinConf.getSkinCacheDiskMaxObjects(),
-						Math.min(skinConf.getSkinCacheCompressionLevel(), 9), skinConf.isSkinCacheSQLiteCompatible());
+						Math.min(skinConf.getSkinCacheCompressionLevel(), 9), skinConf.isSkinCacheSQLiteCompatible(), logger());
 				logger().info("Connected to skin cache database successfully!");
 			} catch (SQLException e) {
 				logger().error("Caught an exception while initializing the skin cache database", e);
@@ -413,7 +413,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			}
 			skinCacheService.setDelegate(new SkinCacheService(
 					new SkinCacheDownloader(httpClient, skinConf.getValidSkinDownloadURLs()), datastore,
-					skinConf.getSkinCacheMemoryKeepSeconds(), skinConf.getSkinCacheMemoryMaxObjects()));
+					skinConf.getSkinCacheMemoryKeepSeconds(), skinConf.getSkinCacheMemoryMaxObjects(), logger()));
 		}
 		
 		if(updateService != null) {

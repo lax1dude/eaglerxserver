@@ -250,6 +250,7 @@ public class SupervisorClientV1Handler implements EaglerSupervisorHandler {
 
 	@Override
 	public void handleDisconnected() {
+		System.out.println("fuck");
 		service.handleDisconnected();
 	}
 

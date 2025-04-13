@@ -102,7 +102,7 @@ public class PlayerInstance<PlayerObject> {
 
 	public TabListTracker getTabList() {
 		if(this.tabList == null) {
-			this.tabList = new TabListTracker();
+			this.tabList = new TabListTracker(rewind.getServerAPI().getHPPC());
 		}
 		return this.tabList;
 	}

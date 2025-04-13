@@ -30,9 +30,11 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 import net.lax1dude.eaglercraft.backend.util.ConcurrentLazyLoader;
+import net.lax1dude.eaglercraft.backend.util.ILoggerAdapter;
 
 public class SkinCacheService implements ISkinCacheService {
 
+	protected final ILoggerAdapter logger;
 	protected final ISkinCacheDownloader downloader;
 	protected final ISkinCacheDatastore datastore;
 
@@ -76,6 +78,11 @@ public class SkinCacheService implements ISkinCacheService {
 			});
 		}
 
+		@Override
+		protected ILoggerAdapter getLogger() {
+			return logger;
+		}
+
 	}
 
 	private class CapeCacheEntry extends ConcurrentLazyLoader<byte[]> {
@@ -111,13 +118,21 @@ public class SkinCacheService implements ISkinCacheService {
 			});
 		}
 
+		@Override
+		protected ILoggerAdapter getLogger() {
+			return logger;
+		}
+
 	}
 
-	public SkinCacheService(ISkinCacheDownloader downloader, ISkinCacheDatastore datastore, int expireAfterSec, int maxSize) {
-		this(downloader, datastore, expireAfterSec, Math.min(256, maxSize), maxSize);
+	public SkinCacheService(ISkinCacheDownloader downloader, ISkinCacheDatastore datastore, int expireAfterSec,
+			int maxSize, ILoggerAdapter logger) {
+		this(downloader, datastore, expireAfterSec, Math.min(256, maxSize), maxSize, logger);
 	}
 
-	public SkinCacheService(ISkinCacheDownloader downloader, ISkinCacheDatastore datastore, int expireAfterSec, int initialSize, int maxSize) {
+	public SkinCacheService(ISkinCacheDownloader downloader, ISkinCacheDatastore datastore, int expireAfterSec,
+			int initialSize, int maxSize, ILoggerAdapter logger) {
+		this.logger = logger;
 		this.downloader = downloader;
 		this.datastore = datastore;
 		this.skinCache = CacheBuilder.newBuilder().expireAfterAccess(expireAfterSec, TimeUnit.SECONDS)

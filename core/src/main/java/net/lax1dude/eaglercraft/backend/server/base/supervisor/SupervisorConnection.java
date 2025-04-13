@@ -68,6 +68,7 @@ public class SupervisorConnection implements ISupervisorConnection, INettyChanne
 	final Set<UUID> acceptedPlayers;
 	final ConcurrentMap<Integer, Set<UUID>> nodeIdAssociations;
 	final int nodeId;
+	private long lastPing;
 	private int proxyPing;
 	private int playerTotal;
 	private int playerMax;
@@ -155,11 +156,11 @@ public class SupervisorConnection implements ISupervisorConnection, INettyChanne
 	}
 
 	void updatePing(long millis) {
-		if(LAST_PING_HANDLE.compareAndSet(0l, millis)) {
+		if(LAST_PING_HANDLE.compareAndSet(this, 0l, millis)) {
 			handler.channelWrite(new CPacketSvPing());
 		}
 		handler.channelWrite(new CPacketSvProxyStatus(System.currentTimeMillis(),
-				service.getEaglerXServer().getPlatform().getPlayerTotal()));
+				service.getEaglerXServer().getPlatform().getPlayerMax()));
 	}
 
 	void expireHandshakes(long millis) {

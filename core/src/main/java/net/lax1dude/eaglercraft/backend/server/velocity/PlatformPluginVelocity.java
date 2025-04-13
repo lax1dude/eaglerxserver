@@ -614,7 +614,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		});
 	}
 
-	public void initializePlayer(Player player, VelocityConnection connection, Runnable onComplete) {
+	public void initializePlayer(Player player, VelocityConnection connection, Consumer<Boolean> onComplete) {
 		VelocityPlayer p = new VelocityPlayer(player, connection);
 		playerInitializer.initializePlayer(new IPlatformPlayerInitializer<Object, Object, Player>() {
 			@Override
@@ -632,11 +632,11 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			@Override
 			public void complete() {
 				playerInstanceMap.put(player, p);
-				onComplete.run();
+				onComplete.accept(true);
 			}
 			@Override
 			public void cancel() {
-				onComplete.run();
+				onComplete.accept(false);
 			}
 		});
 	}

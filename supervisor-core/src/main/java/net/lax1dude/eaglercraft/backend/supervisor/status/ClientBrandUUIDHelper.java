@@ -52,6 +52,7 @@ public class ClientBrandUUIDHelper {
 		uuidMap.put(UUID.fromString("5c2557c7-3dab-327a-bd10-ff374a409431"), "Kone Client");
 		uuidMap.put(UUID.fromString("522b2ce5-c9b9-36cf-be7c-5d90f55e631a"), "Eaglercraft 1.12");
 		uuidMap.put(UUID.fromString("879f3d8d-d17f-3fb5-b173-8794b1987153"), "Pixel Client");
+		uuidMap.put(UUID.fromString("65f7ac16-3354-4dfa-bd07-624922fd7962"), "EaglerXRewind 1.5.2");
 	}
 
 	public static String toString(UUID uuid) {

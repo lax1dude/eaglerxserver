@@ -35,11 +35,14 @@ import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.server.SPacketSv
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.server.SPacketSvGetOtherSkin;
 import net.lax1dude.eaglercraft.backend.supervisor.server.SupervisorClientInstance;
 import net.lax1dude.eaglercraft.backend.supervisor.util.CachedTextureData;
+import net.lax1dude.eaglercraft.backend.supervisor.util.LoggerSv;
 import net.lax1dude.eaglercraft.backend.util.ConcurrentLazyLoader;
+import net.lax1dude.eaglercraft.backend.util.ILoggerAdapter;
 
 public class SupervisorPlayerInstance {
 
 	private static final Logger logger = LoggerFactory.getLogger("SupervisorPlayerInstance");
+	private static final LoggerSv loggerAdapter = new LoggerSv(logger);
 
 	private final SupervisorClientInstance owner;
 	private final UUID playerUUID;
@@ -71,12 +74,20 @@ public class SupervisorPlayerInstance {
 				SupervisorPlayerInstance.this.owner.getHandler().channelWrite(new SPacketSvGetOtherSkin(playerUUID));
 				skinDataWaiting = cb;
 			}
+			@Override
+			protected ILoggerAdapter getLogger() {
+				return loggerAdapter;
+			}
 		};
 		this.capeData = new ConcurrentLazyLoader<PlayerCapeData>() {
 			@Override
 			protected void loadImpl(Consumer<PlayerCapeData> cb) {
 				SupervisorPlayerInstance.this.owner.getHandler().channelWrite(new SPacketSvGetOtherCape(playerUUID));
 				capeDataWaiting = cb;
+			}
+			@Override
+			protected ILoggerAdapter getLogger() {
+				return loggerAdapter;
 			}
 		};
 	}

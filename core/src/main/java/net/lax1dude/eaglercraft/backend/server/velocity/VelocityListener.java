@@ -114,7 +114,13 @@ public class VelocityListener {
 				.attr(PipelineAttributes.<VelocityConnection>connectionData()).get();
 		conn.awaitPlayState(() -> {
 			try {
-				plugin.initializePlayer(player, conn, cont::resume);
+				plugin.initializePlayer(player, conn, (b) -> {
+					if(b) {
+						cont.resume();
+					}else {
+						// Hang forever on cancel, connection is already dead, async callback will GC
+					}
+				});
 			}catch(Exception ex) {
 				cont.resumeWithException(ex);
 			}
