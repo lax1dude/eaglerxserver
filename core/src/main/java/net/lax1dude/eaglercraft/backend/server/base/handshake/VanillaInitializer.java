@@ -82,11 +82,15 @@ public class VanillaInitializer {
 					}
 					if(!playerUUID.equals(pipelineData.uuid)) {
 						inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
-						pipelineData.connectionLogger.error("Disconnecting, platform assigned UUID to client that does not match the UUID the EaglerXServer sent to the client during the handshake");
+						pipelineData.connectionLogger.error("Disconnecting, platform assigned UUID to client that does not "
+								+ "match the UUID the EaglerXServer sent to the client during the handshake, please use "
+								+ "EaglercraftLoginEvent or the auth events to customize Eaglercraft player profiles");
 					}else {
 						if(!BufferUtils.charSeqEqual(BufferUtils.readMCCharSequence(msg, 16), pipelineData.username)) {
 							inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
-							pipelineData.connectionLogger.error("Disconnecting, platform assigned username to client that does not match the username the EaglerXServer sent to the client during the handshake");
+							pipelineData.connectionLogger.error("Disconnecting, platform assigned username to client that "
+									+ "does not match the username the EaglerXServer sent to the client during the handshake, "
+									+ "please use EaglercraftLoginEvent or the auth events to customize Eaglercraft player profiles");
 						}else {
 							finish(ctx);
 						}
