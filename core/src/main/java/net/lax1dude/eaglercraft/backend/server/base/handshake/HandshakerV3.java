@@ -57,15 +57,19 @@ public class HandshakerV3 extends HandshakerV2 {
 			message = message.substring(0, 65535);
 		}
 		ByteBuf buffer = ctx.alloc().buffer();
-		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_DENY_LOGIN);
-		byte[] msg = message.getBytes(StandardCharsets.UTF_8);
-		int len = msg.length;
-		if(len > 65535) {
-			len = 65535;
+		try {
+			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_DENY_LOGIN);
+			byte[] msg = message.getBytes(StandardCharsets.UTF_8);
+			int len = msg.length;
+			if(len > 65535) {
+				len = 65535;
+			}
+			buffer.writeShort(len);
+			buffer.writeBytes(msg, 0, len);
+			return ctx.writeAndFlush(buffer.retain());
+		}finally {
+			buffer.release();
 		}
-		buffer.writeShort(len);
-		buffer.writeBytes(msg, 0, len);
-		return ctx.writeAndFlush(buffer);
 	}
 
 }

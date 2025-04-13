@@ -45,32 +45,35 @@ public class HandshakerV5 extends HandshakerV4 {
 	protected ChannelFuture sendPacketVersionNoAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
 			int selectedMinecraftProtocol, String serverBrand, String serverVersion) {
 		ByteBuf buffer = ctx.alloc().buffer();
-		
-		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
-		buffer.writeShort(selectedEaglerProtocol);
-		buffer.writeShort(selectedMinecraftProtocol);
-		
-		int len = serverBrand.length();
-		if(len > 255) {
-			serverBrand = serverBrand.substring(0, 255);
-			len = 255;
-		}
-		buffer.writeByte(len);
-		buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
-		
-		len = serverVersion.length();
-		if(len > 255) {
-			serverVersion = serverVersion.substring(0, 255);
-			len = 255;
-		}
-		buffer.writeByte(len);
-		buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
+		try {
+			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
+			buffer.writeShort(selectedEaglerProtocol);
+			buffer.writeShort(selectedMinecraftProtocol);
+			
+			int len = serverBrand.length();
+			if(len > 255) {
+				serverBrand = serverBrand.substring(0, 255);
+				len = 255;
+			}
+			buffer.writeByte(len);
+			buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
+			
+			len = serverVersion.length();
+			if(len > 255) {
+				serverVersion = serverVersion.substring(0, 255);
+				len = 255;
+			}
+			buffer.writeByte(len);
+			buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
 
-		buffer.writeByte(0);
-		buffer.writeShort(0);
-		buffer.writeBoolean(false);
+			buffer.writeByte(0);
+			buffer.writeShort(0);
+			buffer.writeBoolean(false);
 
-		return ctx.writeAndFlush(buffer);
+			return ctx.writeAndFlush(buffer.retain());
+		}finally {
+			buffer.release();
+		}
 	}
 
 	@Override
@@ -86,38 +89,41 @@ public class HandshakerV5 extends HandshakerV4 {
 		}
 		
 		ByteBuf buffer = ctx.alloc().buffer();
-		
-		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
-		buffer.writeShort(selectedEaglerProtocol);
-		buffer.writeShort(selectedMinecraftProtocol);
-		
-		int len = serverBrand.length();
-		if(len > 255) {
-			serverBrand = serverBrand.substring(0, 255);
-			len = 255;
-		}
-		buffer.writeByte(len);
-		buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
-		
-		len = serverVersion.length();
-		if(len > 255) {
-			serverVersion = serverVersion.substring(0, 255);
-			len = 255;
-		}
-		buffer.writeByte(len);
-		buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
+		try {
+			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
+			buffer.writeShort(selectedEaglerProtocol);
+			buffer.writeShort(selectedMinecraftProtocol);
+			
+			int len = serverBrand.length();
+			if(len > 255) {
+				serverBrand = serverBrand.substring(0, 255);
+				len = 255;
+			}
+			buffer.writeByte(len);
+			buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
+			
+			len = serverVersion.length();
+			if(len > 255) {
+				serverVersion = serverVersion.substring(0, 255);
+				len = 255;
+			}
+			buffer.writeByte(len);
+			buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
 
-		buffer.writeByte(authMethId);
-		if(authSaltingData != null) {
-			buffer.writeShort(authSaltingData.length);
-			buffer.writeBytes(authSaltingData);
-		}else {
-			buffer.writeShort(0);
+			buffer.writeByte(authMethId);
+			if(authSaltingData != null) {
+				buffer.writeShort(authSaltingData.length);
+				buffer.writeBytes(authSaltingData);
+			}else {
+				buffer.writeShort(0);
+			}
+			
+			buffer.writeBoolean(nicknameSelection);
+			
+			return ctx.writeAndFlush(buffer.retain());
+		}finally {
+			buffer.release();
 		}
-		
-		buffer.writeBoolean(nicknameSelection);
-		
-		return ctx.writeAndFlush(buffer);
 	}
 
 	@Override
@@ -174,37 +180,45 @@ public class HandshakerV5 extends HandshakerV4 {
 	protected ChannelFuture sendPacketAllowLogin(ChannelHandlerContext ctx, String setUsername, UUID setUUID,
 			int standardCapabilities, byte[] standardCapabilityVersions, Map<UUID, Byte> extendedCapabilities) {
 		ByteBuf buffer = ctx.alloc().buffer();
-		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_ALLOW_LOGIN);
-		buffer.writeByte(setUsername.length());
-		buffer.writeCharSequence(setUsername, StandardCharsets.US_ASCII);
-		buffer.writeLong(setUUID.getMostSignificantBits());
-		buffer.writeLong(setUUID.getLeastSignificantBits());
-		BufferUtils.writeVarInt(buffer, standardCapabilities);
-		buffer.writeBytes(standardCapabilityVersions);
-		buffer.writeByte(extendedCapabilities.size());
-		if(extendedCapabilities.size() > 0) {
-			for(Map.Entry<UUID, Byte> etr : extendedCapabilities.entrySet()) {
-				UUID uuid = etr.getKey();
-				buffer.writeLong(uuid.getMostSignificantBits());
-				buffer.writeLong(uuid.getLeastSignificantBits());
-				buffer.writeByte(etr.getValue());
+		try {
+			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_ALLOW_LOGIN);
+			buffer.writeByte(setUsername.length());
+			buffer.writeCharSequence(setUsername, StandardCharsets.US_ASCII);
+			buffer.writeLong(setUUID.getMostSignificantBits());
+			buffer.writeLong(setUUID.getLeastSignificantBits());
+			BufferUtils.writeVarInt(buffer, standardCapabilities);
+			buffer.writeBytes(standardCapabilityVersions);
+			buffer.writeByte(extendedCapabilities.size());
+			if(extendedCapabilities.size() > 0) {
+				for(Map.Entry<UUID, Byte> etr : extendedCapabilities.entrySet()) {
+					UUID uuid = etr.getKey();
+					buffer.writeLong(uuid.getMostSignificantBits());
+					buffer.writeLong(uuid.getLeastSignificantBits());
+					buffer.writeByte(etr.getValue());
+				}
 			}
+			return ctx.writeAndFlush(buffer.retain());
+		}finally {
+			buffer.release();
 		}
-		return ctx.writeAndFlush(buffer);
 	}
 
 	@Override
 	protected ChannelFuture sendPacketLoginStateRedirect(ChannelHandlerContext ctx, String address) {
 		ByteBuf buffer = ctx.alloc().buffer();
-		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_REDIRECT_TO);
-		byte[] addr = address.getBytes(StandardCharsets.UTF_8);
-		int len = addr.length;
-		if(len > 65535) {
-			len = 65535;
+		try {
+			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_REDIRECT_TO);
+			byte[] addr = address.getBytes(StandardCharsets.UTF_8);
+			int len = addr.length;
+			if(len > 65535) {
+				len = 65535;
+			}
+			buffer.writeShort(len);
+			buffer.writeBytes(addr, 0, len);
+			return ctx.writeAndFlush(buffer.retain());
+		}finally {
+			buffer.release();
 		}
-		buffer.writeShort(len);
-		buffer.writeBytes(addr, 0, len);
-		return ctx.writeAndFlush(buffer);
 	}
 
 }

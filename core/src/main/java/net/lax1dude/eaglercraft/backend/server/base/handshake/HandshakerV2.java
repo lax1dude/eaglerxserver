@@ -48,31 +48,34 @@ public class HandshakerV2 extends HandshakerV1 {
 	protected ChannelFuture sendPacketVersionNoAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
 			int selectedMinecraftProtocol, String serverBrand, String serverVersion) {
 		ByteBuf buffer = ctx.alloc().buffer();
-		
-		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
-		buffer.writeShort(selectedEaglerProtocol);
-		buffer.writeShort(selectedMinecraftProtocol);
-		
-		int len = serverBrand.length();
-		if(len > 255) {
-			serverBrand = serverBrand.substring(0, 255);
-			len = 255;
+		try {
+			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
+			buffer.writeShort(selectedEaglerProtocol);
+			buffer.writeShort(selectedMinecraftProtocol);
+			
+			int len = serverBrand.length();
+			if(len > 255) {
+				serverBrand = serverBrand.substring(0, 255);
+				len = 255;
+			}
+			buffer.writeByte(len);
+			buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
+			
+			len = serverVersion.length();
+			if(len > 255) {
+				serverVersion = serverVersion.substring(0, 255);
+				len = 255;
+			}
+			buffer.writeByte(len);
+			buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
+	
+			buffer.writeByte(0);
+			buffer.writeShort(0);
+	
+			return ctx.writeAndFlush(buffer.retain());
+		}finally {
+			buffer.release();
 		}
-		buffer.writeByte(len);
-		buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
-		
-		len = serverVersion.length();
-		if(len > 255) {
-			serverVersion = serverVersion.substring(0, 255);
-			len = 255;
-		}
-		buffer.writeByte(len);
-		buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
-
-		buffer.writeByte(0);
-		buffer.writeShort(0);
-
-		return ctx.writeAndFlush(buffer);
 	}
 
 	@Override
@@ -88,36 +91,39 @@ public class HandshakerV2 extends HandshakerV1 {
 		}
 		
 		ByteBuf buffer = ctx.alloc().buffer();
-		
-		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
-		buffer.writeShort(selectedEaglerProtocol);
-		buffer.writeShort(selectedMinecraftProtocol);
-		
-		int len = serverBrand.length();
-		if(len > 255) {
-			serverBrand = serverBrand.substring(0, 255);
-			len = 255;
-		}
-		buffer.writeByte(len);
-		buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
-		
-		len = serverVersion.length();
-		if(len > 255) {
-			serverVersion = serverVersion.substring(0, 255);
-			len = 255;
-		}
-		buffer.writeByte(len);
-		buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
+		try {
+			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
+			buffer.writeShort(selectedEaglerProtocol);
+			buffer.writeShort(selectedMinecraftProtocol);
+			
+			int len = serverBrand.length();
+			if(len > 255) {
+				serverBrand = serverBrand.substring(0, 255);
+				len = 255;
+			}
+			buffer.writeByte(len);
+			buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
+			
+			len = serverVersion.length();
+			if(len > 255) {
+				serverVersion = serverVersion.substring(0, 255);
+				len = 255;
+			}
+			buffer.writeByte(len);
+			buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
 
-		buffer.writeByte(authMethId);
-		if(authSaltingData != null) {
-			buffer.writeShort(authSaltingData.length);
-			buffer.writeBytes(authSaltingData);
-		}else {
-			buffer.writeShort(0);
+			buffer.writeByte(authMethId);
+			if(authSaltingData != null) {
+				buffer.writeShort(authSaltingData.length);
+				buffer.writeBytes(authSaltingData);
+			}else {
+				buffer.writeShort(0);
+			}
+			
+			return ctx.writeAndFlush(buffer.retain());
+		}finally {
+			buffer.release();
 		}
-		
-		return ctx.writeAndFlush(buffer);
 	}
 
 	protected int getAuthTypeId(IEaglercraftAuthCheckRequiredEvent.EnumAuthType meth) {

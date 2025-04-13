@@ -107,30 +107,33 @@ public class HandshakerV1 extends HandshakerInstance {
 	protected ChannelFuture sendPacketVersionNoAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
 			int selectedMinecraftProtocol, String serverBrand, String serverVersion) {
 		ByteBuf buffer = ctx.alloc().buffer();
-		
-		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
-		buffer.writeByte(1);
-		
-		int len = serverBrand.length();
-		if(len > 255) {
-			serverBrand = serverBrand.substring(0, 255);
-			len = 255;
+		try {
+			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
+			buffer.writeByte(1);
+			
+			int len = serverBrand.length();
+			if(len > 255) {
+				serverBrand = serverBrand.substring(0, 255);
+				len = 255;
+			}
+			buffer.writeByte(len);
+			buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
+			
+			len = serverVersion.length();
+			if(len > 255) {
+				serverVersion = serverVersion.substring(0, 255);
+				len = 255;
+			}
+			buffer.writeByte(len);
+			buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
+			
+			buffer.writeByte(0);
+			buffer.writeShort(0);
+			
+			return ctx.writeAndFlush(buffer.retain());
+		}finally {
+			buffer.release();
 		}
-		buffer.writeByte(len);
-		buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
-		
-		len = serverVersion.length();
-		if(len > 255) {
-			serverVersion = serverVersion.substring(0, 255);
-			len = 255;
-		}
-		buffer.writeByte(len);
-		buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
-		
-		buffer.writeByte(0);
-		buffer.writeShort(0);
-		
-		return ctx.writeAndFlush(buffer);
 	}
 
 	@Override
@@ -144,12 +147,16 @@ public class HandshakerV1 extends HandshakerInstance {
 	protected ChannelFuture sendPacketAllowLogin(ChannelHandlerContext ctx, String setUsername, UUID setUUID,
 			int standardCapabilities, byte[] standardCapabilityVersions, Map<UUID, Byte> extendedCapabilities) {
 		ByteBuf buffer = ctx.alloc().buffer();
-		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_ALLOW_LOGIN);
-		buffer.writeByte(setUsername.length());
-		buffer.writeCharSequence(setUsername, StandardCharsets.US_ASCII);
-		buffer.writeLong(setUUID.getMostSignificantBits());
-		buffer.writeLong(setUUID.getLeastSignificantBits());
-		return ctx.writeAndFlush(buffer);
+		try {
+			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_ALLOW_LOGIN);
+			buffer.writeByte(setUsername.length());
+			buffer.writeCharSequence(setUsername, StandardCharsets.US_ASCII);
+			buffer.writeLong(setUUID.getMostSignificantBits());
+			buffer.writeLong(setUUID.getLeastSignificantBits());
+			return ctx.writeAndFlush(buffer.retain());
+		}finally {
+			buffer.release();
+		}
 	}
 
 	@Override
@@ -163,22 +170,30 @@ public class HandshakerV1 extends HandshakerInstance {
 			message = message.substring(0, 255);
 		}
 		ByteBuf buffer = ctx.alloc().buffer();
-		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_DENY_LOGIN);
-		byte[] msg = message.getBytes(StandardCharsets.UTF_8);
-		int len = msg.length;
-		if(len > 255) {
-			len = 255;
+		try {
+			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_DENY_LOGIN);
+			byte[] msg = message.getBytes(StandardCharsets.UTF_8);
+			int len = msg.length;
+			if(len > 255) {
+				len = 255;
+			}
+			buffer.writeByte(len);
+			buffer.writeBytes(msg, 0, len);
+			return ctx.writeAndFlush(buffer.retain());
+		}finally {
+			buffer.release();
 		}
-		buffer.writeByte(len);
-		buffer.writeBytes(msg, 0, len);
-		return ctx.writeAndFlush(buffer);
 	}
 
 	@Override
 	protected ChannelFuture sendPacketFinishLogin(ChannelHandlerContext ctx) {
 		ByteBuf buffer = ctx.alloc().buffer();
-		buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_FINISH_LOGIN);
-		return ctx.writeAndFlush(buffer);
+		try {
+			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_FINISH_LOGIN);
+			return ctx.writeAndFlush(buffer.retain());
+		}finally {
+			buffer.release();
+		}
 	}
 
 	@Override
