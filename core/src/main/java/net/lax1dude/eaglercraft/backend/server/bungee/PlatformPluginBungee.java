@@ -209,6 +209,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			ImmutableMap.<String, EnumPipelineComponent>builder()
 			.put("frame-decoder", EnumPipelineComponent.FRAME_DECODER)
 			.put("frame-prepender", EnumPipelineComponent.FRAME_ENCODER)
+			.put("frame-prepender-compress", EnumPipelineComponent.FRAME_ENCODER)
 			.put("packet-encoder", EnumPipelineComponent.MINECRAFT_ENCODER)
 			.put("packet-decoder", EnumPipelineComponent.MINECRAFT_DECODER)
 			.put("via-encoder", EnumPipelineComponent.VIA_ENCODER)
