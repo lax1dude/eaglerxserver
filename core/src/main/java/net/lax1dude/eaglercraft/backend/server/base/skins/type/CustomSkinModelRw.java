@@ -60,8 +60,8 @@ public class CustomSkinModelRw extends BaseCustomSkin implements IModelRewritabl
 	}
 
 	@Override
-	public void getCustomSkinPixels_RGBA8_64x64(byte[] array, int offset) {
-		data.getCustomSkinPixels_RGBA8_64x64(array, offset);
+	public void getCustomSkinPixels_ABGR8_64x64(byte[] array, int offset) {
+		data.getCustomSkinPixels_ABGR8_64x64(array, offset);
 	}
 
 	@Override

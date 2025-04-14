@@ -2,11 +2,11 @@ package net.lax1dude.eaglercraft.backend.server.base.skins;
 
 public class SkinConverterExt {
 
-	public static void convertCape23x17RGBto32x32RGBA(byte[] skinIn, byte[] skinOut) {
-		convertCape23x17RGBto32x32RGBA(skinIn, 0, skinOut, 0);
+	public static void convertCape23x17RGBto32x32ABGR(byte[] skinIn, byte[] skinOut) {
+		convertCape23x17RGBto32x32ABGR(skinIn, 0, skinOut, 0);
 	}
 
-	public static void convertCape23x17RGBto32x32RGBA(byte[] skinIn, int inOffset, byte[] skinOut, int outOffset) {
+	public static void convertCape23x17RGBto32x32ABGR(byte[] skinIn, int inOffset, byte[] skinOut, int outOffset) {
 		int i, j;
 		for(int y = 0; y < 17; ++y) {
 			for(int x = 0; x < 22; ++x) {
@@ -28,11 +28,11 @@ public class SkinConverterExt {
 		}
 	}
 
-	public static void convertCape32x32RGBAto23x17RGB(byte[] skinIn, byte[] skinOut) {
-		convertCape32x32RGBAto23x17RGB(skinIn, 0, skinOut, 0);
+	public static void convertCape32x32ABGRto23x17RGB(byte[] skinIn, byte[] skinOut) {
+		convertCape32x32ABGRto23x17RGB(skinIn, 0, skinOut, 0);
 	}
 
-	public static void convertCape32x32RGBAto23x17RGB(byte[] skinIn, int inOffset, byte[] skinOut, int outOffset) {
+	public static void convertCape32x32ABGRto23x17RGB(byte[] skinIn, int inOffset, byte[] skinOut, int outOffset) {
 		int i, j;
 		for(int y = 0; y < 17; ++y) {
 			for(int x = 0; x < 22; ++x) {
@@ -52,7 +52,7 @@ public class SkinConverterExt {
 		}
 	}
 
-	public static void convertCape32x32RGBAto23x17RGB(int[] skinIn, byte[] skinOut) {
+	public static void convertCape32x32ARGBto23x17RGB(int[] skinIn, byte[] skinOut) {
 		int i, j;
 		for(int y = 0; y < 17; ++y) {
 			for(int x = 0; x < 22; ++x) {

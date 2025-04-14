@@ -12,17 +12,17 @@ public interface IEaglerPlayerSkin extends IOptional<IEaglerPlayerSkin> {
 
 	boolean isSkinCustom();
 
-	default byte[] getCustomSkinPixels_RGBA8_64x64() {
+	default byte[] getCustomSkinPixels_ABGR8_64x64() {
 		byte[] array = new byte[16384];
-		getCustomSkinPixels_RGBA8_64x64(array, 0);
+		getCustomSkinPixels_ABGR8_64x64(array, 0);
 		return array;
 	}
 
-	default void getCustomSkinPixels_RGBA8_64x64(byte[] array) {
-		getCustomSkinPixels_RGBA8_64x64(array, 0);
+	default void getCustomSkinPixels_ABGR8_64x64(byte[] array) {
+		getCustomSkinPixels_ABGR8_64x64(array, 0);
 	}
 
-	void getCustomSkinPixels_RGBA8_64x64(byte[] array, int offset);
+	void getCustomSkinPixels_ABGR8_64x64(byte[] array, int offset);
 
 	default byte[] getCustomSkinPixels_eagler() {
 		byte[] array = new byte[12288];

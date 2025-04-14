@@ -20,13 +20,13 @@ public interface ISkinImageLoader {
 
 	IEaglerPlayerCape loadPresetCape(EnumPresetCapes presetCape);
 
-	IEaglerPlayerSkin loadSkinImageData64x64(int[] pixelsARGB8, EnumSkinModel modelId);
+	IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x64(int[] pixelsARGB8I, EnumSkinModel modelId);
 
-	IEaglerPlayerSkin loadSkinImageData64x64(byte[] pixelsRGBA8, EnumSkinModel modelId);
+	IEaglerPlayerSkin loadSkinImageData_ABGR8_64x64(byte[] pixelsABGR8, EnumSkinModel modelId);
 
-	IEaglerPlayerSkin loadSkinImageData64x64Eagler(byte[] pixelsEagler, EnumSkinModel modelId);
+	IEaglerPlayerSkin loadSkinImageData_eagler(byte[] pixelsEagler, EnumSkinModel modelId);
 
-	IEaglerPlayerSkin loadSkinImageData64x32(int[] pixelsARGB8, EnumSkinModel modelId);
+	IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x32(int[] pixelsARGB8I, EnumSkinModel modelId);
 
 	IEaglerPlayerSkin loadSkinImageData(BufferedImage image, EnumSkinModel modelId);
 
@@ -36,13 +36,13 @@ public interface ISkinImageLoader {
 
 	IEaglerPlayerSkin rewriteCustomSkinModelId(IEaglerPlayerSkin skin, EnumSkinModel modelId);
 
-	IEaglerPlayerCape loadCapeImageData64x32(int[] pixelsARGB8);
+	IEaglerPlayerCape loadCapeImageData_ARGB8I_64x32(int[] pixelsARGB8I);
 
-	IEaglerPlayerCape loadCapeImageData32x32(int[] pixelsARGB8);
+	IEaglerPlayerCape loadCapeImageData_ARGB8I_32x32(int[] pixelsARGB8I);
 
-	IEaglerPlayerCape loadCapeImageData32x32(byte[] pixelsRGBA8);
+	IEaglerPlayerCape loadCapeImageData_ABGR8_32x32(byte[] pixelsABGR8);
 
-	IEaglerPlayerCape loadCapeImageData23x17Eagler(byte[] pixelsEagler);
+	IEaglerPlayerCape loadCapeImageData_eagler(byte[] pixelsEagler);
 
 	IEaglerPlayerCape loadCapeImageData(BufferedImage image);
 

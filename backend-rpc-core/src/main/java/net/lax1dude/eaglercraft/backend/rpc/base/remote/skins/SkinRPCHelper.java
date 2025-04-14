@@ -21,7 +21,7 @@ public class SkinRPCHelper {
 			byte[] ret = new byte[2 + 16384];
 			ret[0] = 2;
 			ret[1] = (byte) skin.getCustomSkinModelId().getId();
-			skin.getCustomSkinPixels_RGBA8_64x64(ret, 2);
+			skin.getCustomSkinPixels_ABGR8_64x64(ret, 2);
 			return ret;
 		}else {
 			byte[] ret = new byte[2 + 12288];

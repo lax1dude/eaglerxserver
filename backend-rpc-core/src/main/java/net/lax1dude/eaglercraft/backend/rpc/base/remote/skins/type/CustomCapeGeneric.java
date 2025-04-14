@@ -42,8 +42,8 @@ public class CustomCapeGeneric extends BaseCustomCape {
 	}
 
 	@Override
-	public void getCustomCapePixels_RGBA8_32x32(byte[] array, int offset) {
-		SkinConverterExt.convertCape23x17RGBto32x32RGBA(textureData, 0, array, offset);
+	public void getCustomCapePixels_ABGR8_32x32(byte[] array, int offset) {
+		SkinConverterExt.convertCape23x17RGBto32x32ABGR(textureData, 0, array, offset);
 	}
 
 	@Override

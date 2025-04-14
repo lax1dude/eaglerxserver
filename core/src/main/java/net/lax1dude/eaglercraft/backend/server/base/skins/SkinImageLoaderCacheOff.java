@@ -51,22 +51,22 @@ class SkinImageLoaderCacheOff implements ISkinImageLoader {
 	}
 
 	@Override
-	public IEaglerPlayerSkin loadSkinImageData64x64(int[] pixelsARGB8, EnumSkinModel modelId) {
+	public IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x64(int[] pixelsARGB8, EnumSkinModel modelId) {
 		return SkinImageLoaderImpl.loadSkinImageData64x64(pixelsARGB8, modelId);
 	}
 
 	@Override
-	public IEaglerPlayerSkin loadSkinImageData64x64(byte[] pixelsRGBA8, EnumSkinModel modelId) {
+	public IEaglerPlayerSkin loadSkinImageData_ABGR8_64x64(byte[] pixelsRGBA8, EnumSkinModel modelId) {
 		return SkinImageLoaderImpl.loadSkinImageData64x64(pixelsRGBA8, modelId);
 	}
 
 	@Override
-	public IEaglerPlayerSkin loadSkinImageData64x64Eagler(byte[] pixelsEagler, EnumSkinModel modelId) {
+	public IEaglerPlayerSkin loadSkinImageData_eagler(byte[] pixelsEagler, EnumSkinModel modelId) {
 		return SkinImageLoaderImpl.loadSkinImageData64x64Eagler(pixelsEagler, modelId);
 	}
 
 	@Override
-	public IEaglerPlayerSkin loadSkinImageData64x32(int[] pixelsARGB8, EnumSkinModel modelId) {
+	public IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x32(int[] pixelsARGB8, EnumSkinModel modelId) {
 		return SkinImageLoaderImpl.loadSkinImageData64x32(pixelsARGB8, modelId);
 	}
 
@@ -91,22 +91,22 @@ class SkinImageLoaderCacheOff implements ISkinImageLoader {
 	}
 
 	@Override
-	public IEaglerPlayerCape loadCapeImageData64x32(int[] pixelsARGB8) {
+	public IEaglerPlayerCape loadCapeImageData_ARGB8I_64x32(int[] pixelsARGB8) {
 		return SkinImageLoaderImpl.loadCapeImageData64x32(pixelsARGB8);
 	}
 
 	@Override
-	public IEaglerPlayerCape loadCapeImageData32x32(int[] pixelsARGB8) {
+	public IEaglerPlayerCape loadCapeImageData_ARGB8I_32x32(int[] pixelsARGB8) {
 		return SkinImageLoaderImpl.loadCapeImageData32x32(pixelsARGB8);
 	}
 
 	@Override
-	public IEaglerPlayerCape loadCapeImageData32x32(byte[] pixelsRGBA8) {
+	public IEaglerPlayerCape loadCapeImageData_ABGR8_32x32(byte[] pixelsRGBA8) {
 		return SkinImageLoaderImpl.loadCapeImageData32x32(pixelsRGBA8);
 	}
 
 	@Override
-	public IEaglerPlayerCape loadCapeImageData23x17Eagler(byte[] pixelsEagler) {
+	public IEaglerPlayerCape loadCapeImageData_eagler(byte[] pixelsEagler) {
 		return SkinImageLoaderImpl.loadCapeImageData23x17Eagler(pixelsEagler);
 	}
 

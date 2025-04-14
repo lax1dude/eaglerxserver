@@ -65,8 +65,8 @@ public class CustomCapePlayer extends BaseCustomCape {
 	}
 
 	@Override
-	public void getCustomCapePixels_RGBA8_32x32(byte[] array, int offset) {
-		SkinConverterExt.convertCape23x17RGBto32x32RGBA(packet.customCape, 0, array, offset);
+	public void getCustomCapePixels_ABGR8_32x32(byte[] array, int offset) {
+		SkinConverterExt.convertCape23x17RGBto32x32ABGR(packet.customCape, 0, array, offset);
 	}
 
 	@Override

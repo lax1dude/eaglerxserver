@@ -41,7 +41,7 @@ public class MissingCape extends BasePresetCape {
 	}
 
 	@Override
-	public void getCustomCapePixels_RGBA8_32x32(byte[] array, int offset) {
+	public void getCustomCapePixels_ABGR8_32x32(byte[] array, int offset) {
 		throw new UnsupportedOperationException("EaglerPlayerCape is not a custom cape");
 	}
 

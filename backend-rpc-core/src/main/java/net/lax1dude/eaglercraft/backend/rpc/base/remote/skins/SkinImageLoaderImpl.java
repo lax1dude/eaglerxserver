@@ -129,7 +129,7 @@ public class SkinImageLoaderImpl {
 			throw new IllegalArgumentException("Cape data is the wrong length, should be 1024");
 		}
 		byte[] tmp = new byte[1173];
-		SkinConverterExt.convertCape32x32RGBAto23x17RGB(pixelsARGB8, tmp);
+		SkinConverterExt.convertCape32x32ARGBto23x17RGB(pixelsARGB8, tmp);
 		return new CustomCapeGeneric(tmp);
 	}
 
@@ -138,7 +138,7 @@ public class SkinImageLoaderImpl {
 			throw new IllegalArgumentException("Cape data is the wrong length, should be 4096");
 		}
 		byte[] tmp = new byte[1173];
-		SkinConverterExt.convertCape32x32RGBAto23x17RGB(pixelsRGBA8, tmp);
+		SkinConverterExt.convertCape32x32ABGRto23x17RGB(pixelsRGBA8, tmp);
 		return new CustomCapeGeneric(tmp);
 	}
 

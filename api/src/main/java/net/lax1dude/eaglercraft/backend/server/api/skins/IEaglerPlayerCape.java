@@ -26,17 +26,17 @@ public interface IEaglerPlayerCape extends IOptional<IEaglerPlayerCape> {
 
 	boolean isCapeCustom();
 
-	default byte[] getCustomCapePixels_RGBA8_32x32() {
+	default byte[] getCustomCapePixels_ABGR8_32x32() {
 		byte[] array = new byte[4096];
-		getCustomCapePixels_RGBA8_32x32(array, 0);
+		getCustomCapePixels_ABGR8_32x32(array, 0);
 		return array;
 	}
 
-	default void getCustomCapePixels_RGBA8_32x32(byte[] array) {
-		getCustomCapePixels_RGBA8_32x32(array, 0);
+	default void getCustomCapePixels_ABGR8_32x32(byte[] array) {
+		getCustomCapePixels_ABGR8_32x32(array, 0);
 	}
 
-	void getCustomCapePixels_RGBA8_32x32(byte[] array, int offset);
+	void getCustomCapePixels_ABGR8_32x32(byte[] array, int offset);
 
 	default byte[] getCustomCapePixels_eagler() {
 		byte[] array = new byte[1173];

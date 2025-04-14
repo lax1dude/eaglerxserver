@@ -73,7 +73,7 @@ public class MissingSkin extends BasePresetSkin {
 	}
 
 	@Override
-	public void getCustomSkinPixels_RGBA8_64x64(byte[] array, int offset) {
+	public void getCustomSkinPixels_ABGR8_64x64(byte[] array, int offset) {
 		throw new UnsupportedOperationException("EaglerPlayerSkin is not a custom skin");
 	}
 

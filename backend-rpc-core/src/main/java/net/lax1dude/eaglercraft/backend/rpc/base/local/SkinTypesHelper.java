@@ -106,8 +106,8 @@ class SkinTypesHelper implements ISkinImageLoader {
 		}
 
 		@Override
-		public void getCustomSkinPixels_RGBA8_64x64(byte[] array, int offset) {
-			skin.getCustomSkinPixels_RGBA8_64x64(array, offset);
+		public void getCustomSkinPixels_ABGR8_64x64(byte[] array, int offset) {
+			skin.getCustomSkinPixels_ABGR8_64x64(array, offset);
 		}
 
 		@Override
@@ -171,8 +171,8 @@ class SkinTypesHelper implements ISkinImageLoader {
 		}
 
 		@Override
-		public void getCustomCapePixels_RGBA8_32x32(byte[] array, int offset) {
-			cape.getCustomCapePixels_RGBA8_32x32(array, offset);
+		public void getCustomCapePixels_ABGR8_32x32(byte[] array, int offset) {
+			cape.getCustomCapePixels_ABGR8_32x32(array, offset);
 		}
 
 		@Override
@@ -229,23 +229,23 @@ class SkinTypesHelper implements ISkinImageLoader {
 	}
 
 	@Override
-	public IEaglerPlayerSkin loadSkinImageData64x64(int[] pixelsARGB8, EnumSkinModel modelId) {
-		return wrap(loader.loadSkinImageData64x64(pixelsARGB8, unwrap(modelId)));
+	public IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x64(int[] pixelsARGB8, EnumSkinModel modelId) {
+		return wrap(loader.loadSkinImageData_ARGB8I_64x64(pixelsARGB8, unwrap(modelId)));
 	}
 
 	@Override
-	public IEaglerPlayerSkin loadSkinImageData64x64(byte[] pixelsRGBA8, EnumSkinModel modelId) {
-		return wrap(loader.loadSkinImageData64x64(pixelsRGBA8, unwrap(modelId)));
+	public IEaglerPlayerSkin loadSkinImageData_ABGR8_64x64(byte[] pixelsRGBA8, EnumSkinModel modelId) {
+		return wrap(loader.loadSkinImageData_ABGR8_64x64(pixelsRGBA8, unwrap(modelId)));
 	}
 
 	@Override
-	public IEaglerPlayerSkin loadSkinImageData64x64Eagler(byte[] pixelsEagler, EnumSkinModel modelId) {
-		return wrap(loader.loadSkinImageData64x64Eagler(pixelsEagler, unwrap(modelId)));
+	public IEaglerPlayerSkin loadSkinImageData_eagler(byte[] pixelsEagler, EnumSkinModel modelId) {
+		return wrap(loader.loadSkinImageData_eagler(pixelsEagler, unwrap(modelId)));
 	}
 
 	@Override
-	public IEaglerPlayerSkin loadSkinImageData64x32(int[] pixelsARGB8, EnumSkinModel modelId) {
-		return wrap(loader.loadSkinImageData64x32(pixelsARGB8, unwrap(modelId)));
+	public IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x32(int[] pixelsARGB8, EnumSkinModel modelId) {
+		return wrap(loader.loadSkinImageData_ARGB8I_64x32(pixelsARGB8, unwrap(modelId)));
 	}
 
 	@Override
@@ -269,23 +269,23 @@ class SkinTypesHelper implements ISkinImageLoader {
 	}
 
 	@Override
-	public IEaglerPlayerCape loadCapeImageData64x32(int[] pixelsARGB8) {
-		return wrap(loader.loadCapeImageData64x32(pixelsARGB8));
+	public IEaglerPlayerCape loadCapeImageData_ARGB8I_64x32(int[] pixelsARGB8) {
+		return wrap(loader.loadCapeImageData_ARGB8I_64x32(pixelsARGB8));
 	}
 
 	@Override
-	public IEaglerPlayerCape loadCapeImageData32x32(int[] pixelsARGB8) {
-		return wrap(loader.loadCapeImageData32x32(pixelsARGB8));
+	public IEaglerPlayerCape loadCapeImageData_ARGB8I_32x32(int[] pixelsARGB8) {
+		return wrap(loader.loadCapeImageData_ARGB8I_32x32(pixelsARGB8));
 	}
 
 	@Override
-	public IEaglerPlayerCape loadCapeImageData32x32(byte[] pixelsRGBA8) {
-		return wrap(loader.loadCapeImageData32x32(pixelsRGBA8));
+	public IEaglerPlayerCape loadCapeImageData_ABGR8_32x32(byte[] pixelsRGBA8) {
+		return wrap(loader.loadCapeImageData_ABGR8_32x32(pixelsRGBA8));
 	}
 
 	@Override
-	public IEaglerPlayerCape loadCapeImageData23x17Eagler(byte[] pixelsEagler) {
-		return wrap(loader.loadCapeImageData23x17Eagler(pixelsEagler));
+	public IEaglerPlayerCape loadCapeImageData_eagler(byte[] pixelsEagler) {
+		return wrap(loader.loadCapeImageData_eagler(pixelsEagler));
 	}
 
 	@Override
