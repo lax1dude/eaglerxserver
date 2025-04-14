@@ -219,7 +219,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			.put("timeout", EnumPipelineComponent.READ_TIMEOUT_HANDLER)
 			.put("legacy-decoder", EnumPipelineComponent.BUNGEE_LEGACY_HANDLER)
 			.put("legacy-kick", EnumPipelineComponent.BUNGEE_LEGACY_KICK_ENCODER)
-			.put("handler-boss", EnumPipelineComponent.INBOUND_PACKET_HANDLER)
+			.put("inbound-boss", EnumPipelineComponent.INBOUND_PACKET_HANDLER)
 			.put("pe-decoder-packetevents", EnumPipelineComponent.PACKETEVENTS_DECODER)
 			.put("pe-encoder-packetevents", EnumPipelineComponent.PACKETEVENTS_ENCODER)
 			.put("pe-timeout-handler-packetevents", EnumPipelineComponent.PACKETEVENTS_TIMEOUT_HANDLER)
