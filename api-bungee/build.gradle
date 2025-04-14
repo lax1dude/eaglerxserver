@@ -8,6 +8,7 @@ dependencies {
 	implementation project(":api")
 	implementation project(":protocol-game")
 	compileOnly(libs.bungeecord.api)
+	compileOnly(libs.bundles.netty.api)
 }
 
 java {

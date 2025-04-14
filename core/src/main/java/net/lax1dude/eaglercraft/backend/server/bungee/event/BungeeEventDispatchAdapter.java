@@ -12,6 +12,20 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftAuthCheckRequiredEvent;
+import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftAuthCookieEvent;
+import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftAuthPasswordEvent;
+import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftClientBrandEvent;
+import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftDestroyPlayerEvent;
+import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftInitializePlayerEvent;
+import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftLoginEvent;
+import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftMOTDEvent;
+import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftRegisterSkinEvent;
+import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftRevokeSessionQueryEvent;
+import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftVoiceChangeEvent;
+import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftWebSocketOpenEvent;
+import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftWebViewChannelEvent;
+import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftWebViewMessageEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent.EnumAuthType;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCookieEvent;
@@ -82,7 +96,7 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 	public void dispatchAuthCheckRequired(IEaglerPendingConnection pendingConnection, boolean clientSolicitingPassword,
 			byte[] authUsername,
 			IEventDispatchCallback<IEaglercraftAuthCheckRequiredEvent<ProxiedPlayer, BaseComponent>> onComplete) {
-		eventMgr.callEvent(new BungeeAuthCheckRequiredEventImpl(api, pendingConnection, clientSolicitingPassword,
+		eventMgr.callEvent(new EaglercraftAuthCheckRequiredEvent(api, pendingConnection, clientSolicitingPassword,
 				authUsername, transformCallback(onComplete)));
 	}
 
@@ -92,7 +106,7 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 			String profileUsername, UUID profileUUID, EnumAuthType authType, String authMessage,
 			String authRequestedServer,
 			IEventDispatchCallback<IEaglercraftAuthCookieEvent<ProxiedPlayer, BaseComponent>> onComplete) {
-		eventMgr.callEvent(new BungeeAuthCookieEventImpl(api, loginConnection, authUsername, nicknameSelectionEnabled,
+		eventMgr.callEvent(new EaglercraftAuthCookieEvent(api, loginConnection, authUsername, nicknameSelectionEnabled,
 				cookiesEnabled, cookieData, requestedUsername, profileUsername, profileUUID, authType, authMessage,
 				authRequestedServer, transformCallback(onComplete)));
 	}
@@ -103,7 +117,7 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 			byte[] cookieData, String requestedUsername, String profileUsername, UUID profileUUID,
 			EnumAuthType authType, String authMessage, String authRequestedServer,
 			IEventDispatchCallback<IEaglercraftAuthPasswordEvent<ProxiedPlayer, BaseComponent>> onComplete) {
-		eventMgr.callEvent(new BungeeAuthPasswordEventImpl(api, loginConnection, authUsername, nicknameSelectionEnabled,
+		eventMgr.callEvent(new EaglercraftAuthPasswordEvent(api, loginConnection, authUsername, nicknameSelectionEnabled,
 				authSaltingData, authPasswordData, cookiesEnabled, cookieData, requestedUsername, profileUsername,
 				profileUUID, authType, authMessage, authRequestedServer, transformCallback(onComplete)));
 	}
@@ -111,70 +125,70 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 	@Override
 	public void dispatchClientBrandEvent(IEaglerPendingConnection pendingConnection,
 			IEventDispatchCallback<IEaglercraftClientBrandEvent<ProxiedPlayer, BaseComponent>> onComplete) {
-		eventMgr.callEvent(new BungeeClientBrandEventImpl(api, pendingConnection, transformCallback(onComplete)));
+		eventMgr.callEvent(new EaglercraftClientBrandEvent(api, pendingConnection, transformCallback(onComplete)));
 	}
 
 	@Override
 	public void dispatchLoginEvent(IEaglerLoginConnection loginConnection, boolean redirectSupport, String requestedServer,
 			IEventDispatchCallback<IEaglercraftLoginEvent<ProxiedPlayer, BaseComponent>> onComplete) {
-		eventMgr.callEvent(new BungeeLoginEventImpl(api, loginConnection, redirectSupport, requestedServer,
+		eventMgr.callEvent(new EaglercraftLoginEvent(api, loginConnection, redirectSupport, requestedServer,
 				transformCallback(onComplete)));
 	}
 
 	@Override
 	public void dispatchInitializePlayerEvent(IEaglerPlayer<ProxiedPlayer> player, Map<String, byte[]> extraProfileData,
 			IEventDispatchCallback<IEaglercraftInitializePlayerEvent<ProxiedPlayer>> onComplete) {
-		fireSync(new BungeeInitializePlayerEventImpl(api, player, extraProfileData), onComplete);
+		fireSync(new EaglercraftInitializePlayerEvent(api, player, extraProfileData), onComplete);
 	}
 
 	@Override
 	public void dispatchDestroyPlayerEvent(IEaglerPlayer<ProxiedPlayer> player,
 			IEventDispatchCallback<IEaglercraftDestroyPlayerEvent<ProxiedPlayer>> onComplete) {
-		fireSync(new BungeeDestroyPlayerEventImpl(api, player), onComplete);
+		fireSync(new EaglercraftDestroyPlayerEvent(api, player), onComplete);
 	}
 
 	@Override
 	public void dispatchMOTDEvent(IMOTDConnection connection,
 			IEventDispatchCallback<IEaglercraftMOTDEvent<ProxiedPlayer>> onComplete) {
-		fireSync(new BungeeMOTDEventImpl(api, connection), onComplete);
+		fireSync(new EaglercraftMOTDEvent(api, connection), onComplete);
 	}
 
 	@Override
 	public void dispatchRegisterSkinEvent(IEaglerLoginConnection loginConnection, IRegisterSkinDelegate delegate,
 			IEventDispatchCallback<IEaglercraftRegisterSkinEvent<ProxiedPlayer>> onComplete) {
 		eventMgr.callEvent(
-				new BungeeRegisterSkinEventImpl(api, loginConnection, delegate, transformCallback(onComplete)));
+				new EaglercraftRegisterSkinEvent(api, loginConnection, delegate, transformCallback(onComplete)));
 	}
 
 	@Override
 	public void dispatchRevokeSessionQueryEvent(IQueryConnection query, byte[] cookieData,
 			IEventDispatchCallback<IEaglercraftRevokeSessionQueryEvent<ProxiedPlayer>> onComplete) {
 		eventMgr.callEvent(
-				new BungeeRevokeSessionQueryEventImpl(api, query, cookieData, transformCallback(onComplete)));
+				new EaglercraftRevokeSessionQueryEvent(api, query, cookieData, transformCallback(onComplete)));
 	}
 
 	@Override
 	public void dispatchVoiceChangeEvent(IEaglerPlayer<ProxiedPlayer> player, EnumVoiceState voiceStateOld,
 			EnumVoiceState voiceStateNew, IEventDispatchCallback<IEaglercraftVoiceChangeEvent<ProxiedPlayer>> onComplete) {
-		fireSync(new BungeeVoiceChangeEventImpl(api, player, voiceStateOld, voiceStateNew), onComplete);
+		fireSync(new EaglercraftVoiceChangeEvent(api, player, voiceStateOld, voiceStateNew), onComplete);
 	}
 
 	@Override
 	public void dispatchWebSocketOpenEvent(IEaglerConnection connection, FullHttpRequest request,
 			IEventDispatchCallback<IEaglercraftWebSocketOpenEvent<ProxiedPlayer>> onComplete) {
-		fireSync(new BungeeWebSocketOpenEventImpl(api, connection, request), onComplete);
+		fireSync(new EaglercraftWebSocketOpenEvent(api, connection, request), onComplete);
 	}
 
 	@Override
 	public void dispatchWebViewChannelEvent(IEaglerPlayer<ProxiedPlayer> player, EnumEventType type, String channel,
 			IEventDispatchCallback<IEaglercraftWebViewChannelEvent<ProxiedPlayer>> onComplete) {
-		fireSync(new BungeeWebViewChannelEventImpl(api, player, type, channel), onComplete);
+		fireSync(new EaglercraftWebViewChannelEvent(api, player, type, channel), onComplete);
 	}
 
 	@Override
 	public void dispatchWebViewMessageEvent(IEaglerPlayer<ProxiedPlayer> player, String channel, EnumMessageType type,
 			byte[] data, IEventDispatchCallback<IEaglercraftWebViewMessageEvent<ProxiedPlayer>> onComplete) {
-		fireSync(new BungeeWebViewMessageEventImpl(api, player, channel, type, data), onComplete);
+		fireSync(new EaglercraftWebViewMessageEvent(api, player, channel, type, data), onComplete);
 	}
 
 }

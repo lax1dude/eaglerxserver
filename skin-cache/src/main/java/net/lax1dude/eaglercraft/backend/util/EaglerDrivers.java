@@ -34,7 +34,7 @@ import java.util.Properties;
 
 public class EaglerDrivers {
 
-	private static Driver initializeDriver(String address, String driverClass, ILoggerAdapter logger) {
+	private static Driver initializeDriver(String address, String driverClass, File baseFolder, ILoggerAdapter logger) {
 		ClassLoader classLoader;
 		if(address.equalsIgnoreCase("classpath")) {
 			classLoader = EaglerDrivers.class.getClassLoader();
@@ -43,7 +43,7 @@ public class EaglerDrivers {
 			if(classLoader == null) {
 				File driver;
 				if(address.equalsIgnoreCase("internal")) {
-					driver = new File("drivers/sqlite-jdbc.jar");
+					driver = new File(baseFolder, "drivers/sqlite-jdbc.jar");
 					driver.getParentFile().mkdirs();
 					if(!driver.exists()) {
 						try {
@@ -93,7 +93,7 @@ public class EaglerDrivers {
 	private static final Map<String, Driver> driversDrivers = new HashMap<>();
 
 	public static Connection connectToDatabase(String address, String driverClass, String driverPath, Properties props,
-			ILoggerAdapter logger) throws SQLException {
+			File baseFolder, ILoggerAdapter logger) throws SQLException {
 		if(driverClass.equalsIgnoreCase("internal")) {
 			driverClass = "org.sqlite.JDBC";
 		}
@@ -108,7 +108,7 @@ public class EaglerDrivers {
 			String driverMapPath = "" + driverPath + "?" + driverClass;
 			Driver dv = driversDrivers.get(driverMapPath);
 			if(dv == null) {
-				dv = initializeDriver(driverPath, driverClass, logger);
+				dv = initializeDriver(driverPath, driverClass, baseFolder, logger);
 				driversDrivers.put(driverMapPath, dv);
 			}
 			return dv.connect(address, props);

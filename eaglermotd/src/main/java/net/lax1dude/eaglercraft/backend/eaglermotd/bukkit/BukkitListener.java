@@ -9,7 +9,7 @@ import org.bukkit.event.Listener;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.EaglercraftMOTDEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 
-class BukkitListener implements Listener {
+public class BukkitListener implements Listener {
 
 	private final PlatformPluginBukkit plugin;
 

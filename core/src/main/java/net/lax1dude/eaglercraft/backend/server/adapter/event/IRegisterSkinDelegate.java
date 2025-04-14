@@ -4,7 +4,8 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 
-public interface IRegisterSkinDelegate {
+public interface IRegisterSkinDelegate extends
+		net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftRegisterSkinEvent.IRegisterSkinDelegate {
 
 	IEaglerPlayerSkin getEaglerSkin();
 

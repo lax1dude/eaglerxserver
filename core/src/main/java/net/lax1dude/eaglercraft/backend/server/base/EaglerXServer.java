@@ -395,7 +395,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			SkinCacheDatastore datastore;
 			try {
 				skinCacheJDBCHandle = EaglerDrivers.connectToDatabase(skinConf.getSkinCacheDBURI(),
-						skinConf.getSkinCacheDriverClass(), skinConf.getSkinCacheDriverPath(), new Properties(), logger());
+						skinConf.getSkinCacheDriverClass(), skinConf.getSkinCacheDriverPath(), new Properties(),
+						platform.getDataFolder(), logger());
 				datastore = new SkinCacheDatastore(skinCacheJDBCHandle, threadCount,
 						skinConf.getSkinCacheDiskKeepObjectsDays(), skinConf.getSkinCacheDiskMaxObjects(),
 						Math.min(skinConf.getSkinCacheCompressionLevel(), 9), skinConf.isSkinCacheSQLiteCompatible(), logger());

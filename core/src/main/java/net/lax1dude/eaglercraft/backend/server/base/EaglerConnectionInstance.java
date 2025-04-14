@@ -1,6 +1,5 @@
 package net.lax1dude.eaglercraft.backend.server.base;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -257,7 +256,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	NettyPipelineData.ProfileDataHolder transferProfileData() {
 		NettyPipelineData.ProfileDataHolder ret = profileDataTmp;
 		profileDataTmp = null;
-		return ret != null ? ret : NettyPipelineData.NULL_PROFILE;
+		return ret;
 	}
 
 	UUID getEaglerBrandUUID() {

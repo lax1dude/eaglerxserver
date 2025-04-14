@@ -136,7 +136,7 @@ public class EaglerXSupervisorServer implements Runnable {
 			try {
 				skinJDBCConnection = EaglerDrivers.connectToDatabase(config.getSkinCacheDBURI(),
 						config.getSQLDriverClass(), config.getSQLDriverPath(), new Properties(),
-						LoggerSv.getLogger("EaglerDrivers"));
+						new File("."), LoggerSv.getLogger("EaglerDrivers"));
 				datastore = new SkinCacheDatastore(skinJDBCConnection, threads,
 						config.getDatabaseKeepObjectsDays(), config.getDatabaseMaxObjects(),
 						config.getDatabaseCompressionLevel(), config.getSkinCacheDBSQLiteCompatible(),

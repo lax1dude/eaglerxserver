@@ -8,7 +8,7 @@ import com.velocitypowered.api.proxy.Player;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 import net.lax1dude.eaglercraft.backend.server.api.velocity.event.EaglercraftMOTDEvent;
 
-class VelocityListener {
+public class VelocityListener {
 
 	private final PlatformPluginVelocity plugin;
 
