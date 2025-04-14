@@ -9,15 +9,15 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformScheduler;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.NodeResult;
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorData;
 
-class InvokeAllNodesHelper<Out extends ISupervisorData> extends ArrayList<NodeResult<? super Out>>
-		implements Consumer<Collection<NodeResult<? super Out>>> {
+class InvokeAllNodesHelper<Out extends ISupervisorData> extends ArrayList<NodeResult<Out>>
+		implements Consumer<Collection<NodeResult<Out>>> {
 
-	private final Consumer<Collection<NodeResult<? super Out>>> res;
+	private final Consumer<? super Collection<NodeResult<Out>>> res;
 	private final IPlatformScheduler sched;
 	private final IPlatformLogger logger;
 	private int cntDown = 2;
 
-	public InvokeAllNodesHelper(Consumer<Collection<NodeResult<? super Out>>> res, IPlatformScheduler sched,
+	public InvokeAllNodesHelper(Consumer<? super Collection<NodeResult<Out>>> res, IPlatformScheduler sched,
 			IPlatformLogger logger) {
 		super(8);
 		this.res = res;
@@ -26,10 +26,12 @@ class InvokeAllNodesHelper<Out extends ISupervisorData> extends ArrayList<NodeRe
 	}
 
 	@Override
-	public void accept(Collection<NodeResult<? super Out>> t) {
+	public void accept(Collection<NodeResult<Out>> t) {
 		synchronized(this) {
 			if(cntDown > 0) {
-				addAll(t);
+				if(t != null) {
+					addAll(t);
+				}
 				if(--cntDown > 0) {
 					return;
 				}
@@ -40,7 +42,7 @@ class InvokeAllNodesHelper<Out extends ISupervisorData> extends ArrayList<NodeRe
 		done();
 	}
 
-	public void acceptLocal(NodeResult<? super Out> loc) {
+	public void acceptLocal(NodeResult<Out> loc) {
 		synchronized(this) {
 			if(cntDown > 0) {
 				add(loc);

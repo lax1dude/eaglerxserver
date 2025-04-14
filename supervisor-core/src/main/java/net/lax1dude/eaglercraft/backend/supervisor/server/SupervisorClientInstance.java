@@ -241,10 +241,15 @@ public class SupervisorClientInstance {
 	public void invokeRPC(int sourceNodeId, int procNameLen, ByteBuf dataBuffer, RPCPending callback) {
 		dataBuffer.retain();
 		handler.getChannel().eventLoop().execute(() -> {
-			callback.map = pendingRPC;
-			pendingRPC.put(callback.key, callback);
-			if(timeout.addFuture(callback)) {
-				handler.channelWrite(new SPacketSvRPCExecute(callback.key, sourceNodeId, procNameLen, dataBuffer));
+			try {
+				callback.map = pendingRPC;
+				pendingRPC.put(callback.key, callback);
+				if(timeout.addFuture(callback)) {
+					handler.channelWrite(
+							new SPacketSvRPCExecute(callback.key, sourceNodeId, procNameLen, dataBuffer.retain()));
+				}
+			}finally {
+				dataBuffer.release();
 			}
 		});
 	}

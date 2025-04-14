@@ -208,6 +208,7 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 	void handleHandshakeSuccess(SupervisorPacketHandler h, int nodeId) {
 		if(SERVICE_STATE_TRACKER_HANDLE.compareAndSet(this, 2, 3)) {
 			logger().info("Supervisor handshake successful");
+			logger().info("Assigned node ID " + nodeId);
 			onNewConnection(h, nodeId);
 		}else {
 			logger().error("Unexpected supervisor handshake success");

@@ -30,11 +30,13 @@ abstract class RPCMultiResultAggregator extends ArrayList<SPacketSvRPCResultMult
 
 	public RPCMultiResultAggregator(int cntDown) {
 		super(cntDown);
+		this.cntDown = cntDown;
 	}
 
 	public void push(SPacketSvRPCResultMulti.ResultEntry etr) {
 		synchronized(this) {
 			if(cntDown > 0) {
+				etr.retain();
 				add(etr);
 				if(--cntDown > 0) {
 					return;
@@ -44,29 +46,29 @@ abstract class RPCMultiResultAggregator extends ArrayList<SPacketSvRPCResultMult
 			}
 		}
 		eventLoop.execute(() -> {
-			if(set.remove(this)) {
-				try {
+			try {
+				if(set.remove(this)) {
 					onComplete();
-				}finally {
-					destroy0();
 				}
+			}finally {
+				destroy0();
 			}
 		});
 	}
 
 	public void pushEmpty() {
 		synchronized(this) {
-			if(cntDown <= 0 || --cntDown != 0) {
+			if(cntDown <= 0 || --cntDown > 0) {
 				return;
 			}
 		}
 		eventLoop.execute(() -> {
-			if(set.remove(this)) {
-				try {
+			try {
+				if(set.remove(this)) {
 					onComplete();
-				}finally {
-					destroy0();
 				}
+			}finally {
+				destroy0();
 			}
 		});
 	}
@@ -81,7 +83,9 @@ abstract class RPCMultiResultAggregator extends ArrayList<SPacketSvRPCResultMult
 				return;
 			}
 		}
-		if(set.remove(this)) {
+		try {
+			set.remove(this);
+		}finally {
 			destroy0();
 		}
 	}
@@ -90,6 +94,16 @@ abstract class RPCMultiResultAggregator extends ArrayList<SPacketSvRPCResultMult
 		for(int i = 0, l = size(); i < l; ++i) {
 			get(i).release();
 		}
+	}
+
+	@Override
+	public int hashCode() {
+		return System.identityHashCode(this);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		return this == o;
 	}
 
 }

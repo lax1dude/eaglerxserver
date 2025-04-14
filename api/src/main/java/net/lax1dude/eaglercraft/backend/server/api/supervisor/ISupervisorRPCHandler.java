@@ -33,6 +33,11 @@ public interface ISupervisorRPCHandler {
 	<In extends ISupervisorData, Out extends ISupervisorData> void invokeAtPlayer(String username,
 			ProcedureDesc<In, Out> desc, int timeout, In input, Consumer<? super Out> output);
 
+	default <Out extends ISupervisorData> void invokeAtPlayer(String username,
+			ProcedureDesc<SupervisorDataVoid, Out> desc, int timeout, Consumer<? super Out> output) {
+		invokeAtPlayer(username, desc, timeout, ISupervisorData.VOID, output);
+	}
+
 	default <In extends ISupervisorData> void invokeAtPlayerVoid(String username,
 			ProcedureDesc<In, SupervisorDataVoid> desc, int timeout, In input, IVoidCallback onComplete) {
 		invokeAtPlayer(username, desc, timeout, input, onComplete != null ? (res) -> {
@@ -58,6 +63,11 @@ public interface ISupervisorRPCHandler {
 
 	<In extends ISupervisorData, Out extends ISupervisorData> void invokeAtPlayer(UUID player,
 			ProcedureDesc<In, Out> desc, int timeout, In input, Consumer<? super Out> output);
+
+	default <Out extends ISupervisorData> void invokeAtPlayer(UUID player,
+			ProcedureDesc<SupervisorDataVoid, Out> desc, int timeout, Consumer<? super Out> output) {
+		invokeAtPlayer(player, desc, timeout, ISupervisorData.VOID, output);
+	}
 
 	default <In extends ISupervisorData> void invokeAtPlayerVoid(UUID player,
 			ProcedureDesc<In, SupervisorDataVoid> desc, int timeout, In input, IVoidCallback onComplete) {
@@ -85,6 +95,11 @@ public interface ISupervisorRPCHandler {
 	<In extends ISupervisorData, Out extends ISupervisorData> void invokeAtNode(int nodeId, ProcedureDesc<In, Out> desc,
 			int timeout, In input, Consumer<? super Out> output);
 
+	default <Out extends ISupervisorData> void invokeAtNode(int nodeId, ProcedureDesc<SupervisorDataVoid, Out> desc,
+			int timeout, Consumer<? super Out> output) {
+		invokeAtNode(nodeId, desc, timeout, ISupervisorData.VOID, output);
+	}
+
 	default <In extends ISupervisorData> void invokeAtNodeVoid(int nodeId, ProcedureDesc<In, SupervisorDataVoid> desc,
 			int timeout, In input, IVoidCallback onComplete) {
 		invokeAtNode(nodeId, desc, timeout, input, onComplete != null ? (res) -> {
@@ -109,7 +124,12 @@ public interface ISupervisorRPCHandler {
 	}
 
 	<In extends ISupervisorData, Out extends ISupervisorData> void invokeAllNodes(ProcedureDesc<In, Out> desc,
-			int timeout, In input, Consumer<Collection<NodeResult<? super Out>>> output);
+			int timeout, In input, Consumer<? super Collection<NodeResult<Out>>> output);
+
+	default <Out extends ISupervisorData> void invokeAllNodes(ProcedureDesc<SupervisorDataVoid, Out> desc,
+			int timeout, Consumer<? super Collection<NodeResult<Out>>> output) {
+		invokeAllNodes(desc, timeout, ISupervisorData.VOID, output);
+	}
 
 	default <In extends ISupervisorData> void invokeAllNodesVoid(ProcedureDesc<In, SupervisorDataVoid> desc,
 			int timeout, In input, Consumer<IntSet> onComplete) {
@@ -134,7 +154,12 @@ public interface ISupervisorRPCHandler {
 	}
 
 	<In extends ISupervisorData, Out extends ISupervisorData> void invokeAllOtherNodes(ProcedureDesc<In, Out> desc,
-			int timeout, In input, Consumer<Collection<NodeResult<? super Out>>> output);
+			int timeout, In input, Consumer<? super Collection<NodeResult<Out>>> output);
+
+	default <Out extends ISupervisorData> void invokeAllOtherNodes(ProcedureDesc<SupervisorDataVoid, Out> desc,
+			int timeout, Consumer<? super Collection<NodeResult<Out>>> output) {
+		invokeAllOtherNodes(desc, timeout, ISupervisorData.VOID, output);
+	}
 
 	default <In extends ISupervisorData> void invokeAllOtherNodesVoid(ProcedureDesc<In, SupervisorDataVoid> desc,
 			int timeout, In input, Consumer<IntSet> onComplete) {
@@ -159,6 +184,6 @@ public interface ISupervisorRPCHandler {
 		invokeAllOtherNodes(desc, 0, ISupervisorData.VOID, null);
 	}
 
-	IntSet toIntSet(Collection<NodeResult<? super SupervisorDataVoid>> collection);
+	IntSet toIntSet(Collection<NodeResult<SupervisorDataVoid>> collection);
 
 }

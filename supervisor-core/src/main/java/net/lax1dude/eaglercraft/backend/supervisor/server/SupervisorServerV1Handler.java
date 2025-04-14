@@ -284,8 +284,8 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 			RPCMultiResultAggregator aggregator = new RPCMultiResultAggregator(clientList.size()) {
 				@Override
 				protected void onComplete() {
-					for(SPacketSvRPCResultMulti.ResultEntry etr : this) {
-						etr.retain();
+					for(int i = 0, l = size(); i < l; ++i) {
+						get(i).retain();
 					}
 					handler.channelWrite(new SPacketSvRPCResultMulti(pkt.requestUUID, this));
 				}
@@ -297,8 +297,7 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 								new RPCPending(pkt.requestUUID, System.nanoTime() + pkt.timeout * 1000000l) {
 							@Override
 							protected void onSuccess(ByteBuf dataBuffer) {
-								aggregator.push(SPacketSvRPCResultMulti.ResultEntry.success(otherClient.getNodeId(),
-										dataBuffer.retain()));
+								aggregator.push(SPacketSvRPCResultMulti.ResultEntry.success(otherClient.getNodeId(), dataBuffer));
 							}
 							@Override
 							protected void onFailure(int type) {

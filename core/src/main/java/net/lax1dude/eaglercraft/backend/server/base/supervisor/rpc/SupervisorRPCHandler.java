@@ -159,7 +159,7 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 				if(handler != null) {
 					UUID uuid = UUID.randomUUID();
 					long now = System.nanoTime();
-					addWaitingCallback(now, new ProcedureCallback(uuid, waitingProcedures, now + (timeout + 5) * 1000000l) {
+					addWaitingCallback(now, new ProcedureCallback(uuid, waitingProcedures, now + (timeout + 5000) * 1000000l) {
 						@Override
 						protected void onResultFail(int type) {
 							if(isLogWarningForResult(type)) {
@@ -239,7 +239,7 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 				if(handler != null) {
 					UUID uuid = UUID.randomUUID();
 					long now = System.nanoTime();
-					addWaitingCallback(now, new ProcedureCallback(uuid, waitingProcedures, now + (timeout + 5) * 1000000l) {
+					addWaitingCallback(now, new ProcedureCallback(uuid, waitingProcedures, now + (timeout + 5000) * 1000000l) {
 						@Override
 						protected void onResultFail(int type) {
 							if(isLogWarningForResult(type)) {
@@ -333,7 +333,7 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 					}else {
 						UUID uuid = UUID.randomUUID();
 						long now = System.nanoTime();
-						addWaitingCallback(now, new ProcedureCallback(uuid, waitingProcedures, now + (timeout + 5) * 1000000l) {
+						addWaitingCallback(now, new ProcedureCallback(uuid, waitingProcedures, now + (timeout + 5000) * 1000000l) {
 							@Override
 							protected void onResultFail(int type) {
 								if(isLogWarningForResult(type)) {
@@ -387,7 +387,7 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 
 	@Override
 	public <In extends ISupervisorData, Out extends ISupervisorData> void invokeAllNodes(ProcedureDesc<In, Out> desc,
-			int timeout, In input, Consumer<Collection<NodeResult<? super Out>>> output) {
+			int timeout, In input, Consumer<? super Collection<NodeResult<Out>>> output) {
 		if(timeout <= 0 && output != null) {
 			throw new IllegalArgumentException("Invalid timeout: " + timeout);
 		}
@@ -425,7 +425,7 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 
 	@Override
 	public <In extends ISupervisorData, Out extends ISupervisorData> void invokeAllOtherNodes(
-			ProcedureDesc<In, Out> desc, int timeout, In input, Consumer<Collection<NodeResult<? super Out>>> output) {
+			ProcedureDesc<In, Out> desc, int timeout, In input, Consumer<? super Collection<NodeResult<Out>>> output) {
 		if(timeout <= 0 && output != null) {
 			throw new IllegalArgumentException("Invalid timeout: " + timeout);
 		}
@@ -442,12 +442,12 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 
 	private <In extends ISupervisorData, Out extends ISupervisorData> void invokeAllOtherNodes0(
 			SupervisorProcedure procedure, SupervisorConnection handler, int timeout, In input, boolean async,
-			Consumer<Collection<NodeResult<? super Out>>> output) {
+			Consumer<? super Collection<NodeResult<Out>>> output) {
 		if(output != null) {
 			if(handler != null) {
 				UUID uuid = UUID.randomUUID();
 				long now = System.nanoTime();
-				addWaitingCallback(now, new ProcedureCallback(uuid, waitingProcedures, now + (timeout + 5) * 1000000l) {
+				addWaitingCallback(now, new ProcedureCallback(uuid, waitingProcedures, now + (timeout + 5000) * 1000000l) {
 					@Override
 					protected void onResultFail(int type) {
 						if(isLogWarningForResult(type)) {
@@ -462,7 +462,7 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 					}
 					@Override
 					protected void onResultMulti(Collection<SPacketSvRPCResultMulti.ResultEntry> list) {
-						Collection<NodeResult<? super Out>> ret = new ArrayList<>(list.size());
+						Collection<NodeResult<Out>> ret = new ArrayList<>(list.size());
 						for(SPacketSvRPCResultMulti.ResultEntry etr : list) {
 							if(etr.status == 0) {
 								Out res;
@@ -533,7 +533,7 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 		if(proc != null) {
 			ISupervisorData data;
 			try {
-				data = InjectedRPCPayload.deserialize(dataBuffer, proc.outputType);
+				data = InjectedRPCPayload.deserialize(dataBuffer, proc.inputType);
 			}catch(Exception ex) {
 				service.logger().error("Could not deserialize type " + proc.inputType.clazz.getName(), ex);
 				return;
@@ -571,7 +571,7 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 		if(proc != null) {
 			ISupervisorData data;
 			try {
-				data = InjectedRPCPayload.deserialize(dataBuffer, proc.outputType);
+				data = InjectedRPCPayload.deserialize(dataBuffer, proc.inputType);
 			}catch(Exception ex) {
 				service.logger().error("Could not deserialize type " + proc.inputType.clazz.getName(), ex);
 				return;
@@ -644,9 +644,9 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 	}
 
 	@Override
-	public IntSet toIntSet(Collection<NodeResult<? super SupervisorDataVoid>> collection) {
+	public IntSet toIntSet(Collection<NodeResult<SupervisorDataVoid>> collection) {
 		IntSet ret = new IntHashSet(collection.size());
-		for (NodeResult<? super SupervisorDataVoid> o : collection) {
+		for (NodeResult<? extends SupervisorDataVoid> o : collection) {
 			if (o.isSuccessful()) {
 				ret.add(o.getNodeId());
 			}
