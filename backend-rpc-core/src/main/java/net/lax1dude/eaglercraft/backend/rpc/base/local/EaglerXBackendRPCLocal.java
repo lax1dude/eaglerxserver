@@ -93,8 +93,19 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 	void confirmEaglerPlayer(EaglerPlayerLocal<PlayerObject> player) {
 		if(eaglerPlayerMap.get(player.getPlayerObject()) != null) {
 			platform.eventDispatcher().dispatchPlayerReadyEvent(player);
-			if(((EaglerPlayerRPCLocal<PlayerObject>) player.playerRPC).delegate.isVoiceCapable()) {
-				platform.eventDispatcher().dispatchVoiceCapableEvent(player);
+			net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject> eagPlayer =
+					((EaglerPlayerRPCLocal<PlayerObject>) player.playerRPC).delegate;
+			if(eagPlayer.isVoiceCapable()) {
+				net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager<PlayerObject> voiceManager =
+						eagPlayer.getVoiceManager();
+				net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel channel =
+						voiceManager.getVoiceChannel();
+				net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel channel2 =
+						VoiceChannelHelper.unwrap(platform.eventDispatcher().dispatchVoiceCapableEvent(player,
+								VoiceChannelHelper.wrap(channel)).getTargetChannel());
+				if(channel != channel2) {
+					voiceManager.setVoiceChannel(channel2);
+				}
 			}
 		}
 	}

@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft.backend.rpc.api.event;
 
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceManager;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceService;
 
@@ -12,5 +13,9 @@ public interface IEaglercraftVoiceCapableEvent<PlayerObject> extends IBasePlayer
 	default IVoiceService<PlayerObject> getVoiceService() {
 		return getServerAPI().getVoiceService();
 	}
+
+	IVoiceChannel getTargetChannel();
+
+	void setTargetChannel(IVoiceChannel channel);
 
 }

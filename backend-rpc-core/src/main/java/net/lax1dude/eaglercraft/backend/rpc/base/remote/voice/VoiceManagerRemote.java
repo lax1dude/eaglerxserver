@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
+import net.lax1dude.eaglercraft.backend.rpc.api.event.IEaglercraftVoiceCapableEvent;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.EnumVoiceState;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceManager;
@@ -200,7 +201,9 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 			handler = new BackendV1VCProtocolHandler(this);
 			SERVER_ENABLE_HANDLE.setRelease(this, 1);
 			player.getPlatformPlayer().sendData(server.getChannelVoiceName(), packet);
-			player.getEaglerXBackendRPC().getPlatform().eventDispatcher().dispatchVoiceCapableEvent(player);
+			IEaglercraftVoiceCapableEvent<PlayerObject> res = player.getEaglerXBackendRPC().getPlatform()
+					.eventDispatcher().dispatchVoiceCapableEvent(player, voice.getGlobalVoiceChannel());
+			setVoiceChannel(res.getTargetChannel());
 		}
 	}
 

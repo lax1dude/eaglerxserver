@@ -8,6 +8,7 @@ import net.lax1dude.eaglercraft.backend.rpc.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXBackendRPC;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.EnumVoiceState;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceChannel;
 
 public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player> {
 
@@ -31,8 +32,10 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player>
 	}
 
 	@Override
-	public void dispatchVoiceCapableEvent(IEaglerPlayer<Player> player) {
-		eventMgr.callEvent(new BukkitVoiceCapableEventImpl(api, player));
+	public BukkitVoiceCapableEventImpl dispatchVoiceCapableEvent(IEaglerPlayer<Player> player, IVoiceChannel channel) {
+		BukkitVoiceCapableEventImpl evt = new BukkitVoiceCapableEventImpl(api, player, channel);
+		eventMgr.callEvent(evt);
+		return evt;
 	}
 
 	@Override

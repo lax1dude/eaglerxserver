@@ -123,29 +123,33 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 
 	@Override
 	public void handleBackendMessage(byte[] data) {
-		if((int)STATE_HANDLE.getAcquire(this) != 0) {
-			EaglerVCPacket pkt;
-			try {
-				pkt = deserialize(EaglerVCProtocol.V1, data);
-			} catch (Exception e) {
-				handleException(e);
+		EaglerVCPacket pkt;
+		eagler: if((int)STATE_HANDLE.getAcquire(this) == -1) {
+			synchronized(this) {
+				if((int)STATE_HANDLE.getAcquire(this) != -1) {
+					break eagler;
+				}
+				try {
+					pkt = deserialize(EaglerVCProtocol.INIT, data);
+				} catch (Exception e) {
+					handleException(e);
+					return;
+				}
+				handleBackendHandshake(pkt);
 				return;
 			}
-			try {
-				pkt.handlePacket(handler);
-			} catch (Exception e) {
-				handleException(new IllegalStateException(
-						"Failed to handle inbound voice RPC packet: " + pkt.getClass().getSimpleName(), e));
-			}
-		}else {
-			EaglerVCPacket pkt;
-			try {
-				pkt = deserialize(EaglerVCProtocol.INIT, data);
-			} catch (Exception e) {
-				handleException(e);
-				return;
-			}
-			handleBackendHandshake(pkt);
+		}
+		try {
+			pkt = deserialize(EaglerVCProtocol.V1, data);
+		} catch (Exception e) {
+			handleException(e);
+			return;
+		}
+		try {
+			pkt.handlePacket(handler);
+		} catch (Exception e) {
+			handleException(new IllegalStateException(
+					"Failed to handle inbound voice RPC packet: " + pkt.getClass().getSimpleName(), e));
 		}
 	}
 
