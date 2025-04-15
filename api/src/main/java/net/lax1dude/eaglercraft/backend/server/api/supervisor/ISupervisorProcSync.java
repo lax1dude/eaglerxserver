@@ -2,6 +2,9 @@ package net.lax1dude.eaglercraft.backend.server.api.supervisor;
 
 import java.util.function.Consumer;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorData;
 
 /**
@@ -21,10 +24,11 @@ import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorDa
  */
 public interface ISupervisorProcSync<In extends ISupervisorData, Out extends ISupervisorData> extends ISupervisorProc<In, Out> {
 
-	default void call(int sourceNode, In dataInput, Consumer<Out> dataOutput) {
+	default void call(int sourceNode, @Nonnull In dataInput, @Nonnull Consumer<Out> dataOutput) {
 		dataOutput.accept(call0(sourceNode, dataInput));
 	}
 
-	Out call0(int sourceNode, In dataInput);
+	@Nullable
+	Out call0(int sourceNode, @Nonnull In dataInput);
 
 }

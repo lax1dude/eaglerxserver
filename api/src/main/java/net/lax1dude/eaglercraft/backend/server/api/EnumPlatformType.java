@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.api;
 
+import javax.annotation.Nonnull;
+
 public enum EnumPlatformType {
 	BUNGEECORD("BungeeCord", true, false),
 	VELOCITY("Velocity", true, false),
@@ -16,6 +18,7 @@ public enum EnumPlatformType {
 		this.standalone = standalone;
 	}
 
+	@Nonnull
 	public String getName() {
 		return name;
 	}

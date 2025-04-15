@@ -161,7 +161,7 @@ class BukkitAuthPasswordEventImpl extends EaglercraftAuthPasswordEvent {
 
 	@Override
 	public void setKickMessage(String kickMessage) {
-		this.kickMessage = new TextComponent(kickMessage);
+		this.kickMessage = kickMessage != null ? new TextComponent(kickMessage) : null;
 	}
 
 	@Override

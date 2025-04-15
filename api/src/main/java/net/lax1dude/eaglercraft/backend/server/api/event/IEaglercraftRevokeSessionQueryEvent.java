@@ -2,6 +2,8 @@ package net.lax1dude.eaglercraft.backend.server.api.event;
 
 import java.nio.charset.StandardCharsets;
 
+import javax.annotation.Nonnull;
+
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryConnection;
 
 public interface IEaglercraftRevokeSessionQueryEvent<PlayerObject> extends IBaseServerEvent<PlayerObject> {
@@ -19,18 +21,21 @@ public interface IEaglercraftRevokeSessionQueryEvent<PlayerObject> extends IBase
 		}
 	}
 
+	@Nonnull
 	IQueryConnection getSocket();
 
+	@Nonnull
 	byte[] getCookieData();
 
+	@Nonnull
 	default String getCookieDataString() {
-		byte[] ret = getCookieData();
-		return ret != null ? new String(ret, StandardCharsets.UTF_8) : null;
+		return new String(getCookieData(), StandardCharsets.UTF_8);
 	}
 
+	@Nonnull
 	EnumSessionRevokeStatus getResultStatus();
 
-	void setResultStatus(EnumSessionRevokeStatus revokeStatus);
+	void setResultStatus(@Nonnull EnumSessionRevokeStatus revokeStatus);
 
 	boolean getShouldDeleteCookie();
 

@@ -6,6 +6,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
 import io.netty.channel.EventLoopGroup;
@@ -32,164 +35,218 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
-	public static <PlayerObject> IEaglerXServerAPI<PlayerObject> instance(Class<PlayerObject> playerObj) {
+	@Nonnull
+	public static <PlayerObject> IEaglerXServerAPI<PlayerObject> instance(@Nonnull Class<PlayerObject> playerObj) {
 		return EaglerXServerAPIFactory.INSTANCE.getAPI(playerObj);
 	}
 
+	@Nonnull
 	public static IEaglerXServerAPI<?> instance() {
 		return EaglerXServerAPIFactory.INSTANCE.getDefaultAPI();
 	}
 
+	@Nonnull
 	public static Set<Class<?>> getPlayerTypes() {
 		return EaglerXServerAPIFactory.INSTANCE.getPlayerTypes();
 	}
 
+	@Nonnull
 	public static IEaglerAPIFactory getFactoryInstance() {
 		return EaglerXServerAPIFactory.INSTANCE;
 	}
 
+	@Nonnull
 	IEaglerAPIFactory getFactory();
 
+	@Nonnull
 	EnumPlatformType getPlatformType();
 
+	@Nonnull
 	Class<PlayerObject> getPlayerClass();
 
+	@Nonnull
 	String getServerBrand();
 
+	@Nonnull
 	String getServerVersion();
 
+	@Nonnull
 	String getServerName();
 
+	@Nonnull
 	UUID getServerUUID();
 
 	boolean isAuthenticationEventsEnabled();
 
 	boolean isEaglerHandshakeSupported(int vers);
 
-	boolean isEaglerProtocolSupported(GamePluginMessageProtocol vers);
+	boolean isEaglerProtocolSupported(@Nonnull GamePluginMessageProtocol vers);
 
 	boolean isMinecraftProtocolSupported(int vers);
 
-	IBasePlayer<PlayerObject> getPlayer(PlayerObject player);
+	@Nullable
+	IBasePlayer<PlayerObject> getPlayer(@Nonnull PlayerObject player);
 
-	IBasePlayer<PlayerObject> getPlayerByName(String playerName);
+	@Nullable
+	IBasePlayer<PlayerObject> getPlayerByName(@Nonnull String playerName);
 
-	IBasePlayer<PlayerObject> getPlayerByUUID(UUID playerUUID);
+	@Nullable
+	IBasePlayer<PlayerObject> getPlayerByUUID(@Nonnull UUID playerUUID);
 
-	IEaglerPlayer<PlayerObject> getEaglerPlayer(PlayerObject player);
+	@Nullable
+	IEaglerPlayer<PlayerObject> getEaglerPlayer(@Nonnull PlayerObject player);
 
-	IEaglerPlayer<PlayerObject> getEaglerPlayerByName(String playerName);
+	@Nullable
+	IEaglerPlayer<PlayerObject> getEaglerPlayerByName(@Nonnull String playerName);
 
-	IEaglerPlayer<PlayerObject> getEaglerPlayerByUUID(UUID playerUUID);
+	@Nullable
+	IEaglerPlayer<PlayerObject> getEaglerPlayerByUUID(@Nonnull UUID playerUUID);
 
-	boolean isPlayer(PlayerObject player);
+	boolean isPlayer(@Nonnull PlayerObject player);
 
-	boolean isPlayerByName(String playerName);
+	boolean isPlayerByName(@Nonnull String playerName);
 
-	boolean isPlayerByUUID(UUID playerUUID);
+	boolean isPlayerByUUID(@Nonnull UUID playerUUID);
 
-	boolean isEaglerPlayer(PlayerObject player);
+	boolean isEaglerPlayer(@Nonnull PlayerObject player);
 
-	boolean isEaglerPlayerByName(String playerName);
+	boolean isEaglerPlayerByName(@Nonnull String playerName);
 
-	boolean isEaglerPlayerByUUID(UUID playerUUID);
+	boolean isEaglerPlayerByUUID(@Nonnull UUID playerUUID);
 
-	void forEachPlayer(Consumer<IBasePlayer<PlayerObject>> callback);
+	void forEachPlayer(@Nonnull Consumer<IBasePlayer<PlayerObject>> callback);
 
-	void forEachEaglerPlayer(Consumer<IEaglerPlayer<PlayerObject>> callback);
+	void forEachEaglerPlayer(@Nonnull Consumer<IEaglerPlayer<PlayerObject>> callback);
 
+	@Nonnull
 	Collection<IBasePlayer<PlayerObject>> getAllPlayers();
 
+	@Nonnull
 	Collection<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers();
 
 	int getEaglerPlayerCount();
 
+	@Nonnull
 	Collection<IUpdateCertificate> getUpdateCertificates();
 
-	default IUpdateCertificate createUpdateCertificate(byte[] data) {
+	@Nonnull
+	default IUpdateCertificate createUpdateCertificate(@Nonnull byte[] data) {
 		return createUpdateCertificate(data, 0, data.length);
 	}
 
-	IUpdateCertificate createUpdateCertificate(byte[] data, int offset, int length);
+	@Nonnull
+	IUpdateCertificate createUpdateCertificate(@Nonnull byte[] data, int offset, int length);
 
-	void addUpdateCertificate(IUpdateCertificate cert);
+	void addUpdateCertificate(@Nonnull IUpdateCertificate cert);
 
+	@Nonnull
 	Collection<IEaglerListenerInfo> getAllEaglerListeners();
 
-	IEaglerListenerInfo getListenerByName(String name);
+	@Nullable
+	IEaglerListenerInfo getListenerByName(@Nonnull String name);
 
-	IEaglerListenerInfo getListenerByAddress(SocketAddress address);
+	@Nullable
+	IEaglerListenerInfo getListenerByAddress(@Nonnull SocketAddress address);
 
+	@Nonnull
 	IProfileResolver getProfileResolver();
 
+	@Nullable
 	TexturesProperty getEaglerPlayersVanillaSkin();
 
-	void setEaglerPlayersVanillaSkin(TexturesProperty property);
+	void setEaglerPlayersVanillaSkin(@Nullable TexturesProperty property);
 
 	boolean isEaglerPlayerPropertyEnabled();
 
 	void setEaglerPlayerProperyEnabled(boolean enable);
 
-	void registerExtendedCapability(Object plugin, ExtendedCapabilitySpec capability);
+	void registerExtendedCapability(@Nonnull Object plugin, @Nonnull ExtendedCapabilitySpec capability);
 
-	void unregisterExtendedCapability(Object plugin, ExtendedCapabilitySpec capability);
+	void unregisterExtendedCapability(@Nonnull Object plugin, @Nonnull ExtendedCapabilitySpec capability);
 
-	boolean isExtendedCapabilityRegistered(UUID capabilityUUID, int version);
+	boolean isExtendedCapabilityRegistered(@Nonnull UUID capabilityUUID, int version);
 
+	@Nonnull
 	ISkinService<PlayerObject> getSkinService();
 
+	@Nonnull
 	IVoiceService<PlayerObject> getVoiceService();
 
+	@Nonnull
 	IBrandService<PlayerObject> getBrandService();
 
+	@Nonnull
 	INotificationService<PlayerObject> getNotificationService();
 
+	@Nonnull
 	IPauseMenuService<PlayerObject> getPauseMenuService();
 
+	@Nonnull
 	IWebViewService<PlayerObject> getWebViewService();
 
+	@Nonnull
 	ISupervisorService<PlayerObject> getSupervisorService();
 
+	@Nonnull
 	IEaglerXRewindService<PlayerObject> getEaglerXRewindService();
 
+	@Nonnull
 	IPacketImageLoader getPacketImageLoader();
 
+	@Nonnull
 	IServerIconLoader getServerIconLoader();
 
+	@Nonnull
 	IQueryServer getQueryServer();
 
+	@Nonnull
 	IWebServer getWebServer();
 
+	@Nonnull
 	IScheduler getScheduler();
 
+	@Nonnull
 	Set<Class<?>> getComponentTypes();
 
-	<ComponentObject> IComponentSerializer<ComponentObject> getComponentSerializer(Class<ComponentObject> componentType);
+	@Nonnull
+	<ComponentObject> IComponentSerializer<ComponentObject> getComponentSerializer(
+			@Nonnull Class<ComponentObject> componentType);
 
+	@Nonnull
 	IComponentHelper getComponentHelper();
 
+	@Nonnull
 	INBTHelper getNBTHelper();
 
+	@Nonnull
 	IBinaryHTTPClient getBinaryHTTPClient();
 
-	UUID intern(UUID uuid);
+	@Nonnull
+	UUID intern(@Nonnull UUID uuid);
 
+	@Nonnull
 	IAttributeManager getAttributeManager();
 
+	@Nonnull
 	HPPC getHPPC();
 
 	boolean isNettyPlatform();
 
+	@Nonnull
 	NettyUnsafe netty();
 
 	public interface NettyUnsafe {
 
-		ChannelFactory<? extends Channel> getChannelFactory(SocketAddress address);
+		@Nonnull
+		ChannelFactory<? extends Channel> getChannelFactory(@Nullable SocketAddress address);
 
-		ChannelFactory<? extends ServerChannel> getServerChannelFactory(SocketAddress address);
+		@Nonnull
+		ChannelFactory<? extends ServerChannel> getServerChannelFactory(@Nullable SocketAddress address);
 
+		@Nullable
 		EventLoopGroup getBossEventLoopGroup();
 
+		@Nonnull
 		EventLoopGroup getWorkerEventLoopGroup();
 
 	}

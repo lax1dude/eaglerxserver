@@ -1,5 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.api.skins;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public enum EnumPresetSkins {
 	DEFAULT_STEVE(0, "Default Steve"),
 	DEFAULT_ALEX(1, "Default Alex"),
@@ -43,16 +46,19 @@ public enum EnumPresetSkins {
 		return presetId;
 	}
 
+	@Nonnull
 	public String getName() {
 		return presentName;
 	}
 
 	private static final EnumPresetSkins[] VALUES;
 
+	@Nullable
 	public static EnumPresetSkins getById(int id) {
 		return id >= 0 && id < VALUES.length ? VALUES[id] : null;
 	}
 
+	@Nonnull
 	public static EnumPresetSkins getByIdOrDefault(int id) {
 		EnumPresetSkins ret = getById(id);
 		return ret != null ? ret : DEFAULT_STEVE;

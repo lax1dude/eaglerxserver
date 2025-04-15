@@ -1,9 +1,13 @@
 package net.lax1dude.eaglercraft.backend.server.api.attribute;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public interface IAttributeHolder {
 
-	<T> T get(IAttributeKey<T> key);
+	@Nullable
+	<T> T get(@Nonnull IAttributeKey<T> key);
 
-	<T> void set(IAttributeKey<T> key, T value);
+	<T> void set(@Nonnull IAttributeKey<T> key, @Nullable T value);
 
 }

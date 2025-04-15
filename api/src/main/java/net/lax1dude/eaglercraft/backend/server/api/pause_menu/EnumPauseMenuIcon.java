@@ -2,6 +2,9 @@ package net.lax1dude.eaglercraft.backend.server.api.pause_menu;
 
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import com.google.common.collect.ImmutableMap;
 
 public enum EnumPauseMenuIcon {
@@ -32,13 +35,15 @@ public enum EnumPauseMenuIcon {
 		this.icon = icon;
 	}
 
+	@Nonnull
 	public String getIconName() {
 		return icon;
 	}
 
 	private static final Map<String, EnumPauseMenuIcon> NAMES_MAP;
 
-	public static EnumPauseMenuIcon getByName(String name) {
+	@Nullable
+	public static EnumPauseMenuIcon getByName(@Nonnull String name) {
 		return NAMES_MAP.get(name);
 	}
 

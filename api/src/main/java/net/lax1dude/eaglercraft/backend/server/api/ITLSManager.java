@@ -5,32 +5,36 @@ import java.io.InputStream;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public interface ITLSManager {
 
+	@Nonnull
 	IEaglerListenerInfo getListener();
 
-	default void setCertificate(File fullChain, File privateKey) throws TLSManagerException {
+	default void setCertificate(@Nonnull File fullChain, @Nonnull File privateKey) throws TLSManagerException {
 		setCertificate(fullChain, privateKey, null);
 	}
 
-	void setCertificate(File fullChain, File privateKey, String privateKeyPassword) throws TLSManagerException;
+	void setCertificate(@Nonnull File fullChain, @Nonnull File privateKey, @Nullable String privateKeyPassword) throws TLSManagerException;
 
-	default void setCertificate(InputStream fullChain, InputStream privateKey) throws TLSManagerException {
+	default void setCertificate(@Nonnull InputStream fullChain, @Nonnull InputStream privateKey) throws TLSManagerException {
 		setCertificate(fullChain, privateKey, null);
 	}
 
-	void setCertificate(InputStream fullChain, InputStream privateKey, String privateKeyPassword) throws TLSManagerException;
+	void setCertificate(@Nonnull InputStream fullChain, @Nonnull InputStream privateKey, @Nullable String privateKeyPassword) throws TLSManagerException;
 
-	default void setCertificate(byte[] fullChain, byte[] privateKey) throws TLSManagerException {
+	default void setCertificate(@Nonnull byte[] fullChain, @Nonnull byte[] privateKey) throws TLSManagerException {
 		setCertificate(fullChain, privateKey, null);
 	}
 
-	void setCertificate(byte[] fullChain, byte[] privateKey, String privateKeyPassword) throws TLSManagerException;
+	void setCertificate(@Nonnull byte[] fullChain, @Nonnull byte[] privateKey, @Nullable String privateKeyPassword) throws TLSManagerException;
 
-	default void setCertificate(X509Certificate[] fullChain, PrivateKey privateKey) throws TLSManagerException {
+	default void setCertificate(@Nonnull X509Certificate[] fullChain, @Nonnull PrivateKey privateKey) throws TLSManagerException {
 		setCertificate(fullChain, privateKey, null);
 	}
 
-	void setCertificate(X509Certificate[] fullChain, PrivateKey privateKey, String privateKeyPassword) throws TLSManagerException;
+	void setCertificate(@Nonnull X509Certificate[] fullChain, @Nonnull PrivateKey privateKey, @Nullable String privateKeyPassword) throws TLSManagerException;
 
 }

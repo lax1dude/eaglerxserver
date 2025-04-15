@@ -1,22 +1,26 @@
 package net.lax1dude.eaglercraft.backend.server.api.query;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import com.google.gson.JsonObject;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
 
 public interface IQueryConnection extends IEaglerConnection {
 
+	@Nonnull
 	String getAccept();
 
-	void setHandlers(IDuplexBaseHandler compositeHandler);
+	void setHandlers(@Nonnull IDuplexBaseHandler compositeHandler);
 
-	void setHandlers(IDuplexBaseHandler... compositeHandlers);
+	void setHandlers(@Nonnull IDuplexBaseHandler... compositeHandlers);
 
-	void setStringHandler(IDuplexStringHandler handler);
+	void setStringHandler(@Nullable IDuplexStringHandler handler);
 
-	void setJSONHandler(IDuplexJSONHandler handler);
+	void setJSONHandler(@Nullable IDuplexJSONHandler handler);
 
-	void setBinaryHandler(IDuplexBinaryHandler handler);
+	void setBinaryHandler(@Nullable IDuplexBinaryHandler handler);
 
 	long getAge();
 
@@ -28,12 +32,12 @@ public interface IQueryConnection extends IEaglerConnection {
 		return getMaxAge() > 0l;
 	}
 
-	void send(String string);
+	void send(@Nonnull String string);
 
-	void send(byte[] bytes);
+	void send(@Nonnull byte[] bytes);
 
-	void sendResponse(String type, String str);
+	void sendResponse(@Nonnull String type, @Nonnull String str);
 
-	void sendResponse(String type, JsonObject jsonObject);
+	void sendResponse(@Nonnull String type, @Nonnull JsonObject jsonObject);
 
 }

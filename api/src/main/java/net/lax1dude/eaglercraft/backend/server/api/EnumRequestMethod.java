@@ -1,5 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.api;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public enum EnumRequestMethod {
 	GET(0, 1), HEAD(1, 2), PUT(2, 4), DELETE(3, 8), POST(4, 16), PATCH(5, 32), OPTIONS(6, -1);
 
@@ -24,7 +27,7 @@ public enum EnumRequestMethod {
 		return bit;
 	}
 
-	public static int toBits(EnumRequestMethod[] methods) {
+	public static int toBits(@Nonnull EnumRequestMethod[] methods) {
 		int r = 0, j;
 		for(int i = 0; i < methods.length; ++i) {
 			j = methods[i].bit;
@@ -36,6 +39,7 @@ public enum EnumRequestMethod {
 		return r;
 	}
 
+	@Nonnull
 	public static EnumRequestMethod[] fromBits(int bits) {
 		bits &= EnumRequestMethod.bits;
 		int cnt = Integer.bitCount(bits);
@@ -48,6 +52,7 @@ public enum EnumRequestMethod {
 		return ret;
 	}
 
+	@Nullable
 	public static EnumRequestMethod fromId(int id) {
 		return id >= 0 && id < VALUES.length ? VALUES[id] : null;
 	}

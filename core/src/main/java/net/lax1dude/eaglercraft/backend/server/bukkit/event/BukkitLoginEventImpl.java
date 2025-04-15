@@ -57,7 +57,7 @@ class BukkitLoginEventImpl extends EaglercraftLoginEvent {
 
 	@Override
 	public void setMessage(String message) {
-		this.message = new TextComponent(message);
+		this.message = message != null ? new TextComponent(message) : null;
 	}
 
 	@Override

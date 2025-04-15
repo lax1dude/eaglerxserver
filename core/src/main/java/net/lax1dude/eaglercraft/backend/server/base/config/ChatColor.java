@@ -39,14 +39,16 @@ public class ChatColor {
 	public static final String ALL_CODES = "0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx";
 
 	public static String translateAlternateColorCodes(char altColorChar, String textToTranslate) {
+		boolean flag = false;
 		char[] b = textToTranslate.toCharArray();
 		for (int i = 0; i < b.length - 1; i++) {
 			if (b[i] == altColorChar && ALL_CODES.indexOf(b[i + 1]) > -1) {
 				b[i] = ChatColor.COLOR_CHAR;
 				b[i + 1] = Character.toLowerCase(b[i + 1]);
+				flag = true;
 			}
 		}
-		return new String(b);
+		return flag ? new String(b) : textToTranslate;
 	}
 
 }

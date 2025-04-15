@@ -4,18 +4,25 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import javax.annotation.Nonnull;
+
 public interface INBTContext {
 
-	void accept(DataInput dataInput, INBTVisitor visitor) throws IOException;
+	void accept(@Nonnull DataInput dataInput, @Nonnull INBTVisitor visitor) throws IOException;
 
-	INBTVisitor createWriter(DataOutput dataOutput);
+	@Nonnull
+	INBTVisitor createWriter(@Nonnull DataOutput dataOutput);
 
-	INBTValue<String> wrapValue(String value);
+	@Nonnull
+	INBTValue<String> wrapValue(@Nonnull String value);
 
-	INBTValue<byte[]> wrapValue(byte[] value);
+	@Nonnull
+	INBTValue<byte[]> wrapValue(@Nonnull byte[] value);
 
-	INBTValue<int[]> wrapValue(int[] value);
+	@Nonnull
+	INBTValue<int[]> wrapValue(@Nonnull int[] value);
 
-	INBTValue<long[]> wrapValue(long[] value);
+	@Nonnull
+	INBTValue<long[]> wrapValue(@Nonnull long[] value);
 
 }

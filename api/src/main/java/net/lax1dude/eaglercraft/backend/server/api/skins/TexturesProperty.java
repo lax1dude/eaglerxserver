@@ -1,8 +1,10 @@
 package net.lax1dude.eaglercraft.backend.server.api.skins;
 
+import javax.annotation.Nonnull;
+
 public final class TexturesProperty {
 
-	public static TexturesProperty create(String value, String signature) {
+	public static TexturesProperty create(@Nonnull String value, @Nonnull String signature) {
 		if(value == null) {
 			throw new IllegalArgumentException("value cannot be null");
 		}
@@ -20,10 +22,12 @@ public final class TexturesProperty {
 		this.signature = signature;
 	}
 
+	@Nonnull
 	public String getValue() {
 		return value;
 	}
 
+	@Nonnull
 	public String getSignature() {
 		return signature;
 	}

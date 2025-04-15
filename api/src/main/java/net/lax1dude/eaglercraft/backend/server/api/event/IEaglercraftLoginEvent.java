@@ -2,50 +2,58 @@ package net.lax1dude.eaglercraft.backend.server.api.event;
 
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.backend.server.api.EnumPlatformType;
 import net.lax1dude.eaglercraft.backend.server.api.UnsupportedOn;
 
 public interface IEaglercraftLoginEvent<PlayerObject, ComponentObject>
 		extends IBaseLoginEvent<PlayerObject>, ICancellableEvent {
 
+	@Nullable
 	ComponentObject getMessage();
 
-	void setMessage(ComponentObject kickMessage);
+	void setMessage(@Nullable ComponentObject kickMessage);
 
-	void setMessage(String kickMessage);
+	void setMessage(@Nullable String kickMessage);
 
 	boolean isLoginStateRedirectSupported();
 
+	@Nullable
 	String getRedirectAddress();
 
-	void setRedirectAddress(String addr);
+	void setRedirectAddress(@Nullable String addr);
 
+	@Nonnull
 	String getProfileUsername();
 
-	void setProfileUsername(String username);
+	void setProfileUsername(@Nonnull String username);
 
+	@Nonnull
 	UUID getProfileUUID();
 
 	@UnsupportedOn({ EnumPlatformType.BUKKIT })
-	void setProfileUUID(UUID uuid);
+	void setProfileUUID(@Nonnull UUID uuid);
 
+	@Nonnull
 	String getRequestedServer();
 
-	void setRequestedServer(String server);
+	void setRequestedServer(@Nonnull String server);
 
-	default void setKickMessage(ComponentObject kickMessage) {
+	default void setKickMessage(@Nullable ComponentObject kickMessage) {
 		setCancelled(true);
 		setMessage(kickMessage);
 		setRedirectAddress(null);
 	}
 
-	default void setKickMessage(String kickMessage) {
+	default void setKickMessage(@Nullable String kickMessage) {
 		setCancelled(true);
 		setMessage(kickMessage);
 		setRedirectAddress(null);
 	}
 
-	default void setKickRedirect(String addr) {
+	default void setKickRedirect(@Nonnull String addr) {
 		if(!isLoginStateRedirectSupported()) {
 			throw new UnsupportedOperationException("Login state redirect is not supported by this client");
 		}

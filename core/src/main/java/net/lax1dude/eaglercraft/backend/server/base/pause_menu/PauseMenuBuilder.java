@@ -271,21 +271,29 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 
 	@Override
 	public IPauseMenuBuilder setMenuIcon(EnumPauseMenuIcon icon, PacketImageData imageData) {
-		checkDimensions(imageData);
-		if(customIcons == null) {
-			customIcons = new HashMap<>();
+		if(imageData != null) {
+			checkDimensions(imageData);
+			if(customIcons == null) {
+				customIcons = new HashMap<>();
+			}
+			customIcons.put(icon.getIconName(), imageData);
+		}else if(customIcons != null) {
+			customIcons.remove(icon.getIconName());
 		}
-		customIcons.put(icon.getIconName(), imageData);
 		return this;
 	}
 
 	@Override
 	public IPauseMenuBuilder setMenuIcon(String icon, PacketImageData imageData) {
-		checkDimensions(imageData);
-		if(customIcons == null) {
-			customIcons = new HashMap<>();
+		if(imageData != null) {
+			checkDimensions(imageData);
+			if(customIcons == null) {
+				customIcons = new HashMap<>();
+			}
+			customIcons.put(icon, imageData);
+		}else if(customIcons != null) {
+			customIcons.remove(icon);
 		}
-		customIcons.put(icon, imageData);
 		return this;
 	}
 

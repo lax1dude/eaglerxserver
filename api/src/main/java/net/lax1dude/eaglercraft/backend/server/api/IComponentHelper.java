@@ -1,11 +1,16 @@
 package net.lax1dude.eaglercraft.backend.server.api;
 
+import javax.annotation.Nonnull;
+
 public interface IComponentHelper {
 
-	String convertJSONToLegacySection(String json) throws IllegalArgumentException;
+	@Nonnull
+	String convertJSONToLegacySection(@Nonnull String json) throws IllegalArgumentException;
 
-	String convertJSONToPlainText(String json) throws IllegalArgumentException;
+	@Nonnull
+	String convertJSONToPlainText(@Nonnull String json) throws IllegalArgumentException;
 
-	String translateAlternateColorCodes(char altColorChar, String textToTranslate);
+	@Nonnull
+	String translateAlternateColorCodes(char altColorChar, @Nonnull String textToTranslate);
 
 }

@@ -129,6 +129,9 @@ public abstract class RewindInitializer<Attachment> implements IEaglerXRewindIni
 		if(eaglerProtocol <= 1) {
 			throw new IllegalArgumentException("Invalid eagler protocol for V2+ handshake: " + eaglerProtocol);
 		}
+		if((authEnabled || eaglerProtocol >= 5) && authUsername == null) {
+			throw new NullPointerException("Auth username is null");
+		}
 		handshake = true;
 		this.eaglerProtocol = eaglerProtocol;
 		this.minecraftProtocol = minecraftProtocol;

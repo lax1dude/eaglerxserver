@@ -1,33 +1,37 @@
 package net.lax1dude.eaglercraft.backend.server.api.event;
 
+import javax.annotation.Nonnull;
+
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 
 public interface IEaglercraftRegisterSkinEvent<PlayerObject> extends IBaseLoginEvent<PlayerObject> {
 
+	@Nonnull
 	IEaglerPlayerSkin getEaglerSkin();
 
+	@Nonnull
 	IEaglerPlayerCape getEaglerCape();
 
-	void forceFromVanillaTexturesProperty(String value);
+	void forceFromVanillaTexturesProperty(@Nonnull String value);
 
 	void forceFromVanillaLoginProfile();
 
-	void forceSkinFromURL(String url, EnumSkinModel model);
+	void forceSkinFromURL(@Nonnull String url, @Nonnull EnumSkinModel model);
 
-	void forceSkinFromVanillaTexturesProperty(String value);
+	void forceSkinFromVanillaTexturesProperty(@Nonnull String value);
 
 	void forceSkinFromVanillaLoginProfile();
 
-	void forceCapeFromURL(String url);
+	void forceCapeFromURL(@Nonnull String url);
 
-	void forceCapeFromVanillaTexturesProperty(String value);
+	void forceCapeFromVanillaTexturesProperty(@Nonnull String value);
 
 	void forceCapeFromVanillaLoginProfile();
 
-	void forceSkinEagler(IEaglerPlayerSkin skin);
+	void forceSkinEagler(@Nonnull IEaglerPlayerSkin skin);
 
-	void forceCapeEagler(IEaglerPlayerCape cape);
+	void forceCapeEagler(@Nonnull IEaglerPlayerCape cape);
 
 }

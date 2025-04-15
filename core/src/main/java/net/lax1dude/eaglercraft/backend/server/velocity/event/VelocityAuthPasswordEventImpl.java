@@ -159,7 +159,7 @@ class VelocityAuthPasswordEventImpl extends EaglercraftAuthPasswordEvent {
 
 	@Override
 	public void setKickMessage(String kickMessage) {
-		this.kickMessage = Component.text(kickMessage);
+		this.kickMessage = kickMessage != null ? Component.text(kickMessage) : null;
 	}
 
 	@Override

@@ -46,7 +46,7 @@ class VelocityClientBrandEventImpl extends EaglercraftClientBrandEvent {
 
 	@Override
 	public void setMessage(String message) {
-		this.message = Component.text(message);
+		this.message = message != null ? Component.text(message) : null;
 	}
 
 	@Override

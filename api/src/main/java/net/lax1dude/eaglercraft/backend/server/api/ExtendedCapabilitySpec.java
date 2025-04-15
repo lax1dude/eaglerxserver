@@ -3,17 +3,22 @@ package net.lax1dude.eaglercraft.backend.server.api;
 import java.util.Arrays;
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+
 public final class ExtendedCapabilitySpec {
 
-	public static ExtendedCapabilitySpec create(UUID majorVersion, int... minorVersions) {
+	@Nonnull
+	public static ExtendedCapabilitySpec create(@Nonnull UUID majorVersion, @Nonnull int... minorVersions) {
 		return new ExtendedCapabilitySpec(version(majorVersion, minorVersions));
 	}
 
-	public static ExtendedCapabilitySpec create(Version... majorVersions) {
+	@Nonnull
+	public static ExtendedCapabilitySpec create(@Nonnull Version... majorVersions) {
 		return new ExtendedCapabilitySpec(majorVersions);
 	}
 
-	public static Version version(UUID majorVersion, int... minorVersions) {
+	@Nonnull
+	public static Version version(@Nonnull UUID majorVersion, @Nonnull int... minorVersions) {
 		return new Version(majorVersion, minorVersions);
 	}
 
@@ -33,10 +38,12 @@ public final class ExtendedCapabilitySpec {
 			this.minorVersions = minorVersions;
 		}
 
+		@Nonnull
 		public UUID getMajorVersion() {
 			return majorVersion;
 		}
 
+		@Nonnull
 		public int[] getMinorVersions() {
 			return minorVersions;
 		}
@@ -74,6 +81,7 @@ public final class ExtendedCapabilitySpec {
 		this.majorVersions = majorVersions;
 	}
 
+	@Nonnull
 	public Version[] getMajorVersions() {
 		return majorVersions;
 	}

@@ -3,13 +3,16 @@ package net.lax1dude.eaglercraft.backend.server.api.skins;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public interface IProfileResolver {
 
-	void resolveVanillaUUIDFromUsername(String username, Consumer<UUID> callback);
+	void resolveVanillaUUIDFromUsername(@Nonnull String username, @Nonnull Consumer<UUID> callback);
 
-	void resolveVanillaTexturesFromUUID(UUID uuid, Consumer<TexturesProperty> callback);
+	void resolveVanillaTexturesFromUUID(@Nonnull UUID uuid, @Nonnull Consumer<TexturesProperty> callback);
 
-	default void resolveVanillaTexturesFromUsername(String username, Consumer<TexturesProperty> callback) {
+	default void resolveVanillaTexturesFromUsername(@Nonnull String username, @Nonnull Consumer<TexturesProperty> callback) {
 		resolveVanillaUUIDFromUsername(username, (uuid) -> {
 			if(uuid != null) {
 				resolveVanillaTexturesFromUUID(uuid, callback);
@@ -19,9 +22,11 @@ public interface IProfileResolver {
 		});
 	}
 
-	TexturesResult decodeVanillaTextures(String propertyValue);
+	@Nullable
+	TexturesResult decodeVanillaTextures(@Nonnull String propertyValue);
 
-	default TexturesResult decodeVanillaTextures(TexturesProperty property) {
+	@Nullable
+	default TexturesResult decodeVanillaTextures(@Nonnull TexturesProperty property) {
 		return decodeVanillaTextures(property.getValue());
 	}
 

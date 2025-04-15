@@ -3,13 +3,17 @@ package net.lax1dude.eaglercraft.backend.server.api;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import javax.annotation.Nonnull;
+
 public final class SHA1Sum {
 
-	public static SHA1Sum ofData(byte[] data) {
+	@Nonnull
+	public static SHA1Sum ofData(@Nonnull byte[] data) {
 		return ofData(data, 0, data.length);
 	}
 
-	public static SHA1Sum ofData(byte[] data, int offset, int length) {
+	@Nonnull
+	public static SHA1Sum ofData(@Nonnull byte[] data, int offset, int length) {
 		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-1");
 			digest.update(data, offset, length);
@@ -20,17 +24,20 @@ public final class SHA1Sum {
 		}
 	}
 
-	public static SHA1Sum create(byte[] checksum) {
+	@Nonnull
+	public static SHA1Sum create(@Nonnull byte[] checksum) {
 		return create(checksum, 0);
 	}
 
-	public static SHA1Sum create(byte[] checksum, int offset) {
+	@Nonnull
+	public static SHA1Sum create(@Nonnull byte[] checksum, int offset) {
 		if(offset < 0) throw new ArrayIndexOutOfBoundsException(offset);
 		if(offset + 20 > checksum.length) throw new ArrayIndexOutOfBoundsException(offset + 20);
 		return create(intHelper(checksum, offset), intHelper(checksum, offset + 4), intHelper(checksum, offset + 8),
 				intHelper(checksum, offset + 12), intHelper(checksum, offset + 16));
 	}
 
+	@Nonnull
 	public static SHA1Sum create(int a, int b, int c, int d, int e) {
 		return new SHA1Sum(a, b, c, d, e);
 	}
@@ -69,13 +76,14 @@ public final class SHA1Sum {
 		return e;
 	}
 
+	@Nonnull
 	public byte[] asBytes() {
 		byte[] ret = new byte[20];
 		asBytes(ret, 0);
 		return ret;
 	}
 
-	public void asBytes(byte[] dst, int off) {
+	public void asBytes(@Nonnull byte[] dst, int off) {
 		byteHelper(dst, a, 0);
 		byteHelper(dst, b, 4);
 		byteHelper(dst, c, 8);
@@ -96,6 +104,7 @@ public final class SHA1Sum {
 	}
 
 	@Override
+	@Nonnull
 	public String toString() {
 		char[] ret = new char[40];
 		hexHelper(ret, 0, a);

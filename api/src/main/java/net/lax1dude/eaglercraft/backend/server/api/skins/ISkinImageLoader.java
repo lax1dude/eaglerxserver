@@ -6,48 +6,71 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+
 public interface ISkinImageLoader {
 
+	@Nonnull
 	IEaglerPlayerSkin loadPresetSkin(int presetSkin);
 
-	IEaglerPlayerSkin loadPresetSkin(EnumPresetSkins presetSkin);
+	@Nonnull
+	IEaglerPlayerSkin loadPresetSkin(@Nonnull EnumPresetSkins presetSkin);
 
-	IEaglerPlayerSkin loadPresetSkin(UUID playerUUID);
+	@Nonnull
+	IEaglerPlayerSkin loadPresetSkin(@Nonnull UUID playerUUID);
 
+	@Nonnull
 	IEaglerPlayerCape loadPresetNoCape();
 
+	@Nonnull
 	IEaglerPlayerCape loadPresetCape(int presetCape);
 
-	IEaglerPlayerCape loadPresetCape(EnumPresetCapes presetCape);
+	@Nonnull
+	IEaglerPlayerCape loadPresetCape(@Nonnull EnumPresetCapes presetCape);
 
-	IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x64(int[] pixelsARGB8I, EnumSkinModel modelId);
+	@Nonnull
+	IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x64(@Nonnull int[] pixelsARGB8I, @Nonnull EnumSkinModel modelId);
 
-	IEaglerPlayerSkin loadSkinImageData_ABGR8_64x64(byte[] pixelsABGR8, EnumSkinModel modelId);
+	@Nonnull
+	IEaglerPlayerSkin loadSkinImageData_ABGR8_64x64(@Nonnull byte[] pixelsABGR8, @Nonnull EnumSkinModel modelId);
 
-	IEaglerPlayerSkin loadSkinImageData_eagler(byte[] pixelsEagler, EnumSkinModel modelId);
+	@Nonnull
+	IEaglerPlayerSkin loadSkinImageData_eagler(@Nonnull byte[] pixelsEagler, @Nonnull EnumSkinModel modelId);
 
-	IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x32(int[] pixelsARGB8I, EnumSkinModel modelId);
+	@Nonnull
+	IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x32(@Nonnull int[] pixelsARGB8I, @Nonnull EnumSkinModel modelId);
 
-	IEaglerPlayerSkin loadSkinImageData(BufferedImage image, EnumSkinModel modelId);
+	@Nonnull
+	IEaglerPlayerSkin loadSkinImageData(@Nonnull BufferedImage image, @Nonnull EnumSkinModel modelId);
 
-	IEaglerPlayerSkin loadSkinImageData(InputStream inputStream, EnumSkinModel modelId) throws IOException;
+	@Nonnull
+	IEaglerPlayerSkin loadSkinImageData(@Nonnull InputStream inputStream, @Nonnull EnumSkinModel modelId) throws IOException;
 
-	IEaglerPlayerSkin loadSkinImageData(File imageFile, EnumSkinModel modelId) throws IOException;
+	@Nonnull
+	IEaglerPlayerSkin loadSkinImageData(@Nonnull File imageFile, @Nonnull EnumSkinModel modelId) throws IOException;
 
-	IEaglerPlayerSkin rewriteCustomSkinModelId(IEaglerPlayerSkin skin, EnumSkinModel modelId);
+	@Nonnull
+	IEaglerPlayerSkin rewriteCustomSkinModelId(@Nonnull IEaglerPlayerSkin skin, @Nonnull EnumSkinModel modelId);
 
-	IEaglerPlayerCape loadCapeImageData_ARGB8I_64x32(int[] pixelsARGB8I);
+	@Nonnull
+	IEaglerPlayerCape loadCapeImageData_ARGB8I_64x32(@Nonnull int[] pixelsARGB8I);
 
-	IEaglerPlayerCape loadCapeImageData_ARGB8I_32x32(int[] pixelsARGB8I);
+	@Nonnull
+	IEaglerPlayerCape loadCapeImageData_ARGB8I_32x32(@Nonnull int[] pixelsARGB8I);
 
-	IEaglerPlayerCape loadCapeImageData_ABGR8_32x32(byte[] pixelsABGR8);
+	@Nonnull
+	IEaglerPlayerCape loadCapeImageData_ABGR8_32x32(@Nonnull byte[] pixelsABGR8);
 
-	IEaglerPlayerCape loadCapeImageData_eagler(byte[] pixelsEagler);
+	@Nonnull
+	IEaglerPlayerCape loadCapeImageData_eagler(@Nonnull byte[] pixelsEagler);
 
-	IEaglerPlayerCape loadCapeImageData(BufferedImage image);
+	@Nonnull
+	IEaglerPlayerCape loadCapeImageData(@Nonnull BufferedImage image);
 
-	IEaglerPlayerCape loadCapeImageData(InputStream inputStream) throws IOException;
+	@Nonnull
+	IEaglerPlayerCape loadCapeImageData(@Nonnull InputStream inputStream) throws IOException;
 
-	IEaglerPlayerCape loadCapeImageData(File imageFile) throws IOException;
+	@Nonnull
+	IEaglerPlayerCape loadCapeImageData(@Nonnull File imageFile) throws IOException;
 
 }

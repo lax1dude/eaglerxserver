@@ -1,10 +1,13 @@
 package net.lax1dude.eaglercraft.backend.server.api.skins;
 
+import javax.annotation.Nullable;
+
 import com.google.common.base.Objects;
 
 public final class TexturesResult {
 
-	public static TexturesResult create(String skinURL, EnumSkinModel skinModel, String capeURL) {
+	public static TexturesResult create(@Nullable String skinURL, @Nullable EnumSkinModel skinModel,
+			@Nullable String capeURL) {
 		return new TexturesResult(skinURL, skinModel, capeURL);
 	}
 
@@ -18,14 +21,17 @@ public final class TexturesResult {
 		this.capeURL = capeURL;
 	}
 
+	@Nullable
 	public String getSkinURL() {
 		return skinURL;
 	}
 
+	@Nullable
 	public EnumSkinModel getSkinModel() {
 		return skinModel;
 	}
 
+	@Nullable
 	public String getCapeURL() {
 		return capeURL;
 	}

@@ -1,23 +1,30 @@
 package net.lax1dude.eaglercraft.backend.server.api.skins;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.backend.server.api.IBasePlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 
 public interface ISkinService<PlayerObject> extends ISkinResolver {
 
+	@Nonnull
 	IEaglerXServerAPI<PlayerObject> getServerAPI();
 
-	default ISkinManagerBase<PlayerObject> getPlayer(PlayerObject player) {
+	@Nullable
+	default ISkinManagerBase<PlayerObject> getPlayer(@Nonnull PlayerObject player) {
 		IBasePlayer<PlayerObject> ret = getServerAPI().getPlayer(player);
 		return ret != null ? ret.getSkinManager() : null;
 	}
 
-	default ISkinManagerEagler<PlayerObject> getEaglerPlayer(PlayerObject player) {
+	@Nullable
+	default ISkinManagerEagler<PlayerObject> getEaglerPlayer(@Nonnull PlayerObject player) {
 		IEaglerPlayer<PlayerObject> ret = getServerAPI().getEaglerPlayer(player);
 		return ret != null ? ret.getSkinManager() : null;
 	}
 
+	@Nonnull
 	default IProfileResolver getProfileResolver() {
 		return getServerAPI().getProfileResolver();
 	}

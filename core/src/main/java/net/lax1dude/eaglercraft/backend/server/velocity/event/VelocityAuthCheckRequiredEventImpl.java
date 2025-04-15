@@ -121,7 +121,7 @@ class VelocityAuthCheckRequiredEventImpl extends EaglercraftAuthCheckRequiredEve
 
 	@Override
 	public void setKickMessage(String kickMessage) {
-		this.kickMessage = Component.text(kickMessage);
+		this.kickMessage = kickMessage != null ? Component.text(kickMessage) : null;
 	}
 
 }

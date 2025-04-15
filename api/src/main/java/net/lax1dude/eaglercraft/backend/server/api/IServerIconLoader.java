@@ -5,14 +5,20 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.annotation.Nonnull;
+
 public interface IServerIconLoader {
 
-	byte[] loadServerIcon(int[] pixelsIn, int width, int height);
+	@Nonnull
+	byte[] loadServerIcon(@Nonnull int[] pixelsIn, int width, int height);
 
-	byte[] loadServerIcon(BufferedImage image);
+	@Nonnull
+	byte[] loadServerIcon(@Nonnull BufferedImage image);
 
-	byte[] loadServerIcon(InputStream stream) throws IOException;
+	@Nonnull
+	byte[] loadServerIcon(@Nonnull InputStream stream) throws IOException;
 
-	byte[] loadServerIcon(File file) throws IOException;
+	@Nonnull
+	byte[] loadServerIcon(@Nonnull File file) throws IOException;
 
 }

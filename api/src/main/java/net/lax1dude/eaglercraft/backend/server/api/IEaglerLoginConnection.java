@@ -2,20 +2,27 @@ package net.lax1dude.eaglercraft.backend.server.api;
 
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public interface IEaglerLoginConnection extends IBaseLoginConnection, IEaglerPendingConnection {
 
-	boolean hasCapability(EnumCapabilitySpec capability);
+	@Nonnull
+	byte[] getAuthUsername();
 
-	int getCapability(EnumCapabilityType capability);
+	boolean hasCapability(@Nonnull EnumCapabilitySpec capability);
 
-	boolean hasExtendedCapability(UUID extendedCapability, int version);
+	int getCapability(@Nonnull EnumCapabilityType capability);
 
-	int getExtendedCapability(UUID extendedCapability);
+	boolean hasExtendedCapability(@Nonnull UUID extendedCapability, int version);
+
+	int getExtendedCapability(@Nonnull UUID extendedCapability);
 
 	boolean isCookieSupported();
 
 	boolean isCookieEnabled();
 
+	@Nullable
 	byte[] getCookieData();
 
 }

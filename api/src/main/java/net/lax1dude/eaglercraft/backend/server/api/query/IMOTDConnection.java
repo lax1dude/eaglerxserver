@@ -2,17 +2,23 @@ package net.lax1dude.eaglercraft.backend.server.api.query;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
 
 public interface IMOTDConnection extends IEaglerConnection {
 
+	@Nonnull
 	String getAccept();
 
+	@Nullable
 	String getSubType();
 
+	@Nonnull
 	String getResponseType();
 
-	void setResponseType(String type);
+	void setResponseType(@Nonnull String type);
 
 	void sendToUser();
 
@@ -26,17 +32,21 @@ public interface IMOTDConnection extends IEaglerConnection {
 		return getMaxAge() > 0l;
 	}
 
+	@Nullable
 	byte[] getDefaultServerIcon();
 
+	@Nullable
 	byte[] getServerIcon();
 
-	void setServerIcon(byte[] bitmap);
+	void setServerIcon(@Nullable byte[] bitmap);
 
+	@Nonnull
 	List<String> getDefaultServerMOTD();
 
+	@Nonnull
 	List<String> getServerMOTD();
 
-	void setServerMOTD(List<String> motd);
+	void setServerMOTD(@Nonnull List<String> motd);
 
 	int getDefaultPlayerTotal();
 
@@ -54,10 +64,12 @@ public interface IMOTDConnection extends IEaglerConnection {
 		setPlayerMax(-1);
 	}
 
+	@Nonnull
 	List<String> getDefaultPlayerList();
 
+	@Nonnull
 	List<String> getPlayerList();
 
-	void setPlayerList(List<String> list);
+	void setPlayerList(@Nonnull List<String> list);
 
 }
