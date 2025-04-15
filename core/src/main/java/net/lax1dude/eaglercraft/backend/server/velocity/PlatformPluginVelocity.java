@@ -579,9 +579,10 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 
 	public void initializeConnection(InboundConnection conn, String username, UUID uuid, IPipelineData pipelineData,
 			Consumer<VelocityConnection> setAttr) {
+		boolean eag = pipelineData != null && pipelineData.isEaglerPlayer();
 		VelocityConnection c = new VelocityConnection(this, conn, username, uuid,
-				pipelineData != null ? pipelineData::awaitPlayState : null);
-		if(pipelineData != null && pipelineData.isEaglerPlayer()) {
+				eag ? pipelineData::awaitPlayState : null);
+		if(eag) {
 			c.compressionDisable = true;
 		}
 		setAttr.accept(c);
