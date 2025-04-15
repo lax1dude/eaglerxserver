@@ -294,7 +294,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		init.setPipelineInitializer(new EaglerXServerNettyPipelineInitializer<>(this));
 		init.setConnectionInitializer(new EaglerXServerConnectionInitializer<>(this));
 		init.setPlayerInitializer(new EaglerXServerPlayerInitializer<>(this));
-		init.setServerJoinListener(this::handleServerJoin);
+		init.setServerJoinListener(new EaglerXServerJoinListener<>(this));
 		init.setCommandRegistry(Arrays.asList(
 				new CommandVersion<>(this),
 				new CommandBrand<>(this),
@@ -562,20 +562,28 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		}
 	}
 
-	private void handleServerJoin(IPlatformPlayer<PlayerObject> player, IPlatformServer<PlayerObject> server) {
-		BasePlayerInstance<PlayerObject> playerInstance = player.getPlayerAttachment();
-		if(playerInstance != null && server != null) {
-			String serverName = server.getServerConfName();
-			System.out.println("server change: " + serverName);
-			if(playerInstance.backendRPCManager != null) {
-				playerInstance.backendRPCManager.handleSwitchServers();
+	void handleServerPreConnect(BasePlayerInstance<PlayerObject> player) {
+		if(player.backendRPCManager != null) {
+			player.backendRPCManager.handleServerPreConnect();
+		}
+		if(player.isEaglerPlayer()) {
+			EaglerPlayerInstance<PlayerObject> eaglerPlayer = player.asEaglerPlayer();
+			if(eaglerPlayer.voiceManager != null) {
+				eaglerPlayer.voiceManager.handleServerPreConnect();
 			}
-			if(playerInstance.isEaglerPlayer()) {
-				EaglerPlayerInstance<PlayerObject> eaglerPlayer = playerInstance.asEaglerPlayer();
-				eaglerPlayer.getSkinManager().handleServerChanged(serverName);
-				if(eaglerPlayer.voiceManager != null) {
-					eaglerPlayer.voiceManager.handleServerChanged(serverName);
-				}
+		}
+	}
+
+	void handleServerPostConnect(BasePlayerInstance<PlayerObject> player, IPlatformServer<PlayerObject> server) {
+		String serverName = server.getServerConfName();
+		if(player.backendRPCManager != null) {
+			player.backendRPCManager.handleServerPostConnect();
+		}
+		if(player.isEaglerPlayer()) {
+			EaglerPlayerInstance<PlayerObject> eaglerPlayer = player.asEaglerPlayer();
+			eaglerPlayer.getSkinManager().handleServerPostConnect(serverName);
+			if(eaglerPlayer.voiceManager != null) {
+				eaglerPlayer.voiceManager.handleServerPostConnect(serverName);
 			}
 		}
 	}

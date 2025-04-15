@@ -411,7 +411,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 	}
 
 	private void updateLoggerName() {
-		pipelineData.connectionLogger = pipelineData.connectionLogger.createSubLogger(pipelineData.username);
+		pipelineData.connectionLogger.setName(pipelineData.connectionLogger.getName() + "|" + pipelineData.username);
 	}
 
 	private void handleContinueLogin(ChannelHandlerContext ctx) {

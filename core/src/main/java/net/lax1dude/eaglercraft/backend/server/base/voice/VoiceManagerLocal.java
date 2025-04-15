@@ -123,9 +123,15 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 	}
 
 	@Override
-	public void handleServerChanged(String serverName) {
+	public void handleServerPreConnect() {
 		if(isManaged) {
 			setVoiceChannel0(DisabledChannel.INSTANCE);
+		}
+	}
+
+	@Override
+	public void handleServerPostConnect(String serverName) {
+		if(isManaged) {
 			setVoiceChannel0(voice.getServerVoiceChannel(serverName));
 			onStateChanged();
 		}

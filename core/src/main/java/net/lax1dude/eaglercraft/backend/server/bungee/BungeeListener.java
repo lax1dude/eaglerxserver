@@ -19,6 +19,7 @@ import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.event.PreLoginEvent;
+import net.md_5.bungee.api.event.ServerConnectedEvent;
 import net.md_5.bungee.api.event.ServerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerSwitchEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -94,23 +95,28 @@ public class BungeeListener implements Listener {
 		plugin.dropPlayer(event.getPlayer());
 	}
 
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onServerConnectedEvent(ServerConnectedEvent event) {
+		ProxiedPlayer playerIn = event.getPlayer();
+		BungeePlayer player = (BungeePlayer) plugin.getPlayer(playerIn);
+		if(player != null) {
+			player.server = null;
+			plugin.handleServerPreConnect(player);
+		}
+	}
+
 	@EventHandler(priority = EventPriority.LOWEST)
-	public void onServerConnectedEvent(ServerSwitchEvent event) {
+	public void onServerSwitchEvent(ServerSwitchEvent event) {
 		ProxiedPlayer playerIn = event.getPlayer();
 		BungeePlayer player = (BungeePlayer) plugin.getPlayer(playerIn);
 		if(player != null) {
 			ServerInfo info = playerIn.getServer().getInfo();
-			IPlatformServer<ProxiedPlayer> server = null;
-			if(info != null) {
-				server = plugin.registeredServers.get(info.getName());
-				if(server == null) {
-					server = new BungeeServer(plugin, info, false);
-				}
-				player.server = server;
-			}else {
-				player.server = null;
+			IPlatformServer<ProxiedPlayer> server = plugin.registeredServers.get(info.getName());
+			if(server == null) {
+				server = new BungeeServer(plugin, info, false);
 			}
-			plugin.handleServerJoin(player, server);
+			player.server = server;
+			plugin.handleServerPostConnect(player, server);
 		}
 	}
 

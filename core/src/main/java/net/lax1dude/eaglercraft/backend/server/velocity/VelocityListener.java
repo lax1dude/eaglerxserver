@@ -14,6 +14,7 @@ import com.velocitypowered.api.event.connection.PreLoginEvent;
 import com.velocitypowered.api.event.permission.PermissionsSetupEvent;
 import com.velocitypowered.api.event.player.GameProfileRequestEvent;
 import com.velocitypowered.api.event.player.ServerPostConnectEvent;
+import com.velocitypowered.api.event.player.ServerPreConnectEvent;
 import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
 import com.velocitypowered.api.network.ListenerType;
 import com.velocitypowered.api.permission.PermissionSubject;
@@ -47,7 +48,7 @@ public class VelocityListener {
 		this.plugin = plugin;
 	}
 
-	@Subscribe
+	@Subscribe(async = false)
 	public void onListenerBound(ListenerBoundEvent bindEvent) {
 		if(bindEvent.getListenerType() == ListenerType.MINECRAFT) {
 			VelocityUnsafe.injectListenerAttr(plugin.proxy(), bindEvent.getAddress(), plugin.listenersToInit);
@@ -94,7 +95,7 @@ public class VelocityListener {
 		}
 	}
 
-	@Subscribe
+	@Subscribe(async = false)
 	public void onPermissionsSetupEvent(PermissionsSetupEvent permissionsSetupEvent) {
 		// Fired right before compression is enabled
 		PermissionSubject p = permissionsSetupEvent.getSubject();
@@ -132,8 +133,19 @@ public class VelocityListener {
 		plugin.dropPlayer(disconnectEvent.getPlayer());
 	}
 
+	@Subscribe(priority = Short.MIN_VALUE, async = false)
+	public void onServerPreConnected(ServerPreConnectEvent connectEvent) {
+		if(connectEvent.getResult().isAllowed()) {
+			IPlatformPlayer<Player> platformPlayer = plugin.getPlayer(connectEvent.getPlayer());
+			if(platformPlayer != null) {
+				((VelocityPlayer)platformPlayer).server = null;
+				plugin.handleServerPreConnect(platformPlayer);
+			}
+		}
+	}
+
 	@Subscribe(priority = Short.MAX_VALUE)
-	public void onServerConnected(ServerPostConnectEvent connectEvent) {
+	public void onServerPostConnected(ServerPostConnectEvent connectEvent) {
 		RegisteredServer server = connectEvent.getPlayer().getCurrentServer().get().getServer();
 		IPlatformPlayer<Player> platformPlayer = plugin.getPlayer(connectEvent.getPlayer());
 		if(platformPlayer != null) {
@@ -143,11 +155,11 @@ public class VelocityListener {
 				platformServer = new VelocityServer(plugin, server, false);
 			}
 			((VelocityPlayer)platformPlayer).server = platformServer;
-			plugin.handleServerJoin(platformPlayer, platformServer);
+			plugin.handleServerPostConnect(platformPlayer, platformServer);
 		}
 	}
 
-	@Subscribe
+	@Subscribe(priority = Short.MAX_VALUE, async = false)
 	public void onPluginMessageEvent(PluginMessageEvent evt) {
 		PluginMessageHandler handler = plugin.registeredChannelsMap.get(evt.getIdentifier());
 		if(handler != null) {

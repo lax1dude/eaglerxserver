@@ -681,6 +681,10 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 					getLogger().warning("Player " + p.getUsername() + " was initialized, but never fired PlayerJoinEvent, dropping...");
 					dropPlayer(player);
 				}, 5000l);
+				IEaglerXServerJoinListener<Player> listener = serverJoinListener;
+				if(listener != null) {
+					listener.handlePreConnect(p);
+				}
 				CloseRedirector redir = c.closeRedirector;
 				c.closeRedirector = null;
 				onComplete.accept(redir);
@@ -703,7 +707,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 			IEaglerXServerJoinListener<Player> listener = serverJoinListener;
 			if(listener != null) {
-				listener.handle(p, this);
+				listener.handlePostConnect(p, this);
 			}
 		}
 	}

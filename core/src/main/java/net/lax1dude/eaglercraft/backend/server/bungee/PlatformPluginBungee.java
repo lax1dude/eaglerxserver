@@ -599,10 +599,17 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 		});
 	}
 
-	public void handleServerJoin(IPlatformPlayer<ProxiedPlayer> player, IPlatformServer<ProxiedPlayer> server) {
+	public void handleServerPreConnect(IPlatformPlayer<ProxiedPlayer> player) {
 		IEaglerXServerJoinListener<ProxiedPlayer> listener = serverJoinListener;
 		if(listener != null) {
-			listener.handle(player, server);
+			listener.handlePreConnect(player);
+		}
+	}
+
+	public void handleServerPostConnect(IPlatformPlayer<ProxiedPlayer> player, IPlatformServer<ProxiedPlayer> server) {
+		IEaglerXServerJoinListener<ProxiedPlayer> listener = serverJoinListener;
+		if(listener != null) {
+			listener.handlePostConnect(player, server);
 		}
 	}
 

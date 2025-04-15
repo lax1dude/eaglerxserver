@@ -251,7 +251,7 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 		fnawSkinsManaged = managed;
 	}
 
-	public void handleServerChanged(String serverName) {
+	public void handleServerPostConnect(String serverName) {
 		if(fnawSkinsManaged) {
 			setEnableFNAWSkins(skinService.isFNAWSkinsEnabledOnServer(serverName) ? EnumEnableFNAW.ENABLED
 					: EnumEnableFNAW.DISABLED);

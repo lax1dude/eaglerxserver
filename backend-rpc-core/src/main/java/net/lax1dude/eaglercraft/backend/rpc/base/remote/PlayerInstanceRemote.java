@@ -293,6 +293,9 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 		if(ret != null && !ret.isDone()) {
 			ret.fireTimeoutExceptionInternal(new RPCTimeoutException("Player left before the connection was established"));
 		}
+		if(voiceManager != null) {
+			voiceManager.destroyVoiceManager();
+		}
 	}
 
 }

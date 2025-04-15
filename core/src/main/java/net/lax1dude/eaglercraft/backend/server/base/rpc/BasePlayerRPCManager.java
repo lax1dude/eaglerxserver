@@ -114,11 +114,14 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 		context = null;
 	}
 
-	public void handleSwitchServers() {
+	public void handleServerPreConnect() {
 		BasePlayerRPCContext<PlayerObject> ctx = context;
 		if(ctx != null) {
 			ctx.handleDisabled();
 		}
+	}
+
+	public void handleServerPostConnect() {
 		sendReadyMessage();
 	}
 

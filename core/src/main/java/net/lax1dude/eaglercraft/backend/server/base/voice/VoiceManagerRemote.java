@@ -132,7 +132,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 				try {
 					pkt = deserialize(EaglerVCProtocol.INIT, data);
 				} catch (Exception e) {
-					handleException(e);
+					player.logger().warn("Dropping invalid voice RPC packet on uninitialized connection: " + e);
 					return;
 				}
 				handleBackendHandshake(pkt);
@@ -202,12 +202,16 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	}
 
 	@Override
-	public void handleServerChanged(String serverName) {
+	public void handleServerPreConnect() {
 		int lastState = stateXchg(-1);
 		handler = null;
 		if(lastState != 0 && lastState != -1) {
 			voiceDisabled(lastState == 2);
 		}
+	}
+
+	@Override
+	public void handleServerPostConnect(String serverName) {
 		sendBackendMessage(EaglerVCProtocol.INIT, new CPacketVCCapable(new int[] { 1 }));
 	}
 

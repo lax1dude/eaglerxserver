@@ -4,7 +4,9 @@ import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager;
 
 public interface IVoiceManagerImpl<PlayerObject> extends IVoiceManager<PlayerObject> {
 
-	void handleServerChanged(String serverName);
+	void handleServerPreConnect();
+
+	void handleServerPostConnect(String serverName);
 
 	void destroyVoiceManager();
 

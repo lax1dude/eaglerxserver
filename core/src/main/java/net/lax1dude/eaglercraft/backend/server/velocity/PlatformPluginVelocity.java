@@ -642,10 +642,17 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		});
 	}
 
-	public void handleServerJoin(IPlatformPlayer<Player> player, IPlatformServer<Player> server) {
+	public void handleServerPreConnect(IPlatformPlayer<Player> player) {
 		IEaglerXServerJoinListener<Player> listener = serverJoinListener;
 		if(listener != null) {
-			listener.handle(player, server);
+			listener.handlePreConnect(player);
+		}
+	}
+
+	public void handleServerPostConnect(IPlatformPlayer<Player> player, IPlatformServer<Player> server) {
+		IEaglerXServerJoinListener<Player> listener = serverJoinListener;
+		if(listener != null) {
+			listener.handlePostConnect(player, server);
 		}
 	}
 
