@@ -15,7 +15,7 @@ import io.netty.util.Attribute;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.md_5.bungee.api.chat.BaseComponent;
 
-public class BukkitListener implements Listener {
+class BukkitListener implements Listener {
 
 	private final PlatformPluginBukkit plugin;
 
