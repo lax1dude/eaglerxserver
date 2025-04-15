@@ -536,11 +536,12 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 
 	public void initializeConnection(PendingConnection conn, IPipelineData pipelineData,
 			Consumer<BungeeConnection> setAttr) {
-		if(pipelineData != null && pipelineData.isEaglerPlayer()) {
+		boolean eag = pipelineData != null && pipelineData.isEaglerPlayer();
+		if(eag) {
 			BungeeUnsafe.injectCompressionDisable(conn);
 		}
 		BungeeConnection c = new BungeeConnection(this, conn,
-				pipelineData != null ? pipelineData::awaitPlayState : null);
+				eag ? pipelineData::awaitPlayState : null);
 		setAttr.accept(c);
 		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<IPipelineData, Object>() {
 			@Override
