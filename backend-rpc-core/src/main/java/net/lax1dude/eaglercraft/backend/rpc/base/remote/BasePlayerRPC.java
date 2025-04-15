@@ -32,9 +32,13 @@ import net.lax1dude.eaglercraft.backend.rpc.base.remote.message.BackendRPCProtoc
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.message.BackendV2RPCProtocolHandler;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.skins.SkinRPCHelper;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.skins.type.InternUtils;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.skins.type.MissingCape;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.skins.type.MissingSkin;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.util.DataSerializationContext;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCPacket;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCGetCapeByURLV2;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCGetSkinByURLV2;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCRequestPlayerInfo;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCResetPlayerMulti;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSendRawMessage;
@@ -233,10 +237,16 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 		return baseRequestTimeout;
 	}
 
-
 	private static final Function<Object, IEaglerPlayerSkin> PLAYER_SKIN_HANDLER = (res) -> {
-		if(res instanceof IInteger i) {
-			return InternUtils.getPresetSkin(i.getIntValue());
+		if(res == null) {
+			return null;
+		}else if(res instanceof IInteger i) {
+			int ii = i.getIntValue();
+			if(ii != -1) {
+				return InternUtils.getPresetSkin(ii);
+			}else {
+				return MissingSkin.MISSING_SKIN;
+			}
 		}else if(res instanceof byte[] b) {
 			return SkinRPCHelper.decodeSkinData(b, false);
 		}else {
@@ -277,8 +287,15 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	}
 
 	private static final Function<Object, IEaglerPlayerCape> PLAYER_CAPE_HANDLER = (res) -> {
-		if(res instanceof IInteger i) {
-			return InternUtils.getPresetCape(i.getIntValue());
+		if(res == null) {
+			return null;
+		}else if(res instanceof IInteger i) {
+			int ii = i.getIntValue();
+			if(ii != -1) {
+				return InternUtils.getPresetCape(i.getIntValue());
+			}else {
+				return MissingCape.MISSING_CAPE;
+			}
 		}else if(res instanceof byte[] b) {
 			return SkinRPCHelper.decodeCapeData(b, false);
 		}else {
@@ -320,7 +337,11 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 
 	private static final Function<Object, TexturesData> PLAYER_TEXTURES_HANDLER = (res) -> {
 		if(res instanceof IIntegerTuple tuple) {
-			return TexturesData.create(InternUtils.getPresetSkin(tuple.getIntValueA()), InternUtils.getPresetCape(tuple.getIntValueB()));
+			int i = tuple.getIntValueA();
+			IEaglerPlayerSkin skin = i != -1 ? InternUtils.getPresetSkin(i) : MissingSkin.MISSING_SKIN;
+			i = tuple.getIntValueB();
+			IEaglerPlayerCape cape = i != -1 ? InternUtils.getPresetCape(i) : MissingCape.MISSING_CAPE;
+			return TexturesData.create(skin, cape);
 		}else if(res instanceof byte[] bytes) {
 			IEaglerPlayerSkin skin = SkinRPCHelper.decodeTexturesSkinData(bytes);
 			IEaglerPlayerCape cape = SkinRPCHelper.decodeTexturesCapeData(bytes, skin);
@@ -422,6 +443,28 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 			RPCRequestFuture<UUID> ret = createRequest(timeoutSec);
 			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_UUID));
+			return ret;
+		}else {
+			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
+		}
+	}
+
+	@Override
+	public IRPCFuture<IEaglerPlayerSkin> getSkinByURL(String url, int timeoutSec) {
+		if(open) {
+			RPCRequestFuture<IEaglerPlayerSkin> ret = createRequest(timeoutSec, PLAYER_SKIN_HANDLER);
+			writeOutboundPacket(new CPacketRPCGetSkinByURLV2(ret.getRequestId(), url));
+			return ret;
+		}else {
+			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
+		}
+	}
+
+	@Override
+	public IRPCFuture<IEaglerPlayerCape> getCapeByURL(String url, int timeoutSec) {
+		if(open) {
+			RPCRequestFuture<IEaglerPlayerCape> ret = createRequest(timeoutSec, PLAYER_CAPE_HANDLER);
+			writeOutboundPacket(new CPacketRPCGetCapeByURLV2(ret.getRequestId(), url));
 			return ret;
 		}else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());

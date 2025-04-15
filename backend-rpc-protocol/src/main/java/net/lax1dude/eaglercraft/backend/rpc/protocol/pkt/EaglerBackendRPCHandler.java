@@ -121,6 +121,14 @@ public interface EaglerBackendRPCHandler {
 		throw new WrongRPCPacketException();
 	}
 
+	default void handleClient(CPacketRPCGetSkinByURLV2 packet) {
+		throw new WrongRPCPacketException();
+	}
+
+	default void handleClient(CPacketRPCGetCapeByURLV2 packet) {
+		throw new WrongRPCPacketException();
+	}
+
 	default void handleServer(SPacketRPCEnabledSuccess packet) {
 		throw new WrongRPCPacketException();
 	}

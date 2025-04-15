@@ -352,6 +352,18 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 		throw notEaglerPlayer();
 	}
 
+	void handleRequestGetSkinByURL(int requestID, String url) {
+		manager().getPlayer().getServerAPI().getSkinService().loadCacheSkinFromURL(url, (res) -> {
+			completeRequestSkinData(requestID, res);
+		});
+	}
+
+	void handleRequestGetCapeByURL(int requestID, String url) {
+		manager().getPlayer().getServerAPI().getSkinService().loadCacheCapeFromURL(url, (res) -> {
+			completeRequestCapeData(requestID, res);
+		});
+	}
+
 	void handleDisabled() {
 		manager().handleDisabled();
 	}

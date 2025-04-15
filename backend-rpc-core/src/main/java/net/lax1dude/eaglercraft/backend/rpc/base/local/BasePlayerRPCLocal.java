@@ -244,18 +244,69 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 	}
 
 	@Override
-	public IRPCFuture<UUID> getProfileUUID(int timeoutSec) {
+	public IRPCFuture<UUID> getProfileUUID() {
 		return RPCImmediateFuture.create(schedulerExecutors, delegate.getUniqueId());
 	}
 
 	@Override
-	public IRPCFuture<String> getMinecraftBrand(int timeoutSec) {
+	public IRPCFuture<UUID> getProfileUUID(int timeoutSec) {
+		return getProfileUUID();
+	}
+
+	@Override
+	public IRPCFuture<String> getMinecraftBrand() {
 		return RPCImmediateFuture.create(schedulerExecutors, delegate.getMinecraftBrand());
 	}
 
 	@Override
-	public IRPCFuture<UUID> getBrandUUID(int timeoutSec) {
+	public IRPCFuture<String> getMinecraftBrand(int timeoutSec) {
+		return getMinecraftBrand();
+	}
+
+	@Override
+	public IRPCFuture<UUID> getBrandUUID() {
 		return RPCImmediateFuture.create(schedulerExecutors, delegate.getEaglerBrandUUID());
+	}
+
+	@Override
+	public IRPCFuture<UUID> getBrandUUID(int timeoutSec) {
+		return getBrandUUID();
+	}
+
+	@Override
+	public IRPCFuture<IEaglerPlayerSkin> getSkinByURL(String url) {
+		RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin> consumerFuture
+				= new RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin>(schedulerExecutors) {
+			@Override
+			public void accept(net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin skin) {
+				set(SkinTypesHelper.wrap(skin));
+			}
+		};
+		delegate.getServerAPI().getSkinService().loadCacheSkinFromURL(url, consumerFuture);
+		return consumerFuture;
+	}
+
+	@Override
+	public IRPCFuture<IEaglerPlayerSkin> getSkinByURL(String url, int timeoutSec) {
+		return getSkinByURL(url);
+	}
+
+	@Override
+	public IRPCFuture<IEaglerPlayerCape> getCapeByURL(String url) {
+		RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape, IEaglerPlayerCape> consumerFuture
+				= new RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape, IEaglerPlayerCape>(schedulerExecutors) {
+			@Override
+			public void accept(net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape skin) {
+				set(SkinTypesHelper.wrap(skin));
+			}
+		};
+		delegate.getServerAPI().getSkinService().loadCacheCapeFromURL(url, consumerFuture);
+		return consumerFuture;
+	}
+
+	@Override
+	public IRPCFuture<IEaglerPlayerCape> getCapeByURL(String url, int timeoutSec) {
+		return getCapeByURL(url);
 	}
 
 	@Override

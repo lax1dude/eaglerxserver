@@ -89,6 +89,8 @@ public enum EaglerBackendRPCProtocol {
 			define_CLIENT_(0x16, CPacketRPCDisplayWebViewURLV2.class),
 			define_CLIENT_(0x17, CPacketRPCDisplayWebViewBlobV2.class),
 			define_CLIENT_(0x18, CPacketRPCDisplayWebViewAliasV2.class),
+			define_CLIENT_(0x19, CPacketRPCGetSkinByURLV2.class),
+			define_CLIENT_(0x1A, CPacketRPCGetCapeByURLV2.class),
 			
 			// server-to-client
 			define_SERVER_(0x01, SPacketRPCResponseTypeNull.class),

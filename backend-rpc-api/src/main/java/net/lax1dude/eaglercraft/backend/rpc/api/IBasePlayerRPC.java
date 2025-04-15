@@ -88,6 +88,18 @@ public interface IBasePlayerRPC<PlayerObject> {
 
 	IRPCFuture<UUID> getBrandUUID(int timeoutSec);
 
+	default IRPCFuture<IEaglerPlayerSkin> getSkinByURL(String url) {
+		return getSkinByURL(url, getBaseRequestTimeout());
+	}
+
+	IRPCFuture<IEaglerPlayerSkin> getSkinByURL(String url, int timeoutSec);
+
+	default IRPCFuture<IEaglerPlayerCape> getCapeByURL(String url) {
+		return getCapeByURL(url, getBaseRequestTimeout());
+	}
+
+	IRPCFuture<IEaglerPlayerCape> getCapeByURL(String url, int timeoutSec);
+
 	void sendRawCustomPayloadPacket(String channel, byte[] data);
 
 }

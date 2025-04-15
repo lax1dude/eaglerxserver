@@ -89,4 +89,12 @@ public class ServerV2RPCProtocolHandler extends ServerV1RPCProtocolHandler {
 		rpcContext.handleDisplayWebViewAlias(packet.embedTitle, packet.embedName, EnumWebViewPerms.fromBits(packet.flags));
 	}
 
+	public void handleClient(CPacketRPCGetSkinByURLV2 packet) {
+		rpcContext.handleRequestGetSkinByURL(packet.requestID, packet.skinURL);
+	}
+
+	public void handleClient(CPacketRPCGetCapeByURLV2 packet) {
+		rpcContext.handleRequestGetCapeByURL(packet.requestID, packet.capeURL);
+	}
+
 }
