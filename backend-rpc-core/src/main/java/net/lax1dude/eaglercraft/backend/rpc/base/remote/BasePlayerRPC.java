@@ -42,6 +42,8 @@ import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCGetSki
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCRequestPlayerInfo;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCResetPlayerMulti;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSendRawMessage;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSetPlayerCape;
+import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSetPlayerCapePresetV2;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSetPlayerSkin;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSetPlayerSkinPresetV2;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.client.CPacketRPCSetPlayerTexturesPresetV2;
@@ -318,11 +320,11 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	@Override
 	public void changePlayerCape(IEaglerPlayerCape cape, boolean notifyOthers) {
 		if(!cape.isSuccess()) {
-			writeOutboundPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, -1));
+			writeOutboundPacket(new CPacketRPCSetPlayerCapePresetV2(notifyOthers, -1));
 		}else if(cape.isCapePreset()) {
-			writeOutboundPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, cape.getPresetCapeId()));
+			writeOutboundPacket(new CPacketRPCSetPlayerCapePresetV2(notifyOthers, cape.getPresetCapeId()));
 		}else {
-			writeOutboundPacket(new CPacketRPCSetPlayerSkin(notifyOthers, SkinRPCHelper.encodeCapeData(cape)));
+			writeOutboundPacket(new CPacketRPCSetPlayerCape(notifyOthers, SkinRPCHelper.encodeCapeData(cape)));
 		}
 	}
 

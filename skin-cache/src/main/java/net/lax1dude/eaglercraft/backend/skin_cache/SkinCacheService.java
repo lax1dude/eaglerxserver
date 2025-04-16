@@ -164,11 +164,12 @@ public class SkinCacheService implements ISkinCacheService {
 		}
 		if(b) {
 			callback.accept(ISkinCacheService.ERROR);
-		}
-		try {
-			skinCache.get(skinURL).load(callback);
-		} catch (ExecutionException e) {
-			callback.accept(ISkinCacheService.ERROR);
+		}else {
+			try {
+				skinCache.get(skinURL).load(callback);
+			} catch (ExecutionException e) {
+				callback.accept(ISkinCacheService.ERROR);
+			}
 		}
 	}
 
@@ -183,11 +184,12 @@ public class SkinCacheService implements ISkinCacheService {
 		}
 		if(b) {
 			callback.accept(ISkinCacheService.ERROR);
-		}
-		try {
-			capeCache.get(capeURL).load(callback);
-		} catch (ExecutionException e) {
-			callback.accept(ISkinCacheService.ERROR);
+		}else {
+			try {
+				capeCache.get(capeURL).load(callback);
+			} catch (ExecutionException e) {
+				callback.accept(ISkinCacheService.ERROR);
+			}
 		}
 	}
 
