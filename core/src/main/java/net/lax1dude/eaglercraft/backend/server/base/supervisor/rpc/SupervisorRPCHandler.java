@@ -645,6 +645,9 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 
 	@Override
 	public IntSet toIntSet(Collection<NodeResult<SupervisorDataVoid>> collection) {
+		if(collection == null) {
+			return null;
+		}
 		IntSet ret = new IntHashSet(collection.size());
 		for (NodeResult<? extends SupervisorDataVoid> o : collection) {
 			if (o.isSuccessful()) {

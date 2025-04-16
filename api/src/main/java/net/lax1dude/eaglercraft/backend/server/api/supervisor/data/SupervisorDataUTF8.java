@@ -3,6 +3,9 @@ package net.lax1dude.eaglercraft.backend.server.api.supervisor.data;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketInputBuffer;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
 
@@ -23,17 +26,18 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
  */
 public class SupervisorDataUTF8 implements ISupervisorData {
 
+	@Nullable
 	public String value;
 
 	public SupervisorDataUTF8() {
 	}
 
-	public SupervisorDataUTF8(String value) {
+	public SupervisorDataUTF8(@Nullable String value) {
 		this.value = value;
 	}
 
 	@Override
-	public void write(GamePacketOutputBuffer buffer) throws IOException {
+	public void write(@Nonnull GamePacketOutputBuffer buffer) throws IOException {
 		if(value != null) {
 			byte[] data = value.getBytes(StandardCharsets.UTF_8);
 			buffer.writeVarInt(data.length + 1);
@@ -44,7 +48,7 @@ public class SupervisorDataUTF8 implements ISupervisorData {
 	}
 
 	@Override
-	public void read(GamePacketInputBuffer buffer) throws IOException {
+	public void read(@Nonnull GamePacketInputBuffer buffer) throws IOException {
 		int len = buffer.readVarInt();
 		if(len > 0) {
 			byte[] arr = new byte[len - 1];

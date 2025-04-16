@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.api.bungee.event;
 
+import javax.annotation.Nonnull;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 import net.lax1dude.eaglercraft.backend.server.api.query.IMOTDConnection;
@@ -11,16 +13,18 @@ public final class EaglercraftMOTDEvent extends Event implements IEaglercraftMOT
 	private final IEaglerXServerAPI<ProxiedPlayer> api;
 	private final IMOTDConnection connection;
 
-	public EaglercraftMOTDEvent(IEaglerXServerAPI<ProxiedPlayer> api, IMOTDConnection connection) {
+	public EaglercraftMOTDEvent(@Nonnull IEaglerXServerAPI<ProxiedPlayer> api, @Nonnull IMOTDConnection connection) {
 		this.api = api;
 		this.connection = connection;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerXServerAPI<ProxiedPlayer> getServerAPI() {
 		return api;
 	}
 
+	@Nonnull
 	@Override
 	public IMOTDConnection getMOTDConnection() {
 		return connection;

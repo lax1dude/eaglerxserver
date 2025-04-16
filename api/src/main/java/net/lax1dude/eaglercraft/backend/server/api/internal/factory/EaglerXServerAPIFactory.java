@@ -4,11 +4,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
 
 public abstract class EaglerXServerAPIFactory {
 
+	@Nonnull
 	public static final Factory INSTANCE;
 
 	static {
@@ -29,12 +32,20 @@ public abstract class EaglerXServerAPIFactory {
 
 	public static abstract class Factory implements IEaglerAPIFactory {
 
+		@Nonnull
+		@Override
 		public abstract Set<Class<?>> getPlayerTypes();
 
+		@Nonnull
+		@Override
 		public abstract IAttributeManager getGlobalAttributeManager();
 
+		@Nonnull
+		@Override
 		public abstract <T> IEaglerXServerAPI<T> getAPI(Class<T> playerClass);
 
+		@Nonnull
+		@Override
 		public abstract IEaglerXServerAPI<?> getDefaultAPI();
 
 	}

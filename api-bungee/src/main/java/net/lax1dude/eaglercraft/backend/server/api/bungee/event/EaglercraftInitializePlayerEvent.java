@@ -2,6 +2,8 @@ package net.lax1dude.eaglercraft.backend.server.api.bungee.event;
 
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
@@ -15,23 +17,26 @@ public final class EaglercraftInitializePlayerEvent extends Event
 	private final IEaglerPlayer<ProxiedPlayer> player;
 	private final Map<String, byte[]> extraProfileData;
 
-	public EaglercraftInitializePlayerEvent(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerPlayer<ProxiedPlayer> player,
-			Map<String, byte[]> extraProfileData) {
+	public EaglercraftInitializePlayerEvent(@Nonnull IEaglerXServerAPI<ProxiedPlayer> api,
+			@Nonnull IEaglerPlayer<ProxiedPlayer> player, @Nonnull Map<String, byte[]> extraProfileData) {
 		this.api = api;
 		this.player = player;
 		this.extraProfileData = extraProfileData;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerXServerAPI<ProxiedPlayer> getServerAPI() {
 		return api;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerPlayer<ProxiedPlayer> getPlayer() {
 		return player;
 	}
 
+	@Nonnull
 	@Override
 	public Map<String, byte[]> getExtraProfileData() {
 		return extraProfileData;

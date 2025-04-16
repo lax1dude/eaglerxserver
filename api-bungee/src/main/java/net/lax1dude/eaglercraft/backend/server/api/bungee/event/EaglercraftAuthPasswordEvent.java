@@ -2,6 +2,9 @@ package net.lax1dude.eaglercraft.backend.server.api.bungee.event;
 
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthPasswordEvent;
@@ -36,10 +39,13 @@ public final class EaglercraftAuthPasswordEvent
 	private String texturesPropertySignature;
 	private boolean forceVanillaSkin;
 
-	public EaglercraftAuthPasswordEvent(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerLoginConnection loginConnection,
-			byte[] authUsername, boolean nicknameSelectionEnabled, byte[] authSaltingData, byte[] authPasswordData, boolean cookiesEnabled,
-			byte[] cookieData, String requestedUsername, String profileUsername, UUID profileUUID, EnumAuthType authType, String authMessage,
-			String authRequestedServer, Callback<IEaglercraftAuthPasswordEvent<ProxiedPlayer, BaseComponent>> cb) {
+	public EaglercraftAuthPasswordEvent(@Nonnull IEaglerXServerAPI<ProxiedPlayer> api,
+			@Nonnull IEaglerLoginConnection loginConnection, @Nonnull byte[] authUsername,
+			boolean nicknameSelectionEnabled, @Nullable byte[] authSaltingData, @Nonnull byte[] authPasswordData,
+			boolean cookiesEnabled, @Nullable byte[] cookieData, @Nonnull String requestedUsername,
+			@Nonnull String profileUsername, @Nonnull UUID profileUUID, @Nullable EnumAuthType authType,
+			@Nullable String authMessage, @Nonnull String authRequestedServer,
+			@Nonnull Callback<IEaglercraftAuthPasswordEvent<ProxiedPlayer, BaseComponent>> cb) {
 		super(cb);
 		this.api = api;
 		this.loginConnection = loginConnection;
@@ -57,16 +63,19 @@ public final class EaglercraftAuthPasswordEvent
 		this.authRequestedServer = authRequestedServer;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerXServerAPI<ProxiedPlayer> getServerAPI() {
 		return api;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerLoginConnection getLoginConnection() {
 		return loginConnection;
 	}
 
+	@Nonnull
 	@Override
 	public byte[] getAuthUsername() {
 		return authUsername;
@@ -77,6 +86,7 @@ public final class EaglercraftAuthPasswordEvent
 		return nicknameSelectionEnabled;
 	}
 
+	@Nullable
 	@Override
 	public byte[] getAuthSaltingData() {
 		return authSaltingData;
@@ -87,97 +97,109 @@ public final class EaglercraftAuthPasswordEvent
 		return cookiesEnabled;
 	}
 
+	@Nullable
 	@Override
 	public byte[] getCookieData() {
 		return cookieData;
 	}
 
+	@Nonnull
 	@Override
 	public byte[] getAuthPasswordDataResponse() {
 		return authPasswordData;
 	}
 
+	@Nonnull
 	@Override
 	public String getRequestedNickname() {
 		return requestedUsername;
 	}
 
+	@Nonnull
 	@Override
 	public String getProfileUsername() {
 		return profileUsername;
 	}
 
 	@Override
-	public void setProfileUsername(String username) {
+	public void setProfileUsername(@Nonnull String username) {
 		profileUsername = username;
 	}
 
+	@Nonnull
 	@Override
 	public UUID getProfileUUID() {
 		return profileUUID;
 	}
 
 	@Override
-	public void setProfileUUID(UUID uuid) {
+	public void setProfileUUID(@Nonnull UUID uuid) {
 		profileUUID = uuid;
 	}
 
+	@Nullable
 	@Override
 	public EnumAuthType getAuthType() {
 		return authType;
 	}
 
+	@Nullable
 	@Override
 	public String getAuthMessage() {
 		return authMessage;
 	}
 
+	@Nonnull
 	@Override
 	public String getAuthRequestedServer() {
 		return authRequestedServer;
 	}
 
 	@Override
-	public void setAuthRequestedServer(String server) {
+	public void setAuthRequestedServer(@Nonnull String server) {
 		authRequestedServer = server;
 	}
 
+	@Nullable
 	@Override
 	public EnumAuthResponse getAuthResponse() {
 		return authResponse;
 	}
 
 	@Override
-	public void setAuthResponse(EnumAuthResponse response) {
+	public void setAuthResponse(@Nullable EnumAuthResponse response) {
 		authResponse = response;
 	}
 
+	@Nullable
 	@Override
 	public BaseComponent getKickMessage() {
 		return kickMessage;
 	}
 
 	@Override
-	public void setKickMessage(BaseComponent kickMessage) {
+	public void setKickMessage(@Nullable BaseComponent kickMessage) {
 		this.kickMessage = kickMessage;
 	}
 
 	@Override
-	public void setKickMessage(String kickMessage) {
+	public void setKickMessage(@Nullable String kickMessage) {
 		this.kickMessage = kickMessage != null ? new TextComponent(kickMessage) : null;
 	}
 
 	@Override
-	public void applyTexturesProperty(String value, String signature) {
+	public void applyTexturesProperty(@Nullable String value, @Nullable String signature) {
 		texturesPropertyValue = value;
 		texturesPropertySignature = signature;
 	}
 
+	@Nullable
 	@Override
 	public String getAppliedTexturesPropertyValue() {
 		return texturesPropertyValue;
 	}
 
+	@Nullable
 	@Override
 	public String getAppliedTexturesPropertySignature() {
 		return texturesPropertySignature;

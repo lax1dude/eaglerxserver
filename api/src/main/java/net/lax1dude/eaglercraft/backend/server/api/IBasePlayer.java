@@ -28,6 +28,7 @@ public interface IBasePlayer<PlayerObject> extends IBaseLoginConnection {
 	}
 
 	@Nullable
+	@Override
 	IEaglerPlayer<PlayerObject> asEaglerPlayer();
 
 	@Nonnull

@@ -22,8 +22,10 @@ import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorDa
  * POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+@FunctionalInterface
 public interface ISupervisorProcSync<In extends ISupervisorData, Out extends ISupervisorData> extends ISupervisorProc<In, Out> {
 
+	@Override
 	default void call(int sourceNode, @Nonnull In dataInput, @Nonnull Consumer<Out> dataOutput) {
 		dataOutput.accept(call0(sourceNode, dataInput));
 	}

@@ -7,6 +7,7 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 public interface ISkinManagerEagler<PlayerObject> extends ISkinManagerBase<PlayerObject> {
 
 	@Nonnull
+	@Override
 	IEaglerPlayer<PlayerObject> getPlayer();
 
 	@Nonnull

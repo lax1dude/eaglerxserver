@@ -2,6 +2,8 @@ package net.lax1dude.eaglercraft.backend.server.api.supervisor.data;
 
 import java.io.IOException;
 
+import javax.annotation.Nonnull;
+
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketInputBuffer;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
 
@@ -22,10 +24,11 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
  */
 public interface ISupervisorData {
 
+	@Nonnull
 	public static final SupervisorDataVoid VOID = SupervisorDataVoid._INSTANCE;
 
-	void write(GamePacketOutputBuffer buffer) throws IOException;
+	void write(@Nonnull GamePacketOutputBuffer buffer) throws IOException;
 
-	void read(GamePacketInputBuffer buffer) throws IOException;
+	void read(@Nonnull GamePacketInputBuffer buffer) throws IOException;
 
 }

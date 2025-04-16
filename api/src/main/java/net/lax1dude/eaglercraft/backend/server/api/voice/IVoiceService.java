@@ -2,14 +2,19 @@ package net.lax1dude.eaglercraft.backend.server.api.voice;
 
 import java.util.Collection;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 
 public interface IVoiceService<PlayerObject> {
 
+	@Nonnull
 	IEaglerXServerAPI<PlayerObject> getServerAPI();
 
-	default IVoiceManager<PlayerObject> getVoiceManager(PlayerObject player) {
+	@Nullable
+	default IVoiceManager<PlayerObject> getVoiceManager(@Nonnull PlayerObject player) {
 		IEaglerPlayer<PlayerObject> eagPlayer = getServerAPI().getEaglerPlayer(player);
 		return eagPlayer != null ? eagPlayer.getVoiceManager() : null;
 	}
@@ -18,24 +23,30 @@ public interface IVoiceService<PlayerObject> {
 
 	boolean isVoiceEnabledAllServers();
 
-	boolean isVoiceEnabledOnServer(String serverName);
+	boolean isVoiceEnabledOnServer(@Nonnull String serverName);
 
 	boolean isSeparateServerChannels();
 
-	IVoiceChannel getServerVoiceChannel(String serverName);
+	@Nullable
+	IVoiceChannel getServerVoiceChannel(@Nonnull String serverName);
 
 	boolean isBackendRelayMode();
 
+	@Nonnull
 	Collection<ICEServerEntry> getICEServers();
 
-	void setICEServers(Collection<ICEServerEntry> servers);
+	void setICEServers(@Nonnull Collection<ICEServerEntry> servers);
 
+	@Nonnull
 	IVoiceChannel createVoiceChannel();
 
+	@Nonnull
 	IVoiceChannel getGlobalVoiceChannel();
 
+	@Nonnull
 	IVoiceChannel getDisabledVoiceChannel();
 
-	Collection<IEaglerPlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel);
+	@Nonnull
+	Collection<IEaglerPlayer<PlayerObject>> getConnectedPlayers(@Nonnull IVoiceChannel channel);
 
 }

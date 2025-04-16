@@ -1,5 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.api.bungee.event;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftClientBrandEvent;
@@ -19,13 +22,15 @@ public final class EaglercraftClientBrandEvent
 	private final IEaglerPendingConnection pendingConnection;
 	private BaseComponent message;
 
-	public EaglercraftClientBrandEvent(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerPendingConnection pendingConnection,
-			Callback<IEaglercraftClientBrandEvent<ProxiedPlayer, BaseComponent>> cb) {
+	public EaglercraftClientBrandEvent(@Nonnull IEaglerXServerAPI<ProxiedPlayer> api,
+			@Nonnull IEaglerPendingConnection pendingConnection,
+			@Nonnull Callback<IEaglercraftClientBrandEvent<ProxiedPlayer, BaseComponent>> cb) {
 		super(cb);
 		this.api = api;
 		this.pendingConnection = pendingConnection;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerXServerAPI<ProxiedPlayer> getServerAPI() {
 		return api;
@@ -41,23 +46,25 @@ public final class EaglercraftClientBrandEvent
 		this.cancelled = cancelled;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerPendingConnection getPendingConnection() {
 		return pendingConnection;
 	}
 
+	@Nullable
 	@Override
 	public BaseComponent getMessage() {
 		return message;
 	}
 
 	@Override
-	public void setMessage(String message) {
+	public void setMessage(@Nullable String message) {
 		this.message = message != null ? new TextComponent(message) : null;
 	}
 
 	@Override
-	public void setMessage(BaseComponent message) {
+	public void setMessage(@Nullable BaseComponent message) {
 		this.message = message;
 	}
 

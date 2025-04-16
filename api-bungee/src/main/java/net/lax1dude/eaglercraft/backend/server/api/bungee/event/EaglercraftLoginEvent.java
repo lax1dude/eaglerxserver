@@ -2,6 +2,9 @@ package net.lax1dude.eaglercraft.backend.server.api.bungee.event;
 
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftLoginEvent;
@@ -26,9 +29,9 @@ public final class EaglercraftLoginEvent
 	private UUID uuid;
 	private String requestedServer;
 
-	public EaglercraftLoginEvent(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerLoginConnection loginConnection,
-			boolean redirectSupport, String requestedServer,
-			Callback<IEaglercraftLoginEvent<ProxiedPlayer, BaseComponent>> cb) {
+	public EaglercraftLoginEvent(@Nonnull IEaglerXServerAPI<ProxiedPlayer> api,
+			@Nonnull IEaglerLoginConnection loginConnection, boolean redirectSupport, @Nonnull String requestedServer,
+			@Nonnull Callback<IEaglercraftLoginEvent<ProxiedPlayer, BaseComponent>> cb) {
 		super(cb);
 		this.api = api;
 		this.loginConnection = loginConnection;
@@ -38,6 +41,7 @@ public final class EaglercraftLoginEvent
 		this.requestedServer = requestedServer;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerXServerAPI<ProxiedPlayer> getServerAPI() {
 		return api;
@@ -53,23 +57,25 @@ public final class EaglercraftLoginEvent
 		this.cancelled = cancelled;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerLoginConnection getLoginConnection() {
 		return loginConnection;
 	}
 
+	@Nullable
 	@Override
 	public BaseComponent getMessage() {
 		return message;
 	}
 
 	@Override
-	public void setMessage(String message) {
+	public void setMessage(@Nullable String message) {
 		this.message = message != null ? new TextComponent(message) : null;
 	}
 
 	@Override
-	public void setMessage(BaseComponent message) {
+	public void setMessage(@Nullable BaseComponent message) {
 		this.message = message;
 	}
 
@@ -78,43 +84,47 @@ public final class EaglercraftLoginEvent
 		return redirectSupport;
 	}
 
+	@Nullable
 	@Override
 	public String getRedirectAddress() {
 		return redirect;
 	}
 
 	@Override
-	public void setRedirectAddress(String addr) {
+	public void setRedirectAddress(@Nullable String addr) {
 		this.redirect = addr;
 	}
 
+	@Nonnull
 	@Override
 	public String getProfileUsername() {
 		return username;
 	}
 
 	@Override
-	public void setProfileUsername(String username) {
+	public void setProfileUsername(@Nonnull String username) {
 		this.username = username;
 	}
 
+	@Nonnull
 	@Override
 	public UUID getProfileUUID() {
 		return uuid;
 	}
 
 	@Override
-	public void setProfileUUID(UUID uuid) {
+	public void setProfileUUID(@Nonnull UUID uuid) {
 		this.uuid = uuid;
 	}
 
+	@Nonnull
 	@Override
 	public String getRequestedServer() {
 		return requestedServer;
 	}
 
 	@Override
-	public void setRequestedServer(String server) {
+	public void setRequestedServer(@Nonnull String server) {
 		this.requestedServer = server;
 	}
 

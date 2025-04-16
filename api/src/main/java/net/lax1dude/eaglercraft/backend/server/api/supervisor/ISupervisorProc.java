@@ -21,6 +21,7 @@ import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorDa
  * POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+@FunctionalInterface
 public interface ISupervisorProc<In extends ISupervisorData, Out extends ISupervisorData> {
 
 	void call(int sourceNode, @Nonnull In dataInput, @Nonnull Consumer<Out> dataOutput);

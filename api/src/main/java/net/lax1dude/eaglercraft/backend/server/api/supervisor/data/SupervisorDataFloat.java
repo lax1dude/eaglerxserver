@@ -2,6 +2,8 @@ package net.lax1dude.eaglercraft.backend.server.api.supervisor.data;
 
 import java.io.IOException;
 
+import javax.annotation.Nonnull;
+
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketInputBuffer;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
 
@@ -32,12 +34,12 @@ public class SupervisorDataFloat implements ISupervisorData {
 	}
 
 	@Override
-	public void write(GamePacketOutputBuffer buffer) throws IOException {
+	public void write(@Nonnull GamePacketOutputBuffer buffer) throws IOException {
 		buffer.writeFloat(value);
 	}
 
 	@Override
-	public void read(GamePacketInputBuffer buffer) throws IOException {
+	public void read(@Nonnull GamePacketInputBuffer buffer) throws IOException {
 		value = buffer.readFloat();
 	}
 
