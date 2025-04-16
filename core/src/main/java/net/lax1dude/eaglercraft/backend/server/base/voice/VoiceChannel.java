@@ -37,12 +37,17 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 
 	void addToChannel(VoiceManagerLocal<PlayerObject> mgr) {
 		Context oldContext = mgr.xchgActiveChannel(null);
+		boolean connect = false;
 		if(oldContext != null) {
-			oldContext.finish(false);
+			connect = oldContext.finish(false);
 		}
-		oldContext = mgr.xchgActiveChannel(new Context(mgr));
+		Context newContext = new Context(mgr);
+		oldContext = mgr.xchgActiveChannel(newContext);
 		if(oldContext != null) {
-			oldContext.finish(true);
+			connect = oldContext.finish(true);
+		}
+		if(connect) {
+			newContext.handleVoiceSignalPacketTypeConnect();
 		}
 	}
 
@@ -106,24 +111,39 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 			for(int i = 0; i < len; ++i) {
 				Context ctx = (Context) allPlayers[i];
 				EaglerPlayerInstance<PlayerObject> ctxPlayer = ctx.mgr.player;
-				UUID ctxUUID = ctxPlayer.getUniqueId();
-				userDatas[i] = new SPacketVoiceSignalGlobalEAG.UserData(ctxUUID.getMostSignificantBits(),
-						ctxUUID.getLeastSignificantBits(), ctxPlayer.getUsername());
-				if (ctxPlayer.getEaglerProtocol().ver <= 3) {
-					ctxPlayer.sendEaglerMessage(v3p == null
-							? (v3p = new SPacketVoiceSignalConnectV3EAG(selfUUID.getMostSignificantBits(),
-									selfUUID.getLeastSignificantBits(), true, false))
-							: v3p);
-				} else {
-					ctxPlayer.sendEaglerMessage(v4p == null
-							? (v4p = new SPacketVoiceSignalConnectAnnounceV4EAG(
-									selfUUID.getMostSignificantBits(), selfUUID.getLeastSignificantBits()))
-							: v4p);
+				userDatas[i] = new SPacketVoiceSignalGlobalEAG.UserData(ctx.selfUUID.getMostSignificantBits(),
+						ctx.selfUUID.getLeastSignificantBits(), ctxPlayer.getUsername());
+				if(ctx != this) {
+					if (ctxPlayer.getEaglerProtocol().ver <= 3) {
+						ctxPlayer.sendEaglerMessage(v3p == null
+								? (v3p = new SPacketVoiceSignalConnectV3EAG(selfUUID.getMostSignificantBits(),
+										selfUUID.getLeastSignificantBits(), true, false))
+								: v3p);
+					} else {
+						ctxPlayer.sendEaglerMessage(v4p == null
+								? (v4p = new SPacketVoiceSignalConnectAnnounceV4EAG(
+										selfUUID.getMostSignificantBits(), selfUUID.getLeastSignificantBits()))
+								: v4p);
+					}
 				}
 			}
 			GameMessagePacket packetToBroadcast = new SPacketVoiceSignalGlobalEAG(Arrays.asList(userDatas));
 			for(int i = 0; i < len; ++i) {
 				((Context) allPlayers[i]).mgr.player.sendEaglerMessage(packetToBroadcast);
+			}
+			EaglerPlayerInstance<PlayerObject> self = mgr.player;
+			boolean selfV3 = self.getEaglerProtocol().ver <= 3;
+			for(int i = 0; i < len; ++i) {
+				Context ctx = (Context) allPlayers[i];
+				if(ctx != this) {
+					if (selfV3) {
+						self.sendEaglerMessage(new SPacketVoiceSignalConnectV3EAG(ctx.selfUUID.getMostSignificantBits(),
+								ctx.selfUUID.getLeastSignificantBits(), true, false));
+					} else {
+						self.sendEaglerMessage(new SPacketVoiceSignalConnectAnnounceV4EAG(
+								ctx.selfUUID.getMostSignificantBits(), ctx.selfUUID.getLeastSignificantBits()));
+					}
+				}
 			}
 		}
 
@@ -263,13 +283,13 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 			handleRemove(true);
 		}
 
-		void finish(boolean dead) {
-			handleRemove(dead);
+		boolean finish(boolean dead) {
+			return handleRemove(dead);
 		}
 
-		private void handleRemove(boolean dead) {
+		private boolean handleRemove(boolean dead) {
 			if(connectedPlayers.remove(selfUUID) == null) {
-				return;
+				return false;
 			}
 			mgr.onStateChanged(EnumVoiceState.DISABLED);
 			Object[] allPlayers = connectedPlayers.values().toArray();
@@ -318,6 +338,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 					((Context) allPlayers[i]).mgr.player.sendEaglerMessage(packetToBroadcast);
 				}
 			}
+			return true;
 		}
 
 		boolean isConnected() {

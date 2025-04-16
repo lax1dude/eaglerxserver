@@ -35,12 +35,17 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 
 	void addToChannel(VoiceManagerRemote<PlayerObject> mgr) {
 		Context oldContext = mgr.xchgActiveChannel(null);
+		boolean connect = false;
 		if(oldContext != null) {
-			oldContext.finish(false);
+			connect = oldContext.finish(false);
 		}
-		oldContext = mgr.xchgActiveChannel(new Context(mgr));
+		Context newContext = new Context(mgr);
+		oldContext = mgr.xchgActiveChannel(newContext);
 		if(oldContext != null) {
-			oldContext.finish(true);
+			connect = oldContext.finish(true);
+		}
+		if(connect) {
+			newContext.handleVoiceSignalPacketTypeConnect();
 		}
 	}
 
@@ -101,10 +106,11 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 			for(int i = 0; i < len; ++i) {
 				Context ctx = (Context) allPlayers[i];
 				VoiceManagerRemote<PlayerObject> ctxMgr = ctx.mgr;
-				UUID ctxUUID = ctxMgr.player.getUniqueId();
-				userDatas[i] = new SPacketVCPlayerList.UserData(ctxUUID.getMostSignificantBits(),
-						ctxUUID.getLeastSignificantBits(), ctxMgr.player.getUsername());
-				ctxMgr.writeOutboundVoicePacket(announcePacket);
+				userDatas[i] = new SPacketVCPlayerList.UserData(ctx.selfUUID.getMostSignificantBits(),
+						ctx.selfUUID.getLeastSignificantBits(), ctxMgr.player.getUsername());
+				if(ctx != this) {
+					ctxMgr.writeOutboundVoicePacket(announcePacket);
+				}
 			}
 			EaglerVCPacket packetToBroadcast = new SPacketVCPlayerList(Arrays.asList(userDatas));
 			for(int i = 0; i < len; ++i) {
@@ -230,13 +236,13 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 			handleRemove(true);
 		}
 
-		void finish(boolean dead) {
-			handleRemove(dead);
+		boolean finish(boolean dead) {
+			return handleRemove(dead);
 		}
 
-		private void handleRemove(boolean dead) {
+		private boolean handleRemove(boolean dead) {
 			if(connectedPlayers.remove(selfUUID) == null) {
-				return;
+				return false;
 			}
 			mgr.onStateChanged(EnumVoiceState.DISABLED);
 			Object[] allPlayers = connectedPlayers.values().toArray();
@@ -283,6 +289,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 					((Context) allPlayers[i]).mgr.writeOutboundVoicePacket(packetToBroadcast);
 				}
 			}
+			return true;
 		}
 
 		boolean isConnected() {

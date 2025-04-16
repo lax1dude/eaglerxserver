@@ -141,14 +141,15 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	}
 
 	private void switchChannels(IVoiceChannel oldChannel, IVoiceChannel newChannel) {
-		if(oldChannel != DisabledChannel.INSTANCE) {
-			((VoiceChannel<PlayerObject>) oldChannel).removeFromChannel(this, newChannel == DisabledChannel.INSTANCE);
-		}else {
-			enableVoice();
-		}
 		if(newChannel != DisabledChannel.INSTANCE) {
+			if(oldChannel == DisabledChannel.INSTANCE) {
+				enableVoice();
+			}
 			((VoiceChannel<PlayerObject>) newChannel).addToChannel(this);
 		}else {
+			if(oldChannel != DisabledChannel.INSTANCE) {
+				((VoiceChannel<PlayerObject>) oldChannel).removeFromChannel(this, true);
+			}
 			disableVoice();
 		}
 	}

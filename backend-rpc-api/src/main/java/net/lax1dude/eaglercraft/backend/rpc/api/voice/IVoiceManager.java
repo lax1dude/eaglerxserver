@@ -14,4 +14,8 @@ public interface IVoiceManager<PlayerObject> {
 
 	void setVoiceChannel(IVoiceChannel channel);
 
+	default void setVoiceDisabled() {
+		setVoiceChannel(getVoiceService().getDisabledVoiceChannel());
+	}
+
 }
