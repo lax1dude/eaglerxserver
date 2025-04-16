@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.api.bungee.event;
 
+import javax.annotation.Nonnull;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftVoiceChangeEvent;
@@ -14,29 +16,34 @@ public final class EaglercraftVoiceChangeEvent extends Event implements IEaglerc
 	private final EnumVoiceState voiceStateOld;
 	private final EnumVoiceState voiceStateNew;
 
-	public EaglercraftVoiceChangeEvent(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerPlayer<ProxiedPlayer> player,
-			EnumVoiceState voiceStateOld, EnumVoiceState voiceStateNew) {
+	public EaglercraftVoiceChangeEvent(@Nonnull IEaglerXServerAPI<ProxiedPlayer> api,
+			@Nonnull IEaglerPlayer<ProxiedPlayer> player, @Nonnull EnumVoiceState voiceStateOld,
+			@Nonnull EnumVoiceState voiceStateNew) {
 		this.api = api;
 		this.player = player;
 		this.voiceStateOld = voiceStateOld;
 		this.voiceStateNew = voiceStateNew;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerXServerAPI<ProxiedPlayer> getServerAPI() {
 		return api;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerPlayer<ProxiedPlayer> getPlayer() {
 		return player;
 	}
 
+	@Nonnull
 	@Override
 	public EnumVoiceState getVoiceStateOld() {
 		return voiceStateOld;
 	}
 
+	@Nonnull
 	@Override
 	public EnumVoiceState getVoiceStateNew() {
 		return voiceStateNew;

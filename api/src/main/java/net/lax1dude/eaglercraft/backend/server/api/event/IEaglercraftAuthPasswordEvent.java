@@ -51,10 +51,10 @@ public interface IEaglercraftAuthPasswordEvent<PlayerObject, ComponentObject> ex
 	@UnsupportedOn({EnumPlatformType.BUKKIT})
 	void setProfileUUID(@Nonnull UUID uuid);
 
-	@Nonnull
+	@Nullable
 	IEaglercraftAuthCheckRequiredEvent.EnumAuthType getAuthType();
 
-	@Nonnull
+	@Nullable
 	String getAuthMessage();
 
 	@Nonnull

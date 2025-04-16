@@ -45,10 +45,10 @@ public interface IEaglercraftAuthCookieEvent<PlayerObject, ComponentObject> exte
 	@UnsupportedOn({EnumPlatformType.BUKKIT})
 	void setProfileUUID(@Nonnull UUID uuid);
 
-	@Nonnull
+	@Nullable
 	IEaglercraftAuthCheckRequiredEvent.EnumAuthType getAuthType();
 
-	@Nonnull
+	@Nullable
 	String getAuthMessage();
 
 	@Nonnull

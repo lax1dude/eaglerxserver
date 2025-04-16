@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.api.bungee.event;
 
+import javax.annotation.Nonnull;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRevokeSessionQueryEvent;
 import net.lax1dude.eaglercraft.backend.server.api.query.IQueryConnection;
@@ -17,8 +19,9 @@ public final class EaglercraftRevokeSessionQueryEvent
 	private EnumSessionRevokeStatus result;
 	private boolean shouldDelete;
 
-	public EaglercraftRevokeSessionQueryEvent(IEaglerXServerAPI<ProxiedPlayer> api, IQueryConnection query,
-			byte[] cookieData, Callback<IEaglercraftRevokeSessionQueryEvent<ProxiedPlayer>> cb) {
+	public EaglercraftRevokeSessionQueryEvent(@Nonnull IEaglerXServerAPI<ProxiedPlayer> api,
+			@Nonnull IQueryConnection query, @Nonnull byte[] cookieData,
+			@Nonnull Callback<IEaglercraftRevokeSessionQueryEvent<ProxiedPlayer>> cb) {
 		super(cb);
 		this.api = api;
 		this.query = query;
@@ -27,28 +30,32 @@ public final class EaglercraftRevokeSessionQueryEvent
 		this.shouldDelete = false;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerXServerAPI<ProxiedPlayer> getServerAPI() {
 		return api;
 	}
 
+	@Nonnull
 	@Override
 	public IQueryConnection getSocket() {
 		return query;
 	}
 
+	@Nonnull
 	@Override
 	public byte[] getCookieData() {
 		return cookieData;
 	}
 
+	@Nonnull
 	@Override
 	public EnumSessionRevokeStatus getResultStatus() {
 		return result;
 	}
 
 	@Override
-	public void setResultStatus(EnumSessionRevokeStatus result) {
+	public void setResultStatus(@Nonnull EnumSessionRevokeStatus result) {
 		this.result = result;
 	}
 

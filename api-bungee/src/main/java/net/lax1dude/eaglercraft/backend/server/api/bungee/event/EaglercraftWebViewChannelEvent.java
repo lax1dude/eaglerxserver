@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.api.bungee.event;
 
+import javax.annotation.Nonnull;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChannelEvent;
@@ -14,29 +16,33 @@ public final class EaglercraftWebViewChannelEvent extends Event
 	private final EnumEventType type;
 	private final String channel;
 
-	public EaglercraftWebViewChannelEvent(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerPlayer<ProxiedPlayer> player,
-			EnumEventType type, String channel) {
+	public EaglercraftWebViewChannelEvent(@Nonnull IEaglerXServerAPI<ProxiedPlayer> api,
+			@Nonnull IEaglerPlayer<ProxiedPlayer> player, @Nonnull EnumEventType type, @Nonnull String channel) {
 		this.api = api;
 		this.player = player;
 		this.type = type;
 		this.channel = channel;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerXServerAPI<ProxiedPlayer> getServerAPI() {
 		return api;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerPlayer<ProxiedPlayer> getPlayer() {
 		return player;
 	}
 
+	@Nonnull
 	@Override
 	public EnumEventType getType() {
 		return type;
 	}
 
+	@Nonnull
 	@Override
 	public String getChannel() {
 		return channel;

@@ -1,5 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.api.bungee.event;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
@@ -25,9 +28,9 @@ public final class EaglercraftAuthCheckRequiredEvent
 	private BaseComponent kickMessage;
 	private boolean cookieAuth;
 
-	public EaglercraftAuthCheckRequiredEvent(IEaglerXServerAPI<ProxiedPlayer> api,
-			IEaglerPendingConnection pendingConnection, boolean clientSolicitingPassword, byte[] authUsername,
-			Callback<IEaglercraftAuthCheckRequiredEvent<ProxiedPlayer, BaseComponent>> cb) {
+	public EaglercraftAuthCheckRequiredEvent(@Nonnull IEaglerXServerAPI<ProxiedPlayer> api,
+			@Nonnull IEaglerPendingConnection pendingConnection, boolean clientSolicitingPassword, @Nonnull byte[] authUsername,
+			@Nonnull Callback<IEaglercraftAuthCheckRequiredEvent<ProxiedPlayer, BaseComponent>> cb) {
 		super(cb);
 		this.api = api;
 		this.pendingConnection = pendingConnection;
@@ -35,11 +38,13 @@ public final class EaglercraftAuthCheckRequiredEvent
 		this.authUsername = authUsername;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerXServerAPI<ProxiedPlayer> getServerAPI() {
 		return api;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerPendingConnection getPendingConnection() {
 		return pendingConnection;
@@ -50,6 +55,7 @@ public final class EaglercraftAuthCheckRequiredEvent
 		return clientSolicitingPassword;
 	}
 
+	@Nonnull
 	@Override
 	public byte[] getAuthUsername() {
 		return authUsername;
@@ -65,43 +71,47 @@ public final class EaglercraftAuthCheckRequiredEvent
 		nicknameSelectionEnabled = enable;
 	}
 
+	@Nullable
 	@Override
 	public byte[] getSaltingData() {
 		return saltingData;
 	}
 
 	@Override
-	public void setSaltingData(byte[] saltingData) {
+	public void setSaltingData(@Nullable byte[] saltingData) {
 		this.saltingData = saltingData;
 	}
 
+	@Nullable
 	@Override
 	public EnumAuthType getUseAuthType() {
 		return authType;
 	}
 
 	@Override
-	public void setUseAuthType(EnumAuthType authType) {
+	public void setUseAuthType(@Nullable EnumAuthType authType) {
 		this.authType = authType;
 	}
 
+	@Nullable
 	@Override
 	public EnumAuthResponse getAuthRequired() {
 		return authRequired;
 	}
 
 	@Override
-	public void setAuthRequired(EnumAuthResponse authRequired) {
+	public void setAuthRequired(@Nullable EnumAuthResponse authRequired) {
 		this.authRequired = authRequired;
 	}
 
+	@Nullable
 	@Override
 	public String getAuthMessage() {
 		return authMessage;
 	}
 
 	@Override
-	public void setAuthMessage(String authMessage) {
+	public void setAuthMessage(@Nullable String authMessage) {
 		this.authMessage = authMessage;
 	}
 
@@ -115,18 +125,19 @@ public final class EaglercraftAuthCheckRequiredEvent
 		this.cookieAuth = enable;
 	}
 
+	@Nullable
 	@Override
 	public BaseComponent getKickMessage() {
 		return kickMessage;
 	}
 
 	@Override
-	public void setKickMessage(BaseComponent kickMessage) {
+	public void setKickMessage(@Nullable BaseComponent kickMessage) {
 		this.kickMessage = kickMessage;
 	}
 
 	@Override
-	public void setKickMessage(String kickMessage) {
+	public void setKickMessage(@Nullable String kickMessage) {
 		this.kickMessage = kickMessage != null ? new TextComponent(kickMessage) : null;
 	}
 

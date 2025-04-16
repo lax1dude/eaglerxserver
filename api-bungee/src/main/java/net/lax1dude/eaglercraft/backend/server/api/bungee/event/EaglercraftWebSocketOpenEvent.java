@@ -2,6 +2,9 @@ package net.lax1dude.eaglercraft.backend.server.api.bungee.event;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import io.netty.handler.codec.http.FullHttpRequest;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
@@ -18,13 +21,14 @@ public final class EaglercraftWebSocketOpenEvent extends Event implements IEagle
 	private final IEaglerConnection connection;
 	private final FullHttpRequest request;
 
-	public EaglercraftWebSocketOpenEvent(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerConnection connection,
-			FullHttpRequest request) {
+	public EaglercraftWebSocketOpenEvent(@Nonnull IEaglerXServerAPI<ProxiedPlayer> api,
+			@Nonnull IEaglerConnection connection, @Nonnull FullHttpRequest request) {
 		this.api = api;
 		this.connection = connection;
 		this.request = request;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerXServerAPI<ProxiedPlayer> getServerAPI() {
 		return api;
@@ -40,26 +44,31 @@ public final class EaglercraftWebSocketOpenEvent extends Event implements IEagle
 		this.cancelled = cancelled;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerConnection getConnection() {
 		return connection;
 	}
 
+	@Nullable
 	@Override
 	public String getRawHeader(String name) {
 		return request.headers().get(name);
 	}
 
+	@Nonnull
 	@Override
 	public List<String> getRawHeaders(String name) {
 		return request.headers().getAll(name);
 	}
 
+	@Nonnull
 	@Override
 	public NettyUnsafe netty() {
 		return this;
 	}
 
+	@Nonnull
 	@Override
 	public FullHttpRequest getHttpRequest() {
 		return request;

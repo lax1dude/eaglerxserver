@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.api.bungee.event;
 
+import javax.annotation.Nonnull;
+
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterSkinEvent;
@@ -17,36 +19,41 @@ public final class EaglercraftRegisterSkinEvent extends AsyncEvent<IEaglercraftR
 	private final IEaglerLoginConnection loginConnection;
 	private final IRegisterSkinDelegate delegate;
 
-	public EaglercraftRegisterSkinEvent(IEaglerXServerAPI<ProxiedPlayer> api, IEaglerLoginConnection loginConnection,
-			IRegisterSkinDelegate delegate, Callback<IEaglercraftRegisterSkinEvent<ProxiedPlayer>> cb) {
+	public EaglercraftRegisterSkinEvent(@Nonnull IEaglerXServerAPI<ProxiedPlayer> api,
+			@Nonnull IEaglerLoginConnection loginConnection, @Nonnull IRegisterSkinDelegate delegate,
+			@Nonnull Callback<IEaglercraftRegisterSkinEvent<ProxiedPlayer>> cb) {
 		super(cb);
 		this.api = api;
 		this.loginConnection = loginConnection;
 		this.delegate = delegate;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerXServerAPI<ProxiedPlayer> getServerAPI() {
 		return api;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerLoginConnection getLoginConnection() {
 		return loginConnection;
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerPlayerSkin getEaglerSkin() {
 		return delegate.getEaglerSkin();
 	}
 
+	@Nonnull
 	@Override
 	public IEaglerPlayerCape getEaglerCape() {
 		return delegate.getEaglerCape();
 	}
 
 	@Override
-	public void forceFromVanillaTexturesProperty(String value) {
+	public void forceFromVanillaTexturesProperty(@Nonnull String value) {
 		delegate.forceFromVanillaTexturesProperty(value);
 	}
 
@@ -56,12 +63,12 @@ public final class EaglercraftRegisterSkinEvent extends AsyncEvent<IEaglercraftR
 	}
 
 	@Override
-	public void forceSkinFromURL(String value, EnumSkinModel skinModel) {
+	public void forceSkinFromURL(@Nonnull String value, @Nonnull EnumSkinModel skinModel) {
 		delegate.forceSkinFromURL(value, skinModel);
 	}
 
 	@Override
-	public void forceSkinFromVanillaTexturesProperty(String value) {
+	public void forceSkinFromVanillaTexturesProperty(@Nonnull String value) {
 		delegate.forceSkinFromVanillaTexturesProperty(value);
 	}
 
@@ -71,12 +78,12 @@ public final class EaglercraftRegisterSkinEvent extends AsyncEvent<IEaglercraftR
 	}
 
 	@Override
-	public void forceCapeFromURL(String value) {
+	public void forceCapeFromURL(@Nonnull String value) {
 		delegate.forceCapeFromURL(value);
 	}
 
 	@Override
-	public void forceCapeFromVanillaTexturesProperty(String value) {
+	public void forceCapeFromVanillaTexturesProperty(@Nonnull String value) {
 		delegate.forceCapeFromVanillaTexturesProperty(value);
 	}
 
@@ -86,40 +93,42 @@ public final class EaglercraftRegisterSkinEvent extends AsyncEvent<IEaglercraftR
 	}
 
 	@Override
-	public void forceSkinEagler(IEaglerPlayerSkin skin) {
+	public void forceSkinEagler(@Nonnull IEaglerPlayerSkin skin) {
 		delegate.forceSkinEagler(skin);
 	}
 
 	@Override
-	public void forceCapeEagler(IEaglerPlayerCape cape) {
+	public void forceCapeEagler(@Nonnull IEaglerPlayerCape cape) {
 		delegate.forceCapeEagler(cape);
 	}
 
 	public interface IRegisterSkinDelegate {
 
+		@Nonnull
 		IEaglerPlayerSkin getEaglerSkin();
 
+		@Nonnull
 		IEaglerPlayerCape getEaglerCape();
 
-		void forceFromVanillaTexturesProperty(String value);
+		void forceFromVanillaTexturesProperty(@Nonnull String value);
 
 		void forceFromVanillaLoginProfile();
 
-		void forceSkinFromURL(String url, EnumSkinModel skinModel);
+		void forceSkinFromURL(@Nonnull String url, @Nonnull EnumSkinModel skinModel);
 
-		void forceSkinFromVanillaTexturesProperty(String value);
+		void forceSkinFromVanillaTexturesProperty(@Nonnull String value);
 
 		void forceSkinFromVanillaLoginProfile();
 
-		void forceCapeFromURL(String url);
+		void forceCapeFromURL(@Nonnull String url);
 
-		void forceCapeFromVanillaTexturesProperty(String value);
+		void forceCapeFromVanillaTexturesProperty(@Nonnull String value);
 
 		void forceCapeFromVanillaLoginProfile();
 
-		void forceSkinEagler(IEaglerPlayerSkin skin);
+		void forceSkinEagler(@Nonnull IEaglerPlayerSkin skin);
 
-		void forceCapeEagler(IEaglerPlayerCape skin);
+		void forceCapeEagler(@Nonnull IEaglerPlayerCape skin);
 
 	}
 
