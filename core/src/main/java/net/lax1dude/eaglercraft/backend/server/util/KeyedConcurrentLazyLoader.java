@@ -18,12 +18,14 @@ package net.lax1dude.eaglercraft.backend.server.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectIntMap;
+import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectIntProcedure;
 import net.lax1dude.eaglercraft.backend.server.base.collect.ObjectIntHashMap;
 
 public abstract class KeyedConcurrentLazyLoader<K, T> {
@@ -34,9 +36,6 @@ public abstract class KeyedConcurrentLazyLoader<K, T> {
 
 		private final ObjectIntMap<K> map = new ObjectIntHashMap<>(8);
 		private final List<Consumer<T>> list = new ArrayList<>(8);
-
-		public KeyedConsumerList() {
-		}
 
 		public void add(K key, Consumer<T> value) {
 			if(key != null) {
@@ -55,6 +54,12 @@ public abstract class KeyedConcurrentLazyLoader<K, T> {
 
 		public List<Consumer<T>> getList() {
 			return list;
+		}
+
+		public void forEach(BiConsumer<K, Consumer<T>> cb) {
+			map.forEach((ObjectIntProcedure<K>) (k, i) -> {
+				cb.accept(k, list.get(i));
+			});
 		}
 
 	}

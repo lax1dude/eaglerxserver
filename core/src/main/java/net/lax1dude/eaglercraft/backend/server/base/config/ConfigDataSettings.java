@@ -134,6 +134,7 @@ public class ConfigDataSettings {
 		private final int skinCacheAntagonistsRatelimit;
 		private final boolean enableFNAWSkinModelsGlobal;
 		private final Set<String> enableFNAWSkinModelsOnServers;
+		private final boolean enableSkinsRestorerApplyHook;
 
 		public ConfigDataSkinService(int skinLookupRatelimit, int capeLookupRatelimit,
 				boolean downloadVanillaSkinsToClients, Set<String> validSkinDownloadURLs, String skinCacheDBURI,
@@ -141,7 +142,7 @@ public class ConfigDataSettings {
 				int skinCacheThreadCount, int skinCacheCompressionLevel, int skinCacheMemoryKeepSeconds,
 				int skinCacheMemoryMaxObjects, int skinCacheDiskKeepObjectsDays, int skinCacheDiskMaxObjects,
 				int skinCacheAntagonistsRatelimit, boolean enableFNAWSkinModelsGlobal,
-				Set<String> enableFNAWSkinModelsOnServers) {
+				Set<String> enableFNAWSkinModelsOnServers, boolean enableSkinsRestorerApplyHook) {
 			this.skinLookupRatelimit = skinLookupRatelimit;
 			this.capeLookupRatelimit = capeLookupRatelimit;
 			this.downloadVanillaSkinsToClients = downloadVanillaSkinsToClients;
@@ -159,6 +160,7 @@ public class ConfigDataSettings {
 			this.skinCacheAntagonistsRatelimit = skinCacheAntagonistsRatelimit;
 			this.enableFNAWSkinModelsGlobal = enableFNAWSkinModelsGlobal;
 			this.enableFNAWSkinModelsOnServers = enableFNAWSkinModelsOnServers;
+			this.enableSkinsRestorerApplyHook = enableSkinsRestorerApplyHook;
 		}
 
 		public int getSkinLookupRatelimit() {
@@ -237,6 +239,10 @@ public class ConfigDataSettings {
 			}else {
 				return (str) -> false;
 			}
+		}
+
+		public boolean isEnableSkinsRestorerApplyHook() {
+			return enableSkinsRestorerApplyHook;
 		}
 
 	}

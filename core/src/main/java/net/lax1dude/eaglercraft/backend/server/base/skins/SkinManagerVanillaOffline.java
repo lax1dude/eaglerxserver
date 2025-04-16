@@ -177,4 +177,8 @@ public class SkinManagerVanillaOffline<PlayerObject> implements ISkinManagerBase
 		}
 	}
 
+	@Override
+	public void handleSRSkinApply(String value, String signature) {
+	}
+
 }

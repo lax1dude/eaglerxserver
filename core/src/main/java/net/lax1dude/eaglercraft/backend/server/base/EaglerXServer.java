@@ -417,6 +417,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 					skinConf.getSkinCacheMemoryKeepSeconds(), skinConf.getSkinCacheMemoryMaxObjects(), logger()));
 		}
 		
+		skinService.handleEnabled();
+		
 		if(updateService != null) {
 			updateService.start();
 		}
@@ -435,6 +437,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			certificateRefreshTask.cancel();
 			certificateRefreshTask = null;
 		}
+
+		skinService.handleDisabled();
 
 		if(skinCacheService != null) {
 			if(skinCacheJDBCHandle != null) {

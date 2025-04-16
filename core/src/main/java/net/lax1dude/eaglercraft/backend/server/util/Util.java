@@ -122,4 +122,13 @@ public class Util {
 		}
 	}
 
+	public static boolean classExists(String string) {
+		try {
+			Class.forName(string);
+			return true;
+		}catch(ClassNotFoundException ex) {
+			return false;
+		}
+	}
+
 }

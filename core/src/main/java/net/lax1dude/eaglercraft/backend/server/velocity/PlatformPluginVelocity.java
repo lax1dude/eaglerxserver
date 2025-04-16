@@ -24,6 +24,7 @@ import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
+import com.velocitypowered.api.plugin.Dependency;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.InboundConnection;
@@ -86,6 +87,9 @@ import net.lax1dude.eaglercraft.backend.server.velocity.event.VelocityEventDispa
 	description = "Official EaglercraftX plugin for Velocity servers",
 	authors = {
 		PlatformPluginVelocity.PLUGIN_AUTHOR
+	},
+	dependencies = {
+		@Dependency(id = "skinsrestorer", optional = true)
 	}
 )
 public class PlatformPluginVelocity implements IPlatform<Player> {

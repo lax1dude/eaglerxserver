@@ -297,6 +297,12 @@ public class EaglerConfigLoader {
 					.copyOf(enableFNAWSkinsOnServersConf.getAsStringList(() -> Collections.emptyList(),
 				"If enable_fnaw_skin_models_global is false, sets the list of servers (by name) "
 				+ "where the FNAW should be enabled"));
+			boolean enableSkinsRestorerApplyHook = skinService.getBoolean(
+				"enable_skinsrestorer_apply_hook", true,
+				"Default value is true, sets if the skin service should listen for SkinsRestorer "
+				+ "apply events on vanilla players to refresh their skins, usually required for "
+				+ "SkinsRestorer skins to display properly to eagler clients."
+			);
 			IEaglerConfSection voiceService = config.getSection("voice_service");
 			boolean enableVoiceService = voiceService.getBoolean(
 				"enable_voice_service", false,
@@ -404,7 +410,7 @@ public class EaglerConfigLoader {
 							skinCacheDriverPath, skinCacheSQLiteCompatible, skinCacheThreadCount,
 							skinCacheCompressionLevel, skinCacheMemoryKeepSeconds, skinCacheMemoryMaxObjects,
 							skinCacheDiskKeepObjectsDays, skinCacheDiskMaxObjects, skinCacheAntagonistsRatelimit,
-							enableFNAWSkinModelsGlobal, enableFNAWSkinModelsOnServers),
+							enableFNAWSkinModelsGlobal, enableFNAWSkinModelsOnServers, enableSkinsRestorerApplyHook),
 					new ConfigDataSettings.ConfigDataVoiceService(enableVoiceService, enableVoiceChatAllServers,
 							enableVoiceChatOnServers, separateVoiceChannelsPerServer, voiceBackendRelayMode,
 							voiceConnectRatelimit, voiceRequestRatelimit, voiceICERatelimit),

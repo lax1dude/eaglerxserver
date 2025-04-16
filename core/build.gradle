@@ -22,6 +22,7 @@ dependencies {
 	compileOnly(libs.paper.api)
 	compileOnly(libs.bundles.netty.all)
 	compileOnly(libs.jsr305)
+	compileOnly(libs.skinsrestorer.api)
 	annotationProcessor(libs.velocity.api)
 }
 

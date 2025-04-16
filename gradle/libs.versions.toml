@@ -24,6 +24,7 @@ logback = "ch.qos.logback:logback-classic:1.5.16"
 slf4j = "org.slf4j:slf4j-api:2.0.12"
 hppc = "com.carrotsearch:hppc:0.10.0"
 jsr305 = "com.google.code.findbugs:jsr305:3.0.2"
+skinsrestorer-api = "net.skinsrestorer:skinsrestorer-api:15.3.1"
 
 [bundles]
 netty-all = [

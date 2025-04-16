@@ -27,7 +27,7 @@ import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingSkin;
 import net.lax1dude.eaglercraft.backend.server.base.supervisor.ISupervisorServiceImpl;
 import net.lax1dude.eaglercraft.backend.skin_cache.ISkinCacheService;
 
-public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
+public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, ISkinsRestorerListener<PlayerObject> {
 
 	private final EaglerXServer<PlayerObject> server;
 	private final ISkinCacheService skinCache;
@@ -35,6 +35,7 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 	private final ISupervisorServiceImpl<PlayerObject> supervisor;
 	private final boolean downloadEnabled;
 	private final boolean keyedLookupHelper;
+	private ISkinsRestorerHelper<PlayerObject> skinsRestorerHelper;
 
 	public SkinService(EaglerXServer<PlayerObject> server, ISkinCacheService skinCache,
 			Predicate<String> fnawSkinsEnabled, boolean downloadEnabled) {
@@ -256,6 +257,34 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject> {
 				}
 			}
 		});
+	}
+
+	public void handleEnabled() {
+		if(server.getConfig().getSettings().getSkinService().isEnableSkinsRestorerApplyHook()) {
+			if(skinsRestorerHelper == null) {
+				skinsRestorerHelper = SkinsRestorerHelper.instance(server);
+			}
+			if(skinsRestorerHelper != null) {
+				skinsRestorerHelper.setListener(this);
+				server.logger().info("Listening for SkinsRestorer skin apply event on vanilla players");
+			}
+		}
+	}
+
+	public void handleDisabled() {
+		if(skinsRestorerHelper != null) {
+			skinsRestorerHelper.setListener(null);
+		}
+	}
+
+	@Override
+	public void handleSRSkinApply(BasePlayerInstance<PlayerObject> player, String value, String signature) {
+		if(!player.isEaglerPlayer()) {
+			ISkinManagerBase<PlayerObject> skinMgr = player.getSkinManager();
+			if(skinMgr instanceof ISkinManagerImpl impl) {
+				impl.handleSRSkinApply(value, signature);
+			}
+		}
 	}
 
 }

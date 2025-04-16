@@ -19,4 +19,6 @@ public interface ISkinManagerImpl {
 
 	void resolvePlayerTexturesKeyed(UUID requester, BiConsumer<IEaglerPlayerSkin, IEaglerPlayerCape> callback);
 
+	void handleSRSkinApply(String value, String signature);
+
 }

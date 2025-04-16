@@ -420,4 +420,8 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 		return new SPacketOtherTexturesV5EAG(uuidMost, uuidLeast, skinID, customSkin, capeID, customCape);
 	}
 
+	@Override
+	public void handleSRSkinApply(String value, String signature) {
+	}
+
 }

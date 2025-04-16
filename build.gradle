@@ -11,6 +11,10 @@ allprojects {
 			url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
 		}
 		maven {
+			name = "codemc"
+			url = uri("https://repo.codemc.org/repository/maven-public/")
+		}
+		maven {
 			url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
 		}
 	}
