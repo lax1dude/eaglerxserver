@@ -35,11 +35,24 @@ public class VanillaInitializer {
 			BufferUtils.writeVarInt(buffer, 0x00);
 			BufferUtils.writeVarInt(buffer, pipelineData.minecraftProtocol);
 			String ip = pipelineData.headerHost;
+			int port = 65535;
 			if(ip == null) {
 				ip = "127.0.0.1";
+			}else {
+				int i = ip.lastIndexOf(':');
+				if(i != -1 && i < ip.length() - 1) {
+					try {
+						port = Integer.parseInt(ip.substring(i + 1));
+						ip = ip.substring(0, i);
+					}catch(NumberFormatException ex) {
+					}
+				}
+				if(ip.length() > 255) {
+					ip = ip.substring(0, 255);
+				}
 			}
 			BufferUtils.writeMCString(buffer, ip, 255);
-			buffer.writeShort(8080);
+			buffer.writeShort(port);
 			BufferUtils.writeVarInt(buffer, 2);
 			ctx.fireChannelRead(buffer.retain());
 		}finally {
