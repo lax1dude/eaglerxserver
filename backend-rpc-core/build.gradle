@@ -15,6 +15,7 @@ dependencies {
 	compileOnly(libs.paper.api)
 	compileOnly(libs.bungeecord.chat)
 	compileOnly(libs.bundles.netty.all)
+	compileOnly(libs.jsr305)
 }
 
 java {

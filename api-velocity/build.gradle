@@ -8,6 +8,7 @@ dependencies {
 	implementation project(":api")
 	implementation project(":protocol-game")
 	compileOnly(libs.velocity.api)
+	compileOnly(libs.jsr305)
 }
 
 java {

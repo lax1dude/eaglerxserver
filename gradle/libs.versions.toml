@@ -23,6 +23,7 @@ gson = "com.google.code.gson:gson:2.8.0"
 logback = "ch.qos.logback:logback-classic:1.5.16"
 slf4j = "org.slf4j:slf4j-api:2.0.12"
 hppc = "com.carrotsearch:hppc:0.10.0"
+jsr305 = "com.google.code.findbugs:jsr305:3.0.2"
 
 [bundles]
 netty-all = [

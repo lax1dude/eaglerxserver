@@ -9,6 +9,7 @@ dependencies {
 	implementation project(":protocol-game")
 	compileOnly(libs.bungeecord.api)
 	compileOnly(libs.bundles.netty.api)
+	compileOnly(libs.jsr305)
 }
 
 java {

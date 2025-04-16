@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
 	compileOnly(libs.guava)
+	compileOnly(libs.jsr305)
 }
 
 java {

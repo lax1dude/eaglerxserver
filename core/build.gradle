@@ -21,6 +21,7 @@ dependencies {
 	compileOnly(libs.velocity.nightconfig)
 	compileOnly(libs.paper.api)
 	compileOnly(libs.bundles.netty.all)
+	compileOnly(libs.jsr305)
 	annotationProcessor(libs.velocity.api)
 }
 

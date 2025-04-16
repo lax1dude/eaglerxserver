@@ -8,6 +8,7 @@ dependencies {
 	compileOnly(libs.bundles.netty.api)
 	compileOnly(libs.gson)
 	compileOnly(libs.guava)
+	compileOnly(libs.jsr305)
 	implementation project(":protocol-game")
 }
 
