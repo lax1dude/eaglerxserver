@@ -1,12 +1,17 @@
 package net.lax1dude.eaglercraft.backend.server.api.voice;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public final class ICEServerEntry {
 
-	public static ICEServerEntry create(String uri) {
+	@Nonnull
+	public static ICEServerEntry create(@Nonnull String uri) {
 		return new ICEServerEntry(validate(uri, "uri"), false, null, null);
 	}
 
-	public static ICEServerEntry create(String uri, String username, String password) {
+	@Nonnull
+	public static ICEServerEntry create(@Nonnull String uri, @Nonnull String username, @Nonnull String password) {
 		return new ICEServerEntry(validate(uri, "uri"), true, validate(username, "username"),
 				validate(password, "password"));
 	}
@@ -33,6 +38,7 @@ public final class ICEServerEntry {
 		this.password = password;
 	}
 
+	@Nonnull
 	public String getURI() {
 		return uri;
 	}
@@ -41,10 +47,12 @@ public final class ICEServerEntry {
 		return auth;
 	}
 
+	@Nullable
 	public String getUsername() {
 		return username;
 	}
 
+	@Nullable
 	public String getPassword() {
 		return password;
 	}

@@ -4,35 +4,48 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
+import javax.annotation.Nonnull;
+
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 
 public interface IWebServer {
 
-	void registerRoute(Object plugin, RouteDesc route, IRequestHandler requestHandler);
+	void registerRoute(@Nonnull Object plugin, @Nonnull RouteDesc route, @Nonnull IRequestHandler requestHandler);
 
-	void unregisterRoute(Object plugin, RouteDesc route);
+	void unregisterRoute(@Nonnull Object plugin, @Nonnull RouteDesc route);
 
-	void unregisterRoutes(Object plugin);
+	void unregisterRoutes(@Nonnull Object plugin);
 
-	IRequestHandler resolve(IEaglerListenerInfo listener, EnumRequestMethod method, CharSequence path);
+	@Nonnull
+	IRequestHandler resolve(@Nonnull IEaglerListenerInfo listener, @Nonnull EnumRequestMethod method,
+			@Nonnull CharSequence path);
 
+	@Nonnull
 	IRequestHandler getDefault404Handler();
 
+	@Nonnull
 	IRequestHandler get404Handler();
 
+	@Nonnull
 	IRequestHandler getDefault429Handler();
 
+	@Nonnull
 	IRequestHandler get429Handler();
 
+	@Nonnull
 	IRequestHandler getDefault500Handler();
 
+	@Nonnull
 	IRequestHandler get500Handler();
 
-	IPreparedResponse prepareResponse(InputStream data) throws IOException;
+	@Nonnull
+	IPreparedResponse prepareResponse(@Nonnull InputStream data) throws IOException;
 
-	IPreparedResponse prepareResponse(byte[] data);
+	@Nonnull
+	IPreparedResponse prepareResponse(@Nonnull byte[] data);
 
-	IPreparedResponse prepareResponse(CharSequence data, Charset binaryCharset);
+	@Nonnull
+	IPreparedResponse prepareResponse(@Nonnull CharSequence data, @Nonnull Charset binaryCharset);
 
 }

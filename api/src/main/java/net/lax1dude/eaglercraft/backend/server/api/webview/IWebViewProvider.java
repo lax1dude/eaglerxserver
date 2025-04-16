@@ -2,17 +2,23 @@ package net.lax1dude.eaglercraft.backend.server.api.webview;
 
 import java.util.function.Consumer;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
 
 public interface IWebViewProvider<PlayerObject> {
 
-	boolean isChannelAllowed(IWebViewManager<PlayerObject> manager);
+	boolean isChannelAllowed(@Nonnull IWebViewManager<PlayerObject> manager);
 
-	boolean isRequestAllowed(IWebViewManager<PlayerObject> manager);
+	boolean isRequestAllowed(@Nonnull IWebViewManager<PlayerObject> manager);
 
-	void handleRequest(IWebViewManager<PlayerObject> manager, SHA1Sum hash, Consumer<IWebViewBlob> callback);
+	void handleRequest(@Nonnull IWebViewManager<PlayerObject> manager, @Nonnull SHA1Sum hash,
+			@Nonnull Consumer<IWebViewBlob> callback);
 
-	default SHA1Sum handleAlias(IWebViewManager<PlayerObject> manager, String aliasName) {
+	@Nullable
+	default SHA1Sum handleAlias(@Nonnull IWebViewManager<PlayerObject> manager,
+			@Nonnull String aliasName) {
 		return manager.getWebViewService().getBlobFromAlias(aliasName);
 	}
 

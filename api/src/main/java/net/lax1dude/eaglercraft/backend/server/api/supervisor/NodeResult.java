@@ -1,5 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.api.supervisor;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorData;
 
 /**
@@ -19,14 +22,15 @@ import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorDa
  */
 public final class NodeResult<Out extends ISupervisorData> {
 
-	public static <Out extends ISupervisorData> NodeResult<Out> create(int nodeId, Out result) {
+	@Nonnull
+	public static <Out extends ISupervisorData> NodeResult<Out> create(int nodeId, @Nullable Out result) {
 		return new NodeResult<>(nodeId, result);
 	}
 
 	private final int nodeId;
 	private final Out result;
 
-	private NodeResult(int nodeId, Out result) {
+	private NodeResult(int nodeId, @Nullable Out result) {
 		this.nodeId = nodeId;
 		this.result = result;
 	}
@@ -39,6 +43,7 @@ public final class NodeResult<Out extends ISupervisorData> {
 		return nodeId;
 	}
 
+	@Nullable
 	public Out getResult() {
 		return result;
 	}

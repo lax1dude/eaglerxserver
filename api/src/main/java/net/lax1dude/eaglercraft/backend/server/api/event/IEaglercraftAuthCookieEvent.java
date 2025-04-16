@@ -3,6 +3,9 @@ package net.lax1dude.eaglercraft.backend.server.api.event;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.backend.server.api.EnumPlatformType;
 import net.lax1dude.eaglercraft.backend.server.api.UnsupportedOn;
 
@@ -12,47 +15,58 @@ public interface IEaglercraftAuthCookieEvent<PlayerObject, ComponentObject> exte
 		ALLOW, DENY, REQUIRE_AUTH
 	}
 
+	@Nonnull
 	byte[] getAuthUsername();
 
 	boolean isNicknameSelectionEnabled();
 
 	boolean getCookiesEnabled();
 
+	@Nullable
 	byte[] getCookieData();
 
+	@Nullable
 	default String getCookieDataString() {
 		byte[] ret = getCookieData();
 		return ret != null ? new String(ret, StandardCharsets.UTF_8) : null;
 	}
 
+	@Nonnull
 	String getRequestedNickname();
 
+	@Nonnull
 	String getProfileUsername();
 
-	void setProfileUsername(String username);
+	void setProfileUsername(@Nonnull String username);
 
+	@Nonnull
 	UUID getProfileUUID();
 
 	@UnsupportedOn({EnumPlatformType.BUKKIT})
-	void setProfileUUID(UUID uuid);
+	void setProfileUUID(@Nonnull UUID uuid);
 
+	@Nonnull
 	IEaglercraftAuthCheckRequiredEvent.EnumAuthType getAuthType();
 
+	@Nonnull
 	String getAuthMessage();
 
+	@Nonnull
 	String getAuthRequestedServer();
 
-	void setAuthRequestedServer(String server);
+	void setAuthRequestedServer(@Nonnull String server);
 
+	@Nullable
 	EnumAuthResponse getAuthResponse();
 
-	void setAuthResponse(EnumAuthResponse response);
+	void setAuthResponse(@Nullable EnumAuthResponse response);
 
+	@Nullable
 	ComponentObject getKickMessage();
 
-	void setKickMessage(ComponentObject kickMessage);
+	void setKickMessage(@Nullable ComponentObject kickMessage);
 
-	void setKickMessage(String kickMessage);
+	void setKickMessage(@Nullable String kickMessage);
 
 	default void setLoginAllowed() {
 		setAuthResponse(EnumAuthResponse.ALLOW);
@@ -62,20 +76,22 @@ public interface IEaglercraftAuthCookieEvent<PlayerObject, ComponentObject> exte
 		setAuthResponse(EnumAuthResponse.REQUIRE_AUTH);
 	}
 
-	default void setLoginDenied(ComponentObject kickMessage) {
+	default void setLoginDenied(@Nullable ComponentObject kickMessage) {
 		setKickMessage(kickMessage);
 		setAuthResponse(EnumAuthResponse.DENY);
 	}
 
-	default void setLoginDenied(String kickMessage) {
+	default void setLoginDenied(@Nullable String kickMessage) {
 		setKickMessage(kickMessage);
 		setAuthResponse(EnumAuthResponse.DENY);
 	}
 
-	void applyTexturesProperty(String value, String signature);
+	void applyTexturesProperty(@Nullable String value, @Nullable String signature);
 
+	@Nullable
 	String getAppliedTexturesPropertyValue();
 
+	@Nullable
 	String getAppliedTexturesPropertySignature();
 
 	void setOverrideEaglerToVanillaSkins(boolean flag);

@@ -2,41 +2,57 @@ package net.lax1dude.eaglercraft.backend.server.api.webserver;
 
 import java.util.Objects;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 
 public final class RouteDesc {
 
+	@Nonnull
 	public static final RouteDesc DEFAULT_404 = new RouteDesc();
+
+	@Nonnull
 	public static final RouteDesc DEFAULT_429 = new RouteDesc();
+
+	@Nonnull
 	public static final RouteDesc DEFAULT_500 = new RouteDesc();
+
+	@Nonnull
+	public static RouteDesc create(@Nonnull String pattern) {
+		return new RouteDesc(null, pattern, EnumRequestMethod.bits);
+	}
+
+	@Nonnull
+	public static RouteDesc create(@Nonnull String pattern, @Nonnull EnumRequestMethod method) {
+		return new RouteDesc(null, pattern, method.bit());
+	}
+
+	@Nonnull
+	public static RouteDesc create(@Nonnull String pattern, @Nonnull EnumRequestMethod... method) {
+		return new RouteDesc(null, pattern, EnumRequestMethod.toBits(method));
+	}
+
+	@Nonnull
+	public static RouteDesc create(@Nonnull String listenerName, @Nonnull String pattern) {
+		return new RouteDesc(listenerName, pattern, EnumRequestMethod.bits);
+	}
+
+	@Nonnull
+	public static RouteDesc create(@Nonnull String listenerName, @Nonnull String pattern,
+			@Nonnull EnumRequestMethod method) {
+		return new RouteDesc(listenerName, pattern, method.bit());
+	}
+
+	@Nonnull
+	public static RouteDesc create(@Nonnull String listenerName, @Nonnull String pattern,
+			@Nonnull EnumRequestMethod... method) {
+		return new RouteDesc(listenerName, pattern, EnumRequestMethod.toBits(method));
+	}
 
 	private final String listenerName;
 	private final String pattern;
 	private final int methods;
-
-	public static RouteDesc create(String pattern) {
-		return new RouteDesc(null, pattern, EnumRequestMethod.bits);
-	}
-
-	public static RouteDesc create(String pattern, EnumRequestMethod method) {
-		return new RouteDesc(null, pattern, method.bit());
-	}
-
-	public static RouteDesc create(String pattern, EnumRequestMethod... method) {
-		return new RouteDesc(null, pattern, EnumRequestMethod.toBits(method));
-	}
-
-	public static RouteDesc create(String listenerName, String pattern) {
-		return new RouteDesc(listenerName, pattern, EnumRequestMethod.bits);
-	}
-
-	public static RouteDesc create(String listenerName, String pattern, EnumRequestMethod method) {
-		return new RouteDesc(listenerName, pattern, method.bit());
-	}
-
-	public static RouteDesc create(String listenerName, String pattern, EnumRequestMethod... method) {
-		return new RouteDesc(listenerName, pattern, EnumRequestMethod.toBits(method));
-	}
 
 	private RouteDesc() {
 		this(null, null, 0);
@@ -52,19 +68,22 @@ public final class RouteDesc {
 		return listenerName == null;
 	}
 
+	@Nullable
 	public String getListenerName() {
 		return listenerName;
 	}
 
+	@Nonnull
 	public String getPattern() {
 		return pattern;
 	}
 
+	@Nonnull
 	public EnumRequestMethod[] getMethods() {
 		return EnumRequestMethod.fromBits(methods);
 	}
 
-	public boolean isMethod(EnumRequestMethod meth) {
+	public boolean isMethod(@Nonnull EnumRequestMethod meth) {
 		return (methods & meth.bit()) != 0;
 	}
 

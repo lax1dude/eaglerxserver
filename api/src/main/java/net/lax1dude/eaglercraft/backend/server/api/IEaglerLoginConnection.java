@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 public interface IEaglerLoginConnection extends IBaseLoginConnection, IEaglerPendingConnection {
 
 	@Nonnull
+	@Override
 	byte[] getAuthUsername();
 
 	boolean hasCapability(@Nonnull EnumCapabilitySpec capability);

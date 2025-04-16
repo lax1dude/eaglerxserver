@@ -15,6 +15,7 @@ package net.lax1dude.eaglercraft.backend.server.api.supervisor;
  * POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+@FunctionalInterface
 public interface IVoidCallback {
 
 	void call(boolean handledSuccessfully);

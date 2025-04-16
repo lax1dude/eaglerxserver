@@ -3,6 +3,9 @@ package net.lax1dude.eaglercraft.backend.server.api.supervisor.data;
 import java.io.IOException;
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketInputBuffer;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
 
@@ -23,17 +26,18 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
  */
 public class SupervisorDataUUID implements ISupervisorData {
 
+	@Nullable
 	public UUID value;
 
 	public SupervisorDataUUID() {
 	}
 
-	public SupervisorDataUUID(UUID value) {
+	public SupervisorDataUUID(@Nullable UUID value) {
 		this.value = value;
 	}
 
 	@Override
-	public void write(GamePacketOutputBuffer buffer) throws IOException {
+	public void write(@Nonnull GamePacketOutputBuffer buffer) throws IOException {
 		if(value != null) {
 			buffer.writeBoolean(true);
 			buffer.writeLong(value.getMostSignificantBits());
@@ -44,7 +48,7 @@ public class SupervisorDataUUID implements ISupervisorData {
 	}
 
 	@Override
-	public void read(GamePacketInputBuffer buffer) throws IOException {
+	public void read(@Nonnull GamePacketInputBuffer buffer) throws IOException {
 		if(buffer.readBoolean()) {
 			value = new UUID(buffer.readLong(), buffer.readLong());
 		}else {

@@ -57,9 +57,23 @@ public class TemplateLoader implements ITemplateLoader {
 	@Override
 	public void setVariable(String key, String value) {
 		if(variables == null) {
+			if(value == null) {
+				return;
+			}
 			variables = new HashMap<>();
 		}
-		variables.put(key, value);
+		if(value != null) {
+			variables.put(key, value);
+		}else {
+			variables.remove(key);
+		}
+	}
+
+	@Override
+	public void removeVariable(String key) {
+		if(variables != null) {
+			variables.remove(key);
+		}
 	}
 
 	@Override

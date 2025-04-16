@@ -9,45 +9,63 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public interface ITemplateLoader {
 
+	@Nonnull
 	File getBaseDir();
 
-	void setBaseDir(File file);
+	void setBaseDir(@Nonnull File file);
 
+	@Nonnull
 	Map<String, String> getVariables();
 
-	void setVariables(Map<String, String> map);
+	void setVariables(@Nonnull Map<String, String> map);
 
-	void setVariable(String key, String value);
+	void setVariable(@Nonnull String key, @Nullable String value);
 
+	void removeVariable(@Nonnull String key);
+
+	@Nullable
 	ITranslationProvider getTranslations();
 
-	void setTranslations(ITranslationProvider translations);
+	void setTranslations(@Nullable ITranslationProvider translations);
 
 	boolean isAllowEvalMacro();
 
 	void setAllowEvalMacro(boolean enable);
 
-	String loadWebViewTemplate(String template) throws IOException, InvalidMacroException;
+	@Nonnull
+	String loadWebViewTemplate(@Nonnull String template) throws IOException, InvalidMacroException;
 
-	default String loadWebViewTemplate(byte[] template, Charset charset) throws IOException, InvalidMacroException {
+	@Nonnull
+	default String loadWebViewTemplate(@Nonnull byte[] template, @Nonnull Charset charset)
+			throws IOException, InvalidMacroException {
 		return loadWebViewTemplate(template, charset);
 	}
 
-	String loadWebViewTemplate(Reader reader) throws IOException, InvalidMacroException;
+	@Nonnull
+	String loadWebViewTemplate(@Nonnull Reader reader) throws IOException, InvalidMacroException;
 
-	default String loadWebViewTemplate(InputStream stream, Charset charset) throws IOException, InvalidMacroException {
+	@Nonnull
+	default String loadWebViewTemplate(@Nonnull InputStream stream, @Nonnull Charset charset)
+			throws IOException, InvalidMacroException {
 		return loadWebViewTemplate(new InputStreamReader(stream, charset));
 	}
 
-	default String loadWebViewTemplate(File file, Charset charset) throws IOException, InvalidMacroException {
+	@Nonnull
+	default String loadWebViewTemplate(@Nonnull File file, @Nonnull Charset charset)
+			throws IOException, InvalidMacroException {
 		try(InputStream is = new FileInputStream(file)) {
 			return loadWebViewTemplate(is, charset);
 		}
 	}
 
-	default String loadWebViewTemplate(String filename, Charset charset) throws IOException, InvalidMacroException {
+	@Nonnull
+	default String loadWebViewTemplate(@Nonnull String filename, @Nonnull Charset charset)
+			throws IOException, InvalidMacroException {
 		return loadWebViewTemplate(new File(getBaseDir(), filename), charset);
 	}
 

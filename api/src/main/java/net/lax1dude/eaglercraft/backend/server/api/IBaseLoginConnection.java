@@ -16,6 +16,7 @@ public interface IBaseLoginConnection extends IBasePendingConnection {
 	boolean isOnlineMode();
 
 	@Nullable
+	@Override
 	IEaglerLoginConnection asEaglerPlayer();
 
 }
