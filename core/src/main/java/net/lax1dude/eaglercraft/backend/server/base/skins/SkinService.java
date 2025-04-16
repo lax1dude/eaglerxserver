@@ -210,7 +210,7 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 	}
 
 	public ISkinManagerBase<PlayerObject> createVanillaSkinManager(BasePlayerInstance<PlayerObject> playerInstance) {
-		if(skinCache != null) {
+		if(supervisor != null || skinCache != null) {
 			String prop = playerInstance.getPlatformPlayer().getTexturesProperty();
 			if(prop != null) {
 				TexturesResult props = GameProfileUtil.extractSkinAndCape(prop);
