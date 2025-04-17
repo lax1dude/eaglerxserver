@@ -49,6 +49,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageChannel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipelineInitializer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerCountHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
@@ -502,6 +503,10 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public int getPlayerMax() {
 		return getServer().getMaxPlayers();
+	}
+
+	@Override
+	public void setPlayerCountHandler(IEaglerXServerPlayerCountHandler playerCountHandler) {
 	}
 
 	@Override

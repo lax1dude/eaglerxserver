@@ -31,6 +31,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionI
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerJoinListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerCountHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageChannel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipelineInitializer;
@@ -90,6 +91,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	protected IPlatformCommandSender<ProxiedPlayer> cacheConsoleCommandSenderHandle;
 	protected Map<String, IPlatformServer<ProxiedPlayer>> registeredServers;
 	protected Map<String, PluginMessageHandler> registeredChannelsMap;
+	protected IEaglerXServerPlayerCountHandler playerCountHandler;
 	protected Function<SocketAddress, ChannelFactory<? extends Channel>> channelFactory;
 	protected Function<SocketAddress, ChannelFactory<? extends ServerChannel>> serverChannelFactory;
 	protected EventLoopGroup bossEventLoopGroup;
@@ -504,6 +506,11 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	@Override
 	public int getPlayerMax() {
 		return BungeeUnsafe.getPlayerMax(getProxy());
+	}
+
+	@Override
+	public void setPlayerCountHandler(IEaglerXServerPlayerCountHandler playerCountHandler) {
+		this.playerCountHandler = playerCountHandler;
 	}
 
 	@Override

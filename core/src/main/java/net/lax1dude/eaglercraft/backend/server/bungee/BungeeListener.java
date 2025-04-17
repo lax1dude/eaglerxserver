@@ -4,11 +4,13 @@ import com.google.common.base.Throwables;
 
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerCountHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.bungee.PlatformPluginBungee.PluginMessageHandler;
+import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.Connection;
 import net.md_5.bungee.api.connection.PendingConnection;
@@ -18,6 +20,7 @@ import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.event.PreLoginEvent;
+import net.md_5.bungee.api.event.ProxyPingEvent;
 import net.md_5.bungee.api.event.ServerConnectedEvent;
 import net.md_5.bungee.api.event.ServerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerSwitchEvent;
@@ -145,6 +148,16 @@ public class BungeeListener implements Listener {
 					}
 				}
 			}
+		}
+	}
+
+	@EventHandler(priority = EventPriority.LOW)
+	public void onProxyPingEvent(ProxyPingEvent event) {
+		IEaglerXServerPlayerCountHandler count = plugin.playerCountHandler;
+		if(count != null) {
+			ServerPing.Players players = event.getResponse().getPlayers();
+			players.setOnline(count.getPlayerTotal());
+			players.setMax(count.getPlayerMax());
 		}
 	}
 

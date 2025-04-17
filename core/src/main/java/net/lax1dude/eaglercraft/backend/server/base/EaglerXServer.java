@@ -423,9 +423,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			updateService.start();
 		}
 		
-		if(supervisorService != null) {
-			supervisorService.handleEnable();
-		}
+		supervisorService.handleEnable();
 	}
 
 	private void disableHandler() {
@@ -459,9 +457,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			updateService.stop();
 		}
 		
-		if(supervisorService != null) {
-			supervisorService.handleDisable();
-		}
+		supervisorService.handleDisable();
 	}
 
 	public void registerPlayer(BasePlayerInstance<PlayerObject> playerInstance) {

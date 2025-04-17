@@ -16,6 +16,8 @@ import com.velocitypowered.api.event.player.GameProfileRequestEvent;
 import com.velocitypowered.api.event.player.ServerPostConnectEvent;
 import com.velocitypowered.api.event.player.ServerPreConnectEvent;
 import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
+import com.velocitypowered.api.event.proxy.ProxyPingEvent;
+import com.velocitypowered.api.event.query.ProxyQueryEvent;
 import com.velocitypowered.api.network.ListenerType;
 import com.velocitypowered.api.permission.PermissionSubject;
 import com.velocitypowered.api.proxy.InboundConnection;
@@ -23,11 +25,14 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.messages.ChannelMessageSink;
 import com.velocitypowered.api.proxy.messages.ChannelMessageSource;
+import com.velocitypowered.api.proxy.server.QueryResponse;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
+import com.velocitypowered.api.proxy.server.ServerPing;
 import com.velocitypowered.api.util.GameProfile;
 import com.velocitypowered.api.util.GameProfile.Property;
 
 import io.netty.channel.Channel;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerCountHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
@@ -183,6 +188,24 @@ class VelocityListener {
 					}
 				}
 			}
+		}
+	}
+
+	@Subscribe(priority = 16384, async = false)
+	public void onProxyPingEvent(ProxyPingEvent evt) {
+		IEaglerXServerPlayerCountHandler count = plugin.playerCountHandler;
+		if(count != null) {
+			evt.setPing(evt.getPing().asBuilder().onlinePlayers(count.getPlayerTotal())
+					.maximumPlayers(count.getPlayerMax()).build());
+		}
+	}
+
+	@Subscribe(priority = 16384, async = false)
+	public void onProxyQueryEvent(ProxyQueryEvent evt) {
+		IEaglerXServerPlayerCountHandler count = plugin.playerCountHandler;
+		if(count != null) {
+			evt.setResponse(evt.getResponse().toBuilder().currentPlayers(count.getPlayerTotal())
+					.maxPlayers(count.getPlayerMax()).build());
 		}
 	}
 

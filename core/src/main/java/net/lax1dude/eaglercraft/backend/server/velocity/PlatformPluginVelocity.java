@@ -51,6 +51,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionI
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerJoinListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerCountHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageChannel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipelineInitializer;
@@ -125,6 +126,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	protected Map<String, IPlatformServer<Player>> registeredServers;
 	protected ChannelIdentifier[] registeredChannels;
 	protected Map<ChannelIdentifier, PluginMessageHandler> registeredChannelsMap;
+	protected IEaglerXServerPlayerCountHandler playerCountHandler = null;
 	protected ChannelFactory<? extends Channel> channelFactory;
 	protected ChannelFactory<? extends Channel> unixChannelFactory;
 	protected ChannelFactory<? extends ServerChannel> serverChannelFactory;
@@ -535,6 +537,11 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	@Override
 	public int getPlayerMax() {
 		return proxy.getConfiguration().getShowMaxPlayers();
+	}
+
+	@Override
+	public void setPlayerCountHandler(IEaglerXServerPlayerCountHandler playerCountHandler) {
+		this.playerCountHandler = playerCountHandler;
 	}
 
 	@Override

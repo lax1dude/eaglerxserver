@@ -5,6 +5,7 @@ import java.lang.invoke.VarHandle;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerCountHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
@@ -21,7 +22,8 @@ import net.lax1dude.eaglercraft.backend.supervisor.protocol.netty.SupervisorPack
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvHandshake;
 import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSvProxyBrand;
 
-public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<PlayerObject> {
+public class SupervisorService<PlayerObject>
+		implements ISupervisorServiceImpl<PlayerObject>, IEaglerXServerPlayerCountHandler {
 
 	private static final VarHandle SERVICE_STATE_TRACKER_HANDLE;
 	private static final VarHandle CURRENT_CONNECTION_HANDLE;
@@ -145,6 +147,7 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 				conn.expireHandshakes(Util.steadyTime());
 			}
 		}, 5000l, 5000l);
+		server.getPlatform().setPlayerCountHandler(this);
 	}
 
 	@Override
@@ -168,6 +171,7 @@ public class SupervisorService<PlayerObject> implements ISupervisorServiceImpl<P
 			timeoutHandshakeTask = null;
 		}
 		timeoutLoop.cancelAll();
+		server.getPlatform().setPlayerCountHandler(null);
 	}
 
 	@Override

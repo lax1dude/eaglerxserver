@@ -100,6 +100,8 @@ public interface IPlatform<PlayerObject> {
 
 	int getPlayerMax();
 
+	void setPlayerCountHandler(IEaglerXServerPlayerCountHandler playerCountHandler);
+
 	void handleConnectionInitFallback(Channel channel);
 
 	void handleUndoCompression(ChannelHandlerContext ctx);
