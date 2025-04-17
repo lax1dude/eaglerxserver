@@ -16,13 +16,16 @@ import java.util.List;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.comments.CommentLine;
 import org.yaml.snakeyaml.comments.CommentType;
+import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.error.YAMLException;
 import org.yaml.snakeyaml.nodes.MappingNode;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.ScalarNode;
 import org.yaml.snakeyaml.nodes.Tag;
+import org.yaml.snakeyaml.representer.Representer;
 
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfig;
 import net.lax1dude.eaglercraft.backend.server.config.WrapUtil;
@@ -32,11 +35,13 @@ public class YAMLConfigLoader {
 	private static final Yaml YAML;
 
 	static {
-		DumperOptions opts = new DumperOptions();
-		opts.setPrettyFlow(true);
-		opts.setDefaultFlowStyle(FlowStyle.FLOW);
-		opts.setProcessComments(true);
-		YAML = new Yaml(opts);
+		LoaderOptions loadOpts = new LoaderOptions();
+		loadOpts.setProcessComments(true);
+		DumperOptions dumpOpts = new DumperOptions();
+		dumpOpts.setPrettyFlow(true);
+		dumpOpts.setDefaultFlowStyle(FlowStyle.FLOW);
+		dumpOpts.setProcessComments(true);
+		YAML = new Yaml(new Constructor(loadOpts), new Representer(dumpOpts));
 	}
 
 	public static final int YAML_COMMENT_WRAP = 80;
