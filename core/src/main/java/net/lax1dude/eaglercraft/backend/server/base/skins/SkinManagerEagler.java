@@ -123,8 +123,11 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 	public void changePlayerSkin(IEaglerPlayerSkin newSkin, boolean notifyOthers) {
 		if(!newSkin.equals(skin)) {
 			skin = newSkin;
-			if(player.getEaglerProtocol().ver >= 4) {
-				if(newSkin.equals(oldSkin)) {
+			int pv = player.getEaglerProtocol().ver;
+			if(pv >= 4) {
+				if(pv >= 5 && newSkin.equals(oldSkin)) {
+					// This was added in protocol V4, but doesn't always work correctly pre-u51
+					// So we're only gonna send it to protocol V5 clients and up
 					player.sendEaglerMessage(new SPacketUnforceClientV4EAG(true, false, false));
 				}else {
 					player.sendEaglerMessage(newSkin.getForceSkinPacketV4());
@@ -145,8 +148,11 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 	public void changePlayerCape(IEaglerPlayerCape newCape, boolean notifyOthers) {
 		if(!newCape.equals(cape)) {
 			cape = newCape;
-			if(player.getEaglerProtocol().ver >= 4) {
-				if(newCape.equals(oldCape)) {
+			int pv = player.getEaglerProtocol().ver;
+			if(pv >= 4) {
+				if(pv >= 5 && newCape.equals(oldCape)) {
+					// This was added in protocol V4, but doesn't always work correctly pre-u51
+					// So we're only gonna send it to protocol V5 clients and up
 					player.sendEaglerMessage(new SPacketUnforceClientV4EAG(false, true, false));
 				}else {
 					player.sendEaglerMessage(newCape.getForceCapePacketV4());
@@ -173,12 +179,25 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 			if(c) {
 				cape = newCape;
 			}
-			if(player.getEaglerProtocol().ver >= 4) {
+			int pv = player.getEaglerProtocol().ver;
+			if(pv >= 4) {
+				boolean ufs = false, ufc = false;
 				if(s) {
-					player.sendEaglerMessage(newSkin.getForceSkinPacketV4());
+					if(pv >= 5 && newSkin.equals(oldSkin)) {
+						ufs = true;
+					}else {
+						player.sendEaglerMessage(newSkin.getForceSkinPacketV4());
+					}
 				}
 				if(c) {
-					player.sendEaglerMessage(newCape.getForceCapePacketV4());
+					if(pv >= 5 && newCape.equals(oldCape)) {
+						ufc = true;
+					}else {
+						player.sendEaglerMessage(newCape.getForceCapePacketV4());
+					}
+				}
+				if(ufs || ufc) {
+					player.sendEaglerMessage(new SPacketUnforceClientV4EAG(ufs, ufc, false));
 				}
 			}
 			if(notifyOthers) {
@@ -204,21 +223,7 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	@Override
 	public void resetPlayerTextures(boolean notifyOthers) {
-		boolean s = !oldSkin.equals(skin), c = !oldCape.equals(cape);
-		if(s || c) {
-			if(s) {
-				skin = oldSkin;
-			}
-			if(c) {
-				cape = oldCape;
-			}
-			if(player.getEaglerProtocol().ver >= 4) {
-				player.sendEaglerMessage(new SPacketUnforceClientV4EAG(s, c, false));
-			}
-			if(notifyOthers) {
-				SkinManagerHelper.notifyOthers(player, s, c);
-			}
-		}
+		changePlayerTextures(oldSkin, oldCape, notifyOthers);
 	}
 
 	@Override
