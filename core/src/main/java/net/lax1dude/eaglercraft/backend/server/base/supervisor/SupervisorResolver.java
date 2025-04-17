@@ -130,6 +130,12 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	@Override
 	public void resolvePlayerBrand(UUID playerUUID, Consumer<UUID> callback) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		SupervisorConnection conn = service.getConnection();
 		if(conn != null) {
 			conn.loadPlayer(playerUUID).loadBrandUUID(null, callback);
@@ -140,6 +146,12 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	@Override
 	public void resolvePlayerRegisteredBrand(UUID playerUUID, BiConsumer<UUID, IBrandRegistration> callback) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		SupervisorConnection conn = service.getConnection();
 		if(conn != null) {
 			conn.loadPlayer(playerUUID).loadBrandUUID(null, (uuid) -> {

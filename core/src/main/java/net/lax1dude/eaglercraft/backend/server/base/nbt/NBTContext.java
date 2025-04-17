@@ -28,31 +28,52 @@ class NBTContext implements INBTContext, IWrapperFactory {
 
 	@Override
 	public void accept(DataInput dataInput, INBTVisitor visitor) throws IOException {
+		if(dataInput == null) {
+			throw new NullPointerException("dataInput");
+		}
+		if(visitor == null) {
+			throw new NullPointerException("visitor");
+		}
 		NBTVisitorReader.read(dataInput, visitor, this);
 	}
 
 	@Override
 	public INBTVisitor createWriter(DataOutput dataOutput) {
+		if(dataOutput == null) {
+			throw new NullPointerException("dataOutput");
+		}
 		return writer.bind(dataOutput);
 	}
 
 	@Override
 	public INBTValue<String> wrapValue(String value) {
+		if(value == null) {
+			throw new NullPointerException("value");
+		}
 		return new WrappedString(value);
 	}
 
 	@Override
 	public INBTValue<byte[]> wrapValue(byte[] value) {
+		if(value == null) {
+			throw new NullPointerException("value");
+		}
 		return new WrappedByteArray(value);
 	}
 
 	@Override
 	public INBTValue<int[]> wrapValue(int[] value) {
+		if(value == null) {
+			throw new NullPointerException("value");
+		}
 		return new WrappedIntArray(value);
 	}
 
 	@Override
 	public INBTValue<long[]> wrapValue(long[] value) {
+		if(value == null) {
+			throw new NullPointerException("value");
+		}
 		return new WrappedLongArray(value);
 	}
 

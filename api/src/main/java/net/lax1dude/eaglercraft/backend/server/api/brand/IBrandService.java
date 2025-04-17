@@ -30,9 +30,4 @@ public interface IBrandService<PlayerObject> extends IBrandResolver, IBrandRegis
 		return lookupRegisteredBrand(basePlayer != null ? basePlayer.getEaglerBrandUUID() : BRAND_VANILLA);
 	}
 
-	@Nullable
-	default IBrandRegistration getPlayerRegisteredBrand(@Nonnull IBasePlayer<PlayerObject> player) {
-		return lookupRegisteredBrand(player.getEaglerBrandUUID());
-	}
-
 }

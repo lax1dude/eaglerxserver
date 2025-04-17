@@ -96,6 +96,9 @@ class VelocityAuthCheckRequiredEventImpl extends EaglercraftAuthCheckRequiredEve
 
 	@Override
 	public void setAuthMessage(String authMessage) {
+		if(authMessage == null) {
+			throw new NullPointerException("authMessage");
+		}
 		this.authMessage = authMessage;
 	}
 

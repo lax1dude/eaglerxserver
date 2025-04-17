@@ -205,6 +205,9 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 
 	@Override
 	public String getWebSocketHeader(EnumWebSocketHeader header) {
+		if(header == null) {
+			throw new NullPointerException("header");
+		}
 		return switch(header) {
 		case HEADER_HOST -> headerHost;
 		case HEADER_ORIGIN -> headerOrigin;

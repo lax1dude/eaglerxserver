@@ -105,6 +105,9 @@ public class NotificationBuilder<ComponentObject> implements INotificationBuilde
 
 	@Override
 	public INotificationBuilder<ComponentObject> setBadgeUUID(UUID uuid) {
+		if(uuid == null) {
+			throw new NullPointerException("icon");
+		}
 		this.badgeUUID = uuid;
 		this.packetDirty = true;
 		return this;
@@ -208,6 +211,9 @@ public class NotificationBuilder<ComponentObject> implements INotificationBuilde
 
 	@Override
 	public INotificationBuilder<ComponentObject> setPriority(EnumBadgePriority priority) {
+		if(priority == null) {
+			throw new NullPointerException("priority");
+		}
 		this.priority = priority;
 		this.packetDirty = true;
 		return this;

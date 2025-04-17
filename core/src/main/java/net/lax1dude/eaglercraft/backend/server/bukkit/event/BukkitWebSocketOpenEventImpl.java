@@ -47,11 +47,17 @@ class BukkitWebSocketOpenEventImpl extends EaglercraftWebSocketOpenEvent
 
 	@Override
 	public String getRawHeader(String name) {
+		if(name == null) {
+			throw new NullPointerException("name");
+		}
 		return request.headers().get(name);
 	}
 
 	@Override
 	public List<String> getRawHeaders(String name) {
+		if(name == null) {
+			throw new NullPointerException("name");
+		}
 		return request.headers().getAll(name);
 	}
 

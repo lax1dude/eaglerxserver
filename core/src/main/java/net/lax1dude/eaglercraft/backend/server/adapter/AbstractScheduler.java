@@ -93,11 +93,17 @@ public abstract class AbstractScheduler implements IPlatformScheduler {
 
 	@Override
 	public IPlatformTask executeRepeatingTask(Runnable runnable, long delay, long interval) {
+		if(runnable == null) {
+			throw new NullPointerException("runnable");
+		}
 		return (new RepeatingTask(runnable, interval)).bootstrap(delay);
 	}
 
 	@Override
 	public IPlatformTask executeAsyncRepeatingTask(Runnable runnable, long delay, long interval) {
+		if(runnable == null) {
+			throw new NullPointerException("runnable");
+		}
 		return (new RepeatingTaskAsync(runnable, interval)).bootstrap(delay);
 	}
 

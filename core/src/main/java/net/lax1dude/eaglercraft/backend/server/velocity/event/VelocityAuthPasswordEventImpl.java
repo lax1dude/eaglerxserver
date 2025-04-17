@@ -104,6 +104,9 @@ class VelocityAuthPasswordEventImpl extends EaglercraftAuthPasswordEvent {
 
 	@Override
 	public void setProfileUsername(String username) {
+		if(username == null) {
+			throw new NullPointerException("username");
+		}
 		profileUsername = username;
 	}
 
@@ -114,6 +117,9 @@ class VelocityAuthPasswordEventImpl extends EaglercraftAuthPasswordEvent {
 
 	@Override
 	public void setProfileUUID(UUID uuid) {
+		if(uuid == null) {
+			throw new NullPointerException("uuid");
+		}
 		profileUUID = uuid;
 	}
 
@@ -134,6 +140,9 @@ class VelocityAuthPasswordEventImpl extends EaglercraftAuthPasswordEvent {
 
 	@Override
 	public void setAuthRequestedServer(String server) {
+		if(server == null) {
+			throw new NullPointerException("server");
+		}
 		authRequestedServer = server;
 	}
 

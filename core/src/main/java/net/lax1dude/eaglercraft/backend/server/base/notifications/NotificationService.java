@@ -108,6 +108,12 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 
 	@Override
 	public void registerNotificationIcon(UUID iconUUID, PacketImageData icon) {
+		if(iconUUID == null) {
+			throw new NullPointerException("iconUUID");
+		}
+		if(icon == null) {
+			throw new NullPointerException("icon");
+		}
 		registeredIconLock.writeLock().lock();
 		try {
 			registeredIcons.put(iconUUID, icon);
@@ -130,6 +136,9 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 
 	@Override
 	public void unregisterNotificationIcon(UUID iconUUID) {
+		if(iconUUID == null) {
+			throw new NullPointerException("iconUUID");
+		}
 		registeredIconLock.writeLock().lock();
 		try {
 			registeredIcons.remove(iconUUID);
@@ -149,6 +158,9 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 	}
 
 	final Collection<SPacketNotifIconsRegisterV4EAG.CreateIcon> getRegisteredIcon(UUID iconUUID) {
+		if(iconUUID == null) {
+			throw new NullPointerException("iconUUID");
+		}
 		PacketImageData data;
 		registeredIconLock.readLock().lock();
 		try {

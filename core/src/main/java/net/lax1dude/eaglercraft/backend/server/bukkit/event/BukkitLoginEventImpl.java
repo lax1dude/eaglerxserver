@@ -107,6 +107,9 @@ class BukkitLoginEventImpl extends EaglercraftLoginEvent {
 
 	@Override
 	public void setRequestedServer(String server) {
+		if(server == null) {
+			throw new NullPointerException("server");
+		}
 		this.requestedServer = server;
 	}
 

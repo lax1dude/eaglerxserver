@@ -162,6 +162,9 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public void sendEaglerMessage(GameMessagePacket packet) {
+		if(packet == null) {
+			throw new NullPointerException("packet");
+		}
 		messageController.sendPacket(packet);
 	}
 
@@ -177,6 +180,9 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public void redirectPlayerToWebSocket(String webSocketURI) {
+		if(webSocketURI == null) {
+			throw new NullPointerException("webSocketURI");
+		}
 		if(redirectSupport) {
 			sendEaglerMessage(new SPacketRedirectClientV4EAG(webSocketURI));
 		}else {

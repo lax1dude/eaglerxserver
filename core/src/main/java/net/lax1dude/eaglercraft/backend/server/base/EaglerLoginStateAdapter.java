@@ -61,12 +61,18 @@ public class EaglerLoginStateAdapter extends EaglerPendingStateAdapter implement
 
 	@Override
 	public boolean hasExtendedCapability(UUID extendedCapability, int version) {
+		if(extendedCapability == null) {
+			throw new NullPointerException("extendedCapability");
+		}
 		Byte b = pipelineData.acceptedExtendedCapabilities.get(extendedCapability);
 		return b != null && (b.byteValue() & 0xFF) >= version;
 	}
 
 	@Override
 	public int getExtendedCapability(UUID extendedCapability) {
+		if(extendedCapability == null) {
+			throw new NullPointerException("extendedCapability");
+		}
 		Byte b = pipelineData.acceptedExtendedCapabilities.get(extendedCapability);
 		return b != null ? (b.byteValue() & 0xFF) : -1;
 	}

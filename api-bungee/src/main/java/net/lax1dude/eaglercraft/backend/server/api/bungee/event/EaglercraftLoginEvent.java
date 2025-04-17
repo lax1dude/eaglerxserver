@@ -114,6 +114,9 @@ public final class EaglercraftLoginEvent
 
 	@Override
 	public void setProfileUUID(@Nonnull UUID uuid) {
+		if(uuid == null) {
+			throw new NullPointerException("uuid");
+		}
 		this.uuid = uuid;
 	}
 
@@ -125,6 +128,9 @@ public final class EaglercraftLoginEvent
 
 	@Override
 	public void setRequestedServer(@Nonnull String server) {
+		if(server == null) {
+			throw new NullPointerException("server");
+		}
 		this.requestedServer = server;
 	}
 

@@ -57,6 +57,9 @@ public interface IEaglercraftLoginEvent<PlayerObject, ComponentObject>
 		if(!isLoginStateRedirectSupported()) {
 			throw new UnsupportedOperationException("Login state redirect is not supported by this client");
 		}
+		if(addr == null) {
+			throw new NullPointerException("addr");
+		}
 		setCancelled(true);
 		setMessage((ComponentObject) null);
 		setRedirectAddress(addr);

@@ -112,6 +112,9 @@ public final class EaglercraftAuthCheckRequiredEvent
 
 	@Override
 	public void setAuthMessage(@Nullable String authMessage) {
+		if(authMessage == null) {
+			throw new NullPointerException("authMessage");
+		}
 		this.authMessage = authMessage;
 	}
 

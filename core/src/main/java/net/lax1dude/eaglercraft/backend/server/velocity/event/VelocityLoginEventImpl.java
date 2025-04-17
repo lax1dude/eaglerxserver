@@ -88,6 +88,9 @@ class VelocityLoginEventImpl extends EaglercraftLoginEvent {
 
 	@Override
 	public void setProfileUsername(String username) {
+		if(username == null) {
+			throw new NullPointerException("username");
+		}
 		this.username = username;
 	}
 
@@ -98,6 +101,9 @@ class VelocityLoginEventImpl extends EaglercraftLoginEvent {
 
 	@Override
 	public void setProfileUUID(UUID uuid) {
+		if(uuid == null) {
+			throw new NullPointerException("uuid");
+		}
 		this.uuid = uuid;
 	}
 
@@ -108,6 +114,9 @@ class VelocityLoginEventImpl extends EaglercraftLoginEvent {
 
 	@Override
 	public void setRequestedServer(String server) {
+		if(server == null) {
+			throw new NullPointerException("server");
+		}
 		this.requestedServer = server;
 	}
 

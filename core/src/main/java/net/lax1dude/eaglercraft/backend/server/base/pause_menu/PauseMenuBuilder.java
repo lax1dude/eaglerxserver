@@ -149,6 +149,12 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 
 	@Override
 	public IPauseMenuBuilder setServerInfoButtonModeURL(String text, String url) {
+		if(text == null) {
+			throw new NullPointerException("text");
+		}
+		if(url == null) {
+			throw new NullPointerException("url");
+		}
 		serverInfoButtonMode = EnumServerInfoButton.EXTERNAL_URL;
 		serverInfoButtonText = text;
 		serverInfoURL = url;
@@ -162,6 +168,15 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 	@Override
 	public IPauseMenuBuilder setServerInfoButtonModeWebViewURL(String text, String title,
 			Set<EnumWebViewPerms> permissions, String url) {
+		if(text == null) {
+			throw new NullPointerException("text");
+		}
+		if(title == null) {
+			throw new NullPointerException("title");
+		}
+		if(url == null) {
+			throw new NullPointerException("url");
+		}
 		serverInfoButtonMode = EnumServerInfoButton.WEBVIEW_URL;
 		serverInfoButtonText = text;
 		serverInfoURL = url;
@@ -175,6 +190,15 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 	@Override
 	public IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(String text, String title,
 			Set<EnumWebViewPerms> permissions, IWebViewBlob blob) {
+		if(text == null) {
+			throw new NullPointerException("text");
+		}
+		if(title == null) {
+			throw new NullPointerException("title");
+		}
+		if(blob == null) {
+			throw new NullPointerException("blob");
+		}
 		serverInfoButtonMode = EnumServerInfoButton.WEBVIEW_BLOB;
 		serverInfoButtonText = text;
 		serverInfoURL = null;
@@ -188,6 +212,15 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 	@Override
 	public IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(String text, String title,
 			Set<EnumWebViewPerms> permissions, SHA1Sum hash) {
+		if(text == null) {
+			throw new NullPointerException("text");
+		}
+		if(title == null) {
+			throw new NullPointerException("title");
+		}
+		if(hash == null) {
+			throw new NullPointerException("hash");
+		}
 		serverInfoButtonMode = EnumServerInfoButton.WEBVIEW_BLOB;
 		serverInfoButtonText = text;
 		serverInfoURL = null;
@@ -243,6 +276,12 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 
 	@Override
 	public IPauseMenuBuilder setDiscordInviteButtonModeURL(String text, String url) {
+		if(text == null) {
+			throw new NullPointerException("text");
+		}
+		if(url == null) {
+			throw new NullPointerException("url");
+		}
 		discordButtonMode = EnumDiscordInviteButton.EXTERNAL_URL;
 		discordButtonText = text;
 		discordButtonURL = url;
@@ -266,11 +305,17 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 
 	@Override
 	public PacketImageData getMenuIcon(String icon) {
+		if(icon == null) {
+			throw new NullPointerException("icon");
+		}
 		return customIcons != null ? customIcons.get(icon) : null;
 	}
 
 	@Override
 	public IPauseMenuBuilder setMenuIcon(EnumPauseMenuIcon icon, PacketImageData imageData) {
+		if(icon == null) {
+			throw new NullPointerException("icon");
+		}
 		if(imageData != null) {
 			checkDimensions(imageData);
 			if(customIcons == null) {
@@ -285,6 +330,9 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 
 	@Override
 	public IPauseMenuBuilder setMenuIcon(String icon, PacketImageData imageData) {
+		if(icon == null) {
+			throw new NullPointerException("icon");
+		}
 		if(imageData != null) {
 			checkDimensions(imageData);
 			if(customIcons == null) {

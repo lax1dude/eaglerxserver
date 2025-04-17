@@ -86,6 +86,12 @@ public class EaglerAttributeManager implements IAttributeManager {
 
 	@Override
 	public <T> IAttributeKey<T> initGlobalAttribute(String name, Class<T> type) {
+		if(name == null) {
+			throw new NullPointerException("name");
+		}
+		if(type == null) {
+			throw new NullPointerException("type");
+		}
 		IAttributeKey<?> ret;
 		synchronized(globals) {
 			ret = globals.get(name);
@@ -104,11 +110,20 @@ public class EaglerAttributeManager implements IAttributeManager {
 
 	@Override
 	public <T> IAttributeKey<T> initPrivateAttribute(String name, Class<T> type) {
+		if(name == null) {
+			throw new NullPointerException("name");
+		}
+		if(type == null) {
+			throw new NullPointerException("type");
+		}
 		return new AttributeKeyPrivate<>(type, name);
 	}
 
 	@Override
 	public <T> IAttributeKey<T> initPrivateAttribute(Class<T> type) {
+		if(type == null) {
+			throw new NullPointerException("type");
+		}
 		return new AttributeKeyPrivate<>(type, "unnamed");
 	}
 
@@ -118,6 +133,9 @@ public class EaglerAttributeManager implements IAttributeManager {
 
 		@Override
 		public final <T> T get(IAttributeKey<T> key) {
+			if(key == null) {
+				throw new NullPointerException("key");
+			}
 			AttributeKeyBase<?> checkCast = (AttributeKeyBase<?>) key;
 			checkCast.validate(EaglerAttributeManager.this);
 			return (T) attribMap.get(checkCast);
@@ -125,6 +143,9 @@ public class EaglerAttributeManager implements IAttributeManager {
 
 		@Override
 		public final <T> void set(IAttributeKey<T> key, T value) {
+			if(key == null) {
+				throw new NullPointerException("key");
+			}
 			AttributeKeyBase<?> checkCast = (AttributeKeyBase<?>) key;
 			checkCast.validate(EaglerAttributeManager.this);
 			if(value != null) {

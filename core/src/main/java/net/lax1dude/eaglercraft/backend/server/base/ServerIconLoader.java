@@ -34,6 +34,9 @@ public class ServerIconLoader {
 	};
 
 	public static byte[] loadServerIcon(int[] pixelsIn, int width, int height) {
+		if(pixelsIn == null) {
+			throw new NullPointerException("pixelsIn");
+		}
 		if(width == 64 && height == 64) {
 			return toBytes(pixelsIn);
 		}else {

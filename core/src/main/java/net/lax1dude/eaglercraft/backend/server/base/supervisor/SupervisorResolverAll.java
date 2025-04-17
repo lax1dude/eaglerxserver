@@ -48,6 +48,12 @@ public class SupervisorResolverAll implements ISupervisorResolver {
 
 	@Override
 	public void resolvePlayerBrand(UUID playerUUID, Consumer<UUID> callback) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		BasePlayerInstance<?> player = server.getPlayerByUUID(playerUUID);
 		if(player != null) {
 			callback.accept(player.getEaglerBrandUUID());
@@ -58,6 +64,12 @@ public class SupervisorResolverAll implements ISupervisorResolver {
 
 	@Override
 	public void resolvePlayerRegisteredBrand(UUID playerUUID, BiConsumer<UUID, IBrandRegistration> callback) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		BasePlayerInstance<?> player = server.getPlayerByUUID(playerUUID);
 		if(player != null) {
 			callback.accept(player.getEaglerBrandUUID(), player.getEaglerBrandDesc());

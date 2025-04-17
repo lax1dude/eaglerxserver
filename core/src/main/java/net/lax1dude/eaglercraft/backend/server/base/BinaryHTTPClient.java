@@ -88,6 +88,15 @@ public class BinaryHTTPClient implements IBinaryHTTPClient {
 
 	@Override
 	public void asyncRequest(EnumRequestMethod method, URI requestURI, Consumer<IBinaryHTTPResponse> responseCallback) {
+		if(method == null) {
+			throw new NullPointerException("method");
+		}
+		if(requestURI == null) {
+			throw new NullPointerException("requestURI");
+		}
+		if(responseCallback == null) {
+			throw new NullPointerException("responseCallback");
+		}
 		httpClient.asyncRequest(method.name(), requestURI, new ResponseWrapper(responseCallback));
 	}
 

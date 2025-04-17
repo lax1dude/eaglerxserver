@@ -54,6 +54,9 @@ public final class EaglercraftRegisterSkinEvent extends AsyncEvent<IEaglercraftR
 
 	@Override
 	public void forceFromVanillaTexturesProperty(@Nonnull String value) {
+		if(value == null) {
+			throw new NullPointerException("value");
+		}
 		delegate.forceFromVanillaTexturesProperty(value);
 	}
 
@@ -63,8 +66,14 @@ public final class EaglercraftRegisterSkinEvent extends AsyncEvent<IEaglercraftR
 	}
 
 	@Override
-	public void forceSkinFromURL(@Nonnull String value, @Nonnull EnumSkinModel skinModel) {
-		delegate.forceSkinFromURL(value, skinModel);
+	public void forceSkinFromURL(@Nonnull String url, @Nonnull EnumSkinModel skinModel) {
+		if(url == null) {
+			throw new NullPointerException("url");
+		}
+		if(skinModel == null) {
+			throw new NullPointerException("skinModel");
+		}
+		delegate.forceSkinFromURL(url, skinModel);
 	}
 
 	@Override
@@ -78,12 +87,18 @@ public final class EaglercraftRegisterSkinEvent extends AsyncEvent<IEaglercraftR
 	}
 
 	@Override
-	public void forceCapeFromURL(@Nonnull String value) {
-		delegate.forceCapeFromURL(value);
+	public void forceCapeFromURL(@Nonnull String url) {
+		if(url == null) {
+			throw new NullPointerException("url");
+		}
+		delegate.forceCapeFromURL(url);
 	}
 
 	@Override
 	public void forceCapeFromVanillaTexturesProperty(@Nonnull String value) {
+		if(value == null) {
+			throw new NullPointerException("value");
+		}
 		delegate.forceCapeFromVanillaTexturesProperty(value);
 	}
 
@@ -94,11 +109,17 @@ public final class EaglercraftRegisterSkinEvent extends AsyncEvent<IEaglercraftR
 
 	@Override
 	public void forceSkinEagler(@Nonnull IEaglerPlayerSkin skin) {
+		if(skin == null) {
+			throw new NullPointerException("skin");
+		}
 		delegate.forceSkinEagler(skin);
 	}
 
 	@Override
 	public void forceCapeEagler(@Nonnull IEaglerPlayerCape cape) {
+		if(cape == null) {
+			throw new NullPointerException("cape");
+		}
 		delegate.forceCapeEagler(cape);
 	}
 

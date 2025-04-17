@@ -45,6 +45,9 @@ class VelocityRevokeSessionQueryEventImpl extends EaglercraftRevokeSessionQueryE
 
 	@Override
 	public void setResultStatus(EnumSessionRevokeStatus result) {
+		if(result == null) {
+			throw new NullPointerException("result");
+		}
 		this.result = result;
 	}
 

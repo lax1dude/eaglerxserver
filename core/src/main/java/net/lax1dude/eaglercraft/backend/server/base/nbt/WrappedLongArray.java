@@ -15,6 +15,9 @@ class WrappedLongArray implements INBTValue<long[]> {
 
 	@Override
 	public void mutate(long[] value) {
+		if(value == null) {
+			throw new NullPointerException("Cannot mutate to a null value");
+		}
 		this.value = value;
 	}
 

@@ -41,6 +41,9 @@ public class PauseMenuManager<PlayerObject> implements IPauseMenuManager<PlayerO
 
 	@Override
 	public void updatePauseMenu(ICustomPauseMenu pauseMenu) {
+		if(pauseMenu == null) {
+			throw new NullPointerException("pauseMenu");
+		}
 		IPauseMenuImpl impl = (IPauseMenuImpl) pauseMenu;
 		if(activePauseMenu == impl) return;
 		activePauseMenu = impl;

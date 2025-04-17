@@ -263,6 +263,12 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 
 	@Override
 	public void resolvePlayerBrand(UUID playerUUID, Consumer<UUID> callback) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		BasePlayerInstance<PlayerObject> player = server.getPlayerByUUID(playerUUID);
 		if(player != null) {
 			callback.accept(player.getEaglerBrandUUID());
@@ -278,6 +284,12 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 
 	@Override
 	public void resolvePlayerRegisteredBrand(UUID playerUUID, BiConsumer<UUID, IBrandRegistration> callback) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		BasePlayerInstance<PlayerObject> player = server.getPlayerByUUID(playerUUID);
 		if(player != null) {
 			UUID uuid = player.getEaglerBrandUUID();
@@ -304,6 +316,12 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 
 	@Override
 	public void registerBrand(UUID brandUUID, String brandDesc, boolean hacked, boolean legacy) {
+		if(brandUUID == null) {
+			throw new NullPointerException("brandUUID");
+		}
+		if(brandDesc == null) {
+			throw new NullPointerException("brandDesc");
+		}
 		if(!builtinUUIDs.contains(brandUUID)) {
 			IBrandRegistration reg = new BrandRegistration(brandUUID, brandDesc, hacked, legacy);
 			mapLock.writeLock().lock();
@@ -317,6 +335,9 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 
 	@Override
 	public void unregisterBrand(UUID brandUUID) {
+		if(brandUUID == null) {
+			throw new NullPointerException("brandUUID");
+		}
 		if(!builtinUUIDs.contains(brandUUID)) {
 			mapLock.writeLock().lock();
 			try {
@@ -329,6 +350,9 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 
 	@Override
 	public IBrandRegistration lookupRegisteredBrand(UUID brandUUID) {
+		if(brandUUID == null) {
+			throw new NullPointerException("brandUUID");
+		}
 		mapLock.readLock().lock();
 		try {
 			return map.get(brandUUID);

@@ -126,6 +126,9 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 
 	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
+		if(kickMessage == null) {
+			throw new NullPointerException("kickMessage");
+		}
 		player.getConnection().disconnect(kickMessage);
 	}
 

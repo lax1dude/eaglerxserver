@@ -45,6 +45,9 @@ class BukkitRegisterSkinEventImpl extends EaglercraftRegisterSkinEvent {
 
 	@Override
 	public void forceFromVanillaTexturesProperty(String value) {
+		if(value == null) {
+			throw new NullPointerException("value");
+		}
 		delegate.forceFromVanillaTexturesProperty(value);
 	}
 
@@ -54,8 +57,14 @@ class BukkitRegisterSkinEventImpl extends EaglercraftRegisterSkinEvent {
 	}
 
 	@Override
-	public void forceSkinFromURL(String value, EnumSkinModel skinModel) {
-		delegate.forceSkinFromURL(value, skinModel);
+	public void forceSkinFromURL(String url, EnumSkinModel skinModel) {
+		if(url == null) {
+			throw new NullPointerException("url");
+		}
+		if(skinModel == null) {
+			throw new NullPointerException("skinModel");
+		}
+		delegate.forceSkinFromURL(url, skinModel);
 	}
 
 	@Override
@@ -69,12 +78,18 @@ class BukkitRegisterSkinEventImpl extends EaglercraftRegisterSkinEvent {
 	}
 
 	@Override
-	public void forceCapeFromURL(String value) {
-		delegate.forceCapeFromURL(value);
+	public void forceCapeFromURL(String url) {
+		if(url == null) {
+			throw new NullPointerException("url");
+		}
+		delegate.forceCapeFromURL(url);
 	}
 
 	@Override
 	public void forceCapeFromVanillaTexturesProperty(String value) {
+		if(value == null) {
+			throw new NullPointerException("value");
+		}
 		delegate.forceCapeFromVanillaTexturesProperty(value);
 	}
 
@@ -85,11 +100,17 @@ class BukkitRegisterSkinEventImpl extends EaglercraftRegisterSkinEvent {
 
 	@Override
 	public void forceSkinEagler(IEaglerPlayerSkin skin) {
+		if(skin == null) {
+			throw new NullPointerException("skin");
+		}
 		delegate.forceSkinEagler(skin);
 	}
 
 	@Override
 	public void forceCapeEagler(IEaglerPlayerCape cape) {
+		if(cape == null) {
+			throw new NullPointerException("cape");
+		}
 		delegate.forceCapeEagler(cape);
 	}
 

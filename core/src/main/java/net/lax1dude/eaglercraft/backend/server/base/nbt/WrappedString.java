@@ -15,6 +15,9 @@ class WrappedString implements INBTValue<String> {
 
 	@Override
 	public void mutate(String value) {
+		if(value == null) {
+			throw new NullPointerException("Cannot mutate to a null value");
+		}
 		this.value = value;
 	}
 

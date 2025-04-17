@@ -106,6 +106,9 @@ public final class EaglercraftAuthCookieEvent
 
 	@Override
 	public void setProfileUsername(@Nonnull String username) {
+		if(username == null) {
+			throw new NullPointerException("username");
+		}
 		profileUsername = username;
 	}
 
@@ -117,6 +120,9 @@ public final class EaglercraftAuthCookieEvent
 
 	@Override
 	public void setProfileUUID(@Nonnull UUID uuid) {
+		if(uuid == null) {
+			throw new NullPointerException("uuid");
+		}
 		profileUUID = uuid;
 	}
 
@@ -140,6 +146,9 @@ public final class EaglercraftAuthCookieEvent
 
 	@Override
 	public void setAuthRequestedServer(@Nonnull String server) {
+		if(server == null) {
+			throw new NullPointerException("server");
+		}
 		authRequestedServer = server;
 	}
 

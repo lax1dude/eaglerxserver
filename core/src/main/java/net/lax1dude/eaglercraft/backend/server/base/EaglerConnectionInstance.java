@@ -119,12 +119,18 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 
 	@Override
 	public boolean hasExtendedCapability(UUID extendedCapability, int version) {
+		if(extendedCapability == null) {
+			throw new NullPointerException("extendedCapability");
+		}
 		Byte b = acceptedExtendedCapabilities.get(extendedCapability);
 		return b != null && (b.byteValue() & 0xFF) >= version;
 	}
 
 	@Override
 	public int getExtendedCapability(UUID extendedCapability) {
+		if(extendedCapability == null) {
+			throw new NullPointerException("extendedCapability");
+		}
 		Byte b = acceptedExtendedCapabilities.get(extendedCapability);
 		return b != null ? (b.byteValue() & 0xFF) : -1;
 	}
@@ -186,6 +192,9 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 
 	@Override
 	public String getWebSocketHeader(EnumWebSocketHeader header) {
+		if(header == null) {
+			throw new NullPointerException("header");
+		}
 		return switch(header) {
 		case HEADER_HOST -> headerHost;
 		case HEADER_ORIGIN -> headerOrigin;

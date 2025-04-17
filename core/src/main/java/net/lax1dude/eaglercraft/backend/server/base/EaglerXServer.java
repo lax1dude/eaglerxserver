@@ -691,24 +691,36 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public BasePlayerInstance<PlayerObject> getPlayer(PlayerObject player) {
+		if(player == null) {
+			throw new NullPointerException("player");
+		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
 		return platformPlayer != null ? platformPlayer.getPlayerAttachment() : null;
 	}
 
 	@Override
 	public BasePlayerInstance<PlayerObject> getPlayerByName(String playerName) {
+		if(playerName == null) {
+			throw new NullPointerException("playerName");
+		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
 		return platformPlayer != null ? platformPlayer.getPlayerAttachment() : null;
 	}
 
 	@Override
 	public BasePlayerInstance<PlayerObject> getPlayerByUUID(UUID playerUUID) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
 		return platformPlayer != null ? platformPlayer.getPlayerAttachment() : null;
 	}
 
 	@Override
 	public EaglerPlayerInstance<PlayerObject> getEaglerPlayer(PlayerObject player) {
+		if(player == null) {
+			throw new NullPointerException("player");
+		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
 		if(platformPlayer != null) {
 			return platformPlayer.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().asEaglerPlayer();
@@ -718,6 +730,9 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public EaglerPlayerInstance<PlayerObject> getEaglerPlayerByName(String playerName) {
+		if(playerName == null) {
+			throw new NullPointerException("playerName");
+		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
 		if(platformPlayer != null) {
 			return platformPlayer.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().asEaglerPlayer();
@@ -727,6 +742,9 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public EaglerPlayerInstance<PlayerObject> getEaglerPlayerByUUID(UUID playerUUID) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
 		if(platformPlayer != null) {
 			return platformPlayer.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().asEaglerPlayer();
@@ -736,39 +754,60 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public boolean isPlayer(PlayerObject player) {
+		if(player == null) {
+			throw new NullPointerException("player");
+		}
 		return platform.getPlayer(player) != null;
 	}
 
 	@Override
 	public boolean isPlayerByName(String playerName) {
+		if(playerName == null) {
+			throw new NullPointerException("playerName");
+		}
 		return platform.getPlayer(playerName) != null;
 	}
 
 	@Override
 	public boolean isPlayerByUUID(UUID playerUUID) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
 		return platform.getPlayer(playerUUID) != null;
 	}
 
 	@Override
 	public boolean isEaglerPlayer(PlayerObject player) {
+		if(player == null) {
+			throw new NullPointerException("player");
+		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
 		return platformPlayer != null && platformPlayer.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().isEaglerPlayer();
 	}
 
 	@Override
 	public boolean isEaglerPlayerByName(String playerName) {
+		if(playerName == null) {
+			throw new NullPointerException("playerName");
+		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
 		return platformPlayer != null && platformPlayer.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().isEaglerPlayer();
 	}
 
 	@Override
 	public boolean isEaglerPlayerByUUID(UUID playerUUID) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
 		return platformPlayer != null && platformPlayer.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().isEaglerPlayer();
 	}
 
 	@Override
 	public void forEachPlayer(Consumer<IBasePlayer<PlayerObject>> callback) {
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		platform.forEachPlayer((player) -> {
 			callback.accept(player.getPlayerAttachment());
 		});
@@ -776,6 +815,9 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public void forEachEaglerPlayer(Consumer<IEaglerPlayer<PlayerObject>> callback) {
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		eaglerPlayers.forEach(callback);
 	}
 
@@ -819,6 +861,9 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public IUpdateCertificate createUpdateCertificate(byte[] data, int offset, int length) {
+		if(data == null) {
+			throw new NullPointerException("data");
+		}
 		byte[] copy = new byte[length];
 		System.arraycopy(data, offset, copy, 0, length);
 		return UpdateCertificate.intern(copy);
@@ -851,11 +896,17 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public IEaglerListenerInfo getListenerByName(String name) {
+		if(name == null) {
+			throw new NullPointerException("name");
+		}
 		return listeners.get(name);
 	}
 
 	@Override
 	public IEaglerListenerInfo getListenerByAddress(SocketAddress address) {
+		if(address == null) {
+			throw new NullPointerException("name");
+		}
 		return listenersByAddress.get(address);
 	}
 
@@ -886,16 +937,31 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public void registerExtendedCapability(Object plugin, ExtendedCapabilitySpec capability) {
+		if(plugin == null) {
+			throw new NullPointerException("plugin");
+		}
+		if(capability == null) {
+			throw new NullPointerException("capability");
+		}
 		extCapabilityMap.registerCapability(plugin, capability);
 	}
 
 	@Override
 	public void unregisterExtendedCapability(Object plugin, ExtendedCapabilitySpec capability) {
+		if(plugin == null) {
+			throw new NullPointerException("plugin");
+		}
+		if(capability == null) {
+			throw new NullPointerException("capability");
+		}
 		extCapabilityMap.unregisterCapability(plugin, capability);
 	}
 
 	@Override
 	public boolean isExtendedCapabilityRegistered(UUID capabilityUUID, int version) {
+		if(capabilityUUID == null) {
+			throw new NullPointerException("capabilityUUID");
+		}
 		return extCapabilityMap.isCapabilityRegistered(capabilityUUID, version);
 	}
 
@@ -1003,6 +1069,9 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public UUID intern(UUID uuid) {
+		if(uuid == null) {
+			throw new NullPointerException("uuid");
+		}
 		return uuidInterner.intern(uuid);
 	}
 

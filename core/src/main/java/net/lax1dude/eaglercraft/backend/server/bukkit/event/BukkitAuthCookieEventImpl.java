@@ -91,6 +91,9 @@ class BukkitAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 
 	@Override
 	public void setProfileUsername(String username) {
+		if(username == null) {
+			throw new NullPointerException("username");
+		}
 		profileUsername = username;
 	}
 
@@ -122,6 +125,9 @@ class BukkitAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 
 	@Override
 	public void setAuthRequestedServer(String server) {
+		if(server == null) {
+			throw new NullPointerException("server");
+		}
 		authRequestedServer = server;
 	}
 

@@ -45,6 +45,9 @@ class BukkitRevokeSessionQueryEventImpl extends EaglercraftRevokeSessionQueryEve
 
 	@Override
 	public void setResultStatus(EnumSessionRevokeStatus result) {
+		if(result == null) {
+			throw new NullPointerException("result");
+		}
 		this.result = result;
 	}
 

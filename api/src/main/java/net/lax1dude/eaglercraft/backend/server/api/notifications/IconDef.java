@@ -11,6 +11,12 @@ public final class IconDef {
 
 	@Nonnull
 	public static IconDef create(@Nonnull UUID uuid, @Nonnull PacketImageData icon) {
+		if(uuid == null) {
+			throw new NullPointerException("uuid");
+		}
+		if(icon == null) {
+			throw new NullPointerException("icon");
+		}
 		return new IconDef(uuid, icon);
 	}
 
