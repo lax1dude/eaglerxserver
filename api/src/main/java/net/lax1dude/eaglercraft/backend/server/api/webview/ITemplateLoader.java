@@ -11,6 +11,7 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.WillNotClose;
 
 public interface ITemplateLoader {
 
@@ -47,10 +48,10 @@ public interface ITemplateLoader {
 	}
 
 	@Nonnull
-	String loadWebViewTemplate(@Nonnull Reader reader) throws IOException, InvalidMacroException;
+	String loadWebViewTemplate(@Nonnull @WillNotClose Reader reader) throws IOException, InvalidMacroException;
 
 	@Nonnull
-	default String loadWebViewTemplate(@Nonnull InputStream stream, @Nonnull Charset charset)
+	default String loadWebViewTemplate(@Nonnull @WillNotClose InputStream stream, @Nonnull Charset charset)
 			throws IOException, InvalidMacroException {
 		return loadWebViewTemplate(new InputStreamReader(stream, charset));
 	}

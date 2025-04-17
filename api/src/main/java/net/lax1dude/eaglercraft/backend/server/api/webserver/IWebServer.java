@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 
 import javax.annotation.Nonnull;
+import javax.annotation.WillNotClose;
 
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
@@ -40,7 +41,7 @@ public interface IWebServer {
 	IRequestHandler get500Handler();
 
 	@Nonnull
-	IPreparedResponse prepareResponse(@Nonnull InputStream data) throws IOException;
+	IPreparedResponse prepareResponse(@Nonnull @WillNotClose InputStream data) throws IOException;
 
 	@Nonnull
 	IPreparedResponse prepareResponse(@Nonnull byte[] data);

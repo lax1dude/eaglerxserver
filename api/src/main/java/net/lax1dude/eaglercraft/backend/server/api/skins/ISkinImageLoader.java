@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
+import javax.annotation.WillNotClose;
 
 public interface ISkinImageLoader {
 
@@ -44,7 +45,7 @@ public interface ISkinImageLoader {
 	IEaglerPlayerSkin loadSkinImageData(@Nonnull BufferedImage image, @Nonnull EnumSkinModel modelId);
 
 	@Nonnull
-	IEaglerPlayerSkin loadSkinImageData(@Nonnull InputStream inputStream, @Nonnull EnumSkinModel modelId) throws IOException;
+	IEaglerPlayerSkin loadSkinImageData(@Nonnull @WillNotClose InputStream inputStream, @Nonnull EnumSkinModel modelId) throws IOException;
 
 	@Nonnull
 	IEaglerPlayerSkin loadSkinImageData(@Nonnull File imageFile, @Nonnull EnumSkinModel modelId) throws IOException;
@@ -68,7 +69,7 @@ public interface ISkinImageLoader {
 	IEaglerPlayerCape loadCapeImageData(@Nonnull BufferedImage image);
 
 	@Nonnull
-	IEaglerPlayerCape loadCapeImageData(@Nonnull InputStream inputStream) throws IOException;
+	IEaglerPlayerCape loadCapeImageData(@Nonnull @WillNotClose InputStream inputStream) throws IOException;
 
 	@Nonnull
 	IEaglerPlayerCape loadCapeImageData(@Nonnull File imageFile) throws IOException;

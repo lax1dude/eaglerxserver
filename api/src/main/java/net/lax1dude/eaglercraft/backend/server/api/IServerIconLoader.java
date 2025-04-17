@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.annotation.Nonnull;
+import javax.annotation.WillNotClose;
 
 public interface IServerIconLoader {
 
@@ -16,7 +17,7 @@ public interface IServerIconLoader {
 	byte[] loadServerIcon(@Nonnull BufferedImage image);
 
 	@Nonnull
-	byte[] loadServerIcon(@Nonnull InputStream stream) throws IOException;
+	byte[] loadServerIcon(@Nonnull @WillNotClose InputStream stream) throws IOException;
 
 	@Nonnull
 	byte[] loadServerIcon(@Nonnull File file) throws IOException;

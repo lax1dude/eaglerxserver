@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.annotation.Nonnull;
+import javax.annotation.WillNotClose;
 
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.PacketImageData;
 
@@ -23,12 +24,12 @@ public interface IPacketImageLoader {
 	PacketImageData loadPacketImageData(@Nonnull BufferedImage bufferedImage, int maxWidth, int maxHeight);
 
 	@Nonnull
-	default PacketImageData loadPacketImageData(@Nonnull InputStream inputStream) throws IOException {
+	default PacketImageData loadPacketImageData(@Nonnull @WillNotClose InputStream inputStream) throws IOException {
 		return loadPacketImageData(inputStream, 255, 255);
 	}
 
 	@Nonnull
-	PacketImageData loadPacketImageData(@Nonnull InputStream inputStream, int maxWidth, int maxHeight) throws IOException;
+	PacketImageData loadPacketImageData(@Nonnull @WillNotClose InputStream inputStream, int maxWidth, int maxHeight) throws IOException;
 
 	@Nonnull
 	default PacketImageData loadPacketImageData(@Nonnull File imageFile) throws IOException {
