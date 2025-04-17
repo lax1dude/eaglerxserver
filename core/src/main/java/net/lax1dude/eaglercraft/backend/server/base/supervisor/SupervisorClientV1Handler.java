@@ -18,7 +18,6 @@ package net.lax1dude.eaglercraft.backend.server.base.supervisor;
 
 import java.nio.charset.StandardCharsets;
 
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;

@@ -30,7 +30,7 @@ public class SupervisorLookupHandler<PlayerObject> {
 		if(player != null) {
 			ISkinManagerBase<PlayerObject> skinMgr = player.getSkinManager();
 			if(skinMgr.isEaglerPlayer()) {
-				sendSkinResponse(uuid, skinMgr.asEaglerPlayer().getEaglerSkin());
+				sendSkinResponse(uuid, skinMgr.getPlayerSkinIfLoaded());
 			}else {
 				if(skinMgr instanceof SkinManagerVanillaOnline<PlayerObject> vanillaOnlineMgr) {
 					String url;
@@ -82,12 +82,12 @@ public class SupervisorLookupHandler<PlayerObject> {
 		if(player != null) {
 			ISkinManagerBase<PlayerObject> skinMgr = player.getSkinManager();
 			if(skinMgr.isEaglerPlayer()) {
-				sendCapeResponse(uuid, skinMgr.asEaglerPlayer().getEaglerCape());
+				sendCapeResponse(uuid, skinMgr.getPlayerCapeIfLoaded());
 			}else {
 				if(skinMgr instanceof SkinManagerVanillaOnline<PlayerObject> vanillaOnlineMgr) {
 					String url;
 					IEaglerPlayerCape cape = null;
-					synchronized(skinMgr) {
+					synchronized(vanillaOnlineMgr.capeLock) {
 						if((url = vanillaOnlineMgr.getEffectiveCapeURLInternal()) == null) {
 							cape = skinMgr.getPlayerCapeIfLoaded();
 						}

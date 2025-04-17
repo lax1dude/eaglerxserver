@@ -14,13 +14,15 @@ class SkinManagerHelper {
 		SPacketInvalidatePlayerCacheV4EAG invalidatePacket = new SPacketInvalidatePlayerCacheV4EAG(skin, cape,
 				uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
 		IPlatformServer<PlayerObject> server = playerIn.getPlatformPlayer().getServer();
-		server.forEachPlayer((player) -> {
-			EaglerPlayerInstance<PlayerObject> playerObj = player
-					.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().asEaglerPlayer();
-			if (playerObj != null && playerObj != playerIn) {
-				playerObj.writePacket(invalidatePacket);
-			}
-		});
+		if(server != null) {
+			server.forEachPlayer((player) -> {
+				EaglerPlayerInstance<PlayerObject> playerObj = player
+						.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().asEaglerPlayer();
+				if (playerObj != null && playerObj != playerIn) {
+					playerObj.writePacket(invalidatePacket);
+				}
+			});
+		}
 		playerIn.getEaglerXServer().getSupervisorService().notifySkinChange(uuid, server.getServerConfName(), skin, cape);
 	}
 

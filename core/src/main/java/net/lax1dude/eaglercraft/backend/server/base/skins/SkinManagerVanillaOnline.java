@@ -32,7 +32,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 	private KeyedConsumerList<UUID, IEaglerPlayerSkin> waitingSkinCallbacks = null;
 
 	private IEaglerPlayerCape cape = null;
-	private final Object capeLock = new Object();
+	public final Object capeLock = new Object();
 	private KeyedConsumerList<UUID, IEaglerPlayerCape> waitingCapeCallbacks = null;
 
 	private IEaglerPlayerSkin originalSkin = null;
@@ -453,7 +453,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 			if(skinUrl != null) {
 				synchronized(this) {
 					originalSkin = null;
-					if(skin != null) {
+					if(skinURL == null || !skinUrl.equals(skinURL)) {
 						s = true;
 					}
 					skin = null;
@@ -470,13 +470,13 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 				IEaglerPlayerSkin newSkin = new PresetSkinPlayer(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(),
 						(uuid.hashCode() & 1) != 0 ? 1 : 0);
 				synchronized(this) {
-					originalSkin = null;
-					if(skin != null) {
+					originalSkin = newSkin;
+					if(skin == null || !newSkin.equals(skin)) {
 						s = true;
 					}
 					skin = newSkin;
 					skinURL = null;
-					skinModel = newSkin.getCustomSkinModelId();
+					skinModel = null;
 					toCall1 = waitingSkinCallbacks;
 					waitingSkinCallbacks = null;
 				}
@@ -492,11 +492,11 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 					toCall1 = null;
 				}
 			}
-			String capeUrl = textures.getSkinURL();
+			String capeUrl = textures.getCapeURL();
 			if(capeUrl != null) {
-				synchronized(this) {
+				synchronized(capeLock) {
 					originalCape = null;
-					if(cape != null) {
+					if(capeURL == null || !capeUrl.equals(capeURL)) {
 						c = true;
 					}
 					cape = null;
@@ -507,9 +507,9 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 			}else {
 				UUID uuid = player.getUniqueId();
 				IEaglerPlayerCape newCape = new PresetCapePlayer(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(), 0);
-				synchronized(this) {
-					originalCape = null;
-					if(cape != null) {
+				synchronized(capeLock) {
+					originalCape = newCape;
+					if(cape == null || !newCape.equals(cape)) {
 						c = true;
 					}
 					cape = newCape;

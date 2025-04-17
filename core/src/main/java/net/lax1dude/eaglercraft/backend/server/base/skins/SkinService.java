@@ -5,6 +5,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
@@ -36,6 +37,7 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 	private final boolean downloadEnabled;
 	private final boolean keyedLookupHelper;
 	private ISkinsRestorerHelper<PlayerObject> skinsRestorerHelper;
+	private IPlatformTask skinCacheTick;
 
 	public SkinService(EaglerXServer<PlayerObject> server, ISkinCacheService skinCache,
 			Predicate<String> fnawSkinsEnabled, boolean downloadEnabled) {
@@ -269,11 +271,17 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 				server.logger().info("Listening for SkinsRestorer skin apply event on vanilla players");
 			}
 		}
+		if(skinCache != null) {
+			skinCacheTick = server.getPlatform().getScheduler().executeAsyncRepeatingTask(skinCache::tick, 30000l, 30000l);
+		}
 	}
 
 	public void handleDisabled() {
 		if(skinsRestorerHelper != null) {
 			skinsRestorerHelper.setListener(null);
+		}
+		if(skinCacheTick != null) {
+			skinCacheTick.cancel();
 		}
 	}
 

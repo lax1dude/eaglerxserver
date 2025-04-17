@@ -14,7 +14,6 @@ import net.md_5.bungee.api.connection.Connection;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.connection.Server;
-import net.md_5.bungee.api.event.LoginEvent;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
@@ -44,12 +43,13 @@ public class BungeeListener implements Listener {
 		
 	}
 
-	@EventHandler(priority = EventPriority.HIGH)
-	public void onLoginEvent(LoginEvent event) {
-		BungeeConnection conn = BungeeUnsafe.getInitialHandlerChannel(event.getConnection())
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void onPostLoginEvent(PostLoginEvent event) {
+		ProxiedPlayer player = event.getPlayer();
+		BungeeConnection conn = BungeeUnsafe.getInitialHandlerChannel(player.getPendingConnection())
 				.attr(PipelineAttributes.<BungeeConnection>connectionData()).get();
 		if(conn != null && (conn.eaglerPlayerProperty != (byte) 0 || conn.texturesPropertyValue != null)) {
-			BungeeUnsafe.PropertyInjector injector = BungeeUnsafe.propertyInjector(event.getConnection());
+			BungeeUnsafe.PropertyInjector injector = BungeeUnsafe.propertyInjector(player.getPendingConnection());
 			if(conn.texturesPropertyValue != null) {
 				injector.injectTexturesProperty(conn.texturesPropertyValue,
 						conn.texturesPropertySignature);
@@ -61,13 +61,6 @@ public class BungeeListener implements Listener {
 			}
 			injector.complete();
 		}
-	}
-
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void onPostLoginEvent(PostLoginEvent event) {
-		ProxiedPlayer player = event.getPlayer();
-		BungeeConnection conn = BungeeUnsafe.getInitialHandlerChannel(player.getPendingConnection())
-				.attr(PipelineAttributes.<BungeeConnection>connectionData()).get();
 		event.registerIntent(plugin);
 		conn.awaitPlayState(() -> {
 			try {
@@ -128,7 +121,7 @@ public class BungeeListener implements Listener {
 		}
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOW)
 	public void onPluginMessageEvent(PluginMessageEvent event) {
 		PluginMessageHandler handler = plugin.registeredChannelsMap.get(event.getTag());
 		if(handler != null) {

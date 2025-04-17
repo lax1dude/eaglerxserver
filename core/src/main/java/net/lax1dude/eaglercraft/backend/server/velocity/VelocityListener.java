@@ -64,7 +64,7 @@ class VelocityListener {
 				channel.attr(PipelineAttributes.<VelocityConnection>connectionData())::set);
 	}
 
-	@Subscribe(priority = Short.MAX_VALUE)
+	@Subscribe(priority = -16384)
 	public void onGameProfileRequestEvent(GameProfileRequestEvent gameProfileEvent) {
 		VelocityConnection conn = VelocityUnsafe.getInboundChannel(gameProfileEvent.getConnection())
 				.attr(PipelineAttributes.<VelocityConnection>connectionData()).get();

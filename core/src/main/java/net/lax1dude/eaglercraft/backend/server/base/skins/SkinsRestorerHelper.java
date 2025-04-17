@@ -43,10 +43,13 @@ public class SkinsRestorerHelper {
 
 		private void skinApplyHandler(SkinApplyEvent evt) {
 			if(listener != null) {
-				BasePlayerInstance<PlayerObject> player = server.getPlayer(evt.getPlayer(server.getPlayerClass()));
-				if(player != null) {
-					SkinProperty prop = evt.getProperty();
-					listener.handleSRSkinApply(player, prop.getValue(), prop.getSignature());
+				PlayerObject playerObj = evt.getPlayer(server.getPlayerClass());
+				if(playerObj != null) {
+					BasePlayerInstance<PlayerObject> player = server.getPlayer(playerObj);
+					if(player != null) {
+						SkinProperty prop = evt.getProperty();
+						listener.handleSRSkinApply(player, prop.getValue(), prop.getSignature());
+					}
 				}
 			}
 		}

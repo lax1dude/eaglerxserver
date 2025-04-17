@@ -18,7 +18,7 @@ public class GameProfileUtil {
 			String skinModel = null;
 			String capeURL = null;
 			String jsonStr = new String(Base64.getDecoder().decode(texturesProperty), StandardCharsets.UTF_8);
-			JsonObject json = JsonParser.parseString(jsonStr).getAsJsonObject();
+			JsonObject json = JsonParser.parseString(jsonStr).getAsJsonObject().getAsJsonObject("textures");
 			JsonObject skin = json.getAsJsonObject("SKIN");
 			if(skin != null) {
 				JsonElement url = skin.get("url");

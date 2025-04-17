@@ -42,8 +42,10 @@ public class SkinCacheService implements ISkinCacheService {
 	protected final LoadingCache<String, ConcurrentLazyLoader<byte[]>> capeCache;
 
 	protected long lastFlush = 0l;
-	protected final ReadWriteLock failedLookupsLock = new ReentrantReadWriteLock();
-	protected final Map<String, Long> failedLookups = new HashMap<>();
+	protected final ReadWriteLock failedSkinLookupsLock = new ReentrantReadWriteLock();
+	protected final Map<String, Long> failedSkinLookups = new HashMap<>();
+	protected final ReadWriteLock failedCapeLookupsLock = new ReentrantReadWriteLock();
+	protected final Map<String, Long> failedCapeLookups = new HashMap<>();
 
 	private class SkinCacheEntry extends ConcurrentLazyLoader<byte[]> {
 
@@ -65,11 +67,11 @@ public class SkinCacheService implements ISkinCacheService {
 							callback.accept(ddata);
 						}else {
 							long millis = System.nanoTime() / 1000000l;
-							failedLookupsLock.writeLock().lock();
+							failedSkinLookupsLock.writeLock().lock();
 							try {
-								failedLookups.put(key, millis);
+								failedSkinLookups.put(key, millis);
 							}finally {
-								failedLookupsLock.writeLock().unlock();
+								failedSkinLookupsLock.writeLock().unlock();
 							}
 							callback.accept(ISkinCacheService.ERROR);
 						}
@@ -105,11 +107,11 @@ public class SkinCacheService implements ISkinCacheService {
 							callback.accept(ddata);
 						}else {
 							long millis = System.nanoTime() / 1000000l;
-							failedLookupsLock.writeLock().lock();
+							failedCapeLookupsLock.writeLock().lock();
 							try {
-								failedLookups.put(key, millis);
+								failedCapeLookups.put(key, millis);
 							}finally {
-								failedLookupsLock.writeLock().unlock();
+								failedCapeLookupsLock.writeLock().unlock();
 							}
 							callback.accept(ISkinCacheService.ERROR);
 						}
@@ -155,12 +157,12 @@ public class SkinCacheService implements ISkinCacheService {
 
 	@Override
 	public void resolveSkinByURL(String skinURL, Consumer<byte[]> callback) {
-		failedLookupsLock.readLock().lock();
+		failedSkinLookupsLock.readLock().lock();
 		boolean b;
 		try {
-			b = failedLookups.containsKey(skinURL);
+			b = failedSkinLookups.containsKey(skinURL);
 		}finally {
-			failedLookupsLock.readLock().unlock();
+			failedSkinLookupsLock.readLock().unlock();
 		}
 		if(b) {
 			callback.accept(ISkinCacheService.ERROR);
@@ -175,12 +177,12 @@ public class SkinCacheService implements ISkinCacheService {
 
 	@Override
 	public void resolveCapeByURL(String capeURL, Consumer<byte[]> callback) {
-		failedLookupsLock.readLock().lock();
+		failedCapeLookupsLock.readLock().lock();
 		boolean b;
 		try {
-			b = failedLookups.containsKey(capeURL);
+			b = failedCapeLookups.containsKey(capeURL);
 		}finally {
-			failedLookupsLock.readLock().unlock();
+			failedCapeLookupsLock.readLock().unlock();
 		}
 		if(b) {
 			callback.accept(ISkinCacheService.ERROR);
@@ -199,16 +201,27 @@ public class SkinCacheService implements ISkinCacheService {
 		long millis = System.nanoTime() / 1000000l;
 		if(millis - lastFlush > 60000l) {
 			lastFlush = millis;
-			failedLookupsLock.writeLock().lock();
+			failedSkinLookupsLock.writeLock().lock();
 			try {
-				Iterator<Long> itr = failedLookups.values().iterator();
+				Iterator<Long> itr = failedSkinLookups.values().iterator();
 				while(itr.hasNext()) {
 					if(millis - itr.next().longValue() > (60000l * 10l)) {
 						itr.remove();
 					}
 				}
 			}finally {
-				failedLookupsLock.writeLock().unlock();
+				failedSkinLookupsLock.writeLock().unlock();
+			}
+			failedCapeLookupsLock.writeLock().lock();
+			try {
+				Iterator<Long> itr = failedCapeLookups.values().iterator();
+				while(itr.hasNext()) {
+					if(millis - itr.next().longValue() > (60000l * 10l)) {
+						itr.remove();
+					}
+				}
+			}finally {
+				failedCapeLookupsLock.writeLock().unlock();
 			}
 		}
 	}
