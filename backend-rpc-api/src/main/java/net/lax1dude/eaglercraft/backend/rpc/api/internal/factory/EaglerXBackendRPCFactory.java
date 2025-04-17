@@ -4,10 +4,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXBackendRPC;
 
 public abstract class EaglerXBackendRPCFactory {
 
+	@Nonnull
 	public static final Factory INSTANCE;
 
 	static {
@@ -28,10 +31,16 @@ public abstract class EaglerXBackendRPCFactory {
 
 	public static abstract class Factory implements IEaglerRPCFactory {
 
+		@Nonnull
+		@Override
 		public abstract Set<Class<?>> getPlayerTypes();
 
-		public abstract <T> IEaglerXBackendRPC<T> getAPI(Class<T> playerClass);
+		@Nonnull
+		@Override
+		public abstract <T> IEaglerXBackendRPC<T> getAPI(@Nonnull Class<T> playerClass);
 
+		@Nonnull
+		@Override
 		public abstract IEaglerXBackendRPC<?> getDefaultAPI();
 
 	}

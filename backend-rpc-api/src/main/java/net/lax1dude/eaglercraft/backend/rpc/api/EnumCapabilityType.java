@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.rpc.api;
 
+import javax.annotation.Nullable;
+
 public enum EnumCapabilityType {
 	UPDATE(0),
 	VOICE(1),
@@ -26,6 +28,7 @@ public enum EnumCapabilityType {
 		return bit;
 	}
 
+	@Nullable
 	public static EnumCapabilityType getById(int id) {
 		return id >= 0 && id < LOOKUP.length ? LOOKUP[id] : null;
 	}

@@ -1,5 +1,8 @@
 package net.lax1dude.eaglercraft.backend.rpc.api;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public enum EnumCapabilitySpec {
 	UPDATE_V0(EnumCapabilityType.UPDATE, 0),
 	VOICE_V0(EnumCapabilityType.VOICE, 0),
@@ -18,6 +21,7 @@ public enum EnumCapabilitySpec {
 		this.ver = ver;
 	}
 
+	@Nonnull
 	public EnumCapabilityType getType() {
 		return type;
 	}
@@ -34,6 +38,7 @@ public enum EnumCapabilitySpec {
 		return ver;
 	}
 
+	@Nullable
 	public static EnumCapabilitySpec fromId(int id, int ver) {
 		if(id >= 0 && id < capsMap.length) {
 			EnumCapabilitySpec[] cap = capsMap[id];

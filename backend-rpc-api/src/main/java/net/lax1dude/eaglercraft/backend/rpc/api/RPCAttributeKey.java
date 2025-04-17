@@ -2,6 +2,8 @@ package net.lax1dude.eaglercraft.backend.rpc.api;
 
 import java.util.concurrent.ExecutionException;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -10,7 +12,8 @@ public final class RPCAttributeKey<T> {
 
 	private static final Cache<String, RPCAttributeKey<?>> globalAttrs = CacheBuilder.newBuilder().build();
 
-	public static <T> RPCAttributeKey<T> createGlobal(String name, Class<T> type) {
+	@Nonnull
+	public static <T> RPCAttributeKey<T> createGlobal(@Nonnull String name, @Nonnull Class<T> type) {
 		if(name == null) {
 			throw new NullPointerException("name");
 		}
@@ -33,7 +36,8 @@ public final class RPCAttributeKey<T> {
 		return (RPCAttributeKey<T>) ret;
 	}
 
-	public static <T> RPCAttributeKey<T> createLocal(Class<T> type) {
+	@Nonnull
+	public static <T> RPCAttributeKey<T> createLocal(@Nonnull Class<T> type) {
 		if(type == null) {
 			throw new NullPointerException("type");
 		}
@@ -46,6 +50,7 @@ public final class RPCAttributeKey<T> {
 		this.type = type;
 	}
 
+	@Nonnull
 	public Class<T> getType() {
 		return type;
 	}

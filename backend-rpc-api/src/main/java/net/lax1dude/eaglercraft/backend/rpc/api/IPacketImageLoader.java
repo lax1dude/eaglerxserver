@@ -5,26 +5,36 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.annotation.Nonnull;
+import javax.annotation.WillNotClose;
+
 public interface IPacketImageLoader {
 
-	IPacketImageData loadPacketImageData(int[] pixelsARGB8, int width, int height);
+	@Nonnull
+	IPacketImageData loadPacketImageData(@Nonnull int[] pixelsARGB8, int width, int height);
 
-	default IPacketImageData loadPacketImageData(BufferedImage bufferedImage) {
+	@Nonnull
+	default IPacketImageData loadPacketImageData(@Nonnull BufferedImage bufferedImage) {
 		return loadPacketImageData(bufferedImage, 255, 255);
 	}
 
-	IPacketImageData loadPacketImageData(BufferedImage bufferedImage, int maxWidth, int maxHeight);
+	@Nonnull
+	IPacketImageData loadPacketImageData(@Nonnull BufferedImage bufferedImage, int maxWidth, int maxHeight);
 
-	default IPacketImageData loadPacketImageData(InputStream inputStream) throws IOException {
+	@Nonnull
+	default IPacketImageData loadPacketImageData(@Nonnull @WillNotClose InputStream inputStream) throws IOException {
 		return loadPacketImageData(inputStream, 255, 255);
 	}
 
-	IPacketImageData loadPacketImageData(InputStream inputStream, int maxWidth, int maxHeight) throws IOException;
+	@Nonnull
+	IPacketImageData loadPacketImageData(@Nonnull @WillNotClose InputStream inputStream, int maxWidth, int maxHeight) throws IOException;
 
-	default IPacketImageData loadPacketImageData(File imageFile) throws IOException {
+	@Nonnull
+	default IPacketImageData loadPacketImageData(@Nonnull File imageFile) throws IOException {
 		return loadPacketImageData(imageFile, 255, 255);
 	}
 
-	IPacketImageData loadPacketImageData(File imageFile, int maxWidth, int maxHeight) throws IOException;
+	@Nonnull
+	IPacketImageData loadPacketImageData(@Nonnull File imageFile, int maxWidth, int maxHeight) throws IOException;
 
 }

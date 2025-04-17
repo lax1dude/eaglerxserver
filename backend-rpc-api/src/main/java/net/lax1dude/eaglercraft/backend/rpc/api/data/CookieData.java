@@ -2,13 +2,18 @@ package net.lax1dude.eaglercraft.backend.rpc.api.data;
 
 import java.util.Arrays;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public final class CookieData {
 
+	@Nonnull
 	public static CookieData disabled() {
 		return DISABLED;
 	}
 
-	public static CookieData create(byte[] cookieBytes) {
+	@Nonnull
+	public static CookieData create(@Nullable byte[] cookieBytes) {
 		return new CookieData(true, cookieBytes);
 	}
 
@@ -17,7 +22,7 @@ public final class CookieData {
 	private final boolean cookieEnabled;
 	private final byte[] cookieBytes;
 
-	private CookieData(boolean cookieEnabled, byte[] cookieBytes) {
+	private CookieData(boolean cookieEnabled, @Nullable byte[] cookieBytes) {
 		this.cookieEnabled = cookieEnabled;
 		this.cookieBytes = cookieBytes;
 	}
@@ -26,6 +31,7 @@ public final class CookieData {
 		return cookieEnabled;
 	}
 
+	@Nullable
 	public byte[] getCookieBytes() {
 		return cookieBytes;
 	}

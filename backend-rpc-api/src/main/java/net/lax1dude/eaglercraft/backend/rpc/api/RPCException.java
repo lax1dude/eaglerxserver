@@ -16,20 +16,22 @@
 
 package net.lax1dude.eaglercraft.backend.rpc.api;
 
+import javax.annotation.Nullable;
+
 public class RPCException extends RuntimeException {
 
 	public RPCException() {
 	}
 
-	public RPCException(String message, Throwable cause) {
+	public RPCException(@Nullable String message, @Nullable Throwable cause) {
 		super(message, cause);
 	}
 
-	public RPCException(String message) {
+	public RPCException(@Nullable String message) {
 		super(message);
 	}
 
-	public RPCException(Throwable cause) {
+	public RPCException(@Nullable Throwable cause) {
 		super(cause);
 	}
 

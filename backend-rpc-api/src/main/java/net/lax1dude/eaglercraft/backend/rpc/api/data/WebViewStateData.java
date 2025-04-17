@@ -4,12 +4,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.collect.ImmutableSet;
 
 public final class WebViewStateData {
 
+	@Nonnull
 	public static WebViewStateData create(boolean webViewAllowed, boolean channelAllowed,
-			Collection<String> openChannels) {
+			@Nonnull Collection<String> openChannels) {
 		if(openChannels == null) {
 			throw new NullPointerException("openChannels");
 		}
@@ -18,6 +21,7 @@ public final class WebViewStateData {
 
 	private static final WebViewStateData DISABLED = new WebViewStateData(false, false, Collections.emptySet());
 
+	@Nonnull
 	public static WebViewStateData disabled() {
 		return DISABLED;
 	}
@@ -41,6 +45,7 @@ public final class WebViewStateData {
 		return channelAllowed;
 	}
 
+	@Nonnull
 	public Set<String> getOpenChannels() {
 		return openChannels;
 	}

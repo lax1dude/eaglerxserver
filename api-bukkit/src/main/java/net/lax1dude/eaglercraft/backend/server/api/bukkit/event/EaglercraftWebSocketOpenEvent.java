@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.api.bukkit.event;
 
+import javax.annotation.Nonnull;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -16,10 +18,12 @@ public abstract class EaglercraftWebSocketOpenEvent extends Event
 		super(false);
 	}
 
+	@Nonnull
 	public HandlerList getHandlers() {
 		return handlers;
 	}
 
+	@Nonnull
 	public static HandlerList getHandlerList() {
 		return handlers;
 	}

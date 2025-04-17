@@ -19,6 +19,8 @@ package net.lax1dude.eaglercraft.backend.rpc.api;
 import java.util.EnumSet;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 public enum EnumSubscribeEvents {
 
 	/** @see net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewOpenCloseEvent */
@@ -48,7 +50,7 @@ public enum EnumSubscribeEvents {
 		return bit;
 	}
 
-	public static int toBits(EnumSubscribeEvents... evts) {
+	public static int toBits(@Nonnull EnumSubscribeEvents... evts) {
 		int bits = 0;
 		for(int i = 0; i < evts.length; ++i) {
 			bits |= evts[i].bit;
@@ -56,6 +58,7 @@ public enum EnumSubscribeEvents {
 		return bits;
 	}
 
+	@Nonnull
 	public static Set<EnumSubscribeEvents> fromBits(int bits) {
 		Set<EnumSubscribeEvents> set = EnumSet.noneOf(EnumSubscribeEvents.class);
 		if((bits & 1) != 0) set.add(EVENT_WEBVIEW_OPEN_CLOSE);

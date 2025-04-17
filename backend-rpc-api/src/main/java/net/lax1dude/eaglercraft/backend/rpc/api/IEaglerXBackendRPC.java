@@ -4,6 +4,9 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.backend.rpc.api.internal.factory.EaglerXBackendRPCFactory;
 import net.lax1dude.eaglercraft.backend.rpc.api.internal.factory.IEaglerRPCFactory;
 import net.lax1dude.eaglercraft.backend.rpc.api.notifications.INotificationBuilder;
@@ -13,69 +16,93 @@ import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceService;
 
 public interface IEaglerXBackendRPC<PlayerObject> extends IRPCAttributeHolder {
 
+	@Nonnull
 	public static <PlayerObject> IEaglerXBackendRPC<PlayerObject> instance(Class<PlayerObject> playerObj) {
 		return EaglerXBackendRPCFactory.INSTANCE.getAPI(playerObj);
 	}
 
+	@Nonnull
 	public static IEaglerXBackendRPC<?> instance() {
 		return EaglerXBackendRPCFactory.INSTANCE.getDefaultAPI();
 	}
 
+	@Nonnull
 	public static Set<Class<?>> getPlayerTypes() {
 		return EaglerXBackendRPCFactory.INSTANCE.getPlayerTypes();
 	}
 
+	@Nonnull
 	public static IEaglerRPCFactory getFactoryInstance() {
 		return EaglerXBackendRPCFactory.INSTANCE;
 	}
 
+	@Nonnull
 	IEaglerRPCFactory getFactory();
 
+	@Nonnull
 	EnumPlatformType getPlatformType();
 
+	@Nonnull
 	Class<PlayerObject> getPlayerClass();
 
+	@Nonnull
 	IVoiceService<PlayerObject> getVoiceService();
 
+	@Nonnull
 	ISkinImageLoader getSkinImageLoader(boolean cacheEnabled);
 
+	@Nonnull
 	IPacketImageLoader getPacketImageLoader();
 
+	@Nonnull
 	Set<Class<?>> getComponentTypes();
 
+	@Nonnull
 	IPauseMenuBuilder createPauseMenuBuilder();
 
-	<ComponentType> INotificationBuilder<ComponentType> createNotificationBadgeBuilder(Class<ComponentType> componentType);
+	@Nonnull
+	<ComponentType> INotificationBuilder<ComponentType> createNotificationBadgeBuilder(
+			@Nonnull Class<ComponentType> componentType);
 
-	IBasePlayer<PlayerObject> getBasePlayer(PlayerObject player);
+	@Nullable
+	IBasePlayer<PlayerObject> getBasePlayer(@Nonnull PlayerObject player);
 
-	IBasePlayer<PlayerObject> getBasePlayerByName(String playerName);
+	@Nullable
+	IBasePlayer<PlayerObject> getBasePlayerByName(@Nonnull String playerName);
 
-	IBasePlayer<PlayerObject> getBasePlayerByUUID(UUID playerUUID);
+	@Nullable
+	IBasePlayer<PlayerObject> getBasePlayerByUUID(@Nonnull UUID playerUUID);
 
-	IEaglerPlayer<PlayerObject> getEaglerPlayer(PlayerObject player);
+	@Nullable
+	IEaglerPlayer<PlayerObject> getEaglerPlayer(@Nonnull PlayerObject player);
 
-	IEaglerPlayer<PlayerObject> getEaglerPlayerByName(String playerName);
+	@Nullable
+	IEaglerPlayer<PlayerObject> getEaglerPlayerByName(@Nonnull String playerName);
 
-	IEaglerPlayer<PlayerObject> getEaglerPlayerByUUID(UUID playerUUID);
+	@Nullable
+	IEaglerPlayer<PlayerObject> getEaglerPlayerByUUID(@Nonnull UUID playerUUID);
 
-	boolean isEaglerPlayer(PlayerObject player);
+	boolean isEaglerPlayer(@Nonnull PlayerObject player);
 
-	boolean isEaglerPlayerByName(String playerName);
+	boolean isEaglerPlayerByName(@Nonnull String playerName);
 
-	boolean isEaglerPlayerByUUID(UUID playerUUID);
+	boolean isEaglerPlayerByUUID(@Nonnull UUID playerUUID);
 
+	@Nonnull
 	Collection<IBasePlayer<PlayerObject>> getAllPlayers();
 
+	@Nonnull
 	Collection<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers();
 
+	@Nonnull
 	IScheduler getScheduler();
 
 	void setBaseRequestTimeout(int seconds);
 
 	int getBaseRequestTimeout();
 
-	UUID intern(UUID uuid);
+	@Nonnull
+	UUID intern(@Nonnull UUID uuid);
 
 	boolean isLocal();
 

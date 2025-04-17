@@ -2,46 +2,51 @@ package net.lax1dude.eaglercraft.backend.rpc.api;
 
 import java.util.concurrent.Executor;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
 public interface IRPCFuture<V> extends ListenableFuture<V> {
 
+	@Nonnull
 	Executor getScheduler();
 
+	@Nonnull
 	Executor getSchedulerAsync();
 
+	@Nonnull
 	Executor getSchedulerTiny();
 
 	/**
 	 * Warning: Futures.addCallback is recommended!
 	 */
-	default void addListener(Runnable runnable) {
+	default void addListener(@Nonnull Runnable runnable) {
 		addListener(runnable, getScheduler());
 	}
 
-	default void addListenerAsync(Runnable runnable) {
+	default void addListenerAsync(@Nonnull Runnable runnable) {
 		addListener(runnable, getSchedulerAsync());
 	}
 
-	default void addListenerTiny(Runnable runnable) {
+	default void addListenerTiny(@Nonnull Runnable runnable) {
 		addListener(runnable, getSchedulerTiny());
 	}
 
-	default void addCallback(FutureCallback<? super V> callback, Executor executor) {
+	default void addCallback(@Nonnull FutureCallback<? super V> callback, @Nonnull Executor executor) {
 		Futures.addCallback(this, callback, executor);
 	}
 
-	default void addCallback(FutureCallback<? super V> callback) {
+	default void addCallback(@Nonnull FutureCallback<? super V> callback) {
 		Futures.addCallback(this, callback, getScheduler());
 	}
 
-	default void addCallbackAsync(FutureCallback<? super V> callback) {
+	default void addCallbackAsync(@Nonnull FutureCallback<? super V> callback) {
 		Futures.addCallback(this, callback, getSchedulerAsync());
 	}
 
-	default void addCallbackTiny(FutureCallback<? super V> callback) {
+	default void addCallbackTiny(@Nonnull FutureCallback<? super V> callback) {
 		Futures.addCallback(this, callback, getSchedulerTiny());
 	}
 

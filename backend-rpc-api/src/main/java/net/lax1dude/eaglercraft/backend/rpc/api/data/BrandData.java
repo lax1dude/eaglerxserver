@@ -2,9 +2,13 @@ package net.lax1dude.eaglercraft.backend.rpc.api.data;
 
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+
 public final class BrandData {
 
-	public static BrandData create(String brandName, String brandVersion, UUID brandUUID) {
+	@Nonnull
+	public static BrandData create(@Nonnull String brandName, @Nonnull String brandVersion,
+			@Nonnull UUID brandUUID) {
 		if(brandName == null) {
 			throw new NullPointerException("brandName");
 		}
@@ -27,14 +31,17 @@ public final class BrandData {
 		this.brandUUID = brandUUID;
 	}
 
+	@Nonnull
 	public String getBrandName() {
 		return brandName;
 	}
 
+	@Nonnull
 	public String getBrandVersion() {
 		return brandVersion;
 	}
 
+	@Nonnull
 	public UUID getBrandUUID() {
 		return brandUUID;
 	}

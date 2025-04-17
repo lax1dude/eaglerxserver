@@ -16,12 +16,14 @@
 
 package net.lax1dude.eaglercraft.backend.rpc.api;
 
+import javax.annotation.Nullable;
+
 public class RPCTimeoutException extends RPCException {
 
 	public RPCTimeoutException() {
 	}
 
-	public RPCTimeoutException(String message) {
+	public RPCTimeoutException(@Nullable String message) {
 		super(message);
 	}
 

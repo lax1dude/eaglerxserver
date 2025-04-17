@@ -1,11 +1,14 @@
 package net.lax1dude.eaglercraft.backend.rpc.api.data;
 
+import javax.annotation.Nonnull;
+
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerSkin;
 
 public final class TexturesData {
 
-	public static TexturesData create(IEaglerPlayerSkin skin, IEaglerPlayerCape cape) {
+	@Nonnull
+	public static TexturesData create(@Nonnull IEaglerPlayerSkin skin, @Nonnull IEaglerPlayerCape cape) {
 		if(skin == null) {
 			throw new NullPointerException("skin");
 		}
@@ -23,10 +26,12 @@ public final class TexturesData {
 		this.cape = cape;
 	}
 
+	@Nonnull
 	public IEaglerPlayerSkin getSkin() {
 		return skin;
 	}
 
+	@Nonnull
 	public IEaglerPlayerCape getCape() {
 		return cape;
 	}

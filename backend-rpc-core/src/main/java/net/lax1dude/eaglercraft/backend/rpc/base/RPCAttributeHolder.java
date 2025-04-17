@@ -12,7 +12,11 @@ public class RPCAttributeHolder implements IRPCAttributeHolder {
 
 	@Override
 	public <T> void set(RPCAttributeKey<T> key, T value) {
-		map.put(key, value);
+		if(value != null) {
+			map.put(key, value);
+		}else {
+			map.remove(key);
+		}
 	}
 
 	@Override

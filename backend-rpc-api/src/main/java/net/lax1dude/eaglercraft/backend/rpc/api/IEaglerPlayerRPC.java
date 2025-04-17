@@ -5,6 +5,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.backend.rpc.api.data.BrandData;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.CookieData;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.WebViewStateData;
@@ -17,6 +20,8 @@ import net.lax1dude.eaglercraft.backend.rpc.api.webview.EnumWebViewPerms;
 
 public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObject> {
 
+	@Nonnull
+	@Override
 	IEaglerPlayer<PlayerObject> getPlayer();
 
 	int getEaglerHandshakeVersion();
@@ -27,141 +32,169 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 
 	int getRewindProtocolVersion();
 
-	boolean hasCapability(EnumCapabilitySpec capability);
+	boolean hasCapability(@Nonnull EnumCapabilitySpec capability);
 
-	int getCapability(EnumCapabilityType capability);
+	int getCapability(@Nonnull EnumCapabilityType capability);
 
-	boolean hasExtendedCapability(UUID extendedCapability, int version);
+	boolean hasExtendedCapability(@Nonnull UUID extendedCapability, int version);
 
-	int getExtendedCapability(UUID extendedCapability);
+	int getExtendedCapability(@Nonnull UUID extendedCapability);
 
+	@Nonnull
 	default IRPCFuture<String> getRealAddress() {
 		return getRealAddress(getBaseRequestTimeout());
 	}
 
+	@Nonnull
 	IRPCFuture<String> getRealAddress(int timeoutSec);
 
-	default IRPCFuture<String> getWebSocketHeader(EnumWebSocketHeader header) {
+	@Nonnull
+	default IRPCFuture<String> getWebSocketHeader(@Nonnull EnumWebSocketHeader header) {
 		return getWebSocketHeader(header, getBaseRequestTimeout());
 	}
 
-	IRPCFuture<String> getWebSocketHeader(EnumWebSocketHeader header, int timeoutSec);
+	@Nonnull
+	IRPCFuture<String> getWebSocketHeader(@Nonnull EnumWebSocketHeader header, int timeoutSec);
 
+	@Nonnull
 	default IRPCFuture<String> getWebSocketHost() {
 		return getWebSocketHeader(EnumWebSocketHeader.HEADER_HOST, getBaseRequestTimeout());
 	}
 
+	@Nonnull
 	default IRPCFuture<String> getWebSocketHost(int timeoutSec) {
 		return getWebSocketHeader(EnumWebSocketHeader.HEADER_HOST, timeoutSec);
 	}
 
+	@Nonnull
 	default IRPCFuture<String> getWebSocketPath() {
 		return getWebSocketPath(getBaseRequestTimeout());
 	}
 
+	@Nonnull
 	IRPCFuture<String> getWebSocketPath(int timeoutSec);
 
+	@Nonnull
 	default IRPCFuture<CookieData> getCookieData() {
 		return getCookieData(getBaseRequestTimeout());
 	}
 
+	@Nonnull
 	IRPCFuture<CookieData> getCookieData(int timeoutSec);
 
+	@Nonnull
 	default IRPCFuture<BrandData> getBrandData() {
 		return getBrandData(getBaseRequestTimeout());
 	}
 
+	@Nonnull
 	IRPCFuture<BrandData> getBrandData(int timeoutSec);
 
+	@Nonnull
 	default IRPCFuture<byte[]> getAuthUsername() {
 		return getAuthUsername(getBaseRequestTimeout());
 	}
 
+	@Nonnull
 	IRPCFuture<byte[]> getAuthUsername(int timeoutSec);
 
+	@Nonnull
 	default IRPCFuture<EnumVoiceState> getVoiceState() {
 		return getVoiceState(getBaseRequestTimeout());
 	}
 
+	@Nonnull
 	IRPCFuture<EnumVoiceState> getVoiceState(int timeoutSec);
 
+	@Nonnull
 	default IRPCFuture<WebViewStateData> getWebViewState() {
 		return getWebViewState(getBaseRequestTimeout());
 	}
 
+	@Nonnull
 	IRPCFuture<WebViewStateData> getWebViewState(int timeoutSec);
 
-	default void sendRawEaglerPacketV4(byte[] data) {
+	default void sendRawEaglerPacketV4(@Nonnull byte[] data) {
 		sendRawCustomPayloadPacket("EAG|1.8", data);
 	}
 
-	void injectRawBinaryFrame(byte[] data);
+	void injectRawBinaryFrame(@Nonnull byte[] data);
 
 	int getSubscribedEventsBits();
 
+	@Nonnull
 	default Set<EnumSubscribeEvents> getSubscribedEvents() {
 		return EnumSubscribeEvents.fromBits(getSubscribedEventsBits());
 	}
 
-	void addGenericEventListener(EnumSubscribeEvents eventType, IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler);
+	void addGenericEventListener(@Nonnull EnumSubscribeEvents eventType,
+			@Nonnull IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler);
 
-	void removeGenericEventListener(EnumSubscribeEvents eventType, IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler);
+	void removeGenericEventListener(@Nonnull EnumSubscribeEvents eventType,
+			@Nonnull IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler);
 
-	default <T extends IRPCEvent> void addEventListener(RPCEventType<T> eventType, IRPCEventHandler<PlayerObject, ? super T> handler) {
+	default <T extends IRPCEvent> void addEventListener(@Nonnull RPCEventType<T> eventType,
+			@Nonnull IRPCEventHandler<PlayerObject, ? super T> handler) {
 		addGenericEventListener(eventType.getEventType(), handler);
 	}
 
-	default <T extends IRPCEvent> void addEventListener(RPCEventType<T> eventType, IRPCEventHandlerSync<PlayerObject, ? super T> handler) {
+	default <T extends IRPCEvent> void addEventListener(@Nonnull RPCEventType<T> eventType,
+			@Nonnull IRPCEventHandlerSync<PlayerObject, ? super T> handler) {
 		addGenericEventListener(eventType.getEventType(), handler);
 	}
 
-	default <T extends IRPCEvent> void addEventListenerAsync(RPCEventType<T> eventType, IRPCEventHandlerAsync<PlayerObject, ? super T> handler) {
+	default <T extends IRPCEvent> void addEventListenerAsync(@Nonnull RPCEventType<T> eventType,
+			@Nonnull IRPCEventHandlerAsync<PlayerObject, ? super T> handler) {
 		addGenericEventListener(eventType.getEventType(), handler);
 	}
 
-	default <T extends IRPCEvent> void addEventListenerTiny(RPCEventType<T> eventType, IRPCEventHandlerTiny<PlayerObject, ? super T> handler) {
+	default <T extends IRPCEvent> void addEventListenerTiny(@Nonnull RPCEventType<T> eventType,
+			@Nonnull IRPCEventHandlerTiny<PlayerObject, ? super T> handler) {
 		addGenericEventListener(eventType.getEventType(), handler);
 	}
 
-	default <T extends IRPCEvent> void removeEventListener(RPCEventType<T> eventType, IRPCEventHandler<PlayerObject, ? super T> handler) {
+	default <T extends IRPCEvent> void removeEventListener(@Nonnull RPCEventType<T> eventType,
+			@Nonnull IRPCEventHandler<PlayerObject, ? super T> handler) {
 		removeGenericEventListener(eventType.getEventType(), handler);
 	}
 
 	boolean isRedirectPlayerSupported();
 
-	void redirectPlayerToWebSocket(String webSocketURI);
+	void redirectPlayerToWebSocket(@Nonnull String webSocketURI);
 
 	boolean isPauseMenuCustomizationSupported();
 
-	void setPauseMenuCustomizationState(ICustomPauseMenu packet);
+	void setPauseMenuCustomizationState(@Nonnull ICustomPauseMenu packet);
 
-	void sendWebViewMessageString(String channelName, String data);
+	void sendWebViewMessageString(@Nonnull String channelName, @Nonnull String data);
 
-	void sendWebViewMessageString(String channelName, byte[] data);
+	void sendWebViewMessageString(@Nonnull String channelName, @Nonnull byte[] data);
 
-	void sendWebViewMessageBytes(String channelName, byte[] data);
+	void sendWebViewMessageBytes(@Nonnull String channelName, @Nonnull byte[] data);
 
 	boolean isCookieSupported();
 
-	void setCookieData(byte[] cookieData, long expiresAfterSec, boolean revokeQuerySupported, boolean saveToDisk);
+	void setCookieData(@Nullable byte[] cookieData, long expiresAfterSec, boolean revokeQuerySupported, boolean saveToDisk);
 
-	default void setCookieData(byte[] cookieData, long expiresAfter, TimeUnit expiresTimeUnit, boolean revokeQuerySupported, boolean saveToDisk) {
+	default void setCookieData(@Nullable byte[] cookieData, long expiresAfter, @Nonnull TimeUnit expiresTimeUnit,
+			boolean revokeQuerySupported, boolean saveToDisk) {
 		setCookieData(cookieData, expiresTimeUnit.toSeconds(expiresAfter), revokeQuerySupported, saveToDisk);
 	}
 
-	default void setCookieData(byte[] cookieData, long expiresAfterSec, boolean revokeQuerySupported) {
+	default void setCookieData(@Nullable byte[] cookieData, long expiresAfterSec, boolean revokeQuerySupported) {
 		setCookieData(cookieData, expiresAfterSec, revokeQuerySupported, true);
 	}
 
-	default void setCookieData(byte[] cookieData, long expiresAfter, TimeUnit expiresTimeUnit, boolean revokeQuerySupported) {
+	default void setCookieData(@Nullable byte[] cookieData, long expiresAfter, @Nonnull TimeUnit expiresTimeUnit,
+			boolean revokeQuerySupported) {
 		setCookieData(cookieData, expiresTimeUnit.toSeconds(expiresAfter), revokeQuerySupported, true);
 	}
 
-	default void setCookieData(byte[] cookieData, long expiresAfterSec) {
+	default void setCookieData(@Nullable byte[] cookieData, long expiresAfterSec) {
 		setCookieData(cookieData, expiresAfterSec, false, true);
 	}
 
-	default void setCookieData(byte[] cookieData, long expiresAfter, TimeUnit expiresTimeUnit) {
+	default void setCookieData(@Nullable byte[] cookieData, long expiresAfter, @Nonnull TimeUnit expiresTimeUnit) {
 		setCookieData(cookieData, expiresTimeUnit.toSeconds(expiresAfter), false, true);
 	}
 
@@ -169,42 +202,42 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 		setCookieData(null, 0l, false, false);
 	}
 
-	void setEnableFNAWSkins(EnumEnableFNAW state);
+	void setEnableFNAWSkins(@Nonnull EnumEnableFNAW state);
 
 	void resetEnableFNAWSkins();
 
 	boolean isNotificationSupported();
 
-	void registerNotificationIcon(UUID iconUUID, IPacketImageData icon);
+	void registerNotificationIcon(@Nonnull UUID iconUUID, @Nonnull IPacketImageData icon);
 
-	void registerNotificationIcons(Collection<IconDef> icons);
+	void registerNotificationIcons(@Nonnull Collection<IconDef> icons);
 
-	void releaseNotificationIcon(UUID iconUUID);
+	void releaseNotificationIcon(@Nonnull UUID iconUUID);
 
-	void releaseNotificationIcons(Collection<UUID> iconUUIDs);
+	void releaseNotificationIcons(@Nonnull Collection<UUID> iconUUIDs);
 
-	void showNotificationBadge(INotificationBadge badge);
+	void showNotificationBadge(@Nonnull INotificationBadge badge);
 
-	void hideNotificationBadge(UUID badgeUUID);
+	void hideNotificationBadge(@Nonnull UUID badgeUUID);
 
 	boolean isDisplayWebViewSupported();
 
-	default void displayWebViewURL(String title, String url) {
+	default void displayWebViewURL(@Nonnull String title, @Nonnull String url) {
 		displayWebViewURL(title, url, null);
 	}
 
-	void displayWebViewURL(String title, String url, Set<EnumWebViewPerms> permissions);
+	void displayWebViewURL(@Nonnull String title, @Nonnull String url, @Nullable Set<EnumWebViewPerms> permissions);
 
-	default void displayWebViewBlob(String title, SHA1Sum hash) {
+	default void displayWebViewBlob(@Nonnull String title, @Nonnull SHA1Sum hash) {
 		displayWebViewBlob(title, hash, null);
 	}
 
-	void displayWebViewBlob(String title, SHA1Sum hash, Set<EnumWebViewPerms> permissions);
+	void displayWebViewBlob(@Nonnull String title, @Nonnull SHA1Sum hash, @Nullable Set<EnumWebViewPerms> permissions);
 
-	default void displayWebViewBlob(String title, String alias) {
+	default void displayWebViewBlob(@Nonnull String title, @Nonnull String alias) {
 		displayWebViewBlob(title, alias, null);
 	}
 
-	void displayWebViewBlob(String title, String alias, Set<EnumWebViewPerms> permissions);
+	void displayWebViewBlob(@Nonnull String title, @Nonnull String alias, @Nullable Set<EnumWebViewPerms> permissions);
 
 }

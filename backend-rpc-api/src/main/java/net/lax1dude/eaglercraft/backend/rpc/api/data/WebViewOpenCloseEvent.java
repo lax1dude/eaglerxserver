@@ -1,11 +1,17 @@
 package net.lax1dude.eaglercraft.backend.rpc.api.data;
 
+import javax.annotation.Nonnull;
+
 import net.lax1dude.eaglercraft.backend.rpc.api.EnumSubscribeEvents;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCEvent;
 
 public final class WebViewOpenCloseEvent implements IRPCEvent {
 
-	public static WebViewOpenCloseEvent create(String channelName, boolean opened) {
+	@Nonnull
+	public static WebViewOpenCloseEvent create(@Nonnull String channelName, boolean opened) {
+		if(channelName == null) {
+			throw new NullPointerException("channelName");
+		}
 		return new WebViewOpenCloseEvent(channelName, opened);
 	}
 
@@ -17,6 +23,7 @@ public final class WebViewOpenCloseEvent implements IRPCEvent {
 		this.opened = opened;
 	}
 
+	@Nonnull
 	public String getChannelName() {
 		return channelName;
 	}
@@ -25,6 +32,7 @@ public final class WebViewOpenCloseEvent implements IRPCEvent {
 		return opened;
 	}
 
+	@Nonnull
 	@Override
 	public EnumSubscribeEvents getEventType() {
 		return EnumSubscribeEvents.EVENT_WEBVIEW_OPEN_CLOSE;

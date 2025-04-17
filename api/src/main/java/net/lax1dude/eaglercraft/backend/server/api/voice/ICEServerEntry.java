@@ -57,6 +57,7 @@ public final class ICEServerEntry {
 		return password;
 	}
 
+	@Nonnull
 	@Override
 	public String toString() {
 		return auth ? (uri + ';' + username + ';' + password) : uri;

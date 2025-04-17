@@ -3,6 +3,8 @@ package net.lax1dude.eaglercraft.backend.rpc.api.webview;
 import java.util.EnumSet;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 public enum EnumWebViewPerms {
 	JAVASCRIPT(1),
 	MESSAGE_API(2),
@@ -18,6 +20,7 @@ public enum EnumWebViewPerms {
 		return bit;
 	}
 
+	@Nonnull
 	public static Set<EnumWebViewPerms> fromBits(int bits) {
 		Set<EnumWebViewPerms> ret = EnumSet.noneOf(EnumWebViewPerms.class);
 		if((bits & 1) != 0) ret.add(JAVASCRIPT);
@@ -26,7 +29,7 @@ public enum EnumWebViewPerms {
 		return ret;
 	}
 
-	public static int toBits(Set<EnumWebViewPerms> set) {
+	public static int toBits(@Nonnull Set<EnumWebViewPerms> set) {
 		int ret = 0;
 		for(EnumWebViewPerms perm : set) {
 			ret |= perm.bit;

@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.rpc.api.skins;
 
+import javax.annotation.Nonnull;
+
 public enum EnumSkinModel {
 	STEVE(0), ALEX(1);
 
@@ -13,6 +15,7 @@ public enum EnumSkinModel {
 		return id;
 	}
 
+	@Nonnull
 	public static EnumSkinModel getById(int model) {
 		return model == 1 ? ALEX : STEVE;
 	}

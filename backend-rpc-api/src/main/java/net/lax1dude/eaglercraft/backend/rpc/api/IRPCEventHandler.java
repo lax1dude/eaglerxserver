@@ -16,10 +16,13 @@
 
 package net.lax1dude.eaglercraft.backend.rpc.api;
 
+import javax.annotation.Nonnull;
+
 public interface IRPCEventHandler<PlayerObject, T extends IRPCEvent> {
 
-	void handleEvent(IEaglerPlayerRPC<PlayerObject> api, EnumSubscribeEvents event, T data);
+	void handleEvent(@Nonnull IEaglerPlayerRPC<PlayerObject> api, @Nonnull EnumSubscribeEvents event, @Nonnull T data);
 
+	@Nonnull
 	EnumExecutorType getExecutor();
 
 }

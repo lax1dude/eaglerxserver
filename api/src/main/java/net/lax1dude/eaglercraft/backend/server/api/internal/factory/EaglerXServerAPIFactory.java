@@ -42,7 +42,7 @@ public abstract class EaglerXServerAPIFactory {
 
 		@Nonnull
 		@Override
-		public abstract <T> IEaglerXServerAPI<T> getAPI(Class<T> playerClass);
+		public abstract <T> IEaglerXServerAPI<T> getAPI(@Nonnull Class<T> playerClass);
 
 		@Nonnull
 		@Override

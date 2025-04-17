@@ -3,13 +3,17 @@ package net.lax1dude.eaglercraft.backend.rpc.api;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import javax.annotation.Nonnull;
+
 public final class SHA1Sum {
 
-	public static SHA1Sum ofData(byte[] data) {
+	@Nonnull
+	public static SHA1Sum ofData(@Nonnull byte[] data) {
 		return ofData(data, 0, data.length);
 	}
 
-	public static SHA1Sum ofData(byte[] data, int offset, int length) {
+	@Nonnull
+	public static SHA1Sum ofData(@Nonnull byte[] data, int offset, int length) {
 		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-1");
 			digest.update(data, offset, length);
@@ -20,17 +24,20 @@ public final class SHA1Sum {
 		}
 	}
 
-	public static SHA1Sum create(byte[] checksum) {
+	@Nonnull
+	public static SHA1Sum create(@Nonnull byte[] checksum) {
 		return create(checksum, 0, checksum.length);
 	}
 
-	public static SHA1Sum create(byte[] checksum, int offset, int length) {
+	@Nonnull
+	public static SHA1Sum create(@Nonnull byte[] checksum, int offset, int length) {
 		if(offset < 0) throw new ArrayIndexOutOfBoundsException(offset);
 		if(offset + length > checksum.length) throw new ArrayIndexOutOfBoundsException(length);
 		return create(intHelper(checksum, offset), intHelper(checksum, offset + 4), intHelper(checksum, offset + 8),
 				intHelper(checksum, offset + 12), intHelper(checksum, offset + 16));
 	}
 
+	@Nonnull
 	public static SHA1Sum create(int a, int b, int c, int d, int e) {
 		return new SHA1Sum(a, b, c, d, e);
 	}
@@ -69,13 +76,14 @@ public final class SHA1Sum {
 		return e;
 	}
 
+	@Nonnull
 	public byte[] asBytes() {
 		byte[] ret = new byte[20];
 		asBytes(ret, 0);
 		return ret;
 	}
 
-	public void asBytes(byte[] dst, int off) {
+	public void asBytes(@Nonnull byte[] dst, int off) {
 		byteHelper(dst, a, 0);
 		byteHelper(dst, b, 4);
 		byteHelper(dst, c, 8);
@@ -83,12 +91,12 @@ public final class SHA1Sum {
 		byteHelper(dst, e, 16);
 	}
 
-	private static int intHelper(byte[] src, int off) {
+	private static int intHelper(@Nonnull byte[] src, int off) {
 		return ((src[off] & 0xFF) << 24) | ((src[off + 1] & 0xFF) << 16) | ((src[off + 2] & 0xFF) << 8)
 				| (src[off + 3] & 0xFF);
 	}
 
-	private static void byteHelper(byte[] dst, int a, int off) {
+	private static void byteHelper(@Nonnull byte[] dst, int a, int off) {
 		dst[off] = (byte)(a >>> 24);
 		dst[off + 1] = (byte)(a >>> 16);
 		dst[off + 2] = (byte)(a >>> 8);
@@ -96,6 +104,7 @@ public final class SHA1Sum {
 	}
 
 	@Override
+	@Nonnull
 	public String toString() {
 		char[] ret = new char[40];
 		hexHelper(ret, 0, a);
@@ -108,7 +117,7 @@ public final class SHA1Sum {
 
 	private static final char[] hex = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
-	private static void hexHelper(char[] ret, int i, int j) {
+	private static void hexHelper(@Nonnull char[] ret, int i, int j) {
 		ret[i] = hex[(j >>> 28) & 0xF];
 		ret[i + 1] = hex[(j >>> 24) & 0xF];
 		ret[i + 2] = hex[(j >>> 20) & 0xF];

@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.rpc.api;
 
+import javax.annotation.Nonnull;
+
 public enum EnumPlatformType {
 	BUKKIT("Bukkit");
 
@@ -9,6 +11,7 @@ public enum EnumPlatformType {
 		this.name = name;
 	}
 
+	@Nonnull
 	public String getName() {
 		return name;
 	}

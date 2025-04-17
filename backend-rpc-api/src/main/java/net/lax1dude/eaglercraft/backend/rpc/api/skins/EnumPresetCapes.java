@@ -1,5 +1,8 @@
 package net.lax1dude.eaglercraft.backend.rpc.api.skins;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public enum EnumPresetCapes {
 	NO_CAPE(0, "No Cape"),
 	MINECON_2011(1, "Minecon 2011"),
@@ -40,16 +43,19 @@ public enum EnumPresetCapes {
 		return presetId;
 	}
 
+	@Nonnull
 	public String getName() {
 		return presentName;
 	}
 
 	private static final EnumPresetCapes[] VALUES;
 
+	@Nullable
 	public static EnumPresetCapes getById(int id) {
 		return id >= 0 && id < VALUES.length ? VALUES[id] : null;
 	}
 
+	@Nonnull
 	public static EnumPresetCapes getByIdOrDefault(int id) {
 		EnumPresetCapes ret = getById(id);
 		return ret != null ? ret : NO_CAPE;

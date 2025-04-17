@@ -2,84 +2,124 @@ package net.lax1dude.eaglercraft.backend.rpc.api.pause_menu;
 
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.lax1dude.eaglercraft.backend.rpc.api.IPacketImageData;
 import net.lax1dude.eaglercraft.backend.rpc.api.SHA1Sum;
 import net.lax1dude.eaglercraft.backend.rpc.api.webview.EnumWebViewPerms;
 
 public interface IPauseMenuBuilder {
 
-	IPauseMenuBuilder copyFrom(IPauseMenuBuilder pauseMenu);
+	@Nonnull
+	IPauseMenuBuilder copyFrom(@Nonnull IPauseMenuBuilder pauseMenu);
 
-	IPauseMenuBuilder copyFrom(ICustomPauseMenu pauseMenu);
+	@Nonnull
+	IPauseMenuBuilder copyFrom(@Nonnull ICustomPauseMenu pauseMenu);
 
+	@Nonnull
 	EnumServerInfoButton getServerInfoButtonMode();
 
+	@Nonnull
 	IPauseMenuBuilder setServerInfoButtonModeNone();
 
-	IPauseMenuBuilder setServerInfoButtonModeURL(String text, String url);
+	@Nonnull
+	IPauseMenuBuilder setServerInfoButtonModeURL(@Nonnull String text, @Nonnull String url);
 
-	IPauseMenuBuilder setServerInfoButtonModeWebViewURL(String text, String title, Set<EnumWebViewPerms> permissions, String url);
+	@Nonnull
+	IPauseMenuBuilder setServerInfoButtonModeWebViewURL(@Nonnull String text, @Nonnull String title,
+			@Nullable Set<EnumWebViewPerms> permissions, @Nonnull String url);
 
-	default IPauseMenuBuilder setServerInfoButtonModeWebViewURL(String text, String title, String url) {
+	@Nonnull
+	default IPauseMenuBuilder setServerInfoButtonModeWebViewURL(@Nonnull String text, @Nonnull String title,
+			@Nonnull String url) {
 		return setServerInfoButtonModeWebViewURL(text, title, null, url);
 	}
 
-	IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(String text, String title, Set<EnumWebViewPerms> permissions, SHA1Sum blobHash);
+	@Nonnull
+	IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(@Nonnull String text, @Nonnull String title,
+			@Nullable Set<EnumWebViewPerms> permissions, @Nonnull SHA1Sum blobHash);
 
-	default IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(String text, String title, SHA1Sum blobHash) {
+	@Nonnull
+	default IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(@Nonnull String text, @Nonnull String title,
+			@Nonnull SHA1Sum blobHash) {
 		return setServerInfoButtonModeWebViewBlob(text, title, null, blobHash);
 	}
 
-	IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(String text, String title, Set<EnumWebViewPerms> permissions, String blobAlias);
+	@Nonnull
+	IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(@Nonnull String text, @Nonnull String title,
+			@Nullable Set<EnumWebViewPerms> permissions, @Nonnull String blobAlias);
 
-	default IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(String text, String title, String blobAlias) {
+	@Nonnull
+	default IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(@Nonnull String text, @Nonnull String title,
+			@Nonnull String blobAlias) {
 		return setServerInfoButtonModeWebViewBlob(text, title, null, blobAlias);
 	}
 
+	@Nonnull
 	IPauseMenuBuilder setServerInfoButtonModeInheritDefault();
 
+	@Nullable
 	String getServerInfoButtonText();
 
+	@Nullable
 	String getServerInfoButtonURL();
 
+	@Nullable
 	String getServerInfoButtonWebViewTitle();
 
+	@Nonnull
 	Set<EnumWebViewPerms> getServerInfoButtonWebViewPerms();
 
+	@Nullable
 	SHA1Sum getServerInfoButtonBlobHash();
 
+	@Nullable
 	String getServerInfoButtonBlobAlias();
 
+	@Nonnull
 	EnumDiscordInviteButton getDiscordInviteButtonMode();
 
+	@Nonnull
 	IPauseMenuBuilder setDiscordInviteButtonModeNone();
 
-	IPauseMenuBuilder setDiscordInviteButtonModeURL(String text, String url);
+	@Nonnull
+	IPauseMenuBuilder setDiscordInviteButtonModeURL(@Nonnull String text, @Nonnull String url);
 
+	@Nonnull
 	IPauseMenuBuilder setDiscordInviteButtonModeInheritDefault();
 
+	@Nullable
 	String getDiscordInviteButtonText();
 
+	@Nullable
 	String getDiscordInviteButtonURL();
 
-	boolean isMenuIconInheritDefault(EnumPauseMenuIcon icon);
+	boolean isMenuIconInheritDefault(@Nonnull EnumPauseMenuIcon icon);
 
-	boolean isMenuIconInheritDefault(String icon);
+	boolean isMenuIconInheritDefault(@Nonnull String icon);
 
-	IPacketImageData getMenuIcon(EnumPauseMenuIcon icon);
+	@Nonnull
+	IPacketImageData getMenuIcon(@Nonnull EnumPauseMenuIcon icon);
 
-	IPacketImageData getMenuIcon(String icon);
+	@Nonnull
+	IPacketImageData getMenuIcon(@Nonnull String icon);
 
-	IPauseMenuBuilder setMenuIcon(EnumPauseMenuIcon icon, IPacketImageData imageData);
+	@Nonnull
+	IPauseMenuBuilder setMenuIcon(@Nonnull EnumPauseMenuIcon icon, @Nullable IPacketImageData imageData);
 
-	IPauseMenuBuilder setMenuIcon(String icon, IPacketImageData imageData);
+	@Nonnull
+	IPauseMenuBuilder setMenuIcon(@Nonnull String icon, @Nullable IPacketImageData imageData);
 
-	IPauseMenuBuilder setMenuIconInheritDefault(String icon);
+	@Nonnull
+	IPauseMenuBuilder setMenuIconInheritDefault(@Nonnull String icon);
 
+	@Nonnull
 	IPauseMenuBuilder clearMenuIcons();
 
 	boolean isRemoteFeaturesSupported();
 
+	@Nonnull
 	ICustomPauseMenu buildPauseMenu();
 
 }

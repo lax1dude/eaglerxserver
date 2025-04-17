@@ -2,12 +2,15 @@ package net.lax1dude.eaglercraft.backend.rpc.api.data;
 
 import java.nio.charset.StandardCharsets;
 
+import javax.annotation.Nonnull;
+
 import net.lax1dude.eaglercraft.backend.rpc.api.EnumSubscribeEvents;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCEvent;
 
 public final class WebViewMessageEvent implements IRPCEvent {
 
-	public static WebViewMessageEvent string(String channelName, byte[] messageContent) {
+	@Nonnull
+	public static WebViewMessageEvent string(@Nonnull String channelName, @Nonnull byte[] messageContent) {
 		if(channelName == null) {
 			throw new NullPointerException("channelName");
 		}
@@ -17,7 +20,8 @@ public final class WebViewMessageEvent implements IRPCEvent {
 		return new WebViewMessageEvent(channelName, EnumMessageType.STRING, messageContent);
 	}
 
-	public static WebViewMessageEvent binary(String channelName, byte[] messageContent) {
+	@Nonnull
+	public static WebViewMessageEvent binary(@Nonnull String channelName, @Nonnull byte[] messageContent) {
 		if(channelName == null) {
 			throw new NullPointerException("channelName");
 		}
@@ -38,29 +42,30 @@ public final class WebViewMessageEvent implements IRPCEvent {
 		this.messageContent = messageContent;
 	}
 
+	@Nonnull
 	public String getChannelName() {
 		return channelName;
 	}
 
+	@Nonnull
 	public EnumMessageType getMessageType() {
 		return messageType;
 	}
 
+	@Nonnull
 	public byte[] getContentBytes() {
-		return messageType == EnumMessageType.BINARY ? messageContent : null;
+		return messageContent;
 	}
 
+	@Nonnull
 	public String getContentStr() {
-		if(messageType == EnumMessageType.STRING) {
-			if(asString == null) {
-				asString = new String(messageContent, StandardCharsets.UTF_8);
-			}
-			return asString;
-		}else {
-			return null;
+		if(asString == null) {
+			asString = new String(messageContent, StandardCharsets.UTF_8);
 		}
+		return asString;
 	}
 
+	@Nonnull
 	@Override
 	public EnumSubscribeEvents getEventType() {
 		return EnumSubscribeEvents.EVENT_WEBVIEW_MESSAGE;
