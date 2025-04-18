@@ -40,7 +40,8 @@ public class ReusableByteArrayOutputStream extends OutputStream {
 	}
 
 	public byte[] returnBufferCopied() {
-		return Arrays.copyOf(currentBuffer, idx);
+		return (currentBuffer.length == idx && currentBuffer.length != originalSize) ? currentBuffer
+				: Arrays.copyOf(currentBuffer, idx);
 	}
 
 	private void growBuffer(int i) {

@@ -28,24 +28,40 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketInputBuffer;
 public class SimpleInputBufferImpl extends DataInputStream implements GamePacketInputBuffer {
 
 	protected byte[] toByteArrayReturns;
+	protected int toByteArrayLength = -1;
 
 	public SimpleInputBufferImpl(InputStream in) {
 		super(in);
 		this.toByteArrayReturns = null;
+		this.toByteArrayLength = -1;
 	}
 
 	public SimpleInputBufferImpl(InputStream in, byte[] toByteArrayReturns) {
 		super(in);
 		this.toByteArrayReturns = toByteArrayReturns;
+		this.toByteArrayLength = -1;
+	}
+
+	public SimpleInputBufferImpl(InputStream in, int toByteArrayLength) {
+		super(in);
+		this.toByteArrayReturns = null;
+		this.toByteArrayLength = toByteArrayLength;
 	}
 
 	public void setStream(InputStream parent) {
 		in = parent;
 		toByteArrayReturns = null;
+		toByteArrayLength = -1;
 	}
 
 	public void setToByteArrayReturns(byte[] toByteArrayReturns) {
 		this.toByteArrayReturns = toByteArrayReturns;
+		this.toByteArrayLength = -1;
+	}
+
+	public void setToByteArrayReturns(int len) {
+		this.toByteArrayReturns = null;
+		this.toByteArrayLength = len;
 	}
 
 	@Override
@@ -169,6 +185,10 @@ public class SimpleInputBufferImpl extends DataInputStream implements GamePacket
 	public byte[] toByteArray() throws IOException {
 		if(toByteArrayReturns != null) {
 			return toByteArrayReturns;
+		}else if(toByteArrayLength != -1) {
+			byte[] ret = new byte[toByteArrayLength];
+			in.read(ret);
+			return ret;
 		}else if(in instanceof ByteArrayInputStream) {
 			ByteArrayInputStream bis = (ByteArrayInputStream)in;
 			byte[] ret = new byte[bis.available()];
