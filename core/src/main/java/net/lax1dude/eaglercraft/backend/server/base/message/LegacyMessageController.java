@@ -61,8 +61,9 @@ public class LegacyMessageController extends MessageController {
 						int count = inputStreamSingleton.readVarInt();
 						for(int i = 0, j, k; i < count; ++i) {
 							j = inputStreamSingleton.readVarInt();
+							inputStreamSingleton.setToByteArrayReturns(j - 1);
 							k = byteInputStreamSingleton.getReaderIndex() + j;
-							if(j > inputStreamSingleton.available()) {
+							if(j < 0 || j > inputStreamSingleton.available()) {
 								throw new IOException("Packet fragment is too long: " + j + " > " + inputStreamSingleton.available());
 							}
 							pkt = protocol.readPacket(channel, GamePluginMessageConstants.CLIENT_TO_SERVER, inputStreamSingleton);
@@ -96,13 +97,13 @@ public class LegacyMessageController extends MessageController {
 				inputStream.feedBuffer(data);
 				SimpleInputBufferImpl inputBuffer = new SimpleInputBufferImpl(inputStream, data);
 				if(data[0] == (byte)0xFF && channel.equals(GamePluginMessageConstants.V4_CHANNEL)) {
-					inputBuffer.setToByteArrayReturns(null);
 					inputBuffer.readByte();
 					int count = inputBuffer.readVarInt();
 					for(int i = 0, j, k; i < count; ++i) {
 						j = inputBuffer.readVarInt();
+						inputBuffer.setToByteArrayReturns(j - 1);
 						k = inputStream.getReaderIndex() + j;
-						if(j > inputBuffer.available()) {
+						if(j < 0 || j > inputBuffer.available()) {
 							throw new IOException("Packet fragment is too long: " + j + " > " + inputBuffer.available());
 						}
 						pkt = protocol.readPacket(channel, GamePluginMessageConstants.CLIENT_TO_SERVER, inputBuffer);
@@ -161,7 +162,7 @@ public class LegacyMessageController extends MessageController {
 			data = bao.returnBuffer();
 		}
 		EaglerPlayerInstance<?> player = ((ServerMessageHandler)handler).eaglerHandle;
-		if(len != 0 && data.length != len && data.length + 1 != len) {
+		if(len != 0 && data.length != len && (protocol.ver > 3 || data.length + 1 != len)) {
 			player.getEaglerXServer().logger().warn("Packet " + packet.getClass().getSimpleName()
 					+ " was the wrong length after serialization, " + data.length + " != " + len);
 		}
@@ -176,14 +177,14 @@ public class LegacyMessageController extends MessageController {
 		byte[] dat;
 		if((int) OS_LOCK_HANDLE.compareAndExchangeAcquire(this, 0, 1) == 0) {
 			try {
-				for(int i = 0; i < packets.length; ++i) {
+				for(int i = 0; i < total; ++i) {
 					GameMessagePacket packet = packets[i];
 					int len = packet.length() + 1;
 					byteOutputStreamSingleton.feedBuffer(len == 0 ? outputTempBuffer : new byte[len]);
 					protocol.writePacket(GamePluginMessageConstants.SERVER_TO_CLIENT, outputStreamSingleton, packet);
 					dat = len == 0 ? byteOutputStreamSingleton.returnBufferCopied()
 							: byteOutputStreamSingleton.returnBuffer();
-					if(len != 0 && dat.length != len && dat.length + 1 != len) {
+					if(len != 0 && dat.length != len) {
 						player.getEaglerXServer().logger().warn("Packet " + packet.getClass().getSimpleName()
 								+ " was the wrong length after serialization, " + dat.length + " != " + len);
 					}
@@ -196,13 +197,13 @@ public class LegacyMessageController extends MessageController {
 		}else {
 			ReusableByteArrayOutputStream bao = new ReusableByteArrayOutputStream();
 			SimpleOutputBufferImpl outputStream = new SimpleOutputBufferImpl(bao);
-			for(int i = 0; i < packets.length; ++i) {
+			for(int i = 0; i < total; ++i) {
 				GameMessagePacket packet = packets[i];
 				int len = packet.length() + 1;
 				bao.feedBuffer(new byte[len == 0 ? 64 : len]);
 				protocol.writePacket(GamePluginMessageConstants.SERVER_TO_CLIENT, outputStream, packet);
 				dat = bao.returnBuffer();
-				if(len != 0 && dat.length != len && dat.length + 1 != len) {
+				if(len != 0 && dat.length != len) {
 					player.getEaglerXServer().logger().warn("Packet " + packet.getClass().getSimpleName()
 							+ " was the wrong length after serialization, " + dat.length + " != " + len);
 				}
@@ -211,7 +212,7 @@ public class LegacyMessageController extends MessageController {
 		}
 		int start = 0;
 		int i, j, sendCount, totalLen, lastLen;
-		while(total - start > 0) {
+		while(total > start) {
 			sendCount = 0;
 			totalLen = 0;
 			do {
@@ -219,7 +220,7 @@ public class LegacyMessageController extends MessageController {
 				lastLen = GamePacketOutputBuffer.getVarIntSize(i) + i;
 				totalLen += lastLen;
 				++sendCount;
-			}while(totalLen < 32760 && total - start - sendCount > 0);
+			}while(totalLen < 32760 && sendCount < total - start);
 			if(totalLen >= 32760) {
 				--sendCount;
 				totalLen -= lastLen;
