@@ -4,7 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.io.OutputStream;
+import java.io.Writer;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
@@ -33,15 +34,41 @@ public interface IWebViewService<PlayerObject> {
 	IWebViewProvider<PlayerObject> getDefaultProvider();
 
 	@Nonnull
-	default IWebViewBlob createWebViewBlob(@Nonnull String markupIn) {
-		return createWebViewBlob(markupIn.getBytes(StandardCharsets.UTF_8));
+	IWebViewBlobBuilder<OutputStream> createWebViewBlobBuilderStream();
+
+	@Nonnull
+	IWebViewBlobBuilder<Writer> createWebViewBlobBuilderWriter();
+
+	@Nonnull
+	default IWebViewBlob createWebViewBlob(@Nonnull CharSequence markupIn) {
+		IWebViewBlobBuilder<Writer> builder = createWebViewBlobBuilderWriter();
+		try(Writer os = builder.stream()) {
+			os.append(markupIn);
+		}catch(IOException ex) {
+			throw new RuntimeException("Unexpected IOException thrown", ex);
+		}
+		return builder.build();
 	}
 
 	@Nonnull
-	IWebViewBlob createWebViewBlob(@Nonnull byte[] bytesIn);
+	default IWebViewBlob createWebViewBlob(@Nonnull byte[] bytesIn) {
+		IWebViewBlobBuilder<OutputStream> builder = createWebViewBlobBuilderStream();
+		try(OutputStream os = builder.stream()) {
+			os.write(bytesIn);
+		}catch(IOException ex) {
+			throw new RuntimeException("Unexpected IOException thrown", ex);
+		}
+		return builder.build();
+	}
 
 	@Nonnull
-	IWebViewBlob createWebViewBlob(@Nonnull InputStream inputStream) throws IOException;
+	default IWebViewBlob createWebViewBlob(@Nonnull InputStream inputStream) throws IOException {
+		IWebViewBlobBuilder<OutputStream> builder = createWebViewBlobBuilderStream();
+		try(OutputStream os = builder.stream()) {
+			inputStream.transferTo(os);
+		}
+		return builder.build();
+	}
 
 	@Nonnull
 	default IWebViewBlob createWebViewBlob(@Nonnull File file) throws IOException {

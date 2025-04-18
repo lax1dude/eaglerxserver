@@ -272,17 +272,11 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 		for(;;) {
 			nextChannel = null;
 			prevChannel = (String)CHANNEL_NAME_HANDLE.getOpaque(this);
-			if(channel.equals(prevChannel)) {
-				if(open) {
+			if(open) {
+				if(channel.equals(prevChannel)) {
 					prevChannel = null;
 					break;
 				}else {
-					if(CHANNEL_NAME_HANDLE.compareAndExchange(this, prevChannel, null) == prevChannel) {
-						break;
-					}
-				}
-			}else {
-				if(open) {
 					nextChannel = channel;
 					if(allowed) {
 						if(CHANNEL_NAME_HANDLE.compareAndExchange(this, prevChannel, channel) == prevChannel) {
@@ -291,8 +285,9 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 					}else {
 						break;
 					}
-				}else {
-					prevChannel = null;
+				}
+			}else {
+				if(CHANNEL_NAME_HANDLE.compareAndExchange(this, prevChannel, null) == prevChannel) {
 					break;
 				}
 			}

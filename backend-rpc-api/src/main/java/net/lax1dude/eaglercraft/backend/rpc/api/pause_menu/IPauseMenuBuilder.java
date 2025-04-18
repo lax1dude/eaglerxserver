@@ -112,6 +112,9 @@ public interface IPauseMenuBuilder {
 	IPauseMenuBuilder setMenuIcon(@Nonnull String icon, @Nullable IPacketImageData imageData);
 
 	@Nonnull
+	IPauseMenuBuilder setMenuIconInheritDefault(@Nonnull EnumPauseMenuIcon icon);
+
+	@Nonnull
 	IPauseMenuBuilder setMenuIconInheritDefault(@Nonnull String icon);
 
 	@Nonnull

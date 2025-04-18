@@ -169,6 +169,11 @@ public class PauseMenuBuilderLocal implements IPauseMenuBuilder {
 	}
 
 	@Override
+	public IPauseMenuBuilder setMenuIconInheritDefault(EnumPauseMenuIcon icon) {
+		throw new UnsupportedOperationException("Remote features not supported by this builder");
+	}
+
+	@Override
 	public IPauseMenuBuilder setMenuIconInheritDefault(String icon) {
 		throw new UnsupportedOperationException("Remote features not supported by this builder");
 	}

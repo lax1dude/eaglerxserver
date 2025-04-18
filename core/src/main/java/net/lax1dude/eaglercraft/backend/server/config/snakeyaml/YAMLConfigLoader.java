@@ -41,7 +41,7 @@ public class YAMLConfigLoader {
 		dumpOpts.setPrettyFlow(true);
 		dumpOpts.setDefaultFlowStyle(FlowStyle.FLOW);
 		dumpOpts.setProcessComments(true);
-		YAML = new Yaml(new Constructor(loadOpts), new Representer(dumpOpts));
+		YAML = new Yaml(new Constructor(loadOpts), new Representer(dumpOpts), dumpOpts);
 	}
 
 	public static final int YAML_COMMENT_WRAP = 80;

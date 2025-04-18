@@ -63,7 +63,7 @@ public class PauseMenuManager<PlayerObject> implements IPauseMenuManager<PlayerO
 	}
 
 	public void updatePauseMenuRPC(SPacketCustomizePauseMenuV4EAG packet) {
-		activePauseMenu = PauseMenuImplVanilla.INSTANCE_RPC;
+		activePauseMenu = PauseMenuImplVanilla.getRPCMenu(packet);
 		player.sendEaglerMessage(packet);
 	}
 

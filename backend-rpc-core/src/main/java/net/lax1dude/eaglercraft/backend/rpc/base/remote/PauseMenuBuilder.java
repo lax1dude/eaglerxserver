@@ -358,6 +358,15 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 	}
 
 	@Override
+	public IPauseMenuBuilder setMenuIconInheritDefault(EnumPauseMenuIcon icon) {
+		if(customIcons == null) {
+			customIcons = new HashMap<>();
+		}
+		customIcons.put(icon.getIconName(), INHERIT_ICON);
+		return this;
+	}
+
+	@Override
 	public IPauseMenuBuilder setMenuIconInheritDefault(String icon) {
 		if(customIcons == null) {
 			customIcons = new HashMap<>();
@@ -431,7 +440,7 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 			serverInfoEmbedTitle = serverInfoTitle;
 			break;
 		case WEBVIEW_ALIAS:
-			serverInfoMode = CPacketRPCSetPauseMenuCustom.SERVER_INFO_MODE_SHOW_EMBED_OVER_WS;
+			serverInfoMode = CPacketRPCSetPauseMenuCustom.SERVER_INFO_MODE_SHOW_NAMED_EMBED_OVER_WS;
 			serverInfoButtonText = this.serverInfoButtonText;
 			serverInfoURL = serverInfoButtonBlobAlias;
 			serverInfoHash = null;

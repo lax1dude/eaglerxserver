@@ -661,10 +661,9 @@ public class EaglerConfigLoader {
 			boolean serverInfoButtonEmbedEnableMessageAPI = serverInfoButtonConf.getBoolean(
 				"enable_webview_message_api", false,
 				"If the server info webview has JavaScript enabled and should be permitted to open a message "
-				+ "channel back to your EaglerXBungee server to exchange arbitrary message packets. This "
-				+ "can be used, for example, to implement a dynamic menu on your server using JavaScript "
-				+ "and HTML that players can access through the server info webview that integrates directly "
-				+ "with your gamemodes."
+				+ "channel back to your server to exchange arbitrary message packets. This can be used, for "
+				+ "example, to implement a dynamic menu on your server using JavaScript and HTML that players "
+				+ "can access through the server info webview that integrates directly with your gamemodes."
 			);
 			boolean serverInfoButtonEmbedEnableStrictCSP = serverInfoButtonConf.getBoolean(
 				"enable_webview_strict_csp", true,

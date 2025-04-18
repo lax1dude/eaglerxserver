@@ -266,7 +266,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		ConfigDataPauseMenu pauseMenuConf = config.getPauseMenu();
 		if(pauseMenuConf.isEnableCustomPauseMenu()) {
 			try {
-				pauseMenuService.reloadDefaultPauseMenu(new File(platform.getDataFolder(), "pause_menu"), pauseMenuConf);
+				pauseMenuService.reloadDefaultPauseMenu(platform.getDataFolder(), pauseMenuConf);
 			} catch (IOException e) {
 				logger().error("Could not load custom pause menu!", e);
 				pauseMenuService.setDefaultPauseMenu(pauseMenuService.getVanillaPauseMenu());
