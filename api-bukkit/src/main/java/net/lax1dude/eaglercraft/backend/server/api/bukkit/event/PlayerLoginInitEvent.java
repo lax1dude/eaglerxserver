@@ -12,7 +12,7 @@ public abstract class PlayerLoginInitEvent extends Event {
 	private static final HandlerList handlers = new HandlerList();
 
 	protected PlayerLoginInitEvent() {
-		super(false);
+		super(true);
 	}
 
 	@Nonnull

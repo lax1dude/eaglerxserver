@@ -3,7 +3,6 @@ package net.lax1dude.eaglercraft.backend.server.base.supervisor.rpc;
 import java.lang.reflect.Constructor;
 import java.util.concurrent.ExecutionException;
 
-import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -48,7 +47,7 @@ class SupervisorDataType {
 			try {
 				return dataTypeCache.get(clazz);
 			} catch (ExecutionException e) {
-				Throwables.throwIfUnchecked(e.getCause());
+				if(e.getCause() instanceof RuntimeException ee) throw ee;
 				throw new RuntimeException(e.getCause());
 			}
 		}

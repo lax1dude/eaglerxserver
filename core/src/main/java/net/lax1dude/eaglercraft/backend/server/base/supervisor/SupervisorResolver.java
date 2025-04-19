@@ -10,7 +10,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -71,7 +70,7 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 		try {
 			return foreignSkinCache.get(url);
 		} catch (ExecutionException e) {
-			Throwables.throwIfUnchecked(e.getCause());
+			if(e.getCause() instanceof RuntimeException ee) throw ee;
 			throw new RuntimeException(e.getCause());
 		}
 	}
@@ -80,7 +79,7 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 		try {
 			return foreignCapeCache.get(url);
 		} catch (ExecutionException e) {
-			Throwables.throwIfUnchecked(e.getCause());
+			if(e.getCause() instanceof RuntimeException ee) throw ee;
 			throw new RuntimeException(e.getCause());
 		}
 	}

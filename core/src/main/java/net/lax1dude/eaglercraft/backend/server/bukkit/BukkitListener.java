@@ -55,7 +55,7 @@ class BukkitListener implements Listener {
 				}catch(IllegalStateException exx) {
 					return;
 				}
-				Throwables.throwIfUnchecked(ex);
+				if(ex instanceof RuntimeException ee) throw ee;
 				throw new RuntimeException("Uncaught exception", ex);
 			}
 		};

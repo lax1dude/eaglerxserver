@@ -8,6 +8,7 @@ import io.netty.buffer.ByteBuf;
 public class BufferUtils {
 
 	public static final boolean CHARSEQ_SUPPORT;
+	public static final boolean RETAINEDSLICE_SUPPORT;
 
 	static {
 		boolean b = false;
@@ -17,6 +18,12 @@ public class BufferUtils {
 		}catch(ReflectiveOperationException ex) {
 		}
 		CHARSEQ_SUPPORT = b;
+		try {
+			ByteBuf.class.getMethod("readRetainedSlice", int.class);
+			b = true;
+		}catch(ReflectiveOperationException ex) {
+		}
+		RETAINEDSLICE_SUPPORT = b;
 	}
 
 	public static int readVarInt(ByteBuf buffer, int maxBytes) {
@@ -176,6 +183,14 @@ public class BufferUtils {
 			}
 		}
 		return true;
+	}
+
+	public static ByteBuf readRetainedSlice(ByteBuf buffer, int length) {
+		if(RETAINEDSLICE_SUPPORT) {
+			return buffer.readRetainedSlice(length);
+		}else {
+			return buffer.readSlice(length).retain();
+		}
 	}
 
 }

@@ -33,24 +33,24 @@ public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 		}else {
 			EaglerListener listener = pipelineData.listenerInfo;
 			if(listener.isDualStack() && isVanillaHandshake(in)) {
-				setVanillaHandler(ctx, in.readRetainedSlice(in.readableBytes()));
+				setVanillaHandler(ctx, BufferUtils.readRetainedSlice(in, in.readableBytes()));
 			}else {
 				int state = isValidHTTPRequestLine(in);
 				if(state == 1) {
 					if(!listener.isTLSEnabled() || !listener.isTLSRequired()) {
-						setHTTPHandler(ctx, null, in.readRetainedSlice(in.readableBytes()));
+						setHTTPHandler(ctx, null, BufferUtils.readRetainedSlice(in, in.readableBytes()));
 					}else {
 						ctx.close();
 					}
 				}else if(state == 2) {
 					if(listener.isTLSEnabled()) {
-						setHTTPHandler(ctx, listener.getSSLContext(), in.readRetainedSlice(in.readableBytes()));
+						setHTTPHandler(ctx, listener.getSSLContext(), BufferUtils.readRetainedSlice(in, in.readableBytes()));
 					}else {
 						ctx.close();
 					}
 				}else if(state == 3) {
 					if(listener.isDualStack()) {
-						setVanillaHandler(ctx, in.readRetainedSlice(in.readableBytes()));
+						setVanillaHandler(ctx, BufferUtils.readRetainedSlice(in, in.readableBytes()));
 					}else {
 						ctx.close();
 					}

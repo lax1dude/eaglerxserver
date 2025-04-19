@@ -16,7 +16,6 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
-import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -137,7 +136,7 @@ public class ClassProxy<T> {
 			ret = (ClassProxy<T>) loadingCache.get(new HashPair<>(loader, parent));
 		} catch (ExecutionException e) {
 			Throwable t = e.getCause();
-			Throwables.throwIfUnchecked(t);
+			if(t instanceof RuntimeException ee) throw ee;
 			throw new RuntimeException(t);
 		}
 		return ret.createProxy(ctor, params, invocationHandler);
@@ -149,7 +148,7 @@ public class ClassProxy<T> {
 			return (ClassProxy<T>) loadingCache.get(new HashPair<>(loader, parent));
 		} catch (ExecutionException e) {
 			Throwable t = e.getCause();
-			Throwables.throwIfUnchecked(t);
+			if(t instanceof RuntimeException ee) throw ee;
 			throw new RuntimeException(t);
 		}
 	}

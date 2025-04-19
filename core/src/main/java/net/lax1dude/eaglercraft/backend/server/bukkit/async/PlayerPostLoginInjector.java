@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.server.bukkit.async;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Set;
@@ -13,6 +14,7 @@ import java.util.function.Consumer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerLoginEvent;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.MapMaker;
 import com.mojang.authlib.GameProfile;
@@ -20,6 +22,8 @@ import com.mojang.authlib.properties.Property;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerAdapter;
+import io.netty.channel.ChannelPipeline;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.GenericFutureListener;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.PlayerLoginPostEvent;
@@ -44,6 +48,7 @@ public class PlayerPostLoginInjector {
 	protected Method getHandlerMethod;
 	protected Class<Object> handshakeListenerClass;
 	protected Field handshakeListenerNetManager;
+	protected Field handlerAdded;
 
 	protected Class<Object> loginListenerClass;
 	protected Constructor<Object> loginListenerCtor;
@@ -55,7 +60,6 @@ public class PlayerPostLoginInjector {
 	protected Field loginListenerState;
 	protected Method loginListenerTick;
 	protected Field loginListenerPlayer;
-	protected Class<Object> entityPlayer;
 
 	protected Class<Object> packetLoginSuccessClass;
 	protected Field packetLoginSuccessGameProfile;
@@ -143,6 +147,8 @@ public class PlayerPostLoginInjector {
 			this.getHandlerMethod = getHandlerMethod;
 			this.handshakeListenerClass = handshakeListenerClass;
 			this.handshakeListenerNetManager = handshakeListenerNetManager;
+			this.handlerAdded = ChannelHandlerAdapter.class.getDeclaredField("added");
+			this.handlerAdded.setAccessible(true);
 		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
@@ -205,13 +211,14 @@ public class PlayerPostLoginInjector {
 					(obj, meth, args) -> {
 				if(setHandlerMethod.equals(meth)) {
 					if(args[0].getClass().getSimpleName().equals("LoginListener")) {
-						args[0] = wrapLoginListener(args[0], ctx);
-						meth.invoke(obj, args);
+						meth.invoke(netManager, args);
 						fireEventLoginInit(channel);
+						args[0] = wrapLoginListener(getHandlerMethod.invoke(netManager), ctx);
+						meth.invoke(netManager, args);
 						return null;
 					}
 				}else if(ctx.throwOnLoginSuccess && sendPacketMethod1.equals(meth)) {
-					meth.invoke(obj, args);
+					meth.invoke(netManager, args);
 					if(args[0].getClass().getSimpleName().equals("PacketLoginOutSuccess")) {
 						throw new EaglerError(getPacketProfile(args[0]));
 					}
@@ -221,7 +228,7 @@ public class PlayerPostLoginInjector {
 						return null;
 					}
 				}
-				return meth.invoke(obj, args);
+				return meth.invoke(netManager, args);
 			});
 			ctx.proxiedNetworkManager = ret;
 			channel.attr(attr).set(ctx);
@@ -292,6 +299,7 @@ public class PlayerPostLoginInjector {
 			Field loginListenerNetManager = null;
 			Class<Object> enumProtocolState = null;
 			Field loginListenerState = null;
+			Field loginListenerPlayer = null;
 			for(Field f : loginListenerClass.getDeclaredFields()) {
 				if(f.getType() == mcServerClass) {
 					f.setAccessible(true);
@@ -303,8 +311,11 @@ public class PlayerPostLoginInjector {
 					f.setAccessible(true);
 					loginListenerState = f;
 					enumProtocolState = (Class<Object>) f.getType();
+				}else if(f.getType().getSimpleName().equals("EntityPlayer")) {
+					f.setAccessible(true);
+					loginListenerPlayer = f;
 				}
-				if(loginListenerServer != null && loginListenerNetManager != null && loginListenerState != null) {
+				if(loginListenerServer != null && loginListenerNetManager != null && loginListenerState != null && loginListenerPlayer != null) {
 					break;
 				}
 			}
@@ -316,6 +327,9 @@ public class PlayerPostLoginInjector {
 			}
 			if(loginListenerState == null) {
 				throw new IllegalStateException("Could not locate state field of " + loginListenerClass.getName());
+			}
+			if(loginListenerPlayer == null) {
+				throw new IllegalStateException("Could not locate player field of " + loginListenerClass.getName());
 			}
 			Method loginListenerTick = null;
 			for(Class<?> clz : loginListenerClass.getInterfaces()) {
@@ -346,6 +360,7 @@ public class PlayerPostLoginInjector {
 			this.protocolStateOnResume = protocolStateOnResume;
 			this.loginListenerState = loginListenerState;
 			this.loginListenerTick = loginListenerTick;
+			this.loginListenerPlayer = loginListenerPlayer;
 		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
@@ -366,46 +381,53 @@ public class PlayerPostLoginInjector {
 					try {
 						ctx.markThrowOnLoginSuccess(true);
 						try {
-							return meth.invoke(obj, args);
+							return meth.invoke(loginListener, args);
 						}finally {
 							ctx.markThrowOnLoginSuccess(false);
 						}
-					}catch(EaglerError err) {
-						Player player = null;
-						Iterator<Property> itr = err.gameProfile.getProperties().values().iterator();
-						while(itr.hasNext()) {
-							Property prop = itr.next();
-							if(prop.getName().startsWith("$eaglerMarker_")) {
-								Player e = entityPlayers.remove(prop);
-								if(e != null) {
-									player = e;
-								}
-								itr.remove();
-							}
-						}
-						if(player != null) {
-							final Player playerFinal = player;
-							fireEventLoginPostAsync(playerFinal, ctx.channel, (res) -> {
-								if(!res.isCancelled()) {
-									ctx.channel.pipeline().replace("packet_handler", "packet_handler",
-											(ChannelHandler) ctx.originalNetworkManager);
-									Object entityPlayer = BukkitUnsafe.getHandle(playerFinal);
-									try {
-										loginListenerNetManager.set(loginListener, ctx.originalNetworkManager);
-										loginListenerPlayer.set(loginListener, entityPlayer);
-										loginListenerState.set(loginListener, protocolStateOnResume);
-									} catch (ReflectiveOperationException e) {
-										throw Util.propagateReflectThrowable(e);
+					}catch(InvocationTargetException ex) {
+						Throwable er = ex.getCause();
+						if(er instanceof EaglerError err) {
+							Player player = null;
+							Iterator<Property> itr = err.gameProfile.getProperties().values().iterator();
+							while(itr.hasNext()) {
+								Property prop = itr.next();
+								if(prop.getName().startsWith("$eaglerMarker_")) {
+									Player e = entityPlayers.remove(prop);
+									if(e != null) {
+										player = e;
 									}
+									itr.remove();
 								}
-							});
-							return null;
+							}
+							if(player != null) {
+								final Player playerFinal = player;
+								fireEventLoginPostAsync(playerFinal, ctx.channel, (res) -> {
+									if(!res.isCancelled()) {
+										try {
+											handlerAdded.set(ctx.originalNetworkManager, false);
+											ctx.channel.pipeline().replace("packet_handler", "packet_handler",
+													(ChannelHandler) ctx.originalNetworkManager);
+											Object entityPlayer = BukkitUnsafe.getHandle(playerFinal);
+											loginListenerNetManager.set(loginListener, ctx.originalNetworkManager);
+											loginListenerPlayer.set(loginListener, entityPlayer);
+											loginListenerState.set(loginListener, protocolStateOnResume);
+										} catch (ReflectiveOperationException e) {
+											throw Util.propagateReflectThrowable(e);
+										}
+									}
+								});
+								return null;
+							}else {
+								throw new IllegalStateException();
+							}
 						}else {
-							throw new IllegalStateException();
+							if(er instanceof RuntimeException ee) throw ee;
+							throw new RuntimeException(er);
 						}
 					}
 				}
-				return meth.invoke(obj, args);
+				return meth.invoke(loginListener, args);
 			});
 		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
@@ -413,16 +435,11 @@ public class PlayerPostLoginInjector {
 	}
 
 	public void handleLoginEvent(PlayerLoginEvent event) {
-		if(entityPlayer != null) {
-			Property marker = new Property("$eaglerMarker_" + ThreadLocalRandom.current().nextLong(Long.MAX_VALUE), "TMP");
-			Object player = BukkitUnsafe.getHandle(event.getPlayer());
-			if(!entityPlayer.isAssignableFrom(player.getClass())) {
-				throw new IllegalStateException("Unknown player type: " + player.getClass().getName());
-			}
-			GameProfile profile = BukkitUnsafe.getGameProfile(entityPlayer);
-			profile.getProperties().put(marker.getName(), marker);
-			entityPlayers.put(marker, event.getPlayer());
-		}
+		Property marker = new Property("$eaglerMarker_" + ThreadLocalRandom.current().nextLong(Long.MAX_VALUE), "TMP");
+		Object player = BukkitUnsafe.getHandle(event.getPlayer());
+		GameProfile profile = BukkitUnsafe.getGameProfile(player);
+		profile.getProperties().put(marker.getName(), marker);
+		entityPlayers.put(marker, event.getPlayer());
 	}
 
 	private void fireEventLoginInit(Channel channel) {

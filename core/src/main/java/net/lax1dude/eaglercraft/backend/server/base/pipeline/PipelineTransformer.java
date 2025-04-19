@@ -14,18 +14,21 @@ import io.netty.handler.codec.compression.ZlibCodecFactory;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.extensions.WebSocketServerExtensionHandler;
+import io.netty.handler.codec.http.websocketx.extensions.WebSocketServerExtensionHandshaker;
 import io.netty.handler.codec.http.websocketx.extensions.compression.DeflateFrameServerExtensionHandshaker;
 import io.netty.handler.codec.http.websocketx.extensions.compression.PerMessageDeflateServerExtensionHandshaker;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
+import net.lax1dude.eaglercraft.backend.server.api.EnumPlatformType;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerListener;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.ISSLContextProvider;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.RewindService;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings;
+import net.lax1dude.eaglercraft.backend.server.util.Util;
 
 public class PipelineTransformer {
 
@@ -54,12 +57,72 @@ public class PipelineTransformer {
 			EnumPipelineComponent.BUKKIT_LEGACY_HANDLER, EnumPipelineComponent.BUNGEE_LEGACY_HANDLER,
 			EnumPipelineComponent.BUNGEE_LEGACY_KICK_ENCODER, EnumPipelineComponent.VELOCITY_LEGACY_PING_ENCODER);
 
+	private static final boolean SUPPORTS_COMPRESSION_FRAME = Util.classExists(
+			"io.netty.handler.codec.http.websocketx.extensions.compression.DeflateFrameServerExtensionHandshaker");
+	private static final boolean SUPPORTS_COMPRESSION_MESSAGE = Util.classExists(
+			"io.netty.handler.codec.http.websocketx.extensions.compression.DeflateFrameServerExtensionHandshaker");
+
+	private static final boolean NEW_AGGREGATOR_CTOR;
+
+	static {
+		boolean b = false;
+		try {
+			HttpObjectAggregator.class.getConstructor(int.class, boolean.class);
+			b = true;
+		}catch(ReflectiveOperationException ex) {
+		}
+		NEW_AGGREGATOR_CTOR = b;
+	}
+
 	public final EaglerXServer<?> server;
 	public final RewindService<?> rewind;
+
+	private final Object[] enabledExtensions;
+
+	private Runnable nag;
 
 	public PipelineTransformer(EaglerXServer<?> server, RewindService<?> rewind) {
 		this.server = server;
 		this.rewind = rewind;
+		if(!SUPPORTS_COMPRESSION_FRAME && !SUPPORTS_COMPRESSION_MESSAGE) {
+			if(server.getPlatformType() == EnumPlatformType.BUKKIT) {
+				nag = () -> {
+					server.logger().error("WebSocket compression is not supported by the Netty bundled with this version of Bukkit");
+					server.logger().error("Excessive bandwidth will be used, and you will have a bad time trying to play on wireless devices");
+					server.logger().error("Please try a newer version of Bukkit (preferably Paper) such as 1.12.2 to fix this issue");
+					server.logger().error("Alternatively, you can add a newer version of Netty to the classpath as a JAR file using java -cp");
+					server.logger().error("You have been warned, don't be a fool");
+				};
+				nag.run();
+			}else {
+				server.logger().error("WebSocket compression is not supported on this platform");
+			}
+			enabledExtensions = null;
+		}else {
+			int compressionLevel = Math.min(server.getConfig().getSettings().getHTTPWebSocketCompressionLevel(), 9);
+			if(compressionLevel > 0) {
+				List<WebSocketServerExtensionHandshaker> extensions = new ArrayList<>();
+				if(SUPPORTS_COMPRESSION_FRAME) {
+					extensions.add(new DeflateFrameServerExtensionHandshaker(compressionLevel));
+				}
+				if(SUPPORTS_COMPRESSION_MESSAGE) {
+					extensions.add(new PerMessageDeflateServerExtensionHandshaker(
+							compressionLevel, ZlibCodecFactory.isSupportingWindowSizeAndMemLevel(),
+							PerMessageDeflateServerExtensionHandshaker.MAX_WINDOW_SIZE, false, false));
+				}
+				enabledExtensions = extensions.toArray(new WebSocketServerExtensionHandshaker[extensions.size()]);
+			}else {
+				enabledExtensions = null;
+			}
+		}
+	}
+
+	public void nagAgain() {
+		if(nag != null) {
+			nag.run();
+			server.logger().error("(Warning has been repeated in case you don't know how to scroll up)");
+			nag = null;
+		}
 	}
 
 	public void injectSingleStack(List<IPipelineComponent> components, Channel channel, NettyPipelineData pipelineData) {
@@ -160,16 +223,17 @@ public class PipelineTransformer {
 			pipeline.addAfter(after, HANDLER_HTTP_SERVER_CODEC, serverCodec);
 		}
 		after = HANDLER_HTTP_SERVER_CODEC;
-		pipeline.addAfter(after, HANDLER_HTTP_AGGREGATOR, new HttpObjectAggregator(settings.getHTTPMaxContentLength(), true));
+		HttpObjectAggregator ag;
+		if(NEW_AGGREGATOR_CTOR) {
+			ag = new HttpObjectAggregator(settings.getHTTPMaxContentLength(), true);
+		}else {
+			ag = new HttpObjectAggregator(settings.getHTTPMaxContentLength());
+		}
+		pipeline.addAfter(after, HANDLER_HTTP_AGGREGATOR, ag);
 		after = HANDLER_HTTP_AGGREGATOR;
-		int compressionLevel = Math.min(settings.getHTTPWebSocketCompressionLevel(), 9);
-		if(compressionLevel > 0) {
-			DeflateFrameServerExtensionHandshaker deflateExtensionHandshaker = new DeflateFrameServerExtensionHandshaker(compressionLevel);
-			PerMessageDeflateServerExtensionHandshaker perMessageDeflateExtensionHandshaker = new PerMessageDeflateServerExtensionHandshaker(
-					compressionLevel, ZlibCodecFactory.isSupportingWindowSizeAndMemLevel(),
-					PerMessageDeflateServerExtensionHandshaker.MAX_WINDOW_SIZE, false, false);
-			pipeline.addAfter(after, HANDLER_WS_COMPRESSION, new WebSocketServerExtensionHandler(
-					deflateExtensionHandshaker, perMessageDeflateExtensionHandshaker));
+		if(enabledExtensions != null) {
+			pipeline.addAfter(after, HANDLER_WS_COMPRESSION,
+					new WebSocketServerExtensionHandler((WebSocketServerExtensionHandshaker[]) enabledExtensions));
 			after = HANDLER_WS_COMPRESSION;
 		}
 		pipeline.addAfter(after, HANDLER_HTTP_INITIAL, HTTPInitialInboundHandler.INSTANCE);

@@ -4,7 +4,6 @@ import java.net.InetAddress;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -158,7 +157,7 @@ public class CompoundRateLimiterMap {
 		try {
 			return cache.get(address);
 		} catch (ExecutionException e) {
-			Throwables.throwIfUnchecked(e.getCause());
+			if(e.getCause() instanceof RuntimeException ee) throw ee;
 			throw new RuntimeException(e);
 		}
 	}

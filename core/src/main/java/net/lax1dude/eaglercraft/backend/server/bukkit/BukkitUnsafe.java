@@ -8,7 +8,6 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 import org.bukkit.Server;
@@ -26,6 +25,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.papermc.paper.network.ChannelInitializeListener;
@@ -40,16 +40,10 @@ public class BukkitUnsafe {
 
 		public final Object networkManager;
 		public final Object loginListener;
-		public final GameProfile gameProfile;
 
-		protected LoginConnectionHolder(Object networkManager, Object loginListener, GameProfile gameProfile) {
+		protected LoginConnectionHolder(Object networkManager, Object loginListener) {
 			this.networkManager = networkManager;
 			this.loginListener = loginListener;
-			this.gameProfile = gameProfile;
-		}
-
-		public GameProfile getGameProfile() {
-			return gameProfile;
 		}
 
 		public SocketAddress getRemoteAddress() {
@@ -59,14 +53,6 @@ public class BukkitUnsafe {
 			} catch (IllegalArgumentException | IllegalAccessException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
-		}
-
-		public UUID getUniqueId() {
-			return gameProfile.getId();
-		}
-
-		public String getUsername() {
-			return gameProfile.getName();
 		}
 
 		public boolean isConnected() {
@@ -128,10 +114,15 @@ public class BukkitUnsafe {
 			Field[] fields = clz2.getDeclaredFields();
 			for(int i = 0; i < fields.length; ++i) {
 				Field f = fields[i];
-				if(f.getType().getSimpleName().equals("GameProfile")) {
+				if(GameProfile.class.isAssignableFrom(f.getType())) {
+					f.setAccessible(true);
 					field_LoginListener_gameProfile = f;
 					break;
 				}
+			}
+			if(field_LoginListener_gameProfile == null) {
+				throw new IllegalStateException("LoginListener gameProfile field could not be found for "
+						+ packetListener.getClass().getName());
 			}
 			class_LoginListener_maybe = clz2;
 			class_NetworkManager = clz;
@@ -156,11 +147,7 @@ public class BukkitUnsafe {
 				throw new IllegalStateException("PacketListener class is not LoginListener: "
 						+ packetListener.getClass().getName() + " != " + class_LoginListener_maybe.getName());
 			}
-			GameProfile gameProfile = (GameProfile) field_LoginListener_gameProfile.get(packetListener);
-			if(gameProfile == null) {
-				throw new IllegalStateException("LoginListener.gameProfile is null!");
-			}
-			return new LoginConnectionHolder(networkManager, packetListener, gameProfile);
+			return new LoginConnectionHolder(networkManager, packetListener);
 		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
@@ -184,11 +171,9 @@ public class BukkitUnsafe {
 			Object entityPlayer = method_CraftPlayer_getHandle.invoke(playerObject);
 			Class<?> clz2 = entityPlayer.getClass();
 			field_EntityPlayer_playerConnection = clz2.getField("playerConnection");
-			Object playerConnection = field_EntityPlayer_playerConnection.get(entityPlayer);
-			Class<?> clz3 = playerConnection.getClass();
+			Class<?> clz3 = field_EntityPlayer_playerConnection.getType();
 			field_PlayerConnection_networkManager = clz3.getField("networkManager");
-			Object networkManager = field_PlayerConnection_networkManager.get(playerConnection);
-			Class<?> clz4 = networkManager.getClass();
+			Class<?> clz4 = field_PlayerConnection_networkManager.getType();
 			field_NetworkManager_channel = clz4.getField("channel");
 			method_EntityPlayer_getProfile = clz2.getMethod("getProfile");
 			class_NetworkManager = clz4;
@@ -626,7 +611,7 @@ public class BukkitUnsafe {
 	}
 
 	private static boolean isServerInitializer(ChannelHandler handler) {
-		return handler != null && ChannelInitializer.class.isAssignableFrom(handler.getClass());
+		return handler != null && ChannelInboundHandlerAdapter.class.isAssignableFrom(handler.getClass());
 	}
 
 	public static CommandMap getCommandMap(Server server) {

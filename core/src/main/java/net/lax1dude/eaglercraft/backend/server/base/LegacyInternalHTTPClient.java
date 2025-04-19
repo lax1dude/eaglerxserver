@@ -42,7 +42,7 @@ public class LegacyInternalHTTPClient implements IHTTPClient {
 			Response res;
 			try {
 				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-				conn.addRequestProperty("User-Agent", userAgent);
+				conn.addRequestProperty("user-agent", userAgent);
 				conn.connect();
 				ByteBuf buf = Unpooled.buffer(1024);
 				try {

@@ -4,7 +4,6 @@ import java.util.concurrent.ExecutionException;
 
 import javax.annotation.Nonnull;
 
-import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
@@ -26,7 +25,7 @@ public final class RPCAttributeKey<T> {
 				return new RPCAttributeKey<>(type);
 			});
 		} catch (ExecutionException e) {
-			Throwables.throwIfUnchecked(e.getCause());
+			if(e.getCause() instanceof RuntimeException ee) throw ee;
 			throw new RuntimeException(e.getCause());
 		}
 		if(ret.type != type) {

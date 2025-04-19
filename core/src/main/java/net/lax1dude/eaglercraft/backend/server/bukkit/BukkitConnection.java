@@ -27,6 +27,7 @@ class BukkitConnection implements IPlatformConnection {
 	}
 
 	private final PlatformPluginBukkit plugin;
+	private Channel channel;
 	private LoginConnectionHolder loginConnection;
 	private Player playerInstance;
 	String texturesPropertyValue;
@@ -39,6 +40,7 @@ class BukkitConnection implements IPlatformConnection {
 	BukkitConnection(PlatformPluginBukkit plugin, LoginConnectionHolder loginConnection,
 			Consumer<Runnable> awaitPlayState) {
 		this.plugin = plugin;
+		this.channel = loginConnection.getChannel();
 		this.loginConnection = loginConnection;
 		this.awaitPlayState = awaitPlayState;
 	}
@@ -50,7 +52,7 @@ class BukkitConnection implements IPlatformConnection {
 
 	@Override
 	public Channel getChannel() {
-		return loginConnection.getChannel();
+		return channel;
 	}
 
 	@Override
@@ -72,7 +74,7 @@ class BukkitConnection implements IPlatformConnection {
 			if(loginConn == null) {
 				return playerInstance.getName();
 			}else {
-				return loginConn.getUsername();
+				throw new IllegalStateException("Cannot access this on Bukkit before player initializes!");
 			}
 		}
 	}
@@ -87,7 +89,7 @@ class BukkitConnection implements IPlatformConnection {
 			if(loginConn == null) {
 				return playerInstance.getUniqueId();
 			}else {
-				return loginConn.getUniqueId();
+				throw new IllegalStateException("Cannot access this on Bukkit before player initializes!");
 			}
 		}
 	}
@@ -102,7 +104,7 @@ class BukkitConnection implements IPlatformConnection {
 			if(loginConn == null) {
 				return playerInstance.getAddress();
 			}else {
-				return loginConn.getRemoteAddress();
+				throw new IllegalStateException("Cannot access this on Bukkit before player initializes!");
 			}
 		}
 	}

@@ -11,7 +11,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoop;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaderNames;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchCallback;
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
@@ -164,12 +163,12 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	@Override
 	public String getHost() {
-		return request.headers().get(HttpHeaderNames.HOST);
+		return request.headers().get("host");
 	}
 
 	@Override
 	public String getOrigin() {
-		return request.headers().get(HttpHeaderNames.ORIGIN);
+		return request.headers().get("origin");
 	}
 
 	@Override
@@ -307,7 +306,7 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	@Override
 	public Iterable<String> getRequestedHeaders() {
-		return request.headers().getAll(HttpHeaderNames.ACCESS_CONTROL_REQUEST_HEADERS);
+		return request.headers().getAll("access-control-request-headers");
 	}
 
 	@Override

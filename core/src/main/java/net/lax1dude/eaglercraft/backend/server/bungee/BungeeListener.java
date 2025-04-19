@@ -1,7 +1,5 @@
 package net.lax1dude.eaglercraft.backend.server.bungee;
 
-import com.google.common.base.Throwables;
-
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerCountHandler;
@@ -80,7 +78,7 @@ public class BungeeListener implements Listener {
 				}catch(IllegalStateException exx) {
 					return;
 				}
-				Throwables.throwIfUnchecked(ex);
+				if(ex instanceof RuntimeException ee) throw ee;
 				throw new RuntimeException("Uncaught exception", ex);
 			}
 		});

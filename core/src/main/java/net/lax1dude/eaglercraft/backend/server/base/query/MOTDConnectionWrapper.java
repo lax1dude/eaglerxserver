@@ -8,8 +8,8 @@ import java.util.function.Consumer;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
 import net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
@@ -70,7 +70,6 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 	public void setDefaults(EaglerXServer<?> server) {
 		EaglerListener listener = queryConnection.getListenerInfo();
 		motd = defaultMotd = listener.getServerMOTD();
-		IPlatform<?> platform = server.getPlatform();
 		playerTotal = defaultPlayerTotal = server.getSupervisorService().getPlayerTotal();
 		playerMax = defaultPlayerMax = server.getSupervisorService().getPlayerMax();
 		if(listener.isShowMOTDPlayerList()) {
@@ -121,16 +120,16 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 				JsonArray cacheControl = new JsonArray();
 				ConfigDataListener cc = queryConnection.getListenerInfo().getConfigData();
 				if(cc.isMotdCacheAnimation()) {
-					cacheControl.add("animation");
+					cacheControl.add(new JsonPrimitive("animation"));
 				}
 				if(cc.isMotdCacheResults()) {
-					cacheControl.add("results");
+					cacheControl.add(new JsonPrimitive("results"));
 				}
 				if(cc.isMotdCacheTrending()) {
-					cacheControl.add("trending");
+					cacheControl.add(new JsonPrimitive("trending"));
 				}
 				if(cc.isMotdCachePortfolios()) {
-					cacheControl.add("portfolio");
+					cacheControl.add(new JsonPrimitive("portfolio"));
 				}
 				obj.add("cache", cacheControl);
 				obj.addProperty("ttl", cc.getMotdCacheTTL());
@@ -138,10 +137,10 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 				obj.addProperty("cache", queryConnection.getListenerInfo().getConfigData().isMotdCacheAny());
 			}
 			boolean noIcon = subType != null && (subType.startsWith("noicon") || subType.startsWith("cache.noicon"));
-			JsonArray motd = new JsonArray(this.motd.size());
+			JsonArray motd = new JsonArray();
 			for(int i = 0; i < 2; ++i) {
 				if(i >= this.motd.size()) break;
-				motd.add(this.motd.get(i));
+				motd.add(new JsonPrimitive(this.motd.get(i)));
 			}
 			obj.add("motd", motd);
 			obj.addProperty("icon", hasIcon && !noIcon);
@@ -150,9 +149,9 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 			int i = playerList.size();
 			JsonArray playerz;
 			if(i > 0) {
-				playerz = new JsonArray(playerList.size());
+				playerz = new JsonArray();
 				for(String s : playerList) {
-					playerz.add(s);
+					playerz.add(new JsonPrimitive(s));
 				}
 			}else {
 				playerz = EMPTY_LIST;

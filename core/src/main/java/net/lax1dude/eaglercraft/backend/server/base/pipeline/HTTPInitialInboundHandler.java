@@ -13,7 +13,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
@@ -42,7 +41,7 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 			}
 			NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
 			if(!pipelineData.initStall && (msgRaw instanceof FullHttpRequest msg)) {
-				if(msg.protocolVersion() != HttpVersion.HTTP_1_1) {
+				if(HTTPMessageUtils.getProtocolVersion(msg) != HttpVersion.HTTP_1_1) {
 					pipelineData.initStall = true;
 					ctx.close();
 					return;
@@ -94,9 +93,9 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 					}
 				}
 				
-				String connection = headers.get(HttpHeaderNames.CONNECTION);
+				String connection = headers.get("connection");
 				if(connection != null && "upgrade".equalsIgnoreCase(connection)) {
-					String upgrade = headers.get(HttpHeaderNames.UPGRADE);
+					String upgrade = headers.get("upgrade");
 					if(upgrade != null && "websocket".equalsIgnoreCase(upgrade)) {
 						pipelineData.initStall = true;
 						handleWebSocket(ctx, pipelineData, msg);
@@ -108,6 +107,8 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 			}else {
 				ctx.close();
 			}
+		}catch(Throwable t) {
+			t.printStackTrace();
 		}finally {
 			ReferenceCountUtil.release(msgRaw);
 		}
@@ -115,12 +116,12 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 
 	private void handleWebSocket(ChannelHandlerContext ctx, NettyPipelineData pipelineData, FullHttpRequest msg) throws Exception {
 		HttpHeaders headers = msg.headers();
-		pipelineData.headerHost = headers.get(HttpHeaderNames.HOST);
-		pipelineData.headerOrigin = headers.get(HttpHeaderNames.ORIGIN);
-		pipelineData.headerUserAgent = headers.get(HttpHeaderNames.USER_AGENT);
-		pipelineData.headerCookie = headers.get(HttpHeaderNames.COOKIE);
-		pipelineData.headerAuthorization = headers.get(HttpHeaderNames.AUTHORIZATION);
-		pipelineData.requestPath = msg.uri();
+		pipelineData.headerHost = headers.get("host");
+		pipelineData.headerOrigin = headers.get("origin");
+		pipelineData.headerUserAgent = headers.get("user-agent");
+		pipelineData.headerCookie = headers.get("cookie");
+		pipelineData.headerAuthorization = headers.get("authorization");
+		pipelineData.requestPath = HTTPMessageUtils.getURI(msg);
 		
 		ConfigDataSettings settings = pipelineData.server.getConfig().getSettings();
 		ChannelPipeline pipeline = ctx.pipeline();

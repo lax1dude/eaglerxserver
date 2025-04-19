@@ -186,8 +186,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		if(platformType == EnumPlatformType.BUKKIT) {
 			logger().warn("Note: Its highly recommended to install EaglerXServer on BungeeCord or "
 					+ "Velocity instead, you will have a much better experience");
-			logger().warn("Note: If you are not using Paper (or a derivative) or a version above 1.12, "
-					+ "things probably won't work right");
+			logger().warn("Note: If you are not using Spigot (or a derivative like Paper) or a version "
+					+ "above 1.12.2, things probably won't work right");
 			if(platform.isModernPluginChannelNamesOnly()) {
 				logger().error("Detected a modern server version, things probably won't work right, "
 						+ "downgrade to 1.12 or below");
@@ -218,10 +218,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		componentType = componentHelper().getComponentType();
 		componentTypeSet = Collections.singleton(componentType);
 		componentHelper = new ComponentHelper<>(componentHelper());
-		if(Util.classExists("io.netty.handler.ssl.SslContextBuilder")) {
+		if (Util.classExists("io.netty.handler.ssl.SslContextBuilder")
+				&& Util.classExists("io.netty.handler.codec.http.HttpHeaderNames")) {
 			httpClient = new HTTPClient(() -> bootstrapClient(null),
 					"Mozilla/5.0 " + getServerVersionString());
 		}else {
+			logger().warn("Using legacy JDK-based HTTP client because Netty is too outdated");
 			httpClient = new LegacyInternalHTTPClient(platform.getScheduler(),
 					"Mozilla/5.0 " + getServerVersionString());
 		}
@@ -391,7 +393,9 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	private void enableHandler() {
-		logger().info("Enabling " + getServerBrand() + " " + getServerVersion() + "...");
+		if(platformType != EnumPlatformType.BUKKIT) {
+			logger().info("Enabling " + getServerBrand() + " " + getServerVersion() + "...");
+		}
 		
 		if(platform.isOnlineMode()) {
 			throw new AbortLoadException("Online mode is not supported yet!");
@@ -444,10 +448,14 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		}
 		
 		supervisorService.handleEnable();
+		
+		platform.getScheduler().executeDelayed(pipelineTransformer::nagAgain, 10000);
 	}
 
 	private void disableHandler() {
-		logger().info("Disabling " + getServerBrand() + " " + getServerVersion() + "...");
+		if(platformType != EnumPlatformType.BUKKIT) {
+			logger().info("Disabling " + getServerBrand() + " " + getServerVersion() + "...");
+		}
 
 		webServer.releaseBuiltinPages();
 

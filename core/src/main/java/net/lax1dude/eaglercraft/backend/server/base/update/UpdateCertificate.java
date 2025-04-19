@@ -3,7 +3,6 @@ package net.lax1dude.eaglercraft.backend.server.base.update;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
@@ -25,7 +24,7 @@ public final class UpdateCertificate implements IUpdateCertificateImpl {
 				return new UpdateCertificate(data, sum);
 			});
 		} catch (ExecutionException e) {
-			Throwables.throwIfUnchecked(e.getCause());
+			if(e.getCause() instanceof RuntimeException ee) throw ee;
 			throw new RuntimeException(e.getCause());
 		}
 	}
@@ -36,7 +35,7 @@ public final class UpdateCertificate implements IUpdateCertificateImpl {
 				return new UpdateCertificate(data, sum);
 			});
 		} catch (ExecutionException e) {
-			Throwables.throwIfUnchecked(e.getCause());
+			if(e.getCause() instanceof RuntimeException ee) throw ee;
 			throw new RuntimeException(e.getCause());
 		}
 	}

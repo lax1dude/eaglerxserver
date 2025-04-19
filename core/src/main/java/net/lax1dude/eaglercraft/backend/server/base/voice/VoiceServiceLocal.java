@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -119,7 +118,7 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceServiceImpl<Player
 				try {
 					return serverChannels.get(serverName);
 				} catch (ExecutionException e) {
-					Throwables.throwIfUnchecked(e.getCause());
+					if(e.getCause() instanceof RuntimeException ee) throw ee;
 					throw new RuntimeException(e.getCause());
 				}
 			}else {

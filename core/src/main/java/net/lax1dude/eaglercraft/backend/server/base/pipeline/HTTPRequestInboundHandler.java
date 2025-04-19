@@ -15,7 +15,6 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -105,12 +104,12 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 				return;
 			}
 			if(msgRaw instanceof FullHttpRequest msg) {
-				if(msg.protocolVersion() != HttpVersion.HTTP_1_1) {
+				if(HTTPMessageUtils.getProtocolVersion(msg) != HttpVersion.HTTP_1_1) {
 					ctx.close();
 					return;
 				}
 				
-				String uri = msg.uri();
+				String uri = HTTPMessageUtils.getURI(msg);
 				String path;
 				String query;
 				int i = uri.indexOf('?');
@@ -122,7 +121,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 					query = "";
 				}
 				
-				HttpMethod method = msg.method();
+				HttpMethod method = HTTPMessageUtils.getMethod(msg);
 				EnumRequestMethod meth = methodLookup.get(method);
 				
 				ResponseOrdering.Slot responseSlot = ordering.push();
@@ -166,7 +165,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 				boolean dir = path.endsWith("/");
 				if(dir != handlerResult.directory) {
 					FullHttpResponse res = createResponse(HttpResponseStatus.PERMANENT_REDIRECT, null, 0);
-					res.headers().add(HttpHeaderNames.LOCATION, redirDir(path, query, dir));
+					res.headers().add("location", redirDir(path, query, dir));
 					responseSlot.complete(res);
 					return;
 				}
@@ -200,7 +199,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 	private void handleOptions(ChannelHandlerContext ctx, String uri, String path, String query, FullHttpRequest msg,
 			ResponseOrdering.Slot responseSlot) {
 		HttpHeaders headers = msg.headers();
-		String reqMethod = headers.get(HttpHeaderNames.ACCESS_CONTROL_REQUEST_METHOD);
+		String reqMethod = headers.get("access-control-request-method");
 
 		if(reqMethod != null) {
 			EnumRequestMethod corsMethod;
@@ -210,14 +209,14 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 				corsMethod = null;
 			}
 			
-			if(corsMethod != null && corsMethod != EnumRequestMethod.OPTIONS && headers.contains(HttpHeaderNames.ORIGIN)) {
+			if(corsMethod != null && corsMethod != EnumRequestMethod.OPTIONS && headers.contains("origin")) {
 				RouteMap.Result<IRequestHandler> handlerResult = server.getWebServer()
 						.resolveInternal(pipelineData.listenerInfo, corsMethod.id(), path, processor());
 
 				boolean dir = path.endsWith("/");
 				if(dir != handlerResult.directory) {
 					FullHttpResponse res = createResponse(HttpResponseStatus.PERMANENT_REDIRECT, null, 0);
-					res.headers().add(HttpHeaderNames.LOCATION, redirDir(path, query, dir));
+					res.headers().add("location", redirDir(path, query, dir));
 					responseSlot.complete(res);
 					return;
 				}
@@ -232,7 +231,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 		
 		if("*".equals(path) && query.isEmpty()) {
 			FullHttpResponse res = createResponse(HttpResponseStatus.OK, null, 0);
-			res.headers().add(HttpHeaderNames.ALLOW, RouteMap.allMethods);
+			res.headers().add("allow", RouteMap.allMethods);
 			responseSlot.complete(res);
 			return;
 		}
@@ -243,13 +242,13 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 			boolean dir = path.endsWith("/");
 			if(dir != optionsResult.directory) {
 				FullHttpResponse res = createResponse(HttpResponseStatus.PERMANENT_REDIRECT, null, 0);
-				res.headers().add(HttpHeaderNames.LOCATION, redirDir(path, query, dir));
+				res.headers().add("location", redirDir(path, query, dir));
 				responseSlot.complete(res);
 				return;
 			}
 			if(!optionsResult.result.isEmpty()) {
 				FullHttpResponse res = createResponse(HttpResponseStatus.OK, null, 0);
-				res.headers().add(HttpHeaderNames.ALLOW, optionsResult.result);
+				res.headers().add("allow", optionsResult.result);
 				responseSlot.complete(res);
 				return;
 			}
@@ -412,13 +411,13 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 			ret = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, code);
 		}
 		HttpHeaders headers = ret.headers();
-		headers.set(HttpHeaderNames.CONNECTION, "keep-alive");
-		headers.set(HttpHeaderNames.SERVER, server.getServerVersionString());
-		headers.set(HttpHeaderNames.DATE, new Date());
+		headers.set("connection", "keep-alive");
+		headers.set("server", server.getServerVersionString());
+		headers.set("date", new Date());
 		if(body != null) {
-			headers.set(HttpHeaderNames.CONTENT_LENGTH, body.readableBytes());
+			headers.set("content-length", body.readableBytes());
 		}else {
-			headers.set(HttpHeaderNames.CONTENT_LENGTH, len);
+			headers.set("content-length", len);
 		}
 		return ret;
 	}

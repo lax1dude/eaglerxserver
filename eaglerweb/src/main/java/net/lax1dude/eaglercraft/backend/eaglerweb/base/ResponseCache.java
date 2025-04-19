@@ -16,7 +16,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -188,7 +187,7 @@ class ResponseCache {
 			return cache.get(key);
 		} catch (ExecutionException e) {
 			Throwable t = e.getCause();
-			Throwables.throwIfUnchecked(t);
+			if(t instanceof RuntimeException ee) throw ee;
 			throw new RuntimeException(e);
 		}
 	}

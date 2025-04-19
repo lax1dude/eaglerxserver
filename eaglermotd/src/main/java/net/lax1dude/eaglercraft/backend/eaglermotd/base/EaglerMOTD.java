@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Throwables;
 import com.google.gson.JsonParseException;
 
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
@@ -42,7 +41,7 @@ public class EaglerMOTD<PlayerObject> {
 			this.config = EaglerMOTDConfiguration.load(platform.getDataFolder(), server, logger(),
 					server.getAllEaglerListeners().stream().map(IEaglerListenerInfo::getName).collect(Collectors.toSet()));
 		} catch (JsonParseException | IOException e) {
-			Throwables.throwIfUnchecked(e);
+			if(e instanceof RuntimeException ee) throw ee;
 			throw new RuntimeException("Could not load EaglerMOTD config files!", e);
 		}
 		this.motdUpdateTask = server.getScheduler().executeAsyncRepeatingTask(this::updateMOTDs, 50l, 50l);
