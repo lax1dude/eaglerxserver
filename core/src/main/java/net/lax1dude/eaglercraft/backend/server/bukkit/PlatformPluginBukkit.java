@@ -255,9 +255,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 			if(handler != null) {
 				ls = (ch, player, data) -> {
-					IPlatformPlayer<Player> platformPlayer = getPlayer(player);
-					if(platformPlayer != null) {
-						handler.handle(channel, platformPlayer, data);
+					BukkitPlayer playerInstance = playerInstanceMap.get(player);
+					if(playerInstance != null) {
+						handler.handle(channel, playerInstance, data);
 					}
 				};
 				msgr.registerIncomingPluginChannel(this, channel.getModernName(), ls);
@@ -681,7 +681,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 					p.confirmTask = null;
 					getLogger().warning("Player " + p.getUsername() + " was initialized, but never fired PlayerJoinEvent, dropping...");
 					dropPlayer(player);
-				}, 5000l);
+				}, 100l);
 				IEaglerXServerJoinListener<Player> listener = serverJoinListener;
 				if(listener != null) {
 					listener.handlePreConnect(p);

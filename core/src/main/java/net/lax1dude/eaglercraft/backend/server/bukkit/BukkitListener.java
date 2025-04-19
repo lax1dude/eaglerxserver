@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -55,7 +56,7 @@ class BukkitListener implements Listener {
 				}catch(IllegalStateException exx) {
 					return;
 				}
-				if(ex instanceof RuntimeException ee) throw ee;
+				Throwables.throwIfUnchecked(ex);
 				throw new RuntimeException("Uncaught exception", ex);
 			}
 		};
@@ -64,6 +65,11 @@ class BukkitListener implements Listener {
 		}else {
 			cont.run();
 		}
+	}
+
+	@EventHandler
+	public void onPlayerJoinEvent(PlayerJoinEvent evt) {
+		plugin.confirmPlayer(evt.getPlayer());
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)

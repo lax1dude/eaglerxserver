@@ -14,8 +14,6 @@ import org.bukkit.Server;
 import org.bukkit.command.CommandMap;
 import org.bukkit.entity.Player;
 
-import com.destroystokyo.paper.profile.PlayerProfile;
-import com.destroystokyo.paper.profile.ProfileProperty;
 import com.google.common.collect.ForwardingList;
 import com.google.common.collect.Multimap;
 import com.mojang.authlib.GameProfile;
@@ -197,134 +195,58 @@ public class BukkitUnsafe {
 		}
 	}
 
-	private static final boolean paperProfileAPISupport;
-
-	static {
-		boolean paperProfileAPISupport_ = false;
-		try {
-			Class.forName("com.destroystokyo.paper.profile.PlayerProfile");
-			paperProfileAPISupport_ = true;
-		} catch (ClassNotFoundException e) {
-			// Paper profile API is unsupported
-		}
-		paperProfileAPISupport = paperProfileAPISupport_;
-	}
-
 	public static String getTexturesProperty(Player player) {
-		if(paperProfileAPISupport) {
-			return getTexturesPropertyPaper(player);
-		}else {
-			if(class_CraftPlayer == null) {
-				bindCraftPlayer(player);
-			}
-			try {
-				Multimap<String, Property> props = ((GameProfile) method_EntityPlayer_getProfile
-						.invoke(method_CraftPlayer_getHandle.invoke(player))).getProperties();
-				Collection<Property> tex = props.get("textures");
-				if(!tex.isEmpty()) {
-					return tex.iterator().next().getValue();
-				}
-			} catch (ReflectiveOperationException e) {
-				throw Util.propagateReflectThrowable(e);
-			}
-			return null;
+		if(class_CraftPlayer == null) {
+			bindCraftPlayer(player);
 		}
-	}
-
-	private static String getTexturesPropertyPaper(Player player) {
-		PlayerProfile profile = player.getPlayerProfile();
-		if(profile != null) {
-			for(ProfileProperty o : profile.getProperties()) {
-				if("textures".equals(o.getName())) {
-					return o.getValue();
-				}
+		try {
+			Multimap<String, Property> props = ((GameProfile) method_EntityPlayer_getProfile
+					.invoke(method_CraftPlayer_getHandle.invoke(player))).getProperties();
+			Collection<Property> tex = props.get("textures");
+			if(!tex.isEmpty()) {
+				return tex.iterator().next().getValue();
 			}
+		} catch (ReflectiveOperationException e) {
+			throw Util.propagateReflectThrowable(e);
 		}
 		return null;
-	}
-
-	public static interface PropertyInjector {
-
-		void injectTexturesProperty(String texturesPropertyValue, String texturesPropertySignature);
-
-		void injectIsEaglerPlayerProperty(boolean val);
-
-		void complete();
-
 	}
 
 	private static final Property isEaglerPlayerPropertyT = new Property("isEaglerPlayer", "true", null);
 	private static final Property isEaglerPlayerPropertyF = new Property("isEaglerPlayer", "false", null);
 
-	private static class PaperPropertyInjector implements PropertyInjector {
-
-		private static final ProfileProperty isEaglerPlayerPaperPropertyT = new ProfileProperty("isEaglerPlayer", "true");
-		private static final ProfileProperty isEaglerPlayerPaperPropertyF = new ProfileProperty("isEaglerPlayer", "false");
-
-		private final Player player;
-		private final PlayerProfile profile;
-
-		protected PaperPropertyInjector(Player player, PlayerProfile profile) {
-			this.player = player;
-			this.profile = profile;
-		}
-
-		@Override
-		public void injectTexturesProperty(String texturesPropertyValue, String texturesPropertySignature) {
-			profile.setProperty(new ProfileProperty("textures", texturesPropertyValue, texturesPropertySignature));
-		}
-
-		@Override
-		public void injectIsEaglerPlayerProperty(boolean val) {
-			profile.setProperty(val ? isEaglerPlayerPaperPropertyT : isEaglerPlayerPaperPropertyF);
-		}
-
-		@Override
-		public void complete() {
-			player.setPlayerProfile(profile);
-		}
-
-	}
-
-	private static class BukkitPropertyInjector implements PropertyInjector {
+	public static class PropertyInjector {
 
 		private final Multimap<String, Property> props;
 
-		protected BukkitPropertyInjector(Multimap<String, Property> props) {
+		protected PropertyInjector(Multimap<String, Property> props) {
 			this.props = props;
 		}
 
-		@Override
 		public void injectTexturesProperty(String texturesPropertyValue, String texturesPropertySignature) {
 			props.removeAll("textures");
 			props.put("textures", new Property("textures", texturesPropertyValue, texturesPropertySignature));
 		}
 
-		@Override
 		public void injectIsEaglerPlayerProperty(boolean val) {
 			props.removeAll("isEaglerPlayer");
 			props.put("isEaglerPlayer", val ? isEaglerPlayerPropertyT : isEaglerPlayerPropertyF);
 		}
 
-		@Override
 		public void complete() {
 		}
 
 	}
 
 	public static BukkitUnsafe.PropertyInjector propertyInjector(Player player) {
-		if(paperProfileAPISupport) {
-			return new PaperPropertyInjector(player, player.getPlayerProfile());
-		}else {
-			if(class_CraftPlayer == null) {
-				bindCraftPlayer(player);
-			}
-			try {
-				return new BukkitPropertyInjector(((GameProfile) method_EntityPlayer_getProfile
-						.invoke(method_CraftPlayer_getHandle.invoke(player))).getProperties());
-			} catch (ReflectiveOperationException e) {
-				throw Util.propagateReflectThrowable(e);
-			}
+		if(class_CraftPlayer == null) {
+			bindCraftPlayer(player);
+		}
+		try {
+			return new PropertyInjector(((GameProfile) method_EntityPlayer_getProfile
+					.invoke(method_CraftPlayer_getHandle.invoke(player))).getProperties());
+		} catch (ReflectiveOperationException e) {
+			throw Util.propagateReflectThrowable(e);
 		}
 	}
 

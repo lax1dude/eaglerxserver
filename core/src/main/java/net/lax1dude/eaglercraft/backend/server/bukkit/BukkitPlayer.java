@@ -64,7 +64,7 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 		this.player = player;
 		this.connection = connection;
 		this.connection.bindPlayer(player);
-		this.brandString = "vanilla";
+		this.brandString = null;
 	}
 
 	BukkitTask xchgConfirmTask() {
