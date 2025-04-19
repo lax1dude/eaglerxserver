@@ -71,7 +71,6 @@ public class VanillaInitializer {
 
 		if(ctx.channel().isActive()) {
 			connectionState = STATE_SENT_LOGIN;
-			server.getPlatform().handleConnectionInitFallback(ctx.channel());
 		}else {
 			inboundHandler.terminated = true;
 		}
@@ -101,11 +100,8 @@ public class VanillaInitializer {
 						inboundHandler.handleBackendHandshakeSuccess(ctx, usernameStr, playerUUID);
 					}else if(pktId == 0x03) {
 						// S03PacketEnableCompression
-						int val = BufferUtils.readVarInt(msg, 5);
-						if(val > 0) {
-							server.getPlatform().handleUndoCompression(ctx);
-							ctx.pipeline().fireUserEventTriggered(EnumPipelineEvent.EAGLER_DISABLE_COMPRESSION_HACK);
-						}
+						inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
+						pipelineData.connectionLogger.error("Disconnecting, server tried to enable compression, this should not happen for eagler connections!");
 					}else if(pktId == 0x01) {
 						// S01PacketEncryptionRequest
 						inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);

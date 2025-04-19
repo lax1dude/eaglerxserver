@@ -9,10 +9,9 @@ import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFactory;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.ServerChannel;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeHolder;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeManager;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandService;
@@ -238,10 +237,36 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 	public interface NettyUnsafe {
 
 		@Nonnull
-		ChannelFactory<? extends Channel> getChannelFactory(@Nullable SocketAddress address);
+		default Bootstrap bootstrapClient() {
+			return bootstrapClient(null);
+		}
 
 		@Nonnull
-		ChannelFactory<? extends ServerChannel> getServerChannelFactory(@Nullable SocketAddress address);
+		Bootstrap bootstrapClient(@Nullable SocketAddress remoteAddress);
+
+		@Nonnull
+		default ServerBootstrap bootstrapServer() {
+			return bootstrapServer(null);
+		}
+
+		@Nonnull
+		ServerBootstrap bootstrapServer(@Nullable SocketAddress localAddress);
+
+		@Nonnull
+		default Bootstrap setChannelFactory(@Nonnull Bootstrap bootstrap) {
+			return setChannelFactory(bootstrap, null);
+		}
+
+		@Nonnull
+		Bootstrap setChannelFactory(@Nonnull Bootstrap boostrap, @Nullable SocketAddress address);
+
+		@Nonnull
+		default ServerBootstrap setServerChannelFactory(@Nonnull ServerBootstrap bootstrap) {
+			return setServerChannelFactory(bootstrap, null);
+		}
+
+		@Nonnull
+		ServerBootstrap setServerChannelFactory(@Nonnull ServerBootstrap boostrap, @Nullable SocketAddress address);
 
 		@Nullable
 		EventLoopGroup getBossEventLoopGroup();

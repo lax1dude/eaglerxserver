@@ -17,10 +17,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.MapMaker;
 
+import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
@@ -92,8 +92,8 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	protected Map<String, IPlatformServer<ProxiedPlayer>> registeredServers;
 	protected Map<String, PluginMessageHandler> registeredChannelsMap;
 	protected IEaglerXServerPlayerCountHandler playerCountHandler;
-	protected Function<SocketAddress, ChannelFactory<? extends Channel>> channelFactory;
-	protected Function<SocketAddress, ChannelFactory<? extends ServerChannel>> serverChannelFactory;
+	protected Function<SocketAddress, Class<? extends Channel>> channelFactory;
+	protected Function<SocketAddress, Class<? extends ServerChannel>> serverChannelFactory;
 	protected EventLoopGroup bossEventLoopGroup;
 	protected EventLoopGroup workerEventLoopGroup;
 
@@ -514,21 +514,13 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	}
 
 	@Override
-	public void handleConnectionInitFallback(Channel channel) {
+	public Bootstrap setChannelFactory(Bootstrap bootstrap, SocketAddress address) {
+		return bootstrap.channel(channelFactory.apply(address));
 	}
 
 	@Override
-	public void handleUndoCompression(ChannelHandlerContext ctx) {
-	}
-
-	@Override
-	public ChannelFactory<? extends Channel> getChannelFactory(SocketAddress address) {
-		return channelFactory.apply(address);
-	}
-
-	@Override
-	public ChannelFactory<? extends ServerChannel> getServerChannelFactory(SocketAddress address) {
-		return serverChannelFactory.apply(address);
+	public ServerBootstrap setServerChannelFactory(ServerBootstrap bootstrap, SocketAddress address) {
+		return bootstrap.channel(serverChannelFactory.apply(address));
 	}
 
 	@Override

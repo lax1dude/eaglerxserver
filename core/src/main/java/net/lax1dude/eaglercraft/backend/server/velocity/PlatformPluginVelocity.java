@@ -35,10 +35,11 @@ import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 
+import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
@@ -545,36 +546,28 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	}
 
 	@Override
-	public void handleConnectionInitFallback(Channel channel) {
-	}
-
-	@Override
-	public void handleUndoCompression(ChannelHandlerContext ctx) {
-	}
-
-	@Override
-	public ChannelFactory<? extends Channel> getChannelFactory(SocketAddress address) {
+	public Bootstrap setChannelFactory(Bootstrap bootstrap, SocketAddress address) {
 		if(address instanceof DomainSocketAddress) {
 			if(unixChannelFactory != null) {
-				return unixChannelFactory;
+				return bootstrap.channelFactory(unixChannelFactory);
 			}else {
 				throw new UnsupportedOperationException("Unix sockets unsupported on this platform");
 			}
 		}else {
-			return channelFactory;
+			return bootstrap.channelFactory(channelFactory);
 		}
 	}
 
 	@Override
-	public ChannelFactory<? extends ServerChannel> getServerChannelFactory(SocketAddress address) {
+	public ServerBootstrap setServerChannelFactory(ServerBootstrap bootstrap, SocketAddress address) {
 		if(address instanceof DomainSocketAddress) {
 			if(serverUnixChannelFactory != null) {
-				return serverUnixChannelFactory;
+				return bootstrap.channelFactory(serverUnixChannelFactory);
 			}else {
 				throw new UnsupportedOperationException("Unix sockets unsupported on this platform");
 			}
 		}else {
-			return serverChannelFactory;
+			return bootstrap.channelFactory(serverChannelFactory);
 		}
 	}
 

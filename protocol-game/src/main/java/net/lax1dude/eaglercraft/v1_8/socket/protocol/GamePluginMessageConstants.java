@@ -1,7 +1,5 @@
 package net.lax1dude.eaglercraft.v1_8.socket.protocol;
 
-import java.util.Locale;
-
 /**
  * Copyright (c) 2024 lax1dude. All Rights Reserved.
  * 
@@ -31,9 +29,20 @@ public class GamePluginMessageConstants {
 	public static final int SERVER_TO_CLIENT = 1;
 
 	public static String getModernName(String channel) {
-		if(channel.startsWith("EAG|")) {
-			return "eagler:" + channel.substring(4).toLowerCase(Locale.US).replace('.', '-');
-		}else {
+		switch(channel) {
+		case V3_SKIN_CHANNEL:
+			return "eagler:skins-1-8";
+		case V3_CAPE_CHANNEL:
+			return "eagler:capes-1-8";
+		case V3_VOICE_CHANNEL:
+			return "eagler:voice-1-8";
+		case V3_UPDATE_CHANNEL:
+			return "eagler:updatecrt-1-8";
+		case V3_FNAW_EN_CHANNEL:
+			return "eagler:fnawsen-1-8";
+		case V4_CHANNEL:
+			return "eagler:1-8";
+		default:
 			throw new IllegalArgumentException();
 		}
 	}

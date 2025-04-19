@@ -37,8 +37,9 @@ public class VelocityUnsafe {
 
 	private static final Class<?> class_LoginInboundConnection;
 	private static final Method method_LoginInboundConnection_delegatedConnection;
-	private static final Class<?> class_MinecraftConnection;
-	private static final Constructor<?> ctor_MinecraftConnection;
+	private static final Class<MinecraftConnection> class_MinecraftConnection;
+	private static final Constructor<MinecraftConnection> ctor_MinecraftConnection;
+	private static final ClassProxy<MinecraftConnection> classProxy_MinecraftConnection;
 	private static final Method method_MinecraftConnection_getState;
 	private static final Field field_MinecraftConnection_activeSessionHandler;
 	private static final Field field_MinecraftConnection_remoteAddress;
@@ -71,8 +72,9 @@ public class VelocityUnsafe {
 			class_LoginInboundConnection = Class.forName("com.velocitypowered.proxy.connection.client.LoginInboundConnection");
 			method_LoginInboundConnection_delegatedConnection = class_LoginInboundConnection.getDeclaredMethod("delegatedConnection");
 			method_LoginInboundConnection_delegatedConnection.setAccessible(true);
-			class_MinecraftConnection = Class.forName("com.velocitypowered.proxy.connection.MinecraftConnection");
+			class_MinecraftConnection = MinecraftConnection.class;
 			ctor_MinecraftConnection = class_MinecraftConnection.getConstructor(Channel.class, class_VelocityServer);
+			classProxy_MinecraftConnection = ClassProxy.bindProxy(VelocityUnsafe.class.getClassLoader(), class_MinecraftConnection);
 			method_MinecraftConnection_getState = class_MinecraftConnection.getMethod("getState");
 			field_MinecraftConnection_activeSessionHandler = class_MinecraftConnection.getDeclaredField("activeSessionHandler");
 			field_MinecraftConnection_activeSessionHandler.setAccessible(true);
@@ -273,10 +275,8 @@ public class VelocityUnsafe {
 			Object o = field_MinecraftConnection_activeSessionHandler.get(getMinecraftConnection(player));
 			if(class_AuthSessionHandler.isAssignableFrom(o.getClass())) {
 				final MinecraftConnection parent = (MinecraftConnection) field_AuthSessionHandler_mcConnection.get(o);
-				field_AuthSessionHandler_mcConnection.set(o, ClassProxy.createProxy(VelocityUnsafe.class.getClassLoader(),
-						(Class<MinecraftConnection>) class_MinecraftConnection,
-						(Constructor<MinecraftConnection>) ctor_MinecraftConnection, new Object[] { parent.getChannel(), server },
-						(obj, meth, args) -> {
+				field_AuthSessionHandler_mcConnection.set(o, classProxy_MinecraftConnection.createProxy(
+						ctor_MinecraftConnection, new Object[] { parent.getChannel(), server }, (obj, meth, args) -> {
 					if ("setCompressionThreshold".equals(meth.getName())) {
 						// FUCK YOU!
 						return null;

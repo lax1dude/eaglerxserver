@@ -7,6 +7,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakePacketTypes;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.BufferUtils;
 
 class RateLimitMessage {
 
@@ -19,7 +20,7 @@ class RateLimitMessage {
 			buf.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_ERROR);
 			buf.writeByte(code);
 			buf.writeByte(msg.length());
-			buf.writeCharSequence(msg, StandardCharsets.US_ASCII);
+			BufferUtils.writeCharSequence(buf, msg, StandardCharsets.US_ASCII);
 			return buf.retain();
 		}finally {
 			buf.release();

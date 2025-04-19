@@ -24,6 +24,7 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import javax.net.ssl.SSLEngine;
 
@@ -33,14 +34,11 @@ import com.google.common.cache.CacheBuilder;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.ReflectiveChannelFactory;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpClientCodec;
@@ -56,32 +54,9 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 
-public class HTTPClient {
+public class HTTPClient implements IHTTPClient {
 
 	public static final int MAX_REDIRECTS = 8;
-
-	public static class Response {
-
-		public final int code;
-		public final boolean redirected;
-		public final ByteBuf data;
-		public final Throwable exception;
-
-		public Response(int code, boolean redirected, ByteBuf data) {
-			this.code = code;
-			this.redirected = redirected;
-			this.data = data;
-			this.exception = null;
-		}
-
-		public Response(Throwable exception) {
-			this.code = -1;
-			this.redirected = false;
-			this.data = null;
-			this.exception = exception;
-		}
-
-	}
 
 	private static class RedirectTracker {
 		private int redirects = 0;
@@ -229,20 +204,13 @@ public class HTTPClient {
 
 	}
 
-	private final Cache<String, InetAddress> addressCache = CacheBuilder.newBuilder().expireAfterWrite(15L, TimeUnit.MINUTES).build();
-	private final EventLoopGroup eventLoop;
-	private final ChannelFactory<? extends Channel> channelFactory;
+	private final Cache<String, InetAddress> addressCache = CacheBuilder.newBuilder()
+			.expireAfterWrite(15L, TimeUnit.MINUTES).build();
+	private final Supplier<Bootstrap> bootstrapper;
 	private final String userAgent;
 
-	public HTTPClient(EventLoopGroup eventLoop, Class<? extends Channel> channelClass, String userAgent) {
-		this.eventLoop = eventLoop;
-		this.channelFactory = new ReflectiveChannelFactory<>(channelClass);
-		this.userAgent = userAgent;
-	}
-
-	public HTTPClient(EventLoopGroup eventLoop, ChannelFactory<? extends Channel> channelFactory, String userAgent) {
-		this.eventLoop = eventLoop;
-		this.channelFactory = channelFactory;
+	public HTTPClient(Supplier<Bootstrap> bootstrapper, String userAgent) {
+		this.bootstrapper = bootstrapper;
 		this.userAgent = userAgent;
 	}
 
@@ -283,8 +251,7 @@ public class HTTPClient {
 			addressCache.put(host, inetHost);
 		}
 		InetSocketAddress addr = new InetSocketAddress(inetHost, port);
-		(new Bootstrap()).channelFactory(channelFactory).group(eventLoop)
-				.handler(new NettyHttpChannelInitializer(responseCallback, redirectTracker, ssl, host, port))
+		bootstrapper.get().handler(new NettyHttpChannelInitializer(responseCallback, redirectTracker, ssl, host, port))
 				.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000).option(ChannelOption.TCP_NODELAY, true)
 				.remoteAddress(addr).connect()
 				.addListener(new NettyHttpChannelFutureListener(redirectTracker.method, uri, responseCallback));

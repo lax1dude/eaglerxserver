@@ -1,4 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.config.snakeyaml;
+package net.lax1dude.eaglercraft.backend.server.config.snakeyaml.modern;
 
 import java.util.ArrayList;
 import java.util.List;

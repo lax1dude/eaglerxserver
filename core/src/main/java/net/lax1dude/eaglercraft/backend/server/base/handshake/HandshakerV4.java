@@ -7,6 +7,7 @@ import io.netty.channel.ChannelHandlerContext;
 import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilityType;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.BufferUtils;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
@@ -53,9 +54,9 @@ public class HandshakerV4 extends HandshakerV3 {
 	@Override
 	protected void handleInboundRequestLogin(ChannelHandlerContext ctx, ByteBuf buffer) {
 		int strlen = buffer.readUnsignedByte();
-		String username = buffer.readCharSequence(strlen, StandardCharsets.US_ASCII).toString();
+		String username = BufferUtils.readCharSequence(buffer, strlen, StandardCharsets.US_ASCII).toString();
 		strlen = buffer.readUnsignedByte();
-		String requestedServer = buffer.readCharSequence(strlen, StandardCharsets.US_ASCII).toString();
+		String requestedServer = BufferUtils.readCharSequence(buffer, strlen, StandardCharsets.US_ASCII).toString();
 		strlen = buffer.readUnsignedByte();
 		byte[] authPassword = Util.newByteArray(strlen);
 		buffer.readBytes(authPassword);

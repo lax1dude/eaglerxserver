@@ -15,8 +15,9 @@ public class EaglerPlayerLocal<PlayerObject> extends BasePlayerLocal<PlayerObjec
 			net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject> delegate) {
 		super(server, player, delegate);
 		this.voiceCapable = delegate.isVoiceCapable();
-		if(delegate.hasVoiceManager()) {
-			this.voiceManager = new VoiceManagerLocal<>(server.getVoiceService(), this, delegate.getVoiceManager());
+		if(server.getVoiceService().isVoiceEnabled() && delegate.hasVoiceManager()) {
+			this.voiceManager = new VoiceManagerLocal<>((VoiceServiceLocal<PlayerObject>) server.getVoiceService(),
+					this, delegate.getVoiceManager());
 		}else {
 			this.voiceManager = null;
 		}

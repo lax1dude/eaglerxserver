@@ -8,6 +8,7 @@ import io.netty.channel.ChannelHandlerContext;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.BufferUtils;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
@@ -59,7 +60,7 @@ public class HandshakerV2 extends HandshakerV1 {
 				len = 255;
 			}
 			buffer.writeByte(len);
-			buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
+			BufferUtils.writeCharSequence(buffer, serverBrand, StandardCharsets.US_ASCII);
 			
 			len = serverVersion.length();
 			if(len > 255) {
@@ -67,7 +68,7 @@ public class HandshakerV2 extends HandshakerV1 {
 				len = 255;
 			}
 			buffer.writeByte(len);
-			buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
+			BufferUtils.writeCharSequence(buffer, serverVersion, StandardCharsets.US_ASCII);
 	
 			buffer.writeByte(0);
 			buffer.writeShort(0);
@@ -102,7 +103,7 @@ public class HandshakerV2 extends HandshakerV1 {
 				len = 255;
 			}
 			buffer.writeByte(len);
-			buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
+			BufferUtils.writeCharSequence(buffer, serverBrand, StandardCharsets.US_ASCII);
 			
 			len = serverVersion.length();
 			if(len > 255) {
@@ -110,7 +111,7 @@ public class HandshakerV2 extends HandshakerV1 {
 				len = 255;
 			}
 			buffer.writeByte(len);
-			buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
+			BufferUtils.writeCharSequence(buffer, serverVersion, StandardCharsets.US_ASCII);
 
 			buffer.writeByte(authMethId);
 			if(authSaltingData != null) {

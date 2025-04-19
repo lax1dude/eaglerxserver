@@ -24,6 +24,7 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistration;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandService;
 import net.lax1dude.eaglercraft.backend.server.base.supervisor.ISupervisorServiceImpl;
+import net.lax1dude.eaglercraft.backend.server.util.GsonMap;
 
 public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 
@@ -244,7 +245,7 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 				return;
 			}
 			try {
-				for(Entry<String, JsonElement> etr : brandsFile.asMap().entrySet()) {
+				for(Entry<String, JsonElement> etr : GsonMap.asMap(brandsFile).entrySet()) {
 					UUID uuid = UUID.fromString(etr.getKey());
 					JsonObject val = etr.getValue().getAsJsonObject();
 					map.put(uuid, new BrandRegistration(uuid, val.get("desc").getAsString(),

@@ -4,6 +4,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.net.SocketAddress;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import org.bukkit.entity.Player;
 
@@ -30,14 +31,16 @@ class BukkitConnection implements IPlatformConnection {
 	private Player playerInstance;
 	String texturesPropertyValue;
 	String texturesPropertySignature;
-	PlatformPluginBukkit.CloseRedirector closeRedirector;
 	Object attachment;
-	byte eaglerPlayerProperty;
 	boolean closePending;
+	Consumer<Runnable> awaitPlayState;
+	byte eaglerPlayerProperty;
 
-	BukkitConnection(PlatformPluginBukkit plugin, LoginConnectionHolder loginConnection) {
+	BukkitConnection(PlatformPluginBukkit plugin, LoginConnectionHolder loginConnection,
+			Consumer<Runnable> awaitPlayState) {
 		this.plugin = plugin;
 		this.loginConnection = loginConnection;
+		this.awaitPlayState = awaitPlayState;
 	}
 
 	void bindPlayer(Player player) {
@@ -137,15 +140,7 @@ class BukkitConnection implements IPlatformConnection {
 
 	@Override
 	public void disconnect() {
-		if(closePending) {
-			return;
-		}
 		closePending = true;
-		PlatformPluginBukkit.CloseRedirector closer = this.closeRedirector;
-		if(closer != null) {
-			closer.accept(null);
-			return;
-		}
 		Player player = playerInstance;
 		if(player != null) {
 			plugin.getScheduler().execute(() -> {
@@ -165,15 +160,6 @@ class BukkitConnection implements IPlatformConnection {
 
 	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
-		if(closePending) {
-			return;
-		}
-		closePending = true;
-		PlatformPluginBukkit.CloseRedirector closer = this.closeRedirector;
-		if(closer != null) {
-			closer.accept(kickMessage);
-			return;
-		}
 		String msg = ((BaseComponent)kickMessage).toLegacyText();
 		Player player = playerInstance;
 		if(player != null) {
@@ -189,6 +175,15 @@ class BukkitConnection implements IPlatformConnection {
 			}else {
 				loginConn.disconnect(msg);
 			}
+		}
+	}
+
+	public void awaitPlayState(Runnable runnable) {
+		if(awaitPlayState != null) {
+			awaitPlayState.accept(runnable);
+			awaitPlayState = null;
+		}else {
+			runnable.run();
 		}
 	}
 

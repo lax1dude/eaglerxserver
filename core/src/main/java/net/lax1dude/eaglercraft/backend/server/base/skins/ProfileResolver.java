@@ -16,16 +16,17 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.IProfileResolver;
 import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesProperty;
 import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesResult;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.BufferUtils;
 import net.lax1dude.eaglercraft.backend.server.util.CharSequenceReader;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
-import net.lax1dude.eaglercraft.backend.skin_cache.HTTPClient;
+import net.lax1dude.eaglercraft.backend.skin_cache.IHTTPClient;
 
 public class ProfileResolver implements IProfileResolver {
 
 	private final EaglerXServer<?> server;
-	private final HTTPClient httpClient;
+	private final IHTTPClient httpClient;
 
-	public ProfileResolver(EaglerXServer<?> server, HTTPClient httpClient) {
+	public ProfileResolver(EaglerXServer<?> server, IHTTPClient httpClient) {
 		this.server = server;
 		this.httpClient = httpClient;
 	}
@@ -48,7 +49,7 @@ public class ProfileResolver implements IProfileResolver {
 					}else {
 						UUID uuid;
 						try {
-							JsonObject json = JsonParser.parseReader(new CharSequenceReader(response.data.readCharSequence(
+							JsonObject json = JsonParser.parseReader(new CharSequenceReader(BufferUtils.readCharSequence(response.data,
 										response.data.readableBytes(), StandardCharsets.UTF_8))).getAsJsonObject();
 							uuid = Util.createUUIDFromUndashed(json.get("id").getAsString());
 						}catch(Exception t) {
@@ -82,7 +83,7 @@ public class ProfileResolver implements IProfileResolver {
 					}else {
 						TexturesProperty result = null;
 						try {
-							JsonObject json = JsonParser.parseReader(new CharSequenceReader(response.data.readCharSequence(
+							JsonObject json = JsonParser.parseReader(new CharSequenceReader(BufferUtils.readCharSequence(response.data,
 									response.data.readableBytes(), StandardCharsets.UTF_8))).getAsJsonObject();
 							JsonElement propsElement = json.get("properties");
 							if(propsElement != null) {

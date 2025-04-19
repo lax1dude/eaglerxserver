@@ -18,7 +18,6 @@ package net.lax1dude.eaglercraft.backend.server.base.supervisor;
 
 import java.net.SocketAddress;
 
-import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelException;
@@ -45,10 +44,10 @@ public class PipelineFactory {
 
 	public static void initiateConnection(EaglerXServer<?> server, SocketAddress addr, SupervisorService<?> controller,
 			int connectTimeout, int readTimeout) {
-		(new Bootstrap()).channelFactory(server.getPlatform().getChannelFactory(addr)).group(server.getWorkerEventLoopGroup())
+		server.bootstrapClient(addr).group(server.getWorkerEventLoopGroup())
 				.handler(getChildInitializer(controller, readTimeout))
 				.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout).option(ChannelOption.TCP_NODELAY, true)
-				.remoteAddress(addr).connect().addListener((future) -> {
+				.connect().addListener((future) -> {
 					if(future.isSuccess()) {
 						controller.handleChannelOpen(((ChannelFuture)future).channel().attr(HANDLER).get());
 					}else {

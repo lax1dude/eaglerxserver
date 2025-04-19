@@ -24,10 +24,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.MapMaker;
 
+import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
@@ -70,11 +70,11 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.bukkit.BukkitUnsafe.LoginConnectionHolder;
+import net.lax1dude.eaglercraft.backend.server.bukkit.async.PlayerPostLoginInjector;
+import net.lax1dude.eaglercraft.backend.server.bukkit.async.PlayerPostLoginInjector.LoginEventContext;
 import net.lax1dude.eaglercraft.backend.server.bukkit.event.BukkitEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.bungee.chat.BungeeComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
-import net.lax1dude.eaglercraft.backend.server.util.CompressionDisablerHack;
-import net.lax1dude.eaglercraft.backend.server.util.DecompressionDisablerHack;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 
@@ -103,17 +103,15 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	protected IPlatformCommandSender<Player> cacheConsoleCommandSenderHandle;
 	protected boolean enableNativeTransport;
 	protected EventLoopGroup eventLoopGroup;
+	protected PlayerPostLoginInjector postLoginInjector;
 
 	private final ConcurrentMap<Player, BukkitPlayer> playerInstanceMap = (new MapMaker()).initialCapacity(512)
 			.concurrencyLevel(16).makeMap();
 
-	private final ChannelHandler compressionDisabler = new CompressionDisablerHack("compress", BukkitUnsafe::disposeCompressionHandler);
-	private final ChannelHandler decompressionDisabler = new DecompressionDisablerHack("decompress", BukkitUnsafe::disposeDecompressionHandler);
-
-	private final ChannelFactory<? extends Channel> channelFactoryNIO = NioSocketChannel::new;
-	private final ChannelFactory<? extends Channel> channelFactoryEpoll = EpollSocketChannel::new;
-	private final ChannelFactory<? extends ServerChannel> serverChannelFactoryNIO = NioServerSocketChannel::new;
-	private final ChannelFactory<? extends ServerChannel> serverChannelFactoryEpoll = EpollServerSocketChannel::new;
+	private final Class<? extends Channel> channelClassNIO = NioSocketChannel.class;
+	private final Class<? extends Channel> channelClassEpoll = EpollSocketChannel.class;
+	private final Class<? extends ServerChannel> serverChannelClassNIO = NioServerSocketChannel.class;
+	private final Class<? extends ServerChannel> serverChannelClassEpoll = EpollServerSocketChannel.class;
 
 	public PlatformPluginBukkit() {
 		registeredServers = ImmutableMap.of("default", this);
@@ -132,6 +130,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		cacheConsoleCommandSenderHandle = new BukkitConsole(cacheConsoleCommandSenderInstance);
 		enableNativeTransport = Epoll.isAvailable() && BukkitUnsafe.isEnableNativeTransport(server);
 		eventLoopGroup = BukkitUnsafe.getEventLoopGroup(server, enableNativeTransport);
+		postLoginInjector = new PlayerPostLoginInjector(this);
 		if(enableNativeTransport && !(eventLoopGroup instanceof EpollEventLoopGroup)) {
 			enableNativeTransport = false;
 		}
@@ -275,6 +274,13 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			List<IPipelineComponent> pipelineList = new ArrayList<>();
 			
 			ChannelPipeline pipeline = channel.pipeline();
+			
+			Object networkManager = pipeline.get("packet_handler");
+			if(networkManager != null) {
+				pipeline.replace("packet_handler", "packet_handler",
+						(ChannelHandler) postLoginInjector.wrapNetworkManager(networkManager, channel));
+			}
+			
 			for(String str : pipeline.names()) {
 				ChannelHandler handler = pipeline.get(str);
 				if(handler != null) {
@@ -320,9 +326,14 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 				@Override
 				public Consumer<SocketAddress> realAddressHandle() {
 					return (addr) -> {
-						Object o = channel.pipeline().get("packet_handler");
-						if(o != null) {
-							BukkitUnsafe.updateRealAddress(o, addr);
+						LoginEventContext ctx = channel.attr(PlayerPostLoginInjector.attr).get();
+						if(ctx != null) {
+							BukkitUnsafe.updateRealAddress(ctx.originalNetworkManager(), addr);
+						}else {
+							Object o = channel.pipeline().get("packet_handler");
+							if(o != null) {
+								BukkitUnsafe.updateRealAddress(o, addr);
+							}
 						}
 					};
 				}
@@ -519,41 +530,39 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		return "default";
 	}
 
-	@Override
-	public void handleConnectionInitFallback(Channel channel) {
-		LoginConnectionHolder holder = BukkitUnsafe.getLoginConnection(channel.pipeline().get("packet_handler"));
+	public void handleConnectionInit(Channel channel) {
+		PlayerPostLoginInjector.LoginEventContext ctx = channel.attr(PlayerPostLoginInjector.attr).get();
+		LoginConnectionHolder holder = BukkitUnsafe.getLoginConnection(ctx.originalNetworkManager());
 		IPipelineData pipelineData = channel.attr(PipelineAttributes.<IPipelineData>pipelineData()).getAndSet(null);
+		boolean eag = pipelineData != null && pipelineData.isEaglerPlayer();
+		if(eag) {
+			ctx.markCompressionDisable(true);
+		}
 		Attribute<BukkitConnection> attr = channel.attr(PipelineAttributes.<BukkitConnection>connectionData());
 		initializeConnection(holder, pipelineData, attr::set);
 	}
 
 	@Override
-	public void handleUndoCompression(ChannelHandlerContext ctx) {
-		ctx.pipeline().addAfter("compress", "compress-disable-hack", compressionDisabler);
-		ctx.pipeline().addBefore("decompress", "decompress-disable-hack", decompressionDisabler);
-	}
-
-	@Override
-	public ChannelFactory<? extends Channel> getChannelFactory(SocketAddress address) {
+	public Bootstrap setChannelFactory(Bootstrap bootstrap, SocketAddress address) {
 		if(address instanceof DomainSocketAddress) {
 			throw new UnsupportedOperationException("Unix sockets not supported by this platform!");
 		}
 		if(enableNativeTransport) {
-			return channelFactoryEpoll;
+			return bootstrap.channel(channelClassEpoll);
 		}else {
-			return channelFactoryNIO;
+			return bootstrap.channel(channelClassNIO);
 		}
 	}
 
 	@Override
-	public ChannelFactory<? extends ServerChannel> getServerChannelFactory(SocketAddress address) {
+	public ServerBootstrap setServerChannelFactory(ServerBootstrap bootstrap, SocketAddress address) {
 		if(address instanceof DomainSocketAddress) {
 			throw new UnsupportedOperationException("Unix sockets not supported by this platform!");
 		}
 		if(enableNativeTransport) {
-			return serverChannelFactoryEpoll;
+			return bootstrap.channel(serverChannelClassEpoll);
 		}else {
-			return serverChannelFactoryNIO;
+			return bootstrap.channel(serverChannelClassNIO);
 		}
 	}
 
@@ -569,7 +578,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	public void initializeConnection(LoginConnectionHolder loginConnection, IPipelineData pipelineData,
 			Consumer<BukkitConnection> setAttr) {
-		BukkitConnection c = new BukkitConnection(this, loginConnection);
+		boolean eag = pipelineData != null && pipelineData.isEaglerPlayer();
+		BukkitConnection c = new BukkitConnection(this, loginConnection,
+				eag ? pipelineData::awaitPlayState : null);
 		setAttr.accept(c);
 		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<IPipelineData, Object>() {
 			@Override
@@ -599,28 +610,14 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		});
 	}
 
-	static class CloseRedirector {
-
-		volatile boolean closed = false;
-		Object msg = null;
-
-		void accept(Object t) {
-			msg = t;
-			closed = true;
-		}
-
-	}
-
 	public void initializePlayer(Player player, BukkitConnection connection,
-			Consumer<BukkitConnection> setAttr, Consumer<CloseRedirector> onComplete) {
+			Consumer<BukkitConnection> setAttr, Consumer<Boolean> onComplete) {
 		BukkitPlayer p;
 		final BukkitConnection c;
-		final CloseRedirector cr;
 		if(connection == null) {
 			// vanilla players won't have an initialized connection
-			c = new BukkitConnection(this, null);
+			c = new BukkitConnection(this, null, null);
 			p = new BukkitPlayer(player, c);
-			c.closeRedirector = cr = new CloseRedirector();
 			setAttr.accept(c);
 			connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<IPipelineData, Object>() {
 				@Override
@@ -651,7 +648,6 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		}else {
 			c = connection;
 			p = new BukkitPlayer(player, c);
-			c.closeRedirector = cr = new CloseRedirector();
 		}
 		if(c.eaglerPlayerProperty != (byte) 0 || c.texturesPropertyValue != null) {
 			BukkitUnsafe.PropertyInjector injector = BukkitUnsafe.propertyInjector(player);
@@ -690,15 +686,11 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 				if(listener != null) {
 					listener.handlePreConnect(p);
 				}
-				CloseRedirector redir = c.closeRedirector;
-				c.closeRedirector = null;
-				onComplete.accept(redir);
+				onComplete.accept(true);
 			}
 			@Override
 			public void cancel() {
-				CloseRedirector redir = c.closeRedirector;
-				c.closeRedirector = null;
-				onComplete.accept(redir);
+				onComplete.accept(false);
 			}
 		});
 	}

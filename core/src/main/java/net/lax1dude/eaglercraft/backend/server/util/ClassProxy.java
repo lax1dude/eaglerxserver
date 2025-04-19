@@ -24,7 +24,7 @@ import com.google.common.collect.ImmutableMap;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public class ClassProxy {
+public class ClassProxy<T> {
 
 	public interface IClassProxy {
 	}
@@ -101,7 +101,7 @@ public class ClassProxy {
 		return ret.toArray(new Method[ret.size()]);
 	}
 
-	private Object createProxy(Constructor<?> ctor, Object[] params, InvocationHandler invocationHandler) {
+	public T createProxy(Constructor<?> ctor, Object[] params, InvocationHandler invocationHandler) {
 		Constructor<?> ctorImpl = this.ctor.get(ctor);
 		if(ctorImpl == null) {
 			throw new IllegalArgumentException("Unknown constructor: " + ctor.toString());
@@ -112,7 +112,7 @@ public class ClassProxy {
 		params2[j] = methods;
 		params2[j + 1] = invocationHandler;
 		try {
-			return ctorImpl.newInstance(params2);
+			return (T) ctorImpl.newInstance(params2);
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException e) {
 			throw Util.propagateReflectThrowable(e);
@@ -132,15 +132,26 @@ public class ClassProxy {
 	@SuppressWarnings("unchecked")
 	public static <T> T createProxy(ClassLoader loader, Class<T> parent, Constructor<T> ctor, Object[] params,
 			InvocationHandler invocationHandler) {
-		ClassProxy ret;
+		ClassProxy<T> ret;
 		try {
-			ret = loadingCache.get(new HashPair<>(loader, parent));
+			ret = (ClassProxy<T>) loadingCache.get(new HashPair<>(loader, parent));
 		} catch (ExecutionException e) {
 			Throwable t = e.getCause();
 			Throwables.throwIfUnchecked(t);
 			throw new RuntimeException(t);
 		}
-		return (T) ret.createProxy(ctor, params, invocationHandler);
+		return ret.createProxy(ctor, params, invocationHandler);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> ClassProxy<T> bindProxy(ClassLoader loader, Class<T> parent) {
+		try {
+			return (ClassProxy<T>) loadingCache.get(new HashPair<>(loader, parent));
+		} catch (ExecutionException e) {
+			Throwable t = e.getCause();
+			Throwables.throwIfUnchecked(t);
+			throw new RuntimeException(t);
+		}
 	}
 
 	private static Class<?> bindProxy(ClassLoader loader, Class<?> parent, Constructor<?>[] ctors, Method[] methods) throws Exception {

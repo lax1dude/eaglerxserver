@@ -317,7 +317,7 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 			buf.writeShort(maxAllowedMC);
 			String str = isClientProbablyOutdated ? "Outdated Client" : (isServerProbablyOutdated ? "Outdated Server" : "Unsupported Client Version");
 			buf.writeByte(str.length());
-			buf.writeCharSequence(str, StandardCharsets.US_ASCII);
+			BufferUtils.writeCharSequence(buf, str, StandardCharsets.US_ASCII);
 			ctx.writeAndFlush(buf).addListener(ChannelFutureListener.CLOSE);
 			return;
 		}
@@ -328,9 +328,9 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		byte[] authUsername;
 		try {
 			strlen = binaryMsg.readUnsignedByte();
-			eaglerBrand = binaryMsg.readCharSequence(strlen, StandardCharsets.US_ASCII).toString();
+			eaglerBrand = BufferUtils.readCharSequence(binaryMsg, strlen, StandardCharsets.US_ASCII).toString();
 			strlen = binaryMsg.readUnsignedByte();
-			eaglerVersionString = binaryMsg.readCharSequence(strlen, StandardCharsets.US_ASCII).toString();
+			eaglerVersionString = BufferUtils.readCharSequence(binaryMsg, strlen, StandardCharsets.US_ASCII).toString();
 			clientAuth = binaryMsg.readBoolean();
 			strlen = binaryMsg.readUnsignedByte();
 			authUsername = Util.newByteArray(strlen);
@@ -371,9 +371,9 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		String eaglerBrand, eaglerVersionString;
 		try {
 			strlen = binaryMsg.readUnsignedByte();
-			eaglerBrand = binaryMsg.readCharSequence(strlen, StandardCharsets.US_ASCII).toString();
+			eaglerBrand = BufferUtils.readCharSequence(binaryMsg, strlen, StandardCharsets.US_ASCII).toString();
 			strlen = binaryMsg.readUnsignedByte();
-			eaglerVersionString = binaryMsg.readCharSequence(strlen, StandardCharsets.US_ASCII).toString();
+			eaglerVersionString = BufferUtils.readCharSequence(binaryMsg, strlen, StandardCharsets.US_ASCII).toString();
 			if(binaryMsg.isReadable()) {
 				throw new IndexOutOfBoundsException();
 			}

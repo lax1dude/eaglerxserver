@@ -33,6 +33,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.api.voice.ICEServerEntry;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfList;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfSection;
+import net.lax1dude.eaglercraft.backend.server.util.Util;
 
 public class EaglerConfigLoader {
 
@@ -1011,6 +1012,16 @@ public class EaglerConfigLoader {
 		}
 	}
 
+	private static final boolean DOMAIN_SOCKET_ADDRESS_PRESENT = Util.classExists("io.netty.channel.unix.DomainSocketAddress");
+
+	private static class Shit {
+
+		static SocketAddress fuck(String str) {
+			return new DomainSocketAddress(str);
+		}
+
+	}
+
 	public static SocketAddress getAddr(String hostline) {
 		URI uri = null;
 		try {
@@ -1018,8 +1029,10 @@ public class EaglerConfigLoader {
 		} catch (URISyntaxException ex) {
 		}
 
-		if (uri != null && "unix".equals(uri.getScheme())) {
-			return new DomainSocketAddress(uri.getPath());
+		if(DOMAIN_SOCKET_ADDRESS_PRESENT) {
+			if (uri != null && "unix".equals(uri.getScheme())) {
+				return Shit.fuck(uri.getPath());
+			}
 		}
 
 		if (uri == null || uri.getHost() == null) {

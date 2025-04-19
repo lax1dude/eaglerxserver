@@ -10,6 +10,7 @@ import io.netty.channel.ChannelHandlerContext;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.BufferUtils;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
@@ -53,9 +54,9 @@ public class HandshakerV1 extends HandshakerInstance {
 
 	protected void handleInboundRequestLogin(ChannelHandlerContext ctx, ByteBuf buffer) {
 		int strlen = buffer.readUnsignedByte();
-		String username = buffer.readCharSequence(strlen, StandardCharsets.US_ASCII).toString();
+		String username = BufferUtils.readCharSequence(buffer, strlen, StandardCharsets.US_ASCII).toString();
 		strlen = buffer.readUnsignedByte();
-		String requestedServer = buffer.readCharSequence(strlen, StandardCharsets.US_ASCII).toString();
+		String requestedServer = BufferUtils.readCharSequence(buffer, strlen, StandardCharsets.US_ASCII).toString();
 		strlen = buffer.readUnsignedByte();
 		byte[] authPassword = Util.newByteArray(strlen);
 		buffer.readBytes(authPassword);
@@ -76,7 +77,7 @@ public class HandshakerV1 extends HandshakerInstance {
 
 	protected void handleInboundProfileData(ChannelHandlerContext ctx, ByteBuf buffer) {
 		int strlen = buffer.readUnsignedByte();
-		String type = buffer.readCharSequence(strlen, StandardCharsets.US_ASCII).toString();
+		String type = BufferUtils.readCharSequence(buffer, strlen, StandardCharsets.US_ASCII).toString();
 		strlen = buffer.readUnsignedShort();
 		byte[] readData = Util.newByteArray(strlen);
 		buffer.readBytes(readData);
@@ -117,7 +118,7 @@ public class HandshakerV1 extends HandshakerInstance {
 				len = 255;
 			}
 			buffer.writeByte(len);
-			buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
+			BufferUtils.writeCharSequence(buffer, serverBrand, StandardCharsets.US_ASCII);
 			
 			len = serverVersion.length();
 			if(len > 255) {
@@ -125,7 +126,7 @@ public class HandshakerV1 extends HandshakerInstance {
 				len = 255;
 			}
 			buffer.writeByte(len);
-			buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
+			BufferUtils.writeCharSequence(buffer, serverVersion, StandardCharsets.US_ASCII);
 			
 			buffer.writeByte(0);
 			buffer.writeShort(0);
@@ -150,7 +151,7 @@ public class HandshakerV1 extends HandshakerInstance {
 		try {
 			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_ALLOW_LOGIN);
 			buffer.writeByte(setUsername.length());
-			buffer.writeCharSequence(setUsername, StandardCharsets.US_ASCII);
+			BufferUtils.writeCharSequence(buffer, setUsername, StandardCharsets.US_ASCII);
 			buffer.writeLong(setUUID.getMostSignificantBits());
 			buffer.writeLong(setUUID.getLeastSignificantBits());
 			return ctx.writeAndFlush(buffer.retain());

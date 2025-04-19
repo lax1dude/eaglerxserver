@@ -17,10 +17,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfig;
+import net.lax1dude.eaglercraft.backend.server.util.GsonLenient;
 
 public class GSONConfigLoader {
 
-	private static final Gson GSON = (new GsonBuilder()).setLenient().setPrettyPrinting().serializeNulls().create();
+	private static final Gson GSON = GsonLenient.setLenient(new GsonBuilder()).setPrettyPrinting().serializeNulls().create();
 
 	public static IEaglerConfig getConfigFile(File file) throws IOException {
 		JsonObject obj;

@@ -56,7 +56,7 @@ public class HandshakerV5 extends HandshakerV4 {
 				len = 255;
 			}
 			buffer.writeByte(len);
-			buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
+			BufferUtils.writeCharSequence(buffer, serverBrand, StandardCharsets.US_ASCII);
 			
 			len = serverVersion.length();
 			if(len > 255) {
@@ -64,7 +64,7 @@ public class HandshakerV5 extends HandshakerV4 {
 				len = 255;
 			}
 			buffer.writeByte(len);
-			buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
+			BufferUtils.writeCharSequence(buffer, serverVersion, StandardCharsets.US_ASCII);
 
 			buffer.writeByte(0);
 			buffer.writeShort(0);
@@ -100,7 +100,7 @@ public class HandshakerV5 extends HandshakerV4 {
 				len = 255;
 			}
 			buffer.writeByte(len);
-			buffer.writeCharSequence(serverBrand, StandardCharsets.US_ASCII);
+			BufferUtils.writeCharSequence(buffer, serverBrand, StandardCharsets.US_ASCII);
 			
 			len = serverVersion.length();
 			if(len > 255) {
@@ -108,7 +108,7 @@ public class HandshakerV5 extends HandshakerV4 {
 				len = 255;
 			}
 			buffer.writeByte(len);
-			buffer.writeCharSequence(serverVersion, StandardCharsets.US_ASCII);
+			BufferUtils.writeCharSequence(buffer, serverVersion, StandardCharsets.US_ASCII);
 
 			buffer.writeByte(authMethId);
 			if(authSaltingData != null) {
@@ -129,9 +129,9 @@ public class HandshakerV5 extends HandshakerV4 {
 	@Override
 	protected void handleInboundRequestLogin(ChannelHandlerContext ctx, ByteBuf buffer) {
 		int strlen = buffer.readUnsignedByte();
-		String username = buffer.readCharSequence(strlen, StandardCharsets.US_ASCII).toString();
+		String username = BufferUtils.readCharSequence(buffer, strlen, StandardCharsets.US_ASCII).toString();
 		strlen = buffer.readUnsignedByte();
-		String requestedServer = buffer.readCharSequence(strlen, StandardCharsets.US_ASCII).toString();
+		String requestedServer = BufferUtils.readCharSequence(buffer, strlen, StandardCharsets.US_ASCII).toString();
 		strlen = buffer.readUnsignedByte();
 		byte[] authPassword = Util.newByteArray(strlen);
 		buffer.readBytes(authPassword);
@@ -183,7 +183,7 @@ public class HandshakerV5 extends HandshakerV4 {
 		try {
 			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_ALLOW_LOGIN);
 			buffer.writeByte(setUsername.length());
-			buffer.writeCharSequence(setUsername, StandardCharsets.US_ASCII);
+			BufferUtils.writeCharSequence(buffer, setUsername, StandardCharsets.US_ASCII);
 			buffer.writeLong(setUUID.getMostSignificantBits());
 			buffer.writeLong(setUUID.getLeastSignificantBits());
 			BufferUtils.writeVarInt(buffer, standardCapabilities);

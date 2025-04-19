@@ -25,10 +25,9 @@ import com.google.common.collect.MapMaker;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFactory;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.ServerChannel;
 import net.lax1dude.eaglercraft.backend.server.adapter.AbortLoadException;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
@@ -98,8 +97,10 @@ import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceServiceLocal;
 import net.lax1dude.eaglercraft.backend.server.base.voice.VoiceServiceRemote;
 import net.lax1dude.eaglercraft.backend.server.base.webserver.WebServer;
 import net.lax1dude.eaglercraft.backend.server.base.webview.WebViewService;
+import net.lax1dude.eaglercraft.backend.server.util.GsonLenient;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 import net.lax1dude.eaglercraft.backend.skin_cache.HTTPClient;
+import net.lax1dude.eaglercraft.backend.skin_cache.IHTTPClient;
 import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheDatastore;
 import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheDownloader;
 import net.lax1dude.eaglercraft.backend.skin_cache.SkinCacheService;
@@ -111,7 +112,7 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherPlay
 public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObject>, IEaglerAPIFactory,
 		IEaglerXServerAPI<PlayerObject>, IEaglerXServerAPI.NettyUnsafe {
 
-	public static final Gson GSON_PRETTY = (new GsonBuilder()).setLenient().setPrettyPrinting().create();
+	public static final Gson GSON_PRETTY = GsonLenient.setLenient(new GsonBuilder()).setPrettyPrinting().create();
 	public static final Interner<UUID> uuidInterner = Interners.newWeakInterner();
 
 	private final EaglerAttributeManager attributeManager = APIFactoryImpl.INSTANCE.getEaglerAttribManager();
@@ -139,7 +140,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private Class<?> componentType;
 	private Set<Class<?>> componentTypeSet;
 	private ComponentHelper<?> componentHelper;
-	private HTTPClient httpClient;
+	private IHTTPClient httpClient;
 	private BinaryHTTPClient httpClientAPI;
 	private ProfileResolver profileResolver;
 	private TexturesProperty eaglerPlayersVanillaSkin;
@@ -176,8 +177,22 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		default -> EnumPlatformType.STANDALONE;
 		};
 		
-		logger().info("Loading " + getServerBrand() + " " + getServerVersion() + "...");
+		if(platformType != EnumPlatformType.BUKKIT) {
+			logger().info("Loading " + getServerBrand() + " " + getServerVersion() + "...");
+		}
+		
 		logger().info("(Platform: " + platformType.getName() + ")");
+
+		if(platformType == EnumPlatformType.BUKKIT) {
+			logger().warn("Note: Its highly recommended to install EaglerXServer on BungeeCord or "
+					+ "Velocity instead, you will have a much better experience");
+			logger().warn("Note: If you are not using Paper (or a derivative) or a version above 1.12, "
+					+ "things probably won't work right");
+			if(platform.isModernPluginChannelNamesOnly()) {
+				logger().error("Detected a modern server version, things probably won't work right, "
+						+ "downgrade to 1.12 or below");
+			}
+		}
 		
 		if(platformType != EnumPlatformType.BUNGEECORD && platform.isOnlineMode()) {
 			throw new AbortLoadException("Online mode is not supported yet!");
@@ -203,8 +218,13 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		componentType = componentHelper().getComponentType();
 		componentTypeSet = Collections.singleton(componentType);
 		componentHelper = new ComponentHelper<>(componentHelper());
-		httpClient = new HTTPClient(platform.getWorkerEventLoopGroup(), platform.getChannelFactory(null),
-				"Mozilla/5.0 " + getServerVersionString());
+		if(Util.classExists("io.netty.handler.ssl.SslContextBuilder")) {
+			httpClient = new HTTPClient(() -> bootstrapClient(null),
+					"Mozilla/5.0 " + getServerVersionString());
+		}else {
+			httpClient = new LegacyInternalHTTPClient(platform.getScheduler(),
+					"Mozilla/5.0 " + getServerVersionString());
+		}
 		httpClientAPI = new BinaryHTTPClient(httpClient);
 		profileResolver = new ProfileResolver(this, httpClient);
 		
@@ -1058,7 +1078,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		return NBTHelper.INSTANCE;
 	}
 
-	public HTTPClient getInternalHTTPClient() {
+	public IHTTPClient getInternalHTTPClient() {
 		return httpClient;
 	}
 
@@ -1096,13 +1116,37 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
-	public ChannelFactory<? extends Channel> getChannelFactory(SocketAddress address) {
-		return platform.getChannelFactory(address);
+	public Bootstrap bootstrapClient(SocketAddress remoteAddress) {
+		Bootstrap bootstrap = new Bootstrap().group(getWorkerEventLoopGroup());
+		if(remoteAddress != null) {
+			bootstrap.remoteAddress(remoteAddress);
+		}
+		return setChannelFactory(bootstrap, remoteAddress);
 	}
 
 	@Override
-	public ChannelFactory<? extends ServerChannel> getServerChannelFactory(SocketAddress address) {
-		return platform.getServerChannelFactory(address);
+	public ServerBootstrap bootstrapServer(SocketAddress localAddress) {
+		ServerBootstrap serverBootstrap = new ServerBootstrap();
+		EventLoopGroup bossGroup = getBossEventLoopGroup();
+		if(bossGroup != null) {
+			serverBootstrap.group(bossGroup, getWorkerEventLoopGroup());
+		}else {
+			serverBootstrap.group(getWorkerEventLoopGroup());
+		}
+		if(localAddress != null) {
+			serverBootstrap.localAddress(localAddress);
+		}
+		return setServerChannelFactory(serverBootstrap, localAddress);
+	}
+
+	@Override
+	public Bootstrap setChannelFactory(Bootstrap boostrap, SocketAddress address) {
+		return platform.setChannelFactory(boostrap, address);
+	}
+
+	@Override
+	public ServerBootstrap setServerChannelFactory(ServerBootstrap boostrap, SocketAddress address) {
+		return platform.setServerChannelFactory(boostrap, address);
 	}
 
 	@Override

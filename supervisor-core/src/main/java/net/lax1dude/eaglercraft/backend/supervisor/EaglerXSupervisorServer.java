@@ -44,6 +44,7 @@ import com.carrotsearch.hppc.IntObjectMap;
 import com.carrotsearch.hppc.IntSet;
 import com.carrotsearch.hppc.cursors.IntCursor;
 
+import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
@@ -124,7 +125,9 @@ public class EaglerXSupervisorServer implements Runnable {
 		if(config.isDownloadVanillaSkins()) {
 			logger.info("Starting skin cache...");
 			
-			skinHTTPClient = new HTTPClient(eventLoopGroup, PipelineFactory.getClientChannel(null), getUserAgent());
+			skinHTTPClient = new HTTPClient(() -> {
+				return new Bootstrap().channel(PipelineFactory.getClientChannel(null)).group(eventLoopGroup);
+			}, getUserAgent());
 			
 			ISkinCacheDownloader downloader = new SkinCacheDownloader(skinHTTPClient, config.getAllowedSkinDownloadOrigins());
 			

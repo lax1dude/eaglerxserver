@@ -28,10 +28,10 @@ import io.netty.buffer.ByteBufInputStream;
 
 public class SkinCacheDownloader implements ISkinCacheDownloader {
 
-	private final HTTPClient httpClient;
+	private final IHTTPClient httpClient;
 	private final Set<String> validSkinHosts;
 
-	public SkinCacheDownloader(HTTPClient httpClient, Set<String> validSkinHosts) {
+	public SkinCacheDownloader(IHTTPClient httpClient, Set<String> validSkinHosts) {
 		this.httpClient = httpClient;
 		this.validSkinHosts = validSkinHosts;
 	}

@@ -11,24 +11,18 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ForwardingSet;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.ReflectiveChannelFactory;
 import io.netty.channel.ServerChannel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.base.ChannelInitializerHijacker;
@@ -455,31 +449,22 @@ public class BungeeUnsafe {
 		}
 	}
 
-	private static final LoadingCache<Class<Channel>, ChannelFactory<? extends Channel>> factoryCache = CacheBuilder.newBuilder()
-			.build(new CacheLoader<Class<Channel>, ChannelFactory<? extends Channel>>() {
-				@Override
-				public ChannelFactory<? extends Channel> load(Class<Channel> var1) throws Exception {
-					return new ReflectiveChannelFactory<Channel>(var1);
-				}
-			});
-
-	public static Function<SocketAddress, ChannelFactory<? extends Channel>> getChannelFactory() {
+	public static Function<SocketAddress, Class<? extends Channel>> getChannelFactory() {
 		return (addr) -> {
 			try {
-				return factoryCache.get((Class<Channel>) method_PipelineUtils_getChannel.invoke(null, addr));
-			} catch (ReflectiveOperationException | ExecutionException e) {
+				return (Class<? extends Channel>) method_PipelineUtils_getChannel.invoke(null, addr);
+			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		};
 	}
 
 	@SuppressWarnings("unchecked")
-	public static Function<SocketAddress, ChannelFactory<? extends ServerChannel>> getServerChannelFactory() {
+	public static Function<SocketAddress, Class<? extends ServerChannel>> getServerChannelFactory() {
 		return (addr) -> {
 			try {
-				return (ChannelFactory<? extends ServerChannel>) factoryCache
-						.get((Class<Channel>) method_PipelineUtils_getServerChannel.invoke(null, addr));
-			} catch (ReflectiveOperationException | ExecutionException e) {
+				return (Class<? extends ServerChannel>) method_PipelineUtils_getServerChannel.invoke(null, addr);
+			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
 		};

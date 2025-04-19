@@ -364,7 +364,7 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 				}else {
 					ByteBuf buf = context.ctx.alloc().buffer();
 					try {
-						buf.writeCharSequence(context.responseChars, context.responseCharsCharset);
+						BufferUtils.writeCharSequence(buf, context.responseChars, context.responseCharsCharset);
 						responseSlot.complete(populateHeadersFrom(createResponse(status, buf, 0), context).retain());
 					}finally {
 						buf.release();

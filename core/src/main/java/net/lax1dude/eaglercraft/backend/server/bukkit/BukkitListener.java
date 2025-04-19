@@ -1,19 +1,19 @@
 package net.lax1dude.eaglercraft.backend.server.bukkit;
 
-import java.util.concurrent.CountDownLatch;
-
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+
+import com.google.common.base.Throwables;
 
 import io.netty.channel.Channel;
 import io.netty.util.Attribute;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
-import net.md_5.bungee.api.chat.BaseComponent;
+import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.PlayerLoginInitEvent;
+import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.PlayerLoginPostEvent;
 
 class BukkitListener implements Listener {
 
@@ -23,42 +23,47 @@ class BukkitListener implements Listener {
 		this.plugin = plugin;
 	}
 
-	private volatile boolean thisIsSafe = false;
-
 	@EventHandler(priority = EventPriority.LOWEST)
-	public void onPlayerLogin(PlayerLoginEvent evt) {
-		Player player = evt.getPlayer();
-		Channel channel = BukkitUnsafe.getPlayerChannel(player);
-		Attribute<BukkitConnection> attr = channel.attr(PipelineAttributes.<BukkitConnection>connectionData());
-		CountDownLatch latch = new CountDownLatch(1);
-		thisIsSafe = false;
-		plugin.initializePlayer(player, attr.get(), attr::set, (res) -> {
-			thisIsSafe = true;
-			if(res.closed) {
-				evt.disallow(PlayerLoginEvent.Result.KICK_OTHER,
-						res.msg != null ? ((BaseComponent) res.msg).toLegacyText() : "Connection Closed");
-			}
-			latch.countDown();
-		});
-		if(!thisIsSafe) {
-			long now = System.nanoTime();
-			plugin.logger().warn("PlayerLoginEvent is being blocked by EaglerXServer or a "
-					+ "dependant plugin, this will stall the server's main thread and will cause "
-					+ "a deadlock if a dependent plugin attempts to await a non-async task!!!");
-			try {
-				// FUCK! FUCK! FUCK!
-				latch.await();
-			}catch(InterruptedException ex) {
-				plugin.logger().warn("Server thread interrupted");
-			}
-			plugin.logger().warn("Server thread is resuming! (Stalled for "
-					+ ((System.nanoTime() - now) / (50l * 1000000l)) + " ticks)");
-		}
+	public void onPlayerLoginEvent(PlayerLoginEvent evt) {
+		plugin.postLoginInjector.handleLoginEvent(evt);
 	}
 
-	@EventHandler
-	public void onPostLogin(PlayerJoinEvent evt) {
-		plugin.confirmPlayer(evt.getPlayer());
+	@EventHandler(priority = EventPriority.LOW)
+	public void onPlayerLoginInitEvent(PlayerLoginInitEvent evt) {
+		plugin.handleConnectionInit(evt.netty().getChannel());
+	}
+
+	@EventHandler(priority = EventPriority.LOW)
+	public void onPlayerPostLoginEvent(PlayerLoginPostEvent evt) {
+		Player player = evt.getPlayer();
+		Channel channel = evt.netty().getChannel();
+		Attribute<BukkitConnection> attr = channel.attr(PipelineAttributes.<BukkitConnection>connectionData());
+		BukkitConnection conn = attr.get();
+		evt.registerIntent(plugin);
+		Runnable cont = () -> {
+			try {
+				plugin.initializePlayer(player, conn, attr::set, (b) -> {
+					if(b) {
+						evt.completeIntent(plugin);
+					}else {
+						// Hang forever on cancel, connection is already dead, async callback will GC
+					}
+				});
+			}catch(Exception ex) {
+				try {
+					evt.completeIntent(plugin);
+				}catch(IllegalStateException exx) {
+					return;
+				}
+				Throwables.throwIfUnchecked(ex);
+				throw new RuntimeException("Uncaught exception", ex);
+			}
+		};
+		if(conn != null) {
+			conn.awaitPlayState(cont);
+		}else {
+			cont.run();
+		}
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)

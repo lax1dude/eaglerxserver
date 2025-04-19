@@ -10,8 +10,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.zip.Deflater;
-import java.util.zip.Inflater;
 
 import org.bukkit.Server;
 import org.bukkit.command.CommandMap;
@@ -345,6 +343,25 @@ public class BukkitUnsafe {
 		}
 	}
 
+	public static Object getHandle(Player player) {
+		if(class_CraftPlayer == null) {
+			bindCraftPlayer(player);
+		}
+		try {
+			return method_CraftPlayer_getHandle.invoke(player);
+		} catch (ReflectiveOperationException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+	}
+
+	public static GameProfile getGameProfile(Object entityPlayer) {
+		try {
+			return (GameProfile) method_EntityPlayer_getProfile.invoke(entityPlayer);
+		} catch (ReflectiveOperationException e) {
+			throw Util.propagateReflectThrowable(e);
+		}
+	}
+
 	private static Class<?> class_realAddr_NetworkManager = null;
 	private static Field field_realAddr_NetworkManager_address = null;
 
@@ -475,7 +492,7 @@ public class BukkitUnsafe {
 					Type t = f.getGenericType();
 					if(t instanceof ParameterizedType tt) {
 						Type[] params = tt.getActualTypeArguments();
-						if(params.length == 1 && ChannelFuture.class.isAssignableFrom(params[0].getClass())) {
+						if(params.length == 1 && "io.netty.channel.ChannelFuture".equals(params[0].getTypeName())) {
 							channelFuturesList = f;
 							channelFuturesList.setAccessible(true);
 							break;
@@ -628,72 +645,6 @@ public class BukkitUnsafe {
 		}
 	}
 
-	private static Class<?> class_PacketCompressor_maybe = null;
-	private static Field field_PacketCompressor_deflater = null;
-
-	private static synchronized void bindPacketCompressor(Class<?> packetCompressor) {
-		if(class_PacketCompressor_maybe != null) {
-			return;
-		}
-		try {
-			field_PacketCompressor_deflater = findField(packetCompressor, Deflater.class);
-			field_PacketCompressor_deflater.setAccessible(true);
-			class_PacketCompressor_maybe = packetCompressor;
-		} catch (NoSuchFieldException e) {
-			throw Util.propagateReflectThrowable(e);
-		}
-	}
-
-	public static void disposeCompressionHandler(ChannelHandler remove) {
-		if(remove != null) {
-			if(class_PacketCompressor_maybe == null) {
-				bindPacketCompressor(remove.getClass());
-			}
-			Deflater deflater;
-			try {
-				deflater = (Deflater) field_PacketCompressor_deflater.get(remove);
-			} catch (IllegalArgumentException | IllegalAccessException e) {
-				throw Util.propagateReflectThrowable(e);
-			}
-			if(deflater != null) {
-				deflater.end();
-			}
-		}
-	}
-
-	private static Class<?> class_PacketDecompressor_maybe = null;
-	private static Field field_PacketDecompressor_inflater = null;
-
-	private static synchronized void bindPacketDecompressor(Class<?> packetDecompressor) {
-		if(class_PacketDecompressor_maybe != null) {
-			return;
-		}
-		try {
-			field_PacketDecompressor_inflater = findField(packetDecompressor, Inflater.class);
-			field_PacketDecompressor_inflater.setAccessible(true);
-			class_PacketDecompressor_maybe = packetDecompressor;
-		} catch (NoSuchFieldException e) {
-			throw Util.propagateReflectThrowable(e);
-		}
-	}
-
-	public static void disposeDecompressionHandler(ChannelHandler remove) {
-		if(remove != null) {
-			if(class_PacketDecompressor_maybe == null) {
-				bindPacketDecompressor(remove.getClass());
-			}
-			Inflater inflater;
-			try {
-				inflater = (Inflater) field_PacketDecompressor_inflater.get(remove);
-			} catch (IllegalArgumentException | IllegalAccessException e) {
-				throw Util.propagateReflectThrowable(e);
-			}
-			if(inflater != null) {
-				inflater.end();
-			}
-		}
-	}
-
 	private static Field findField(Class<?> clazz, Class<?> fieldType) throws NoSuchFieldException {
 		for(Field field : clazz.getDeclaredFields()) {
 			if(field.getType() == fieldType) {
@@ -732,16 +683,20 @@ public class BukkitUnsafe {
 		Field[] fields = serverConnection.getFields();
 		if(enableNativeTransport) {
 			for(Field field : fields) {
-				Class<?> clz = field.getClass();
+				Class<?> clz = field.getType();
 				if(clz.getSimpleName().equals("LazyInitVar")) {
 					Type type = field.getGenericType();
 					if(type instanceof ParameterizedType tt) {
 						Type[] args = tt.getActualTypeArguments();
 						if(args.length == 1 && "io.netty.channel.epoll.EpollEventLoopGroup".equals(args[0].getTypeName())) {
-							try {
-								return (EventLoopGroup) clz.getMethod("init").invoke(field.get(null));
-							} catch (ReflectiveOperationException e) {
-								throw Util.propagateReflectThrowable(e);
+							for(Method m : clz.getMethods()) {
+								if(m.getGenericReturnType() != m.getReturnType()) {
+									try {
+										return (EventLoopGroup) m.invoke(field.get(null));
+									} catch (ReflectiveOperationException e) {
+										throw Util.propagateReflectThrowable(e);
+									}
+								}
 							}
 						}
 					}
@@ -749,16 +704,20 @@ public class BukkitUnsafe {
 			}
 		}
 		for(Field field : fields) {
-			Class<?> clz = field.getClass();
+			Class<?> clz = field.getType();
 			if(clz.getSimpleName().equals("LazyInitVar")) {
 				Type type = field.getGenericType();
 				if(type instanceof ParameterizedType tt) {
 					Type[] args = tt.getActualTypeArguments();
 					if(args.length == 1 && "io.netty.channel.nio.NioEventLoopGroup".equals(args[0].getTypeName())) {
-						try {
-							return (EventLoopGroup) clz.getMethod("init").invoke(field.get(null));
-						} catch (ReflectiveOperationException e) {
-							throw Util.propagateReflectThrowable(e);
+						for(Method m : clz.getMethods()) {
+							if(m.getGenericReturnType() != m.getReturnType()) {
+								try {
+									return (EventLoopGroup) m.invoke(field.get(null));
+								} catch (ReflectiveOperationException e) {
+									throw Util.propagateReflectThrowable(e);
+								}
+							}
 						}
 					}
 				}

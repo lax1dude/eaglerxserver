@@ -7,8 +7,8 @@ import io.netty.buffer.ByteBuf;
 import net.lax1dude.eaglercraft.backend.server.api.EnumRequestMethod;
 import net.lax1dude.eaglercraft.backend.server.api.IBinaryHTTPClient;
 import net.lax1dude.eaglercraft.backend.server.api.IBinaryHTTPResponse;
-import net.lax1dude.eaglercraft.backend.skin_cache.HTTPClient;
-import net.lax1dude.eaglercraft.backend.skin_cache.HTTPClient.Response;
+import net.lax1dude.eaglercraft.backend.skin_cache.IHTTPClient;
+import net.lax1dude.eaglercraft.backend.skin_cache.IHTTPClient.Response;
 
 public class BinaryHTTPClient implements IBinaryHTTPClient {
 
@@ -80,9 +80,9 @@ public class BinaryHTTPClient implements IBinaryHTTPClient {
 
 	}
 
-	private final HTTPClient httpClient;
+	private final IHTTPClient httpClient;
 
-	public BinaryHTTPClient(HTTPClient httpClient) {
+	public BinaryHTTPClient(IHTTPClient httpClient) {
 		this.httpClient = httpClient;
 	}
 

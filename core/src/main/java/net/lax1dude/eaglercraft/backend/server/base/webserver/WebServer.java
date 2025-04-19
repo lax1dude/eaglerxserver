@@ -19,6 +19,7 @@ import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestHandler;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IWebServer;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.RouteDesc;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.BufferUtils;
 
 public class WebServer implements IWebServer {
 
@@ -337,7 +338,7 @@ public class WebServer implements IWebServer {
 	public IPreparedResponse prepareResponse(CharSequence data, Charset binaryCharset) {
 		ByteBuf buf = Unpooled.buffer();
 		try {
-			buf.writeCharSequence(data, binaryCharset);
+			BufferUtils.writeCharSequence(buf, data, binaryCharset);
 			return new PreparedResponse(buf.retain());
 		}finally {
 			buf.release();

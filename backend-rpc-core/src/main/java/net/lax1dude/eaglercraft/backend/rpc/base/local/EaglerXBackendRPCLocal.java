@@ -17,6 +17,7 @@ import net.lax1dude.eaglercraft.backend.rpc.api.IPacketImageLoader;
 import net.lax1dude.eaglercraft.backend.rpc.api.notifications.INotificationBuilder;
 import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.IPauseMenuBuilder;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.ISkinImageLoader;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceService;
 import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCBase;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftVoiceChangeEvent;
@@ -35,7 +36,7 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 	private ISkinImageLoader skinLoaderCache;
 	private ISkinImageLoader skinLoaderNoCache;
 	private IPacketImageLoader packetImageLoader;
-	private VoiceServiceLocal<PlayerObject> voiceService;
+	private IVoiceService<PlayerObject> voiceService;
 
 	@Override
 	protected void load0(Init<PlayerObject> platf) {
@@ -50,7 +51,11 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 		skinLoaderCache = new SkinTypesHelper(serverAPI.getSkinService().getSkinLoader(true));
 		skinLoaderNoCache = new SkinTypesHelper(serverAPI.getSkinService().getSkinLoader(false));
 		packetImageLoader = new PacketImageDataHelper(serverAPI.getPacketImageLoader());
-		voiceService = new VoiceServiceLocal<>(this, serverAPI.getVoiceService());
+		if(serverAPI.getVoiceService().isVoiceEnabled()) {
+			voiceService = new VoiceServiceLocal<>(this, serverAPI.getVoiceService());
+		}else {
+			voiceService = new VoiceServiceDisabled<>(this);
+		}
 	}
 
 	private void enableHandler() {
@@ -138,7 +143,7 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 	}
 
 	@Override
-	public VoiceServiceLocal<PlayerObject> getVoiceService() {
+	public IVoiceService<PlayerObject> getVoiceService() {
 		return voiceService;
 	}
 

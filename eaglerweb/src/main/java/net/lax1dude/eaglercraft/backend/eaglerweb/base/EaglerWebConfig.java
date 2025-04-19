@@ -27,7 +27,16 @@ import com.google.gson.JsonParseException;
 
 public class EaglerWebConfig {
 
-	private static final Gson GSON = (new GsonBuilder()).setLenient().create();
+	private static final Gson GSON;
+
+	static {
+		try {
+			GSON = ((GsonBuilder) Class.forName("net.lax1dude.eaglercraft.backend.server.util.GsonLenient")
+					.getMethod("setLenient", GsonBuilder.class).invoke(null, new GsonBuilder())).create();
+		}catch(ReflectiveOperationException ex) {
+			throw new ExceptionInInitializerError(ex);
+		}
+	}
 
 	public static EaglerWebConfig loadConfig(IEaglerWebLogger logger, File pluginDir) throws IOException, JsonParseException {
 		if(!pluginDir.isDirectory() && !(new File(pluginDir, "web")).mkdirs()) {
