@@ -5,6 +5,9 @@ import javax.annotation.Nonnull;
 public interface IComponentHelper {
 
 	@Nonnull
+	String serializeLegacyTextToLegacyJSON(@Nonnull String text) throws IllegalArgumentException;
+
+	@Nonnull
 	String convertJSONToLegacySection(@Nonnull String json) throws IllegalArgumentException;
 
 	@Nonnull

@@ -322,7 +322,7 @@ public class BufferUtils {
 		convertNBT2Legacy(buffer, bb, nbtHelper, componentHelper);
 	}
 
-	public static void convertLegacySlot(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper, byte[] buf) {
+	public static void convertLegacySlot(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper, IComponentHelper componentHelper) {
 		short blockId = buffer.readShort();
 		bb.writeShort(blockId);
 		if (blockId == -1) {
@@ -332,7 +332,7 @@ public class BufferUtils {
 		short itemDamage = buffer.readShort();
 		bb.writeByte(itemCount);
 		bb.writeShort(itemDamage);
-		convertLegacyNBT(buffer, bb, nbtHelper, buf);
+		convertLegacyNBT(buffer, bb, nbtHelper, componentHelper);
 	}
 
 	public static void convertNBT2Legacy(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper, IComponentHelper componentHelper) {
@@ -360,7 +360,7 @@ public class BufferUtils {
         }
 	}
 
-	public static void convertLegacyNBT(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper, byte[] buf) {
+	public static void convertLegacyNBT(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper, IComponentHelper componentHelper) {
 		short len1 = buffer.readShort();
 		if (len1 == -1) {
 			bb.writeByte(0);
@@ -370,7 +370,7 @@ public class BufferUtils {
 			 GZIPInputStream gzipIs = new GZIPInputStream(bbis);
 			 ByteBufOutputStream bbos = new ByteBufOutputStream(bb);
 			 DataOutputStream dos = new DataOutputStream(bbos)) {
-			RewindNBTVisitorReverse.apply(nbtHelper, new DataInputStream(new SafeGZIPInputStream(gzipIs, 65535)), dos);
+			RewindNBTVisitorReverse.apply(nbtHelper, new DataInputStream(new SafeGZIPInputStream(gzipIs, 65535)), dos, componentHelper);
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
@@ -777,10 +777,6 @@ public class BufferUtils {
 		int meta = typeMeta & 15;
 		type = convertType2Legacy(type);
 		return (type << 4) | meta;
-	}
-
-	public static String stringToChat(String str) {
-		return "\"" + str.replaceAll("\"","\\\\\"") + "\"";
 	}
 
 	public static String readASCIIStr(ByteBuf in) {
