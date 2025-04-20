@@ -144,7 +144,7 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 
 	@Override
 	public Object parseModernJSON(String json) throws IllegalArgumentException {
-		return parseModernJSON(json);
+		return parseGenericJSON(json);
 	}
 
 }

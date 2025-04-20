@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,6 +13,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
 
 import org.bukkit.Server;
+import org.bukkit.World;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -78,9 +80,7 @@ import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 
-public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player>, IPlatformServer<Player> {
-
-	protected final Map<String, IPlatformServer<Player>> registeredServers;
+public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player> {
 
 	private IPlatformLogger loggerImpl;
 	private IEventDispatchAdapter<Player, BaseComponent> eventDispatcherImpl;
@@ -112,10 +112,6 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	private final Class<? extends Channel> channelClassEpoll = EpollSocketChannel.class;
 	private final Class<? extends ServerChannel> serverChannelClassNIO = NioServerSocketChannel.class;
 	private final Class<? extends ServerChannel> serverChannelClassEpoll = EpollServerSocketChannel.class;
-
-	public PlatformPluginBukkit() {
-		registeredServers = ImmutableMap.of("default", this);
-	}
 
 	@Override
 	public void onLoad() {
@@ -457,18 +453,15 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		}
 	}
 
-	public IPlatformServer<Player> getPlatformServerInstance() {
-		return this;
-	}
-
 	@Override
 	public Map<String, IPlatformServer<Player>> getRegisteredServers() {
-		return registeredServers;
+		return Collections.emptyMap();
 	}
 
 	@Override
 	public IPlatformServer<Player> getServer(String serverName) {
-		return registeredServers.get(serverName);
+		World world = getServer().getWorld(serverName);
+		return world != null ? new BukkitWorld(this, world) : null;
 	}
 
 	@Override
@@ -518,16 +511,6 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	@Override
 	public void setPlayerCountHandler(IEaglerXServerPlayerCountHandler playerCountHandler) {
-	}
-
-	@Override
-	public boolean isEaglerRegistered() {
-		return true;
-	}
-
-	@Override
-	public String getServerConfName() {
-		return "default";
 	}
 
 	public void handleConnectionInit(Channel channel) {
@@ -704,7 +687,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 			IEaglerXServerJoinListener<Player> listener = serverJoinListener;
 			if(listener != null) {
-				listener.handlePostConnect(p, this);
+				listener.handlePostConnect(p, p.getServer());
 			}
 		}
 	}
@@ -717,6 +700,17 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 				conf.cancel();
 			}
 			playerInitializer.destroyPlayer(p);
+		}
+	}
+
+	public void worldChange(Player player) {
+		BukkitPlayer p = playerInstanceMap.get(player);
+		if(p != null) {
+			IEaglerXServerJoinListener<Player> listener = serverJoinListener;
+			if(listener != null) {
+				listener.handlePreConnect(p);
+				listener.handlePostConnect(p, p.getServer());
+			}
 		}
 	}
 

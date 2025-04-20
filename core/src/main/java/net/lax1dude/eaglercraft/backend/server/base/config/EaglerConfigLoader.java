@@ -293,11 +293,13 @@ public class EaglerConfigLoader {
 				+ "render with regular player models, can be used to avoid confused people "
 				+ "complaining about hitboxes."
 			);
-			IEaglerConfList enableFNAWSkinsOnServersConf = skinService.getList("enable_fnaw_skin_models_servers");
+			IEaglerConfList enableFNAWSkinsOnServersConf = skinService
+					.getList(platform.proxy ? "enable_fnaw_skin_models_servers" : "enable_fnaw_skin_models_worlds");
 			Set<String> enableFNAWSkinModelsOnServers = ImmutableSet
 					.copyOf(enableFNAWSkinsOnServersConf.getAsStringList(() -> Collections.emptyList(),
-				"If enable_fnaw_skin_models_global is false, sets the list of servers (by name) "
-				+ "where the FNAW should be enabled"));
+							"If enable_fnaw_skin_models_global is false, sets the list of "
+									+ (platform.proxy ? "servers" : "worlds") + " (by name) "
+									+ "where the FNAW should be enabled"));
 			boolean enableSkinsRestorerApplyHook = skinService.getBoolean(
 				"enable_skinsrestorer_apply_hook", true,
 				"Default value is true, sets if the skin service should listen for SkinsRestorer "
@@ -312,20 +314,24 @@ public class EaglerConfigLoader {
 				+ "to stress and abuse and lacks proper validation for certain packets"
 			);
 			boolean enableVoiceChatAllServers = voiceService.getBoolean(
-				"enable_voice_all_servers", true,
+					platform.proxy ? "enable_voice_all_servers" : "enable_voice_all_worlds", true,
 				"Default value is true, if voice chat should be enabled on all servers."
 			);
-			IEaglerConfList enableVoiceChatOnServersConf = voiceService.getList("enable_voice_on_servers");
+			IEaglerConfList enableVoiceChatOnServersConf = voiceService.getList(platform.proxy ? "enable_voice_on_servers" : "enable_voice_on_worlds");
 			if(!enableVoiceChatOnServersConf.exists()) {
-				enableVoiceChatOnServersConf.setComment("If enable_voice_all_servers is false, "
-						+ "sets the list of servers (by name) where voice chat should be enabled.");
+				enableVoiceChatOnServersConf
+						.setComment("If " + (platform.proxy ? "enable_voice_all_servers" : "enable_voice_all_worlds")
+								+ " is false, sets the list of " + (platform.proxy ? "servers" : "worlds")
+								+ " (by name) where voice chat should be enabled.");
 			}
 			Set<String> enableVoiceChatOnServers = ImmutableSet
 					.copyOf(enableVoiceChatOnServersConf.getAsStringList(() -> Collections.emptyList()));
 			boolean separateVoiceChannelsPerServer = voiceService.getBoolean(
-				"separate_server_voice_channels", true,
-				"Default value is true, if each server should get its own global voice channel, or "
-				+ "if players on all servers should share the same global voice channel."
+				platform.proxy ? "separate_server_voice_channels" : "separate_world_voice_channels", platform.proxy,
+				"Default value is true, if each " + (platform.proxy ? "server" : "world")
+				+ " should get its own global voice channel, or "
+				+ "if players " + (platform.proxy ? "on all servers" : "in all worlds")
+				+ " should share the same global voice channel."
 			);
 			boolean voiceBackendRelayMode = platform.proxy ? voiceService.getBoolean(
 				"voice_backend_relayed_mode", false,

@@ -241,7 +241,6 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 
 	@Override
 	public void disconnect() {
-		Thread.dumpStack();
 		if((int)DISCONNECT_CALLED_HANDLE.getAndSetAcquire(this, 1) == 0) {
 			checkClose();
 		}

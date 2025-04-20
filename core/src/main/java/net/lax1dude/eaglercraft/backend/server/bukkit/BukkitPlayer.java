@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -83,7 +84,8 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 
 	@Override
 	public IPlatformServer<Player> getServer() {
-		return connection.getPlugin();
+		World world = player.getWorld();
+		return world != null ? new BukkitWorld(connection.getPlugin(), world) : null;
 	}
 
 	@Override
