@@ -8,12 +8,11 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.google.common.collect.ImmutableList;
-
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.EnumVoiceState;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.PlayerInstanceRemote;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.util.Collectors3;
 import net.lax1dude.eaglercraft.backend.voice.protocol.pkt.EaglerVCPacket;
 import net.lax1dude.eaglercraft.backend.voice.protocol.pkt.server.SPacketVCAnnounce;
 import net.lax1dude.eaglercraft.backend.voice.protocol.pkt.server.SPacketVCConnectPeer;
@@ -310,7 +309,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 
 	Collection<IEaglerPlayer<PlayerObject>> listConnectedPlayers() {
 		return connectedPlayers.values().stream().map((ctx) -> ctx.mgr.player)
-				.collect(ImmutableList.toImmutableList());
+				.collect(Collectors3.toImmutableList());
 	}
 
 	@Override

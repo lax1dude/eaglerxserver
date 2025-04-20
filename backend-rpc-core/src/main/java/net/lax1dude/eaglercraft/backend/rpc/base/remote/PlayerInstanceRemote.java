@@ -112,9 +112,9 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public IRPCHandle<IEaglerPlayerRPC<PlayerObject>> getHandle() {
-		return (IRPCHandle<IEaglerPlayerRPC<PlayerObject>>) (Object) this;
+		return (IRPCHandle) this;
 	}
 
 	@Override

@@ -6,8 +6,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.google.common.collect.ImmutableList;
-
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectIndexedContainer;
 import net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState;
@@ -15,6 +13,7 @@ import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.collect.ObjectArrayList;
 import net.lax1dude.eaglercraft.backend.server.base.collect.ObjectObjectHashMap;
+import net.lax1dude.eaglercraft.backend.server.util.Collectors3;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalConnectAnnounceV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalConnectV3EAG;
@@ -359,7 +358,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 
 	Collection<IEaglerPlayer<PlayerObject>> listConnectedPlayers() {
 		return connectedPlayers.values().stream().map((ctx) -> ctx.mgr.player)
-				.collect(ImmutableList.toImmutableList());
+				.collect(Collectors3.toImmutableList());
 	}
 
 	@Override

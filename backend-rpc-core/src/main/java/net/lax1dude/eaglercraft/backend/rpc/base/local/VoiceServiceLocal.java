@@ -10,6 +10,7 @@ import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXBackendRPC;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.ICEServerEntry;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceService;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.util.Collectors3;
 
 public class VoiceServiceLocal<PlayerObject> implements IVoiceService<PlayerObject> {
 
@@ -52,12 +53,12 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceService<PlayerObje
 
 	@Override
 	public Collection<ICEServerEntry> getICEServers() {
-		return delegate.getICEServers().stream().map(VoiceChannelHelper::wrap).collect(ImmutableList.toImmutableList());
+		return delegate.getICEServers().stream().map(VoiceChannelHelper::wrap).collect(Collectors3.toImmutableList());
 	}
 
 	@Override
 	public void setICEServers(Collection<ICEServerEntry> servers) {
-		delegate.setICEServers(servers.stream().map(VoiceChannelHelper::unwrap).collect(ImmutableList.toImmutableList()));
+		delegate.setICEServers(servers.stream().map(VoiceChannelHelper::unwrap).collect(Collectors3.toImmutableList()));
 	}
 
 	@Override

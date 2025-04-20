@@ -724,7 +724,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	}
 
 	private boolean isPost_v1_13() {
-		String[] ver = getServer().getVersion().split("[\\.\\-]");
+		String[] ver = getServer().getBukkitVersion().split("[\\.\\-]");
 		if(ver.length >= 2) {
 			try {
 				return Integer.parseInt(ver[0]) >= 1 || Integer.parseInt(ver[1]) >= 13;

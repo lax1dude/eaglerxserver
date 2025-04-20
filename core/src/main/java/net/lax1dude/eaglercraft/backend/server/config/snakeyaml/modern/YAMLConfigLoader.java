@@ -36,11 +36,18 @@ public class YAMLConfigLoader {
 
 	static {
 		LoaderOptions loadOpts = new LoaderOptions();
+		try {
+			LoaderOptions.class.getMethod("setProcessComments", boolean.class).invoke(loadOpts, true);
+		}catch(ReflectiveOperationException ex) {
+		}
 		loadOpts.setProcessComments(true);
 		DumperOptions dumpOpts = new DumperOptions();
 		dumpOpts.setPrettyFlow(true);
 		dumpOpts.setDefaultFlowStyle(FlowStyle.FLOW);
-		dumpOpts.setProcessComments(true);
+		try {
+			DumperOptions.class.getMethod("setProcessComments", boolean.class).invoke(dumpOpts, true);
+		}catch(ReflectiveOperationException ex) {
+		}
 		YAML = new Yaml(new Constructor(loadOpts), new Representer(dumpOpts), dumpOpts);
 	}
 

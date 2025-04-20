@@ -14,8 +14,6 @@ import java.util.UUID;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.google.common.collect.ImmutableList;
-
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilitySpec;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
@@ -27,6 +25,7 @@ import net.lax1dude.eaglercraft.backend.server.api.notifications.IconDef;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.PacketImageLoader;
+import net.lax1dude.eaglercraft.backend.server.util.Collectors3;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketNotifBadgeShowV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketNotifIconsRegisterV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.PacketImageData;
@@ -81,7 +80,7 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 				.filter((e) -> e != null)
 				.map(EaglerPlayerInstance<PlayerObject>::getNotificationManager)
 				.filter((e) -> e != null)
-				.collect(ImmutableList.toImmutableList());
+				.collect(Collectors3.toImmutableList());
 		if(lst.size() > 0) {
 			return new NotificationManagerMultiPlayers<PlayerObject>(this, lst);
 		}else {
@@ -98,7 +97,7 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 		Collection<NotificationManagerPlayer<PlayerObject>> lst = players.stream()
 				.map((p) -> ((EaglerPlayerInstance<PlayerObject>)p).getNotificationManager())
 				.filter((e) -> e != null)
-				.collect(ImmutableList.toImmutableList());
+				.collect(Collectors3.toImmutableList());
 		if(lst.size() > 0) {
 			return new NotificationManagerMultiPlayers<PlayerObject>(this, lst);
 		}else {

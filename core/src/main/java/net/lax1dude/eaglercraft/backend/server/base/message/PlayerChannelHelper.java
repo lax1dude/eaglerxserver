@@ -2,6 +2,7 @@ package net.lax1dude.eaglercraft.backend.server.base.message;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -16,8 +17,8 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class PlayerChannelHelper {
 
-	static final Map<String, String> CHANNEL_MODERN_NAMES = GamePluginMessageProtocol.getAllChannels().stream()
-			.collect(ImmutableMap.toImmutableMap((ch) -> ch, GamePluginMessageConstants::getModernName));
+	static final Map<String, String> CHANNEL_MODERN_NAMES = ImmutableMap.copyOf(GamePluginMessageProtocol
+			.getAllChannels().stream().collect(Collectors.toMap((k) -> k, GamePluginMessageConstants::getModernName)));
 
 	public static <PlayerObject> Collection<IEaglerXServerMessageChannel<PlayerObject>> getPlayerChannels(EaglerXServer<PlayerObject> server) {
 		IEaglerXServerMessageHandler<PlayerObject> handler = (ch, player, data) -> {

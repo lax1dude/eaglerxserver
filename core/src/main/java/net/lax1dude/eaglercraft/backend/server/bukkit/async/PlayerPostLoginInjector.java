@@ -6,7 +6,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
@@ -14,7 +13,6 @@ import java.util.function.Consumer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerLoginEvent;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.MapMaker;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -42,6 +40,7 @@ public class PlayerPostLoginInjector {
 	protected Field netManagerDir;
 	protected Method setHandlerMethod;
 	protected Method sendPacketMethod1;
+	protected Method sendPacketMethod2;
 	protected Method sendPacketMethod3;
 	protected Method getHandlerMethod;
 	protected Class<Object> handshakeListenerClass;
@@ -91,6 +90,7 @@ public class PlayerPostLoginInjector {
 			}
 			Method setHandlerMethod = null;
 			Method sendPacketMethod1 = null;
+			Method sendPacketMethod2 = null;
 			Method sendPacketMethod3 = null;
 			Method getHandlerMethod = null;
 			Class<?> futureListenerArr = Array.newInstance(GenericFutureListener.class, 0).getClass();
@@ -103,6 +103,11 @@ public class PlayerPostLoginInjector {
 				} else if (sendPacketMethod3 == null && params.length == 3 && params[0].getSimpleName().equals("Packet")
 						&& params[1].equals(GenericFutureListener.class) && params[2].equals(futureListenerArr)) {
 					sendPacketMethod3 = m;
+					sendPacketMethod2 = null;
+				} else if (sendPacketMethod3 == null && sendPacketMethod2 == null && params.length == 2
+						&& params[0].getSimpleName().equals("Packet")
+						&& params[1].equals(GenericFutureListener.class)) {
+					sendPacketMethod2 = m;
 				} else if (getHandlerMethod == null && params.length == 0 && m.getReturnType().getSimpleName().equals("PacketListener")) {
 					getHandlerMethod = m;
 				}
@@ -116,8 +121,8 @@ public class PlayerPostLoginInjector {
 			if(sendPacketMethod1 == null) {
 				throw new IllegalStateException("Could not locate send packet (1 param) function of " + netManagerClass.getName());
 			}
-			if(sendPacketMethod3 == null) {
-				throw new IllegalStateException("Could not locate send packet (3 param) function of " + netManagerClass.getName());
+			if(sendPacketMethod2 == null && sendPacketMethod3 == null) {
+				throw new IllegalStateException("Could not locate send packet (2 or 3 param) function of " + netManagerClass.getName());
 			}
 			if(getHandlerMethod == null) {
 				throw new IllegalStateException("Could not locate get handler function of " + netManagerClass.getName());
@@ -141,6 +146,7 @@ public class PlayerPostLoginInjector {
 			this.netManagerDir = protocolDirField;
 			this.setHandlerMethod = setHandlerMethod;
 			this.sendPacketMethod1 = sendPacketMethod1;
+			this.sendPacketMethod2 = sendPacketMethod2;
 			this.sendPacketMethod3 = sendPacketMethod3;
 			this.getHandlerMethod = getHandlerMethod;
 			this.handshakeListenerClass = handshakeListenerClass;
@@ -221,7 +227,8 @@ public class PlayerPostLoginInjector {
 						throw new EaglerError(getPacketProfile(args[0]));
 					}
 					return null;
-				}else if(ctx.compressionDisable && sendPacketMethod3.equals(meth)) {
+				} else if (ctx.compressionDisable && (sendPacketMethod3 != null ? sendPacketMethod3.equals(meth)
+						: sendPacketMethod2.equals(meth))) {
 					if(args[0].getClass().getSimpleName().equals("PacketLoginOutSetCompression")) {
 						return null;
 					}
@@ -340,12 +347,10 @@ public class PlayerPostLoginInjector {
 			if(loginListenerTick == null) {
 				throw new IllegalStateException("Could not locate tick function of " + loginListenerClass.getName());
 			}
-			Set<String> knownStates = ImmutableSet.of("HELLO", "KEY", "AUTHENTICATING", "READY_TO_ACCEPT", "ACCEPTED");
 			Object protocolStateOnResume = null;
-			for(Object o : enumProtocolState.getEnumConstants()) {
-				if(!knownStates.contains(((Enum<?>)o).name())) {
-					protocolStateOnResume = o;
-				}
+			Object[] obj = enumProtocolState.getEnumConstants();
+			if(obj != null && obj.length > 4) {
+				protocolStateOnResume = obj[obj.length - 2];
 			}
 			if(protocolStateOnResume == null) {
 				throw new IllegalStateException("Could not locate stalling state enum of " + enumProtocolState.getName());
