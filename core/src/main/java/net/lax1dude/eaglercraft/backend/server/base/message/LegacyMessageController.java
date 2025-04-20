@@ -29,8 +29,13 @@ public class LegacyMessageController extends MessageController {
 	private volatile int inputStreamLock;
 	private volatile int outputStreamLock;
 
+	private final boolean modernChannelNames;
+
 	private static final VarHandle IS_LOCK_HANDLE;
 	private static final VarHandle OS_LOCK_HANDLE;
+
+	private static final String LEGACY_V4_CHANNEL = GamePluginMessageConstants.V4_CHANNEL;
+	private static final String MODERN_V4_CHANNEL = GamePluginMessageConstants.getModernName(LEGACY_V4_CHANNEL);
 
 	static {
 		try {
@@ -43,8 +48,9 @@ public class LegacyMessageController extends MessageController {
 	}
 
 	public LegacyMessageController(GamePluginMessageProtocol protocol, ServerMessageHandler handler, EventLoop eventLoop,
-			int defragSendDelay) {
+			int defragSendDelay, boolean modernChannelNames) {
 		super(protocol, handler, eventLoop, defragSendDelay);
+		this.modernChannelNames = modernChannelNames;
 	}
 
 	public boolean readPacket(String channel, byte[] data) {
@@ -56,7 +62,7 @@ public class LegacyMessageController extends MessageController {
 			if((int) IS_LOCK_HANDLE.compareAndExchangeAcquire(this, 0, 1) == 0) {
 				try {
 					byteInputStreamSingleton.feedBuffer(data);
-					if(data[0] == (byte)0xFF && channel.equals(GamePluginMessageConstants.V4_CHANNEL)) {
+					if(data[0] == (byte)0xFF && channel.equals(LEGACY_V4_CHANNEL)) {
 						inputStreamSingleton.readByte();
 						int count = inputStreamSingleton.readVarInt();
 						for(int i = 0, j, k; i < count; ++i) {
@@ -96,7 +102,7 @@ public class LegacyMessageController extends MessageController {
 				ReusableByteArrayInputStream inputStream = new ReusableByteArrayInputStream();
 				inputStream.feedBuffer(data);
 				SimpleInputBufferImpl inputBuffer = new SimpleInputBufferImpl(inputStream, data);
-				if(data[0] == (byte)0xFF && channel.equals(GamePluginMessageConstants.V4_CHANNEL)) {
+				if(data[0] == (byte)0xFF && channel.equals(LEGACY_V4_CHANNEL)) {
 					inputBuffer.readByte();
 					int count = inputBuffer.readVarInt();
 					for(int i = 0, j, k; i < count; ++i) {
@@ -166,6 +172,9 @@ public class LegacyMessageController extends MessageController {
 			player.getEaglerXServer().logger().warn("Packet " + packet.getClass().getSimpleName()
 					+ " was the wrong length after serialization, " + data.length + " != " + len);
 		}
+		if(modernChannelNames) {
+			chan = PlayerChannelHelper.mapModernName(chan);
+		}
 		player.getPlatformPlayer().sendDataClient(chan, data);
 	}
 
@@ -226,7 +235,7 @@ public class LegacyMessageController extends MessageController {
 				totalLen -= lastLen;
 			}
 			if(sendCount <= 1) {
-				player.getPlatformPlayer().sendDataClient(GamePluginMessageConstants.V4_CHANNEL, buffer[start++]);
+				player.getPlatformPlayer().sendDataClient(modernChannelNames ? MODERN_V4_CHANNEL : LEGACY_V4_CHANNEL, buffer[start++]);
 				continue;
 			}
 			byte[] toSend = new byte[1 + totalLen + GamePacketOutputBuffer.getVarIntSize(sendCount)];
@@ -239,7 +248,7 @@ public class LegacyMessageController extends MessageController {
 				BufferUtils.writeVarInt(sendBuffer, dat.length);
 				sendBuffer.writeBytes(dat);
 			}
-			player.getPlatformPlayer().sendDataClient(GamePluginMessageConstants.V4_CHANNEL, toSend);
+			player.getPlatformPlayer().sendDataClient(modernChannelNames ? MODERN_V4_CHANNEL : LEGACY_V4_CHANNEL, toSend);
 		}
 	}
 

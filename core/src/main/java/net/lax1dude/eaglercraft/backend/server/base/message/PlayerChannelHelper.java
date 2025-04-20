@@ -1,8 +1,10 @@
 package net.lax1dude.eaglercraft.backend.server.base.message;
 
 import java.util.Collection;
+import java.util.Map;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageChannel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
@@ -13,6 +15,9 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageConstants;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class PlayerChannelHelper {
+
+	static final Map<String, String> CHANNEL_MODERN_NAMES = GamePluginMessageProtocol.getAllChannels().stream()
+			.collect(ImmutableMap.toImmutableMap((ch) -> ch, GamePluginMessageConstants::getModernName));
 
 	public static <PlayerObject> Collection<IEaglerXServerMessageChannel<PlayerObject>> getPlayerChannels(EaglerXServer<PlayerObject> server) {
 		IEaglerXServerMessageHandler<PlayerObject> handler = (ch, player, data) -> {
@@ -26,10 +31,18 @@ public class PlayerChannelHelper {
 		};
 		ImmutableList.Builder<IEaglerXServerMessageChannel<PlayerObject>> playerChannelBuilder = ImmutableList.builder();
 		for(String channel : GamePluginMessageProtocol.getAllChannels()) {
-			String modernChannel = GamePluginMessageConstants.getModernName(channel);
+			String modernChannel = CHANNEL_MODERN_NAMES.get(channel);
 			playerChannelBuilder.add(new MessageChannel<PlayerObject>(channel, modernChannel, handler));
 		}
 		return playerChannelBuilder.build();
+	}
+
+	public static String mapModernName(String chan) {
+		String ret = CHANNEL_MODERN_NAMES.get(chan);
+		if(ret == null) {
+			throw new IllegalStateException("Don't know the modern channel name for: " + chan);
+		}
+		return ret;
 	}
 
 }

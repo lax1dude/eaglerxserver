@@ -19,11 +19,13 @@ public class MessageControllerFactory {
 			return InjectedMessageController.injectEagler(protocol, handler,
 					instance.getPlatformPlayer().getConnection().getChannel(), sendDelay);
 		}else {
+			boolean modernChannelNames = server.getPlatform().isModernPluginChannelNamesOnly()
+					|| instance.getMinecraftProtocol() > 340;
 			if (protocol.ver == 4 && sendDelay > 0) {
 				return new LegacyMessageController(protocol, handler,
-						instance.getPlatformPlayer().getConnection().getChannel().eventLoop(), sendDelay);
+						instance.getPlatformPlayer().getConnection().getChannel().eventLoop(), sendDelay, modernChannelNames);
 			}else {
-				return new LegacyMessageController(protocol, handler, null, 0);
+				return new LegacyMessageController(protocol, handler, null, 0, modernChannelNames);
 			}
 		}
 	}
