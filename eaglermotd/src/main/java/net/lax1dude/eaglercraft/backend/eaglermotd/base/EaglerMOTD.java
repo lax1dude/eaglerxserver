@@ -44,7 +44,7 @@ public class EaglerMOTD<PlayerObject> {
 			if(e instanceof RuntimeException ee) throw ee;
 			throw new RuntimeException("Could not load EaglerMOTD config files!", e);
 		}
-		this.motdUpdateTask = server.getScheduler().executeAsyncRepeatingTask(this::updateMOTDs, 50l, 50l);
+		this.motdUpdateTask = server.getScheduler().executeAsyncRepeatingTask(this::updateMOTDs, 1l, 1l);
 		platform.setOnMOTD(this::onMOTD);
 		for(Entry<String, QueryType> etr : config.queryTypes.entrySet()) {
 			server.getQueryServer().registerQueryType(this, etr.getKey(), etr.getValue()::doQuery);

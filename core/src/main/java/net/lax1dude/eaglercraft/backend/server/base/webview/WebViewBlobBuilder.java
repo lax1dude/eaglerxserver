@@ -14,6 +14,7 @@ import com.google.common.collect.ImmutableList;
 import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewBlob;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewBlobBuilder;
+import net.lax1dude.eaglercraft.backend.server.util.ImmutableBuilders;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketServerInfoDataChunkV4EAG;
 
@@ -92,8 +93,8 @@ public abstract class WebViewBlobBuilder<T extends Closeable> implements IWebVie
 						b[1] = (byte)(j >>> 16);
 						b[2] = (byte)(j >>> 8);
 						b[3] = (byte)(j & 0xFF);
-						ImmutableList.Builder<SPacketServerInfoDataChunkV4EAG> builder = ImmutableList
-								.builderWithExpectedSize(chunkList.size());
+						ImmutableList.Builder<SPacketServerInfoDataChunkV4EAG> builder = ImmutableBuilders
+								.listBuilderWithExpected(chunkList.size());
 						int k = 0;
 						for(byte[] bb : chunkList) {
 							builder.add(new SPacketServerInfoDataChunkV4EAG(false, k++, csum, l, bb));

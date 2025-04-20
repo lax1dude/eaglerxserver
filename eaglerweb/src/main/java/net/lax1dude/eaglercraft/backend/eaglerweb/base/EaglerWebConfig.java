@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -31,8 +30,8 @@ public class EaglerWebConfig {
 
 	static {
 		try {
-			GSON = ((GsonBuilder) Class.forName("net.lax1dude.eaglercraft.backend.server.util.GsonLenient")
-					.getMethod("setLenient", GsonBuilder.class).invoke(null, new GsonBuilder())).create();
+			GSON = (Gson) Class.forName("net.lax1dude.eaglercraft.backend.server.base.EaglerXServer")
+					.getField("GSON_PRETTY").get(null);
 		}catch(ReflectiveOperationException ex) {
 			throw new ExceptionInInitializerError(ex);
 		}
@@ -101,8 +100,12 @@ public class EaglerWebConfig {
 		File rootFolder = new File(pluginDir, object.getAsJsonPrimitive("document_root").getAsString()).getAbsoluteFile();
 		List<String> pageIndexNames;
 		if(object.has("page_index") && object.get("page_index").isJsonArray()) {
-			pageIndexNames = object.getAsJsonArray("page_index").asList().stream()
-				.map((el) -> el.getAsString()).collect(ImmutableList.toImmutableList());
+			JsonArray arr = object.getAsJsonArray("page_index");
+			ImmutableList.Builder<String> builder = ImmutableList.builder();
+			for(int i = 0, l = arr.size(); i < l; ++i) {
+				builder.add(arr.get(i).getAsString());
+			}
+			pageIndexNames = builder.build();
 		}else {
 			pageIndexNames = Collections.emptyList();
 		}

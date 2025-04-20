@@ -37,6 +37,9 @@ class BukkitListener implements Listener {
 	@EventHandler(priority = EventPriority.LOW)
 	public void onPlayerPostLoginEvent(PlayerLoginPostEvent evt) {
 		Player player = evt.getPlayer();
+		plugin.forEachChannel((ch) -> {
+			BukkitUnsafe.addPlayerChannel(player, ch);
+		});
 		Channel channel = evt.netty().getChannel();
 		Attribute<BukkitConnection> attr = channel.attr(PipelineAttributes.<BukkitConnection>connectionData());
 		BukkitConnection conn = attr.get();

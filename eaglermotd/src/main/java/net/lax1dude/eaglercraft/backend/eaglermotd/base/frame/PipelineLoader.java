@@ -19,7 +19,7 @@ import net.lax1dude.eaglercraft.backend.server.api.query.IMOTDConnection;
 public class PipelineLoader {
 
 	public static List<IFrameUpdater> loadPipeline(IEaglerXServerAPI<?> server, BitmapUtil bitmapLoader, List<JsonObject> frame) throws IOException {
-		ImmutableList.Builder<IFrameUpdater> frames = ImmutableList.builderWithExpectedSize(frame.size());
+		ImmutableList.Builder<IFrameUpdater> frames = ImmutableList.builder();
 		PipelineLoader loader = new PipelineLoader(server, bitmapLoader);
 		for(JsonObject json : frame) {
 			frames.add(loader.next(json));

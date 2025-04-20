@@ -1,25 +1,22 @@
 package net.lax1dude.eaglercraft.backend.eaglermotd.base;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 
 import net.lax1dude.eaglercraft.backend.eaglermotd.base.frame.PipelineLoader;
 import net.lax1dude.eaglercraft.backend.eaglermotd.base.util.BitmapUtil;
@@ -92,10 +89,7 @@ public class EaglerMOTDConfiguration {
 			throw new NullPointerException("messages.json is missing and could not be created");
 		}
 
-		JsonObject msgsObj;
-		try(Reader is = new InputStreamReader(new FileInputStream(msgs), StandardCharsets.UTF_8)) {
-			msgsObj = JsonParser.parseReader(is).getAsJsonObject();
-		}
+		JsonObject msgsObj = GsonUtil.loadJSONFile(msgs);
 
 		Map<String, JsonObject> framesCache = new HashMap<>();
 		Map<String, List<MessagePoolEntry>> messages = new HashMap<>();
@@ -105,9 +99,9 @@ public class EaglerMOTDConfiguration {
 		int max_total_sockets = GsonUtil.optInt(msgsObj.get("max_total_sockets"), 256);
 		msgsObj = msgsObj.getAsJsonObject("messages");
 
-		for(String ss : msgsObj.keySet()) {
+		for(Entry<String, JsonElement> ss : GsonUtil.asMap(msgsObj).entrySet()) {
 			List<MessagePoolEntry> poolEntries = new ArrayList<>();
-			JsonArray arr = msgsObj.get(ss).getAsJsonArray();
+			JsonArray arr = ss.getValue().getAsJsonArray();
 			for(int j = 0, l = arr.size(); j < l; ++j) {
 				JsonObject entry = arr.get(j).getAsJsonObject();
 				List<JsonObject> framesRaw = new ArrayList<>();
@@ -123,14 +117,14 @@ public class EaglerMOTDConfiguration {
 							PipelineLoader.loadPipeline(serverAPI, bitmapUtil, framesRaw),
 							GsonUtil.optString(entry.get("name"), null)));
 				}else {
-					logger.error("Message '" + ss + "' has no frames!");
+					logger.error("Message '" + ss.getKey() + "' has no frames!");
 				}
 			}
 			if(poolEntries.size() > 0) {
-				List<MessagePoolEntry> existingList = messages.get(ss);
+				List<MessagePoolEntry> existingList = messages.get(ss.getKey());
 				if(existingList == null) {
 					existingList = poolEntries;
-					messages.put(ss, existingList);
+					messages.put(ss.getKey(), existingList);
 				}else {
 					existingList.addAll(poolEntries);
 				}
@@ -181,8 +175,9 @@ public class EaglerMOTDConfiguration {
 		if(msgs.exists()) {
 			JsonObject queriesObject = GsonUtil.loadJSONFile(msgs);
 			JsonObject queriesQueriesObject = queriesObject.get("queries").getAsJsonObject();
-			for(String s : queriesQueriesObject.keySet()) {
-				queryTypes.put(s.toLowerCase(), new QueryType(s, queriesQueriesObject.get(s).getAsJsonObject()));
+			for(Entry<String, JsonElement> etr : GsonUtil.asMap(queriesQueriesObject).entrySet()) {
+				queryTypes.put(etr.getKey().toLowerCase(),
+						new QueryType(etr.getKey(), etr.getValue().getAsJsonObject()));
 			}
 			if(queryTypes.size() > 0) {
 				logger.info("Loaded " + queryTypes.size() + " query types");

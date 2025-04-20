@@ -720,6 +720,15 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		}
 	}
 
+	public void forEachChannel(Consumer<String> cb) {
+		for(IEaglerXServerMessageChannel<Player> ch : playerChannelsList) {
+			cb.accept(ch.getModernName());
+			if(!post_v1_13) {
+				cb.accept(ch.getLegacyName());
+			}
+		}
+	}
+
 	private boolean isPost_v1_13() {
 		String[] ver = getServer().getVersion().split("[\\.\\-]");
 		if(ver.length >= 2) {

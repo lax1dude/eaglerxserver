@@ -44,8 +44,7 @@ public class PipelineFactory {
 
 	public static void initiateConnection(EaglerXServer<?> server, SocketAddress addr, SupervisorService<?> controller,
 			int connectTimeout, int readTimeout) {
-		server.bootstrapClient(addr).group(server.getWorkerEventLoopGroup())
-				.handler(getChildInitializer(controller, readTimeout))
+		server.bootstrapClient(addr).handler(getChildInitializer(controller, readTimeout))
 				.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout).option(ChannelOption.TCP_NODELAY, true)
 				.connect().addListener((future) -> {
 					if(future.isSuccess()) {

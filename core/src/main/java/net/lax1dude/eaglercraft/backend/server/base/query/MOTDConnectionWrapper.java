@@ -109,7 +109,6 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 
 	@Override
 	public void sendToUser() {
-		try {
 		if(queryConnection.isConnected()) {
 			JsonObject obj = new JsonObject();
 			if(subType != null && subType.startsWith("cache.anim")) {
@@ -162,9 +161,6 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 				queryConnection.send(icon);
 				iconDirty = false;
 			}
-		}
-		}catch(Throwable t) {
-			t.printStackTrace();
 		}
 	}
 

@@ -82,7 +82,7 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceService<PlayerObje
 		if(playersDelegate.isEmpty()) {
 			return Collections.emptyList();
 		}
-		ImmutableList.Builder<IEaglerPlayer<PlayerObject>> ret = ImmutableList.builderWithExpectedSize(playersDelegate.size());
+		ImmutableList.Builder<IEaglerPlayer<PlayerObject>> ret = ImmutableList.builder();
 		for(net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject> player : playersDelegate) {
 			IEaglerPlayer<PlayerObject> pp = server.getEaglerPlayer(player.getPlayerObject());
 			if(pp != null) {

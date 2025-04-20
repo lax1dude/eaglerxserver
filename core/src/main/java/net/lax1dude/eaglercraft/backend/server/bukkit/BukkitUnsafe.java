@@ -153,6 +153,7 @@ public class BukkitUnsafe {
 
 	private static Class<?> class_CraftPlayer = null;
 	private static Method method_CraftPlayer_getHandle = null;
+	private static Method method_CraftPlayer_addChannel = null;
 	private static Class<?> class_EntityPlayer = null;
 	private static Field field_EntityPlayer_playerConnection = null;
 	private static Method method_EntityPlayer_getProfile = null;
@@ -166,6 +167,7 @@ public class BukkitUnsafe {
 		Class<?> clz = playerObject.getClass();
 		try {
 			method_CraftPlayer_getHandle = clz.getMethod("getHandle");
+			method_CraftPlayer_addChannel = clz.getMethod("addChannel", String.class);
 			Object entityPlayer = method_CraftPlayer_getHandle.invoke(playerObject);
 			Class<?> clz2 = entityPlayer.getClass();
 			field_EntityPlayer_playerConnection = clz2.getField("playerConnection");
@@ -299,6 +301,17 @@ public class BukkitUnsafe {
 			} catch (IllegalArgumentException | IllegalAccessException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
+		}
+	}
+
+	public static void addPlayerChannel(Player player, String ch) {
+		if(class_CraftPlayer == null) {
+			bindCraftPlayer(player);
+		}
+		try {
+			method_CraftPlayer_addChannel.invoke(player, ch);
+		} catch (ReflectiveOperationException e) {
+			throw Util.propagateReflectThrowable(e);
 		}
 	}
 
