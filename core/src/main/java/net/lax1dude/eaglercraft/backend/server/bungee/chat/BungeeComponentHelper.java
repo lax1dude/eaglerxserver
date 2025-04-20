@@ -6,6 +6,7 @@ import com.google.gson.JsonParseException;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -136,14 +137,7 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 			}
 		}
 
-		String legText = ret.toLegacyText();
-		int l = legText.length();
-		if (l == json.length() + 2) {
-			for (int i = 2; i < l; ++i) {
-				if (legText.charAt(i) != json.charAt(i - 2)) {
-					return ret;
-				}
-			}
+		if (ret instanceof TextComponent textRet && ret.getColor() == ChatColor.WHITE && textRet.getText().equals(json)) {
 			throw new IllegalArgumentException("Could not parse JSON chat component", new Exception("Not a valid JSON component"));
 		}
 
