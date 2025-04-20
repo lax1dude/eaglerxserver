@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -13,6 +14,38 @@ import net.lax1dude.eaglercraft.backend.server.api.*;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTContext;
 
 public class BufferUtils {
+
+	public static final boolean CHARSEQ_SUPPORT;
+
+	static {
+		boolean b = false;
+		try {
+			ByteBuf.class.getMethod("readCharSequence", int.class, Charset.class);
+			b = true;
+		}catch(ReflectiveOperationException ex) {
+		}
+		CHARSEQ_SUPPORT = b;
+	}
+
+	public static CharSequence readCharSequence(ByteBuf buffer, int len, Charset charset) {
+		if(CHARSEQ_SUPPORT) {
+			return buffer.readCharSequence(len, charset);
+		}else {
+			byte[] buf = new byte[len];
+			buffer.readBytes(buf);
+			return new String(buf, charset);
+		}
+	}
+
+	public static int writeCharSequence(ByteBuf buffer, CharSequence seq, Charset charset) {
+		if(CHARSEQ_SUPPORT) {
+			return buffer.writeCharSequence(seq, charset);
+		}else {
+			byte[] bytes = seq.toString().getBytes(charset);
+			buffer.writeBytes(bytes);
+			return bytes.length;
+		}
+	}
 
 	public static int readVarInt(ByteBuf buffer) {
 		return readVarInt(buffer, 5);
@@ -118,7 +151,7 @@ public class BufferUtils {
 		if(len > maxLen * 4) {
 			throw new IndexOutOfBoundsException();
 		}
-		CharSequence ret = buffer.readCharSequence(len, StandardCharsets.UTF_8);
+		CharSequence ret = BufferUtils.readCharSequence(buffer, len, StandardCharsets.UTF_8);
 		if(ret.length() > maxLen) {
 			throw new IndexOutOfBoundsException();
 		}
@@ -768,7 +801,7 @@ public class BufferUtils {
 	}
 
 	public static String readASCIIStr(ByteBuf in) {
-		return in.readCharSequence(in.readUnsignedShort(), StandardCharsets.US_ASCII).toString();
+		return BufferUtils.readCharSequence(in, in.readUnsignedShort(), StandardCharsets.US_ASCII).toString();
 	}
 
 }

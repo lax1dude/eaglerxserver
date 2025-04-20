@@ -232,7 +232,7 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 				// PROTOCOL_CLIENT_REQUEST_LOGIN
 				packet.writeByte(0x04);
 				packet.writeByte(username.length());
-				packet.writeCharSequence(username, StandardCharsets.US_ASCII);
+				BufferUtils.writeCharSequence(packet, username, StandardCharsets.US_ASCII);
 				packet.writeByte(REWIND_STR.length);
 				packet.writeBytes(REWIND_STR);
 				packet.writeByte(0);
@@ -268,7 +268,7 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 			state = STATE_STALLING;
 			
 			int usernameLen = buf.readUnsignedByte();
-			if(!charSeqEqual(buf.readCharSequence(usernameLen, StandardCharsets.US_ASCII), username)) {
+			if(!charSeqEqual(BufferUtils.readCharSequence(buf, usernameLen, StandardCharsets.US_ASCII), username)) {
 				state = STATE_COMPLETED;
 				kickClient(ctx);
 				logger().error("Backend assigned an unexpected username");
@@ -310,7 +310,7 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 		if(state == STATE_SENT_REQUESTED_LOGIN) {
 			state = STATE_STALLING;
 			int len = buf.readUnsignedShort();
-			String json = buf.readCharSequence(len, StandardCharsets.UTF_8).toString();
+			String json = BufferUtils.readCharSequence(buf, len, StandardCharsets.UTF_8).toString();
 			if(json.startsWith("{")) {
 				try {
 					json = serverAPI().getComponentHelper().convertJSONToLegacySection(json);
@@ -387,7 +387,7 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 		state = STATE_COMPLETED;
 		int errorCode = buf.readUnsignedByte();
 		int stringLen = buf.readUnsignedShort();
-		String str = buf.readCharSequence(stringLen, StandardCharsets.UTF_8).toString();
+		String str = BufferUtils.readCharSequence(buf, stringLen, StandardCharsets.UTF_8).toString();
 		if(errorCode == 0x08) {
 			// SERVER_ERROR_CUSTOM_MESSAGE
 			String str2 = str;

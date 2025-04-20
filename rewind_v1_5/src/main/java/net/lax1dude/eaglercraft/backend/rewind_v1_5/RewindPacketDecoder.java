@@ -293,7 +293,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 						break;
 					case "EAG|FetchSkin":
 						int cookie = in.readUnsignedShort();
-						String username = in.readCharSequence(pmLen - 2, StandardCharsets.US_ASCII).toString();
+						String username = BufferUtils.readCharSequence(in, pmLen - 2, StandardCharsets.US_ASCII).toString();
 						TabListTracker.ListItem playerItem = tabList().getItemByName(username);
 						if(playerItem != null) {
 							UUID uuid = playerItem.playerUUID;

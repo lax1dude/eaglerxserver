@@ -1293,15 +1293,15 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private void handlePlayerAbilities(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0xCA);
-		byte paFlags = in.readByte();
+		short paFlags = in.readUnsignedByte();
+		/*
 		if ((paFlags & 0x01) != ((paFlags & 0x08) >> 3)) {
 			paFlags ^= 0x09;
 		}
+		*/
 		bb.writeByte(paFlags);
-		float speed1 = in.readFloat() * 255.0F;
-		float speed2 = in.readFloat() * 255.0F;
-		bb.writeByte((int) speed1);
-		bb.writeByte((int) speed2);
+		bb.writeByte((int) (in.readFloat() * 255.0F));
+		bb.writeByte((int) (in.readFloat() * 255.0F));
 	}
 
 	private void handleTabComplete(ByteBuf in, ByteBuf bb) {
