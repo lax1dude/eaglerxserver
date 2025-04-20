@@ -80,6 +80,15 @@ public class ComponentHelper<ComponentType> implements IComponentSerializer<Comp
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
+	public String serializeLegacyTextToLegacyJSON(String text) throws IllegalArgumentException {
+		if(text == null) {
+			throw new NullPointerException("text is null");
+		}
+		return platformImpl.serializeLegacyJSON(platformImpl.parseLegacyText(text));
+	}
+
+	@Override
 	public String convertJSONToLegacySection(String json) throws IllegalArgumentException {
 		if(json == null) {
 			throw new NullPointerException("json is null");

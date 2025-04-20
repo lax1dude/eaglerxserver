@@ -124,17 +124,30 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 		}catch(Exception ex) {
 			throw new IllegalArgumentException("Could not parse JSON chat component", ex);
 		}
+		BaseComponent ret;
 		if(components.length == 1) {
-			return components[0];
+			ret = components[0];
 		}else if(components.length == 0) {
-			return new TextComponent();
+			ret = new TextComponent();
 		}else {
-			BaseComponent ret = components[0];
+			ret = components[0];
 			for(int i = 1; i < components.length; ++i) {
 				ret.addExtra(components[i]);
 			}
-			return ret;
 		}
+
+		String legText = ret.toLegacyText();
+		int l = legText.length();
+		if (l == json.length() + 2) {
+			for (int i = 2; i < l; ++i) {
+				if (legText.charAt(i) != json.charAt(i - 2)) {
+					return ret;
+				}
+			}
+			throw new IllegalArgumentException("Could not parse JSON chat component", new Exception("Not a valid JSON component"));
+		}
+
+		return ret;
 	}
 
 	@Override
@@ -145,6 +158,11 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 	@Override
 	public Object parseModernJSON(String json) throws IllegalArgumentException {
 		return parseGenericJSON(json);
+	}
+
+	@Override
+	public Object parseLegacyText(String text) throws IllegalArgumentException {
+		return ComponentSerializer.toString(TextComponent.fromLegacyText(text));
 	}
 
 }

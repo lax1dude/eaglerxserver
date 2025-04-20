@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketGetOtherTexturesV5EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketVoiceSignalConnectEAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketVoiceSignalDescEAG;
@@ -157,7 +158,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					BufferUtils.writeVarInt(bb, 0x08);
 					bb.writeLong(BufferUtils.createPosition(in.readInt(), in.readUnsignedByte(), in.readInt()));
 					bb.writeByte(in.readUnsignedByte());
-					BufferUtils.convertLegacySlot(in, bb, nbtContext(), tempBuffer());
+					BufferUtils.convertLegacySlot(in, bb, nbtContext(), componentHelper());
 					bb.writeByte(in.readByte());
 					bb.writeByte(in.readByte());
 					bb.writeByte(in.readByte());
@@ -202,7 +203,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					bb.writeByte(in.readByte());
 					bb.writeShort(in.readShort());
 					bb.writeByte(in.readByte());
-					BufferUtils.convertLegacySlot(in, bb, nbtContext(), tempBuffer());
+					BufferUtils.convertLegacySlot(in, bb, nbtContext(), componentHelper());
 					break;
 				case 0x6A:
 					bb = ctx.alloc().buffer();
@@ -215,7 +216,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					bb = ctx.alloc().buffer();
 					BufferUtils.writeVarInt(bb, 0x10);
 					bb.writeShort(in.readShort());
-					BufferUtils.convertLegacySlot(in, bb, nbtContext(), tempBuffer());
+					BufferUtils.convertLegacySlot(in, bb, nbtContext(), componentHelper());
 					break;
 				case 0x6C:
 					bb = ctx.alloc().buffer();
@@ -228,7 +229,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					BufferUtils.writeVarInt(bb, 0x12);
 					bb.writeLong(BufferUtils.createPosition(in.readInt(), in.readShort(), in.readInt()));
 					for (int ii = 0; ii < 4; ++ii) {
-						BufferUtils.writeMCString(bb, BufferUtils.stringToChat(BufferUtils.readLegacyMCString(in, 255)), 4095);
+						BufferUtils.writeMCString(bb, componentHelper().serializeLegacyTextToLegacyJSON(BufferUtils.readLegacyMCString(in, 255)), 4095);
 					}
 					break;
 				case 0xCA:
@@ -284,7 +285,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					case "MC|BSign":
 						ri = in.readerIndex();
 						bb = ctx.alloc().buffer();
-						BufferUtils.convertLegacySlot(in, bb, nbtContext(), tempBuffer());
+						BufferUtils.convertLegacySlot(in, bb, nbtContext(), componentHelper());
 						in.readerIndex(ri);
 						in.writerIndex(ri);
 						in.writeBytes(bb);
