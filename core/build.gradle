@@ -2,6 +2,7 @@
 plugins {
 	id "java"
 	id "eclipse"
+	id "com.gradleup.shadow" version "8.3.6"
 }
 
 dependencies {
@@ -14,6 +15,7 @@ dependencies {
 	implementation project(":api-bungee")
 	implementation project(":api-velocity")
 	implementation project(":skin-cache")
+	implementation(libs.asm)
 	compileOnly project(":stubs")
 	compileOnly(libs.bungeecord.api)
 	compileOnly(libs.velocity.api)
@@ -31,11 +33,9 @@ java {
 	targetCompatibility = JavaVersion.VERSION_17
 }
 
-jar {
+tasks.named("shadowJar", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
 	compileJava.options.encoding = "UTF-8"
 	javadoc.options.encoding = "UTF-8"
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-	from {
-		configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-	}
+	relocate "org.objectweb.asm", "net.lax1dude.eaglercraft.backend.libs.asm"
 }
