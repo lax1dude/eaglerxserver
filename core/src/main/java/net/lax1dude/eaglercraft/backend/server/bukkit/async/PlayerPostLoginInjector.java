@@ -331,7 +331,8 @@ public class PlayerPostLoginInjector {
 			}
 			Method loginListenerTick = null;
 			for(Class<?> clz : loginListenerClass.getInterfaces()) {
-				if(clz.getSimpleName().equals("IUpdatePlayerListBox")) {
+				String s = clz.getSimpleName();
+				if(s.equals("IUpdatePlayerListBox") || s.equals("ITickable")) {
 					loginListenerTick = loginListenerClass.getMethod(clz.getMethods()[0].getName());
 					break;
 				}

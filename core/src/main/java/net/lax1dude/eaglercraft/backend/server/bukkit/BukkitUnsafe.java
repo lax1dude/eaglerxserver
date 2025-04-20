@@ -102,7 +102,17 @@ public class BukkitUnsafe {
 		Class<?> clz = networkManager.getClass();
 		try {
 			field_NetworkManager_channel = clz.getField("channel");
-			method_NetworkManager_getPacketListener = clz.getMethod("getPacketListener");
+			Method[] meth = clz.getMethods();
+			for(int i = 0; i < meth.length; ++i) {
+				Method m = meth[i];
+				if(m.getParameterCount() == 0 && m.getReturnType().getSimpleName().equals("PacketListener")) {
+					method_NetworkManager_getPacketListener = m;
+					break;
+				}
+			}
+			if(method_NetworkManager_getPacketListener == null) {
+				throw new IllegalStateException("Could not locate NetworkManager.getPacketListener");
+			}
 			Object packetListener = method_NetworkManager_getPacketListener.invoke(networkManager);
 			if(packetListener == null) {
 				throw new IllegalStateException("NetworkManager.getPacketListener is null!");
