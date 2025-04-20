@@ -178,6 +178,12 @@ public class EaglerConfigLoader {
 				"Default value is 340, sets the maximum Minecraft protocol version that "
 				+ "EaglercraftX-based clients are allowed to connect with (340 = 1.12.2)"
 			);
+			int maxMinecraftProtocolV5 = protocols.getInteger(
+				"max_minecraft_protocol_v5", -1,
+				"Default value is -1, sets the maximum Minecraft protocol version that "
+				+ "protocol v5 EaglercraftX-based clients are allowed to connect with "
+				+ "(-1 = any Minecraft protocol version)"
+			);
 			boolean eaglerXRewindAllowed = protocols.getBoolean(
 				"eaglerxrewind_allowed", true,
 				"If legacy clients (like eagler 1.5.2) should be allowed to join (emulates "
@@ -317,7 +323,8 @@ public class EaglerConfigLoader {
 					platform.proxy ? "enable_voice_all_servers" : "enable_voice_all_worlds", true,
 				"Default value is true, if voice chat should be enabled on all servers."
 			);
-			IEaglerConfList enableVoiceChatOnServersConf = voiceService.getList(platform.proxy ? "enable_voice_on_servers" : "enable_voice_on_worlds");
+			IEaglerConfList enableVoiceChatOnServersConf = voiceService
+					.getList(platform.proxy ? "enable_voice_on_servers" : "enable_voice_on_worlds");
 			if(!enableVoiceChatOnServersConf.exists()) {
 				enableVoiceChatOnServersConf
 						.setComment("If " + (platform.proxy ? "enable_voice_all_servers" : "enable_voice_all_worlds")
@@ -410,8 +417,8 @@ public class EaglerConfigLoader {
 					eaglerPlayersViewDistance, eaglerPlayersVanillaSkin, enableIsEaglerPlayerProperty,
 					protocolV4DefragSendDelay, brandLookupRatelimit, webviewDownloadRatelimit, webviewMessageRatelimit,
 					new ConfigDataSettings.ConfigDataProtocols(minMinecraftProtocol, maxMinecraftProtocol,
-							eaglerXRewindAllowed, protocolLegacyAllowed, protocolV3Allowed, protocolV4Allowed,
-							protocolV5Allowed),
+							maxMinecraftProtocolV5, eaglerXRewindAllowed, protocolLegacyAllowed, protocolV3Allowed,
+							protocolV4Allowed, protocolV5Allowed),
 					new ConfigDataSettings.ConfigDataSkinService(skinLookupRatelimit, capeLookupRatelimit,
 							downloadVanillaSkinsToClients, validSkinDownloadURLs, skinCacheDBURI, skinCacheDriverClass,
 							skinCacheDriverPath, skinCacheSQLiteCompatible, skinCacheThreadCount,

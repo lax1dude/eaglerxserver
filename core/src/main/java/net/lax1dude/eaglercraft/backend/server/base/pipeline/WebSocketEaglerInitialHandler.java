@@ -197,11 +197,13 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		boolean v2InList = false;
 		boolean v3InList = false;
 		boolean v4InList = false;
+		boolean v5InList = false;
 		int minClientProtocol = Integer.MAX_VALUE;
 		int maxClientProtocol = Integer.MIN_VALUE;
 		ConfigDataProtocols protocols = server.getConfig().getSettings().getProtocols();
 		int minAllowedMC = protocols.getMinMinecraftProtocol();
 		int maxAllowedMC = protocols.getMaxMinecraftProtocol();
+		int maxAllowedMCV5 = protocols.getMaxMinecraftProtocolV5();
 		int minClientMC = Integer.MAX_VALUE;
 		int maxClientMC = Integer.MIN_VALUE;
 		int maxAvailableMC = Integer.MIN_VALUE;
@@ -240,7 +242,18 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 					}
 					v4InList = true;
 					break;
+				case 5:
+					if(v5InList) {
+						ctx.close();
+						return;
+					}
+					v5InList = true;
+					maxAllowedMC = maxAllowedMCV5;
+					break;
 				}
+			}
+			if(maxAllowedMC == -1) {
+				maxAllowedMC = Integer.MAX_VALUE;
 			}
 			cnt = binaryMsg.readUnsignedShort();
 			if(cnt == 0 || cnt > 16) {
@@ -270,7 +283,9 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		boolean isServerProbablyOutdated = false;
 		boolean isClientProbablyOutdated = false;
 		if(!versionMismatch) {
-			if(v4InList && protocols.isProtocolV4Allowed()) {
+			if(v5InList && protocols.isProtocolV5Allowed()) {
+				selectedHandshakeProtocol = 5;
+			}else if(v4InList && protocols.isProtocolV4Allowed()) {
 				selectedHandshakeProtocol = 4;
 			}else if(v3InList && protocols.isProtocolV3Allowed()) {
 				selectedHandshakeProtocol = 3;
@@ -302,6 +317,9 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 			if(protocols.isProtocolV4Allowed()) {
 				++cnt;
 			}
+			if(protocols.isProtocolV5Allowed()) {
+				++cnt;
+			}
 			buf.writeShort(cnt);
 			if(protocols.isProtocolLegacyAllowed()) {
 				buf.writeShort(2);
@@ -311,6 +329,9 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 			}
 			if(protocols.isProtocolV4Allowed()) {
 				buf.writeShort(4);
+			}
+			if(protocols.isProtocolV5Allowed()) {
+				buf.writeShort(5);
 			}
 			buf.writeShort(2);
 			buf.writeShort(minAllowedMC);

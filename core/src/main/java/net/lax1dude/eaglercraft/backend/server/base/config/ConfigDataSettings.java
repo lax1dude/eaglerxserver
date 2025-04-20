@@ -12,6 +12,7 @@ public class ConfigDataSettings {
 
 		private final int minMinecraftProtocol;
 		private final int maxMinecraftProtocol;
+		private final int maxMinecraftProtocolV5;
 		private final boolean eaglerXRewindAllowed;
 		private final boolean protocolLegacyAllowed;
 		private final boolean protocolV3Allowed;
@@ -20,11 +21,12 @@ public class ConfigDataSettings {
 		private final int minEaglerProtocol;
 		private final int maxEaglerProtocol;
 
-		public ConfigDataProtocols(int minMinecraftProtocol, int maxMinecraftProtocol, boolean eaglerXRewindAllowed,
-				boolean protocolLegacyAllowed, boolean protocolV3Allowed, boolean protocolV4Allowed,
-				boolean protocolV5Allowed) {
+		public ConfigDataProtocols(int minMinecraftProtocol, int maxMinecraftProtocol, int maxMinecraftProtocolV5,
+				boolean eaglerXRewindAllowed, boolean protocolLegacyAllowed, boolean protocolV3Allowed,
+				boolean protocolV4Allowed, boolean protocolV5Allowed) {
 			this.minMinecraftProtocol = minMinecraftProtocol;
 			this.maxMinecraftProtocol = maxMinecraftProtocol;
+			this.maxMinecraftProtocolV5 = maxMinecraftProtocolV5;
 			this.eaglerXRewindAllowed = eaglerXRewindAllowed;
 			this.protocolLegacyAllowed = protocolLegacyAllowed;
 			this.protocolV3Allowed = protocolV3Allowed;
@@ -60,6 +62,10 @@ public class ConfigDataSettings {
 
 		public int getMaxMinecraftProtocol() {
 			return maxMinecraftProtocol;
+		}
+
+		public int getMaxMinecraftProtocolV5() {
+			return maxMinecraftProtocolV5;
 		}
 
 		public boolean isEaglerXRewindAllowed() {

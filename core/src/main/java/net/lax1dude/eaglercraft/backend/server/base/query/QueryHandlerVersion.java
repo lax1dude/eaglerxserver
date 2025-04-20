@@ -31,9 +31,9 @@ public class QueryHandlerVersion implements IQueryHandler {
 		if(protocols.isProtocolV4Allowed()) {
 			handshakeVersions.add(4);
 		}
-		//if(protocols.isProtocolV5Allowed()) {
-		//	handshakeVersions.add(5);
-		//}
+		if(protocols.isProtocolV5Allowed()) {
+			handshakeVersions.add(5);
+		}
 		responseObj.add("handshakeVersions", handshakeVersions);
 		JsonObject protocolVersions = new JsonObject();
 		protocolVersions.addProperty("min", protocols.getMinMinecraftProtocol());
