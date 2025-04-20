@@ -366,28 +366,11 @@ public class BufferUtils {
 			bb.writeByte(0);
 			return;
 		}
-		int wi = bb.writerIndex();
-		int ri = bb.readerIndex();
 		try (ByteBufInputStream bbis = new ByteBufInputStream(buffer, len1);
 			 GZIPInputStream gzipIs = new GZIPInputStream(bbis);
-			 ByteBufOutputStream bbos = new ByteBufOutputStream(bb)) {
-
-			int len;
-			while ((len = gzipIs.read(buf)) > 0) {
-				bbos.write(buf, 0, len);
-			}
-
-		} catch (IOException ex) {
-			throw new RuntimeException(ex);
-		}
-		bb.readerIndex(wi);
-		try (ByteBufInputStream bbis = new ByteBufInputStream(bb);
-			 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			 DataOutputStream dos = new DataOutputStream(baos)) {
-			RewindNBTVisitorReverse.apply(nbtHelper, bbis, dos);
-			bb.readerIndex(ri);
-			bb.writerIndex(wi);
-			bb.writeBytes(baos.toByteArray());
+			 ByteBufOutputStream bbos = new ByteBufOutputStream(bb);
+			 DataOutputStream dos = new DataOutputStream(bbos)) {
+			RewindNBTVisitorReverse.apply(nbtHelper, new DataInputStream(new SafeGZIPInputStream(gzipIs, 65535)), dos);
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
