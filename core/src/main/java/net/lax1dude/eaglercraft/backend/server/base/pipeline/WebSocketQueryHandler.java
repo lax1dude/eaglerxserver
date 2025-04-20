@@ -5,9 +5,7 @@ import java.lang.invoke.VarHandle;
 import java.net.SocketAddress;
 import java.util.Locale;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
 import io.netty.buffer.ByteBuf;
@@ -112,12 +110,12 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 					if(msg instanceof TextWebSocketFrame msg2) {
 						String txt = msg2.text();
 						if(jsonHandler != null) {
-							JsonElement el = null;
+							JsonObject el = null;
 							try {
-								el = JsonParser.parseString(txt);
+								el = EaglerXServer.GSON_PRETTY.fromJson(txt, JsonObject.class);
 							}catch(JsonSyntaxException ex) {
 							}
-							if(el != null && el.isJsonObject()) {
+							if(el != null) {
 								jsonHandler.handleJSONObject(this, el.getAsJsonObject());
 								return;
 							}

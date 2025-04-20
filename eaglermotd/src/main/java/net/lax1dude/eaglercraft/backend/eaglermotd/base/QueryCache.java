@@ -3,13 +3,12 @@ package net.lax1dude.eaglercraft.backend.eaglermotd.base;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+
+import net.lax1dude.eaglercraft.backend.eaglermotd.base.util.GsonUtil;
 
 public class QueryCache {
 
@@ -83,7 +82,7 @@ public class QueryCache {
 							}
 							lastRescan = lastReload = System.currentTimeMillis();
 							chars = new String(read.toByteArray(), StandardCharsets.UTF_8);
-						}catch(Throwable t) {
+						}catch(Exception t) {
 							chars = null;
 							System.err.println("[EaglerMOTD] Failed to load text: " + name);
 							t.printStackTrace();
@@ -105,9 +104,9 @@ public class QueryCache {
 			synchronized(this) {
 				if(needsReload()) {
 					if(file.exists()) {
-						try(Reader fis = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
-							json = JsonParser.parseReader(fis).getAsJsonObject();
-						}catch(Throwable t) {
+						try {
+							json = GsonUtil.loadJSONFile(file);
+						}catch(Exception t) {
 							json = null;
 							System.err.println("[EaglerMOTD] Failed to load json: " + name);
 							t.printStackTrace();

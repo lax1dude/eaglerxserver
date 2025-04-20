@@ -14,7 +14,6 @@ import java.util.function.Consumer;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesProperty;
@@ -77,7 +76,7 @@ public class SimpleProfileCache {
 
 	private static JsonObject loadFile(File cacheFile) {
 		try(Reader reader = new InputStreamReader(new FileInputStream(cacheFile), StandardCharsets.UTF_8)) {
-			return JsonParser.parseReader(reader).getAsJsonObject();
+			return EaglerXServer.GSON_PRETTY.fromJson(reader, JsonObject.class);
 		}catch(IOException | JsonParseException ex) {
 			return null;
 		}

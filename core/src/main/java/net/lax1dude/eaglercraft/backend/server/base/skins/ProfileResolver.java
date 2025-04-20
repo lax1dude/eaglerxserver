@@ -9,7 +9,6 @@ import java.util.function.Consumer;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import io.netty.util.ReferenceCountUtil;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IProfileResolver;
@@ -49,8 +48,10 @@ public class ProfileResolver implements IProfileResolver {
 					}else {
 						UUID uuid;
 						try {
-							JsonObject json = JsonParser.parseReader(new CharSequenceReader(BufferUtils.readCharSequence(response.data,
-										response.data.readableBytes(), StandardCharsets.UTF_8))).getAsJsonObject();
+							JsonObject json = EaglerXServer.GSON_PRETTY.fromJson(
+									new CharSequenceReader(BufferUtils.readCharSequence(response.data,
+											response.data.readableBytes(), StandardCharsets.UTF_8)),
+									JsonObject.class);
 							uuid = Util.createUUIDFromUndashed(json.get("id").getAsString());
 						}catch(Exception t) {
 							callback.accept(null);
@@ -83,8 +84,10 @@ public class ProfileResolver implements IProfileResolver {
 					}else {
 						TexturesProperty result = null;
 						try {
-							JsonObject json = JsonParser.parseReader(new CharSequenceReader(BufferUtils.readCharSequence(response.data,
-									response.data.readableBytes(), StandardCharsets.UTF_8))).getAsJsonObject();
+							JsonObject json = EaglerXServer.GSON_PRETTY.fromJson(
+									new CharSequenceReader(BufferUtils.readCharSequence(response.data,
+											response.data.readableBytes(), StandardCharsets.UTF_8)), 
+									JsonObject.class);
 							JsonElement propsElement = json.get("properties");
 							if(propsElement != null) {
 								JsonArray properties = propsElement.getAsJsonArray();

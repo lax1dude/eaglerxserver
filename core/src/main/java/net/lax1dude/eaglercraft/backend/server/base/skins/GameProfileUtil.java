@@ -5,10 +5,10 @@ import java.util.Base64;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.server.api.skins.TexturesResult;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 
 public class GameProfileUtil {
 
@@ -18,7 +18,7 @@ public class GameProfileUtil {
 			String skinModel = null;
 			String capeURL = null;
 			String jsonStr = new String(Base64.getDecoder().decode(texturesProperty), StandardCharsets.UTF_8);
-			JsonObject json = JsonParser.parseString(jsonStr).getAsJsonObject().getAsJsonObject("textures");
+			JsonObject json = EaglerXServer.GSON_PRETTY.fromJson(jsonStr, JsonObject.class).getAsJsonObject("textures");
 			JsonObject skin = json.getAsJsonObject("SKIN");
 			if(skin != null) {
 				JsonElement url = skin.get("url");
