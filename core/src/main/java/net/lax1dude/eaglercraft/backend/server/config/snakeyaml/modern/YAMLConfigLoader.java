@@ -40,7 +40,6 @@ public class YAMLConfigLoader {
 			LoaderOptions.class.getMethod("setProcessComments", boolean.class).invoke(loadOpts, true);
 		}catch(ReflectiveOperationException ex) {
 		}
-		loadOpts.setProcessComments(true);
 		DumperOptions dumpOpts = new DumperOptions();
 		dumpOpts.setPrettyFlow(true);
 		dumpOpts.setDefaultFlowStyle(FlowStyle.FLOW);
