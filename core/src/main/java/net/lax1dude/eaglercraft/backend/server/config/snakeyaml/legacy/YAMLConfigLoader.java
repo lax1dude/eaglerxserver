@@ -20,6 +20,8 @@ import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.error.YAMLException;
 import org.yaml.snakeyaml.nodes.MappingNode;
 import org.yaml.snakeyaml.nodes.Node;
+import org.yaml.snakeyaml.nodes.NodeTuple;
+import org.yaml.snakeyaml.nodes.ScalarNode;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.BaseRepresenter;
 import org.yaml.snakeyaml.representer.Represent;
@@ -45,12 +47,26 @@ public class YAMLConfigLoader {
 				throw new ExceptionInInitializerError(exx);
 			}
 		}
+		Field scalarStyleField = null;
+		try {
+			scalarStyleField = ScalarNode.class.getDeclaredField("style");
+			if(scalarStyleField.getType() == Character.class) {
+				scalarStyleField.setAccessible(true);
+			}else {
+				scalarStyleField = null;
+			}
+		}catch(ReflectiveOperationException ex) {
+		}
+		final Field scalarStyleFieldF = scalarStyleField;
 		try {
 			Field f = BaseRepresenter.class.getDeclaredField("multiRepresenters");
 			f.setAccessible(true);
 			((Map<Class<?>, Represent>) f.get(representer)).put(Node.class, new Represent() {
 				@Override
 				public Node representData(Object data) {
+					if(scalarStyleFieldF != null) {
+						LegacyHelper.fixScalars((Node) data, scalarStyleFieldF);
+					}
 					return (Node) data;
 				}
 			});

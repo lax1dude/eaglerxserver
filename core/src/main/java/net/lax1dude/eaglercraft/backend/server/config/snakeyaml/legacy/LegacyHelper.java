@@ -1,6 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.config.snakeyaml.legacy;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -115,6 +116,27 @@ class LegacyHelper {
 			}
 		}catch(ReflectiveOperationException ex) {
 			throw Util.propagateReflectThrowable(ex);
+		}
+	}
+
+	public static void fixScalars(Node data, Field scalarStyle) {
+		if(data instanceof ScalarNode s) {
+			try {
+				Character c = (Character) scalarStyle.get(s);
+				if(c != null && (char)c == 0) {
+					scalarStyle.set(s, null);
+				}
+			}catch(ReflectiveOperationException ex) {
+			}
+		}else if(data instanceof SequenceNode s) {
+			for(Node n : s.getValue()) {
+				fixScalars(n, scalarStyle);
+			}
+		}else if(data instanceof MappingNode s) {
+			for(NodeTuple n : s.getValue()) {
+				fixScalars(n.getKeyNode(), scalarStyle);
+				fixScalars(n.getValueNode(), scalarStyle);
+			}
 		}
 	}
 
