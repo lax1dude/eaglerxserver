@@ -221,6 +221,9 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 
 	@Override
 	public void setResponseType(String type) {
+		if(type == null) {
+			throw new NullPointerException("type");
+		}
 		returnType = type;
 	}
 
@@ -307,6 +310,9 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 
 	@Override
 	public void setServerMOTD(List<String> motd) {
+		if(motd == null) {
+			throw new NullPointerException("motd");
+		}
 		this.motd = motd;
 	}
 
@@ -352,6 +358,9 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 
 	@Override
 	public void setPlayerList(List<String> list) {
+		if(list == null) {
+			throw new NullPointerException("list");
+		}
 		playerList = list;
 	}
 

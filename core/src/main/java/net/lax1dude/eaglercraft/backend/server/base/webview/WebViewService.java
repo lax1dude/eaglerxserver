@@ -90,6 +90,9 @@ public class WebViewService<PlayerObject> implements IWebViewService<PlayerObjec
 
 	@Override
 	public SHA1Sum registerGlobalBlob(IWebViewBlob blob) {
+		if(blob == null) {
+			throw new NullPointerException("blob");
+		}
 		SHA1Sum sum = blob.getHash();
 		globalBlobs.put(sum, blob);
 		return sum;
@@ -97,6 +100,9 @@ public class WebViewService<PlayerObject> implements IWebViewService<PlayerObjec
 
 	@Override
 	public void unregisterGlobalBlob(SHA1Sum sum) {
+		if(sum == null) {
+			throw new NullPointerException("sum");
+		}
 		globalBlobs.remove(sum);
 	}
 
@@ -106,16 +112,28 @@ public class WebViewService<PlayerObject> implements IWebViewService<PlayerObjec
 
 	@Override
 	public void registerBlobAlias(String name, SHA1Sum blob) {
+		if(name == null) {
+			throw new NullPointerException("name");
+		}
+		if(blob == null) {
+			throw new NullPointerException("blob");
+		}
 		blobAliases.put(name, blob);
 	}
 
 	@Override
 	public void unregisterBlobAlias(String name) {
+		if(name == null) {
+			throw new NullPointerException("name");
+		}
 		blobAliases.remove(name);
 	}
 
 	@Override
 	public SHA1Sum getBlobFromAlias(String name) {
+		if(name == null) {
+			throw new NullPointerException("name");
+		}
 		return blobAliases.get(name);
 	}
 
@@ -126,6 +144,13 @@ public class WebViewService<PlayerObject> implements IWebViewService<PlayerObjec
 
 	@Override
 	public void setTemplateGlobal(String key, String value) {
+		if(key == null) {
+			throw new NullPointerException("key");
+		}
+		if(value == null) {
+			removeTemplateGlobal(key);
+			return;
+		}
 		ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
 		for(Entry<String, String> etr : templateGlobals.entrySet()) {
 			if(!key.equals(etr.getKey())) {
@@ -138,6 +163,9 @@ public class WebViewService<PlayerObject> implements IWebViewService<PlayerObjec
 
 	@Override
 	public void removeTemplateGlobal(String key) {
+		if(key == null) {
+			throw new NullPointerException("key");
+		}
 		ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
 		for(Entry<String, String> etr : templateGlobals.entrySet()) {
 			if(!key.equals(etr.getKey())) {

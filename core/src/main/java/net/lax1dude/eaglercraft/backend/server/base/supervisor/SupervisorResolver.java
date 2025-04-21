@@ -86,6 +86,9 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	@Override
 	public boolean isPlayerKnown(UUID playerUUID) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
 		SupervisorConnection conn = service.getConnection();
 		if(conn != null) {
 			return conn.remotePlayers.containsKey(playerUUID);
@@ -95,6 +98,9 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	@Override
 	public int getCachedNodeId(UUID playerUUID) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
 		SupervisorConnection conn = service.getConnection();
 		if(conn != null) {
 			SupervisorPlayer player = conn.remotePlayers.get(playerUUID);
@@ -107,6 +113,12 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	@Override
 	public void resolvePlayerNodeId(UUID playerUUID, IntProcedure callback) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		SupervisorConnection conn = service.getConnection();
 		if(conn != null) {
 			SupervisorPlayer player = conn.loadPlayer(playerUUID);
@@ -182,6 +194,12 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	@Override
 	public void resolvePlayerSkin(UUID playerUUID, Consumer<IEaglerPlayerSkin> callback) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		SupervisorConnection conn = service.getConnection();
 		if(conn != null) {
 			conn.loadPlayer(playerUUID).loadSkinData(null, callback);
@@ -192,6 +210,12 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	@Override
 	public void resolvePlayerCape(UUID playerUUID, Consumer<IEaglerPlayerCape> callback) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		SupervisorConnection conn = service.getConnection();
 		if(conn != null) {
 			conn.loadPlayer(playerUUID).loadCapeData(null, callback);
@@ -202,11 +226,26 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	@Override
 	public void loadCacheSkinFromURL(String skinURL, EnumSkinModel modelId, Consumer<IEaglerPlayerSkin> callback) {
+		if(skinURL == null) {
+			throw new NullPointerException("skinURL");
+		}
+		if(modelId == null) {
+			throw new NullPointerException("modelId");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		getForeignSkin(skinURL).load(modelId.getId(), null, callback);
 	}
 
 	@Override
 	public void loadCacheCapeFromURL(String capeURL, Consumer<IEaglerPlayerCape> callback) {
+		if(capeURL == null) {
+			throw new NullPointerException("capeURL");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		getForeignCape(capeURL).load(null, callback);
 	}
 

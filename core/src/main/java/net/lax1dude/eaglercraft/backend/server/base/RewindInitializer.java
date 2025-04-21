@@ -103,14 +103,20 @@ public abstract class RewindInitializer<Attachment> implements IEaglerXRewindIni
 
 	@Override
 	public void rewriteInitialHandshakeV1(int eaglerProtocol, int minecraftProtocol, String eaglerClientBrand, String eaglerClientVersion) {
-		if(handshake) {
-			throw new IllegalStateException("Handshake has already been injected");
-		}
 		if(eaglerProtocol != 1) {
 			throw new IllegalArgumentException("Invalid eagler protocol " + eaglerProtocol + " for V1 handshake, must be 1");
 		}
 		if(minecraftProtocol < 0 || minecraftProtocol > 255) {
 			throw new IllegalArgumentException("Invalid minecraft protocol " + minecraftProtocol + " for V1 handshake, must be between 0 and 255");
+		}
+		if(eaglerClientBrand == null) {
+			throw new NullPointerException("eaglerClientBrand");
+		}
+		if(eaglerClientVersion == null) {
+			throw new NullPointerException("eaglerClientVersion");
+		}
+		if(handshake) {
+			throw new IllegalStateException("Handshake has already been injected");
 		}
 		handshake = true;
 		this.eaglerProtocol = eaglerProtocol;
@@ -122,15 +128,22 @@ public abstract class RewindInitializer<Attachment> implements IEaglerXRewindIni
 	}
 
 	@Override
-	public void rewriteInitialHandshakeV2(int eaglerProtocol, int minecraftProtocol, String eaglerClientBrand, String eaglerClientVersion, boolean authEnabled, byte[] authUsername) {
-		if(handshake) {
-			throw new IllegalStateException("Handshake has already been injected");
-		}
+	public void rewriteInitialHandshakeV2(int eaglerProtocol, int minecraftProtocol, String eaglerClientBrand,
+			String eaglerClientVersion, boolean authEnabled, byte[] authUsername) {
 		if(eaglerProtocol <= 1) {
 			throw new IllegalArgumentException("Invalid eagler protocol for V2+ handshake: " + eaglerProtocol);
 		}
 		if((authEnabled || eaglerProtocol >= 5) && authUsername == null) {
 			throw new NullPointerException("Auth username is null");
+		}
+		if(eaglerClientBrand == null) {
+			throw new NullPointerException("eaglerClientBrand");
+		}
+		if(eaglerClientVersion == null) {
+			throw new NullPointerException("eaglerClientVersion");
+		}
+		if(handshake) {
+			throw new IllegalStateException("Handshake has already been injected");
 		}
 		handshake = true;
 		this.eaglerProtocol = eaglerProtocol;
@@ -158,6 +171,12 @@ public abstract class RewindInitializer<Attachment> implements IEaglerXRewindIni
 
 	@Override
 	public void injectNettyHandlers(ChannelOutboundHandler nettyEncoder, ChannelInboundHandler nettyDecoder) {
+		if(nettyEncoder == null) {
+			throw new NullPointerException("nettyEncoder");
+		}
+		if(nettyDecoder == null) {
+			throw new NullPointerException("nettyDecoder");
+		}
 		if(injected) {
 			throw new IllegalStateException("Handlers have already been injected");
 		}
@@ -169,6 +188,9 @@ public abstract class RewindInitializer<Attachment> implements IEaglerXRewindIni
 
 	@Override
 	public void injectNettyHandlers(ChannelHandler nettyCodec) {
+		if(nettyCodec == null) {
+			throw new NullPointerException("nettyCodec");
+		}
 		if(injected) {
 			throw new IllegalStateException("Handlers have already been injected");
 		}

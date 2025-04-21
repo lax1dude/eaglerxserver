@@ -41,6 +41,9 @@ public interface IWebViewService<PlayerObject> {
 
 	@Nonnull
 	default IWebViewBlob createWebViewBlob(@Nonnull CharSequence markupIn) {
+		if(markupIn == null) {
+			throw new NullPointerException("markupIn");
+		}
 		IWebViewBlobBuilder<Writer> builder = createWebViewBlobBuilderWriter();
 		try(Writer os = builder.stream()) {
 			os.append(markupIn);
@@ -52,6 +55,9 @@ public interface IWebViewService<PlayerObject> {
 
 	@Nonnull
 	default IWebViewBlob createWebViewBlob(@Nonnull byte[] bytesIn) {
+		if(bytesIn == null) {
+			throw new NullPointerException("bytesIn");
+		}
 		IWebViewBlobBuilder<OutputStream> builder = createWebViewBlobBuilderStream();
 		try(OutputStream os = builder.stream()) {
 			os.write(bytesIn);
@@ -63,6 +69,9 @@ public interface IWebViewService<PlayerObject> {
 
 	@Nonnull
 	default IWebViewBlob createWebViewBlob(@Nonnull InputStream inputStream) throws IOException {
+		if(inputStream == null) {
+			throw new NullPointerException("inputStream");
+		}
 		IWebViewBlobBuilder<OutputStream> builder = createWebViewBlobBuilderStream();
 		try(OutputStream os = builder.stream()) {
 			inputStream.transferTo(os);
@@ -72,6 +81,9 @@ public interface IWebViewService<PlayerObject> {
 
 	@Nonnull
 	default IWebViewBlob createWebViewBlob(@Nonnull File file) throws IOException {
+		if(file == null) {
+			throw new NullPointerException("file");
+		}
 		try (InputStream is = new FileInputStream(file)) {
 			return createWebViewBlob(is);
 		}
@@ -107,23 +119,29 @@ public interface IWebViewService<PlayerObject> {
 
 	@Nonnull
 	default ITemplateLoader createTemplateLoader(@Nonnull File baseDir) {
+		if(baseDir == null) throw new NullPointerException("baseDir");
 		return createTemplateLoader(baseDir, null, null, false);
 	}
 
 	@Nonnull
 	default ITemplateLoader createTemplateLoader(@Nonnull File baseDir, boolean allowEvalMacro) {
+		if(baseDir == null) throw new NullPointerException("baseDir");
 		return createTemplateLoader(baseDir, null, null, allowEvalMacro);
 	}
 
 	@Nonnull
 	default ITemplateLoader createTemplateLoader(@Nonnull File baseDir, @Nonnull Map<String, String> variables,
 			boolean allowEvalMacro) {
+		if(baseDir == null) throw new NullPointerException("baseDir");
+		if(variables == null) throw new NullPointerException("variables");
 		return createTemplateLoader(baseDir, variables, null, allowEvalMacro);
 	}
 
 	@Nonnull
 	default ITemplateLoader createTemplateLoader(@Nonnull File baseDir, @Nonnull ITranslationProvider translations,
 			boolean allowEvalMacro) {
+		if(baseDir == null) throw new NullPointerException("baseDir");
+		if(translations == null) throw new NullPointerException("translations");
 		return createTemplateLoader(baseDir, null, translations, allowEvalMacro);
 	}
 

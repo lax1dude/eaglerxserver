@@ -63,6 +63,12 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 	@Override
 	public <In extends ISupervisorData, Out extends ISupervisorData> void registerProcedure(ProcedureDesc<In, Out> desc,
 			ISupervisorProc<? super In, ? extends Out> proc) {
+		if(desc == null) {
+			throw new NullPointerException("desc");
+		}
+		if(proc == null) {
+			throw new NullPointerException("proc");
+		}
 		String name = desc.getName();
 		SupervisorProcedure old = null;
 		SupervisorProcedure newProc = new SupervisorProcedure(desc, proc);
@@ -87,6 +93,9 @@ public class SupervisorRPCHandler implements ISupervisorRPCHandler {
 	@Override
 	public <In extends ISupervisorData, Out extends ISupervisorData> void unregisterProcedure(
 			ProcedureDesc<In, Out> desc) {
+		if(desc == null) {
+			throw new NullPointerException("desc");
+		}
 		mapLock.writeLock().lock();
 		try {
 			ProcedureDesc<? extends ISupervisorData, ? extends ISupervisorData> oldDesc = procNameToDesc.remove(desc.getName());

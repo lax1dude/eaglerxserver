@@ -153,11 +153,17 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	@Override
 	public String getHeader(String name) {
+		if(name == null) {
+			throw new NullPointerException("name");
+		}
 		return request.headers().get(name);
 	}
 
 	@Override
 	public List<String> getHeaders(String name) {
+		if(name == null) {
+			throw new NullPointerException("name");
+		}
 		return request.headers().getAll(name);
 	}
 
@@ -190,6 +196,9 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	@Override
 	public CharSequence getRequestBodyCharSequence(Charset charset) {
+		if(charset == null) {
+			throw new NullPointerException("charset");
+		}
 		ByteBuf buf = request.content();
 		int len = buf.readableBytes();
 		if(len == 0) {

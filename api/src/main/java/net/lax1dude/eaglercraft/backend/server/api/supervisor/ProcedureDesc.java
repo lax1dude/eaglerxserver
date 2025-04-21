@@ -20,6 +20,12 @@ public final class ProcedureDesc<In extends ISupervisorData, Out extends ISuperv
 		if (name.length() > 255) {
 			throw new IllegalArgumentException("Procedure name is too long! Max is 255 chars");
 		}
+		if (inputType == null) {
+			throw new NullPointerException("inputType");
+		}
+		if (outputType == null) {
+			throw new NullPointerException("outputType");
+		}
 		return new ProcedureDesc<>(name.intern(), inputType, outputType);
 	}
 
@@ -31,6 +37,9 @@ public final class ProcedureDesc<In extends ISupervisorData, Out extends ISuperv
 		}
 		if (name.length() > 255) {
 			throw new IllegalArgumentException("Procedure name is too long! Max is 255 chars");
+		}
+		if (inputType == null) {
+			throw new NullPointerException("inputType");
 		}
 		return create(name, inputType, SupervisorDataVoid.class);
 	}

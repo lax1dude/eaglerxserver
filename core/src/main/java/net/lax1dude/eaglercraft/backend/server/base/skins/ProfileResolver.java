@@ -32,6 +32,12 @@ public class ProfileResolver implements IProfileResolver {
 
 	@Override
 	public void resolveVanillaUUIDFromUsername(String username, Consumer<UUID> callback) {
+		if(username == null) {
+			throw new NullPointerException("username");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		httpClient.asyncRequest("GET", URI.create("https://api.mojang.com/users/profiles/minecraft/"
 				+ URLEncoder.encode(username, StandardCharsets.UTF_8)), (response) -> {
 			if(response == null) {
@@ -68,6 +74,12 @@ public class ProfileResolver implements IProfileResolver {
 
 	@Override
 	public void resolveVanillaTexturesFromUUID(UUID uuid, Consumer<TexturesProperty> callback) {
+		if(uuid == null) {
+			throw new NullPointerException("uuid");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		httpClient.asyncRequest("GET", URI.create("https://sessionserver.mojang.com/session/minecraft/profile/"
 				+ Util.toUUIDStringUndashed(uuid) + "?unsigned=false"), (response) -> {
 			if(response == null) {
@@ -127,6 +139,9 @@ public class ProfileResolver implements IProfileResolver {
 
 	@Override
 	public TexturesResult decodeVanillaTextures(String propertyValue) {
+		if(propertyValue == null) {
+			throw new NullPointerException("propertyValue");
+		}
 		return GameProfileUtil.extractSkinAndCape(propertyValue);
 	}
 

@@ -51,6 +51,9 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 
 	@Override
 	public boolean isVoiceEnabledOnServer(String serverName) {
+		if(serverName == null) {
+			throw new NullPointerException("serverName");
+		}
 		return true;
 	}
 
@@ -66,6 +69,9 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 
 	@Override
 	public void setICEServers(Collection<ICEServerEntry> newICEServers) {
+		if(newICEServers == null) {
+			throw new NullPointerException("newICEServers");
+		}
 		newICEServers = iceServers = ImmutableList.copyOf(newICEServers);
 		iceServersStr = VoiceServiceLocal.prepareICEServers(newICEServers);
 	}
@@ -86,6 +92,9 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 
 	@Override
 	public IVoiceChannel getServerVoiceChannel(String serverName) {
+		if(serverName == null) {
+			throw new NullPointerException("serverName");
+		}
 		throw backendRelayMode();
 	}
 

@@ -38,6 +38,9 @@ public class TemplateLoader implements ITemplateLoader {
 
 	@Override
 	public void setBaseDir(File file) {
+		if(file == null) {
+			throw new NullPointerException("file");
+		}
 		baseDir = file;
 	}
 
@@ -56,6 +59,9 @@ public class TemplateLoader implements ITemplateLoader {
 
 	@Override
 	public void setVariable(String key, String value) {
+		if(key == null) {
+			throw new NullPointerException("key");
+		}
 		if(variables == null) {
 			if(value == null) {
 				return;
@@ -71,6 +77,9 @@ public class TemplateLoader implements ITemplateLoader {
 
 	@Override
 	public void removeVariable(String key) {
+		if(key == null) {
+			throw new NullPointerException("key");
+		}
 		if(variables != null) {
 			variables.remove(key);
 		}
@@ -98,6 +107,9 @@ public class TemplateLoader implements ITemplateLoader {
 
 	@Override
 	public String loadWebViewTemplate(String template) throws IOException, InvalidMacroException {
+		if(template == null) {
+			throw new NullPointerException("template");
+		}
 		final Map<String, String> globals = owner.getTemplateGlobals();
 		return TemplateParser.loadTemplate(template, baseDir, allowEval, (key) -> {
 			if(variables != null) {
@@ -112,6 +124,9 @@ public class TemplateLoader implements ITemplateLoader {
 
 	@Override
 	public String loadWebViewTemplate(Reader reader) throws IOException, InvalidMacroException {
+		if(reader == null) {
+			throw new NullPointerException("reader");
+		}
 		return loadWebViewTemplate(CharStreams.toString(reader));
 	}
 

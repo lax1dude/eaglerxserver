@@ -54,6 +54,9 @@ public class RewindService<PlayerObject> implements IEaglerXRewindService<Player
 		if(!enabled) {
 			throw new UnsupportedOperationException("EaglerXRewind is not enabled on this server");
 		}
+		if(protocolHandler == null) {
+			throw new NullPointerException("protocolHandler");
+		}
 		int handshakeProtocol = protocolHandler.getEmulatedEaglerHandshake();
 		if(!server.isEaglerHandshakeSupported(handshakeProtocol)) {
 			throw new UnsupportedOperationException("Unsupported handshake protocol version: " + handshakeProtocol);
@@ -88,6 +91,9 @@ public class RewindService<PlayerObject> implements IEaglerXRewindService<Player
 	public void unregisterLegacyProtocol(IEaglerXRewindProtocol<PlayerObject, ?> protocolHandler) {
 		if(!enabled) {
 			return;
+		}
+		if(protocolHandler == null) {
+			throw new NullPointerException("protocolHandler");
 		}
 		registerLock.writeLock().lock();
 		try {

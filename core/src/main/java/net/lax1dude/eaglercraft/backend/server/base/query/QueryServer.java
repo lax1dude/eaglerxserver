@@ -64,6 +64,9 @@ public class QueryServer implements IQueryServer {
 
 	@Override
 	public boolean isQueryType(String queryType) {
+		if(queryType == null) {
+			throw new NullPointerException("queryType");
+		}
 		registeredQueriesLock.readLock().lock();
 		try {
 			return registeredQueries.containsKey(queryType.toLowerCase(Locale.US));
@@ -75,7 +78,13 @@ public class QueryServer implements IQueryServer {
 	@Override
 	public void registerQueryType(Object plugin, String queryType, IQueryHandler handler) {
 		if(plugin == null) {
-			throw new NullPointerException("Plugin cannot be null!");
+			throw new NullPointerException("plugin");
+		}
+		if(queryType == null) {
+			throw new NullPointerException("queryType");
+		}
+		if(handler == null) {
+			throw new NullPointerException("handler");
 		}
 		queryType = queryType.toLowerCase(Locale.US);
 		if("motd".equals(queryType) || queryType.startsWith("motd.")) {
@@ -96,7 +105,10 @@ public class QueryServer implements IQueryServer {
 	@Override
 	public void unregisterQueryType(Object plugin, String queryType) {
 		if(plugin == null) {
-			throw new NullPointerException("Plugin cannot be null!");
+			throw new NullPointerException("plugin");
+		}
+		if(queryType == null) {
+			throw new NullPointerException("queryType");
 		}
 		registeredQueriesLock.writeLock().lock();
 		try {

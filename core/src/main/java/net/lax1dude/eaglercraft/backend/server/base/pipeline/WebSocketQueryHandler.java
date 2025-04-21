@@ -364,6 +364,9 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 
 	@Override
 	public void send(String string) {
+		if(string == null) {
+			throw new NullPointerException("string");
+		}
 		if(aquireSend()) {
 			pipelineData.channel.eventLoop().execute(() -> pipelineData.channel
 					.writeAndFlush(new TextWebSocketFrame(string)).addListener(writeListener));
@@ -372,6 +375,9 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 
 	@Override
 	public void send(byte[] bytes) {
+		if(bytes == null) {
+			throw new NullPointerException("bytes");
+		}
 		if(aquireSend()) {
 			pipelineData.channel.eventLoop().execute(() -> pipelineData.channel
 					.writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(bytes))).addListener(writeListener));
@@ -380,6 +386,12 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 
 	@Override
 	public void sendResponse(String type, String str) {
+		if(type == null) {
+			throw new NullPointerException("type");
+		}
+		if(str == null) {
+			throw new NullPointerException("str");
+		}
 		if(aquireSend()) {
 			pipelineData.channel.eventLoop().execute(() -> pipelineData.channel
 					.writeAndFlush(new TextWebSocketFrame(server.getQueryServer().createStringResponse(type, str).toString()))
@@ -389,6 +401,12 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 
 	@Override
 	public void sendResponse(String type, JsonObject jsonObject) {
+		if(type == null) {
+			throw new NullPointerException("type");
+		}
+		if(jsonObject == null) {
+			throw new NullPointerException("jsonObject");
+		}
 		if(aquireSend()) {
 			pipelineData.channel.eventLoop().execute(() -> pipelineData.channel
 					.writeAndFlush(new TextWebSocketFrame(server.getQueryServer().createJsonObjectResponse(type, jsonObject).toString()))

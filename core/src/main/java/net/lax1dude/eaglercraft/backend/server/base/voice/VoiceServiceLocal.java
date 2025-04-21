@@ -46,6 +46,9 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceServiceImpl<Player
 
 	@Override
 	public void setICEServers(Collection<ICEServerEntry> newICEServers) {
+		if(newICEServers == null) {
+			throw new NullPointerException("newICEServers");
+		}
 		newICEServers = iceServers = ImmutableList.copyOf(newICEServers);
 		iceServersStr = prepareICEServers(newICEServers);
 	}
@@ -93,6 +96,9 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceServiceImpl<Player
 
 	@Override
 	public boolean isVoiceEnabledOnServer(String serverName) {
+		if(serverName == null) {
+			throw new NullPointerException("serverName");
+		}
 		return allServer || configServersEnabled.contains(serverName);
 	}
 
@@ -113,6 +119,9 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceServiceImpl<Player
 
 	@Override
 	public IVoiceChannel getServerVoiceChannel(String serverName) {
+		if(serverName == null) {
+			throw new NullPointerException("serverName");
+		}
 		if(allServer || configServersEnabled.contains(serverName)) {
 			if(separateServer) {
 				try {

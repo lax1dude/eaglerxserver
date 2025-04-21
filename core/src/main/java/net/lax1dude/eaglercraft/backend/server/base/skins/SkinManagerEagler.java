@@ -121,6 +121,9 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	@Override
 	public void changePlayerSkin(IEaglerPlayerSkin newSkin, boolean notifyOthers) {
+		if(newSkin == null) {
+			throw new NullPointerException("newSkin");
+		}
 		if(!newSkin.equals(skin)) {
 			skin = newSkin;
 			int pv = player.getEaglerProtocol().ver;
@@ -146,6 +149,9 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	@Override
 	public void changePlayerCape(IEaglerPlayerCape newCape, boolean notifyOthers) {
+		if(newCape == null) {
+			throw new NullPointerException("newCape");
+		}
 		if(!newCape.equals(cape)) {
 			cape = newCape;
 			int pv = player.getEaglerProtocol().ver;
@@ -171,6 +177,12 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	@Override
 	public void changePlayerTextures(IEaglerPlayerSkin newSkin, IEaglerPlayerCape newCape, boolean notifyOthers) {
+		if(newSkin == null) {
+			throw new NullPointerException("newSkin");
+		}
+		if(newCape == null) {
+			throw new NullPointerException("newCape");
+		}
 		boolean s = !newSkin.equals(skin), c = !newCape.equals(cape);
 		if(s || c) {
 			if(s) {
@@ -233,6 +245,9 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	@Override
 	public void setEnableFNAWSkins(EnumEnableFNAW enabled) {
+		if(enabled == null) {
+			throw new NullPointerException("enabled");
+		}
 		EnumEnableFNAW oldState = fnawSkinsEnabled;
 		if(oldState != enabled) {
 			fnawSkinsEnabled = enabled;

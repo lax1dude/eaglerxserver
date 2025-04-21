@@ -115,6 +115,9 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 
 	@Override
 	public void resolvePlayerSkinKeyed(UUID requester, Consumer<IEaglerPlayerSkin> callback) {
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		IEaglerPlayerSkin val = (IEaglerPlayerSkin) SKIN_HANDLE.getAcquire(this);
 		if(val != null) {
 			callback.accept(val);
@@ -171,6 +174,9 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 
 	@Override
 	public void resolvePlayerCapeKeyed(UUID requester, Consumer<IEaglerPlayerCape> callback) {
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		IEaglerPlayerCape val = (IEaglerPlayerCape) CAPE_HANDLE.getAcquire(this);
 		if(val != null) {
 			callback.accept(val);
@@ -227,6 +233,9 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 
 	@Override
 	public void resolvePlayerTexturesKeyed(UUID requester, BiConsumer<IEaglerPlayerSkin, IEaglerPlayerCape> callback) {
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		IEaglerPlayerSkin val1 = (IEaglerPlayerSkin) SKIN_HANDLE.getAcquire(this);
 		IEaglerPlayerCape val2 = cape;
 		if(val1 != null && val2 != null) {
@@ -243,6 +252,9 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 
 	@Override
 	public void changePlayerSkin(IEaglerPlayerSkin newSkin, boolean notifyOthers) {
+		if(newSkin == null) {
+			throw new NullPointerException("newSkin");
+		}
 		changePlayerSkin0(newSkin, notifyOthers);
 	}
 
@@ -297,6 +309,9 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 
 	@Override
 	public void changePlayerCape(IEaglerPlayerCape newCape, boolean notifyOthers) {
+		if(newCape == null) {
+			throw new NullPointerException("newCape");
+		}
 		changePlayerCape0(newCape, notifyOthers);
 	}
 
@@ -351,6 +366,12 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 
 	@Override
 	public void changePlayerTextures(IEaglerPlayerSkin newSkin, IEaglerPlayerCape newCape, boolean notifyOthers) {
+		if(newSkin == null) {
+			throw new NullPointerException("newSkin");
+		}
+		if(newCape == null) {
+			throw new NullPointerException("newCape");
+		}
 		changePlayerTextures0(newSkin, newCape, notifyOthers);
 	}
 

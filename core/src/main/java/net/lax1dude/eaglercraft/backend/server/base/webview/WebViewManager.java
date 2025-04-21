@@ -107,6 +107,9 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 
 	@Override
 	public void setProvider(IWebViewProvider<PlayerObject> func) {
+		if(func == null) {
+			throw new NullPointerException("func");
+		}
 		provider = func;
 	}
 
@@ -116,6 +119,9 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 
 	@Override
 	public boolean isChannelOpen(String channelName) {
+		if(channelName == null) {
+			throw new NullPointerException("channelName");
+		}
 		String str = getOpenChannel();
 		return str != null && channelName.equals(str);
 	}
@@ -135,6 +141,9 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 	}
 
 	private boolean validateChannel(String channelName) {
+		if(channelName == null) {
+			throw new NullPointerException("channelName");
+		}
 		String str = getOpenChannel();
 		if(str != null && channelName.equals(str)) {
 			return true;
@@ -147,6 +156,9 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 	@Override
 	public void sendMessageString(String channelName, String contents) {
 		if(validateChannel(channelName)) {
+			if(contents == null) {
+				throw new NullPointerException("contents");
+			}
 			player.sendEaglerMessage(new SPacketWebViewMessageV4EAG(contents));
 		}
 	}
@@ -154,6 +166,9 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 	@Override
 	public void sendMessageString(String channelName, byte[] contents) {
 		if(validateChannel(channelName)) {
+			if(contents == null) {
+				throw new NullPointerException("contents");
+			}
 			player.sendEaglerMessage(new SPacketWebViewMessageV4EAG(SPacketWebViewMessageV4EAG.TYPE_STRING, contents));
 		}
 	}
@@ -161,6 +176,9 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 	@Override
 	public void sendMessageBinary(String channelName, byte[] contents) {
 		if(validateChannel(channelName)) {
+			if(contents == null) {
+				throw new NullPointerException("contents");
+			}
 			player.sendEaglerMessage(new SPacketWebViewMessageV4EAG(contents));
 		}
 	}
@@ -172,6 +190,12 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 
 	@Override
 	public void displayWebViewURL(String title, String url, Set<EnumWebViewPerms> permissions) {
+		if(title == null) {
+			throw new NullPointerException("title");
+		}
+		if(url == null) {
+			throw new NullPointerException("url");
+		}
 		if(player.getEaglerProtocol().ver >= 5) {
 			player.sendEaglerMessage(new SPacketDisplayWebViewURLV5EAG(
 					permissions != null ? EnumWebViewPerms.toBits(permissions) : 0, title, url));
@@ -182,6 +206,12 @@ public class WebViewManager<PlayerObject> implements IWebViewManager<PlayerObjec
 
 	@Override
 	public void displayWebViewBlob(String title, SHA1Sum hash, Set<EnumWebViewPerms> permissions) {
+		if(title == null) {
+			throw new NullPointerException("title");
+		}
+		if(hash == null) {
+			throw new NullPointerException("hash");
+		}
 		if(player.getEaglerProtocol().ver >= 5) {
 			player.sendEaglerMessage(new SPacketDisplayWebViewBlobV5EAG(
 					permissions != null ? EnumWebViewPerms.toBits(permissions) : 0, title, hash.asBytes()));

@@ -25,11 +25,17 @@ public class SupervisorResolverAll implements ISupervisorResolver {
 
 	@Override
 	public boolean isPlayerKnown(UUID playerUUID) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
 		return server.getPlayerByUUID(playerUUID) != null || resolver.isPlayerKnown(playerUUID);
 	}
 
 	@Override
 	public int getCachedNodeId(UUID playerUUID) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
 		if(server.getPlayerByUUID(playerUUID) != null) {
 			return server.getSupervisorService().getNodeId();
 		}else {
@@ -39,6 +45,12 @@ public class SupervisorResolverAll implements ISupervisorResolver {
 
 	@Override
 	public void resolvePlayerNodeId(UUID playerUUID, IntProcedure callback) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		if(server.getPlayerByUUID(playerUUID) != null) {
 			callback.apply(server.getSupervisorService().getNodeId());
 		}else {
@@ -95,6 +107,12 @@ public class SupervisorResolverAll implements ISupervisorResolver {
 
 	@Override
 	public void resolvePlayerSkin(UUID playerUUID, Consumer<IEaglerPlayerSkin> callback) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		BasePlayerInstance<?> player = server.getPlayerByUUID(playerUUID);
 		if(player != null) {
 			player.getSkinManager().resolvePlayerSkin(callback);
@@ -105,6 +123,12 @@ public class SupervisorResolverAll implements ISupervisorResolver {
 
 	@Override
 	public void resolvePlayerCape(UUID playerUUID, Consumer<IEaglerPlayerCape> callback) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		BasePlayerInstance<?> player = server.getPlayerByUUID(playerUUID);
 		if(player != null) {
 			player.getSkinManager().resolvePlayerCape(callback);

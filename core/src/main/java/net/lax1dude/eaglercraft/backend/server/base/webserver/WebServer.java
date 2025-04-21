@@ -316,6 +316,7 @@ public class WebServer implements IWebServer {
 
 	@Override
 	public IPreparedResponse prepareResponse(InputStream data) throws IOException {
+		if(data == null) throw new NullPointerException("data");
 		ByteBuf buf = Unpooled.buffer();
 		try {
 			byte[] tmp = new byte[2048];
@@ -331,11 +332,14 @@ public class WebServer implements IWebServer {
 
 	@Override
 	public IPreparedResponse prepareResponse(byte[] data) {
+		if(data == null) throw new NullPointerException("data");
 		return new PreparedResponse(Unpooled.wrappedBuffer(data));
 	}
 
 	@Override
 	public IPreparedResponse prepareResponse(CharSequence data, Charset binaryCharset) {
+		if(data == null) throw new NullPointerException("data");
+		if(binaryCharset == null) throw new NullPointerException("binaryCharset");
 		ByteBuf buf = Unpooled.buffer();
 		try {
 			BufferUtils.writeCharSequence(buf, data, binaryCharset);

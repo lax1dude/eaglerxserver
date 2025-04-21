@@ -67,6 +67,12 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 
 	@Override
 	public void resolvePlayerSkin(UUID playerUUID, Consumer<IEaglerPlayerSkin> callback) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		BasePlayerInstance<PlayerObject> player = server.getPlayerByUUID(playerUUID);
 		if(player != null) {
 			player.getSkinManager().resolvePlayerSkin(callback);
@@ -81,6 +87,12 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 
 	@Override
 	public void resolvePlayerCape(UUID playerUUID, Consumer<IEaglerPlayerCape> callback) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		BasePlayerInstance<PlayerObject> player = server.getPlayerByUUID(playerUUID);
 		if(player != null) {
 			player.getSkinManager().resolvePlayerCape(callback);
@@ -95,6 +107,15 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 
 	@Override
 	public void loadCacheSkinFromURL(String skinURL, EnumSkinModel modelId, Consumer<IEaglerPlayerSkin> callback) {
+		if(skinURL == null) {
+			throw new NullPointerException("skinURL");
+		}
+		if(modelId == null) {
+			throw new NullPointerException("modelId");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		if(downloadEnabled) {
 			if(supervisor != null) {
 				supervisor.getRemoteOnlyResolver().loadCacheSkinFromURL(skinURL, modelId, callback);
@@ -159,6 +180,12 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 
 	@Override
 	public void loadCacheCapeFromURL(String capeURL, Consumer<IEaglerPlayerCape> callback) {
+		if(capeURL == null) {
+			throw new NullPointerException("capeURL");
+		}
+		if(callback == null) {
+			throw new NullPointerException("callback");
+		}
 		if(downloadEnabled) {
 			if(supervisor != null) {
 				supervisor.getRemoteOnlyResolver().loadCacheCapeFromURL(capeURL, callback);
