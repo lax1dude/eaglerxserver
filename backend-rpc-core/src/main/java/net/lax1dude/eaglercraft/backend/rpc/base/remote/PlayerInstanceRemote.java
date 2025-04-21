@@ -34,12 +34,14 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 
 	private static final VarHandle READY_HANDLE;
 	private static final VarHandle CONTEXT_HANDLE;
+	private static final VarHandle FUTURE_HANDLE;
 
 	static {
 		try {
 			MethodHandles.Lookup l = MethodHandles.lookup();
 			READY_HANDLE = l.findVarHandle(PlayerInstanceRemote.class, "ready", int.class);
 			CONTEXT_HANDLE = l.findVarHandle(PlayerInstanceRemote.class, "context", BasePlayerRPC.class);
+			FUTURE_HANDLE = l.findVarHandle(PlayerInstanceRemote.class, "future", RPCActiveFuture.class);
 		} catch (ReflectiveOperationException e) {
 			throw new ExceptionInInitializerError(e);
 		}
@@ -134,7 +136,7 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 
 	@Override
 	public IRPCFuture<IBasePlayerRPC<PlayerObject>> openFuture() {
-		RPCActiveFuture<IBasePlayerRPC<PlayerObject>> ret = future;
+		RPCActiveFuture<IBasePlayerRPC<PlayerObject>> ret = (RPCActiveFuture<IBasePlayerRPC<PlayerObject>>) FUTURE_HANDLE.getAcquire(this);
 		if(ret != null) {
 			return ret;
 		}else {
@@ -147,7 +149,7 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 				}
 				now = System.nanoTime();
 				isReady = (int)READY_HANDLE.getOpaque(this) != 0;
-				future = ret = RPCActiveFuture.create(server.schedulerExecutors(), now, server.getBaseRequestTimeout());
+				FUTURE_HANDLE.setRelease(this, ret = RPCActiveFuture.create(server.schedulerExecutors(), now, server.getBaseRequestTimeout()));
 			}
 			if(isReady) {
 				beginHandshake(ret);
@@ -164,7 +166,7 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 		if(ctx != null) {
 			ctx.handleRPCMessage(contents);
 		}else {
-			RPCActiveFuture<IBasePlayerRPC<PlayerObject>> res = future;
+			RPCActiveFuture<IBasePlayerRPC<PlayerObject>> res = (RPCActiveFuture<IBasePlayerRPC<PlayerObject>>) FUTURE_HANDLE.getAcquire(this);
 			if(res != null) {
 				handleRPCHandshake(contents, res);
 			}
@@ -289,7 +291,7 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 		if(ctx != null) {
 			ctx.fireCloseListeners();
 		}
-		RPCActiveFuture<IBasePlayerRPC<PlayerObject>> ret = future;
+		RPCActiveFuture<IBasePlayerRPC<PlayerObject>> ret = (RPCActiveFuture<IBasePlayerRPC<PlayerObject>>) FUTURE_HANDLE.getAcquire(this);
 		if(ret != null && !ret.isDone()) {
 			ret.fireTimeoutExceptionInternal(new RPCTimeoutException("Player left before the connection was established"));
 		}

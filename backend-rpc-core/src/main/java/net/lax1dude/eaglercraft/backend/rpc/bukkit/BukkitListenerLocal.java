@@ -3,6 +3,7 @@ package net.lax1dude.eaglercraft.backend.rpc.bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
+import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.EaglercraftInitializePlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.EaglercraftVoiceChangeEvent;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.EaglercraftWebViewChannelEvent;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.EaglercraftWebViewMessageEvent;
@@ -13,6 +14,13 @@ class BukkitListenerLocal implements Listener {
 
 	BukkitListenerLocal(PlatformPluginBukkit plugin) {
 		this.plugin = plugin;
+	}
+
+	@EventHandler
+	public void onInitializePlayer(EaglercraftInitializePlayerEvent evt) {
+		if(plugin.initializePlayerHandler != null) {
+			plugin.initializePlayerHandler.accept(evt);
+		}
 	}
 
 	@EventHandler

@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import net.lax1dude.eaglercraft.backend.server.api.EnumPipelineEvent;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.BufferUtils;
@@ -100,8 +99,6 @@ public class VanillaInitializer {
 						inboundHandler.handleBackendHandshakeSuccess(ctx, usernameStr, playerUUID);
 					}else if(pktId == 0x03) {
 						// S03PacketEnableCompression
-						inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
-						pipelineData.connectionLogger.error("Disconnecting, server tried to enable compression, this should not happen for eagler connections!");
 					}else if(pktId == 0x01) {
 						// S01PacketEncryptionRequest
 						inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);

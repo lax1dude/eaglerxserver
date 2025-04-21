@@ -26,8 +26,19 @@ class ResponseCache {
 
 	class ResponseLoader {
 
+		private static final VarHandle RESULT_HANDLE;
+
+		static {
+			try {
+				MethodHandles.Lookup l = MethodHandles.lookup();
+				RESULT_HANDLE = l.findVarHandle(ResponseLoader.class, "data", byte[].class);
+			} catch (ReflectiveOperationException e) {
+				throw new ExceptionInInitializerError(e);
+			}
+		}
+
 		private final ResponseCacheKey key;
-		private byte[] data;
+		private volatile byte[] data;
 		private List<Consumer<byte[]>> waitingCallbacks;
 
 		protected ResponseLoader(ResponseCacheKey key) {
@@ -35,15 +46,15 @@ class ResponseCache {
 		}
 
 		byte[] tryGetResponse() {
-			return data;
+			return (byte[]) RESULT_HANDLE.getAcquire(this);
 		}
 
 		void loadResponse(Consumer<byte[]> consumer) {
-			byte[] data = this.data;
+			byte[] data = (byte[]) RESULT_HANDLE.getAcquire(this);
 			if(data == null) {
 				eagler: {
 					synchronized(this) {
-						data = this.data;
+						data = (byte[]) RESULT_HANDLE.getAcquire(this);
 						if(data != null) {
 							break eagler;
 						}
@@ -61,10 +72,10 @@ class ResponseCache {
 						}
 						List<Consumer<byte[]>> cb;
 						synchronized(this) {
-							if(this.data != null) {
+							if((byte[]) RESULT_HANDLE.getAcquire(this) != null) {
 								return;
 							}
-							this.data = data0;
+							RESULT_HANDLE.setRelease(this, data0);
 							cb = waitingCallbacks;
 							waitingCallbacks = null;
 						}

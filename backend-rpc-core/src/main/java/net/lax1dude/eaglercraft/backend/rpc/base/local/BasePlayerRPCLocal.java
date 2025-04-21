@@ -14,6 +14,7 @@ import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetCapes;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetSkins;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerSkin;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceManager;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCBiConsumerFuture;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCConsumerFuture;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCImmediateFuture;
@@ -23,13 +24,13 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
 public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerObject> {
 
 	protected final IRPCFuture<IBasePlayerRPC<PlayerObject>> future;
-	protected final BasePlayerLocal<PlayerObject> owner;
+	protected final PlayerInstanceLocal<PlayerObject> owner;
 	protected final net.lax1dude.eaglercraft.backend.server.api.IBasePlayer<PlayerObject> delegate;
 	protected final SchedulerExecutors schedulerExecutors;
 	protected Set<IRPCCloseHandler> closeListeners;
 	protected int dummyTimeout;
 
-	BasePlayerRPCLocal(BasePlayerLocal<PlayerObject> player,
+	BasePlayerRPCLocal(PlayerInstanceLocal<PlayerObject> player,
 			net.lax1dude.eaglercraft.backend.server.api.IBasePlayer<PlayerObject> delegate) {
 		this.schedulerExecutors = player.server.schedulerExecutors();
 		this.future = RPCImmediateFuture.create(schedulerExecutors, this);
@@ -44,7 +45,7 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 	}
 
 	@Override
-	public BasePlayerLocal<PlayerObject> getPlayer() {
+	public PlayerInstanceLocal<PlayerObject> getPlayer() {
 		return owner;
 	}
 
@@ -312,6 +313,14 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 	@Override
 	public void sendRawCustomPayloadPacket(String channel, byte[] data) {
 		owner.player.sendData(channel, data);
+	}
+
+	public boolean isVoiceCapable() {
+		return false;
+	}
+
+	public IVoiceManager<PlayerObject> getVoiceManager() {
+		return null;
 	}
 
 }

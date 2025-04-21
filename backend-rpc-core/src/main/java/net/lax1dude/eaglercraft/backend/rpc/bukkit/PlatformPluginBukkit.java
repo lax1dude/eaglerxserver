@@ -30,6 +30,7 @@ import net.lax1dude.eaglercraft.backend.rpc.adapter.JavaLogger;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCBase;
 import net.lax1dude.eaglercraft.backend.rpc.bukkit.event.BukkitEventDispatchAdapter;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftVoiceChangeEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChannelEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent;
@@ -47,6 +48,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	protected boolean localMode;
 	protected Collection<IBackendRPCMessageChannel<Player>> channelsList;
+	protected Consumer<IEaglercraftInitializePlayerEvent<Player>> initializePlayerHandler;
 	protected Consumer<IEaglercraftWebViewChannelEvent<Player>> localWebViewChannelHandler;
 	protected Consumer<IEaglercraftWebViewMessageEvent<Player>> localWebViewMessageHandler;
 	protected Consumer<IEaglercraftVoiceChangeEvent<Player>> localVoiceChangeHandler;
@@ -83,6 +85,10 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			public InitLocalMode<Player> localMode() {
 				localMode = true;
 				return new InitLocalMode<Player>() {
+					@Override
+					public void setOnInitializePlayer(Consumer<IEaglercraftInitializePlayerEvent<Player>> handler) {
+						initializePlayerHandler = handler;
+					}
 					@Override
 					public void setOnWebViewChannel(Consumer<IEaglercraftWebViewChannelEvent<Player>> handler) {
 						localWebViewChannelHandler = handler;
@@ -290,10 +296,10 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	}
 
 	private boolean checkPost_v1_13() {
-		String[] ver = getServer().getVersion().split("[\\.\\-]");
+		String[] ver = getServer().getBukkitVersion().split("[\\.\\-]");
 		if(ver.length >= 2) {
 			try {
-				return Integer.parseInt(ver[0]) >= 1 || Integer.parseInt(ver[1]) >= 13;
+				return Integer.parseInt(ver[0]) >= 1 && Integer.parseInt(ver[1]) >= 13;
 			}catch(NumberFormatException ex) {
 			}
 		}

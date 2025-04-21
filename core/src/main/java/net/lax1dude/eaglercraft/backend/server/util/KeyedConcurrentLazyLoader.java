@@ -16,6 +16,8 @@
 
 package net.lax1dude.eaglercraft.backend.server.util;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -29,6 +31,17 @@ import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectIntProcedure;
 import net.lax1dude.eaglercraft.backend.server.base.collect.ObjectIntHashMap;
 
 public abstract class KeyedConcurrentLazyLoader<K, T> {
+
+	private static final VarHandle RESULT_HANDLE;
+
+	static {
+		try {
+			MethodHandles.Lookup l = MethodHandles.lookup();
+			RESULT_HANDLE = l.findVarHandle(KeyedConcurrentLazyLoader.class, "result", Object.class);
+		} catch (ReflectiveOperationException e) {
+			throw new ExceptionInInitializerError(e);
+		}
+	}
 
 	private static final Logger logger = LoggerFactory.getLogger("KeyedConcurrentLazyLoader");
 
@@ -70,7 +83,7 @@ public abstract class KeyedConcurrentLazyLoader<K, T> {
 	protected abstract void loadImpl(Consumer<T> callback);
 
 	public void load(K key, Consumer<T> callback) {
-		T val = result;
+		T val = (T) RESULT_HANDLE.getAcquire(this);
 		if(val != null) {
 			callback.accept(val);
 		}else {
@@ -100,7 +113,7 @@ public abstract class KeyedConcurrentLazyLoader<K, T> {
 					if(result != null) {
 						return; // ignore multiple results
 					}
-					result = res;
+					RESULT_HANDLE.setRelease(this, res);
 					toCall = waitingCallbacks;
 					waitingCallbacks = null;
 				}
@@ -119,11 +132,15 @@ public abstract class KeyedConcurrentLazyLoader<K, T> {
 	}
 
 	public T getIfLoaded() {
-		return result;
+		return (T) RESULT_HANDLE.getAcquire(this);
 	}
 
 	public void clear() {
-		result = null;
+		RESULT_HANDLE.setRelease(this, null);
+	}
+
+	protected final void cmpXchgRelease(T expect, T set) {
+		RESULT_HANDLE.compareAndExchangeRelease(this, expect, set);
 	}
 
 }

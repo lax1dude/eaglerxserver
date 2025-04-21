@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import net.lax1dude.eaglercraft.backend.rpc.adapter.event.IEventDispatchAdapter;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftVoiceChangeEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChannelEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent;
@@ -29,6 +30,8 @@ public interface IPlatform<PlayerObject> {
 	}
 
 	public interface InitLocalMode<PlayerObject> {
+
+		void setOnInitializePlayer(Consumer<IEaglercraftInitializePlayerEvent<PlayerObject>> handler);
 
 		void setOnWebViewChannel(Consumer<IEaglercraftWebViewChannelEvent<PlayerObject>> handler);
 

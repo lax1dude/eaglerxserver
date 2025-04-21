@@ -19,17 +19,16 @@ import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.IPauseMenuBuilder;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.ISkinImageLoader;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceService;
 import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCBase;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.util.Collectors3;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftVoiceChangeEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChannelEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent;
 
 public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<PlayerObject> {
 
-	private final ConcurrentMap<PlayerObject, BasePlayerLocal<PlayerObject>> basePlayerMap = (new MapMaker())
-			.initialCapacity(256).concurrencyLevel(16).makeMap();
-
-	private final ConcurrentMap<PlayerObject, EaglerPlayerLocal<PlayerObject>> eaglerPlayerMap = (new MapMaker())
+	private final ConcurrentMap<PlayerObject, PlayerInstanceLocal<PlayerObject>> playerMap = (new MapMaker())
 			.initialCapacity(256).concurrencyLevel(16).makeMap();
 
 	private IEaglerXServerAPI<PlayerObject> serverAPI;
@@ -44,6 +43,7 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 		platf.setOnServerDisable(this::disableHandler);
 		platf.setPlayerInitializer(new BackendRPCPlayerInitializer<>(this));
 		InitLocalMode<PlayerObject> platfLocal = platf.localMode();
+		platfLocal.setOnInitializePlayer(this::fireInitializePlayer);
 		platfLocal.setOnWebViewChannel(this::fireWebViewChannel);
 		platfLocal.setOnWebViewMessage(this::fireWebViewMessage);
 		platfLocal.setOnVoiceChange(this::fireVoiceChange);
@@ -66,43 +66,60 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 		
 	}
 
-	private void fireWebViewChannel(IEaglercraftWebViewChannelEvent<PlayerObject> event) {
-		EaglerPlayerLocal<PlayerObject> player = eaglerPlayerMap.get(event.getPlayer().getPlayerObject());
+	private void fireInitializePlayer(IEaglercraftInitializePlayerEvent<PlayerObject> event) {
+		PlayerInstanceLocal<PlayerObject> player = playerMap.get(event.getPlayer().getPlayerObject());
 		if(player != null) {
-			player.playerRPC().fireLocalWebViewChannel(event);
+			player.offerPlayer(event.getPlayer());
+		}
+	}
+
+	private void fireWebViewChannel(IEaglercraftWebViewChannelEvent<PlayerObject> event) {
+		PlayerInstanceLocal<PlayerObject> player = playerMap.get(event.getPlayer().getPlayerObject());
+		if(player != null) {
+			BasePlayerRPCLocal<PlayerObject> handle = player.handle();
+			if(handle != null && handle.isEaglerPlayer()) {
+				((EaglerPlayerRPCLocal<PlayerObject>)handle).fireLocalWebViewChannel(event);
+			}
 		}
 	}
 
 	private void fireWebViewMessage(IEaglercraftWebViewMessageEvent<PlayerObject> event) {
-		EaglerPlayerLocal<PlayerObject> player = eaglerPlayerMap.get(event.getPlayer().getPlayerObject());
+		PlayerInstanceLocal<PlayerObject> player = playerMap.get(event.getPlayer().getPlayerObject());
 		if(player != null) {
-			player.playerRPC().fireLocalWebViewMessage(event);
+			BasePlayerRPCLocal<PlayerObject> handle = player.handle();
+			if(handle != null && handle.isEaglerPlayer()) {
+				((EaglerPlayerRPCLocal<PlayerObject>)handle).fireLocalWebViewMessage(event);
+			}
 		}
 	}
 
 	private void fireVoiceChange(IEaglercraftVoiceChangeEvent<PlayerObject> event) {
-		EaglerPlayerLocal<PlayerObject> player = eaglerPlayerMap.get(event.getPlayer().getPlayerObject());
+		PlayerInstanceLocal<PlayerObject> player = playerMap.get(event.getPlayer().getPlayerObject());
 		if(player != null) {
-			player.playerRPC().fireLocalVoiceChange(event);
+			BasePlayerRPCLocal<PlayerObject> handle = player.handle();
+			if(handle != null && handle.isEaglerPlayer()) {
+				((EaglerPlayerRPCLocal<PlayerObject>)handle).fireLocalVoiceChange(event);
+			}
 		}
 	}
 
-	void registerEaglerPlayer(EaglerPlayerLocal<PlayerObject> player) {
+	void registerPlayer(PlayerInstanceLocal<PlayerObject> player) {
 		PlayerObject playerObj = player.getPlayerObject();
-		if(basePlayerMap.putIfAbsent(playerObj, player) != null) {
+		if(playerMap.putIfAbsent(playerObj, player) != null) {
 			throw new IllegalStateException("Player is already registered!");
 		}
-		eaglerPlayerMap.put(playerObj, player);
+		playerMap.put(playerObj, player);
 	}
 
-	void confirmEaglerPlayer(EaglerPlayerLocal<PlayerObject> player) {
-		if(eaglerPlayerMap.get(player.getPlayerObject()) != null) {
-			platform.eventDispatcher().dispatchPlayerReadyEvent(player);
-			net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject> eagPlayer =
-					((EaglerPlayerRPCLocal<PlayerObject>) player.playerRPC).delegate;
-			if(eagPlayer.isVoiceCapable()) {
-				net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager<PlayerObject> voiceManager =
-						eagPlayer.getVoiceManager();
+	void confirmPlayer(PlayerInstanceLocal<PlayerObject> player) {
+		if(playerMap.get(player.getPlayerObject()) == player) {
+			net.lax1dude.eaglercraft.backend.server.api.IBasePlayer<PlayerObject> playerImpl
+					= serverAPI.getPlayer(player.getPlayerObject());
+			player.offerPlayer(playerImpl);
+			BasePlayerRPCLocal<PlayerObject> handle = player.handle();
+			if(handle != null && handle.isVoiceCapable()) {
+				net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager<PlayerObject> voiceManager = handle.delegate
+						.asEaglerPlayer().getVoiceManager();
 				net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel channel =
 						voiceManager.getVoiceChannel();
 				net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel channel2 =
@@ -115,27 +132,12 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 		}
 	}
 
-	void unregisterEaglerPlayer(EaglerPlayerLocal<PlayerObject> player) {
+	void unregisterPlayer(PlayerInstanceLocal<PlayerObject> player) {
 		PlayerObject playerObj = player.getPlayerObject();
-		if(basePlayerMap.remove(playerObj) != null) {
-			eaglerPlayerMap.remove(playerObj);
+		if(playerMap.remove(playerObj) != null) {
 			player.handleDestroyed();
 		}
-	}
-
-	void registerVanillaPlayer(BasePlayerLocal<PlayerObject> player) {
-		if(basePlayerMap.put(player.getPlayerObject(), player) != null) {
-			throw new IllegalStateException("Player is already registered!");
-		}
-	}
-
-	void confirmVanillaPlayer(BasePlayerLocal<PlayerObject> player) {
-	}
-
-	void unregisterVanillaPlayer(BasePlayerLocal<PlayerObject> player) {
-		if(basePlayerMap.remove(player.getPlayerObject()) != null) {
-			player.handleDestroyed();
-		}
+		
 	}
 
 	IEaglerXServerAPI<PlayerObject> serverAPI() {
@@ -176,7 +178,7 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 
 	@Override
 	public IBasePlayer<PlayerObject> getBasePlayer(PlayerObject player) {
-		return basePlayerMap.get(player);
+		return playerMap.get(player);
 	}
 
 	@Override
@@ -199,14 +201,21 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 
 	@Override
 	public IEaglerPlayer<PlayerObject> getEaglerPlayer(PlayerObject player) {
-		return eaglerPlayerMap.get(player);
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
+		if(platformPlayer != null) {
+			PlayerInstanceLocal<PlayerObject> basePlayer = platformPlayer.getAttachment();
+			if(basePlayer != null) {
+				return basePlayer.asEaglerPlayer();
+			}
+		}
+		return null;
 	}
 
 	@Override
 	public IEaglerPlayer<PlayerObject> getEaglerPlayerByName(String playerName) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
 		if(platformPlayer != null) {
-			BasePlayerLocal<PlayerObject> basePlayer = platformPlayer.getAttachment();
+			PlayerInstanceLocal<PlayerObject> basePlayer = platformPlayer.getAttachment();
 			if(basePlayer != null) {
 				return basePlayer.asEaglerPlayer();
 			}
@@ -218,7 +227,7 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 	public IEaglerPlayer<PlayerObject> getEaglerPlayerByUUID(UUID playerUUID) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
 		if(platformPlayer != null) {
-			BasePlayerLocal<PlayerObject> basePlayer = platformPlayer.getAttachment();
+			PlayerInstanceLocal<PlayerObject> basePlayer = platformPlayer.getAttachment();
 			if(basePlayer != null) {
 				return basePlayer.asEaglerPlayer();
 			}
@@ -228,14 +237,21 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 
 	@Override
 	public boolean isEaglerPlayer(PlayerObject player) {
-		return eaglerPlayerMap.containsKey(player);
+		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
+		if(platformPlayer != null) {
+			PlayerInstanceLocal<PlayerObject> basePlayer = platformPlayer.getAttachment();
+			if(basePlayer != null) {
+				return basePlayer.isEaglerPlayer();
+			}
+		}
+		return false;
 	}
 
 	@Override
 	public boolean isEaglerPlayerByName(String playerName) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
 		if(platformPlayer != null) {
-			BasePlayerLocal<PlayerObject> basePlayer = platformPlayer.getAttachment();
+			PlayerInstanceLocal<PlayerObject> basePlayer = platformPlayer.getAttachment();
 			if(basePlayer != null) {
 				return basePlayer.isEaglerPlayer();
 			}
@@ -247,7 +263,7 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 	public boolean isEaglerPlayerByUUID(UUID playerUUID) {
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
 		if(platformPlayer != null) {
-			BasePlayerLocal<PlayerObject> basePlayer = platformPlayer.getAttachment();
+			PlayerInstanceLocal<PlayerObject> basePlayer = platformPlayer.getAttachment();
 			if(basePlayer != null) {
 				return basePlayer.isEaglerPlayer();
 			}
@@ -257,12 +273,13 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 
 	@Override
 	public Collection<IBasePlayer<PlayerObject>> getAllPlayers() {
-		return ImmutableList.copyOf(basePlayerMap.values());
+		return ImmutableList.copyOf(playerMap.values());
 	}
 
 	@Override
 	public Collection<IEaglerPlayer<PlayerObject>> getAllEaglerPlayers() {
-		return ImmutableList.copyOf(eaglerPlayerMap.values());
+		return playerMap.values().stream().filter(IBasePlayer<PlayerObject>::isEaglerPlayer)
+				.collect(Collectors3.toImmutableList());
 	}
 
 	@Override

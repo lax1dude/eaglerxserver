@@ -1,6 +1,8 @@
 package net.lax1dude.eaglercraft.backend.server.base.rpc;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 
 import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.EaglerBackendRPCPacket;
@@ -11,8 +13,19 @@ import net.lax1dude.eaglercraft.backend.server.base.BasePlayerInstance;
 
 public abstract class BasePlayerRPCManager<PlayerObject> {
 
+	private static final VarHandle CONTEXT_HANDLE;
+
+	static {
+		try {
+			MethodHandles.Lookup l = MethodHandles.lookup();
+			CONTEXT_HANDLE = l.findVarHandle(BasePlayerRPCManager.class, "context", BasePlayerRPCContext.class);
+		} catch (ReflectiveOperationException e) {
+			throw new ExceptionInInitializerError(e);
+		}
+	}
+
 	protected final BackendRPCService<PlayerObject> service;
-	protected BasePlayerRPCContext<PlayerObject> context;
+	protected volatile BasePlayerRPCContext<PlayerObject> context;
 
 	BasePlayerRPCManager(BackendRPCService<PlayerObject> service) {
 		this.service = service;
@@ -34,7 +47,7 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 	}
 
 	public void sendRPCPacket(EaglerBackendRPCPacket packet) {
-		BasePlayerRPCContext<PlayerObject> ctx = context;
+		BasePlayerRPCContext<PlayerObject> ctx = (BasePlayerRPCContext<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
 		if(ctx != null) {
 			byte[] data;
 			try {
@@ -48,7 +61,7 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 	}
 
 	public void handleRPCPacketData(byte[] data) {
-		BasePlayerRPCContext<PlayerObject> ctx = context;
+		BasePlayerRPCContext<PlayerObject> ctx = (BasePlayerRPCContext<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
 		if(ctx != null) {
 			EaglerBackendRPCPacket packet;
 			try {
@@ -92,7 +105,7 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 	}
 
 	BasePlayerRPCContext<PlayerObject> context() {
-		BasePlayerRPCContext<PlayerObject> ctx = context;
+		BasePlayerRPCContext<PlayerObject> ctx = (BasePlayerRPCContext<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
 		if(ctx != null) {
 			return ctx;
 		}else {
@@ -107,15 +120,15 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 	protected abstract void handleEnabled(EaglerBackendRPCProtocol ver);
 
 	protected void handleEnableContext(BasePlayerRPCContext<PlayerObject> ctx) {
-		context = ctx;
+		CONTEXT_HANDLE.setRelease(this, ctx);
 	}
 
 	void handleDisabled() {
-		context = null;
+		CONTEXT_HANDLE.setRelease(this, null);
 	}
 
 	public void handleServerPreConnect() {
-		BasePlayerRPCContext<PlayerObject> ctx = context;
+		BasePlayerRPCContext<PlayerObject> ctx = (BasePlayerRPCContext<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
 		if(ctx != null) {
 			ctx.handleDisabled();
 		}
@@ -128,21 +141,21 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 	protected abstract void sendReadyMessage();
 
 	public void fireWebViewOpenClose(boolean open, String channel) {
-		BasePlayerRPCContext<PlayerObject> ctx = context;
+		BasePlayerRPCContext<PlayerObject> ctx = (BasePlayerRPCContext<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
 		if(ctx != null) {
 			ctx.fireWebViewOpenClose(open, channel);
 		}
 	}
 
 	public void fireWebViewMessage(String channel, boolean binary, byte[] data) {
-		BasePlayerRPCContext<PlayerObject> ctx = context;
+		BasePlayerRPCContext<PlayerObject> ctx = (BasePlayerRPCContext<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
 		if(ctx != null) {
 			ctx.fireWebViewMessage(channel, binary, data);
 		}
 	}
 
 	public void fireToggleVoice(EnumVoiceState oldVoiceState, EnumVoiceState newVoiceState) {
-		BasePlayerRPCContext<PlayerObject> ctx = context;
+		BasePlayerRPCContext<PlayerObject> ctx = (BasePlayerRPCContext<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
 		if(ctx != null) {
 			ctx.fireToggleVoice(oldVoiceState, newVoiceState);
 		}

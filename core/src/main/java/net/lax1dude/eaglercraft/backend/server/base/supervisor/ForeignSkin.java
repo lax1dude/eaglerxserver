@@ -46,9 +46,7 @@ class ForeignSkin extends KeyedConcurrentLazyLoader<UUID, IEaglerPlayerSkin> {
 
 	void load(int modelId, UUID key, Consumer<IEaglerPlayerSkin> callback) {
 		this.skinModel = modelId;
-		if(result == MissingSkin.UNAVAILABLE_SKIN) {
-			result = null;
-		}
+		cmpXchgRelease(MissingSkin.UNAVAILABLE_SKIN, null);
 		this.load(key, callback);
 	}
 

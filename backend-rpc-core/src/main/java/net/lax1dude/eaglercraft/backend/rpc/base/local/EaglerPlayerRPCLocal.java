@@ -30,6 +30,8 @@ import net.lax1dude.eaglercraft.backend.rpc.api.notifications.IconDef;
 import net.lax1dude.eaglercraft.backend.rpc.api.pause_menu.ICustomPauseMenu;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumEnableFNAW;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.EnumVoiceState;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceManager;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceService;
 import net.lax1dude.eaglercraft.backend.rpc.api.webview.EnumWebViewPerms;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCEventBus;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCImmediateFuture;
@@ -39,7 +41,6 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChan
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent;
 import net.lax1dude.eaglercraft.backend.server.api.notifications.INotificationManager;
 import net.lax1dude.eaglercraft.backend.server.api.pause_menu.IPauseMenuManager;
-import net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewManager;
 import net.lax1dude.eaglercraft.backend.server.api.webview.IWebViewProvider;
 
@@ -47,18 +48,23 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 		implements IEaglerPlayerRPC<PlayerObject> {
 
 	protected final net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject> delegate;
+	protected final IVoiceManager<PlayerObject> voiceMgr;
 	protected RPCEventBus<PlayerObject> eventBus;
 	protected int subscribedEvents;
 
-	EaglerPlayerRPCLocal(EaglerPlayerLocal<PlayerObject> player,
+	EaglerPlayerRPCLocal(PlayerInstanceLocal<PlayerObject> player,
 			net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject> delegate) {
 		super(player, delegate);
 		this.delegate = delegate;
+		net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager<PlayerObject> voiceMgr = delegate.getVoiceManager();
+		IVoiceService<PlayerObject> voiceSvc = player.getEaglerXBackendRPC().getVoiceService();
+		this.voiceMgr = voiceMgr != null && voiceSvc.isVoiceEnabled()
+				? new VoiceManagerLocal<PlayerObject>((VoiceServiceLocal<PlayerObject>)voiceSvc, player, voiceMgr) : null;
 	}
 
 	@Override
-	public EaglerPlayerLocal<PlayerObject> getPlayer() {
-		return (EaglerPlayerLocal<PlayerObject>) owner;
+	public PlayerInstanceLocal<PlayerObject> getPlayer() {
+		return (PlayerInstanceLocal<PlayerObject>) owner;
 	}
 
 	@Override
@@ -189,7 +195,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	@Override
 	public IRPCFuture<EnumVoiceState> getVoiceState() {
-		IVoiceManager<PlayerObject> voiceMgr = delegate.getVoiceManager();
+		net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager<PlayerObject> voiceMgr = delegate.getVoiceManager();
 		if(voiceMgr != null) {
 			return RPCImmediateFuture.create(schedulerExecutors, VoiceChannelHelper.wrap(voiceMgr.getVoiceState()));
 		}else {
@@ -473,6 +479,14 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 				}
 			}
 		}
+	}
+
+	public boolean isVoiceCapable() {
+		return delegate.isVoiceCapable();
+	}
+
+	public IVoiceManager<PlayerObject> getVoiceManager() {
+		return voiceMgr;
 	}
 
 }

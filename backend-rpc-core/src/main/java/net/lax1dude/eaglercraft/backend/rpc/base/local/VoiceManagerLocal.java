@@ -9,10 +9,10 @@ import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceService;
 public class VoiceManagerLocal<PlayerObject> implements IVoiceManager<PlayerObject> {
 
 	private final VoiceServiceLocal<PlayerObject> service;
-	private final EaglerPlayerLocal<PlayerObject> player;
+	private final PlayerInstanceLocal<PlayerObject> player;
 	private final net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager<PlayerObject> delegate;
 
-	VoiceManagerLocal(VoiceServiceLocal<PlayerObject> service, EaglerPlayerLocal<PlayerObject> player,
+	VoiceManagerLocal(VoiceServiceLocal<PlayerObject> service, PlayerInstanceLocal<PlayerObject> player,
 			net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager<PlayerObject> delegate) {
 		this.service = service;
 		this.player = player;

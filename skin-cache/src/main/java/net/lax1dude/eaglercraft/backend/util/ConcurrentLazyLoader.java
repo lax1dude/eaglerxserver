@@ -16,11 +16,24 @@
 
 package net.lax1dude.eaglercraft.backend.util;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 public abstract class ConcurrentLazyLoader<T> {
+
+	private static final VarHandle RESULT_HANDLE;
+
+	static {
+		try {
+			MethodHandles.Lookup l = MethodHandles.lookup();
+			RESULT_HANDLE = l.findVarHandle(ConcurrentLazyLoader.class, "result", Object.class);
+		} catch (ReflectiveOperationException e) {
+			throw new ExceptionInInitializerError(e);
+		}
+	}
 
 	private List<Consumer<T>> waitingCallbacks = null;
 	private T result = null;
@@ -30,7 +43,7 @@ public abstract class ConcurrentLazyLoader<T> {
 	protected abstract ILoggerAdapter getLogger();
 
 	public void load(Consumer<T> callback) {
-		T val = result;
+		T val = (T) RESULT_HANDLE.getAcquire(this);
 		if(val != null) {
 			callback.accept(val);
 		}else {
@@ -60,7 +73,7 @@ public abstract class ConcurrentLazyLoader<T> {
 					if(result != null) {
 						return; // ignore multiple results
 					}
-					result = res;
+					RESULT_HANDLE.setRelease(this, res);
 					toCall = waitingCallbacks;
 					waitingCallbacks = null;
 				}
@@ -78,11 +91,11 @@ public abstract class ConcurrentLazyLoader<T> {
 	}
 
 	public T getIfLoaded() {
-		return result;
+		return (T) RESULT_HANDLE.getAcquire(this);
 	}
 
 	public void clear() {
-		result = null;
+		RESULT_HANDLE.setRelease(this, null);
 	}
 
 }

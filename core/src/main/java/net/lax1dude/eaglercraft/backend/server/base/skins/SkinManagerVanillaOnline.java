@@ -1,5 +1,7 @@
 package net.lax1dude.eaglercraft.backend.server.base.skins;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -22,6 +24,19 @@ import net.lax1dude.eaglercraft.backend.server.base.skins.type.PresetSkinPlayer;
 import net.lax1dude.eaglercraft.backend.server.util.KeyedConcurrentLazyLoader.KeyedConsumerList;
 
 public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<PlayerObject>, ISkinManagerImpl {
+
+	private static final VarHandle SKIN_HANDLE;
+	private static final VarHandle CAPE_HANDLE;
+
+	static {
+		try {
+			MethodHandles.Lookup l = MethodHandles.lookup();
+			SKIN_HANDLE = l.findVarHandle(SkinManagerVanillaOnline.class, "skin", IEaglerPlayerSkin.class);
+			CAPE_HANDLE = l.findVarHandle(SkinManagerVanillaOnline.class, "cape", IEaglerPlayerCape.class);
+		} catch (ReflectiveOperationException e) {
+			throw new ExceptionInInitializerError(e);
+		}
+	}
 
 	private final BasePlayerInstance<PlayerObject> player;
 	private String skinURL;
@@ -75,12 +90,12 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 
 	@Override
 	public IEaglerPlayerSkin getPlayerSkinIfLoaded() {
-		return skin;
+		return (IEaglerPlayerSkin) SKIN_HANDLE.getAcquire(this);
 	}
 
 	@Override
 	public IEaglerPlayerCape getPlayerCapeIfLoaded() {
-		return cape;
+		return (IEaglerPlayerCape) SKIN_HANDLE.getAcquire(this);
 	}
 
 	@Override
@@ -100,7 +115,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 
 	@Override
 	public void resolvePlayerSkinKeyed(UUID requester, Consumer<IEaglerPlayerSkin> callback) {
-		IEaglerPlayerSkin val = skin;
+		IEaglerPlayerSkin val = (IEaglerPlayerSkin) SKIN_HANDLE.getAcquire(this);
 		if(val != null) {
 			callback.accept(val);
 		}else {
@@ -136,7 +151,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 						}
 						return; // ignore multiple results
 					}
-					this.skin = skin;
+					SKIN_HANDLE.setRelease(this, skin);
 					this.originalSkin = skin;
 					waitingSkinCallbacks = null;
 				}
@@ -156,7 +171,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 
 	@Override
 	public void resolvePlayerCapeKeyed(UUID requester, Consumer<IEaglerPlayerCape> callback) {
-		IEaglerPlayerCape val = cape;
+		IEaglerPlayerCape val = (IEaglerPlayerCape) CAPE_HANDLE.getAcquire(this);
 		if(val != null) {
 			callback.accept(val);
 		}else {
@@ -192,7 +207,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 						}
 						return; // ignore multiple results
 					}
-					this.cape = cape;
+					CAPE_HANDLE.setRelease(this, cape);
 					this.originalCape = cape;
 					waitingCapeCallbacks = null;
 				}
@@ -212,7 +227,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 
 	@Override
 	public void resolvePlayerTexturesKeyed(UUID requester, BiConsumer<IEaglerPlayerSkin, IEaglerPlayerCape> callback) {
-		IEaglerPlayerSkin val1 = skin;
+		IEaglerPlayerSkin val1 = (IEaglerPlayerSkin) SKIN_HANDLE.getAcquire(this);
 		IEaglerPlayerCape val2 = cape;
 		if(val1 != null && val2 != null) {
 			callback.accept(val1, val2);
@@ -239,7 +254,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 				if(oldSkin != null && newSkin.equals(oldSkin)) {
 					return;
 				}
-				skin = newSkin;
+				SKIN_HANDLE.setRelease(this, newSkin);
 				toCall = waitingSkinCallbacks;
 				waitingSkinCallbacks = null;
 			}else {
@@ -248,7 +263,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 					if(oldSkin != null && originalSkin.equals(oldSkin)) {
 						return;
 					}
-					skin = originalSkin;
+					SKIN_HANDLE.setRelease(this, originalSkin);
 					newSkin = originalSkin;
 					toCall = waitingSkinCallbacks;
 					waitingSkinCallbacks = null;
@@ -256,7 +271,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 					if(skinURL == null || skin == null) {
 						return;
 					}
-					skin = null;
+					SKIN_HANDLE.setRelease(this, null);
 				}
 			}
 		}
@@ -293,7 +308,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 				if(oldCape != null && newCape.equals(oldCape)) {
 					return;
 				}
-				cape = newCape;
+				CAPE_HANDLE.setRelease(this, newCape);
 				toCall = waitingCapeCallbacks;
 				waitingCapeCallbacks = null;
 			}else {
@@ -302,7 +317,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 					if(oldCape != null && originalCape.equals(oldCape)) {
 						return;
 					}
-					cape = originalCape;
+					CAPE_HANDLE.setRelease(this, originalCape);
 					newCape = originalCape;
 					toCall = waitingCapeCallbacks;
 					waitingCapeCallbacks = null;
@@ -310,7 +325,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 					if(capeURL == null || cape == null) {
 						return;
 					}
-					cape = null;
+					CAPE_HANDLE.setRelease(this, null);
 				}
 			}
 		}
@@ -348,7 +363,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 				IEaglerPlayerSkin oldSkin = skin;
 				if(oldSkin == null || !newSkin.equals(oldSkin)) {
 					s = true;
-					skin = newSkin;
+					SKIN_HANDLE.setRelease(this, newSkin);
 					toCall1 = waitingSkinCallbacks;
 					waitingSkinCallbacks = null;
 				}
@@ -357,14 +372,14 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 					IEaglerPlayerSkin oldSkin = skin;
 					if(oldSkin == null || !originalSkin.equals(oldSkin)) {
 						s = true;
-						skin = originalSkin;
+						SKIN_HANDLE.setRelease(this, originalSkin);
 						newSkin = originalSkin;
 						toCall1 = waitingSkinCallbacks;
 						waitingSkinCallbacks = null;
 					}
 				}else {
 					if(skinURL != null && skin != null) {
-						skin = null;
+						SKIN_HANDLE.setRelease(this, null);
 						s = true;
 					}
 				}
@@ -375,7 +390,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 				IEaglerPlayerCape oldCape = cape;
 				if(oldCape == null || !newCape.equals(oldCape)) {
 					c = true;
-					cape = newCape;
+					CAPE_HANDLE.setRelease(this, newCape);
 					toCall2 = waitingCapeCallbacks;
 					waitingCapeCallbacks = null;
 				}
@@ -384,14 +399,14 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 					IEaglerPlayerCape oldCape = cape;
 					if(oldCape == null || !originalCape.equals(oldCape)) {
 						c = true;
-						cape = originalCape;
+						CAPE_HANDLE.setRelease(this, originalCape);
 						newCape = originalCape;
 						toCall2 = waitingCapeCallbacks;
 						waitingCapeCallbacks = null;
 					}
 				}else {
 					if(capeURL != null && cape != null) {
-						cape = null;
+						CAPE_HANDLE.setRelease(this, null);
 						c = true;
 					}
 				}
@@ -456,7 +471,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 					if(skinURL == null || !skinUrl.equals(skinURL)) {
 						s = true;
 					}
-					skin = null;
+					SKIN_HANDLE.setRelease(this, null);
 					skinURL = skinUrl;
 					skinModel = textures.getSkinModel();
 					if(skinModel == null) {
@@ -474,7 +489,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 					if(skin == null || !newSkin.equals(skin)) {
 						s = true;
 					}
-					skin = newSkin;
+					SKIN_HANDLE.setRelease(this, newSkin);
 					skinURL = null;
 					skinModel = null;
 					toCall1 = waitingSkinCallbacks;
@@ -499,7 +514,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 					if(capeURL == null || !capeUrl.equals(capeURL)) {
 						c = true;
 					}
-					cape = null;
+					CAPE_HANDLE.setRelease(this, null);
 					capeURL = capeUrl;
 					toCall2 = waitingCapeCallbacks;
 					waitingCapeCallbacks = null;
@@ -512,7 +527,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 					if(cape == null || !newCape.equals(cape)) {
 						c = true;
 					}
-					cape = newCape;
+					CAPE_HANDLE.setRelease(this, newCape);
 					capeURL = null;
 					toCall2 = waitingCapeCallbacks;
 					waitingCapeCallbacks = null;

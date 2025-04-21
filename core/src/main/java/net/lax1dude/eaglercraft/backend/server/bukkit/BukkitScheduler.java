@@ -80,12 +80,12 @@ class BukkitScheduler implements IPlatformScheduler {
 
 	@Override
 	public IPlatformTask executeRepeatingTask(Runnable runnable, long delay, long interval) {
-		return new Task(scheduler.runTaskTimer(plugin, runnable, delay / 50l, interval), runnable);
+		return new Task(scheduler.runTaskTimer(plugin, runnable, delay / 50l, interval / 50l), runnable);
 	}
 
 	@Override
 	public IPlatformTask executeAsyncRepeatingTask(Runnable runnable, long delay, long interval) {
-		return new Task(scheduler.runTaskTimerAsynchronously(plugin, runnable, delay / 50l, interval), runnable);
+		return new Task(scheduler.runTaskTimerAsynchronously(plugin, runnable, delay / 50l, interval / 50l), runnable);
 	}
 
 }

@@ -34,11 +34,17 @@ import net.lax1dude.eaglercraft.backend.supervisor.protocol.pkt.client.CPacketSv
 class SupervisorPlayer {
 
 	private static final VarHandle NODE_ID_HANDLE;
+	private static final VarHandle BRAND_HANDLE;
+	private static final VarHandle SKIN_HANDLE;
+	private static final VarHandle CAPE_HANDLE;
 
 	static {
 		try {
 			MethodHandles.Lookup l = MethodHandles.lookup();
 			NODE_ID_HANDLE = l.findVarHandle(SupervisorPlayer.class, "nodeId", int.class);
+			BRAND_HANDLE = l.findVarHandle(SupervisorPlayer.class, "brandUUID", UUID.class);
+			SKIN_HANDLE = l.findVarHandle(SupervisorPlayer.class, "skin", IEaglerPlayerSkin.class);
+			CAPE_HANDLE = l.findVarHandle(SupervisorPlayer.class, "cape", IEaglerPlayerCape.class);
 		} catch (ReflectiveOperationException e) {
 			throw new ExceptionInInitializerError(e);
 		}
@@ -47,7 +53,7 @@ class SupervisorPlayer {
 	private final SupervisorConnection connection;
 	private final UUID playerUUID;
 
-	private volatile int nodeId = -1;
+	private int nodeId = -1;
 
 	private UUID brandUUID = null;
 	private KeyedConsumerList<UUID, UUID> waitingBrandCallbacks = null;
@@ -78,11 +84,11 @@ class SupervisorPlayer {
 	}
 
 	public int getNodeId() {
-		return (int)NODE_ID_HANDLE.getOpaque(this);
+		return (int)NODE_ID_HANDLE.getAcquire(this);
 	}
 
 	public void loadBrandUUID(UUID requester, Consumer<UUID> callback) {
-		UUID val = brandUUID;
+		UUID val = (UUID) BRAND_HANDLE.getAcquire(this);
 		if(val != null) {
 			callback.accept(val);
 		}else {
@@ -108,7 +114,7 @@ class SupervisorPlayer {
 	}
 
 	public void loadSkinData(UUID requester, Consumer<IEaglerPlayerSkin> callback) {
-		IEaglerPlayerSkin val = skin;
+		IEaglerPlayerSkin val = (IEaglerPlayerSkin) SKIN_HANDLE.getAcquire(this);
 		if(val != null) {
 			callback.accept(val);
 		}else {
@@ -134,7 +140,7 @@ class SupervisorPlayer {
 	}
 
 	public void loadCapeData(UUID requester, Consumer<IEaglerPlayerCape> callback) {
-		IEaglerPlayerCape val = cape;
+		IEaglerPlayerCape val = (IEaglerPlayerCape) CAPE_HANDLE.getAcquire(this);
 		if(val != null) {
 			callback.accept(val);
 		}else {
@@ -165,7 +171,7 @@ class SupervisorPlayer {
 			if(this.skin != null) {
 				return; // ignore multiple results
 			}
-			this.skin = skin;
+			SKIN_HANDLE.setRelease(this, skin);
 			toCall = waitingSkinCallbacks;
 			waitingSkinCallbacks = null;
 		}
@@ -182,12 +188,12 @@ class SupervisorPlayer {
 	}
 
 	void onSkinError() {
-		if((int)NODE_ID_HANDLE.getOpaque(this) == -1) {
+		if((int)NODE_ID_HANDLE.getAcquire(this) == -1) {
 			connection.onDropPlayer(playerUUID);
 		}else {
 			KeyedConsumerList<UUID, IEaglerPlayerSkin> toCall;
 			synchronized(skinLock) {
-				if(this.skin != null) {
+				if(skin != null) {
 					return; // ignore multiple results
 				}
 				toCall = waitingSkinCallbacks;
@@ -212,7 +218,7 @@ class SupervisorPlayer {
 			if(this.cape != null) {
 				return; // ignore multiple results
 			}
-			this.cape = cape;
+			CAPE_HANDLE.setRelease(this, cape);
 			toCall = waitingCapeCallbacks;
 			waitingCapeCallbacks = null;
 		}
@@ -229,7 +235,7 @@ class SupervisorPlayer {
 	}
 
 	void onCapeError() {
-		if((int)NODE_ID_HANDLE.getOpaque(this) == -1) {
+		if((int)NODE_ID_HANDLE.getAcquire(this) == -1) {
 			connection.onDropPlayer(playerUUID);
 		}else {
 			KeyedConsumerList<UUID, IEaglerPlayerCape> toCall;
@@ -254,13 +260,13 @@ class SupervisorPlayer {
 	}
 
 	void onNodeIDReceived(int nodeId, UUID brandUUID) {
-		NODE_ID_HANDLE.setOpaque(this, nodeId);
+		NODE_ID_HANDLE.setRelease(this, nodeId);
 		KeyedConsumerList<UUID, UUID> toCall;
 		synchronized(this) {
 			if(this.brandUUID != null) {
 				return; // ignore multiple results
 			}
-			this.brandUUID = brandUUID;
+			BRAND_HANDLE.setRelease(this, brandUUID);
 			toCall = waitingBrandCallbacks;
 			waitingBrandCallbacks = null;
 		}
@@ -277,7 +283,7 @@ class SupervisorPlayer {
 	}
 
 	void onNodeIDError() {
-		if((int)NODE_ID_HANDLE.getOpaque(this) == -1) {
+		if((int)NODE_ID_HANDLE.getAcquire(this) == -1) {
 			connection.onDropPlayer(playerUUID);
 		}else {
 			KeyedConsumerList<UUID, UUID> toCall;
@@ -351,10 +357,14 @@ class SupervisorPlayer {
 
 	void onDropPartial(boolean skin, boolean cape) {
 		if(skin) {
-			this.skin = null;
+			synchronized(skinLock) {
+				this.skin = null;
+			}
 		}
 		if(cape) {
-			this.cape = null;
+			synchronized(capeLock) {
+				this.cape = null;
+			}
 		}
 	}
 

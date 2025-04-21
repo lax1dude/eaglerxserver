@@ -38,9 +38,7 @@ class ForeignCape extends KeyedConcurrentLazyLoader<UUID, IEaglerPlayerCape> {
 
 	@Override
 	public void load(UUID key, Consumer<IEaglerPlayerCape> callback) {
-		if(result == MissingCape.UNAVAILABLE_CAPE) {
-			result = null;
-		}
+		cmpXchgRelease(MissingCape.UNAVAILABLE_CAPE, null);
 		super.load(key, callback);
 	}
 
