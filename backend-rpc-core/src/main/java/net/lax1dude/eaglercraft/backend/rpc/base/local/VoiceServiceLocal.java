@@ -78,6 +78,9 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceService<PlayerObje
 
 	@Override
 	public Collection<IEaglerPlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel) {
+		if(channel == null) {
+			throw new NullPointerException("channel");
+		}
 		Collection<net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject>> playersDelegate = delegate
 				.getConnectedPlayers(VoiceChannelHelper.unwrap(channel));
 		if(playersDelegate.isEmpty()) {

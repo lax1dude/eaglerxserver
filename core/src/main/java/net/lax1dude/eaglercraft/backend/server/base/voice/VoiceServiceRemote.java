@@ -105,6 +105,9 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 
 	@Override
 	public Collection<IEaglerPlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel) {
+		if(channel == null) {
+			throw new NullPointerException("channel");
+		}
 		throw backendRelayMode();
 	}
 

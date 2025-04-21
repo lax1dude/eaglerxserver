@@ -37,6 +37,9 @@ public class PacketImageLoader {
 
 	public static PacketImageData loadPacketImageData(int[] pixelsARGB8, int width, int height) {
 		checkSize(width, height);
+		if(pixelsARGB8 == null) {
+			throw new NullPointerException("pixelsARGB8");
+		}
 		return new PacketImageData(width, height, pixelsARGB8);
 	}
 

@@ -12,6 +12,9 @@ public class RPCAttributeHolder implements IRPCAttributeHolder {
 
 	@Override
 	public <T> void set(RPCAttributeKey<T> key, T value) {
+		if(key == null) {
+			throw new NullPointerException("key");
+		}
 		if(value != null) {
 			map.put(key, value);
 		}else {
@@ -21,6 +24,9 @@ public class RPCAttributeHolder implements IRPCAttributeHolder {
 
 	@Override
 	public <T> T get(RPCAttributeKey<T> key) {
+		if(key == null) {
+			throw new NullPointerException("key");
+		}
 		return (T) map.get(key);
 	}
 

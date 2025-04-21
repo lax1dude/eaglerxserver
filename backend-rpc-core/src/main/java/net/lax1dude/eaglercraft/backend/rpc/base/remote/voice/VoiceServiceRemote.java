@@ -45,6 +45,9 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 
 	@Override
 	public void setICEServers(Collection<ICEServerEntry> newICEServers) {
+		if(newICEServers == null) {
+			throw new NullPointerException("newICEServers");
+		}
 		newICEServers = iceServers = ImmutableList.copyOf(newICEServers);
 		iceServersStr = prepareICEServers(newICEServers);
 	}

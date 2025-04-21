@@ -17,6 +17,16 @@ public interface IOptional<T> {
 
 	@Nullable
 	@SuppressWarnings("unchecked")
+	default T orDefault(@Nullable T defaultValue) {
+		if(isSuccess()) {
+			return (T) this;
+		}else {
+			return defaultValue;
+		}
+	}
+
+	@Nullable
+	@SuppressWarnings("unchecked")
 	default T orDefault(@Nonnull Supplier<T> defaultValue) {
 		if(isSuccess()) {
 			return (T) this;
