@@ -299,7 +299,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		String[] ver = getServer().getBukkitVersion().split("[\\.\\-]");
 		if(ver.length >= 2) {
 			try {
-				return Integer.parseInt(ver[0]) >= 1 && Integer.parseInt(ver[1]) >= 13;
+				int i = Integer.parseInt(ver[0]);
+				int j = Integer.parseInt(ver[1]);
+				return i > 1 || (i == 1 && j >= 13);
 			}catch(NumberFormatException ex) {
 			}
 		}
