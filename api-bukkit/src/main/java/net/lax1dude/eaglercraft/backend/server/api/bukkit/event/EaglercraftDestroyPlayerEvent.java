@@ -13,7 +13,7 @@ public abstract class EaglercraftDestroyPlayerEvent extends Event implements IEa
 	private static final HandlerList handlers = new HandlerList();
 
 	protected EaglercraftDestroyPlayerEvent() {
-		super(false);
+		super(true);
 	}
 
 	@Nonnull

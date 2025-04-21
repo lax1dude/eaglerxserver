@@ -14,7 +14,7 @@ public abstract class EaglercraftWebViewChannelEvent extends Event
 	private static final HandlerList handlers = new HandlerList();
 
 	protected EaglercraftWebViewChannelEvent() {
-		super(false);
+		super(true);
 	}
 
 	@Nonnull

@@ -13,7 +13,7 @@ public abstract class EaglercraftMOTDEvent extends Event implements IEaglercraft
 	private static final HandlerList handlers = new HandlerList();
 
 	protected EaglercraftMOTDEvent() {
-		super(false);
+		super(true);
 	}
 
 	@Nonnull

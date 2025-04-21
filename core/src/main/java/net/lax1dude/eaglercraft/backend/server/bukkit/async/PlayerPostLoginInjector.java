@@ -38,6 +38,7 @@ public class PlayerPostLoginInjector {
 	protected Constructor<Object> netManagerCtor;
 	protected ClassProxy<Object> netManagerProxy;
 	protected Field netManagerDir;
+	protected Field netManagerChannel;
 	protected Method setHandlerMethod;
 	protected Method sendPacketMethod1;
 	protected Method sendPacketMethod2;
@@ -76,6 +77,7 @@ public class PlayerPostLoginInjector {
 			Class<Object> netManagerClass = (Class<Object>) netManager.getClass();
 			Class<Object> protocolDirType = null;
 			Field protocolDirField = null;
+			Field channelField = null;
 			for(Field f : netManagerClass.getDeclaredFields()) {
 				Class<?> clz = f.getType();
 				if(clz.getSimpleName().equals("EnumProtocolDirection")) {
@@ -85,8 +87,19 @@ public class PlayerPostLoginInjector {
 					break;
 				}
 			}
+			for(Field f : netManagerClass.getFields()) {
+				Class<?> clz = f.getType();
+				if(Channel.class.isAssignableFrom(clz)) {
+					f.setAccessible(true);
+					channelField = f;
+					break;
+				}
+			}
 			if(protocolDirField == null) {
 				throw new IllegalStateException("Could not locate direction field of " + netManagerClass.getName());
+			}
+			if(channelField == null) {
+				throw new IllegalStateException("Could not locate channel field of " + netManagerClass.getName());
 			}
 			Method setHandlerMethod = null;
 			Method sendPacketMethod1 = null;
@@ -144,6 +157,7 @@ public class PlayerPostLoginInjector {
 			this.netManagerClass = netManagerClass;
 			this.netManagerProxy = ClassProxy.bindProxy(PlayerPostLoginInjector.class.getClassLoader(), netManagerClass);
 			this.netManagerDir = protocolDirField;
+			this.netManagerChannel = channelField;
 			this.setHandlerMethod = setHandlerMethod;
 			this.sendPacketMethod1 = sendPacketMethod1;
 			this.sendPacketMethod2 = sendPacketMethod2;
@@ -238,6 +252,7 @@ public class PlayerPostLoginInjector {
 			ctx.proxiedNetworkManager = ret;
 			channel.attr(attr).set(ctx);
 			handshakeListenerNetManager.set(getHandlerMethod.invoke(netManager), ret);
+			netManagerChannel.set(ret, channel);
 			return ret;
 		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
@@ -342,6 +357,12 @@ public class PlayerPostLoginInjector {
 				if(s.equals("IUpdatePlayerListBox") || s.equals("ITickable")) {
 					loginListenerTick = loginListenerClass.getMethod(clz.getMethods()[0].getName());
 					break;
+				}
+			}
+			if(loginListenerTick == null) {
+				try {
+					loginListenerTick = loginListenerClass.getMethod("tick");
+				}catch(ReflectiveOperationException ex) {
 				}
 			}
 			if(loginListenerTick == null) {

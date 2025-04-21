@@ -15,7 +15,7 @@ public abstract class EaglercraftWebSocketOpenEvent extends Event
 	private static final HandlerList handlers = new HandlerList();
 
 	protected EaglercraftWebSocketOpenEvent() {
-		super(false);
+		super(true);
 	}
 
 	@Nonnull

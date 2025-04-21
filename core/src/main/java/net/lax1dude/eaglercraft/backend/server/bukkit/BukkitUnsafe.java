@@ -101,7 +101,17 @@ public class BukkitUnsafe {
 		}
 		Class<?> clz = networkManager.getClass();
 		try {
-			field_NetworkManager_channel = clz.getField("channel");
+			Field[] fields = clz.getFields();
+			for(int i = 0; i < fields.length; ++i) {
+				Field f = fields[i];
+				if(Channel.class.isAssignableFrom(f.getType())) {
+					field_NetworkManager_channel = f;
+					break;
+				}
+			}
+			if(field_NetworkManager_channel == null) {
+				throw new IllegalStateException("Could not locate channel field of " + clz.getName());
+			}
 			Method[] meth = clz.getMethods();
 			for(int i = 0; i < meth.length; ++i) {
 				Method m = meth[i];
@@ -111,7 +121,7 @@ public class BukkitUnsafe {
 				}
 			}
 			if(method_NetworkManager_getPacketListener == null) {
-				throw new IllegalStateException("Could not locate NetworkManager.getPacketListener");
+				throw new IllegalStateException("Could not locate getPacketListener method of " + clz.getName());
 			}
 			Object packetListener = method_NetworkManager_getPacketListener.invoke(networkManager);
 			if(packetListener == null) {
@@ -119,7 +129,7 @@ public class BukkitUnsafe {
 			}
 			Class<?> clz2 = packetListener.getClass();
 			method_LoginListener_disconnect = clz2.getMethod("disconnect", String.class);
-			Field[] fields = clz2.getDeclaredFields();
+			fields = clz2.getDeclaredFields();
 			for(int i = 0; i < fields.length; ++i) {
 				Field f = fields[i];
 				if(GameProfile.class.isAssignableFrom(f.getType())) {
@@ -180,11 +190,34 @@ public class BukkitUnsafe {
 			method_CraftPlayer_addChannel = clz.getMethod("addChannel", String.class);
 			Object entityPlayer = method_CraftPlayer_getHandle.invoke(playerObject);
 			Class<?> clz2 = entityPlayer.getClass();
-			field_EntityPlayer_playerConnection = clz2.getField("playerConnection");
+			for(Field f : clz2.getFields()) {
+				if(f.getType().getSimpleName().equals("PlayerConnection")) {
+					field_EntityPlayer_playerConnection = f;
+					break;
+				}
+			}
+			if(field_EntityPlayer_playerConnection == null) {
+				throw new IllegalStateException("Could not locate player connection field of " + clz2.getName());
+			}
 			Class<?> clz3 = field_EntityPlayer_playerConnection.getType();
-			field_PlayerConnection_networkManager = clz3.getField("networkManager");
+			for(Field f : clz3.getFields()) {
+				if(f.getType().getSimpleName().equals("NetworkManager")) {
+					field_PlayerConnection_networkManager = f;
+					break;
+				}
+			}
+			if(field_PlayerConnection_networkManager == null) {
+				throw new IllegalStateException("Could not locate network manager field of " + clz3.getName());
+			}
 			Class<?> clz4 = field_PlayerConnection_networkManager.getType();
-			field_NetworkManager_channel = clz4.getField("channel");
+			for(Field f : clz4.getFields()) {
+				if(Channel.class.isAssignableFrom(f.getType())) {
+					field_NetworkManager_channel = f;
+				}
+			}
+			if(field_NetworkManager_channel == null) {
+				throw new IllegalStateException("Could not locate channel field of " + clz4.getName());
+			}
 			method_EntityPlayer_getProfile = clz2.getMethod("getProfile");
 			class_NetworkManager = clz4;
 			class_PlayerConnection = clz3;

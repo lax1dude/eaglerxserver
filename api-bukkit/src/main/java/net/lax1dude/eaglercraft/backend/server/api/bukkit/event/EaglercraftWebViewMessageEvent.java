@@ -14,7 +14,7 @@ public abstract class EaglercraftWebViewMessageEvent extends Event
 	private static final HandlerList handlers = new HandlerList();
 
 	protected EaglercraftWebViewMessageEvent() {
-		super(false);
+		super(true);
 	}
 
 	@Nonnull

@@ -190,7 +190,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 					+ "above 1.12.2, things probably won't work right");
 			if(platform.isModernPluginChannelNamesOnly()) {
 				logger().error("Detected a modern server version, things probably won't work right, "
-						+ "downgrade to 1.12 or below");
+						+ "downgrade to 1.12.2 or below");
 			}
 		}
 		

@@ -14,7 +14,7 @@ public abstract class EaglercraftInitializePlayerEvent extends Event
 	private static final HandlerList handlers = new HandlerList();
 
 	protected EaglercraftInitializePlayerEvent() {
-		super(false);
+		super(true);
 	}
 
 	@Nonnull
