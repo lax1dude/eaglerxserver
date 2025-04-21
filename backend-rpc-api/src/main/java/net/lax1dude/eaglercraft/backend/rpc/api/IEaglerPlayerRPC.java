@@ -164,7 +164,7 @@ public interface IEaglerPlayerRPC<PlayerObject> extends IBasePlayerRPC<PlayerObj
 
 	boolean isPauseMenuCustomizationSupported();
 
-	void setPauseMenuCustomizationState(@Nonnull ICustomPauseMenu packet);
+	void setPauseMenuCustomizationState(@Nonnull ICustomPauseMenu pauseMenu);
 
 	void sendWebViewMessageString(@Nonnull String channelName, @Nonnull String data);
 

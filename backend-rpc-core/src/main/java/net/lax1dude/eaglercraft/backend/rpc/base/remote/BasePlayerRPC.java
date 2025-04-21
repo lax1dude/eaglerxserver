@@ -197,6 +197,9 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 
 	@Override
 	public synchronized void addCloseListener(IRPCCloseHandler handler) {
+		if(handler == null) {
+			throw new NullPointerException("handler");
+		}
 		if(closeListeners == null) {
 			closeListeners = Collections.newSetFromMap(new HashMap<>(4));
 		}
@@ -205,6 +208,9 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 
 	@Override
 	public synchronized void removeCloseListener(IRPCCloseHandler handler) {
+		if(handler == null) {
+			throw new NullPointerException("handler");
+		}
 		if(closeListeners != null && closeListeners.remove(handler) && closeListeners.isEmpty()) {
 			closeListeners = null;
 		}
@@ -270,17 +276,27 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 
 	@Override
 	public void changePlayerSkin(IEaglerPlayerSkin skin, boolean notifyOthers) {
-		if(!skin.isSuccess()) {
-			writeOutboundPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, -1));
-		}else if(skin.isSkinPreset()) {
-			writeOutboundPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, skin.getPresetSkinId()));
+		if(skin == null) {
+			throw new NullPointerException("skin");
+		}
+		if(open) {
+			if(!skin.isSuccess()) {
+				writeOutboundPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, -1));
+			}else if(skin.isSkinPreset()) {
+				writeOutboundPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, skin.getPresetSkinId()));
+			}else {
+				writeOutboundPacket(new CPacketRPCSetPlayerSkin(notifyOthers, SkinRPCHelper.encodeSkinData(skin)));
+			}
 		}else {
-			writeOutboundPacket(new CPacketRPCSetPlayerSkin(notifyOthers, SkinRPCHelper.encodeSkinData(skin)));
+			printClosedError();
 		}
 	}
 
 	@Override
 	public void changePlayerSkin(EnumPresetSkins skin, boolean notifyOthers) {
+		if(skin == null) {
+			throw new NullPointerException("skin");
+		}
 		if(open) {
 			changePlayerSkin(InternUtils.getPresetSkin(skin.getId()), notifyOthers);
 		}else {
@@ -319,17 +335,27 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 
 	@Override
 	public void changePlayerCape(IEaglerPlayerCape cape, boolean notifyOthers) {
-		if(!cape.isSuccess()) {
-			writeOutboundPacket(new CPacketRPCSetPlayerCapePresetV2(notifyOthers, -1));
-		}else if(cape.isCapePreset()) {
-			writeOutboundPacket(new CPacketRPCSetPlayerCapePresetV2(notifyOthers, cape.getPresetCapeId()));
+		if(cape == null) {
+			throw new NullPointerException("cape");
+		}
+		if(open) {
+			if(!cape.isSuccess()) {
+				writeOutboundPacket(new CPacketRPCSetPlayerCapePresetV2(notifyOthers, -1));
+			}else if(cape.isCapePreset()) {
+				writeOutboundPacket(new CPacketRPCSetPlayerCapePresetV2(notifyOthers, cape.getPresetCapeId()));
+			}else {
+				writeOutboundPacket(new CPacketRPCSetPlayerCape(notifyOthers, SkinRPCHelper.encodeCapeData(cape)));
+			}
 		}else {
-			writeOutboundPacket(new CPacketRPCSetPlayerCape(notifyOthers, SkinRPCHelper.encodeCapeData(cape)));
+			printClosedError();
 		}
 	}
 
 	@Override
 	public void changePlayerCape(EnumPresetCapes cape, boolean notifyOthers) {
+		if(cape == null) {
+			throw new NullPointerException("cape");
+		}
 		if(open) {
 			changePlayerCape(InternUtils.getPresetCape(cape.getId()), notifyOthers);
 		}else {
@@ -367,6 +393,12 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 
 	@Override
 	public void changePlayerTextures(IEaglerPlayerSkin skin, IEaglerPlayerCape cape, boolean notifyOthers) {
+		if(skin == null) {
+			throw new NullPointerException("skin");
+		}
+		if(cape == null) {
+			throw new NullPointerException("cape");
+		}
 		if(open) {
 			if(skin.isSkinPreset() && cape.isCapePreset()) {
 				writeOutboundPacket(new CPacketRPCSetPlayerTexturesPresetV2(notifyOthers,
@@ -381,6 +413,12 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 
 	@Override
 	public void changePlayerTextures(EnumPresetSkins skin, EnumPresetCapes cape, boolean notifyOthers) {
+		if(skin == null) {
+			throw new NullPointerException("skin");
+		}
+		if(cape == null) {
+			throw new NullPointerException("cape");
+		}
 		if(open) {
 			changePlayerTextures(InternUtils.getPresetSkin(skin.getId()), InternUtils.getPresetCape(cape.getId()), notifyOthers);
 		}else {
@@ -453,6 +491,9 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 
 	@Override
 	public IRPCFuture<IEaglerPlayerSkin> getSkinByURL(String url, int timeoutSec) {
+		if(url == null) {
+			throw new NullPointerException("url");
+		}
 		if(open) {
 			RPCRequestFuture<IEaglerPlayerSkin> ret = createRequest(timeoutSec, PLAYER_SKIN_HANDLER);
 			writeOutboundPacket(new CPacketRPCGetSkinByURLV2(ret.getRequestId(), url));

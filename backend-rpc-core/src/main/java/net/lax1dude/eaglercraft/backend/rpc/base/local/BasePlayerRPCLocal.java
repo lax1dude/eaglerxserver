@@ -81,6 +81,9 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public synchronized void addCloseListener(IRPCCloseHandler handler) {
+		if(handler == null) {
+			throw new NullPointerException("handler");
+		}
 		if(closeListeners == null) {
 			closeListeners = Collections.newSetFromMap(new HashMap<>(4));
 		}
@@ -89,6 +92,9 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public synchronized void removeCloseListener(IRPCCloseHandler handler) {
+		if(handler == null) {
+			throw new NullPointerException("handler");
+		}
 		if(closeListeners != null && closeListeners.remove(handler) && closeListeners.isEmpty()) {
 			closeListeners = null;
 		}
@@ -149,11 +155,17 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public void changePlayerSkin(IEaglerPlayerSkin skin, boolean notifyOthers) {
+		if(skin == null) {
+			throw new NullPointerException("skin");
+		}
 		delegate.getSkinManager().changePlayerSkin(SkinTypesHelper.unwrap(skin), notifyOthers);
 	}
 
 	@Override
 	public void changePlayerSkin(EnumPresetSkins skin, boolean notifyOthers) {
+		if(skin == null) {
+			throw new NullPointerException("skin");
+		}
 		delegate.getSkinManager().changePlayerSkin(SkinTypesHelper.unwrap(skin), notifyOthers);
 	}
 
@@ -184,11 +196,17 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public void changePlayerCape(IEaglerPlayerCape cape, boolean notifyOthers) {
+		if(cape == null) {
+			throw new NullPointerException("cape");
+		}
 		delegate.getSkinManager().changePlayerCape(SkinTypesHelper.unwrap(cape), notifyOthers);
 	}
 
 	@Override
 	public void changePlayerCape(EnumPresetCapes cape, boolean notifyOthers) {
+		if(cape == null) {
+			throw new NullPointerException("cape");
+		}
 		delegate.getSkinManager().changePlayerCape(SkinTypesHelper.unwrap(cape), notifyOthers);
 	}
 
@@ -221,11 +239,23 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public void changePlayerTextures(IEaglerPlayerSkin skin, IEaglerPlayerCape cape, boolean notifyOthers) {
+		if(skin == null) {
+			throw new NullPointerException("skin");
+		}
+		if(cape == null) {
+			throw new NullPointerException("cape");
+		}
 		delegate.getSkinManager().changePlayerTextures(SkinTypesHelper.unwrap(skin), SkinTypesHelper.unwrap(cape), notifyOthers);
 	}
 
 	@Override
 	public void changePlayerTextures(EnumPresetSkins skin, EnumPresetCapes cape, boolean notifyOthers) {
+		if(skin == null) {
+			throw new NullPointerException("skin");
+		}
+		if(cape == null) {
+			throw new NullPointerException("cape");
+		}
 		delegate.getSkinManager().changePlayerTextures(SkinTypesHelper.unwrap(skin), SkinTypesHelper.unwrap(cape), notifyOthers);
 	}
 
@@ -276,6 +306,9 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public IRPCFuture<IEaglerPlayerSkin> getSkinByURL(String url) {
+		if(url == null) {
+			throw new NullPointerException("url");
+		}
 		RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin> consumerFuture
 				= new RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin>(schedulerExecutors) {
 			@Override
@@ -289,11 +322,17 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public IRPCFuture<IEaglerPlayerSkin> getSkinByURL(String url, int timeoutSec) {
+		if(url == null) {
+			throw new NullPointerException("url");
+		}
 		return getSkinByURL(url);
 	}
 
 	@Override
 	public IRPCFuture<IEaglerPlayerCape> getCapeByURL(String url) {
+		if(url == null) {
+			throw new NullPointerException("url");
+		}
 		RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape, IEaglerPlayerCape> consumerFuture
 				= new RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape, IEaglerPlayerCape>(schedulerExecutors) {
 			@Override
@@ -307,6 +346,9 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public IRPCFuture<IEaglerPlayerCape> getCapeByURL(String url, int timeoutSec) {
+		if(url == null) {
+			throw new NullPointerException("url");
+		}
 		return getCapeByURL(url);
 	}
 

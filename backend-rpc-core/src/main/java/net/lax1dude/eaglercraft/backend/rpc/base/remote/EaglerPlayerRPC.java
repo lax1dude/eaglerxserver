@@ -135,12 +135,18 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public boolean hasExtendedCapability(UUID extendedCapability, int version) {
+		if(extendedCapability == null) {
+			throw new NullPointerException("extendedCapability");
+		}
 		Byte b = eaglerExtendedCapsVersions.get(extendedCapability);
 		return b != null && (b.byteValue() & 0xFF) >= version;
 	}
 
 	@Override
 	public int getExtendedCapability(UUID extendedCapability) {
+		if(extendedCapability == null) {
+			throw new NullPointerException("extendedCapability");
+		}
 		Byte b = eaglerExtendedCapsVersions.get(extendedCapability);
 		return b != null ? (b.byteValue() & 0xFF) : -1;
 	}
@@ -159,6 +165,9 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public IRPCFuture<String> getWebSocketHeader(EnumWebSocketHeader header, int timeoutSec) {
+		if(header == null) {
+			throw new NullPointerException("header");
+		}
 		if(open) {
 			int type;
 			switch(header) {
@@ -262,6 +271,9 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void injectRawBinaryFrame(byte[] data) {
+		if(data == null) {
+			throw new NullPointerException("data");
+		}
 		if(open) {
 			writeOutboundPacket(new CPacketRPCInjectRawBinaryFrameV2(data));
 		}else {
@@ -277,6 +289,12 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	@Override
 	public void addGenericEventListener(EnumSubscribeEvents eventType,
 			IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler) {
+		if(eventType == null) {
+			throw new NullPointerException("eventType");
+		}
+		if(handler == null) {
+			throw new NullPointerException("handler");
+		}
 		int i;
 		synchronized(this) {
 			RPCEventBus<PlayerObject> eventBus = this.eventBus;
@@ -307,13 +325,21 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	}
 
 	@Override
-	public synchronized void removeGenericEventListener(EnumSubscribeEvents eventType,
+	public void removeGenericEventListener(EnumSubscribeEvents eventType,
 			IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler) {
-		RPCEventBus<PlayerObject> eventBus = this.eventBus;
-		if(eventBus != null) {
-			int i = eventBus.removeEventListener(eventType, handler);
-			if(i != -1 && (subscribedEvents = i) == 0) {
-				this.eventBus = null;
+		if(eventType == null) {
+			throw new NullPointerException("eventType");
+		}
+		if(handler == null) {
+			throw new NullPointerException("handler");
+		}
+		synchronized(this) {
+			RPCEventBus<PlayerObject> eventBus = this.eventBus;
+			if(eventBus != null) {
+				int i = eventBus.removeEventListener(eventType, handler);
+				if(i != -1 && (subscribedEvents = i) == 0) {
+					this.eventBus = null;
+				}
 			}
 		}
 	}
@@ -333,6 +359,9 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void redirectPlayerToWebSocket(String webSocketURI) {
+		if(webSocketURI == null) {
+			throw new NullPointerException("webSocketURI");
+		}
 		if(hasCapability(EnumCapabilitySpec.REDIRECT_V0)) {
 			if(open) {
 				writeOutboundPacket(new CPacketRPCRedirectPlayer(webSocketURI));
@@ -350,10 +379,13 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	}
 
 	@Override
-	public void setPauseMenuCustomizationState(ICustomPauseMenu packet) {
+	public void setPauseMenuCustomizationState(ICustomPauseMenu pauseMenu) {
+		if(pauseMenu == null) {
+			throw new NullPointerException("pauseMenu");
+		}
 		if(hasCapability(EnumCapabilitySpec.PAUSE_MENU_V0)) {
 			if(open) {
-				writeOutboundPacket(CustomPauseMenuWrapper.unwrap(packet));
+				writeOutboundPacket(CustomPauseMenuWrapper.unwrap(pauseMenu));
 			}else {
 				printClosedError();
 			}
@@ -364,6 +396,12 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void sendWebViewMessageString(String channelName, String data) {
+		if(channelName == null) {
+			throw new NullPointerException("channelName");
+		}
+		if(data == null) {
+			throw new NullPointerException("data");
+		}
 		if(webviewCap) {
 			if(open) {
 				writeOutboundPacket(new CPacketRPCSendWebViewMessage(channelName,
@@ -378,6 +416,12 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void sendWebViewMessageString(String channelName, byte[] data) {
+		if(channelName == null) {
+			throw new NullPointerException("channelName");
+		}
+		if(data == null) {
+			throw new NullPointerException("data");
+		}
 		if (webviewCap) {
 			if(open) {
 				writeOutboundPacket(new CPacketRPCSendWebViewMessage(channelName,
@@ -392,6 +436,12 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void sendWebViewMessageBytes(String channelName, byte[] data) {
+		if(channelName == null) {
+			throw new NullPointerException("channelName");
+		}
+		if(data == null) {
+			throw new NullPointerException("data");
+		}
 		if (webviewCap) {
 			if(open) {
 				writeOutboundPacket(new CPacketRPCSendWebViewMessage(channelName,
@@ -429,6 +479,9 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void setEnableFNAWSkins(EnumEnableFNAW state) {
+		if(state == null) {
+			throw new NullPointerException("state");
+		}
 		switch(state) {
 		case DISABLED:
 			writeOutboundPacket(new CPacketRPCSetPlayerFNAWEn(false, false));
@@ -458,6 +511,12 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void registerNotificationIcon(UUID iconUUID, IPacketImageData icon) {
+		if(iconUUID == null) {
+			throw new NullPointerException("iconUUID");
+		}
+		if(icon == null) {
+			throw new NullPointerException("icon");
+		}
 		if(open) {
 			writeOutboundPacket(new CPacketRPCNotifIconRegister(Arrays
 					.asList(new CPacketRPCNotifIconRegister.RegisterIcon(iconUUID, PacketImageDataWrapper.unwrap(icon)))));
@@ -468,6 +527,9 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void registerNotificationIcons(Collection<IconDef> icons) {
+		if(icons == null) {
+			throw new NullPointerException("icons");
+		}
 		if(open) {
 			writeOutboundPacket(new CPacketRPCNotifIconRegister(
 					icons.stream().map((icn) -> new CPacketRPCNotifIconRegister.RegisterIcon(icn.getUUID(),
@@ -479,6 +541,9 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void releaseNotificationIcon(UUID iconUUID) {
+		if(iconUUID == null) {
+			throw new NullPointerException("iconUUID");
+		}
 		if(open) {
 			writeOutboundPacket(new CPacketRPCNotifIconRelease(Arrays.asList(iconUUID)));
 		}else {
@@ -488,6 +553,9 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void releaseNotificationIcons(Collection<UUID> iconUUIDs) {
+		if(iconUUIDs == null) {
+			throw new NullPointerException("iconUUIDs");
+		}
 		if(open) {
 			writeOutboundPacket(new CPacketRPCNotifIconRelease(iconUUIDs));
 		}else {
@@ -497,6 +565,9 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void showNotificationBadge(INotificationBadge badge) {
+		if(badge == null) {
+			throw new NullPointerException("badge");
+		}
 		if(open) {
 			writeOutboundPacket(NotificationBadgeWrapper.unwrap(badge));
 		}else {
@@ -506,6 +577,9 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void hideNotificationBadge(UUID badgeUUID) {
+		if(badgeUUID == null) {
+			throw new NullPointerException("badgeUUID");
+		}
 		if(open) {
 			writeOutboundPacket(new CPacketRPCNotifBadgeHide(badgeUUID));
 		}else {
@@ -520,6 +594,12 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void displayWebViewURL(String title, String url, Set<EnumWebViewPerms> permissions) {
+		if(title == null) {
+			throw new NullPointerException("title");
+		}
+		if(url == null) {
+			throw new NullPointerException("url");
+		}
 		if(isDisplayWebViewSupported()) {
 			if(open) {
 				writeOutboundPacket(new CPacketRPCDisplayWebViewURLV2(
@@ -534,6 +614,12 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void displayWebViewBlob(String title, SHA1Sum hash, Set<EnumWebViewPerms> permissions) {
+		if(title == null) {
+			throw new NullPointerException("title");
+		}
+		if(hash == null) {
+			throw new NullPointerException("hash");
+		}
 		if(isDisplayWebViewSupported()) {
 			if(open) {
 				writeOutboundPacket(new CPacketRPCDisplayWebViewBlobV2(
@@ -548,6 +634,12 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void displayWebViewBlob(String title, String alias, Set<EnumWebViewPerms> permissions) {
+		if(title == null) {
+			throw new NullPointerException("title");
+		}
+		if(alias == null) {
+			throw new NullPointerException("alias");
+		}
 		if(isDisplayWebViewSupported()) {
 			if(open) {
 				writeOutboundPacket(new CPacketRPCDisplayWebViewAliasV2(
