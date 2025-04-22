@@ -1,9 +1,4 @@
-package net.lax1dude.eaglercraft.v1_8.socket.protocol.util;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-/**
+/*
  * Copyright (c) 2024 lax1dude. All Rights Reserved.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -18,6 +13,12 @@ import java.io.InputStream;
  * POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+
+package net.lax1dude.eaglercraft.v1_8.socket.protocol.util;
+
+import java.io.IOException;
+import java.io.InputStream;
+
 public class ReusableByteArrayInputStream extends InputStream {
 
 	private byte[] currentBuffer = null;

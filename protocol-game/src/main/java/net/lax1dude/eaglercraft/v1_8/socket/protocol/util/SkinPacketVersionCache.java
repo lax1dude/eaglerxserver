@@ -1,10 +1,4 @@
-package net.lax1dude.eaglercraft.v1_8.socket.protocol.util;
-
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.*;
-
-/**
+/*
  * Copyright (c) 2024 lax1dude. All Rights Reserved.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -19,6 +13,13 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.*;
  * POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+
+package net.lax1dude.eaglercraft.v1_8.socket.protocol.util;
+
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.*;
+
 public class SkinPacketVersionCache {
 
 	public GameMessagePacket skinPacketV3;

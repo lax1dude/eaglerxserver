@@ -1,10 +1,4 @@
-package net.lax1dude.eaglercraft.backend.rpc.base.remote.util;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Arrays;
-
-/**
+/*
  * Copyright (c) 2024 lax1dude. All Rights Reserved.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -19,6 +13,13 @@ import java.util.Arrays;
  * POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+
+package net.lax1dude.eaglercraft.backend.rpc.base.remote.util;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Arrays;
+
 public class ReusableByteArrayOutputStream extends OutputStream {
 
 	private byte[] currentBuffer = null;

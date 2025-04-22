@@ -1,16 +1,4 @@
-package net.lax1dude.eaglercraft.v1_8.socket.protocol.util;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketInputBuffer;
-
-/**
+/*
  * Copyright (c) 2024 lax1dude. All Rights Reserved.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -25,6 +13,19 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketInputBuffer;
  * POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+
+package net.lax1dude.eaglercraft.v1_8.socket.protocol.util;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketInputBuffer;
+
 public class SimpleInputBufferImpl extends DataInputStream implements GamePacketInputBuffer {
 
 	protected byte[] toByteArrayReturns;

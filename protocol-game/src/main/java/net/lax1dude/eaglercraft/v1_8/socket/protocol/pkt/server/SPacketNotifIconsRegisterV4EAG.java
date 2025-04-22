@@ -1,18 +1,4 @@
-package net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.RandomAccess;
-
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketInputBuffer;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessageHandler;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.PacketImageData;
-
-/**
+/*
  * Copyright (c) 2024 lax1dude. All Rights Reserved.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,6 +13,21 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.PacketImageData;
  * POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+
+package net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.RandomAccess;
+
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketInputBuffer;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessageHandler;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.PacketImageData;
+
 public class SPacketNotifIconsRegisterV4EAG implements GameMessagePacket {
 
 	public static class CreateIcon {

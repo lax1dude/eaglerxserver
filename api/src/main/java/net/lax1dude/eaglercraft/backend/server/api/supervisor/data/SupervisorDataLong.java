@@ -1,13 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.api.supervisor.data;
-
-import java.io.IOException;
-
-import javax.annotation.Nonnull;
-
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketInputBuffer;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
-
-/**
+/*
  * Copyright (c) 2025 lax1dude. All Rights Reserved.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -22,6 +13,16 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
  * POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+
+package net.lax1dude.eaglercraft.backend.server.api.supervisor.data;
+
+import java.io.IOException;
+
+import javax.annotation.Nonnull;
+
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketInputBuffer;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
+
 public class SupervisorDataLong implements ISupervisorData {
 
 	public long value;

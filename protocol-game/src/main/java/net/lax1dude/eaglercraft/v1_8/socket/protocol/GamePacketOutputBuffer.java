@@ -1,10 +1,4 @@
-package net.lax1dude.eaglercraft.v1_8.socket.protocol;
-
-import java.io.DataOutput;
-import java.io.IOException;
-import java.io.OutputStream;
-
-/**
+/*
  * Copyright (c) 2024 lax1dude. All Rights Reserved.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -19,6 +13,13 @@ import java.io.OutputStream;
  * POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+
+package net.lax1dude.eaglercraft.v1_8.socket.protocol;
+
+import java.io.DataOutput;
+import java.io.IOException;
+import java.io.OutputStream;
+
 public interface GamePacketOutputBuffer extends DataOutput {
 
 	void writeVarInt(int i) throws IOException;

@@ -1,6 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.api.supervisor;
-
-/**
+/*
  * Copyright (c) 2025 lax1dude. All Rights Reserved.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -15,6 +13,9 @@ package net.lax1dude.eaglercraft.backend.server.api.supervisor;
  * POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+
+package net.lax1dude.eaglercraft.backend.server.api.supervisor;
+
 @FunctionalInterface
 public interface IVoidCallback {
 

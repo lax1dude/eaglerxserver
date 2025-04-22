@@ -1,11 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.api.supervisor;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorData;
-
-/**
+/*
  * Copyright (c) 2025 lax1dude. All Rights Reserved.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -20,6 +13,14 @@ import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorDa
  * POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+
+package net.lax1dude.eaglercraft.backend.server.api.supervisor;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorData;
+
 public final class NodeResult<Out extends ISupervisorData> {
 
 	@Nonnull

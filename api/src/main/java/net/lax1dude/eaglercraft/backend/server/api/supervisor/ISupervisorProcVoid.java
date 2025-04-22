@@ -1,13 +1,4 @@
-package net.lax1dude.eaglercraft.backend.server.api.supervisor;
-
-import java.util.function.Consumer;
-
-import javax.annotation.Nonnull;
-
-import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorData;
-import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.SupervisorDataVoid;
-
-/**
+/*
  * Copyright (c) 2025 lax1dude. All Rights Reserved.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -22,6 +13,16 @@ import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.SupervisorDat
  * POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+
+package net.lax1dude.eaglercraft.backend.server.api.supervisor;
+
+import java.util.function.Consumer;
+
+import javax.annotation.Nonnull;
+
+import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.ISupervisorData;
+import net.lax1dude.eaglercraft.backend.server.api.supervisor.data.SupervisorDataVoid;
+
 @FunctionalInterface
 public interface ISupervisorProcVoid<In extends ISupervisorData> extends ISupervisorProc<In, SupervisorDataVoid> {
 
