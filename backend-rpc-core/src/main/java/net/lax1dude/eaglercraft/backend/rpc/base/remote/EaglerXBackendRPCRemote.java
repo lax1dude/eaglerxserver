@@ -211,12 +211,18 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	}
 
 	@Override
-	public IBasePlayer<PlayerObject> getBasePlayer(PlayerObject player) {
+	public IBasePlayer<PlayerObject> getPlayer(PlayerObject player) {
+		if(player == null) {
+			throw new NullPointerException("player");
+		}
 		return basePlayerMap.get(player);
 	}
 
 	@Override
-	public IBasePlayer<PlayerObject> getBasePlayerByName(String playerName) {
+	public IBasePlayer<PlayerObject> getPlayerByName(String playerName) {
+		if(playerName == null) {
+			throw new NullPointerException("playerName");
+		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
 		if(platformPlayer != null) {
 			return platformPlayer.getAttachment();
@@ -225,7 +231,10 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	}
 
 	@Override
-	public IBasePlayer<PlayerObject> getBasePlayerByUUID(UUID playerUUID) {
+	public IBasePlayer<PlayerObject> getPlayerByUUID(UUID playerUUID) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
 		if(platformPlayer != null) {
 			return platformPlayer.getAttachment();
@@ -235,11 +244,17 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 
 	@Override
 	public IEaglerPlayer<PlayerObject> getEaglerPlayer(PlayerObject player) {
+		if(player == null) {
+			throw new NullPointerException("player");
+		}
 		return eaglerPlayerMap.get(player);
 	}
 
 	@Override
 	public IEaglerPlayer<PlayerObject> getEaglerPlayerByName(String playerName) {
+		if(playerName == null) {
+			throw new NullPointerException("playerName");
+		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
 		if(platformPlayer != null) {
 			return platformPlayer.<PlayerInstanceRemote<PlayerObject>>getAttachment().asEaglerPlayer();
@@ -249,34 +264,14 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 
 	@Override
 	public IEaglerPlayer<PlayerObject> getEaglerPlayerByUUID(UUID playerUUID) {
+		if(playerUUID == null) {
+			throw new NullPointerException("playerUUID");
+		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
 		if(platformPlayer != null) {
 			return platformPlayer.<PlayerInstanceRemote<PlayerObject>>getAttachment().asEaglerPlayer();
 		}
 		return null;
-	}
-
-	@Override
-	public boolean isEaglerPlayer(PlayerObject player) {
-		return eaglerPlayerMap.containsKey(player);
-	}
-
-	@Override
-	public boolean isEaglerPlayerByName(String playerName) {
-		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
-		if(platformPlayer != null) {
-			return platformPlayer.<PlayerInstanceRemote<PlayerObject>>getAttachment().isEaglerPlayer();
-		}
-		return false;
-	}
-
-	@Override
-	public boolean isEaglerPlayerByUUID(UUID playerUUID) {
-		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
-		if(platformPlayer != null) {
-			return platformPlayer.<PlayerInstanceRemote<PlayerObject>>getAttachment().isEaglerPlayer();
-		}
-		return false;
 	}
 
 	@Override

@@ -16,6 +16,8 @@
 
 package net.lax1dude.eaglercraft.backend.rpc.adapter.event;
 
+import java.util.function.Consumer;
+
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXBackendRPC;
 import net.lax1dude.eaglercraft.backend.rpc.api.event.IEaglercraftVoiceCapableEvent;
@@ -28,7 +30,8 @@ public interface IEventDispatchAdapter<PlayerObject> {
 
 	void dispatchPlayerReadyEvent(IEaglerPlayer<PlayerObject> player);
 
-	IEaglercraftVoiceCapableEvent<PlayerObject> dispatchVoiceCapableEvent(IEaglerPlayer<PlayerObject> player, IVoiceChannel channel);
+	void dispatchVoiceCapableEvent(IEaglerPlayer<PlayerObject> player, IVoiceChannel channel,
+			Consumer<IEaglercraftVoiceCapableEvent<PlayerObject>> callback);
 
 	void dispatchVoiceChangeEvent(IEaglerPlayer<PlayerObject> player, EnumVoiceState stateOld, EnumVoiceState stateNew);
 

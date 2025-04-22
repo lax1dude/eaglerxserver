@@ -22,7 +22,6 @@ import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
-import net.lax1dude.eaglercraft.backend.rpc.api.event.IEaglercraftVoiceCapableEvent;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.EnumVoiceState;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceChannel;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceManager;
@@ -41,6 +40,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	private static final VarHandle SERVER_ENABLE_HANDLE;
 	private static final VarHandle LAST_STATE_HANDLE;
 	private static final VarHandle ACTIVE_CHANNEL_HANDLE;
+	private static final VarHandle CURRENT_VOICE_CHANNEL_HANDLE;
 
 	static {
 		try {
@@ -48,6 +48,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 			SERVER_ENABLE_HANDLE = l.findVarHandle(VoiceManagerRemote.class, "isServerEnable", int.class);
 			LAST_STATE_HANDLE = l.findVarHandle(VoiceManagerRemote.class, "lastVoiceState", EnumVoiceState.class);
 			ACTIVE_CHANNEL_HANDLE = l.findVarHandle(VoiceManagerRemote.class, "activeChannel", VoiceChannel.Context.class);
+			CURRENT_VOICE_CHANNEL_HANDLE = l.findVarHandle(VoiceManagerRemote.class, "currentVoiceChannel", IVoiceChannel.class);
 		} catch (ReflectiveOperationException e) {
 			throw new ExceptionInInitializerError(e);
 		}
@@ -99,7 +100,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 
 	@Override
 	public EnumVoiceState getVoiceState() {
-		if(currentVoiceChannel != DisabledChannel.INSTANCE) {
+		if((IVoiceChannel)CURRENT_VOICE_CHANNEL_HANDLE.getOpaque(this) != DisabledChannel.INSTANCE) {
 			VoiceChannel<PlayerObject>.Context ch = aquireActiveChannel();
 			if(ch != null) {
 				return ch.isConnected() ? EnumVoiceState.ENABLED : EnumVoiceState.DISABLED;
@@ -110,7 +111,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 
 	@Override
 	public IVoiceChannel getVoiceChannel() {
-		return currentVoiceChannel;
+		return (IVoiceChannel)CURRENT_VOICE_CHANNEL_HANDLE.getAcquire(this);
 	}
 
 	@Override
@@ -135,7 +136,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 			if(channel == oldChannel) {
 				return;
 			}
-			currentVoiceChannel = channel;
+			CURRENT_VOICE_CHANNEL_HANDLE.setRelease(this, channel);
 		}
 		switchChannels(oldChannel, channel);
 	}
@@ -151,7 +152,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 			if(DisabledChannel.INSTANCE == oldChannel) {
 				return;
 			}
-			currentVoiceChannel = DisabledChannel.INSTANCE;
+			CURRENT_VOICE_CHANNEL_HANDLE.setRelease(this, DisabledChannel.INSTANCE);
 		}
 		((VoiceChannel<PlayerObject>) oldChannel).removeFromChannel(this, true);
 	}
@@ -226,9 +227,10 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 			handler = new BackendV1VCProtocolHandler(this);
 			SERVER_ENABLE_HANDLE.setRelease(this, 1);
 			player.getPlatformPlayer().sendData(server.getChannelVoiceName(), packetOut);
-			IEaglercraftVoiceCapableEvent<PlayerObject> res = player.getEaglerXBackendRPC().getPlatform()
-					.eventDispatcher().dispatchVoiceCapableEvent(player, voice.getGlobalVoiceChannel());
-			setVoiceChannel(res.getTargetChannel());
+			player.getEaglerXBackendRPC().getPlatform().eventDispatcher().dispatchVoiceCapableEvent(player,
+					voice.getGlobalVoiceChannel(), (res) -> {
+				setVoiceChannel(res.getTargetChannel());
+			});
 		}else {
 			throw new WrongVCPacketException();
 		}

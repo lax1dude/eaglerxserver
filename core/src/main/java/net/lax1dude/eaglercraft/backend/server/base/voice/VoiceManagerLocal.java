@@ -33,6 +33,7 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 	private static final VarHandle SERVER_ENABLE_HANDLE;
 	private static final VarHandle LAST_STATE_HANDLE;
 	private static final VarHandle ACTIVE_CHANNEL_HANDLE;
+	private static final VarHandle CURRENT_VOICE_CHANNEL_HANDLE;
 
 	static {
 		try {
@@ -40,6 +41,7 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 			SERVER_ENABLE_HANDLE = l.findVarHandle(VoiceManagerLocal.class, "isServerEnable", int.class);
 			LAST_STATE_HANDLE = l.findVarHandle(VoiceManagerLocal.class, "lastVoiceState", EnumVoiceState.class);
 			ACTIVE_CHANNEL_HANDLE = l.findVarHandle(VoiceManagerLocal.class, "activeChannel", VoiceChannel.Context.class);
+			CURRENT_VOICE_CHANNEL_HANDLE = l.findVarHandle(VoiceManagerLocal.class, "currentVoiceChannel", IVoiceChannel.class);
 		} catch (ReflectiveOperationException e) {
 			throw new ExceptionInInitializerError(e);
 		}
@@ -87,7 +89,7 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 
 	@Override
 	public EnumVoiceState getVoiceState() {
-		if(currentVoiceChannel != DisabledChannel.INSTANCE) {
+		if((IVoiceChannel)CURRENT_VOICE_CHANNEL_HANDLE.getOpaque(this) != DisabledChannel.INSTANCE) {
 			VoiceChannel<PlayerObject>.Context ch = aquireActiveChannel();
 			if(ch != null) {
 				return ch.isConnected() ? EnumVoiceState.ENABLED : EnumVoiceState.DISABLED;
@@ -98,7 +100,7 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 
 	@Override
 	public IVoiceChannel getVoiceChannel() {
-		return currentVoiceChannel;
+		return (IVoiceChannel)CURRENT_VOICE_CHANNEL_HANDLE.getAcquire(this);
 	}
 
 	@Override
@@ -123,7 +125,7 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 			if(channel == oldChannel) {
 				return;
 			}
-			currentVoiceChannel = channel;
+			CURRENT_VOICE_CHANNEL_HANDLE.setRelease(this, channel);
 		}
 		switchChannels(oldChannel, channel);
 	}
@@ -165,7 +167,7 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 			if(DisabledChannel.INSTANCE == oldChannel) {
 				return;
 			}
-			currentVoiceChannel = DisabledChannel.INSTANCE;
+			CURRENT_VOICE_CHANNEL_HANDLE.setRelease(this, DisabledChannel.INSTANCE);
 		}
 		((VoiceChannel<PlayerObject>) oldChannel).removeFromChannel(this, true);
 	}
@@ -200,8 +202,7 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 		onStateChanged(getVoiceState());
 	}
 
-	void onStateChanged(EnumVoiceState state) {
-		EnumVoiceState newState = getVoiceState();
+	void onStateChanged(EnumVoiceState newState) {
 		EnumVoiceState oldState = (EnumVoiceState) LAST_STATE_HANDLE.getAndSet(this, newState);
 		if(newState != oldState) {
 			player.getEaglerXServer().eventDispatcher().dispatchVoiceChangeEvent(player, oldState, newState, null);

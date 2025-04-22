@@ -135,7 +135,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		post_v1_13 = isPost_v1_13();
 		Server server = getServer();
 		loggerImpl = new JavaLogger(getLogger());
-		eventDispatcherImpl = new BukkitEventDispatchAdapter(this, server.getPluginManager(), server.getScheduler());
+		eventDispatcherImpl = new BukkitEventDispatchAdapter(this, server, server.getPluginManager(), server.getScheduler());
 		schedulerImpl = new BukkitScheduler(this, server.getScheduler());
 		componentHelperImpl = new BungeeComponentHelper(new TextComponent("Username is already connected to this server!"));
 		cacheConsoleCommandSenderInstance = server.getConsoleSender();

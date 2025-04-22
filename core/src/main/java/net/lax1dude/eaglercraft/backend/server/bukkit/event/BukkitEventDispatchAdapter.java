@@ -19,6 +19,7 @@ package net.lax1dude.eaglercraft.backend.server.bukkit.event;
 import java.util.Map;
 import java.util.UUID;
 
+import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.Plugin;
@@ -60,26 +61,51 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player,
 
 	private IEaglerXServerAPI<Player> api;
 	private final Plugin platformPlugin;
+	private final Server server;
 	private final PluginManager eventMgr;
 	private final BukkitScheduler scheduler;
 
-	public BukkitEventDispatchAdapter(Plugin platformPlugin, PluginManager eventMgr, BukkitScheduler scheduler) {
+	public BukkitEventDispatchAdapter(Plugin platformPlugin, Server server, PluginManager eventMgr,
+			BukkitScheduler scheduler) {
 		this.platformPlugin = platformPlugin;
+		this.server = server;
 		this.eventMgr = eventMgr;
 		this.scheduler = scheduler;
 	}
 
 	private <I, T extends Event> void fireSync(T event, IEventDispatchCallback<I> cont) {
-		try {
-			eventMgr.callEvent(event);
-		}catch(Throwable t) {
-			if(cont != null) {
-				cont.complete(null, t);
+		boolean async = event.isAsynchronous();
+		if(async != server.isPrimaryThread()) {
+			try {
+				eventMgr.callEvent(event);
+			}catch(Throwable t) {
+				if(cont != null) {
+					cont.complete(null, t);
+				}
+				return;
 			}
-			return;
-		}
-		if(cont != null) {
-			cont.complete((I)event, null);
+			if(cont != null) {
+				cont.complete((I)event, null);
+			}
+		}else {
+			Runnable runnable = () -> {
+				try {
+					eventMgr.callEvent(event);
+				}catch(Throwable t) {
+					if(cont != null) {
+						cont.complete(null, t);
+					}
+					return;
+				}
+				if(cont != null) {
+					cont.complete((I)event, null);
+				}
+			};
+			if(async) {
+				scheduler.runTaskAsynchronously(platformPlugin, runnable);
+			}else {
+				scheduler.runTask(platformPlugin, runnable);
+			}
 		}
 	}
 

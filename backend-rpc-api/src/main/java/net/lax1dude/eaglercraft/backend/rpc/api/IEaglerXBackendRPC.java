@@ -81,13 +81,13 @@ public interface IEaglerXBackendRPC<PlayerObject> extends IRPCAttributeHolder {
 			@Nonnull Class<ComponentType> componentType);
 
 	@Nullable
-	IBasePlayer<PlayerObject> getBasePlayer(@Nonnull PlayerObject player);
+	IBasePlayer<PlayerObject> getPlayer(@Nonnull PlayerObject player);
 
 	@Nullable
-	IBasePlayer<PlayerObject> getBasePlayerByName(@Nonnull String playerName);
+	IBasePlayer<PlayerObject> getPlayerByName(@Nonnull String playerName);
 
 	@Nullable
-	IBasePlayer<PlayerObject> getBasePlayerByUUID(@Nonnull UUID playerUUID);
+	IBasePlayer<PlayerObject> getPlayerByUUID(@Nonnull UUID playerUUID);
 
 	@Nullable
 	IEaglerPlayer<PlayerObject> getEaglerPlayer(@Nonnull PlayerObject player);
@@ -97,6 +97,12 @@ public interface IEaglerXBackendRPC<PlayerObject> extends IRPCAttributeHolder {
 
 	@Nullable
 	IEaglerPlayer<PlayerObject> getEaglerPlayerByUUID(@Nonnull UUID playerUUID);
+
+	boolean isPlayer(@Nonnull PlayerObject player);
+
+	boolean isPlayerByName(@Nonnull String playerName);
+
+	boolean isPlayerByUUID(@Nonnull UUID playerUUID);
 
 	boolean isEaglerPlayer(@Nonnull PlayerObject player);
 

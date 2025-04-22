@@ -42,7 +42,7 @@ public class PlayerInstanceLocal<PlayerObject> extends RPCAttributeHolder
 	static {
 		try {
 			MethodHandles.Lookup l = MethodHandles.lookup();
-			FUTURE_HANDLE = l.findVarHandle(PlayerInstanceLocal.class, "future", RPCConsumerFuture.class);
+			FUTURE_HANDLE = l.findVarHandle(PlayerInstanceLocal.class, "future", IRPCFuture.class);
 			PLAYER_HANDLE = l.findVarHandle(PlayerInstanceLocal.class, "handle", BasePlayerRPCLocal.class);
 		} catch (ReflectiveOperationException e) {
 			throw new ExceptionInInitializerError(e);
@@ -81,7 +81,7 @@ public class PlayerInstanceLocal<PlayerObject> extends RPCAttributeHolder
 	}
 
 	protected final BasePlayerRPCLocal<PlayerObject> handle() {
-		return (BasePlayerRPCLocal<PlayerObject>) PLAYER_HANDLE.getAcquire(player);
+		return (BasePlayerRPCLocal<PlayerObject>) PLAYER_HANDLE.getAcquire(this);
 	}
 
 	@Override

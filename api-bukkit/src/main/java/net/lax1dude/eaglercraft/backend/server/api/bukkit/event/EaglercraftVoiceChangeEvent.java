@@ -29,7 +29,7 @@ public abstract class EaglercraftVoiceChangeEvent extends Event implements IEagl
 	private static final HandlerList handlers = new HandlerList();
 
 	protected EaglercraftVoiceChangeEvent() {
-		super(true);
+		super(false);
 	}
 
 	@Nonnull

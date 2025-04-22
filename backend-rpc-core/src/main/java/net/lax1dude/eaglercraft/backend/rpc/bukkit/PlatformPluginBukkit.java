@@ -77,7 +77,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		post_v1_13 = checkPost_v1_13();
 		Server server = getServer();
 		loggerImpl = new JavaLogger(getLogger());
-		eventDispatcher = new BukkitEventDispatchAdapter(this, server.getPluginManager());
+		eventDispatcher = new BukkitEventDispatchAdapter(this, server, server.getPluginManager());
 		schedulerImpl = new BukkitScheduler(this, server.getScheduler());
 		componentHelper = new BukkitComponentHelper();
 		Init<Player> init = new Init<Player>() {
@@ -138,6 +138,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		Server server = getServer();
 		PluginManager pluginManager = server.getPluginManager();
 		pluginManager.registerEvents(new BukkitListener(this), this);
+		pluginManager.registerEvents(new TestListener(), this);
 		if(localMode) {
 			pluginManager.registerEvents(new BukkitListenerLocal(this), this);
 		}else {

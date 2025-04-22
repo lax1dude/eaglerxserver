@@ -16,13 +16,18 @@
 
 package net.lax1dude.eaglercraft.backend.rpc.bukkit.event;
 
+import java.util.function.Consumer;
+
+import org.bukkit.Server;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 
 import net.lax1dude.eaglercraft.backend.rpc.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXBackendRPC;
+import net.lax1dude.eaglercraft.backend.rpc.api.event.IEaglercraftVoiceCapableEvent;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.EnumVoiceState;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceChannel;
 
@@ -30,10 +35,12 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player>
 
 	private IEaglerXBackendRPC<Player> api;
 	private final Plugin platformPlugin;
+	private final Server server;
 	private final PluginManager eventMgr;
 
-	public BukkitEventDispatchAdapter(Plugin platformPlugin, PluginManager eventMgr) {
+	public BukkitEventDispatchAdapter(Plugin platformPlugin, Server server, PluginManager eventMgr) {
 		this.platformPlugin = platformPlugin;
+		this.server = server;
 		this.eventMgr = eventMgr;
 	}
 
@@ -42,21 +49,36 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player>
 		this.api = api;
 	}
 
-	@Override
-	public void dispatchPlayerReadyEvent(IEaglerPlayer<Player> player) {
-		eventMgr.callEvent(new BukkitPlayerReadyEventImpl(api, player));
+	private <T extends Event> void fire(T event, Consumer<? super T> callback) {
+		if(server.isPrimaryThread()) {
+			eventMgr.callEvent(event);
+			if(callback != null) {
+				callback.accept(event);
+			}
+		}else {
+			server.getScheduler().runTask(platformPlugin, () -> {
+				eventMgr.callEvent(event);
+				if(callback != null) {
+					callback.accept(event);
+				}
+			});
+		}
 	}
 
 	@Override
-	public BukkitVoiceCapableEventImpl dispatchVoiceCapableEvent(IEaglerPlayer<Player> player, IVoiceChannel channel) {
-		BukkitVoiceCapableEventImpl evt = new BukkitVoiceCapableEventImpl(api, player, channel);
-		eventMgr.callEvent(evt);
-		return evt;
+	public void dispatchPlayerReadyEvent(IEaglerPlayer<Player> player) {
+		fire(new BukkitPlayerReadyEventImpl(api, player), null);
+	}
+
+	@Override
+	public void dispatchVoiceCapableEvent(IEaglerPlayer<Player> player, IVoiceChannel channel,
+			Consumer<IEaglercraftVoiceCapableEvent<Player>> callback) {
+		fire(new BukkitVoiceCapableEventImpl(api, player, channel), callback);
 	}
 
 	@Override
 	public void dispatchVoiceChangeEvent(IEaglerPlayer<Player> player, EnumVoiceState stateOld, EnumVoiceState stateNew) {
-		eventMgr.callEvent(new BukkitVoiceChangeEventImpl(api, player, stateOld, stateNew));
+		fire(new BukkitVoiceChangeEventImpl(api, player, stateOld, stateNew), null);
 	}
 
 }
