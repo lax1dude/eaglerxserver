@@ -33,6 +33,7 @@ public class QueryServer implements IQueryServer {
 	private final EaglerXServer<?> server;
 	private final ReadWriteLock registeredQueriesLock;
 	private final Map<String, QueryEntry> registeredQueries;
+	private final String platform;
 
 	public QueryServer(EaglerXServer<?> server) {
 		this.server = server;
@@ -41,6 +42,7 @@ public class QueryServer implements IQueryServer {
 		this.registeredQueries.put("eagler", new QueryEntry(server, new QueryHandlerEagler()));
 		this.registeredQueries.put("version", new QueryEntry(server, new QueryHandlerVersion(server)));
 		this.registeredQueries.put("revoke_session_token", new QueryEntry(server, new QueryHandlerRevoke(server)));
+		this.platform = server.getPlatform().getType().name().toLowerCase();
 	}
 
 	public IQueryHandler getHandlerFor(String queryType) {
@@ -58,6 +60,7 @@ public class QueryServer implements IQueryServer {
 		json.addProperty("name", server.getServerName());
 		json.addProperty("brand", "lax1dude");
 		json.addProperty("vers", server.getServerVersionString());
+		json.addProperty("plaf", platform);
 		json.addProperty("cracked", true);
 		json.addProperty("time", System.currentTimeMillis());
 		json.addProperty("uuid", server.getServerUUIDString());
