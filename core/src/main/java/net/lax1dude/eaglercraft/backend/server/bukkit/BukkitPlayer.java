@@ -32,6 +32,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 
 class BukkitPlayer implements IPlatformPlayer<Player> {
 
@@ -167,8 +168,23 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 	}
 
 	@Override
+	public void sendMessage(String message) {
+		player.sendMessage(new TextComponent(message));
+	}
+
+	@Override
+	public <ComponentObject> void sendMessage(ComponentObject component) {
+		player.sendMessage((BaseComponent) component);
+	}
+
+	@Override
 	public void disconnect() {
 		connection.disconnect();
+	}
+
+	@Override
+	public void disconnect(String kickMessage) {
+		connection.disconnect(new TextComponent(kickMessage));
 	}
 
 	@Override
@@ -184,11 +200,6 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 	@Override
 	public boolean checkPermission(String permission) {
 		return player.hasPermission(permission);
-	}
-
-	@Override
-	public <ComponentObject> void sendMessage(ComponentObject component) {
-		player.sendMessage((BaseComponent) component);
 	}
 
 	@Override

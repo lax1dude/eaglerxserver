@@ -50,6 +50,12 @@ public interface IBasePlayer<PlayerObject> extends IBaseLoginConnection {
 	@Nonnull
 	ISkinManagerBase<PlayerObject> getSkinManager();
 
+	void sendChatMessage(@Nonnull String message);
+
+	<ComponentObject> void sendChatMessage(@Nonnull ComponentObject message);
+
+	void disconnect(@Nonnull String kickMessage);
+
 	<ComponentObject> void disconnect(@Nonnull ComponentObject kickMessage);
 
 }

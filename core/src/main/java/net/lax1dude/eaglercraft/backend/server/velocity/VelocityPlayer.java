@@ -117,13 +117,28 @@ class VelocityPlayer implements IPlatformPlayer<Player> {
 	}
 
 	@Override
+	public void sendMessage(String message) {
+		player.sendMessage(Component.text(message));
+	}
+
+	@Override
+	public <ComponentObject> void sendMessage(ComponentObject message) {
+		player.sendMessage((Component) message);
+	}
+
+	@Override
 	public void disconnect() {
 		player.disconnect(VelocityConnection.DEFAULT_KICK_MESSAGE);
 	}
 
 	@Override
+	public void disconnect(String kickMessage) {
+		player.disconnect(Component.text(kickMessage));
+	}
+
+	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
-		player.disconnect((Component)kickMessage);
+		player.disconnect((Component) kickMessage);
 	}
 
 	@Override
@@ -135,11 +150,6 @@ class VelocityPlayer implements IPlatformPlayer<Player> {
 	@Override
 	public boolean checkPermission(String permission) {
 		return player.hasPermission(permission);
-	}
-
-	@Override
-	public <ComponentObject> void sendMessage(ComponentObject component) {
-		player.sendMessage((Component) component);
 	}
 
 	@Override

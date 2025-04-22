@@ -23,6 +23,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.connection.Server;
 
@@ -118,8 +119,23 @@ class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
 	}
 
 	@Override
+	public void sendMessage(String message) {
+		player.sendMessage(new TextComponent(message));
+	}
+
+	@Override
+	public <ComponentObject> void sendMessage(ComponentObject component) {
+		player.sendMessage((BaseComponent) component);
+	}
+
+	@Override
 	public void disconnect() {
 		player.disconnect(BungeeConnection.DEFAULT_KICK_MESSAGE);
+	}
+
+	@Override
+	public void disconnect(String kickMessage) {
+		player.disconnect(new TextComponent(kickMessage));
 	}
 
 	@Override
@@ -136,11 +152,6 @@ class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
 	@Override
 	public boolean checkPermission(String permission) {
 		return player.hasPermission(permission);
-	}
-
-	@Override
-	public <ComponentObject> void sendMessage(ComponentObject component) {
-		player.sendMessage((BaseComponent) component);
 	}
 
 	@Override

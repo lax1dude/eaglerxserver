@@ -675,17 +675,21 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 			@Override
 			public void complete() {
-				playerInstanceMap.put(player, p);
-				p.confirmTask = getServer().getScheduler().runTaskLaterAsynchronously(PlatformPluginBukkit.this, () -> {
-					p.confirmTask = null;
-					getLogger().warning("Player " + p.getUsername() + " was initialized, but never fired PlayerJoinEvent, dropping...");
-					dropPlayer(player);
-				}, 100l);
-				IEaglerXServerJoinListener<Player> listener = serverJoinListener;
-				if(listener != null) {
-					listener.handlePreConnect(p);
+				if(c.closePending) {
+					onComplete.accept(false);
+				}else {
+					playerInstanceMap.put(player, p);
+					p.confirmTask = getServer().getScheduler().runTaskLaterAsynchronously(PlatformPluginBukkit.this, () -> {
+						p.confirmTask = null;
+						getLogger().warning("Player " + p.getUsername() + " was initialized, but never fired PlayerJoinEvent, dropping...");
+						dropPlayer(player);
+					}, 100l);
+					IEaglerXServerJoinListener<Player> listener = serverJoinListener;
+					if(listener != null) {
+						listener.handlePreConnect(p);
+					}
+					onComplete.accept(true);
 				}
-				onComplete.accept(true);
 			}
 			@Override
 			public void cancel() {

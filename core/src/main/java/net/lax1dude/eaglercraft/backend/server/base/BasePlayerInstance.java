@@ -136,8 +136,32 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 	}
 
 	@Override
+	public void sendChatMessage(String message) {
+		if(message == null) {
+			throw new NullPointerException("message");
+		}
+		player.sendMessage(message);
+	}
+
+	@Override
+	public <ComponentObject> void sendChatMessage(ComponentObject message) {
+		if(message == null) {
+			throw new NullPointerException("message");
+		}
+		player.sendMessage(message);
+	}
+
+	@Override
 	public void disconnect() {
 		player.getConnection().disconnect();
+	}
+
+	@Override
+	public void disconnect(String kickMessage) {
+		if(kickMessage == null) {
+			throw new NullPointerException("kickMessage");
+		}
+		player.disconnect(kickMessage);
 	}
 
 	@Override
@@ -145,7 +169,7 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 		if(kickMessage == null) {
 			throw new NullPointerException("kickMessage");
 		}
-		player.getConnection().disconnect(kickMessage);
+		player.disconnect(kickMessage);
 	}
 
 	public EaglerXServer<PlayerObject> getEaglerXServer() {

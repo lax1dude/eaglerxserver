@@ -178,6 +178,7 @@ class BukkitConnection implements IPlatformConnection {
 
 	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
+		closePending = true;
 		String msg = ((BaseComponent)kickMessage).toLegacyText();
 		Player player = playerInstance;
 		if(player != null) {

@@ -46,7 +46,11 @@ public interface IPlatformPlayer<PlayerObject> extends IPlatformCommandSender<Pl
 
 	void setViewDistancePaper(int distance);
 
+	void sendMessage(String message);
+
 	void disconnect();
+
+	void disconnect(String kickMessage);
 
 	<ComponentObject> void disconnect(ComponentObject kickMessage);
 
