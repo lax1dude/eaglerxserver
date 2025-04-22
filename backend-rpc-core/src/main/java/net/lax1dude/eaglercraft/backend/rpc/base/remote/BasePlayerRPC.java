@@ -36,6 +36,7 @@ import net.lax1dude.eaglercraft.backend.rpc.api.IRPCEvent;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCFuture;
 import net.lax1dude.eaglercraft.backend.rpc.api.RPCException;
 import net.lax1dude.eaglercraft.backend.rpc.api.RPCResponseException;
+import net.lax1dude.eaglercraft.backend.rpc.api.RPCTimeoutException;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.TexturesData;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetCapes;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetSkins;
@@ -234,21 +235,33 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 
 	void fireCloseListeners() {
 		open = false;
-		Object[] handlers;
+		Object[] handlers = requestMap.values().toArray();
+		requestMap.clear();
+		for(int i = 0; i < handlers.length; ++i) {
+			RPCRequestFuture<?> handler = (RPCRequestFuture<?>) handlers[i];
+			try {
+				handler.fireTimeoutExceptionInternal(
+						new RPCTimeoutException("Player left before the request was completed"));
+			}catch(Exception ex) {
+			}
+		}
+		Object[] handlers2;
 		synchronized(this) {
 			if(closeListeners == null) {
 				return;
 			}
-			handlers = closeListeners.toArray();
+			handlers2 = closeListeners.toArray();
 		}
-		for(int i = 0; i < handlers.length; ++i) {
-			IRPCCloseHandler handler = (IRPCCloseHandler) handlers[i];
-			try {
-				handler.handleClosed();
-			}catch(Exception ex) {
-				player.logger().error("Caught exception while calling RPC close listener", ex);
+		player.getEaglerXBackendRPC().getScheduler().execute(() -> {
+			for(int i = 0; i < handlers.length; ++i) {
+				IRPCCloseHandler handler = (IRPCCloseHandler) handlers2[i];
+				try {
+					handler.handleClosed();
+				}catch(Exception ex) {
+					player.logger().error("Caught exception while calling RPC close listener", ex);
+				}
 			}
-		}
+		});
 	}
 
 	@Override

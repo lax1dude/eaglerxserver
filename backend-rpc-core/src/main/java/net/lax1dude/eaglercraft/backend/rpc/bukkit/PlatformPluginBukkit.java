@@ -283,7 +283,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 		});
 		playerInstanceMap.put(player, p);
-		p.confirmTask = getServer().getScheduler().runTaskLaterAsynchronously(this, () -> {
+		p.confirmTask = getServer().getScheduler().runTaskLater(this, () -> {
 			p.confirmTask = null;
 			getLogger().warning("Player " + p.getUsername() + " was initialized, but never fired PlayerJoinEvent, dropping...");
 			dropPlayer(player);
