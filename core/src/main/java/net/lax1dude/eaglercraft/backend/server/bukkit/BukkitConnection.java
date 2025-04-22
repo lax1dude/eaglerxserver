@@ -49,9 +49,10 @@ class BukkitConnection implements IPlatformConnection {
 	String texturesPropertyValue;
 	String texturesPropertySignature;
 	Object attachment;
-	boolean closePending;
+	Consumer<Object> closeRedirector;
 	Consumer<Runnable> awaitPlayState;
 	byte eaglerPlayerProperty;
+	boolean closePending;
 
 	BukkitConnection(PlatformPluginBukkit plugin, LoginConnectionHolder loginConnection,
 			Consumer<Runnable> awaitPlayState) {
@@ -159,6 +160,12 @@ class BukkitConnection implements IPlatformConnection {
 	@Override
 	public void disconnect() {
 		closePending = true;
+		synchronized(this) {
+			if(closeRedirector != null) {
+				closeRedirector.accept(null);
+				return;
+			}
+		}
 		Player player = playerInstance;
 		if(player != null) {
 			plugin.getScheduler().execute(() -> {
@@ -179,6 +186,12 @@ class BukkitConnection implements IPlatformConnection {
 	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
 		closePending = true;
+		synchronized(this) {
+			if(closeRedirector != null) {
+				closeRedirector.accept(kickMessage);
+				return;
+			}
+		}
 		String msg = ((BaseComponent)kickMessage).toLegacyText();
 		Player player = playerInstance;
 		if(player != null) {

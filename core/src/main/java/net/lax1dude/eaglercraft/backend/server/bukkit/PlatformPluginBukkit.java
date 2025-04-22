@@ -580,6 +580,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		boolean eag = pipelineData != null && pipelineData.isEaglerPlayer();
 		BukkitConnection c = new BukkitConnection(this, loginConnection,
 				eag ? pipelineData::awaitPlayState : null);
+		c.closeRedirector = new CloseRedirector();
 		setAttr.accept(c);
 		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<IPipelineData, Object>() {
 			@Override
@@ -609,13 +610,25 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		});
 	}
 
+	private static class CloseRedirector implements Consumer<Object> {
+
+		protected Object val;
+
+		@Override
+		public void accept(Object val) {
+			this.val = val;
+		}
+
+	}
+
 	public void initializePlayer(Player player, BukkitConnection connection,
-			Consumer<BukkitConnection> setAttr, Consumer<Boolean> onComplete) {
+			Consumer<BukkitConnection> setAttr, Consumer<Object> onComplete) {
 		BukkitPlayer p;
 		final BukkitConnection c;
 		if(connection == null) {
 			// vanilla players won't have an initialized connection
 			c = new BukkitConnection(this, null, null);
+			c.closeRedirector = new CloseRedirector();
 			p = new BukkitPlayer(player, c);
 			setAttr.accept(c);
 			connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<IPipelineData, Object>() {
@@ -675,25 +688,43 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 			@Override
 			public void complete() {
-				if(c.closePending) {
-					onComplete.accept(false);
-				}else {
-					playerInstanceMap.put(player, p);
-					p.confirmTask = getServer().getScheduler().runTaskLaterAsynchronously(PlatformPluginBukkit.this, () -> {
-						p.confirmTask = null;
-						getLogger().warning("Player " + p.getUsername() + " was initialized, but never fired PlayerJoinEvent, dropping...");
-						dropPlayer(player);
-					}, 100l);
-					IEaglerXServerJoinListener<Player> listener = serverJoinListener;
-					if(listener != null) {
-						listener.handlePreConnect(p);
+				Object obj = null;
+				synchronized(c) {
+					if(c.closeRedirector != null) {
+						obj = ((CloseRedirector) c.closeRedirector).val;
+						c.closeRedirector = null;
 					}
-					onComplete.accept(true);
 				}
+				if(obj != null) {
+					onComplete.accept(obj);
+					return;
+				}
+				playerInstanceMap.put(player, p);
+				p.confirmTask = getServer().getScheduler().runTaskLaterAsynchronously(PlatformPluginBukkit.this, () -> {
+					p.confirmTask = null;
+					getLogger().warning("Player " + p.getUsername() + " was initialized, but never fired PlayerJoinEvent, dropping...");
+					dropPlayer(player);
+				}, 100l);
+				IEaglerXServerJoinListener<Player> listener = serverJoinListener;
+				if(listener != null) {
+					listener.handlePreConnect(p);
+				}
+				onComplete.accept(true);
 			}
 			@Override
 			public void cancel() {
-				onComplete.accept(false);
+				Object obj = null;
+				synchronized(c) {
+					if(c.closeRedirector != null) {
+						obj = ((CloseRedirector) c.closeRedirector).val;
+						c.closeRedirector = null;
+					}
+				}
+				if(obj != null) {
+					onComplete.accept(obj);
+					return;
+				}
+				onComplete.accept(null);
 			}
 		});
 	}

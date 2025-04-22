@@ -24,11 +24,14 @@ import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.PlayerLoginPostEvent;
 import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectSet;
 import net.lax1dude.eaglercraft.backend.server.base.collect.ObjectIdentityHashSet;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 
 class PlayerLoginPostEventImpl extends PlayerLoginPostEvent implements PlayerLoginPostEvent.NettyUnsafe {
 
 	private final Channel channel;
 	private final Consumer<PlayerLoginPostEvent> callback;
+	private BaseComponent message;
 	private boolean cancelled = false;
 	private boolean completed = false;
 	private ObjectSet<Object> intents;
@@ -47,6 +50,21 @@ class PlayerLoginPostEventImpl extends PlayerLoginPostEvent implements PlayerLog
 	@Override
 	public void setCancelled(boolean cancel) {
 		cancelled = cancel;
+	}
+
+	@Override
+	public BaseComponent getMessage() {
+		return message;
+	}
+
+	@Override
+	public void setMessage(String message) {
+		this.message = message != null ? new TextComponent(message) : null;
+	}
+
+	@Override
+	public void setMessage(BaseComponent message) {
+		this.message = message;
 	}
 
 	@Override

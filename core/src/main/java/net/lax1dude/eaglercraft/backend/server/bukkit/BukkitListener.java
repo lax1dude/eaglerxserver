@@ -25,13 +25,12 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import com.google.common.base.Throwables;
-
 import io.netty.channel.Channel;
 import io.netty.util.Attribute;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.PlayerLoginInitEvent;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.PlayerLoginPostEvent;
+import net.md_5.bungee.api.chat.BaseComponent;
 
 class BukkitListener implements Listener {
 
@@ -64,19 +63,22 @@ class BukkitListener implements Listener {
 		Runnable cont = () -> {
 			try {
 				plugin.initializePlayer(player, conn, attr::set, (b) -> {
-					if(b) {
-						evt.completeIntent(plugin);
-					}else {
-						// Hang forever on cancel, connection is already dead, async callback will GC
+					if(b != Boolean.TRUE) {
+						if(b != null) {
+							evt.setKickMessage((BaseComponent) b);
+						}
+						evt.setCancelled(true);
 					}
+					evt.completeIntent(plugin);
 				});
 			}catch(Exception ex) {
 				try {
+					evt.setCancelled(true);
 					evt.completeIntent(plugin);
 				}catch(IllegalStateException exx) {
 					return;
 				}
-				Throwables.throwIfUnchecked(ex);
+				if(ex instanceof RuntimeException exx) throw exx;
 				throw new RuntimeException("Uncaught exception", ex);
 			}
 		};

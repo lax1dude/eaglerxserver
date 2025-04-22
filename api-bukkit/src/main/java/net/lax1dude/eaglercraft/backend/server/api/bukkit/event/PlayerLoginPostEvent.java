@@ -24,6 +24,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 
 import io.netty.channel.Channel;
+import net.md_5.bungee.api.chat.BaseComponent;
 
 public abstract class PlayerLoginPostEvent extends PlayerEvent implements Cancellable {
 
@@ -41,6 +42,22 @@ public abstract class PlayerLoginPostEvent extends PlayerEvent implements Cancel
 	@Nonnull
 	public static HandlerList getHandlerList() {
 		return handlers;
+	}
+
+	public abstract BaseComponent getMessage();
+
+	public abstract void setMessage(String message);
+
+	public abstract void setMessage(BaseComponent message);
+
+	public void setKickMessage(String message) {
+		setMessage(message);
+		setCancelled(true);
+	}
+
+	public void setKickMessage(BaseComponent message) {
+		setMessage(message);
+		setCancelled(true);
 	}
 
 	public abstract void registerIntent(@Nonnull Object token);

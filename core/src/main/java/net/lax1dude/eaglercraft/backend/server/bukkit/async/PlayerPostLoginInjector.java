@@ -43,6 +43,8 @@ import net.lax1dude.eaglercraft.backend.server.bukkit.BukkitUnsafe;
 import net.lax1dude.eaglercraft.backend.server.bukkit.PlatformPluginBukkit;
 import net.lax1dude.eaglercraft.backend.server.util.ClassProxy;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 
 public class PlayerPostLoginInjector {
 
@@ -73,6 +75,7 @@ public class PlayerPostLoginInjector {
 	protected Object protocolStateOnResume;
 	protected Field loginListenerState;
 	protected Method loginListenerTick;
+	protected Method loginListenerDisconnect;
 	protected Field loginListenerPlayer;
 
 	protected Class<Object> packetLoginSuccessClass;
@@ -368,6 +371,7 @@ public class PlayerPostLoginInjector {
 				throw new IllegalStateException("Could not locate player field of " + loginListenerClass.getName());
 			}
 			Method loginListenerTick = null;
+			Method loginListenerDisconnect = loginListenerClass.getMethod("disconnect", String.class);
 			for(Class<?> clz : loginListenerClass.getInterfaces()) {
 				String s = clz.getSimpleName();
 				if(s.equals("IUpdatePlayerListBox") || s.equals("ITickable")) {
@@ -401,6 +405,7 @@ public class PlayerPostLoginInjector {
 			this.protocolStateOnResume = protocolStateOnResume;
 			this.loginListenerState = loginListenerState;
 			this.loginListenerTick = loginListenerTick;
+			this.loginListenerDisconnect = loginListenerDisconnect;
 			this.loginListenerPlayer = loginListenerPlayer;
 		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
@@ -444,8 +449,8 @@ public class PlayerPostLoginInjector {
 							if(player != null) {
 								final Player playerFinal = player;
 								fireEventLoginPostAsync(playerFinal, ctx.channel, (res) -> {
-									if(!res.isCancelled()) {
-										try {
+									try {
+										if(!res.isCancelled()) {
 											handlerAdded.set(ctx.originalNetworkManager, false);
 											ctx.channel.pipeline().replace("packet_handler", "packet_handler",
 													(ChannelHandler) ctx.originalNetworkManager);
@@ -453,9 +458,15 @@ public class PlayerPostLoginInjector {
 											loginListenerNetManager.set(loginListener, ctx.originalNetworkManager);
 											loginListenerPlayer.set(loginListener, entityPlayer);
 											loginListenerState.set(loginListener, protocolStateOnResume);
-										} catch (ReflectiveOperationException e) {
-											throw Util.propagateReflectThrowable(e);
+										}else {
+											BaseComponent comp = res.getMessage();
+											if(comp == null) {
+												comp = new TextComponent("Connection Closed");
+											}
+											loginListenerDisconnect.invoke(loginListener, comp.toLegacyText());
 										}
+									} catch (ReflectiveOperationException e) {
+										throw Util.propagateReflectThrowable(e);
 									}
 								});
 								return null;
