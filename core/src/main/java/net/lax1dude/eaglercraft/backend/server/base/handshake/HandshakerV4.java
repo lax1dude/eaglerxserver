@@ -98,7 +98,15 @@ public class HandshakerV4 extends HandshakerV3 {
 	protected void handleInboundProfileData(ChannelHandlerContext ctx, ByteBuf buffer) {
 		int count = buffer.readUnsignedByte();
 		while(--count >= 0 && !inboundHandler.terminated) {
-			super.handleInboundProfileData(ctx, buffer);
+			int strlen = buffer.readUnsignedByte();
+			String type = BufferUtils.readCharSequence(buffer, strlen, StandardCharsets.US_ASCII).toString();
+			strlen = buffer.readUnsignedShort();
+			byte[] readData = Util.newByteArray(strlen);
+			buffer.readBytes(readData);
+			handlePacketProfileData(ctx, type, readData);
+		}
+		if(buffer.isReadable() && !inboundHandler.terminated) {
+			throw new IndexOutOfBoundsException();
 		}
 	}
 

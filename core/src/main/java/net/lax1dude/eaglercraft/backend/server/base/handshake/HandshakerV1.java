@@ -97,10 +97,16 @@ public class HandshakerV1 extends HandshakerInstance {
 		strlen = buffer.readUnsignedShort();
 		byte[] readData = Util.newByteArray(strlen);
 		buffer.readBytes(readData);
+		if(buffer.isReadable()) {
+			throw new IndexOutOfBoundsException();
+		}
 		handlePacketProfileData(ctx, type, readData);
 	}
 
 	protected void handleInboundFinishLogin(ChannelHandlerContext ctx, ByteBuf buffer) {
+		if(buffer.isReadable()) {
+			throw new IndexOutOfBoundsException();
+		}
 		handlePacketFinishLogin(ctx);
 	}
 
