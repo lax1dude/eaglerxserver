@@ -78,6 +78,12 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 	}
 
 	private void handleClientClientCommand(ChannelHandlerContext ctx, ByteBuf buf, List<Object> output) {
+		if(buf.readUnsignedByte() != 0) {
+			handleUnexpectedClientPacket(ctx, 0xCD);
+		}
+		if(buf.isReadable()) {
+			throw new IndexOutOfBoundsException();
+		}
 		if(state == STATE_SENT_RECEIVED_ALLOW_LOGIN) {
 			state = STATE_STALLING;
 			boolean skin = false, cape = false;
@@ -90,38 +96,36 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 				cape = true;
 				++total;
 			}
-			if(total > 0) {
-				ByteBuf packet = ctx.alloc().buffer();
-				try {
-					// PROTOCOL_CLIENT_PROFILE_DATA
-					packet.writeByte(0x07);
-					packet.writeByte(total);
-					if(skin) {
-						packet.writeByte(SKIN_V1_STR.length);
-						packet.writeBytes(SKIN_V1_STR);
-						packet.writeShort(skinData.length);
-						packet.writeBytes(skinData);
-					}
-					if(cape) {
-						packet.writeByte(CAPE_V1_STR.length);
-						packet.writeBytes(CAPE_V1_STR);
-						packet.writeShort(capeData.length);
-						packet.writeBytes(capeData);
-					}
-					packet.writeByte(BRAND_UUID_V1_STR.length);
-					packet.writeBytes(BRAND_UUID_V1_STR);
-					packet.writeShort(16);
-					UUID uuid = RewindPluginProtocol.BRAND_EAGLERXREWIND_1_5_2;
-					packet.writeLong(uuid.getMostSignificantBits());
-					packet.writeLong(uuid.getLeastSignificantBits());
-					output.add(packet.retain());
-				}finally {
-					packet.release();
-					skinData = null;
-					capeData = null;
-				}
-			}
 			ByteBuf packet = ctx.alloc().buffer();
+			try {
+				// PROTOCOL_CLIENT_PROFILE_DATA
+				packet.writeByte(0x07);
+				packet.writeByte(total);
+				if(skin) {
+					packet.writeByte(SKIN_V1_STR.length);
+					packet.writeBytes(SKIN_V1_STR);
+					packet.writeShort(skinData.length);
+					packet.writeBytes(skinData);
+				}
+				if(cape) {
+					packet.writeByte(CAPE_V1_STR.length);
+					packet.writeBytes(CAPE_V1_STR);
+					packet.writeShort(capeData.length);
+					packet.writeBytes(capeData);
+				}
+				packet.writeByte(BRAND_UUID_V1_STR.length);
+				packet.writeBytes(BRAND_UUID_V1_STR);
+				packet.writeShort(16);
+				UUID uuid = RewindPluginProtocol.BRAND_EAGLERXREWIND_1_5_2;
+				packet.writeLong(uuid.getMostSignificantBits());
+				packet.writeLong(uuid.getLeastSignificantBits());
+				output.add(packet.retain());
+			}finally {
+				packet.release();
+				skinData = null;
+				capeData = null;
+			}
+			packet = ctx.alloc().buffer();
 			try {
 				// PROTOCOL_CLIENT_FINISH_LOGIN
 				packet.writeByte(0x08);
@@ -141,24 +145,32 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 			if("EAG|MySkin".equals(channelName)) {
 				int len = buf.readShort();
 				if(len > 0 && len < 32767) {
-					handleEagMySkin(ctx, buf.readSlice(len));
+					ByteBuf buf2 = buf.readSlice(len);
+					if(buf.isReadable()) {
+						throw new IndexOutOfBoundsException();
+					}
+					handleEagMySkin(ctx, buf2);
 				}
 			}else if("EAG|MyCape".equals(channelName)) {
 				int len = buf.readShort();
 				if(len > 0 && len < 32767) {
-					handleEagMyCape(ctx, buf.readSlice(len));
+					ByteBuf buf2 = buf.readSlice(len);
+					if(buf.isReadable()) {
+						throw new IndexOutOfBoundsException();
+					}
+					handleEagMyCape(ctx, buf2);
 				}
 			}else {
-				handleUnexpectedClientPacket(ctx, 0xCD);
+				handleUnexpectedClientPacket(ctx, 0xFA);
 			}
 		}else {
-			handleUnexpectedClientPacket(ctx, 0xCD);
+			handleUnexpectedClientPacket(ctx, 0xFA);
 		}
 	}
 
 	private void handleEagMySkin(ChannelHandlerContext ctx, ByteBuf data) {
 		if(skinData != null) {
-			handleUnexpectedClientPacket(ctx, 0xCD);
+			handleUnexpectedClientPacket(ctx, 0xFA);
 			return;
 		}
 		skinData = SkinPacketUtils.rewriteLegacyHandshakeSkinToV1(data);
@@ -169,7 +181,7 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 
 	private void handleEagMyCape(ChannelHandlerContext ctx, ByteBuf data) {
 		if(capeData != null) {
-			handleUnexpectedClientPacket(ctx, 0xCD);
+			handleUnexpectedClientPacket(ctx, 0xFA);
 			return;
 		}
 		capeData = SkinPacketUtils.rewriteLegacyHandshakeCapeToV1(data);

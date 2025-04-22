@@ -1744,7 +1744,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				out.add(bb);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger().error("Could not encode rewind packet", e);
 			if (bb != null) {
 				bb.release();
 			}
