@@ -66,6 +66,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	final VoiceServiceRemote<PlayerObject> voice;
 
 	private boolean isAlive = true;
+	private boolean isManaged = true;
 	private volatile int isServerEnable = 0;
 	private volatile EnumVoiceState lastVoiceState = EnumVoiceState.SERVER_DISABLE;
 	private volatile VoiceChannel<PlayerObject>.Context activeChannel = null;
@@ -139,6 +140,24 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 			CURRENT_VOICE_CHANNEL_HANDLE.setRelease(this, channel);
 		}
 		switchChannels(oldChannel, channel);
+	}
+
+	@Override
+	public boolean isWorldManaged() {
+		return isManaged;
+	}
+
+	@Override
+	public void setWorldManaged(boolean managed) {
+		isManaged = managed;
+	}
+
+	void handleWorldChanged(String worldName) {
+		if(isManaged) {
+			setVoiceChannel0(DisabledChannel.INSTANCE);
+			setVoiceChannel0(voice.getWorldVoiceChannel(worldName));
+			onStateChanged();
+		}
 	}
 
 	public void destroyVoiceManager() {
@@ -227,8 +246,11 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 			handler = new BackendV1VCProtocolHandler(this);
 			SERVER_ENABLE_HANDLE.setRelease(this, 1);
 			player.getPlatformPlayer().sendData(server.getChannelVoiceName(), packetOut);
+			String worldName = player.getPlatformPlayer().getWorldName();
+			IVoiceChannel setChannel = worldName != null ? voice.getWorldVoiceChannel(worldName)
+					: voice.getGlobalVoiceChannel();
 			player.getEaglerXBackendRPC().getPlatform().eventDispatcher().dispatchVoiceCapableEvent(player,
-					voice.getGlobalVoiceChannel(), (res) -> {
+					setChannel, (res) -> {
 				setVoiceChannel(res.getTargetChannel());
 			});
 		}else {

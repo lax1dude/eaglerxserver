@@ -17,31 +17,60 @@
 package net.lax1dude.eaglercraft.backend.rpc.base.remote.voice;
 
 import java.util.Collection;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 
 import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.ICEServerEntry;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceChannel;
+import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceManager;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.EaglerXBackendRPCRemote;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.PlayerInstanceRemote;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.config.ConfigDataSettings.ConfigDataBackendVoice;
 
 public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<PlayerObject> {
 
 	private final EaglerXBackendRPCRemote<PlayerObject> server;
+	private final boolean allWorld;
+	private final boolean separateWorld;
+	private final Set<String> configWorldsEnabled;
 	private final IVoiceChannel globalChannel;
+	private final LoadingCache<String, IVoiceChannel> worldChannels;
 	private Collection<ICEServerEntry> iceServers;
 	private String[] iceServersStr;
 	private boolean iceOverride = false;
 
-	public VoiceServiceRemote(EaglerXBackendRPCRemote<PlayerObject> server) {
+	public VoiceServiceRemote(EaglerXBackendRPCRemote<PlayerObject> server, ConfigDataBackendVoice config) {
 		this.server = server;
+		this.allWorld = config.isEnableVoiceChatAllWorlds();
+		this.separateWorld = config.isSeparateVoiceChannelsPerWorld();
+		this.configWorldsEnabled = config.getEnableVoiceChatOnWorlds();
 		this.globalChannel = new ManagedChannel<>(this);
+		worldChannels = separateWorld ? CacheBuilder.newBuilder().weakValues().concurrencyLevel(8).initialCapacity(32)
+				.build(new CacheLoader<String, IVoiceChannel>() {
+					@Override
+					public IVoiceChannel load(String key) throws Exception {
+						return new ManagedChannel<>(VoiceServiceRemote.this);
+					}
+				}) : null;
 	}
 
 	@Override
 	public VoiceManagerRemote<PlayerObject> createVoiceManager(PlayerInstanceRemote<PlayerObject> player) {
 		return new VoiceManagerRemote<>(player, this);
+	}
+
+	@Override
+	public void handleWorldChanged(PlayerInstanceRemote<PlayerObject> player, String worldName) {
+		IVoiceManager<PlayerObject> voiceMgr = player.getVoiceManager();
+		if(voiceMgr != null) {
+			((VoiceManagerRemote<PlayerObject>)voiceMgr).handleWorldChanged(worldName);
+		}
 	}
 
 	@Override
@@ -52,6 +81,24 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 	@Override
 	public boolean isVoiceEnabled() {
 		return true;
+	}
+
+	@Override
+	public boolean isVoiceEnabledAllWorlds() {
+		return allWorld;
+	}
+
+	@Override
+	public boolean isVoiceEnabledOnWorld(String worldName) {
+		if(worldName == null) {
+			throw new NullPointerException("worldName");
+		}
+		return allWorld || configWorldsEnabled.contains(worldName);
+	}
+
+	@Override
+	public boolean isSeparateWorldChannels() {
+		return separateWorld;
 	}
 
 	@Override
@@ -102,6 +149,27 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 	@Override
 	public IVoiceChannel getGlobalVoiceChannel() {
 		return globalChannel;
+	}
+
+	@Override
+	public IVoiceChannel getWorldVoiceChannel(String worldName) {
+		if(worldName == null) {
+			throw new NullPointerException("worldName");
+		}
+		if(allWorld || configWorldsEnabled.contains(worldName)) {
+			if(separateWorld) {
+				try {
+					return worldChannels.get(worldName);
+				} catch (ExecutionException e) {
+					if(e.getCause() instanceof RuntimeException ee) throw ee;
+					throw new RuntimeException(e.getCause());
+				}
+			}else {
+				return globalChannel;
+			}
+		}else {
+			return DisabledChannel.INSTANCE;
+		}
 	}
 
 	@Override

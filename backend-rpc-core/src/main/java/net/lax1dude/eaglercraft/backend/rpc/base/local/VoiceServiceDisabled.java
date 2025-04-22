@@ -44,6 +44,24 @@ public class VoiceServiceDisabled<PlayerObject> implements IVoiceService<PlayerO
 	}
 
 	@Override
+	public boolean isVoiceEnabledAllWorlds() {
+		return false;
+	}
+
+	@Override
+	public boolean isVoiceEnabledOnWorld(String worldName) {
+		if(worldName == null) {
+			throw new NullPointerException("worldName");
+		}
+		return false;
+	}
+
+	@Override
+	public boolean isSeparateWorldChannels() {
+		return false;
+	}
+
+	@Override
 	public Collection<ICEServerEntry> getICEServers() {
 		return Collections.emptyList();
 	}
@@ -72,12 +90,23 @@ public class VoiceServiceDisabled<PlayerObject> implements IVoiceService<PlayerO
 	}
 
 	@Override
+	public IVoiceChannel getWorldVoiceChannel(String worldName) {
+		if(worldName == null) {
+			throw new NullPointerException("worldName");
+		}
+		throw disabledError();
+	}
+
+	@Override
 	public IVoiceChannel getDisabledVoiceChannel() {
 		throw disabledError();
 	}
 
 	@Override
 	public Collection<IEaglerPlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel) {
+		if(channel == null) {
+			throw new NullPointerException("channel");
+		}
 		throw disabledError();
 	}
 

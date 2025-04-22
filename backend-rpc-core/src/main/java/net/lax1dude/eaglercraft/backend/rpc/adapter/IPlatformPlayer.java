@@ -36,4 +36,6 @@ public interface IPlatformPlayer<PlayerObject> {
 
 	void setViewDistancePaper(int distance);
 
+	String getWorldName();
+
 }

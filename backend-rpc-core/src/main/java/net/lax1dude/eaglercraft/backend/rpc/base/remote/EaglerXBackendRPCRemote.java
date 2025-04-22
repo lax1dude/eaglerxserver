@@ -84,6 +84,7 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 		platf.setOnServerEnable(this::enableHandler);
 		platf.setOnServerDisable(this::disableHandler);
 		platf.setPlayerInitializer(new BackendRPCPlayerInitializer<>(this));
+		platf.setWorldChangeHandler(this::handleWorldChanged);
 		InitRemoteMode<PlayerObject> platfRemote = platf.remoteMode();
 		platfRemote.setEaglerPlayerChannels(ImmutableList.of(
 				new BackendRPCMessageChannel<PlayerObject>(EaglerBackendRPCProtocol.CHANNEL_NAME,
@@ -106,8 +107,9 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 		channelVoiceName = modernChannelNames ? EaglerVCProtocol.CHANNEL_NAME_MODERN
 				: EaglerVCProtocol.CHANNEL_NAME;
 		
-		if(config.getConfigSettings().getConfigBackendVoice().isEnableBackendVoiceService()) {
-			voiceService = new VoiceServiceRemote<>(this);
+		ConfigDataSettings.ConfigDataBackendVoice confBackendVoice = config.getConfigSettings().getConfigBackendVoice();
+		if(confBackendVoice.isEnableBackendVoiceService()) {
+			voiceService = new VoiceServiceRemote<>(this, confBackendVoice);
 			voiceService.setICEServers(config.getConfigICEServers().getICEServers());
 			voiceService.setOverrideICEServers(config.getConfigICEServers().isReplaceICEServerList());
 		}else {
@@ -174,6 +176,10 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 	private void handleVoiceMessage(IBackendRPCMessageChannel<PlayerObject> channel,
 			IPlatformPlayer<PlayerObject> player, byte[] contents) {
 		player.<PlayerInstanceRemote<PlayerObject>>getAttachment().handleVoiceMessage(contents);
+	}
+
+	private void handleWorldChanged(IPlatformPlayer<PlayerObject> player, String worldName) {
+		voiceService.handleWorldChanged(player.getAttachment(), worldName);
 	}
 
 	@Override

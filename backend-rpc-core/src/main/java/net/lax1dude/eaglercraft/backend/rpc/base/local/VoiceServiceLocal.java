@@ -68,6 +68,21 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceService<PlayerObje
 	}
 
 	@Override
+	public boolean isVoiceEnabledAllWorlds() {
+		return delegate.isVoiceEnabledAllServers();
+	}
+
+	@Override
+	public boolean isVoiceEnabledOnWorld(String worldName) {
+		return delegate.isVoiceEnabledOnServer(worldName);
+	}
+
+	@Override
+	public boolean isSeparateWorldChannels() {
+		return delegate.isSeparateServerChannels();
+	}
+
+	@Override
 	public Collection<ICEServerEntry> getICEServers() {
 		return delegate.getICEServers().stream().map(VoiceChannelHelper::wrap).collect(Collectors3.toImmutableList());
 	}
@@ -85,6 +100,11 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceService<PlayerObje
 	@Override
 	public IVoiceChannel getGlobalVoiceChannel() {
 		return globalChannel;
+	}
+
+	@Override
+	public IVoiceChannel getWorldVoiceChannel(String worldName) {
+		return VoiceChannelHelper.wrap(delegate.getServerVoiceChannel(worldName));
 	}
 
 	@Override

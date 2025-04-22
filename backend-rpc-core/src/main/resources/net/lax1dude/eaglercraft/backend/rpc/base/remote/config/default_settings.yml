@@ -4,3 +4,7 @@ backend_rpc:
   timeout_resolution_sec: 0.25
 backend_voice:
   enable_backend_voice_service: false
+  enable_voice_all_worlds: true
+  enable_voice_on_worlds: [
+    ]
+  separate_world_voice_channels: false

@@ -22,6 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -128,6 +129,12 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 				throw new RuntimeException("Reflection failed!");
 			}
 		}
+	}
+
+	@Override
+	public String getWorldName() {
+		World w = player.getWorld();
+		return w != null ? w.getName() : null;
 	}
 
 }

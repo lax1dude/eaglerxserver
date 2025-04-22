@@ -16,12 +16,16 @@
 
 package net.lax1dude.eaglercraft.backend.rpc.bukkit;
 
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+
+import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayer;
 
 class BukkitListener implements Listener {
 
@@ -32,18 +36,30 @@ class BukkitListener implements Listener {
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	public void onPlayerLogin(PlayerLoginEvent evt) {
+	public void onPlayerLoginEvent(PlayerLoginEvent evt) {
 		plugin.initializePlayer(evt.getPlayer());
 	}
 
 	@EventHandler
-	public void onPostLogin(PlayerJoinEvent evt) {
-		plugin.confirmPlayer(evt.getPlayer());
+	public void onPlayerJoinEvent(PlayerJoinEvent evt) {
+		Player p = evt.getPlayer();
+		plugin.confirmPlayer(p);
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)
-	public void onQuitEvent(PlayerQuitEvent evt) {
+	public void onPlayerQuitEvent(PlayerQuitEvent evt) {
 		plugin.dropPlayer(evt.getPlayer());
+	}
+
+	@EventHandler
+	public void onPlayerChangedWorldEvent(PlayerChangedWorldEvent evt) {
+		if(evt.getFrom() != null && plugin.worldChangeHandler != null) {
+			Player p = evt.getPlayer();
+			IPlatformPlayer<Player> platfPlayer = plugin.getPlayer(p);
+			if(platfPlayer != null) {
+				plugin.worldChangeHandler.handleWorldChanged(platfPlayer, p.getWorld().getName());
+			}
+		}
 	}
 
 }

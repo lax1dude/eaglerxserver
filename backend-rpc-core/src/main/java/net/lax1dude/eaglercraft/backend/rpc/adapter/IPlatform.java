@@ -39,6 +39,8 @@ public interface IPlatform<PlayerObject> {
 
 		void setPlayerInitializer(IBackendRPCPlayerInitializer<?, PlayerObject> initializer);
 
+		void setWorldChangeHandler(IBackendRPCWorldChangeHandler<PlayerObject> handler);
+
 		InitLocalMode<PlayerObject> localMode();
 
 		InitRemoteMode<PlayerObject> remoteMode();

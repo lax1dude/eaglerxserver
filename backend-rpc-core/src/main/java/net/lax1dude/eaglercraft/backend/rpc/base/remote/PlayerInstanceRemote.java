@@ -141,7 +141,7 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 	}
 
 	@Override
-	public IVoiceManager<PlayerObject> getVoiceManager() {
+	public VoiceManagerRemote<PlayerObject> getVoiceManager() {
 		return isVoiceCapable() ? voiceManager : null;
 	}
 

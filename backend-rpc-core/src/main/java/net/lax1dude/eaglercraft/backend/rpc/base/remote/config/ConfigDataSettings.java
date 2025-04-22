@@ -16,6 +16,8 @@
 
 package net.lax1dude.eaglercraft.backend.rpc.base.remote.config;
 
+import java.util.Set;
+
 public class ConfigDataSettings {
 
 	public static class ConfigDataBackendRPC {
@@ -41,13 +43,32 @@ public class ConfigDataSettings {
 	public static class ConfigDataBackendVoice {
 
 		private final boolean enableBackendVoiceService;
+		private final boolean enableVoiceChatAllWorlds;
+		private final Set<String> enableVoiceChatOnWorlds;
+		private final boolean separateVoiceChannelsPerWorld;
 
-		ConfigDataBackendVoice(boolean enableBackendVoiceService) {
+		ConfigDataBackendVoice(boolean enableBackendVoiceService, boolean enableVoiceChatAllWorlds,
+				Set<String> enableVoiceChatOnWorlds, boolean separateVoiceChannelsPerWorld) {
 			this.enableBackendVoiceService = enableBackendVoiceService;
+			this.enableVoiceChatAllWorlds = enableVoiceChatAllWorlds;
+			this.enableVoiceChatOnWorlds = enableVoiceChatOnWorlds;
+			this.separateVoiceChannelsPerWorld = separateVoiceChannelsPerWorld;
 		}
 
 		public boolean isEnableBackendVoiceService() {
 			return enableBackendVoiceService;
+		}
+
+		public boolean isEnableVoiceChatAllWorlds() {
+			return enableVoiceChatAllWorlds;
+		}
+
+		public Set<String> getEnableVoiceChatOnWorlds() {
+			return enableVoiceChatOnWorlds;
+		}
+
+		public boolean isSeparateVoiceChannelsPerWorld() {
+			return separateVoiceChannelsPerWorld;
 		}
 
 	}

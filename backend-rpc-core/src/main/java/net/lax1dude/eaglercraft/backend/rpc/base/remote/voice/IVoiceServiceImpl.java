@@ -23,4 +23,6 @@ public interface IVoiceServiceImpl<PlayerObject> extends IVoiceService<PlayerObj
 
 	VoiceManagerRemote<PlayerObject> createVoiceManager(PlayerInstanceRemote<PlayerObject> player);
 
+	void handleWorldChanged(PlayerInstanceRemote<PlayerObject> player, String worldName);
+
 }

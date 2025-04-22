@@ -36,6 +36,7 @@ import net.lax1dude.eaglercraft.backend.rpc.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCMessageChannel;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCMessageHandler;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCPlayerInitializer;
+import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCWorldChangeHandler;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatform;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformComponentHelper;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformLogger;
@@ -64,6 +65,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	protected boolean localMode;
 	protected Collection<IBackendRPCMessageChannel<Player>> channelsList;
+	protected IBackendRPCWorldChangeHandler<Player> worldChangeHandler;
 	protected Consumer<IEaglercraftInitializePlayerEvent<Player>> initializePlayerHandler;
 	protected Consumer<IEaglercraftWebViewChannelEvent<Player>> localWebViewChannelHandler;
 	protected Consumer<IEaglercraftWebViewMessageEvent<Player>> localWebViewMessageHandler;
@@ -92,6 +94,10 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			@Override
 			public void setPlayerInitializer(IBackendRPCPlayerInitializer<?, Player> initializer) {
 				playerInitializer = (IBackendRPCPlayerInitializer<Object, Player>) initializer;
+			}
+			@Override
+			public void setWorldChangeHandler(IBackendRPCWorldChangeHandler<Player> handler) {
+				worldChangeHandler = handler;
 			}
 			@Override
 			public IPlatform<Player> getPlatform() {
@@ -138,7 +144,6 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		Server server = getServer();
 		PluginManager pluginManager = server.getPluginManager();
 		pluginManager.registerEvents(new BukkitListener(this), this);
-		pluginManager.registerEvents(new TestListener(), this);
 		if(localMode) {
 			pluginManager.registerEvents(new BukkitListenerLocal(this), this);
 		}else {

@@ -25,14 +25,18 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.ICEServerEntry;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.config.ConfigDataSettings.ConfigDataBackendRPC;
@@ -53,6 +57,10 @@ public class BackendRPCConfigLoader {
 		double timeoutResolutionSec = ((Number)mapRPC.getOrDefault("timeout_resolution_sec", 0.25)).doubleValue();
 		Map<String, Object> mapVoice = (Map<String, Object>) map.get("backend_voice");
 		boolean backendVoice = (boolean)mapVoice.getOrDefault("enable_backend_voice_service", Boolean.FALSE);
+		boolean enableVoiceChatAllWorlds = (boolean)mapVoice.getOrDefault("enable_voice_all_worlds", Boolean.TRUE);
+		Set<String> enableVoiceChatOnWorlds = ImmutableSet
+				.copyOf((Collection<String>) mapVoice.getOrDefault("enable_voice_on_worlds", Collections.emptyList()));
+		boolean separateVoiceChannelsPerWorld = (boolean)mapVoice.getOrDefault("separate_world_voice_channels", Boolean.FALSE);
 		map = loadConfigFile(yaml, dir, "ice_servers");
 		boolean replaceICE = (boolean)map.getOrDefault("replace_ice_server_list", Boolean.FALSE);
 		ImmutableList.Builder<ICEServerEntry> builder = ImmutableList.builder();
@@ -68,7 +76,9 @@ public class BackendRPCConfigLoader {
 		List<ICEServerEntry> lst = builder.build();
 		return new ConfigDataRoot(new ConfigDataSettings(forceModernized,
 				new ConfigDataBackendRPC(baseRequestTimeout, timeoutResolutionSec),
-				new ConfigDataBackendVoice(backendVoice)), new ConfigDataICEServers(replaceICE, lst));
+				new ConfigDataBackendVoice(backendVoice, enableVoiceChatAllWorlds, enableVoiceChatOnWorlds,
+						separateVoiceChannelsPerWorld)),
+				new ConfigDataICEServers(replaceICE, lst));
 	}
 
 	@SuppressWarnings("unchecked")

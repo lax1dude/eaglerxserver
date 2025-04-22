@@ -60,4 +60,14 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManager<PlayerObje
 		delegate.setVoiceChannel(VoiceChannelHelper.unwrap(channel));
 	}
 
+	@Override
+	public boolean isWorldManaged() {
+		return delegate.isServerManaged();
+	}
+
+	@Override
+	public void setWorldManaged(boolean managed) {
+		delegate.setServerManaged(managed);
+	}
+
 }

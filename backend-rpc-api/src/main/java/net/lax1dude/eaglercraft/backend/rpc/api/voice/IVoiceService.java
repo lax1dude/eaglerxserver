@@ -37,6 +37,15 @@ public interface IVoiceService<PlayerObject> {
 
 	boolean isVoiceEnabled();
 
+	boolean isVoiceEnabledAllWorlds();
+
+	boolean isVoiceEnabledOnWorld(@Nonnull String worldName);
+
+	boolean isSeparateWorldChannels();
+
+	@Nullable
+	IVoiceChannel getWorldVoiceChannel(@Nonnull String worldName);
+
 	@Nonnull
 	Collection<ICEServerEntry> getICEServers();
 
