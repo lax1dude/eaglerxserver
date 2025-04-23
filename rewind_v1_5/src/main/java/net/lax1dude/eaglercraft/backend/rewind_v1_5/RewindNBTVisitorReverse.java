@@ -90,6 +90,7 @@ public class RewindNBTVisitorReverse implements INBTVisitor {
 		public INBTVisitor visitTagList(EnumDataType itemType, int length) throws IOException {
 			if (length != 0 && w == Integer.MAX_VALUE && len == Integer.MAX_VALUE) {
 				len = length;
+				w = 0;
 				parent().visitTagList(itemType, length);
 				return this;
 			} else {
@@ -111,12 +112,11 @@ public class RewindNBTVisitorReverse implements INBTVisitor {
 
 		@Override
 		public void visitTagString(INBTValue<String> str) throws IOException {
-			if (w >= len) {
-				parent().visitTagString(str);
-				return;
+			if (w < len) {
+				String transformedText = "\"" + str.value().replaceAll("\\\\", "\\\\").replaceAll("\"", "\\\\\"") + "\"";
+				str.mutate(transformedText);
 			}
-			String transformedText = "\"" + str.value().replaceAll("\\\\", "\\\\").replaceAll("\"", "\\\\\"") + "\"";
-			parent().visitTagString(context.wrapValue(transformedText));
+			parent().visitTagString(str);
 		}
 	}
 }
