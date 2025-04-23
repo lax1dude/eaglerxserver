@@ -31,6 +31,8 @@ import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectObjectMap;
 
 public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Encoder<PlayerObject> {
 
+	public static final boolean OLD_CHUNK_FORMAT = Boolean.getBoolean("eaglerxrewind.oldChunkFormat");
+
 	private final HPPC hppc;
 	private final ObjectObjectMap<String, ObjectIntMap<String>> scoreBoard;
 
@@ -146,7 +148,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		short slot = in.readShort();
 		bb.writeInt(eid);
 		bb.writeShort(slot);
-		BufferUtils.convertSlot2Legacy(in, bb, nbtContext(), componentHelper());
+		BufferUtils.convertSlot2Legacy(in, bb, player());
 	}
 
 	private void handleSpawnPosition(ByteBuf in, ByteBuf bb) {
@@ -258,7 +260,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			tmp.writeByte(in.readByte());
 			tmp.writeByte(in.readByte());
 			tmp.writeShort(in.readShort());
-			String playerName = BufferUtils.convertMetadata2Legacy(in, tmp, 300, alloc, nbtContext(), componentHelper());
+			String playerName = BufferUtils.convertMetadata2Legacy(in, tmp, 300, player());
 			TabListTracker.ListItem itm = tabList().handleSpawnPlayer(uuid, eid);
 			if (itm != null) {
 				playerName = itm.playerName;
@@ -330,7 +332,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		}
 	}
 
-	private void handleSpawnMob(ByteBuf in, ByteBuf bb, ByteBufAllocator alloc) {
+	private void handleSpawnMob(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x18);
 		int eid = BufferUtils.readVarInt(in);
 		bb.writeInt(eid);
@@ -356,7 +358,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeShort(in.readShort());
 		bb.writeShort(in.readShort());
 		bb.writeShort(in.readShort());
-		BufferUtils.convertMetadata2Legacy(in, bb, mtype + 100, alloc, nbtContext(), componentHelper());
+		BufferUtils.convertMetadata2Legacy(in, bb, mtype + 100, player());
 	}
 
 	private void handleSpawnPainting(ByteBuf in, ByteBuf bb) {
@@ -498,11 +500,11 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeInt(in.readInt());
 	}
 
-	private void handleEntityMetadata(ByteBuf in, ByteBuf bb, ByteBufAllocator alloc) {
+	private void handleEntityMetadata(ByteBuf in, ByteBuf bb) {
 		bb.writeByte(0x28);
 		int eid = BufferUtils.readVarInt(in);
 		bb.writeInt(eid);
-		BufferUtils.convertMetadata2Legacy(in, bb, entityIdToType.getOrDefault(eid, -1), alloc, nbtContext(), componentHelper());
+		BufferUtils.convertMetadata2Legacy(in, bb, entityIdToType.getOrDefault(eid, -1), player());
 	}
 
 	private void handleEntityEffect(ByteBuf in, ByteBuf bb) {
@@ -765,11 +767,10 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				float cgsValue = in.readFloat();
 				if (cgsValue > 1) cgsValue = 0;
 				bb.writeByte((int) cgsValue);
-				bb.retain();
+				return bb.retain();
 			} finally {
 				bb.release();
 			}
-			return bb;
 		}
 		return null;
 	}
@@ -865,7 +866,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			} else {
 				bb.writeShort(slot);
 			}
-			BufferUtils.convertSlot2Legacy(in, bb, nbtContext(), componentHelper());
+			BufferUtils.convertSlot2Legacy(in, bb, player());
 			bb.retain();
 		} finally {
 			bb.release();
@@ -891,10 +892,10 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			}
 			if (ench && ii == 1) {
 				int here = bb.writerIndex();
-				BufferUtils.convertSlot2Legacy(in, bb, nbtContext(), componentHelper());
+				BufferUtils.convertSlot2Legacy(in, bb, player());
 				bb.writerIndex(here);
 			} else {
-				BufferUtils.convertSlot2Legacy(in, bb, nbtContext(), componentHelper());
+				BufferUtils.convertSlot2Legacy(in, bb, player());
 			}
 		}
 	}
@@ -916,11 +917,10 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				bb.writeByte(grah);
 				bb.writeShort(uwpProp);
 				bb.writeShort(in.readShort());
-				bb.retain();
+				return bb.retain();
 			} finally {
 				bb.release();
 			}
-			return bb;
 		}
 		return null;
 	}
@@ -1034,7 +1034,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				bb.writeShort(BufferUtils.posY(ubePos));
 				bb.writeInt(BufferUtils.posZ(ubePos));
 				bb.writeByte(ubeAct);
-				BufferUtils.convertNBT2Legacy(in, bb, nbtContext(), componentHelper());
+				BufferUtils.convertNBT2Legacy(in, bb, player());
 				bb.retain();
 			} finally {
 				bb.release();
@@ -1451,12 +1451,12 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				ByteBuf tmp = alloc.buffer();
 				try {
 					for (int i = 0; i < count; ++i) {
-						BufferUtils.convertSlot2Legacy(in, tmp, nbtContext(), componentHelper());
-						BufferUtils.convertSlot2Legacy(in, tmp, nbtContext(), componentHelper());
+						BufferUtils.convertSlot2Legacy(in, tmp, player());
+						BufferUtils.convertSlot2Legacy(in, tmp, player());
 						boolean guh = in.readBoolean();
 						tmp.writeBoolean(guh);
 						if (guh) {
-							BufferUtils.convertSlot2Legacy(in, tmp, nbtContext(), componentHelper());
+							BufferUtils.convertSlot2Legacy(in, tmp, player());
 						}
 						tmp.writeBoolean(in.readBoolean());
 						in.skipBytes(8);
@@ -1573,7 +1573,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					break;
 				case 0x0F:
 					bb = ctx.alloc().buffer();
-					handleSpawnMob(in, bb, ctx.alloc());
+					handleSpawnMob(in, bb);
 					break;
 				case 0x10:
 					bb = ctx.alloc().buffer();
@@ -1624,7 +1624,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					break;
 				case 0x1C:
 					bb = ctx.alloc().buffer();
-					handleEntityMetadata(in, bb, ctx.alloc());
+					handleEntityMetadata(in, bb);
 					break;
 				case 0x1D:
 					bb = ctx.alloc().buffer();
@@ -1639,7 +1639,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					handleSetExperience(in, bb);
 					break;
 				case 0x21:
-					bb = ctx.alloc().buffer();
+					bb = ctx.alloc().buffer(32768);
 					handleChunkData(in, bb);
 					break;
 				case 0x22:
@@ -1659,7 +1659,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					handleBlockBreakAnimation(in, bb);
 					break;
 				case 0x26:
-					bb = ctx.alloc().buffer();
+					bb = ctx.alloc().buffer(65536);
 					handleMapChunkBulk(in, bb);
 					break;
 				case 0x27:

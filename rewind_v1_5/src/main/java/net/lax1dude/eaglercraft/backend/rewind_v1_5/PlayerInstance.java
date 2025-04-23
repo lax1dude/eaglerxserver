@@ -16,8 +16,13 @@
 
 package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.*;
+import java.util.zip.Deflater;
+import java.util.zip.Inflater;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
@@ -45,6 +50,9 @@ public class PlayerInstance<PlayerObject> {
 	private ObjectObjectMap<UUID, SkinRequest> skinRequests;
 	private ObjectObjectMap<UUID, String> voiceGlobalMap;
 	private ObjectObjectMap<String, UUID> voiceGlobalMapInv;
+	private Deflater notDeflater;
+	private Deflater notGZipper;
+	private Inflater ungzipper;
 
 	private final IntSet enchWindows;
 
@@ -121,6 +129,36 @@ public class PlayerInstance<PlayerObject> {
 			this.tabList = new TabListTracker(rewind.getServerAPI().getHPPC());
 		}
 		return this.tabList;
+	}
+
+	public Deflater getNotDeflater() {
+		if(this.notDeflater == null) {
+			// Note: Always use compression level 0, websocket is already compressed!
+			this.notDeflater = new Deflater(0);
+		}
+		return this.notDeflater;
+	}
+
+	public Deflater getNotGZipper() {
+		if(this.notGZipper == null) {
+			this.notGZipper = new Deflater(0, true);
+		}
+		return this.notGZipper;
+	}
+
+	public Inflater getUnGZipper() {
+		if(this.ungzipper == null) {
+			this.ungzipper = new Inflater(true);
+		}
+		return this.ungzipper;
+	}
+
+	public InputStream createGZIPInputStream(ByteBuf buf, int limit) {
+		return null; //TODO: reusable stream
+	}
+
+	public OutputStream createGZIPOutputStream(ByteBuf buf) {
+		return null; //TODO: reusable stream
 	}
 
 	public IntSet getEnchWindows() {
@@ -231,7 +269,15 @@ public class PlayerInstance<PlayerObject> {
 	}
 
 	public void releaseNatives() {
-		
+		if(notDeflater != null) {
+			notDeflater.end();
+		}
+		if(notGZipper != null) {
+			notGZipper.end();
+		}
+		if(ungzipper != null) {
+			ungzipper.end();
+		}
 	}
 
 }

@@ -19,15 +19,13 @@ package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
-import net.lax1dude.eaglercraft.backend.server.api.*;
-import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTContext;
 
 public class BufferUtils {
 
@@ -324,7 +322,7 @@ public class BufferUtils {
 		bufferIn.readerIndex(startAt + (len << 1));
 	}
 
-	public static void convertSlot2Legacy(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper, IComponentHelper componentHelper) {
+	public static void convertSlot2Legacy(ByteBuf buffer, ByteBuf bb, PlayerInstance<?> context) {
 		short blockId = buffer.readShort();
 		blockId = (short) convertItem2Legacy(blockId);
 		bb.writeShort(blockId);
@@ -335,10 +333,10 @@ public class BufferUtils {
 		short itemDamage = buffer.readShort();
 		bb.writeByte(itemCount);
 		bb.writeShort(itemDamage);
-		convertNBT2Legacy(buffer, bb, nbtHelper, componentHelper);
+		convertNBT2Legacy(buffer, bb, context);
 	}
 
-	public static void convertLegacySlot(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper, IComponentHelper componentHelper) {
+	public static void convertLegacySlot(ByteBuf buffer, ByteBuf bb, PlayerInstance<?> context) {
 		short blockId = buffer.readShort();
 		bb.writeShort(blockId);
 		if (blockId == -1) {
@@ -348,10 +346,10 @@ public class BufferUtils {
 		short itemDamage = buffer.readShort();
 		bb.writeByte(itemCount);
 		bb.writeShort(itemDamage);
-		convertLegacyNBT(buffer, bb, nbtHelper, componentHelper);
+		convertLegacyNBT(buffer, bb, context);
 	}
 
-	public static void convertNBT2Legacy(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper, IComponentHelper componentHelper) {
+	public static void convertNBT2Legacy(ByteBuf buffer, ByteBuf bb, PlayerInstance<?> context) {
 		if (buffer.readUnsignedByte() == 0) {
 			bb.writeShort(-1);
 			return;
@@ -366,7 +364,7 @@ public class BufferUtils {
 			 GZIPOutputStream gzipOs = new GZIPOutputStream(bbos);
 			 DataOutputStream dos = new DataOutputStream(gzipOs)) {
 
-			RewindNBTVisitor.apply(nbtHelper, bbis, dos, componentHelper);
+			RewindNBTVisitor.apply(context.getNBTContext(), bbis, dos, context.getComponentHelper());
 
 			gzipOs.finish();
 
@@ -376,7 +374,7 @@ public class BufferUtils {
         }
 	}
 
-	public static void convertLegacyNBT(ByteBuf buffer, ByteBuf bb, INBTContext nbtHelper, IComponentHelper componentHelper) {
+	public static void convertLegacyNBT(ByteBuf buffer, ByteBuf bb, PlayerInstance<?> context) {
 		short len1 = buffer.readShort();
 		if (len1 == -1) {
 			bb.writeByte(0);
@@ -386,7 +384,8 @@ public class BufferUtils {
 			 GZIPInputStream gzipIs = new GZIPInputStream(bbis);
 			 ByteBufOutputStream bbos = new ByteBufOutputStream(bb);
 			 DataOutputStream dos = new DataOutputStream(bbos)) {
-			RewindNBTVisitorReverse.apply(nbtHelper, new DataInputStream(new SafeGZIPInputStream(gzipIs, 65535)), dos, componentHelper);
+			RewindNBTVisitorReverse.apply(context.getNBTContext(),
+					new DataInputStream(new SafeGZIPInputStream(gzipIs, 65535)), dos, context.getComponentHelper());
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
@@ -427,6 +426,39 @@ public class BufferUtils {
 		bb.writerIndex(absWInd + guh2 + guh);
 	}
 
+	public static int sizeEstimateNotDeflated(int srcLen) {
+		return 16 + (srcLen >> 15) * 5 + srcLen;
+	}
+
+	public static void notDeflate(ByteBuf dataIn, ByteBuf dataOut, Deflater notDeflater) {
+		notDeflater.reset();
+		if(dataIn.hasArray()) {
+			byte[] arr = dataIn.array();
+			int arrIndex = dataIn.arrayOffset();
+			notDeflater.setInput(arr, arrIndex + dataIn.readerIndex(), dataIn.readableBytes());
+		}else if(dataIn.nioBufferCount() == 1) {
+			notDeflater.setInput(dataIn.internalNioBuffer(dataIn.readerIndex(), dataIn.readableBytes()));
+		}else {
+			throw new IllegalStateException("Composite buffers not supported! (Input)");
+		}
+		int len;
+		if(dataOut.hasArray()) {
+			byte[] arr = dataOut.array();
+			int arrIndex = dataOut.arrayOffset();
+			len = notDeflater.deflate(arr, arrIndex + dataOut.writerIndex(), dataOut.writableBytes());
+		}else if(dataOut.nioBufferCount() == 1) {
+			len = notDeflater.deflate(dataOut.internalNioBuffer(dataOut.writerIndex(), dataOut.writableBytes()));
+		}else {
+			throw new IllegalStateException("Composite buffers not supported! (Output)");
+		}
+		notDeflater.finish();
+		if((len == 0 && notDeflater.needsInput()) || !notDeflater.finished()) {
+			throw new IndexOutOfBoundsException();
+		}
+		dataIn.skipBytes(notDeflater.getTotalIn());
+		dataOut.writerIndex(dataOut.writerIndex() + notDeflater.getTotalOut());
+	}
+
 	public static int posX(long position) {
 		return (int)(position >> 38);
 	}
@@ -443,7 +475,7 @@ public class BufferUtils {
 		return ((long) (x & 0x3FFFFFF) << 38) | ((long) (y & 0xFFF) << 26) | (z & 0x3FFFFFF);
 	}
 
-	public static String convertMetadata2Legacy(ByteBuf buffer, ByteBuf bb, int entityType, ByteBufAllocator alloc, INBTContext nbtHelper, IComponentHelper componentHelper) {
+	public static String convertMetadata2Legacy(ByteBuf buffer, ByteBuf bb, int entityType, PlayerInstance<?> context) {
 		String playerNameWowie = null;
 
 		if (entityType == -1) {
@@ -485,9 +517,9 @@ public class BufferUtils {
 					}
 					break;
 				case 5:
-					ByteBuf tmp = alloc.buffer();
+					ByteBuf tmp = context.getChannel().alloc().buffer();
 					try {
-						BufferUtils.convertSlot2Legacy(buffer, tmp, nbtHelper, componentHelper);
+						BufferUtils.convertSlot2Legacy(buffer, tmp, context);
 						remapMeta(entityType, index, type, bb, tmp);
 					} finally {
 						tmp.release();

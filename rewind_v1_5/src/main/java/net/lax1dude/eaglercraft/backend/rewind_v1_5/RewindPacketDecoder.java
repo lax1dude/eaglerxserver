@@ -183,7 +183,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					BufferUtils.writeVarInt(bb, 0x08);
 					bb.writeLong(BufferUtils.createPosition(in.readInt(), in.readUnsignedByte(), in.readInt()));
 					bb.writeByte(in.readUnsignedByte());
-					BufferUtils.convertLegacySlot(in, bb, nbtContext(), componentHelper());
+					BufferUtils.convertLegacySlot(in, bb, player());
 					bb.writeByte(in.readByte());
 					bb.writeByte(in.readByte());
 					bb.writeByte(in.readByte());
@@ -233,7 +233,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					bb.writeByte(in.readByte());
 					bb.writeShort(in.readShort());
 					bb.writeByte(in.readByte());
-					BufferUtils.convertLegacySlot(in, bb, nbtContext(), componentHelper());
+					BufferUtils.convertLegacySlot(in, bb, player());
 					if(in.isReadable()) throw new IndexOutOfBoundsException();
 					break;
 				case 0x6A:
@@ -248,7 +248,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					bb = ctx.alloc().buffer();
 					BufferUtils.writeVarInt(bb, 0x10);
 					bb.writeShort(in.readShort());
-					BufferUtils.convertLegacySlot(in, bb, nbtContext(), componentHelper());
+					BufferUtils.convertLegacySlot(in, bb, player());
 					if(in.isReadable()) throw new IndexOutOfBoundsException();
 					break;
 				case 0x6C:
@@ -338,7 +338,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					case "MC|BSign":
 						ri = in.readerIndex();
 						bb = ctx.alloc().buffer();
-						BufferUtils.convertLegacySlot(in, bb, nbtContext(), componentHelper());
+						BufferUtils.convertLegacySlot(in, bb, player());
 						if(in.isReadable() || in.readerIndex() - ri != pmLen) {
 							throw new IndexOutOfBoundsException();
 						}
