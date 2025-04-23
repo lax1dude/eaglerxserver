@@ -16,14 +16,22 @@
 
 package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.zstream.HackedBufferedInputStream;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.zstream.HackedBufferedOutputStream;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.zstream.HackedDataOutputStream;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.zstream.ReusableGZIPInputStream;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.zstream.ReusableGZIPOutputStream;
 import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
@@ -53,6 +61,10 @@ public class PlayerInstance<PlayerObject> {
 	private Deflater notDeflater;
 	private Deflater notGZipper;
 	private Inflater ungzipper;
+	private ReusableGZIPInputStream ungzipperStream;
+	private DataInputStream ungzipperStreamOuter;
+	private ReusableGZIPOutputStream gzipperStream;
+	private DataOutputStream gzipperStreamOuter;
 
 	private final IntSet enchWindows;
 
@@ -63,7 +75,7 @@ public class PlayerInstance<PlayerObject> {
 	private float pitch = 0;
 	private boolean isSneaking = false;
 
-	private byte[] temp;
+	private byte[] temp1;
 
 	private long lastReqFlush;
 
@@ -153,12 +165,22 @@ public class PlayerInstance<PlayerObject> {
 		return this.ungzipper;
 	}
 
-	public InputStream createGZIPInputStream(ByteBuf buf, int limit) {
-		return null; //TODO: reusable stream
+	public DataInputStream createGZIPInputStream(ByteBuf buf, int limit) throws IOException {
+		if(this.ungzipperStream == null) {
+			this.ungzipperStream = new ReusableGZIPInputStream(getUnGZipper(), getTempBuffer1());
+			this.ungzipperStreamOuter = new DataInputStream(new HackedBufferedInputStream(ungzipperStream, 2048));
+		}
+		this.ungzipperStream.setInput(buf, limit);
+		return this.ungzipperStreamOuter;
 	}
 
-	public OutputStream createGZIPOutputStream(ByteBuf buf) {
-		return null; //TODO: reusable stream
+	public DataOutputStream createGZIPOutputStream(ByteBuf buf) {
+		if(this.gzipperStream == null) {
+			this.gzipperStream = new ReusableGZIPOutputStream(getNotGZipper(), getTempBuffer1());
+			this.gzipperStreamOuter = new HackedDataOutputStream(new HackedBufferedOutputStream(gzipperStream, 2048));
+		}
+		this.gzipperStream.setOutput(buf);
+		return this.gzipperStreamOuter;
 	}
 
 	public IntSet getEnchWindows() {
@@ -204,11 +226,11 @@ public class PlayerInstance<PlayerObject> {
 		this.isSneaking = sneaking;
 	}
 
-	public byte[] getTempBuffer() {
-		if(this.temp == null) {
-			this.temp = new byte[1024];
+	public byte[] getTempBuffer1() {
+		if(this.temp1 == null) {
+			this.temp1 = new byte[1];
 		}
-		return this.temp;
+		return this.temp1;
 	}
 
 	public void addSkinRequest(UUID uuid, int cookie) {

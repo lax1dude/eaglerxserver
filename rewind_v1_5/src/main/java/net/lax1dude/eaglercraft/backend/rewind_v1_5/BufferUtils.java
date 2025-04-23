@@ -20,8 +20,6 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.Deflater;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
@@ -360,13 +358,11 @@ public class BufferUtils {
 		bb.writerIndex(wi);
 
 		try (ByteBufInputStream bbis = new ByteBufInputStream(buffer);
-			 ByteBufOutputStream bbos = new ByteBufOutputStream(bb);
-			 GZIPOutputStream gzipOs = new GZIPOutputStream(bbos);
-			 DataOutputStream dos = new DataOutputStream(gzipOs)) {
+			 DataOutputStream dos = context.createGZIPOutputStream(bb)) {
 
 			RewindNBTVisitor.apply(context.getNBTContext(), bbis, dos, context.getComponentHelper());
 
-			gzipOs.finish();
+			dos.close();
 
 			bb.setShort(wi - 2, bb.writerIndex() - wi);
 		} catch (IOException e) {
@@ -379,16 +375,18 @@ public class BufferUtils {
 		if (len1 == -1) {
 			bb.writeByte(0);
 			return;
+		}else if (len1 < 0) {
+			throw new IndexOutOfBoundsException();
 		}
-		try (ByteBufInputStream bbis = new ByteBufInputStream(buffer, len1);
-			 GZIPInputStream gzipIs = new GZIPInputStream(bbis);
-			 ByteBufOutputStream bbos = new ByteBufOutputStream(bb);
-			 DataOutputStream dos = new DataOutputStream(bbos)) {
-			RewindNBTVisitorReverse.apply(context.getNBTContext(),
-					new DataInputStream(new SafeGZIPInputStream(gzipIs, 65535)), dos, context.getComponentHelper());
+		int oldEnd = buffer.writerIndex();
+		buffer.writerIndex(buffer.readerIndex() + len1);
+		try (DataInputStream gzipIs = context.createGZIPInputStream(buffer, 65535);
+				ByteBufOutputStream dos = new ByteBufOutputStream(bb)) {
+			RewindNBTVisitorReverse.apply(context.getNBTContext(), gzipIs, dos, context.getComponentHelper());
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
+		buffer.writerIndex(oldEnd);
 	}
 
 	public static int calcChunkDataSize(final int count, final boolean light, final boolean sendBiomes) {

@@ -68,10 +68,6 @@ public class RewindChannelHandler<PlayerObject> extends MessageToMessageCodec<By
 			return codec.player.getComponentHelper();
 		}
 
-		protected final byte[] tempBuffer() {
-			return codec.player.getTempBuffer();
-		}
-
 		protected final IMessageController messageController() {
 			return codec.player.getMessageController();
 		}
