@@ -77,7 +77,11 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 
 	@Override
 	public String serializeLegacySection(Object component) {
-		return ((BaseComponent) component).toLegacyText();
+		String lt = ((BaseComponent) component).toLegacyText();
+		if (((BaseComponent) component).getColorRaw() == null && (lt.startsWith("\u00A7f") || lt.startsWith("\u00A7F"))) {
+			lt = lt.substring(2);
+		}
+		return lt;
 	}
 
 	@Override
@@ -172,7 +176,19 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 
 	@Override
 	public Object parseLegacyText(String text) throws IllegalArgumentException {
-		return ComponentSerializer.toString(TextComponent.fromLegacyText(text));
+		BaseComponent[] components = TextComponent.fromLegacyText(text);
+		BaseComponent ret;
+		if(components.length == 1) {
+			ret = components[0];
+		}else if(components.length == 0) {
+			ret = new TextComponent();
+		}else {
+			ret = components[0];
+			for(int i = 1; i < components.length; ++i) {
+				ret.addExtra(components[i]);
+			}
+		}
+		return ret;
 	}
 
 }

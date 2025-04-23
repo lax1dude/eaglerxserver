@@ -1468,6 +1468,19 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					tmp.release();
 				}
 				break;
+			case "MC|ItemName":
+				ri = in.readerIndex();
+				tmp = alloc.buffer();
+				try {
+					int len = BufferUtils.readVarInt(in);
+					in.readBytes(tmp, len);
+					in.readerIndex(ri);
+					in.writerIndex(ri);
+					in.writeBytes(tmp);
+				} finally {
+					tmp.release();
+				}
+				break;
 		}
 		ByteBuf bb = alloc.buffer();
 		try {
