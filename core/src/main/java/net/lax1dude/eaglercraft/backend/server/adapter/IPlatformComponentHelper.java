@@ -58,9 +58,4 @@ public interface IPlatformComponentHelper {
 	 */
 	Object parseModernJSON(String json) throws IllegalArgumentException;
 
-	/**
-	 * Use for simple components, on legacy clients
-	 */
-	Object parseLegacyText(String string) throws IllegalArgumentException;
-
 }

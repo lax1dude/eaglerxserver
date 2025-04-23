@@ -16,7 +16,6 @@
 
 package net.lax1dude.eaglercraft.backend.rewind_v1_5;
 
-import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.EnumDataType;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTContext;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTValue;
@@ -28,19 +27,16 @@ import java.io.IOException;
 
 public class RewindNBTVisitorReverse implements INBTVisitor {
 
-	public static void apply(INBTContext context, DataInput input, DataOutput output, IComponentHelper componentHelper) throws IOException {
-		context.accept(input, new RewindNBTVisitorReverse(context, context.createWriter(output), componentHelper));
+	public static void apply(INBTContext context, DataInput input, DataOutput output) throws IOException {
+		context.accept(input, new RewindNBTVisitorReverse(context, context.createWriter(output)));
 	}
 
 	private final INBTContext context;
 	private final INBTVisitor parent;
 
-	private final IComponentHelper componentHelper;
-
-	private RewindNBTVisitorReverse(INBTContext context, INBTVisitor parent, IComponentHelper componentHelper) {
+	private RewindNBTVisitorReverse(INBTContext context, INBTVisitor parent) {
 		this.context = context;
 		this.parent = parent;
-		this.componentHelper = componentHelper;
 	}
 
 	@Override
@@ -119,7 +115,7 @@ public class RewindNBTVisitorReverse implements INBTVisitor {
 				parent().visitTagString(str);
 				return;
 			}
-			String transformedText = componentHelper.serializeLegacyTextToLegacyJSON(str.value());
+			String transformedText = "\"" + str.value().replaceAll("\\\\", "\\\\").replaceAll("\"", "\\\\\"") + "\"";
 			parent().visitTagString(context.wrapValue(transformedText));
 		}
 	}

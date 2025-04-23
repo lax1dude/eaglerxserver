@@ -538,7 +538,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeShort(BufferUtils.readVarInt(in));
 	}
 
-	private void handleChunkData(ByteBuf in, ByteBuf bb) {
+	private void handleChunkData(ByteBuf in, ByteBuf bb, ByteBufAllocator alloc) {
 		bb.writeByte(0x33);
 		int chunkX = in.readInt();
 		int chunkZ = in.readInt();
@@ -547,20 +547,19 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		BufferUtils.readVarInt(in);
 		int aaaa = bb.writerIndex();
 		bb.writerIndex(aaaa + 17);
-		int startInd = bb.writerIndex();
 		int size = BufferUtils.calcChunkDataSize(Integer.bitCount(chunkPbm), playerDimension == 0, chunkCont);
-		BufferUtils.convertChunk2Legacy(chunkPbm, size, in, bb);
 		if (OLD_CHUNK_FORMAT) {
-			int ri = bb.readerIndex();
-			bb.readerIndex(startInd);
-			int notDeflateLen = BufferUtils.sizeEstimateNotDeflated(size);
-			bb.ensureWritable(notDeflateLen * 2);
-			bb.writerIndex(bb.writerIndex() + notDeflateLen);
-			int startDefInd = bb.writerIndex();
-			int notDeflateActualLen = BufferUtils.notDeflate(bb, size, bb, player().getNotDeflater());
-			bb.setBytes(startInd, bb, startDefInd, notDeflateActualLen);
-			bb.readerIndex(ri);
-			bb.writerIndex(startInd + notDeflateActualLen);
+			ByteBuf tmp = alloc.buffer(size);
+			try {
+				BufferUtils.convertChunk2Legacy(chunkPbm, size, in, tmp);
+				int notDeflateLen = BufferUtils.sizeEstimateNotDeflated(size);
+				bb.ensureWritable(notDeflateLen);
+				BufferUtils.notDeflate(tmp, bb, player().getNotDeflater());
+			} finally {
+				tmp.release();
+			}
+		} else {
+			BufferUtils.convertChunk2Legacy(chunkPbm, size, in, bb);
 		}
 		bb.setInt(aaaa, chunkX);
 		aaaa += 4;
@@ -636,7 +635,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeByte(in.readByte());
 	}
 
-	private void handleMapChunkBulk(ByteBuf in, ByteBuf bb) {
+	private void handleMapChunkBulk(ByteBuf in, ByteBuf bb, ByteBufAllocator alloc) {
 		bb.writeByte(0x38);
 		boolean mcbSkyLightSent = in.readBoolean();
 		int mcbCcc = BufferUtils.readVarInt(in);
@@ -650,24 +649,30 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		}
 		int aaaa = bb.writerIndex();
 		bb.writerIndex(aaaa + 7);
-		int startInd = bb.writerIndex();
-		int size = 0;
-		for (int ii = 0; ii < mcbCcc; ++ii) {
-			int chunkSize = BufferUtils.calcChunkDataSize(Integer.bitCount(bitmap[ii]), mcbSkyLightSent, true);
-			BufferUtils.convertChunk2Legacy(bitmap[ii], chunkSize, in, bb);
-			size += chunkSize;
-		}
 		if (OLD_CHUNK_FORMAT) {
-			int ri = bb.readerIndex();
-			bb.readerIndex(startInd);
-			int notDeflateLen = BufferUtils.sizeEstimateNotDeflated(size);
-			bb.ensureWritable(notDeflateLen * 2);
-			bb.writerIndex(bb.writerIndex() + notDeflateLen);
-			int startDefInd = bb.writerIndex();
-			int notDeflateActualLen = BufferUtils.notDeflate(bb, size, bb, player().getNotDeflater());
-			bb.setBytes(startInd, bb, startDefInd, notDeflateActualLen);
-			bb.readerIndex(ri);
-			bb.writerIndex(startInd + notDeflateActualLen);
+			int[] sizes = new int[mcbCcc];
+			int size = 0;
+			for (int ii = 0; ii < mcbCcc; ++ii) {
+				int chunkSize = BufferUtils.calcChunkDataSize(Integer.bitCount(bitmap[ii]), mcbSkyLightSent, true);
+				sizes[ii] = chunkSize;
+				size += chunkSize;
+			}
+			ByteBuf tmp = alloc.buffer(size);
+			try {
+				for (int ii = 0; ii < mcbCcc; ++ii) {
+					BufferUtils.convertChunk2Legacy(bitmap[ii], sizes[ii], in, tmp);
+				}
+				int notDeflateLen = BufferUtils.sizeEstimateNotDeflated(size);
+				bb.ensureWritable(notDeflateLen);
+				BufferUtils.notDeflate(tmp, bb, player().getNotDeflater());
+			} finally {
+				tmp.release();
+			}
+		} else {
+			for (int ii = 0; ii < mcbCcc; ++ii) {
+				int chunkSize = BufferUtils.calcChunkDataSize(Integer.bitCount(bitmap[ii]), mcbSkyLightSent, true);
+				BufferUtils.convertChunk2Legacy(bitmap[ii], chunkSize, in, bb);
+			}
 		}
 		bb.setShort(aaaa, mcbCcc);
 		aaaa += 2;
@@ -1676,7 +1681,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					break;
 				case 0x21:
 					bb = ctx.alloc().buffer(32768);
-					handleChunkData(in, bb);
+					handleChunkData(in, bb, ctx.alloc());
 					break;
 				case 0x22:
 					bb = ctx.alloc().buffer();
@@ -1696,7 +1701,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 					break;
 				case 0x26:
 					bb = ctx.alloc().buffer(65536);
-					handleMapChunkBulk(in, bb);
+					handleMapChunkBulk(in, bb, ctx.alloc());
 					break;
 				case 0x27:
 					bb = ctx.alloc().buffer();

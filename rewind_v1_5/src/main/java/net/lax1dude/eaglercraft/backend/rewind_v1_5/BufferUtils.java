@@ -382,7 +382,7 @@ public class BufferUtils {
 		buffer.writerIndex(buffer.readerIndex() + len1);
 		try (DataInputStream gzipIs = context.createGZIPInputStream(buffer, 65535);
 				ByteBufOutputStream dos = new ByteBufOutputStream(bb)) {
-			RewindNBTVisitorReverse.apply(context.getNBTContext(), gzipIs, dos, context.getComponentHelper());
+			RewindNBTVisitorReverse.apply(context.getNBTContext(), gzipIs, dos);
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
@@ -428,14 +428,14 @@ public class BufferUtils {
 		return 16 + (srcLen >> 15) * 5 + srcLen;
 	}
 
-	public static int notDeflate(ByteBuf dataIn, int dataInLen, ByteBuf dataOut, Deflater notDeflater) {
+	public static int notDeflate(ByteBuf dataIn, ByteBuf dataOut, Deflater notDeflater) {
 		notDeflater.reset();
 		if(dataIn.hasArray()) {
 			byte[] arr = dataIn.array();
 			int arrIndex = dataIn.arrayOffset();
-			notDeflater.setInput(arr, arrIndex + dataIn.readerIndex(), dataInLen);
+			notDeflater.setInput(arr, arrIndex + dataIn.readerIndex(), dataIn.readableBytes());
 		}else if(dataIn.nioBufferCount() == 1) {
-			notDeflater.setInput(dataIn.nioBuffer(dataIn.readerIndex(), dataInLen));
+			notDeflater.setInput(dataIn.internalNioBuffer(dataIn.readerIndex(), dataIn.readableBytes()));
 		}else {
 			throw new IllegalStateException("Composite buffers not supported! (Input)");
 		}
@@ -446,7 +446,7 @@ public class BufferUtils {
 			int arrIndex = dataOut.arrayOffset();
 			len = notDeflater.deflate(arr, arrIndex + dataOut.writerIndex(), dataOut.writableBytes());
 		}else if(dataOut.nioBufferCount() == 1) {
-			len = notDeflater.deflate(dataOut.nioBuffer(dataOut.writerIndex(), dataOut.writableBytes()));
+			len = notDeflater.deflate(dataOut.internalNioBuffer(dataOut.writerIndex(), dataOut.writableBytes()));
 		}else {
 			throw new IllegalStateException("Composite buffers not supported! (Output)");
 		}

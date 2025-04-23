@@ -263,7 +263,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 					BufferUtils.writeVarInt(bb, 0x12);
 					bb.writeLong(BufferUtils.createPosition(in.readInt(), in.readShort(), in.readInt()));
 					for (int ii = 0; ii < 4; ++ii) {
-						BufferUtils.writeMCString(bb, componentHelper().serializeLegacyTextToLegacyJSON(BufferUtils.readLegacyMCString(in, 255)), 4095);
+						BufferUtils.writeMCString(bb, "\"" + BufferUtils.readLegacyMCString(in, 255).replaceAll("\\\\", "\\\\").replaceAll("\"", "\\\\\"") + "\"", 4095);
 					}
 					if(in.isReadable()) throw new IndexOutOfBoundsException();
 					break;
@@ -303,6 +303,9 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 				case 0xFA:
 					String name = BufferUtils.readLegacyMCString(in, 255);
 					int pmLen = in.readUnsignedShort();
+					if (in.readableBytes() != pmLen) {
+						throw new IndexOutOfBoundsException();
+					}
 					switch(name) {
 					case "MC|AdvCdm":
 						int ri = in.readerIndex();
@@ -310,7 +313,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 						int cmdY = in.readInt();
 						int cmdZ = in.readInt();
 						String cmd = BufferUtils.readLegacyMCString(in, 32767);
-						if(in.isReadable() || in.readerIndex() - ri != pmLen) {
+						if(in.isReadable()) {
 							throw new IndexOutOfBoundsException();
 						}
 						in.readerIndex(ri);
@@ -327,6 +330,9 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 						ri = in.readerIndex();
 						bb = ctx.alloc().buffer();
 						in.readBytes(bb, pmLen);
+						if(in.isReadable()) {
+							throw new IndexOutOfBoundsException();
+						}
 						in.readerIndex(ri);
 						in.writerIndex(ri);
 						BufferUtils.writeVarInt(in, pmLen);
@@ -339,7 +345,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 						ri = in.readerIndex();
 						bb = ctx.alloc().buffer();
 						BufferUtils.convertLegacySlot(in, bb, player());
-						if(in.isReadable() || in.readerIndex() - ri != pmLen) {
+						if(in.isReadable()) {
 							throw new IndexOutOfBoundsException();
 						}
 						in.readerIndex(ri);
@@ -352,7 +358,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 						ri = in.readerIndex();
 						int cookie = in.readUnsignedShort();
 						String username = BufferUtils.readCharSequence(in, pmLen - 2, StandardCharsets.US_ASCII).toString();
-						if(in.isReadable() || in.readerIndex() - ri != pmLen) {
+						if(in.isReadable()) {
 							throw new IndexOutOfBoundsException();
 						}
 						TabListTracker.ListItem playerItem = tabList().getItemByName(username);
@@ -369,7 +375,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 						switch(sig) {
 						case 0: // VOICE_SIGNAL_REQUEST
 							String target = BufferUtils.readASCIIStr(in);
-							if(in.isReadable() || in.readerIndex() - ri != pmLen) {
+							if(in.isReadable()) {
 								throw new IndexOutOfBoundsException();
 							}
 							UUID uuid = player().getVoicePlayerByName(target);
@@ -379,7 +385,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 							}
 							break;
 						case 1: // VOICE_SIGNAL_CONNECT
-							if(in.isReadable() || in.readerIndex() - ri != pmLen) {
+							if(in.isReadable()) {
 								throw new IndexOutOfBoundsException();
 							}
 							messageController().recieveInboundMessage(new CPacketVoiceSignalConnectEAG());
@@ -387,7 +393,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 						case 2: // VOICE_SIGNAL_DISCONNECT
 							if(in.isReadable()) {
 								target = BufferUtils.readASCIIStr(in);
-								if(in.isReadable() || in.readerIndex() - ri != pmLen) {
+								if(in.isReadable()) {
 									throw new IndexOutOfBoundsException();
 								}
 								uuid = player().getVoicePlayerByName(target);
@@ -396,7 +402,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 											uuid.getMostSignificantBits(), uuid.getLeastSignificantBits()));
 								}
 							}else {
-								if(in.readerIndex() - ri != pmLen) {
+								if(in.isReadable()) {
 									throw new IndexOutOfBoundsException();
 								}
 								player().releaseVoiceGlobalMap();
@@ -408,7 +414,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 							if(uuid != null) {
 								byte[] data = new byte[in.readUnsignedShort()];
 								in.readBytes(data);
-								if(in.isReadable() || in.readerIndex() - ri != pmLen) {
+								if(in.isReadable()) {
 									throw new IndexOutOfBoundsException();
 								}
 								messageController().recieveInboundMessage(new CPacketVoiceSignalICEEAG(
@@ -420,7 +426,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 							if(uuid != null) {
 								byte[] data = new byte[in.readUnsignedShort()];
 								in.readBytes(data);
-								if(in.isReadable() || in.readerIndex() - ri != pmLen) {
+								if(in.isReadable()) {
 									throw new IndexOutOfBoundsException();
 								}
 								messageController().recieveInboundMessage(new CPacketVoiceSignalDescEAG(
@@ -432,9 +438,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 						}
 						break fuck;
 					default:
-						if(in.readableBytes() != pmLen) {
-							throw new IndexOutOfBoundsException();
-						}
+						//
 					}
 					bb = ctx.alloc().buffer();
 					BufferUtils.writeVarInt(bb, 0x17);

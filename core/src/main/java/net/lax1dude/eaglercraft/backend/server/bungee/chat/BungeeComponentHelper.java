@@ -16,13 +16,14 @@
 
 package net.lax1dude.eaglercraft.backend.server.bungee.chat;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.google.gson.JsonParseException;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentBuilder;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -33,6 +34,7 @@ import net.md_5.bungee.chat.ComponentSerializer;
 public class BungeeComponentHelper implements IPlatformComponentHelper {
 
 	public static final boolean LEGACY_FLAG_SUPPORT;
+	public static final boolean LEGACY_COMPONENT_OK;
 	public static final ClickEvent.Action CLICK_ACTION_COPY_TO_CLIPBOARD;
 
 	static {
@@ -51,6 +53,7 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 			action = null;
 		}
 		CLICK_ACTION_COPY_TO_CLIPBOARD = action;
+		LEGACY_COMPONENT_OK = ComponentSerializer.parse("\"e\"")[0].toLegacyText().equals("e");
 	}
 
 	private final BungeeComponentBuilder builder = new BungeeComponentBuilder();
@@ -77,11 +80,31 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 
 	@Override
 	public String serializeLegacySection(Object component) {
-		String lt = ((BaseComponent) component).toLegacyText();
-		if (((BaseComponent) component).getColorRaw() == null && (lt.startsWith("\u00A7f") || lt.startsWith("\u00A7F"))) {
+		if (!(component instanceof BaseComponent bc)) {
+			throw new IllegalArgumentException("Not a component!");
+		}
+		if (LEGACY_COMPONENT_OK) {
+			return bc.toLegacyText();
+		}
+		List<BaseComponent> bruh = bc.getExtra();
+		if (bruh != null) {
+			bc = bc.duplicate();
+			bruh = new ArrayList<>(bruh);
+			bc.setExtra(Collections.emptyList());
+		}
+		String lt = bc.toLegacyText();
+		if (bc.getColorRaw() == null && (lt.startsWith("\u00A7f") || lt.startsWith("\u00A7F"))) {
 			lt = lt.substring(2);
 		}
-		return lt;
+		if (bruh == null) {
+			return lt;
+		} else {
+			StringBuilder res = new StringBuilder(lt);
+			for (BaseComponent bc2 : bruh) {
+				res.append(serializeLegacySection(bc2));
+			}
+			return res.toString();
+		}
 	}
 
 	@Override
@@ -157,7 +180,7 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 			}
 		}
 
-		if (ret instanceof TextComponent textRet && ret.getColor() == ChatColor.WHITE && textRet.getText().equals(json)) {
+		if (serializeLegacySection(ret).equals(json)) {
 			throw new IllegalArgumentException("Could not parse JSON chat component", new Exception("Not a valid JSON component"));
 		}
 
@@ -172,23 +195,6 @@ public class BungeeComponentHelper implements IPlatformComponentHelper {
 	@Override
 	public Object parseModernJSON(String json) throws IllegalArgumentException {
 		return parseGenericJSON(json);
-	}
-
-	@Override
-	public Object parseLegacyText(String text) throws IllegalArgumentException {
-		BaseComponent[] components = TextComponent.fromLegacyText(text);
-		BaseComponent ret;
-		if(components.length == 1) {
-			ret = components[0];
-		}else if(components.length == 0) {
-			ret = new TextComponent();
-		}else {
-			ret = components[0];
-			for(int i = 1; i < components.length; ++i) {
-				ret.addExtra(components[i]);
-			}
-		}
-		return ret;
 	}
 
 }

@@ -116,11 +116,6 @@ public class VelocityComponentHelper implements IPlatformComponentHelper {
 		return parseJSON(modernJSON, json);
 	}
 
-	@Override
-	public Object parseLegacyText(String text) throws IllegalArgumentException {
-		return LegacyComponentSerializer.legacySection().deserialize(text);
-	}
-
 	private Object parseJSON(JSONComponentSerializer serializer, String json) throws IllegalArgumentException {
 		try {
 			Object ret = serializer.deserialize(json);
