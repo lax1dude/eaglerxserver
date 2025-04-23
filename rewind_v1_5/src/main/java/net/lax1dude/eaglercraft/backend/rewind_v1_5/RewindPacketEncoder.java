@@ -547,8 +547,21 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		BufferUtils.readVarInt(in);
 		int aaaa = bb.writerIndex();
 		bb.writerIndex(aaaa + 17);
+		int startInd = bb.writerIndex();
 		int size = BufferUtils.calcChunkDataSize(Integer.bitCount(chunkPbm), playerDimension == 0, chunkCont);
 		BufferUtils.convertChunk2Legacy(chunkPbm, size, in, bb);
+		if (OLD_CHUNK_FORMAT) {
+			int ri = bb.readerIndex();
+			bb.readerIndex(startInd);
+			int notDeflateLen = BufferUtils.sizeEstimateNotDeflated(size);
+			bb.ensureWritable(notDeflateLen * 2);
+			bb.writerIndex(bb.writerIndex() + notDeflateLen);
+			int startDefInd = bb.writerIndex();
+			int notDeflateActualLen = BufferUtils.notDeflate(bb, size, bb, player().getNotDeflater());
+			bb.setBytes(startInd, bb, startDefInd, notDeflateActualLen);
+			bb.readerIndex(ri);
+			bb.writerIndex(startInd + notDeflateActualLen);
+		}
 		bb.setInt(aaaa, chunkX);
 		aaaa += 4;
 		bb.setInt(aaaa, chunkZ);
@@ -559,7 +572,11 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		aaaa += 2;
 		bb.setShort(aaaa, 0);
 		aaaa += 2;
-		bb.setInt(aaaa, (bb.writerIndex() - (aaaa + 4)) | 0x10000000);
+		int cringe = bb.writerIndex() - (aaaa + 4);
+		if (!OLD_CHUNK_FORMAT) {
+			cringe |= 0x10000000;
+		}
+		bb.setInt(aaaa, cringe);
 		// aaaa += 4;
 	}
 
@@ -633,13 +650,32 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		}
 		int aaaa = bb.writerIndex();
 		bb.writerIndex(aaaa + 7);
+		int startInd = bb.writerIndex();
+		int size = 0;
 		for (int ii = 0; ii < mcbCcc; ++ii) {
-			int size = BufferUtils.calcChunkDataSize(Integer.bitCount(bitmap[ii]), mcbSkyLightSent, true);
-			BufferUtils.convertChunk2Legacy(bitmap[ii], size, in, bb);
+			int chunkSize = BufferUtils.calcChunkDataSize(Integer.bitCount(bitmap[ii]), mcbSkyLightSent, true);
+			BufferUtils.convertChunk2Legacy(bitmap[ii], chunkSize, in, bb);
+			size += chunkSize;
+		}
+		if (OLD_CHUNK_FORMAT) {
+			int ri = bb.readerIndex();
+			bb.readerIndex(startInd);
+			int notDeflateLen = BufferUtils.sizeEstimateNotDeflated(size);
+			bb.ensureWritable(notDeflateLen * 2);
+			bb.writerIndex(bb.writerIndex() + notDeflateLen);
+			int startDefInd = bb.writerIndex();
+			int notDeflateActualLen = BufferUtils.notDeflate(bb, size, bb, player().getNotDeflater());
+			bb.setBytes(startInd, bb, startDefInd, notDeflateActualLen);
+			bb.readerIndex(ri);
+			bb.writerIndex(startInd + notDeflateActualLen);
 		}
 		bb.setShort(aaaa, mcbCcc);
 		aaaa += 2;
-		bb.setInt(aaaa, (bb.writerIndex() - (aaaa + (4 + 1))) | 0x10000000);
+		int cringe = bb.writerIndex() - (aaaa + (4 + 1));
+		if (!OLD_CHUNK_FORMAT) {
+			cringe |= 0x10000000;
+		}
+		bb.setInt(aaaa, cringe);
 		aaaa += 4;
 		bb.setBoolean(aaaa, mcbSkyLightSent);
 		// aaaa += 1;

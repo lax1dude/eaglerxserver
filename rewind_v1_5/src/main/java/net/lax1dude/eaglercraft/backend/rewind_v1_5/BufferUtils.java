@@ -428,33 +428,34 @@ public class BufferUtils {
 		return 16 + (srcLen >> 15) * 5 + srcLen;
 	}
 
-	public static void notDeflate(ByteBuf dataIn, ByteBuf dataOut, Deflater notDeflater) {
+	public static int notDeflate(ByteBuf dataIn, int dataInLen, ByteBuf dataOut, Deflater notDeflater) {
 		notDeflater.reset();
 		if(dataIn.hasArray()) {
 			byte[] arr = dataIn.array();
 			int arrIndex = dataIn.arrayOffset();
-			notDeflater.setInput(arr, arrIndex + dataIn.readerIndex(), dataIn.readableBytes());
+			notDeflater.setInput(arr, arrIndex + dataIn.readerIndex(), dataInLen);
 		}else if(dataIn.nioBufferCount() == 1) {
-			notDeflater.setInput(dataIn.internalNioBuffer(dataIn.readerIndex(), dataIn.readableBytes()));
+			notDeflater.setInput(dataIn.nioBuffer(dataIn.readerIndex(), dataInLen));
 		}else {
 			throw new IllegalStateException("Composite buffers not supported! (Input)");
 		}
+		notDeflater.finish();
 		int len;
 		if(dataOut.hasArray()) {
 			byte[] arr = dataOut.array();
 			int arrIndex = dataOut.arrayOffset();
 			len = notDeflater.deflate(arr, arrIndex + dataOut.writerIndex(), dataOut.writableBytes());
 		}else if(dataOut.nioBufferCount() == 1) {
-			len = notDeflater.deflate(dataOut.internalNioBuffer(dataOut.writerIndex(), dataOut.writableBytes()));
+			len = notDeflater.deflate(dataOut.nioBuffer(dataOut.writerIndex(), dataOut.writableBytes()));
 		}else {
 			throw new IllegalStateException("Composite buffers not supported! (Output)");
 		}
-		notDeflater.finish();
 		if((len == 0 && notDeflater.needsInput()) || !notDeflater.finished()) {
 			throw new IndexOutOfBoundsException();
 		}
 		dataIn.skipBytes(notDeflater.getTotalIn());
 		dataOut.writerIndex(dataOut.writerIndex() + notDeflater.getTotalOut());
+		return notDeflater.getTotalOut();
 	}
 
 	public static int posX(long position) {
