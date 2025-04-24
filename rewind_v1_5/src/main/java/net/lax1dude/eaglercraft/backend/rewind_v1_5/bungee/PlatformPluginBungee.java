@@ -16,9 +16,9 @@
 
 package net.lax1dude.eaglercraft.backend.rewind_v1_5.bungee;
 
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.IRewindLogger;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.IRewindPlatform;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.RewindPluginProtocol;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.IRewindLogger;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.IRewindPlatform;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindProtocol;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.EaglerXServerAPI;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -26,12 +26,12 @@ import net.md_5.bungee.api.plugin.Plugin;
 public class PlatformPluginBungee extends Plugin implements IRewindPlatform<ProxiedPlayer> {
 
 	private JavaLogger logger;
-	private RewindPluginProtocol<ProxiedPlayer> protocol;
+	private RewindProtocol<ProxiedPlayer> protocol;
 
 	@Override
 	public void onLoad() {
 		logger = new JavaLogger(getLogger());
-		protocol = new RewindPluginProtocol<ProxiedPlayer>(this);
+		protocol = new RewindProtocol<ProxiedPlayer>(this);
 	}
 
 	@Override

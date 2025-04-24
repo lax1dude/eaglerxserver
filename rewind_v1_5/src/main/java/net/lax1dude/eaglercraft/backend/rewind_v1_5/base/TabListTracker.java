@@ -14,7 +14,7 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.rewind_v1_5;
+package net.lax1dude.eaglercraft.backend.rewind_v1_5.base;
 
 import java.util.UUID;
 

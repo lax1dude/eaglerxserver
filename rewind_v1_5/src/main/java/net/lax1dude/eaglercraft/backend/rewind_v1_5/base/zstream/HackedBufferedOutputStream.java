@@ -14,22 +14,22 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.rewind_v1_5.zstream;
+package net.lax1dude.eaglercraft.backend.rewind_v1_5.base.zstream;
 
-import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.OutputStream;
 
-public class HackedBufferedInputStream extends BufferedInputStream {
+public class HackedBufferedOutputStream extends BufferedOutputStream {
 
-	public HackedBufferedInputStream(InputStream in, int size) {
-		super(in, size);
+	public HackedBufferedOutputStream(OutputStream out, int size) {
+		super(out, size);
 	}
 
 	@Override
 	public void close() throws IOException {
-		in.close();
-		pos = count;
+		super.flush();
+		this.out.close();
 	}
 
 }

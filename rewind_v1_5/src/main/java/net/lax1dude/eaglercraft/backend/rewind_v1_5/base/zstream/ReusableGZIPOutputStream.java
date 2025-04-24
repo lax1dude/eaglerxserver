@@ -14,14 +14,14 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.rewind_v1_5.zstream;
+package net.lax1dude.eaglercraft.backend.rewind_v1_5.base.zstream;
 
 import java.io.IOException;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
 
 import io.netty.buffer.ByteBuf;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.BufferUtils;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.codec.BufferUtils;
 
 /**
  * Note: Based on OpenJDK

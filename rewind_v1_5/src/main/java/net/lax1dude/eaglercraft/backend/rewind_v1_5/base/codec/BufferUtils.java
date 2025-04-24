@@ -14,7 +14,7 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.rewind_v1_5;
+package net.lax1dude.eaglercraft.backend.rewind_v1_5.base.codec;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -24,6 +24,7 @@ import java.util.zip.Deflater;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindPlayer;
 
 public class BufferUtils {
 
@@ -328,7 +329,7 @@ public class BufferUtils {
 		bufferIn.readerIndex(startAt + (len << 1));
 	}
 
-	public static void convertSlot2Legacy(ByteBuf buffer, ByteBuf bb, PlayerInstance<?> context) {
+	public static void convertSlot2Legacy(ByteBuf buffer, ByteBuf bb, RewindPlayer<?> context) {
 		short blockId = buffer.readShort();
 		blockId = (short) convertItem2Legacy(blockId);
 		bb.writeShort(blockId);
@@ -342,7 +343,7 @@ public class BufferUtils {
 		convertNBT2Legacy(buffer, bb, context);
 	}
 
-	public static void convertLegacySlot(ByteBuf buffer, ByteBuf bb, PlayerInstance<?> context) {
+	public static void convertLegacySlot(ByteBuf buffer, ByteBuf bb, RewindPlayer<?> context) {
 		short blockId = buffer.readShort();
 		bb.writeShort(blockId);
 		if (blockId == -1) {
@@ -355,7 +356,7 @@ public class BufferUtils {
 		convertLegacyNBT(buffer, bb, context);
 	}
 
-	public static void convertNBT2Legacy(ByteBuf buffer, ByteBuf bb, PlayerInstance<?> context) {
+	public static void convertNBT2Legacy(ByteBuf buffer, ByteBuf bb, RewindPlayer<?> context) {
 		if (buffer.readUnsignedByte() == 0) {
 			bb.writeShort(-1);
 			return;
@@ -378,7 +379,7 @@ public class BufferUtils {
         }
 	}
 
-	public static void convertLegacyNBT(ByteBuf buffer, ByteBuf bb, PlayerInstance<?> context) {
+	public static void convertLegacyNBT(ByteBuf buffer, ByteBuf bb, RewindPlayer<?> context) {
 		short len1 = buffer.readShort();
 		if (len1 == -1) {
 			bb.writeByte(0);
@@ -490,7 +491,7 @@ public class BufferUtils {
 		return ((long) (x & 0x3FFFFFF) << 38) | ((long) (y & 0xFFF) << 26) | (z & 0x3FFFFFF);
 	}
 
-	public static String convertMetadata2Legacy(ByteBuf buffer, ByteBuf bb, int entityType, PlayerInstance<?> context) {
+	public static String convertMetadata2Legacy(ByteBuf buffer, ByteBuf bb, int entityType, RewindPlayer<?> context) {
 		String playerNameWowie = null;
 
 		if (entityType == -1) {

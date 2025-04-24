@@ -19,7 +19,7 @@ package net.lax1dude.eaglercraft.backend.rewind_v1_5.bungee;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.IRewindLogger;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.IRewindLogger;
 
 public class JavaLogger implements IRewindLogger {
 

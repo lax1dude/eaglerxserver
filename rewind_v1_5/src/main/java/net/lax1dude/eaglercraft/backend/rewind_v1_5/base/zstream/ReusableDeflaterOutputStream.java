@@ -14,7 +14,7 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.rewind_v1_5.zstream;
+package net.lax1dude.eaglercraft.backend.rewind_v1_5.base.zstream;
 
 import java.io.IOException;
 import java.io.OutputStream;

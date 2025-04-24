@@ -14,7 +14,7 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.rewind_v1_5;
+package net.lax1dude.eaglercraft.backend.rewind_v1_5.base.codec;
 
 import net.lax1dude.eaglercraft.backend.server.api.nbt.EnumDataType;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTContext;

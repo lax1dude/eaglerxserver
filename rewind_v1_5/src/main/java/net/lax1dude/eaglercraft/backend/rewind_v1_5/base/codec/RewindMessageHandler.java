@@ -14,7 +14,7 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.rewind_v1_5;
+package net.lax1dude.eaglercraft.backend.rewind_v1_5.base.codec;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -22,16 +22,17 @@ import java.util.UUID;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IOutboundInjector;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessageHandler;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.*;
 
 public class RewindMessageHandler implements GameMessageHandler {
 
-	private final PlayerInstance<?> player;
+	private final RewindPlayer<?> player;
 	private final IOutboundInjector injector;
 
-	public RewindMessageHandler(PlayerInstance<?> player) {
+	public RewindMessageHandler(RewindPlayer<?> player) {
 		this.player = player;
 		this.injector = player.getOutboundInjector();
 	}

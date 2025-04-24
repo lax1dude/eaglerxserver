@@ -14,10 +14,8 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.rewind_v1_5;
+package net.lax1dude.eaglercraft.backend.rewind_v1_5.base;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -27,11 +25,11 @@ import java.util.zip.Inflater;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.zstream.HackedBufferedInputStream;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.zstream.HackedBufferedOutputStream;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.zstream.HackedDataOutputStream;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.zstream.ReusableGZIPInputStream;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.zstream.ReusableGZIPOutputStream;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.zstream.HackedBufferedInputStream;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.zstream.HackedBufferedOutputStream;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.zstream.HackedDataOutputStream;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.zstream.ReusableGZIPInputStream;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.zstream.ReusableGZIPOutputStream;
 import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
@@ -43,9 +41,9 @@ import net.lax1dude.eaglercraft.backend.server.api.rewind.IMessageController;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IOutboundInjector;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketVoiceSignalGlobalEAG;
 
-public class PlayerInstance<PlayerObject> {
+public class RewindPlayer<PlayerObject> {
 
-	private final RewindPluginProtocol<PlayerObject> rewind;
+	private final RewindProtocol<PlayerObject> rewind;
 	private final IMessageController messageController;
 	private final IOutboundInjector outboundInjector;
 	private final Channel channel;
@@ -88,7 +86,7 @@ public class PlayerInstance<PlayerObject> {
 		}
 	}
 
-	public PlayerInstance(RewindPluginProtocol<PlayerObject> rewind, IMessageController messageController,
+	public RewindPlayer(RewindProtocol<PlayerObject> rewind, IMessageController messageController,
 			IOutboundInjector outboundInjector, Channel channel, String logName) {
 		this.rewind = rewind;
 		this.messageController = messageController;
@@ -98,7 +96,7 @@ public class PlayerInstance<PlayerObject> {
 		this.enchWindows = rewind.getServerAPI().getHPPC().createIntHashSet();
 	}
 
-	public RewindPluginProtocol<PlayerObject> getRewind() {
+	public RewindProtocol<PlayerObject> getRewind() {
 		return rewind;
 	}
 

@@ -14,22 +14,32 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.rewind_v1_5.zstream;
+package net.lax1dude.eaglercraft.backend.rewind_v1_5.base;
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+public interface IRewindLogger {
 
-public class HackedBufferedOutputStream extends BufferedOutputStream {
+	void info(String msg);
 
-	public HackedBufferedOutputStream(OutputStream out, int size) {
-		super(out, size);
-	}
+	void info(String msg, Throwable thrown);
 
-	@Override
-	public void close() throws IOException {
-		super.flush();
-		this.out.close();
+	void warn(String msg);
+
+	void warn(String msg, Throwable thrown);
+
+	void error(String msg);
+
+	void error(String msg, Throwable thrown);
+
+	IRewindSubLogger createSubLogger(String name);
+
+	public interface IRewindSubLogger extends IRewindLogger {
+
+		IRewindLogger getParent();
+
+		String getName();
+
+		void setName(String name);
+
 	}
 
 }

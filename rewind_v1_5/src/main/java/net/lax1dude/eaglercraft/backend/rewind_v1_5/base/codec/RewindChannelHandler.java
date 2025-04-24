@@ -14,13 +14,17 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.rewind_v1_5;
+package net.lax1dude.eaglercraft.backend.rewind_v1_5.base.codec;
 
 import java.util.List;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.IRewindLogger;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindPlayer;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindProtocol;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.TabListTracker;
 import net.lax1dude.eaglercraft.backend.server.api.IComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTContext;
@@ -28,7 +32,7 @@ import net.lax1dude.eaglercraft.backend.server.api.rewind.IMessageController;
 
 public class RewindChannelHandler<PlayerObject> extends MessageToMessageCodec<ByteBuf, ByteBuf> {
 
-	protected final PlayerInstance<PlayerObject> player;
+	protected final RewindPlayer<PlayerObject> player;
 	protected Codec<PlayerObject> encoder;
 	protected Codec<PlayerObject> decoder;
 
@@ -44,11 +48,11 @@ public class RewindChannelHandler<PlayerObject> extends MessageToMessageCodec<By
 			return codec;
 		}
 
-		protected final PlayerInstance<PlayerObject> player() {
+		protected final RewindPlayer<PlayerObject> player() {
 			return codec.player;
 		}
 
-		protected final RewindPluginProtocol<PlayerObject> rewind() {
+		protected final RewindProtocol<PlayerObject> rewind() {
 			return codec.player.getRewind();
 		}
 
@@ -94,7 +98,7 @@ public class RewindChannelHandler<PlayerObject> extends MessageToMessageCodec<By
 
 	}
 
-	public RewindChannelHandler(PlayerInstance<PlayerObject> player) {
+	public RewindChannelHandler(RewindPlayer<PlayerObject> player) {
 		this.player = player;
 	}
 

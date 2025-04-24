@@ -14,7 +14,7 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.rewind_v1_5;
+package net.lax1dude.eaglercraft.backend.rewind_v1_5.base.codec;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -22,6 +22,8 @@ import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.TabListTracker;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.TabListTracker.ListItem;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketGetOtherTexturesV5EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketVoiceSignalConnectEAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketVoiceSignalDescEAG;

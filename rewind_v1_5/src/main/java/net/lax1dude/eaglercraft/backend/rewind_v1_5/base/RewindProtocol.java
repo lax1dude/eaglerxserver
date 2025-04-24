@@ -14,11 +14,14 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.rewind_v1_5;
+package net.lax1dude.eaglercraft.backend.rewind_v1_5.base;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.codec.RewindChannelHandler;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.codec.RewindHandshakeCodec;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.codec.RewindMessageHandler;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
@@ -28,7 +31,7 @@ import net.lax1dude.eaglercraft.backend.server.api.rewind.IMessageController;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IOutboundInjector;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IPacket2ClientProtocol;
 
-public class RewindPluginProtocol<PlayerObject> implements IEaglerXRewindProtocol<PlayerObject, PlayerInstance<PlayerObject>> {
+public class RewindProtocol<PlayerObject> implements IEaglerXRewindProtocol<PlayerObject, RewindPlayer<PlayerObject>> {
 
 	public static final UUID BRAND_EAGLERXREWIND_1_5_2 = UUID.fromString("65f7ac16-3354-4dfa-bd07-624922fd7962");
 
@@ -36,7 +39,7 @@ public class RewindPluginProtocol<PlayerObject> implements IEaglerXRewindProtoco
 
 	private IEaglerXServerAPI<PlayerObject> server;
 
-	public RewindPluginProtocol(IRewindPlatform<PlayerObject> platform) {
+	public RewindProtocol(IRewindPlatform<PlayerObject> platform) {
 		this.platform = platform;
 	}
 
@@ -68,7 +71,7 @@ public class RewindPluginProtocol<PlayerObject> implements IEaglerXRewindProtoco
 	}
 
 	@Override
-	public void initializeConnection(int legacyProtocol, IEaglerXRewindInitializer<PlayerInstance<PlayerObject>> initializer) {
+	public void initializeConnection(int legacyProtocol, IEaglerXRewindInitializer<RewindPlayer<PlayerObject>> initializer) {
 		IEaglerConnection eaglerConnection = initializer.getConnection();
 		IPacket2ClientProtocol legacyHandshake = initializer.getLegacyHandshake();
 		IMessageController messageController = initializer.requestMessageController();
@@ -79,7 +82,7 @@ public class RewindPluginProtocol<PlayerObject> implements IEaglerXRewindProtoco
 			realAddr = eaglerConnection.getSocketAddress().toString();
 		}
 		
-		PlayerInstance<PlayerObject> attachment = new PlayerInstance<>(this, messageController, outboundInjector,
+		RewindPlayer<PlayerObject> attachment = new RewindPlayer<>(this, messageController, outboundInjector,
 				initializer.netty().getChannel(), realAddr + "|" + legacyHandshake.getUsername());
 		initializer.setAttachment(attachment);
 		
@@ -93,12 +96,12 @@ public class RewindPluginProtocol<PlayerObject> implements IEaglerXRewindProtoco
 	}
 
 	@Override
-	public void handleCreatePlayer(PlayerInstance<PlayerObject> attachment, IEaglerPlayer<PlayerObject> playerObj) {
+	public void handleCreatePlayer(RewindPlayer<PlayerObject> attachment, IEaglerPlayer<PlayerObject> playerObj) {
 		attachment.handlePlayerCreate(playerObj);
 	}
 
 	@Override
-	public void handleDestroyPlayer(PlayerInstance<PlayerObject> attachment) {
+	public void handleDestroyPlayer(RewindPlayer<PlayerObject> attachment) {
 		attachment.handlePlayerDestroy();
 	}
 

@@ -14,10 +14,21 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.rewind_v1_5;
+package net.lax1dude.eaglercraft.backend.rewind_v1_5.base.zstream;
 
-public interface IRewindPlatform<PlayerObject> {
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
-	IRewindLogger logger();
+public class HackedDataOutputStream extends DataOutputStream {
+
+	public HackedDataOutputStream(OutputStream out) {
+		super(out);
+	}
+
+	@Override
+	public void close() throws IOException {
+		this.out.close();
+	}
 
 }

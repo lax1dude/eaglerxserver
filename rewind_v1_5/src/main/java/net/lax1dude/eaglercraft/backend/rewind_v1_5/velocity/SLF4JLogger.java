@@ -18,7 +18,7 @@ package net.lax1dude.eaglercraft.backend.rewind_v1_5.velocity;
 
 import org.slf4j.Logger;
 
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.IRewindLogger;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.IRewindLogger;
 
 public class SLF4JLogger implements IRewindLogger {
 
