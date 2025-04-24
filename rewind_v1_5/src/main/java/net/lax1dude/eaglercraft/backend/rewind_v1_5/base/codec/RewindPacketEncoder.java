@@ -23,7 +23,6 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.TabListTracker;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.TabListTracker.ListItem;
 import net.lax1dude.eaglercraft.backend.server.api.collect.HPPC;
 import net.lax1dude.eaglercraft.backend.server.api.collect.IntIntMap;
 import net.lax1dude.eaglercraft.backend.server.api.collect.IntSet;

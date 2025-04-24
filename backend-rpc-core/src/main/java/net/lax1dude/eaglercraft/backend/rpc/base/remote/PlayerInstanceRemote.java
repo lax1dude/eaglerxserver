@@ -31,7 +31,6 @@ import net.lax1dude.eaglercraft.backend.rpc.api.IRPCFuture;
 import net.lax1dude.eaglercraft.backend.rpc.api.IRPCHandle;
 import net.lax1dude.eaglercraft.backend.rpc.api.RPCException;
 import net.lax1dude.eaglercraft.backend.rpc.api.RPCTimeoutException;
-import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceManager;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCActiveFuture;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCAttributeHolder;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.message.BackendRPCMessageController;
