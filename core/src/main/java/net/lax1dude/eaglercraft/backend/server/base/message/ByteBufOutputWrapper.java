@@ -110,13 +110,13 @@ public class ByteBufOutputWrapper implements GamePacketOutputBuffer {
 	@Override
 	public void writeUTF(String str) throws IOException {
 		long utfCount = countUTFBytes(str);
-		if (utfCount > 65535) {
+		if (utfCount > 65535l) {
 			throw new IOException("String is longer than 65535 bytes when encoded as UTF8!");
 		}
 		byte[] arr = new byte[(int) utfCount + 2];
 		int offset = 2;
-		arr[0] = (byte)(((int)utfCount >>> 8) & 0xFF);
-		arr[1] = (byte)((int)utfCount & 0xFF);
+		arr[0] = (byte)(utfCount >>> 8l);
+		arr[1] = (byte)utfCount;
 		offset = writeUTFBytesToBuffer(str, arr, offset);
 		buffer.writeBytes(arr, 0, offset);
 	}

@@ -178,7 +178,7 @@ public class SkinPacketVersionCache {
 			ret[1] = (byte)(p >>> 24);
 			ret[2] = (byte)(p >>> 16);
 			ret[3] = (byte)(p >>> 8);
-			ret[4] = (byte)(p & 0xFF);
+			ret[4] = (byte)p;
 			return ret;
 		}
 	}

@@ -108,7 +108,7 @@ public abstract class WebViewBlobBuilder<T extends Closeable> implements IWebVie
 						b[0] = (byte)(j >>> 24);
 						b[1] = (byte)(j >>> 16);
 						b[2] = (byte)(j >>> 8);
-						b[3] = (byte)(j & 0xFF);
+						b[3] = (byte)j;
 						ImmutableList.Builder<SPacketServerInfoDataChunkV4EAG> builder = ImmutableBuilders
 								.listBuilderWithExpected(chunkList.size());
 						int k = 0;

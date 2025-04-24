@@ -108,12 +108,13 @@ public class ServerIconLoader {
 
 	private static byte[] toBytes(int[] pixels) {
 		byte[] iconPixels = new byte[16384];
-		for(int i = 0, j; i < 4096; ++i) {
+		for(int i = 0, j, k; i < 4096; ++i) {
 			j = i << 2;
-			iconPixels[j] = (byte)(pixels[i] >>> 16);
-			iconPixels[j + 1] = (byte)(pixels[i] >>> 8);
-			iconPixels[j + 2] = (byte)(pixels[i] & 0xFF);
-			iconPixels[j + 3] = (byte)(pixels[i] >>> 24);
+			k = pixels[i];
+			iconPixels[j] = (byte)(k >>> 16);
+			iconPixels[j + 1] = (byte)(k >>> 8);
+			iconPixels[j + 2] = (byte)k;
+			iconPixels[j + 3] = (byte)(k >>> 24);
 		}
 		return iconPixels;
 	}

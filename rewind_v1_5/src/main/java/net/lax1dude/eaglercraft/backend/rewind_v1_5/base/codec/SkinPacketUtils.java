@@ -117,7 +117,7 @@ public class SkinPacketUtils {
 	private static byte[] rewriteLegacyHandshakePresetSkinToV1(ByteBuf data) {
 		int presetSkin = map(data.readUnsignedByte(), map15to18PresetSkin);
 		return new byte[] { 0x01, (byte) (presetSkin >>> 24), (byte) (presetSkin >>> 16), (byte) (presetSkin >>> 8),
-				(byte) (presetSkin & 0xFF) };
+				(byte) presetSkin };
 	}
 
 	private static byte[] rewriteLegacyHandshakeLegacySkinToV1(ByteBuf data) {

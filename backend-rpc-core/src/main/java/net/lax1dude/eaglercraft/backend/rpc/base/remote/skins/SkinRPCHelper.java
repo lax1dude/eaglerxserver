@@ -32,7 +32,7 @@ public class SkinRPCHelper {
 	public static byte[] encodeSkinData(IEaglerPlayerSkin skin, boolean legacy) {
 		if(skin.isSkinPreset()) {
 			int preset = skin.getPresetSkinId();
-			return new byte[] { (byte) 1, (byte)(preset >>> 24), (byte)(preset >>> 16), (byte)(preset >>> 8), (byte)(preset & 0xFF) };
+			return new byte[] { (byte) 1, (byte)(preset >>> 24), (byte)(preset >>> 16), (byte)(preset >>> 8), (byte)preset };
 		}else if(legacy) {
 			byte[] ret = new byte[2 + 16384];
 			ret[0] = 2;
@@ -51,7 +51,7 @@ public class SkinRPCHelper {
 	public static byte[] encodeCapeData(IEaglerPlayerCape cape) {
 		if(cape.isCapePreset()) {
 			int preset = cape.getPresetCapeId();
-			return new byte[] { (byte) 1, (byte)(preset >>> 24), (byte)(preset >>> 16), (byte)(preset >>> 8), (byte)(preset & 0xFF) };
+			return new byte[] { (byte) 1, (byte)(preset >>> 24), (byte)(preset >>> 16), (byte)(preset >>> 8), (byte)preset };
 		}else {
 			byte[] ret = new byte[1 + 1173];
 			ret[0] = 2;
@@ -86,7 +86,7 @@ public class SkinRPCHelper {
 			ret[1] = (byte)(preset >>> 24);
 			ret[2] = (byte)(preset >>> 16);
 			ret[3] = (byte)(preset >>> 8);
-			ret[4] = (byte)(preset & 0xFF);
+			ret[4] = (byte)preset;
 		}else if(skinLen == 2 + 12288) {
 			ret[0] = 2;
 			ret[1] = (byte) skin.getCustomSkinModelId().getId();
@@ -100,7 +100,7 @@ public class SkinRPCHelper {
 			ret[skinLen + 1] = (byte)(preset >>> 24);
 			ret[skinLen + 2] = (byte)(preset >>> 16);
 			ret[skinLen + 3] = (byte)(preset >>> 8);
-			ret[skinLen + 4] = (byte)(preset & 0xFF);
+			ret[skinLen + 4] = (byte)preset;
 		}else if(capeLen == 1 + 1173) {
 			ret[skinLen] = 2;
 			cape.getCustomCapePixels_eagler(ret, skinLen + 1);

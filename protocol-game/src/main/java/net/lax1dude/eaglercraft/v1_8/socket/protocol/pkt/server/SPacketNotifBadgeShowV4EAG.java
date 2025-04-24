@@ -146,18 +146,18 @@ public class SPacketNotifBadgeShowV4EAG implements GameMessagePacket {
 			buffer.writeLong(titleIconUUIDMost);
 			buffer.writeLong(titleIconUUIDLeast);
 		}
-		buffer.writeByte((backgroundColor >>> 16) & 0xFF);
-		buffer.writeByte((backgroundColor >>> 8) & 0xFF);
-		buffer.writeByte(backgroundColor & 0xFF);
-		buffer.writeByte((bodyTxtColor >>> 16) & 0xFF);
-		buffer.writeByte((bodyTxtColor >>> 8) & 0xFF);
-		buffer.writeByte(bodyTxtColor & 0xFF);
-		buffer.writeByte((titleTxtColor >>> 16) & 0xFF);
-		buffer.writeByte((titleTxtColor >>> 8) & 0xFF);
-		buffer.writeByte(titleTxtColor & 0xFF);
-		buffer.writeByte((sourceTxtColor >>> 16) & 0xFF);
-		buffer.writeByte((sourceTxtColor >>> 8) & 0xFF);
-		buffer.writeByte(sourceTxtColor & 0xFF);
+		buffer.writeByte(backgroundColor >>> 16);
+		buffer.writeByte(backgroundColor >>> 8);
+		buffer.writeByte(backgroundColor);
+		buffer.writeByte(bodyTxtColor >>> 16);
+		buffer.writeByte(bodyTxtColor >>> 8);
+		buffer.writeByte(bodyTxtColor);
+		buffer.writeByte(titleTxtColor >>> 16);
+		buffer.writeByte(titleTxtColor >>> 8);
+		buffer.writeByte(titleTxtColor);
+		buffer.writeByte(sourceTxtColor >>> 16);
+		buffer.writeByte(sourceTxtColor >>> 8);
+		buffer.writeByte(sourceTxtColor);
 	}
 
 	@Override

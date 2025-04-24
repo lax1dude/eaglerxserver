@@ -31,7 +31,7 @@ public class SkinPacketHelper {
 		tex[1] = (byte)(presetId >>> 24);
 		tex[2] = (byte)(presetId >>> 16);
 		tex[3] = (byte)(presetId >>> 8);
-		tex[4] = (byte)(presetId & 0xFF);
+		tex[4] = (byte)presetId;
 		return tex;
 	}
 
@@ -53,7 +53,7 @@ public class SkinPacketHelper {
 				int idx = (y << 8) | (x << 2);
 				int rgba = texture64x64.getRGB(x, y);
 				tex[idx] = (byte)(rgba >>> 24);
-				tex[idx + 1] = (byte)(rgba & 0xFF);
+				tex[idx + 1] = (byte)rgba;
 				tex[idx + 2] = (byte)(rgba >>> 8);
 				tex[idx + 3] = (byte)(rgba >>> 16);
 			}

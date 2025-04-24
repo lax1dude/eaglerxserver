@@ -127,8 +127,8 @@ public class CPacketRPCNotifBadgeShow implements EaglerBackendRPCPacket {
 		writeString(buffer, bodyComponent, true, StandardCharsets.UTF_8);
 		writeString(buffer, titleComponent, false, StandardCharsets.UTF_8);
 		writeString(buffer, sourceComponent, false, StandardCharsets.UTF_8);
-		buffer.writeShort((int)((originalTimestampSec >> 32l) & 0xFFFFl));
-		buffer.writeInt((int)(originalTimestampSec & 0xFFFFFFFFl));
+		buffer.writeShort((int)(originalTimestampSec >> 32l));
+		buffer.writeInt((int)originalTimestampSec);
 		int flags = 0;
 		if(silent) flags |= 1;
 		flags |= ((priority != null ? priority.priority : 1) << 1);
@@ -146,18 +146,18 @@ public class CPacketRPCNotifBadgeShow implements EaglerBackendRPCPacket {
 			buffer.writeLong(titleIconUUID.getMostSignificantBits());
 			buffer.writeLong(titleIconUUID.getLeastSignificantBits());
 		}
-		buffer.writeByte((backgroundColor >>> 16) & 0xFF);
-		buffer.writeByte((backgroundColor >>> 8) & 0xFF);
-		buffer.writeByte(backgroundColor & 0xFF);
-		buffer.writeByte((bodyTxtColor >>> 16) & 0xFF);
-		buffer.writeByte((bodyTxtColor >>> 8) & 0xFF);
-		buffer.writeByte(bodyTxtColor & 0xFF);
-		buffer.writeByte((titleTxtColor >>> 16) & 0xFF);
-		buffer.writeByte((titleTxtColor >>> 8) & 0xFF);
-		buffer.writeByte(titleTxtColor & 0xFF);
-		buffer.writeByte((sourceTxtColor >>> 16) & 0xFF);
-		buffer.writeByte((sourceTxtColor >>> 8) & 0xFF);
-		buffer.writeByte(sourceTxtColor & 0xFF);
+		buffer.writeByte(backgroundColor >>> 16);
+		buffer.writeByte(backgroundColor >>> 8);
+		buffer.writeByte(backgroundColor);
+		buffer.writeByte(bodyTxtColor >>> 16);
+		buffer.writeByte(bodyTxtColor >>> 8);
+		buffer.writeByte(bodyTxtColor);
+		buffer.writeByte(titleTxtColor >>> 16);
+		buffer.writeByte(titleTxtColor >>> 8);
+		buffer.writeByte(titleTxtColor);
+		buffer.writeByte(sourceTxtColor >>> 16);
+		buffer.writeByte(sourceTxtColor >>> 8);
+		buffer.writeByte(sourceTxtColor);
 	}
 
 	@Override

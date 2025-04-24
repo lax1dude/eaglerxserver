@@ -413,21 +413,23 @@ public class BufferUtils {
 		int guh1 = 8192 * count;
 		int guh = data18len - guh1;
 		int guh2 = count * (4096 + 2048);
+		int count2 = 8192 * count;
+		int count3 = 4096 * count;
 		bb.ensureWritable(guh2 + guh);
 
 		if(LITTLE_ENDIAN_SUPPORT) {
-			for (int i = 0; i < (8192 * count); i += 4) {
+			for (int i = 0; i < count2; i += 4) {
 				int state = data18.getIntLE(absInd + i);
 				bb.setShortLE(absWInd + (i >> 1), convertType2Legacy((state >>> 4) & 0xFFF) | (convertType2Legacy(state >>> 20) << 8));
-				bb.setByte(absWInd + count * 4096 + (i >> 2), (byte) ((state & 0xF) | (((state >>> 16) & 0xF) << 4)));
+				bb.setByte(absWInd + count3 + (i >> 2), (byte) ((state & 0xF) | (((state >>> 16) & 0xF) << 4)));
 			}
 		}else {
-			for (int i = 0; i < (8192 * count); i += 4) {
+			for (int i = 0; i < count2; i += 4) {
 				int stateA = data18.getUnsignedByte(absInd + i) | (data18.getUnsignedByte(absInd + i + 1) << 8);
 				int stateB = data18.getUnsignedByte(absInd + i + 2) | (data18.getUnsignedByte(absInd + i + 3) << 8);
 				bb.setByte(absWInd + (i >> 1), convertType2Legacy(stateA >> 4));
 				bb.setByte(absWInd + (i >> 1) + 1, convertType2Legacy(stateB >> 4));
-				bb.setByte(absWInd + count * 4096 + (i >> 2), (byte)((stateA & 0xF) | ((stateB & 0xF) << 4)));
+				bb.setByte(absWInd + count3 + (i >> 2), (byte)((stateA & 0xF) | ((stateB & 0xF) << 4)));
 			}
 		}
 

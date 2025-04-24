@@ -22,7 +22,7 @@ public class SkinConverter {
 		for(int i = 0, j, k; i < 4096; ++i) {
 			j = i * 3;
 			k = imageIn[i];
-			imageOut[j] = (byte)(k & 0xFF);
+			imageOut[j] = (byte)k;
 			imageOut[j + 1] = (byte)(k >>> 8);
 			imageOut[j + 2] = (byte)(((k >>> 17) & 0x7F) | ((k >>> 24) & 0x80));
 		}
@@ -65,7 +65,7 @@ public class SkinConverter {
 					j = (dstY + y) * imgDstWidth + dstX + x;
 				}
 				j = j * 3;
-				imageOut[j] = (byte)(i & 0xFF);
+				imageOut[j] = (byte)i;
 				imageOut[j + 1] = (byte)(i >>> 8);
 				imageOut[j + 2] = (byte)(((i >>> 17) & 0x7F) | ((i >>> 24) & 0x80));
 			}
@@ -78,7 +78,7 @@ public class SkinConverter {
 			for(int x = 0; x < 22; ++x) {
 				i = skinIn[y * 64 + x];
 				j = (y * 23 + x) * 3;
-				skinOut[j] = (byte)(i & 0xFF);
+				skinOut[j] = (byte)i;
 				skinOut[j + 1] = (byte)(i >>> 8);
 				skinOut[j + 2] = (byte)(i >>> 16);
 			}
@@ -86,7 +86,7 @@ public class SkinConverter {
 		for(int y = 0; y < 11; ++y) {
 			i = skinIn[(y + 11) * 64 + 22];
 			j = ((y + 6) * 23 + 22) * 3;
-			skinOut[j] = (byte)(i & 0xFF);
+			skinOut[j] = (byte)i;
 			skinOut[j + 1] = (byte)(i >>> 8);
 			skinOut[j + 2] = (byte)(i >>> 16);
 		}

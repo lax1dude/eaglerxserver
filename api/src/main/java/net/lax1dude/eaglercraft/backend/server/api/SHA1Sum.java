@@ -116,7 +116,7 @@ public final class SHA1Sum {
 		dst[off] = (byte)(a >>> 24);
 		dst[off + 1] = (byte)(a >>> 16);
 		dst[off + 2] = (byte)(a >>> 8);
-		dst[off + 3] = (byte)(a & 0xFF);
+		dst[off + 3] = (byte)a;
 	}
 
 	@Override

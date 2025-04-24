@@ -74,7 +74,7 @@ public class SkinConverterExt {
 			for(int x = 0; x < 22; ++x) {
 				i = skinIn[y * 32 + x];
 				j = (y * 23 + x) * 3;
-				skinOut[j] = (byte)(i & 0xFF);
+				skinOut[j] = (byte)i;
 				skinOut[j + 1] = (byte)(i >>> 8);
 				skinOut[j + 2] = (byte)(i >>> 16);
 			}
@@ -82,7 +82,7 @@ public class SkinConverterExt {
 		for(int y = 0; y < 11; ++y) {
 			i = skinIn[(y + 11) * 32 + 22];
 			j = ((y + 6) * 23 + 22) * 3;
-			skinOut[j] = (byte)(i & 0xFF);
+			skinOut[j] = (byte)i;
 			skinOut[j + 1] = (byte)(i >>> 8);
 			skinOut[j + 2] = (byte)(i >>> 16);
 		}

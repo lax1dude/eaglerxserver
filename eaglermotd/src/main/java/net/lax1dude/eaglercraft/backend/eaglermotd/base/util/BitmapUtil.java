@@ -186,12 +186,13 @@ public class BitmapUtil {
 
 	public static byte[] toBytes(int[] iconIn) {
 		byte[] iconPixels = new byte[16384];
-		for(int i = 0, j; i < 4096; ++i) {
+		for(int i = 0, j, k; i < 4096; ++i) {
 			j = i << 2;
-			iconPixels[j] = (byte)(iconIn[i] >>> 16);
-			iconPixels[j + 1] = (byte)(iconIn[i] >>> 8);
-			iconPixels[j + 2] = (byte)(iconIn[i] & 0xFF);
-			iconPixels[j + 3] = (byte)(iconIn[i] >>> 24);
+			k = iconIn[i];
+			iconPixels[j] = (byte)(k >>> 16);
+			iconPixels[j + 1] = (byte)(k >>> 8);
+			iconPixels[j + 2] = (byte)k;
+			iconPixels[j + 3] = (byte)(k >>> 24);
 		}
 		return iconPixels;
 	}
