@@ -21,6 +21,7 @@ import java.util.zip.CRC32;
 import java.util.zip.Deflater;
 
 import io.netty.buffer.ByteBuf;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.BufferUtils;
 
 /**
  * Note: Based on OpenJDK
@@ -52,7 +53,11 @@ public class ReusableGZIPOutputStream extends ReusableDeflaterOutputStream {
 	public void finish() throws IOException {
 		if (!def.finished()) {
 			super.finish();
-			writeTrailer();
+			if(BufferUtils.LITTLE_ENDIAN_SUPPORT) {
+				writeTrailerLE();
+			}else {
+				writeTrailer();
+			}
 		}
 	}
 
@@ -76,9 +81,22 @@ public class ReusableGZIPOutputStream extends ReusableDeflaterOutputStream {
 	/*
 	 * Writes GZIP member trailer to a byte array, starting at a given offset.
 	 */
-	private void writeTrailer() {
+	private void writeTrailerLE() {
 		this.buf.writeIntLE((int) crc.getValue()); // CRC-32 of uncompr. data
 		this.buf.writeIntLE(def.getTotalIn()); // Number of uncompr. bytes
+	}
+
+	private void writeTrailer() {
+		int i = (int) crc.getValue(); // CRC-32 of uncompr. data
+		this.buf.writeByte(i);
+		this.buf.writeByte(i >>> 8);
+		this.buf.writeByte(i >>> 16);
+		this.buf.writeByte(i >>> 24);
+		i = def.getTotalIn(); // Number of uncompr. bytes
+		this.buf.writeByte(i);
+		this.buf.writeByte(i >>> 8);
+		this.buf.writeByte(i >>> 16);
+		this.buf.writeByte(i >>> 24);
 	}
 
 }

@@ -28,6 +28,7 @@ import io.netty.buffer.ByteBufOutputStream;
 public class BufferUtils {
 
 	public static final boolean CHARSEQ_SUPPORT;
+	public static final boolean LITTLE_ENDIAN_SUPPORT;
 
 	static {
 		boolean b = false;
@@ -37,6 +38,13 @@ public class BufferUtils {
 		}catch(ReflectiveOperationException ex) {
 		}
 		CHARSEQ_SUPPORT = b;
+		b = false;
+		try {
+			ByteBuf.class.getMethod("readIntLE");
+			b = true;
+		}catch(ReflectiveOperationException ex) {
+		}
+		LITTLE_ENDIAN_SUPPORT = b;
 	}
 
 	public static CharSequence readCharSequence(ByteBuf buffer, int len, Charset charset) {
@@ -406,12 +414,20 @@ public class BufferUtils {
 		int guh2 = count * (4096 + 2048);
 		bb.ensureWritable(guh2 + guh);
 
-		for (int i = 0; i < (8192 * count); i += 4) {
-			int stateA = data18.getUnsignedShortLE(absInd + i);
-			int stateB = data18.getUnsignedShortLE(absInd + i + 2);
-
-			bb.setShortLE(absWInd + (i >> 1), convertType2Legacy(stateA >> 4) | (convertType2Legacy(stateB >> 4) << 8));
-			bb.setByte(absWInd + count * 4096 + (i >> 2), (byte)((stateA & 0xF) | ((stateB & 0xF) << 4)));
+		if(LITTLE_ENDIAN_SUPPORT) {
+			for (int i = 0; i < (8192 * count); i += 4) {
+				int state = data18.getIntLE(absInd + i);
+				bb.setShortLE(absWInd + (i >> 1), convertType2Legacy((state >>> 4) & 0xFFF) | (convertType2Legacy(state >>> 20) << 8));
+				bb.setByte(absWInd + count * 4096 + (i >> 2), (byte) ((state & 0xF) | (((state >>> 16) & 0xF) << 4)));
+			}
+		}else {
+			for (int i = 0; i < (8192 * count); i += 4) {
+				int stateA = data18.getUnsignedByte(absInd + i) | (data18.getUnsignedByte(absInd + i + 1) << 8);
+				int stateB = data18.getUnsignedByte(absInd + i + 2) | (data18.getUnsignedByte(absInd + i + 3) << 8);
+				bb.setByte(absWInd + (i >> 1), convertType2Legacy(stateA >> 4));
+				bb.setByte(absWInd + (i >> 1) + 1, convertType2Legacy(stateB >> 4));
+				bb.setByte(absWInd + count * 4096 + (i >> 2), (byte)((stateA & 0xF) | ((stateB & 0xF) << 4)));
+			}
 		}
 
 		if (guh == 256 && data18.readableBytes() - (absInd + guh1) < 256) {

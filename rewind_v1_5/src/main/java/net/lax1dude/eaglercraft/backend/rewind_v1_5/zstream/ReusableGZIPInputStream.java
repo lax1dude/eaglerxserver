@@ -22,6 +22,7 @@ import java.util.zip.Inflater;
 import java.util.zip.ZipException;
 
 import io.netty.buffer.ByteBuf;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.BufferUtils;
 
 /**
  * Note: Based on OpenJDK
@@ -50,7 +51,11 @@ public class ReusableGZIPInputStream extends ReusableInflaterInputStream {
 	public void setInput(ByteBuf dataIn, int limit) throws IOException {
 		closed = false;
 		eos = false;
-		readHeader(dataIn);
+		if(BufferUtils.LITTLE_ENDIAN_SUPPORT) {
+			readHeaderLE(dataIn);
+		}else {
+			readHeader(dataIn);
+		}
 		start = dataIn.readerIndex();
 		super.setInput(dataIn);
 	}
@@ -62,7 +67,11 @@ public class ReusableGZIPInputStream extends ReusableInflaterInputStream {
 		}
 		int n = super.read(buf, off, len);
 		if (n == -1) {
-			readTrailer();
+			if(BufferUtils.LITTLE_ENDIAN_SUPPORT) {
+				readTrailerLE();
+			}else {
+				readTrailer();
+			}
 			eos = true;
 		} else {
 			if(remaining >= 0) {
@@ -80,7 +89,11 @@ public class ReusableGZIPInputStream extends ReusableInflaterInputStream {
 	public void close() throws IOException {
 		if (!closed) {
 			if(inf.finished()) {
-				readTrailer();
+				if(BufferUtils.LITTLE_ENDIAN_SUPPORT) {
+					readTrailerLE();
+				}else {
+					readTrailer();
+				}
 				eos = true;
 			}
 			buf.readerIndex(start + inf.getTotalIn());
@@ -101,7 +114,7 @@ public class ReusableGZIPInputStream extends ReusableInflaterInputStream {
 	private static final int FNAME = 8; // File name
 	private static final int FCOMMENT = 16; // File comment
 
-	private int readHeader(ByteBuf dataIn) throws IOException {
+	private int readHeaderLE(ByteBuf dataIn) throws IOException {
 		int start = dataIn.readerIndex();
 		// Check header magic
 		if (dataIn.readUnsignedShortLE() != GZIP_MAGIC) {
@@ -137,7 +150,52 @@ public class ReusableGZIPInputStream extends ReusableInflaterInputStream {
 		// Check optional header CRC
 		if ((flg & FHCRC) == FHCRC) {
 			int v = (int) getByteBufCRC(dataIn, start, dataIn.readerIndex() - start) & 0xffff;
-			if (dataIn.readUnsignedShort() != v) {
+			if (dataIn.readUnsignedShortLE() != v) {
+				throw new ZipException("Corrupt GZIP header");
+			}
+			n += 2;
+		}
+		crc.reset();
+		return n;
+	}
+
+	private int readHeader(ByteBuf dataIn) throws IOException {
+		int start = dataIn.readerIndex();
+		// Check header magic
+		if ((dataIn.readUnsignedByte() | (dataIn.readUnsignedByte() << 8)) != GZIP_MAGIC) {
+			throw new ZipException("Not in GZIP format");
+		}
+		// Check compression method
+		if (dataIn.readUnsignedByte() != 8) {
+			throw new ZipException("Unsupported compression method");
+		}
+		// Read flags
+		int flg = dataIn.readUnsignedByte();
+		// Skip MTIME, XFL, and OS fields
+		dataIn.skipBytes(6);
+		int n = 2 + 2 + 6;
+		// Skip optional extra field
+		if ((flg & FEXTRA) == FEXTRA) {
+			int m = (dataIn.readUnsignedByte() | (dataIn.readUnsignedByte() << 8));
+			dataIn.skipBytes(m);
+			n += m + 2;
+		}
+		// Skip optional file name
+		if ((flg & FNAME) == FNAME) {
+			do {
+				n++;
+			} while (dataIn.readUnsignedByte() != 0);
+		}
+		// Skip optional file comment
+		if ((flg & FCOMMENT) == FCOMMENT) {
+			do {
+				n++;
+			} while (dataIn.readUnsignedByte() != 0);
+		}
+		// Check optional header CRC
+		if ((flg & FHCRC) == FHCRC) {
+			int v = (int) getByteBufCRC(dataIn, start, dataIn.readerIndex() - start) & 0xffff;
+			if ((dataIn.readUnsignedByte() | (dataIn.readUnsignedByte() << 8)) != v) {
 				throw new ZipException("Corrupt GZIP header");
 			}
 			n += 2;
@@ -164,13 +222,27 @@ public class ReusableGZIPInputStream extends ReusableInflaterInputStream {
 	 * Reads GZIP member trailer and returns true if the eos reached, false if there
 	 * are more (concatenated gzip data set)
 	 */
-	private boolean readTrailer() throws IOException {
+	private boolean readTrailerLE() throws IOException {
 		ByteBuf in = this.buf;
 		in.readerIndex(start + inf.getTotalIn());
 		// Uses left-to-right evaluation order
 		if ((in.readUnsignedIntLE() != crc.getValue()) ||
 		// rfc1952; ISIZE is the input size modulo 2^32
 				(in.readUnsignedIntLE() != (inf.getBytesWritten() & 0xffffffffL)))
+			throw new ZipException("Corrupt GZIP trailer");
+		start += 8;
+		return true;
+	}
+
+	private boolean readTrailer() throws IOException {
+		ByteBuf in = this.buf;
+		in.readerIndex(start + inf.getTotalIn());
+		// Uses left-to-right evaluation order
+		if (((in.readUnsignedByte() | (in.readUnsignedByte() << 8) | (in.readUnsignedByte() << 16)
+				| (in.readUnsignedByte() << 24)) != crc.getValue()) ||
+		// rfc1952; ISIZE is the input size modulo 2^32
+				((in.readUnsignedByte() | (in.readUnsignedByte() << 8) | (in.readUnsignedByte() << 16)
+						| (in.readUnsignedByte() << 24)) != (inf.getBytesWritten() & 0xffffffffL)))
 			throw new ZipException("Corrupt GZIP trailer");
 		start += 8;
 		return true;

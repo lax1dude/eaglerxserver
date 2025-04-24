@@ -175,10 +175,18 @@ public class SkinPacketUtils {
 	}
 
 	public static void rewriteCustomSkinToLegacy(byte[] data, ByteBuf dest) {
-		for(int i = 0, j; i < 4096; ++i) {
-			j = i * 3;
-			dest.writeIntLE((data[j] & 0xFF) | ((data[j + 1] & 0xFF) << 8) | ((data[j + 2] & 0x7F) << 17)
-					| ((data[j + 2] & 0x80) != 0 ? 0xFF000000 : 0));
+		if(BufferUtils.LITTLE_ENDIAN_SUPPORT) {
+			for(int i = 0, j; i < 4096; ++i) {
+				j = i * 3;
+				dest.writeIntLE((data[j] & 0xFF) | ((data[j + 1] & 0xFF) << 8) | ((data[j + 2] & 0x7F) << 17)
+						| ((data[j + 2] & 0x80) != 0 ? 0xFF000000 : 0));
+			}
+		}else {
+			for(int i = 0, j; i < 4096; ++i) {
+				j = i * 3;
+				dest.writeInt(((data[j] & 0xFF) << 24) | ((data[j + 1] & 0xFF) << 16) | ((data[j + 2] & 0x7F) << 9)
+						| ((data[j + 2] & 0x80) != 0 ? 0x000000FF : 0));
+			}
 		}
 	}
 
@@ -186,17 +194,32 @@ public class SkinPacketUtils {
 		int idx = dest.writerIndex();
 		dest.writeZero(4096);
 		int i, j;
-		for(int y = 0; y < 17; ++y) {
-			for(int x = 0; x < 22; ++x) {
-				i = idx + ((y * 32 + x) << 2);
-				j = ((y * 23 + x) * 3);
+		if(BufferUtils.LITTLE_ENDIAN_SUPPORT) {
+			for(int y = 0; y < 17; ++y) {
+				for(int x = 0; x < 22; ++x) {
+					i = idx + ((y * 32 + x) << 2);
+					j = ((y * 23 + x) * 3);
+					dest.setIntLE(i, 0xFF000000 | ((data[j + 2] & 0xFF) << 16) | ((data[j + 1] & 0xFF) << 8) | (data[j] & 0xFF));
+				}
+			}
+			for(int y = 0; y < 11; ++y) {
+				i = idx + (((y + 11) * 32 + 22) << 2);
+				j = (((y + 6) * 23 + 22) * 3);
 				dest.setIntLE(i, 0xFF000000 | ((data[j + 2] & 0xFF) << 16) | ((data[j + 1] & 0xFF) << 8) | (data[j] & 0xFF));
 			}
-		}
-		for(int y = 0; y < 11; ++y) {
-			i = idx + (((y + 11) * 32 + 22) << 2);
-			j = (((y + 6) * 23 + 22) * 3);
-			dest.setIntLE(i, 0xFF000000 | ((data[j + 2] & 0xFF) << 16) | ((data[j + 1] & 0xFF) << 8) | (data[j] & 0xFF));
+		}else {
+			for(int y = 0; y < 17; ++y) {
+				for(int x = 0; x < 22; ++x) {
+					i = idx + ((y * 32 + x) << 2);
+					j = ((y * 23 + x) * 3);
+					dest.setInt(i, 0x000000FF | ((data[j + 2] & 0xFF) << 8) | ((data[j + 1] & 0xFF) << 16) | ((data[j] & 0xFF) << 24));
+				}
+			}
+			for(int y = 0; y < 11; ++y) {
+				i = idx + (((y + 11) * 32 + 22) << 2);
+				j = (((y + 6) * 23 + 22) * 3);
+				dest.setInt(i, 0x000000FF | ((data[j + 2] & 0xFF) << 8) | ((data[j + 1] & 0xFF) << 16) | ((data[j] & 0xFF) << 24));
+			}
 		}
 	}
 

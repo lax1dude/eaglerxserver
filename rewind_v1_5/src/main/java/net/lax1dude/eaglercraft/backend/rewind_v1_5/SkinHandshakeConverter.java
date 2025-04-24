@@ -21,13 +21,24 @@ import io.netty.buffer.ByteBuf;
 class SkinHandshakeConverter {
 
 	static void convertSkinPixels(ByteBuf imageIn, int offsetIn, byte[] imageOut, int offsetOut, int count) {
-		for(int i = 0, j, k, l = count << 2; i < l; i += 4) {
-			j = imageIn.getIntLE(offsetIn + i);
-			k = offsetOut + i;
-			imageOut[k] = (byte)(j >>> 24);
-			imageOut[k + 1] = (byte)(j & 0xFF);
-			imageOut[k + 2] = (byte)(j >>> 8);
-			imageOut[k + 3] = (byte)(j >>> 16);
+		if(BufferUtils.LITTLE_ENDIAN_SUPPORT) {
+			for(int i = 0, j, k, l = count << 2; i < l; i += 4) {
+				j = imageIn.getIntLE(offsetIn + i);
+				k = offsetOut + i;
+				imageOut[k] = (byte) (j >>> 24);
+				imageOut[k + 1] = (byte) j;
+				imageOut[k + 2] = (byte) (j >>> 8);
+				imageOut[k + 3] = (byte) (j >>> 16);
+			}
+		}else {
+			for(int i = 0, j, k, l = count << 2; i < l; i += 4) {
+				j = imageIn.getInt(offsetIn + i);
+				k = offsetOut + i;
+				imageOut[k] = (byte) j;
+				imageOut[k + 1] = (byte) (j >>> 24);
+				imageOut[k + 2] = (byte) (j >>> 16);
+				imageOut[k + 3] = (byte) (j >>> 8);
+			}
 		}
 	}
 
@@ -60,20 +71,39 @@ class SkinHandshakeConverter {
 
 	private static void copyRawPixels(ByteBuf imageIn, int offsetIn, byte[] imageOut, int offsetOut, int srcX, int srcY,
 			int dstX, int dstY, int width, int height, int imgSrcWidth, int imgDstWidth, boolean flip) {
-		int i, j;
-		for (int y = 0; y < height; ++y) {
-			for (int x = 0; x < width; ++x) {
-				i = imageIn.getIntLE((((srcY + y) * imgSrcWidth + srcX + x) << 2) + offsetIn);
-				if (flip) {
-					j = (dstY + y) * imgDstWidth + dstX + width - x - 1;
-				} else {
-					j = (dstY + y) * imgDstWidth + dstX + x;
+		if(BufferUtils.LITTLE_ENDIAN_SUPPORT) {
+			int i, j;
+			for (int y = 0; y < height; ++y) {
+				for (int x = 0; x < width; ++x) {
+					i = imageIn.getIntLE((((srcY + y) * imgSrcWidth + srcX + x) << 2) + offsetIn);
+					if (flip) {
+						j = (dstY + y) * imgDstWidth + dstX + width - x - 1;
+					} else {
+						j = (dstY + y) * imgDstWidth + dstX + x;
+					}
+					j = (j << 2) + offsetOut;
+					imageOut[j] = (byte) (i >>> 24);
+					imageOut[j + 1] = (byte) i;
+					imageOut[j + 2] = (byte) (i >>> 8);
+					imageOut[j + 3] = (byte) (i >>> 16);
 				}
-				j = (j << 2) + offsetOut;
-				imageOut[j] = (byte) (i >>> 24);
-				imageOut[j + 1] = (byte) (i & 0xFF);
-				imageOut[j + 2] = (byte) (i >>> 8);
-				imageOut[j + 3] = (byte) (i >>> 16);
+			}
+		}else {
+			int i, j;
+			for (int y = 0; y < height; ++y) {
+				for (int x = 0; x < width; ++x) {
+					i = imageIn.getInt((((srcY + y) * imgSrcWidth + srcX + x) << 2) + offsetIn);
+					if (flip) {
+						j = (dstY + y) * imgDstWidth + dstX + width - x - 1;
+					} else {
+						j = (dstY + y) * imgDstWidth + dstX + x;
+					}
+					j = (j << 2) + offsetOut;
+					imageOut[j] = (byte) i;
+					imageOut[j + 1] = (byte) (i >>> 24);
+					imageOut[j + 2] = (byte) (i >>> 16);
+					imageOut[j + 3] = (byte) (i >>> 8);
+				}
 			}
 		}
 	}
