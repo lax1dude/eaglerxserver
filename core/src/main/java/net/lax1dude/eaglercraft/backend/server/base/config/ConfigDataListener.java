@@ -69,6 +69,7 @@ public class ConfigDataListener {
 	private final String forwardSecretFile;
 	private final String forwardSecretValue;
 	private final boolean spoofPlayerAddressForwarded;
+	private final boolean dualStackHAProxyDetection;
 	private final boolean enableTLS;
 	private final boolean requireTLS;
 	private final boolean tlsManagedByExternalPlugin;
@@ -98,14 +99,14 @@ public class ConfigDataListener {
 
 	public ConfigDataListener(String listenerName, SocketAddress injectAddress, boolean dualStack, boolean forwardIp,
 			String forwardIPHeader, boolean forwardSecret, String forwardSecretHeader, String forwardSecretFile,
-			String forwardSecretValue, boolean spoofPlayerAddressForwarded, boolean enableTLS, boolean requireTLS,
-			boolean tlsManagedByExternalPlugin, String tlsPublicChainFile, String tlsPrivateKeyFile,
-			String tlsPrivateKeyPassword, boolean tlsAutoRefreshCert, String redirectLegacyClientsTo, String serverIcon,
-			List<String> serverMOTD, boolean allowMOTD, boolean allowQuery, boolean showMOTDPlayerList,
-			boolean allowCookieRevokeQuery, int motdCacheTTL, boolean motdCacheAnimation, boolean motdCacheResults,
-			boolean motdCacheTrending, boolean motdCachePortfolios, ConfigRateLimit limitIP, ConfigRateLimit limitLogin,
-			ConfigRateLimit limitMOTD, ConfigRateLimit limitQuery, ConfigRateLimit limitHTTP,
-			List<String> limitExclusions) {
+			String forwardSecretValue, boolean spoofPlayerAddressForwarded, boolean dualStackHAProxyDetection,
+			boolean enableTLS, boolean requireTLS, boolean tlsManagedByExternalPlugin, String tlsPublicChainFile,
+			String tlsPrivateKeyFile, String tlsPrivateKeyPassword, boolean tlsAutoRefreshCert,
+			String redirectLegacyClientsTo, String serverIcon, List<String> serverMOTD, boolean allowMOTD,
+			boolean allowQuery, boolean showMOTDPlayerList, boolean allowCookieRevokeQuery, int motdCacheTTL,
+			boolean motdCacheAnimation, boolean motdCacheResults, boolean motdCacheTrending,
+			boolean motdCachePortfolios, ConfigRateLimit limitIP, ConfigRateLimit limitLogin, ConfigRateLimit limitMOTD,
+			ConfigRateLimit limitQuery, ConfigRateLimit limitHTTP, List<String> limitExclusions) {
 		this.listenerName = listenerName;
 		this.injectAddress = injectAddress;
 		this.dualStack = dualStack;
@@ -116,6 +117,7 @@ public class ConfigDataListener {
 		this.forwardSecretFile = forwardSecretFile;
 		this.forwardSecretValue = forwardSecretValue;
 		this.spoofPlayerAddressForwarded = spoofPlayerAddressForwarded;
+		this.dualStackHAProxyDetection = dualStackHAProxyDetection;
 		this.enableTLS = enableTLS;
 		this.requireTLS = requireTLS;
 		this.tlsManagedByExternalPlugin = tlsManagedByExternalPlugin;
@@ -182,6 +184,10 @@ public class ConfigDataListener {
 
 	public boolean isSpoofPlayerAddressForwarded() {
 		return spoofPlayerAddressForwarded;
+	}
+
+	public boolean isDualStackHAProxyDetection() {
+		return dualStackHAProxyDetection;
 	}
 
 	public boolean isEnableTLS() {

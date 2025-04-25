@@ -49,6 +49,7 @@ import net.lax1dude.eaglercraft.backend.server.util.Util;
 public class PipelineTransformer {
 
 	public static final String HANDLER_MULTI_STACK_INITIAL = "eagler-multistack-initial";
+	public static final String HANDLER_HAPROXY_DETECTION = "eagler-haproxy-detection";
 	public static final String HANDLER_HTTP_SSL = "eagler-ssl-handler";
 	public static final String HANDLER_HTTP_SERVER_CODEC = "eagler-http-codec";
 	public static final String HANDLER_HTTP_AGGREGATOR = "eagler-http-aggregator";
@@ -146,6 +147,7 @@ public class PipelineTransformer {
 		String before = null;
 		String first = null;
 		boolean e = false;
+		boolean haproxy = false;
 		String bungeeHack = null;
 		for(IPipelineComponent comp : components) {
 			if(VANILLA_FRAME_DECODERS.contains(comp.getIdentifiedType())) {
@@ -158,6 +160,8 @@ public class PipelineTransformer {
 					if(comp.getIdentifiedType() != EnumPipelineComponent.HAPROXY_HANDLER) {
 						first = before;
 						e = true;
+					}else {
+						haproxy = true;
 					}
 					before = comp.getName();
 				}
@@ -188,6 +192,9 @@ public class PipelineTransformer {
 		}else {
 			initializeHTTPHandler(pipelineData, null, pipeline, first);
 		}
+		if(haproxy && eagListener.getConfigData().isDualStackHAProxyDetection()) {
+			channel.pipeline().addFirst(HAProxyDetectionHandler.INSTANCE);
+		}
 		channel.pipeline().addLast(HANDLER_OUTBOUND_THROW, OutboundPacketThrowHandler.INSTANCE);
 	}
 
@@ -195,6 +202,7 @@ public class PipelineTransformer {
 		List<ChannelHandler> toRemove = new ArrayList<>(4);
 		String first = null;
 		String bungeeHack = null;
+		boolean haproxy = false;
 		for(IPipelineComponent comp : components) {
 			if(VANILLA_FRAME_DECODERS.contains(comp.getIdentifiedType())) {
 				toRemove.add(comp.getHandle());
@@ -202,8 +210,12 @@ public class PipelineTransformer {
 					bungeeHack = comp.getName();
 				}
 			}else {
-				if(first == null && comp.getIdentifiedType() != EnumPipelineComponent.HAPROXY_HANDLER) {
-					first = comp.getName();
+				if(first == null) {
+					if(comp.getIdentifiedType() != EnumPipelineComponent.HAPROXY_HANDLER) {
+						first = comp.getName();
+					}else {
+						haproxy = true;
+					}
 				}
 			}
 		}
@@ -211,6 +223,10 @@ public class PipelineTransformer {
 			return;
 		}
 		channel.pipeline().addBefore(first, HANDLER_MULTI_STACK_INITIAL, new MultiStackInitialInboundHandler(this, pipelineData, toRemove, bungeeHack));
+		EaglerListener eagListener = pipelineData.listenerInfo;
+		if(haproxy && eagListener.getConfigData().isDualStackHAProxyDetection()) {
+			channel.pipeline().addFirst(HAProxyDetectionHandler.INSTANCE);
+		}
 		channel.pipeline().addLast(HANDLER_OUTBOUND_THROW, OutboundPacketThrowHandler.INSTANCE);
 	}
 
