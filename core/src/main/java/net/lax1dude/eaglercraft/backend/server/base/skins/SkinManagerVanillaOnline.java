@@ -111,7 +111,7 @@ public class SkinManagerVanillaOnline<PlayerObject> implements ISkinManagerBase<
 
 	@Override
 	public IEaglerPlayerCape getPlayerCapeIfLoaded() {
-		return (IEaglerPlayerCape) SKIN_HANDLE.getAcquire(this);
+		return (IEaglerPlayerCape) CAPE_HANDLE.getAcquire(this);
 	}
 
 	@Override
