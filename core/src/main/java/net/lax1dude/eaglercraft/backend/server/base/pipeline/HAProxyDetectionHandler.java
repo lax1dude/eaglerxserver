@@ -24,10 +24,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
-@ChannelHandler.Sharable
 public class HAProxyDetectionHandler extends ByteToMessageDecoder {
-
-	public static final HAProxyDetectionHandler INSTANCE = new HAProxyDetectionHandler();
 
 	private static final Class<? extends ChannelHandler> clzHAProxyHandler;
 
@@ -38,9 +35,6 @@ public class HAProxyDetectionHandler extends ByteToMessageDecoder {
 		}catch(ClassNotFoundException ex) {
 			throw new ExceptionInInitializerError(ex);
 		}
-	}
-
-	private HAProxyDetectionHandler() {
 	}
 
 	@Override
