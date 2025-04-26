@@ -20,7 +20,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
-import io.netty.util.ReferenceCountUtil;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 
 public class WebSocketPingFrameHandler extends ChannelInboundHandlerAdapter {
@@ -30,8 +29,8 @@ public class WebSocketPingFrameHandler extends ChannelInboundHandlerAdapter {
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-		if(msg instanceof PingWebSocketFrame) {
-			ReferenceCountUtil.release(msg);
+		if(msg instanceof PingWebSocketFrame msg2) {
+			msg2.release();
 			long now = Util.steadyTime();
 			if(now > nextPing) {
 				pingQuota = 3;
@@ -41,10 +40,10 @@ public class WebSocketPingFrameHandler extends ChannelInboundHandlerAdapter {
 				--pingQuota;
 				ctx.write(new PongWebSocketFrame());
 			}
-		}else if(!(msg instanceof PongWebSocketFrame)) {
+		}else if(!(msg instanceof PongWebSocketFrame msg2)) {
 			ctx.fireChannelRead(msg);
 		}else {
-			ReferenceCountUtil.release(msg);
+			msg2.release();
 		}
 	}
 
