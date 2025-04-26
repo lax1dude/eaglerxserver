@@ -74,12 +74,12 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		this.eaglerBrandString = pipelineData.eaglerBrandString.intern();
 		this.eaglerVersionString = pipelineData.eaglerVersionString.intern();
 		this.wss = pipelineData.wss;
-		this.headerHost = pipelineData.headerHost.intern();
-		this.headerOrigin = pipelineData.headerOrigin.intern();
-		this.headerUserAgent = pipelineData.headerUserAgent;
+		this.headerHost = pipelineData.headerHost != null ? pipelineData.headerHost.intern() : null;
+		this.headerOrigin = pipelineData.headerOrigin != null ? pipelineData.headerOrigin.intern() : null;
+		this.headerUserAgent = pipelineData.headerUserAgent != null ? pipelineData.headerUserAgent.intern() : null;
 		this.headerCookie = pipelineData.headerCookie;
 		this.headerAuthorization = pipelineData.headerAuthorization;
-		this.requestPath = pipelineData.requestPath.intern();
+		this.requestPath = pipelineData.requestPath != null ? pipelineData.requestPath.intern() : null;
 		this.realAddress = pipelineData.realAddress;
 		this.handshakeProtocol = pipelineData.handshakeProtocol;
 		this.gameProtocol = pipelineData.gameProtocol;
