@@ -193,7 +193,7 @@ public class PipelineTransformer {
 			initializeHTTPHandler(pipelineData, null, pipeline, first);
 		}
 		if(haproxy && eagListener.getConfigData().isDualStackHAProxyDetection()) {
-			channel.pipeline().addFirst(HAProxyDetectionHandler.INSTANCE);
+			channel.pipeline().addFirst(HANDLER_HAPROXY_DETECTION, HAProxyDetectionHandler.INSTANCE);
 		}
 		channel.pipeline().addLast(HANDLER_OUTBOUND_THROW, OutboundPacketThrowHandler.INSTANCE);
 	}
@@ -225,7 +225,7 @@ public class PipelineTransformer {
 		channel.pipeline().addBefore(first, HANDLER_MULTI_STACK_INITIAL, new MultiStackInitialInboundHandler(this, pipelineData, toRemove, bungeeHack));
 		EaglerListener eagListener = pipelineData.listenerInfo;
 		if(haproxy && eagListener.getConfigData().isDualStackHAProxyDetection()) {
-			channel.pipeline().addFirst(HAProxyDetectionHandler.INSTANCE);
+			channel.pipeline().addFirst(HANDLER_HAPROXY_DETECTION, HAProxyDetectionHandler.INSTANCE);
 		}
 		channel.pipeline().addLast(HANDLER_OUTBOUND_THROW, OutboundPacketThrowHandler.INSTANCE);
 	}
