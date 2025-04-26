@@ -34,7 +34,6 @@ class EaglerXServerNettyPipelineInitializer<PlayerObject> implements IEaglerXSer
 	@Override
 	public void initialize(IPlatformNettyPipelineInitializer<NettyPipelineData> initializer) {
 		EaglerListener eagListener = (EaglerListener) initializer.getListener();
-		System.out.println("New channel: " + initializer.getChannel());
 		Consumer<SocketAddress> realAddressHandle = null;
 		CompoundRateLimiterMap.ICompoundRatelimits rateLimits = null;
 		if(eagListener.isForwardIP()) {

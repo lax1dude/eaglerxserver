@@ -71,15 +71,15 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 		super(connection, pipelineData.attributeHolder);
 		this.channel = pipelineData.channel;
 		this.listenerInfo = pipelineData.listenerInfo;
-		this.eaglerBrandString = pipelineData.eaglerBrandString;
-		this.eaglerVersionString = pipelineData.eaglerVersionString;
+		this.eaglerBrandString = pipelineData.eaglerBrandString.intern();
+		this.eaglerVersionString = pipelineData.eaglerVersionString.intern();
 		this.wss = pipelineData.wss;
-		this.headerHost = pipelineData.headerHost;
-		this.headerOrigin = pipelineData.headerOrigin;
+		this.headerHost = pipelineData.headerHost.intern();
+		this.headerOrigin = pipelineData.headerOrigin.intern();
 		this.headerUserAgent = pipelineData.headerUserAgent;
 		this.headerCookie = pipelineData.headerCookie;
 		this.headerAuthorization = pipelineData.headerAuthorization;
-		this.requestPath = pipelineData.requestPath;
+		this.requestPath = pipelineData.requestPath.intern();
 		this.realAddress = pipelineData.realAddress;
 		this.handshakeProtocol = pipelineData.handshakeProtocol;
 		this.gameProtocol = pipelineData.gameProtocol;
@@ -275,6 +275,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 
 	void processProfileData() {
 		profileDataTmp = profileDataInit.get();
+		profileDataInit = null;
 		eaglerBrandUUID = profileDataTmp.brandUUID;
 	}
 
