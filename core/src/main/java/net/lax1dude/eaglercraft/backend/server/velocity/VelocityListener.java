@@ -18,6 +18,7 @@ package net.lax1dude.eaglercraft.backend.server.velocity;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import com.velocitypowered.api.event.Continuation;
@@ -163,18 +164,21 @@ class VelocityListener {
 		}
 	}
 
-	@Subscribe(priority = Short.MAX_VALUE)
+	@Subscribe(priority = Short.MAX_VALUE, async = false)
 	public void onServerPostConnected(ServerPostConnectEvent connectEvent) {
-		RegisteredServer server = connectEvent.getPlayer().getCurrentServer().get().getServer();
-		IPlatformPlayer<Player> platformPlayer = plugin.getPlayer(connectEvent.getPlayer());
-		if(platformPlayer != null) {
-			IPlatformServer<Player> platformServer = null;
-			platformServer = plugin.getRegisteredServers().get(server.getServerInfo().getName());
-			if(platformServer == null) {
-				platformServer = new VelocityServer(plugin, server, false);
+		Optional<ServerConnection> serverCon = connectEvent.getPlayer().getCurrentServer();
+		if(serverCon.isPresent()) {
+			RegisteredServer server = serverCon.get().getServer();
+			IPlatformPlayer<Player> platformPlayer = plugin.getPlayer(connectEvent.getPlayer());
+			if(platformPlayer != null) {
+				IPlatformServer<Player> platformServer = null;
+				platformServer = plugin.getRegisteredServers().get(server.getServerInfo().getName());
+				if(platformServer == null) {
+					platformServer = new VelocityServer(plugin, server, false);
+				}
+				((VelocityPlayer)platformPlayer).server = platformServer;
+				plugin.handleServerPostConnect(platformPlayer, platformServer);
 			}
-			((VelocityPlayer)platformPlayer).server = platformServer;
-			plugin.handleServerPostConnect(platformPlayer, platformServer);
 		}
 	}
 
