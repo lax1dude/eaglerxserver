@@ -16,6 +16,8 @@
 
 package net.lax1dude.eaglercraft.backend.server.base.handshake;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
@@ -30,10 +32,12 @@ public class VanillaInitializer {
 	protected final EaglerXServer<?> server;
 	protected final NettyPipelineData pipelineData;
 	protected final WebSocketEaglerInitialHandler inboundHandler;
+	protected final List<ByteBuf> bufferedPackets;
 
 	private static final int STATE_PRE = 0;
 	private static final int STATE_SENT_LOGIN = 1;
-	private static final int STATE_COMPLETE = 2;
+	private static final int STATE_STALLING = 2;
+	private static final int STATE_COMPLETE = 3;
 	private int connectionState = STATE_PRE;
 
 	public VanillaInitializer(EaglerXServer<?> server, NettyPipelineData pipelineData,
@@ -41,6 +45,7 @@ public class VanillaInitializer {
 		this.server = server;
 		this.pipelineData = pipelineData;
 		this.inboundHandler = inboundHandler;
+		this.bufferedPackets = new LinkedList<>();
 	}
 
 	public VanillaInitializer init(ChannelHandlerContext ctx) {
@@ -95,38 +100,57 @@ public class VanillaInitializer {
 
 	public void handleInbound(ChannelHandlerContext ctx, ByteBuf msg) {
 		try {
+			msg.markReaderIndex();
 			int pktId = BufferUtils.readVarInt(msg, 3);
-			if(pktId == 0x00) {
-				// S00PacketDisconnect
-				handleKickPacket(ctx, msg);
-			}else {
-				if(connectionState == STATE_SENT_LOGIN) {
-					if(pktId == 0x02) {
-						// S02PacketLoginSuccess
-						UUID playerUUID;
-						String uuidStr = BufferUtils.readMCString(msg, 36);
-						try {
-							playerUUID = UUID.fromString(uuidStr);
-						}catch(IllegalArgumentException ex) {
-							inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
-							return;
-						}
-						String usernameStr = BufferUtils.readMCString(msg, 16);
-						inboundHandler.handleBackendHandshakeSuccess(ctx, usernameStr, playerUUID);
-					}else if(pktId == 0x03) {
-						// S03PacketEnableCompression
-					}else if(pktId == 0x01) {
-						// S01PacketEncryptionRequest
-						inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
-						pipelineData.connectionLogger.error("Disconnecting, server tried to enable online mode encryption, please make sure the server is not in online mode");
-					}else {
-						inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
-						pipelineData.connectionLogger.error("Disconnecting, server sent unknown packet " + pktId + " while handshaking");
-					}
-				}else {
-					pipelineData.connectionLogger.error("Disconnecting, server sent unexpected packet " + pktId);
+			if(connectionState == STATE_SENT_LOGIN) {
+				switch(pktId) {
+				case 0x00:
+					// S00PacketDisconnect
+					handleKickPacket(ctx, msg);
+					break;
+				case 0x01:
+					// S01PacketEncryptionRequest
 					inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
+					pipelineData.connectionLogger.error("Disconnecting, server tried to enable online mode encryption, please make sure the server is not in online mode");
+					break;
+				case 0x02:
+					connectionState = STATE_STALLING;
+					// S02PacketLoginSuccess
+					UUID playerUUID;
+					String uuidStr = BufferUtils.readMCString(msg, 36);
+					try {
+						playerUUID = UUID.fromString(uuidStr);
+					}catch(IllegalArgumentException ex) {
+						inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
+						return;
+					}
+					String usernameStr = BufferUtils.readMCString(msg, 16);
+					inboundHandler.handleBackendHandshakeSuccess(ctx, usernameStr, playerUUID);
+					break;
+				case 0x03:
+					// S03PacketEnableCompression
+					break;
+				case 0x3F:
+					// S3FPacketCustomPayload
+					msg.resetReaderIndex();
+					bufferedPackets.add(msg.retain());
+					break;
+				default:
+					inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
+					pipelineData.connectionLogger.error("Disconnecting, server sent unknown packet " + pktId + " while handshaking");
+					break;
 				}
+			}else if(connectionState == STATE_STALLING) {
+				if(pktId == 0x40) {
+					// S40PacketDisconnect
+					handleKickPacket(ctx, msg);
+				}else {
+					msg.resetReaderIndex();
+					bufferedPackets.add(msg.retain());
+				}
+			}else {
+				pipelineData.connectionLogger.error("Disconnecting, server sent unexpected packet " + pktId);
+				inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
 			}
 		}catch(IndexOutOfBoundsException ex) {
 			ex.printStackTrace();
@@ -139,6 +163,28 @@ public class VanillaInitializer {
 		inboundHandler.terminateErrorCode(ctx, pipelineData.handshakeProtocol,
 				HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE, pkt);
 		connectionState = STATE_COMPLETE;
+	}
+
+	public void flushBufferedPackets(ChannelHandlerContext ctx) {
+		if(!bufferedPackets.isEmpty()) {
+			try {
+				for(ByteBuf buf : bufferedPackets) {
+					ctx.write(buf.retain());
+				}
+				ctx.flush();
+			}finally {
+				release();
+			}
+		}
+	}
+
+	public void release() {
+		if(!bufferedPackets.isEmpty()) {
+			for(ByteBuf buf : bufferedPackets) {
+				buf.release();
+			}
+			bufferedPackets.clear();
+		}
 	}
 
 }

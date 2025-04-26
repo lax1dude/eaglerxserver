@@ -619,6 +619,13 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		pipelineData.cancelLoginTimeoutHelper();
 	}
 
+	@Override
+	public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+		if(vanillaInitializer != null) {
+			vanillaInitializer.release();
+		}
+	}
+
 	public void beginBackendHandshake(ChannelHandlerContext ctx) {
 		ChannelPipeline pipeline = ctx.pipeline();
 		pipeline.remove(PipelineTransformer.HANDLER_OUTBOUND_THROW);
@@ -635,9 +642,11 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		pipelineData.cancelLoginTimeoutHelper();
 		handshaker.finish(ctx);
 		ChannelPipeline pipeline = ctx.pipeline();
-		pipeline.remove(PipelineTransformer.HANDLER_HANDSHAKE);
 		pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_HANDSHAKE_COMPLETE);
+		vanillaInitializer.flushBufferedPackets(ctx);
+		pipeline.remove(PipelineTransformer.HANDLER_HANDSHAKE);
 		pipelineData.signalPlayState();
+		pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_ENTERED_PLAY_STATE);
 	}
 
 }
