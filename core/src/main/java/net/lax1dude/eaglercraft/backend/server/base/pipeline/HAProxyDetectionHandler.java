@@ -43,18 +43,35 @@ public class HAProxyDetectionHandler extends ByteToMessageDecoder {
 		if (!ctx.channel().isActive()) {
 			in.skipBytes(readable);
 		}else {
-			if(readable >= 6) {
+			boolean proxy = false;
+			eagler: {
 				int readerIndex = in.readerIndex();
-				boolean proxy = in.getByte(readerIndex) == (byte) 'P' && in.getByte(readerIndex + 1) == (byte) 'R'
-						&& in.getByte(readerIndex + 2) == (byte) 'O' && in.getByte(readerIndex + 3) == (byte) 'X'
-						&& in.getByte(readerIndex + 4) == (byte) 'Y' && in.getByte(readerIndex + 5) == (byte) ' ';
-				ChannelPipeline pipeline = ctx.pipeline();
-				if(!proxy) {
-					pipeline.remove(clzHAProxyHandler);
+				if(readable >= 12) {
+					proxy = in.getByte(readerIndex) == (byte) 0x0D && in.getByte(readerIndex + 1) == (byte) 0x0A
+							&& in.getByte(readerIndex + 2) == (byte) 0x0D && in.getByte(readerIndex + 3) == (byte) 0x0A
+							&& in.getByte(readerIndex + 4) == (byte) 0x00 && in.getByte(readerIndex + 5) == (byte) 0x0D
+							&& in.getByte(readerIndex + 6) == (byte) 0x0A && in.getByte(readerIndex + 7) == (byte) 0x51
+							&& in.getByte(readerIndex + 8) == (byte) 0x55 && in.getByte(readerIndex + 9) == (byte) 0x49
+							&& in.getByte(readerIndex + 10) == (byte) 0x54
+							&& in.getByte(readerIndex + 11) == (byte) 0x0A;
+					if(proxy) {
+						break eagler;
+					}
 				}
-				ctx.fireChannelRead(BufferUtils.readRetainedSlice(in, readable));
-				pipeline.remove(this);
+				if(readable >= 6) {
+					proxy = in.getByte(readerIndex) == (byte) 'P' && in.getByte(readerIndex + 1) == (byte) 'R'
+							&& in.getByte(readerIndex + 2) == (byte) 'O' && in.getByte(readerIndex + 3) == (byte) 'X'
+							&& in.getByte(readerIndex + 4) == (byte) 'Y' && in.getByte(readerIndex + 5) == (byte) ' ';
+					break eagler;
+				}
+				return;
 			}
+			ChannelPipeline pipeline = ctx.pipeline();
+			if(!proxy) {
+				pipeline.remove(clzHAProxyHandler);
+			}
+			ctx.fireChannelRead(BufferUtils.readRetainedSlice(in, readable));
+			pipeline.remove(this);
 		}
 	}
 
