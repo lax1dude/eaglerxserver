@@ -24,11 +24,11 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -119,15 +119,10 @@ class ResponseCache {
 		protected ResponseLoaderContext(int i) {
 			loaderBuffer = new byte[1024 * 1024];
 			thread = new Thread(() -> {
-				while((int)DISPOSED_HANDLE.getOpaque(ResponseCache.this) == 0) {
+				while(!disposed) {
 					try {
-						ResponseLoaderRunnable runnable = null;
-						synchronized(queue) {
-							if(queue.isEmpty()) {
-								queue.wait();
-							}
-							runnable = queue.poll();
-						}
+						semaphore.acquire();
+						ResponseLoaderRunnable runnable = queue.poll();
 						if(runnable != null) {
 							runnable.run(this);
 						}
@@ -175,23 +170,12 @@ class ResponseCache {
 		void run(ResponseLoaderContext ctx);
 	}
 
-	private static final VarHandle DISPOSED_HANDLE;
-
-	static {
-		try {
-			MethodHandles.Lookup l = MethodHandles.lookup();
-			DISPOSED_HANDLE = l.findVarHandle(ResponseCache.class, "disposed", int.class);
-		} catch (ReflectiveOperationException e) {
-			throw new ExceptionInInitializerError(e);
-		}
-	}
-
-
 	protected final LoadingCache<ResponseCacheKey, ResponseLoader> cache;
 	protected final IEaglerWebLogger logger;
-	protected volatile int disposed = 0;
+	protected volatile boolean disposed = false;
 	protected final ResponseLoaderContext[] threads;
-	protected final Queue<ResponseLoaderRunnable> queue;
+	protected final Semaphore semaphore = new Semaphore(0);
+	protected final ConcurrentLinkedQueue<ResponseLoaderRunnable> queue = new ConcurrentLinkedQueue<>();
 	protected final CountDownLatch disposeLatch;
 
 	ResponseCache(long expiresAfter, int maxCacheFiles, int threadCount, IEaglerWebLogger loggerIn) {
@@ -204,7 +188,6 @@ class ResponseCache {
 				return new ResponseLoader(key);
 			}
 		});
-		queue = new LinkedList<>();
 		disposeLatch = new CountDownLatch(threadCount);
 		threads = new ResponseLoaderContext[threadCount];
 	}
@@ -230,18 +213,14 @@ class ResponseCache {
 		ResponseLoaderRunnable runnable = (ctx) -> {
 			callback.accept(ctx.loadFileAsByte(file));
 		};
-		synchronized(queue) {
-			queue.add(runnable);
-			queue.notify();
-		}
+		queue.add(runnable);
+		semaphore.release();
 	}
 
 	void dispose() {
-		DISPOSED_HANDLE.setOpaque(this, 1);
-		synchronized(queue) {
-			queue.clear();
-			queue.notifyAll();
-		}
+		disposed = true;
+		queue.clear();
+		semaphore.release(threads.length);
 		try {
 			disposeLatch.await();
 		} catch (InterruptedException e) {

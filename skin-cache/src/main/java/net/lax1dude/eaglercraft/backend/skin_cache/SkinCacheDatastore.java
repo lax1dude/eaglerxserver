@@ -22,9 +22,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 import java.util.function.Consumer;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
@@ -41,7 +41,8 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 
 	protected final ILoggerAdapter logger;
 	protected final SkinCacheDatastoreThreadEnv[] threads;
-	protected final Queue<SkinCacheDatastoreRunnable> databaseQueue = new LinkedList<>();
+	protected final Semaphore semaphore = new Semaphore(0);
+	protected final ConcurrentLinkedQueue<SkinCacheDatastoreRunnable> databaseQueue = new ConcurrentLinkedQueue<>();
 	protected final Connection conn;
 	protected volatile boolean disposed;
 	protected final CountDownLatch disposeLatch;
@@ -78,13 +79,8 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 			thread = new Thread(() -> {
 				while(!disposed) {
 					try {
-						SkinCacheDatastoreRunnable runnable = null;
-						synchronized(databaseQueue) {
-							if(databaseQueue.isEmpty()) {
-								databaseQueue.wait();
-							}
-							runnable = databaseQueue.poll();
-						}
+						semaphore.acquire();
+						SkinCacheDatastoreRunnable runnable = databaseQueue.poll();
 						if(runnable != null) {
 							runnable.run(this);
 						}
@@ -134,10 +130,8 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 	}
 
 	private void execute(SkinCacheDatastoreRunnable runnable) {
-		synchronized(databaseQueue) {
-			databaseQueue.add(runnable);
-			databaseQueue.notify();
-		}
+		databaseQueue.add(runnable);
+		semaphore.release();
 	}
 
 	@Override
@@ -277,10 +271,8 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 	@Override
 	public void dispose() {
 		disposed = true;
-		synchronized(databaseQueue) {
-			databaseQueue.clear();
-			databaseQueue.notifyAll();
-		}
+		databaseQueue.clear();
+		semaphore.release(threads.length);
 		try {
 			disposeLatch.await();
 		} catch (InterruptedException e) {
