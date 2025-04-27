@@ -129,14 +129,10 @@ public class LegacyMessageController extends MessageController {
 							throw new IOException("Packet fragment is too long: " + j + " > " + inputBuffer.available());
 						}
 						pkt = protocol.readPacket(channel, GamePluginMessageConstants.CLIENT_TO_SERVER, inputBuffer);
-						if(pkt != null) {
-							handlePacket(pkt);
-						}else {
-							throw new IOException("Unknown packet type in fragment!");
-						}
 						if(inputStream.getReaderIndex() != k) {
 							throw new IOException("Packet fragment was the wrong length: " + (j + inputStream.getReaderIndex() - k) + " != " + j);
 						}
+						handlePacket(pkt);
 					}
 					if(inputBuffer.available() > 0) {
 						throw new IOException("Leftover data after reading multi-packet! (" + inputBuffer.available() + " bytes)");

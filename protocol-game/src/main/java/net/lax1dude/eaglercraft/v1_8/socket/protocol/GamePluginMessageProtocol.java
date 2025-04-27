@@ -161,7 +161,7 @@ public enum GamePluginMessageProtocol {
 	private final Map<Class<? extends GameMessagePacket>, PacketDef>[] classMap;
 	private final Set<String> notChannelMap = new HashSet<>(); // populated in clinit
 
-	private static final GamePluginMessageProtocol[] PROTOCOLS_MAP = new GamePluginMessageProtocol[5];
+	private static final GamePluginMessageProtocol[] PROTOCOLS_MAP = new GamePluginMessageProtocol[6];
 	private static final Set<String> allChannels = new HashSet<>();
 
 	private GamePluginMessageProtocol(int versionInt, PacketDef... packets) {
@@ -309,8 +309,8 @@ public enum GamePluginMessageProtocol {
 		PROTOCOLS_MAP[2] = V3;
 		for(int i = 0; i < _values.length; ++i) {
 			GamePluginMessageProtocol protocol = _values[i];
+			PROTOCOLS_MAP[protocol.ver] = protocol;
 			if(protocol.ver < 5) {
-				PROTOCOLS_MAP[protocol.ver] = protocol;
 				allChannels.addAll(protocol.channelMap[CLIENT_TO_SERVER].keySet());
 				allChannels.addAll(protocol.channelMap[SERVER_TO_CLIENT].keySet());
 			}

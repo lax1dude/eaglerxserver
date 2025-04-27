@@ -78,14 +78,10 @@ public class InjectedMessageController extends MessageController {
 								throw new IOException("Packet fragment is too long: " + j + " > " + is.available());
 							}
 							pkt = protocol.readPacketV5(GamePluginMessageConstants.CLIENT_TO_SERVER, is);
-							if(pkt != null) {
-								handlePacket(pkt);
-							}else {
-								throw new IOException("Unknown packet type in fragment!");
-							}
 							if(buffer.readerIndex() - start != k) {
 								throw new IOException("Packet fragment was the wrong length: " + (j + (buffer.readerIndex() - start) - k) + " != " + j);
 							}
+							handlePacket(pkt);
 						}
 						if(is.available() > 0) {
 							throw new IOException("Leftover data after reading multi-packet! (" + is.available() + " bytes)");
@@ -182,10 +178,10 @@ public class InjectedMessageController extends MessageController {
 								++start;
 								continue;
 							}
-							i = 1 + totalLen + GamePacketOutputBuffer.getVarIntSize(sendCount);
+							i = 2 + totalLen + GamePacketOutputBuffer.getVarIntSize(sendCount);
 							ByteBuf sendBuffer = channel.alloc().buffer(i, i);
 							try {
-								sendBuffer.writeByte(0xFF);
+								sendBuffer.writeShort(0xEEFF);
 								BufferUtils.writeVarInt(sendBuffer, sendCount);
 								for(j = 0; j < sendCount; ++j) {
 									i = start << 1;

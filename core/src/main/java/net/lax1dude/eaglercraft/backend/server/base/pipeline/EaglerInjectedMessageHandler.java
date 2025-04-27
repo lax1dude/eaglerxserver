@@ -39,10 +39,10 @@ public class EaglerInjectedMessageHandler extends MessageToMessageCodec<ByteBuf,
 
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> output) throws Exception {
-		if(msg.readableBytes() > 0 && msg.getUnsignedByte(0) == 0xEE) {
+		if(msg.readableBytes() > 0 && msg.getUnsignedByte(msg.readerIndex()) == 0xEE) {
 			injectedController.readPacket(msg);
 		}else {
-			output.add(msg);
+			output.add(msg.retain());
 		}
 	}
 
