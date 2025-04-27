@@ -48,7 +48,7 @@ public class VanillaInitializer {
 		this.bufferedPackets = new LinkedList<>();
 	}
 
-	public VanillaInitializer init(ChannelHandlerContext ctx) {
+	public void init(ChannelHandlerContext ctx) {
 		// C00Handshake
 		ByteBuf buffer = ctx.alloc().buffer();
 		try {
@@ -78,7 +78,11 @@ public class VanillaInitializer {
 		}finally {
 			buffer.release();
 		}
-		
+
+		if(inboundHandler.terminated || !ctx.channel().isActive()) {
+			return;
+		}
+
 		// C00PacketLoginStart
 		buffer = ctx.alloc().buffer();
 		try {
@@ -89,20 +93,25 @@ public class VanillaInitializer {
 			buffer.release();
 		}
 
-		if(ctx.channel().isActive()) {
-			connectionState = STATE_SENT_LOGIN;
-		}else {
-			inboundHandler.terminated = true;
+		if(inboundHandler.terminated || !ctx.channel().isActive()) {
+			return;
 		}
 
-		return this;
+		connectionState = STATE_SENT_LOGIN;
 	}
 
 	public void handleInbound(ChannelHandlerContext ctx, ByteBuf msg) {
 		try {
 			msg.markReaderIndex();
 			int pktId = BufferUtils.readVarInt(msg, 3);
-			if(connectionState == STATE_SENT_LOGIN) {
+			if(connectionState == STATE_PRE) {
+				if(pktId == 0x00) {
+					handleKickPacket(ctx, msg);
+				}else {
+					pipelineData.connectionLogger.error("Disconnecting, server sent unexpected packet " + pktId);
+					inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
+				}
+			}else if(connectionState == STATE_SENT_LOGIN) {
 				switch(pktId) {
 				case 0x00:
 					// S00PacketDisconnect

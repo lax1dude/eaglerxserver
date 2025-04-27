@@ -627,11 +627,13 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 	}
 
 	public void beginBackendHandshake(ChannelHandlerContext ctx) {
-		ChannelPipeline pipeline = ctx.pipeline();
-		pipeline.remove(PipelineTransformer.HANDLER_OUTBOUND_THROW);
-		pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_OUTBOUND_THROW_REMOVED);
-		vanillaInitializer = new VanillaInitializer(server, pipelineData, this);
-		vanillaInitializer.init(ctx);
+		if(ctx.channel().isActive()) {
+			ChannelPipeline pipeline = ctx.pipeline();
+			pipeline.remove(PipelineTransformer.HANDLER_OUTBOUND_THROW);
+			pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_OUTBOUND_THROW_REMOVED);
+			vanillaInitializer = new VanillaInitializer(server, pipelineData, this);
+			vanillaInitializer.init(ctx);
+		}
 	}
 
 	public void handleBackendHandshakeSuccess(ChannelHandlerContext ctx, String acceptedUsername, UUID acceptedUUID) {
