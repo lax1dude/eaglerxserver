@@ -545,10 +545,14 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 		if(open) {
 			RPCRequestFuture<IEaglerPlayerSkin> ret = createRequest(timeoutSec, (obj) -> {
 				IEaglerPlayerSkin skin = PLAYER_SKIN_HANDLER.apply(obj);
-				if(skin.isSkinPreset()) {
-					return skin;
+				if(skin != null) {
+					if(skin.isSkinPreset()) {
+						return skin;
+					}else {
+						return SkinImageLoaderImpl.rewriteCustomSkinModelId(skin, modelId.getId());
+					}
 				}else {
-					return SkinImageLoaderImpl.rewriteCustomSkinModelId(skin, modelId.getId());
+					return null;
 				}
 			});
 			writeOutboundPacket(new CPacketRPCGetSkinByURLV2(ret.getRequestId(), url));
