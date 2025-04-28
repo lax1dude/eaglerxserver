@@ -159,6 +159,11 @@ public class SupervisorResolverAll implements ISupervisorResolver {
 	}
 
 	@Override
+	public void loadCacheSkinFromURL(String skinURL, int modelIdRaw, Consumer<IEaglerPlayerSkin> callback) {
+		resolver.loadCacheSkinFromURL(skinURL, modelIdRaw, callback);
+	}
+
+	@Override
 	public void loadCacheCapeFromURL(String capeURL, Consumer<IEaglerPlayerCape> callback) {
 		resolver.loadCacheCapeFromURL(capeURL, callback);
 	}

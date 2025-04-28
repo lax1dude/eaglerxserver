@@ -28,6 +28,7 @@ import net.lax1dude.eaglercraft.backend.rpc.api.IRPCFuture;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.TexturesData;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetCapes;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetSkins;
+import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.rpc.api.voice.IVoiceManager;
@@ -338,10 +339,31 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public IRPCFuture<IEaglerPlayerSkin> getSkinByURL(String url, int timeoutSec) {
+		return getSkinByURL(url);
+	}
+
+	@Override
+	public IRPCFuture<IEaglerPlayerSkin> getSkinByURL(String url, EnumSkinModel modelId) {
 		if(url == null) {
 			throw new NullPointerException("url");
 		}
-		return getSkinByURL(url);
+		if(modelId == null) {
+			throw new NullPointerException("modelId");
+		}
+		RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin> consumerFuture
+				= new RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin>(schedulerExecutors) {
+			@Override
+			public void accept(net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin skin) {
+				set(SkinTypesHelper.wrap(skin));
+			}
+		};
+		delegate.getServerAPI().getSkinService().loadCacheSkinFromURL(url, SkinTypesHelper.unwrap(modelId), consumerFuture);
+		return consumerFuture;
+	}
+
+	@Override
+	public IRPCFuture<IEaglerPlayerSkin> getSkinByURL(String url, int timeoutSec, EnumSkinModel modelId) {
+		return getSkinByURL(url, modelId);
 	}
 
 	@Override
@@ -362,9 +384,6 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public IRPCFuture<IEaglerPlayerCape> getCapeByURL(String url, int timeoutSec) {
-		if(url == null) {
-			throw new NullPointerException("url");
-		}
 		return getCapeByURL(url);
 	}
 

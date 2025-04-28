@@ -40,6 +40,7 @@ import net.lax1dude.eaglercraft.backend.rpc.api.RPCTimeoutException;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.TexturesData;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetCapes;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetSkins;
+import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.rpc.base.RPCFailedFuture;
@@ -47,6 +48,7 @@ import net.lax1dude.eaglercraft.backend.rpc.base.RPCRequestFuture;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.message.BackendRPCMessageController;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.message.BackendRPCProtocolHandler;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.message.BackendV2RPCProtocolHandler;
+import net.lax1dude.eaglercraft.backend.rpc.base.remote.skins.SkinImageLoaderImpl;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.skins.SkinRPCHelper;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.skins.type.InternUtils;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.skins.type.MissingCape;
@@ -525,6 +527,30 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 		}
 		if(open) {
 			RPCRequestFuture<IEaglerPlayerSkin> ret = createRequest(timeoutSec, PLAYER_SKIN_HANDLER);
+			writeOutboundPacket(new CPacketRPCGetSkinByURLV2(ret.getRequestId(), url));
+			return ret;
+		}else {
+			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
+		}
+	}
+
+	@Override
+	public IRPCFuture<IEaglerPlayerSkin> getSkinByURL(String url, int timeoutSec, EnumSkinModel modelId) {
+		if(url == null) {
+			throw new NullPointerException("url");
+		}
+		if(modelId == null) {
+			throw new NullPointerException("modelId");
+		}
+		if(open) {
+			RPCRequestFuture<IEaglerPlayerSkin> ret = createRequest(timeoutSec, (obj) -> {
+				IEaglerPlayerSkin skin = PLAYER_SKIN_HANDLER.apply(obj);
+				if(skin.isSkinPreset()) {
+					return skin;
+				}else {
+					return SkinImageLoaderImpl.rewriteCustomSkinModelId(skin, modelId.getId());
+				}
+			});
 			writeOutboundPacket(new CPacketRPCGetSkinByURLV2(ret.getRequestId(), url));
 			return ret;
 		}else {

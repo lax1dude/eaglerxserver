@@ -123,23 +123,25 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 
 	@Override
 	public void loadCacheSkinFromURL(String skinURL, EnumSkinModel modelId, Consumer<IEaglerPlayerSkin> callback) {
+		loadCacheSkinFromURL(skinURL, modelId.getId(), callback);
+	}
+
+	@Override
+	public void loadCacheSkinFromURL(String skinURL, int modelIdRaw, Consumer<IEaglerPlayerSkin> callback) {
 		if(skinURL == null) {
 			throw new NullPointerException("skinURL");
-		}
-		if(modelId == null) {
-			throw new NullPointerException("modelId");
 		}
 		if(callback == null) {
 			throw new NullPointerException("callback");
 		}
 		if(downloadEnabled) {
 			if(supervisor != null) {
-				supervisor.getRemoteOnlyResolver().loadCacheSkinFromURL(skinURL, modelId, callback);
+				supervisor.getRemoteOnlyResolver().loadCacheSkinFromURL(skinURL, modelIdRaw, callback);
 				return;
 			}else if(skinCache != null) {
 				skinCache.resolveSkinByURL(skinURL, (data) -> {
 					if(data != ISkinCacheService.ERROR) {
-						callback.accept(CustomSkinGeneric.createV4(modelId.getId(), data));
+						callback.accept(CustomSkinGeneric.createV4(modelIdRaw, data));
 					}else {
 						callback.accept(MissingSkin.MISSING_SKIN);
 					}

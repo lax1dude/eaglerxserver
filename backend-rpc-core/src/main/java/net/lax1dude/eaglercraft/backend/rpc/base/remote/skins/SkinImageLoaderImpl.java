@@ -27,7 +27,6 @@ import javax.imageio.ImageIO;
 
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetCapes;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetSkins;
-import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.ISkinImageLoader;
@@ -43,6 +42,9 @@ public class SkinImageLoaderImpl {
 	}
 
 	public static IEaglerPlayerSkin loadPresetSkin(int presetSkin) {
+		if(presetSkin < 0 || presetSkin > 0x7FFFFFFF) {
+			throw new IllegalArgumentException("Invalid preset skin id: " + presetSkin);
+		}
 		return InternUtils.getPresetSkin(presetSkin);
 	}
 
@@ -54,9 +56,12 @@ public class SkinImageLoaderImpl {
 		return InternUtils.getPresetSkin((playerUUID.hashCode() & 1) != 0 ? 1 : 0);
 	}
 
-	public static IEaglerPlayerSkin rewriteCustomSkinModelId(IEaglerPlayerSkin skin, EnumSkinModel modelId) {
+	public static IEaglerPlayerSkin rewriteCustomSkinModelId(IEaglerPlayerSkin skin, int modelId) {
+		if(modelId < 0 || modelId >= 0xFF) {
+			throw new IllegalArgumentException("Invalid model id: " + modelId);
+		}
 		if(skin instanceof IModelRewritable rw) {
-			return rw.rewriteModelInternal(modelId.getId());
+			return rw.rewriteModelInternal(modelId);
 		}else {
 			return skin;
 		}
@@ -74,39 +79,51 @@ public class SkinImageLoaderImpl {
 		return InternUtils.getPresetCape(presetCape.getId());
 	}
 
-	public static IEaglerPlayerSkin loadSkinImageData64x64(int[] pixelsARGB8, EnumSkinModel modelId) {
+	public static IEaglerPlayerSkin loadSkinImageData64x64(int[] pixelsARGB8, int modelId) {
 		if(pixelsARGB8.length != 4096) {
 			throw new IllegalArgumentException("Skin data is the wrong length, should be 4096");
 		}
+		if(modelId < 0 || modelId >= 0xFF) {
+			throw new IllegalArgumentException("Invalid model id: " + modelId);
+		}
 		byte[] tmp = new byte[12288];
 		SkinConverterExt.convertToBytes(pixelsARGB8, tmp);
-		return CustomSkinGeneric.createV4(modelId.getId(), tmp);
+		return CustomSkinGeneric.createV4(modelId, tmp);
 	}
 
-	public static IEaglerPlayerSkin loadSkinImageData64x64(byte[] pixelsRGBA8, EnumSkinModel modelId) {
+	public static IEaglerPlayerSkin loadSkinImageData64x64(byte[] pixelsRGBA8, int modelId) {
 		if(pixelsRGBA8.length != 16384) {
 			throw new IllegalArgumentException("Skin data is the wrong length, should be 16384");
 		}
-		return CustomSkinGeneric.createV3(modelId.getId(), pixelsRGBA8);
+		if(modelId < 0 || modelId >= 0xFF) {
+			throw new IllegalArgumentException("Invalid model id: " + modelId);
+		}
+		return CustomSkinGeneric.createV3(modelId, pixelsRGBA8);
 	}
 
-	public static IEaglerPlayerSkin loadSkinImageData64x64Eagler(byte[] pixelsEagler, EnumSkinModel modelId) {
+	public static IEaglerPlayerSkin loadSkinImageData64x64Eagler(byte[] pixelsEagler, int modelId) {
 		if(pixelsEagler.length != 12288) {
 			throw new IllegalArgumentException("Skin data is the wrong length, should be 12288");
 		}
-		return CustomSkinGeneric.createV4(modelId.getId(), pixelsEagler);
+		if(modelId < 0 || modelId >= 0xFF) {
+			throw new IllegalArgumentException("Invalid model id: " + modelId);
+		}
+		return CustomSkinGeneric.createV4(modelId, pixelsEagler);
 	}
 
-	public static IEaglerPlayerSkin loadSkinImageData64x32(int[] pixelsARGB8, EnumSkinModel modelId) {
+	public static IEaglerPlayerSkin loadSkinImageData64x32(int[] pixelsARGB8, int modelId) {
 		if(pixelsARGB8.length != 2048) {
 			throw new IllegalArgumentException("Skin data is the wrong length, should be 2048");
 		}
+		if(modelId < 0 || modelId >= 0xFF) {
+			throw new IllegalArgumentException("Invalid model id: " + modelId);
+		}
 		byte[] tmp = new byte[12288];
 		SkinConverterExt.convert64x32To64x64(pixelsARGB8, tmp);
-		return CustomSkinGeneric.createV4(modelId.getId(), tmp);
+		return CustomSkinGeneric.createV4(modelId, tmp);
 	}
 
-	public static IEaglerPlayerSkin loadSkinImageData(BufferedImage image, EnumSkinModel modelId) {
+	public static IEaglerPlayerSkin loadSkinImageData(BufferedImage image, int modelId) {
 		if(image.getWidth() == 64) {
 			if(image.getHeight() == 64) {
 				int[] tmp = new int[4096];
@@ -121,11 +138,17 @@ public class SkinImageLoaderImpl {
 		throw new IllegalArgumentException("Image is the wrong size, should be 64x64 or 64x32");
 	}
 
-	public static IEaglerPlayerSkin loadSkinImageData(InputStream inputStream, EnumSkinModel modelId) throws IOException {
+	public static IEaglerPlayerSkin loadSkinImageData(InputStream inputStream, int modelId) throws IOException {
+		if(modelId < 0 || modelId >= 0xFF) {
+			throw new IllegalArgumentException("Invalid model id: " + modelId);
+		}
 		return loadSkinImageData(ImageIO.read(inputStream), modelId);
 	}
 
-	public static IEaglerPlayerSkin loadSkinImageData(File imageFile, EnumSkinModel modelId) throws IOException {
+	public static IEaglerPlayerSkin loadSkinImageData(File imageFile, int modelId) throws IOException {
+		if(modelId < 0 || modelId >= 0xFF) {
+			throw new IllegalArgumentException("Invalid model id: " + modelId);
+		}
 		try(InputStream is = new FileInputStream(imageFile)) {
 			return loadSkinImageData(is, modelId);
 		}

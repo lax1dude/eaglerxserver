@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 import net.lax1dude.eaglercraft.backend.rpc.api.data.TexturesData;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetCapes;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumPresetSkins;
+import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerSkin;
 
@@ -165,6 +166,14 @@ public interface IBasePlayerRPC<PlayerObject> {
 
 	@Nonnull
 	IRPCFuture<IEaglerPlayerSkin> getSkinByURL(@Nonnull String url, int timeoutSec);
+
+	@Nonnull
+	default IRPCFuture<IEaglerPlayerSkin> getSkinByURL(@Nonnull String url, @Nonnull EnumSkinModel modelId) {
+		return getSkinByURL(url, getBaseRequestTimeout(), modelId);
+	}
+
+	@Nonnull
+	IRPCFuture<IEaglerPlayerSkin> getSkinByURL(@Nonnull String url, int timeoutSec, @Nonnull EnumSkinModel modelId);
 
 	@Nonnull
 	default IRPCFuture<IEaglerPlayerCape> getCapeByURL(@Nonnull String url) {

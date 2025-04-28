@@ -33,7 +33,7 @@ public enum EnumSkinModel {
 
 	@Nonnull
 	public static EnumSkinModel getById(int model) {
-		return model == 1 ? ALEX : STEVE;
+		return (model & 0x7F) == 1 ? ALEX : STEVE;
 	}
 
 }

@@ -64,6 +64,12 @@ public class MissingSkin extends BasePresetSkin {
 	}
 
 	@Override
+	public GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast, int rewriteModelIdRaw,
+			GamePluginMessageProtocol protocol) {
+		return new SPacketOtherSkinPresetEAG(rewriteUUIDMost, rewriteUUIDLeast, skinId);
+	}
+
+	@Override
 	public GameMessagePacket getForceSkinPacketV4() {
 		return new SPacketForceClientSkinPresetV4EAG(0);
 	}
@@ -100,6 +106,11 @@ public class MissingSkin extends BasePresetSkin {
 
 	@Override
 	public EnumSkinModel getCustomSkinModelId() {
+		throw new UnsupportedOperationException("EaglerPlayerSkin is not a custom skin");
+	}
+
+	@Override
+	public int getCustomSkinRawModelId() {
 		throw new UnsupportedOperationException("EaglerPlayerSkin is not a custom skin");
 	}
 

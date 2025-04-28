@@ -308,6 +308,9 @@ public class RewindMessageHandler implements GameMessageHandler {
 					}
 				}else {
 					int modelId = -packet.skinID - 1;
+					if((modelId & 0x80) != 0) {
+						modelId = (modelId & 0x7F) == 1 ? 1 : 0;
+					}
 					if(modelId == 0) {
 						buf.writeByte(1);
 						SkinPacketUtils.rewriteCustomSkinToLegacy(packet.customSkin, buf);

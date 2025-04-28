@@ -137,6 +137,11 @@ class SkinTypesHelper implements ISkinImageLoader {
 		}
 
 		@Override
+		public int getCustomSkinRawModelId() {
+			return skin.getCustomSkinRawModelId();
+		}
+
+		@Override
 		public int hashCode() {
 			return skin.hashCode();
 		}
@@ -250,8 +255,18 @@ class SkinTypesHelper implements ISkinImageLoader {
 	}
 
 	@Override
+	public IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x64(int[] pixelsARGB8, int modelIdRaw) {
+		return wrap(loader.loadSkinImageData_ARGB8I_64x64(pixelsARGB8, modelIdRaw));
+	}
+
+	@Override
 	public IEaglerPlayerSkin loadSkinImageData_ABGR8_64x64(byte[] pixelsRGBA8, EnumSkinModel modelId) {
 		return wrap(loader.loadSkinImageData_ABGR8_64x64(pixelsRGBA8, unwrap(modelId)));
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData_ABGR8_64x64(byte[] pixelsRGBA8, int modelIdRaw) {
+		return wrap(loader.loadSkinImageData_ABGR8_64x64(pixelsRGBA8, modelIdRaw));
 	}
 
 	@Override
@@ -260,8 +275,18 @@ class SkinTypesHelper implements ISkinImageLoader {
 	}
 
 	@Override
+	public IEaglerPlayerSkin loadSkinImageData_eagler(byte[] pixelsEagler, int modelIdRaw) {
+		return wrap(loader.loadSkinImageData_eagler(pixelsEagler, modelIdRaw));
+	}
+
+	@Override
 	public IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x32(int[] pixelsARGB8, EnumSkinModel modelId) {
 		return wrap(loader.loadSkinImageData_ARGB8I_64x32(pixelsARGB8, unwrap(modelId)));
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x32(int[] pixelsARGB8, int modelIdRaw) {
+		return wrap(loader.loadSkinImageData_ARGB8I_64x32(pixelsARGB8, modelIdRaw));
 	}
 
 	@Override
@@ -270,8 +295,18 @@ class SkinTypesHelper implements ISkinImageLoader {
 	}
 
 	@Override
+	public IEaglerPlayerSkin loadSkinImageData(BufferedImage image, int modelIdRaw) {
+		return wrap(loader.loadSkinImageData(image, modelIdRaw));
+	}
+
+	@Override
 	public IEaglerPlayerSkin loadSkinImageData(InputStream inputStream, EnumSkinModel modelId) throws IOException {
 		return wrap(loader.loadSkinImageData(inputStream, unwrap(modelId)));
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData(InputStream inputStream, int modelIdRaw) throws IOException {
+		return wrap(loader.loadSkinImageData(inputStream, modelIdRaw));
 	}
 
 	@Override
@@ -280,8 +315,18 @@ class SkinTypesHelper implements ISkinImageLoader {
 	}
 
 	@Override
+	public IEaglerPlayerSkin loadSkinImageData(File imageFile, int modelIdRaw) throws IOException {
+		return wrap(loader.loadSkinImageData(imageFile, modelIdRaw));
+	}
+
+	@Override
 	public IEaglerPlayerSkin rewriteCustomSkinModelId(IEaglerPlayerSkin skin, EnumSkinModel modelId) {
 		return wrap(loader.rewriteCustomSkinModelId(unwrap(skin), unwrap(modelId)));
+	}
+
+	@Override
+	public IEaglerPlayerSkin rewriteCustomSkinModelId(IEaglerPlayerSkin skin, int modelIdRaw) {
+		return wrap(loader.rewriteCustomSkinModelId(unwrap(skin), modelIdRaw));
 	}
 
 	@Override

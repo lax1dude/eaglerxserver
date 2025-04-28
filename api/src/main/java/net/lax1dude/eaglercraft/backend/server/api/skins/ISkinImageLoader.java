@@ -49,25 +49,49 @@ public interface ISkinImageLoader {
 	IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x64(@Nonnull int[] pixelsARGB8I, @Nonnull EnumSkinModel modelId);
 
 	@Nonnull
+	IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x64(@Nonnull int[] pixelsARGB8I, int modelIdRaw);
+
+	@Nonnull
 	IEaglerPlayerSkin loadSkinImageData_ABGR8_64x64(@Nonnull byte[] pixelsABGR8, @Nonnull EnumSkinModel modelId);
+
+	@Nonnull
+	IEaglerPlayerSkin loadSkinImageData_ABGR8_64x64(@Nonnull byte[] pixelsABGR8, int modelIdRaw);
 
 	@Nonnull
 	IEaglerPlayerSkin loadSkinImageData_eagler(@Nonnull byte[] pixelsEagler, @Nonnull EnumSkinModel modelId);
 
 	@Nonnull
+	IEaglerPlayerSkin loadSkinImageData_eagler(@Nonnull byte[] pixelsEagler, int modelIdRaw);
+
+	@Nonnull
 	IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x32(@Nonnull int[] pixelsARGB8I, @Nonnull EnumSkinModel modelId);
+
+	@Nonnull
+	IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x32(@Nonnull int[] pixelsARGB8I, int modelIdRaw);
 
 	@Nonnull
 	IEaglerPlayerSkin loadSkinImageData(@Nonnull BufferedImage image, @Nonnull EnumSkinModel modelId);
 
 	@Nonnull
+	IEaglerPlayerSkin loadSkinImageData(@Nonnull BufferedImage image, int modelIdRaw);
+
+	@Nonnull
 	IEaglerPlayerSkin loadSkinImageData(@Nonnull @WillNotClose InputStream inputStream, @Nonnull EnumSkinModel modelId) throws IOException;
+
+	@Nonnull
+	IEaglerPlayerSkin loadSkinImageData(@Nonnull @WillNotClose InputStream inputStream, int modelIdRaw) throws IOException;
 
 	@Nonnull
 	IEaglerPlayerSkin loadSkinImageData(@Nonnull File imageFile, @Nonnull EnumSkinModel modelId) throws IOException;
 
 	@Nonnull
+	IEaglerPlayerSkin loadSkinImageData(@Nonnull File imageFile, int modelIdRaw) throws IOException;
+
+	@Nonnull
 	IEaglerPlayerSkin rewriteCustomSkinModelId(@Nonnull IEaglerPlayerSkin skin, @Nonnull EnumSkinModel modelId);
+
+	@Nonnull
+	IEaglerPlayerSkin rewriteCustomSkinModelId(@Nonnull IEaglerPlayerSkin skin, int modelIdRaw);
 
 	@Nonnull
 	IEaglerPlayerCape loadCapeImageData_ARGB8I_64x32(@Nonnull int[] pixelsARGB8I);

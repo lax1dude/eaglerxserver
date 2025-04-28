@@ -67,12 +67,17 @@ public class CustomSkinModelRw extends BaseCustomSkin implements IModelRewritabl
 
 	@Override
 	public EnumSkinModel getCustomSkinModelId() {
-		return data.getCustomSkinModelId();
+		return EnumSkinModel.getById(modelId);
+	}
+
+	@Override
+	public int getCustomSkinRawModelId() {
+		return modelId;
 	}
 
 	@Override
 	protected int modelId() {
-		return data.modelId();
+		return modelId;
 	}
 
 	@Override

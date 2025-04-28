@@ -82,6 +82,11 @@ public class CustomSkinGeneric extends BaseCustomSkin implements IModelRewritabl
 	}
 
 	@Override
+	public int getCustomSkinRawModelId() {
+		return modelId;
+	}
+
+	@Override
 	protected int modelId() {
 		return modelId;
 	}

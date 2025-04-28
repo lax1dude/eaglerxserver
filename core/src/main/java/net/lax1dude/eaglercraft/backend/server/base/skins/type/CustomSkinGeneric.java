@@ -66,12 +66,18 @@ public class CustomSkinGeneric extends BaseCustomSkin implements IModelRewritabl
 	@Override
 	public GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast, EnumSkinModel rewriteModelId,
 			GamePluginMessageProtocol protocol) {
+		return getSkinPacket(rewriteUUIDMost, rewriteUUIDLeast, rewriteModelId.getId(), protocol);
+	}
+
+	@Override
+	public GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast, int rewriteModelIdRaw,
+			GamePluginMessageProtocol protocol) {
 		switch(protocol) {
 		case V3:
-			return new SPacketOtherSkinCustomV3EAG(rewriteUUIDMost, rewriteUUIDLeast, rewriteModelId.getId(), textureDataV3());
+			return new SPacketOtherSkinCustomV3EAG(rewriteUUIDMost, rewriteUUIDLeast, rewriteModelIdRaw, textureDataV3());
 		case V4:
 		default:
-			return new SPacketOtherSkinCustomV4EAG(rewriteUUIDMost, rewriteUUIDLeast, rewriteModelId.getId(), textureDataV4());
+			return new SPacketOtherSkinCustomV4EAG(rewriteUUIDMost, rewriteUUIDLeast, rewriteModelIdRaw, textureDataV4());
 		}
 	}
 
@@ -113,6 +119,11 @@ public class CustomSkinGeneric extends BaseCustomSkin implements IModelRewritabl
 	@Override
 	public EnumSkinModel getCustomSkinModelId() {
 		return EnumSkinModel.getById(modelId);
+	}
+
+	@Override
+	public int getCustomSkinRawModelId() {
+		return modelId;
 	}
 
 	@Override

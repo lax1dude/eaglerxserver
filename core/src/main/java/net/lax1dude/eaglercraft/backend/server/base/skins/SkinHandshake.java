@@ -40,7 +40,7 @@ public class SkinHandshake {
 					break;
 				}
 				return new PresetSkinPlayer(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(),
-						((data[1] & 0xFF) << 24) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 8) | (data[4] & 0xFF));
+						((data[1] & 0x7F) << 24) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 8) | (data[4] & 0xFF));
 			case PACKET_MY_SKIN_CUSTOM:
 				if(data.length != 2 + 16384) {
 					break;
@@ -48,7 +48,7 @@ public class SkinHandshake {
 				byte[] pixels = new byte[16384];
 				System.arraycopy(data, 2, pixels, 0, pixels.length);
 				return CustomSkinPlayer.createV3(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(),
-						(int) data[1] & 0xFF, pixels);
+						Math.min((int) data[1] & 0x7F, 0x7E) | 0x80, pixels);
 			default:
 				break;
 			}
@@ -65,7 +65,7 @@ public class SkinHandshake {
 					break;
 				}
 				return new PresetSkinPlayer(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(),
-						((data[1] & 0xFF) << 24) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 8) | (data[4] & 0xFF));
+						((data[1] & 0x7F) << 24) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 8) | (data[4] & 0xFF));
 			case PACKET_MY_SKIN_CUSTOM:
 				if(data.length != 2 + 12288) {
 					break;
@@ -73,7 +73,7 @@ public class SkinHandshake {
 				byte[] pixels = new byte[12288];
 				System.arraycopy(data, 2, pixels, 0, pixels.length);
 				return CustomSkinPlayer.createV4(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(),
-						(int) data[1] & 0xFF, pixels);
+						Math.min((int) data[1] & 0x7F, 0x7E) | 0x80, pixels);
 			default:
 				break;
 			}
@@ -90,7 +90,7 @@ public class SkinHandshake {
 					break;
 				}
 				return new PresetCapePlayer(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(),
-						((data[1] & 0xFF) << 24) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 8) | (data[4] & 0xFF));
+						((data[1] & 0x7F) << 24) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 8) | (data[4] & 0xFF));
 			case PACKET_MY_CAPE_CUSTOM:
 				if(data.length != 1 + 1173) {
 					break;

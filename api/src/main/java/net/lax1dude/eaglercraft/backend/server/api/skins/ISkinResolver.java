@@ -48,6 +48,8 @@ public interface ISkinResolver {
 	void loadCacheSkinFromURL(@Nonnull String skinURL, @Nonnull EnumSkinModel modelId,
 			@Nonnull Consumer<IEaglerPlayerSkin> callback);
 
+	void loadCacheSkinFromURL(@Nonnull String skinURL, int modelIdRaw, @Nonnull Consumer<IEaglerPlayerSkin> callback);
+
 	void loadCacheCapeFromURL(@Nonnull String capeURL, @Nonnull Consumer<IEaglerPlayerCape> callback);
 
 }

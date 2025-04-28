@@ -242,16 +242,18 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	@Override
 	public void loadCacheSkinFromURL(String skinURL, EnumSkinModel modelId, Consumer<IEaglerPlayerSkin> callback) {
+		loadCacheSkinFromURL(skinURL, modelId.getId(), callback);
+	}
+
+	@Override
+	public void loadCacheSkinFromURL(String skinURL, int modelIdRaw, Consumer<IEaglerPlayerSkin> callback) {
 		if(skinURL == null) {
 			throw new NullPointerException("skinURL");
-		}
-		if(modelId == null) {
-			throw new NullPointerException("modelId");
 		}
 		if(callback == null) {
 			throw new NullPointerException("callback");
 		}
-		getForeignSkin(skinURL).load(modelId.getId(), null, callback);
+		getForeignSkin(skinURL).load(modelIdRaw, null, callback);
 	}
 
 	@Override

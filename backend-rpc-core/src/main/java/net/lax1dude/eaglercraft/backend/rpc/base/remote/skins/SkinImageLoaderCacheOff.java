@@ -68,42 +68,82 @@ class SkinImageLoaderCacheOff implements ISkinImageLoader {
 
 	@Override
 	public IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x64(int[] pixelsARGB8, EnumSkinModel modelId) {
-		return SkinImageLoaderImpl.loadSkinImageData64x64(pixelsARGB8, modelId);
+		return SkinImageLoaderImpl.loadSkinImageData64x64(pixelsARGB8, modelId.getId());
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x64(int[] pixelsARGB8, int modelIdRaw) {
+		return SkinImageLoaderImpl.loadSkinImageData64x64(pixelsARGB8, modelIdRaw);
 	}
 
 	@Override
 	public IEaglerPlayerSkin loadSkinImageData_ABGR8_64x64(byte[] pixelsRGBA8, EnumSkinModel modelId) {
-		return SkinImageLoaderImpl.loadSkinImageData64x64(pixelsRGBA8, modelId);
+		return SkinImageLoaderImpl.loadSkinImageData64x64(pixelsRGBA8, modelId.getId());
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData_ABGR8_64x64(byte[] pixelsRGBA8, int modelIdRaw) {
+		return SkinImageLoaderImpl.loadSkinImageData64x64(pixelsRGBA8, modelIdRaw);
 	}
 
 	@Override
 	public IEaglerPlayerSkin loadSkinImageData_eagler(byte[] pixelsEagler, EnumSkinModel modelId) {
-		return SkinImageLoaderImpl.loadSkinImageData64x64Eagler(pixelsEagler, modelId);
+		return SkinImageLoaderImpl.loadSkinImageData64x64Eagler(pixelsEagler, modelId.getId());
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData_eagler(byte[] pixelsEagler, int modelIdRaw) {
+		return SkinImageLoaderImpl.loadSkinImageData64x64Eagler(pixelsEagler, modelIdRaw);
 	}
 
 	@Override
 	public IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x32(int[] pixelsARGB8, EnumSkinModel modelId) {
-		return SkinImageLoaderImpl.loadSkinImageData64x32(pixelsARGB8, modelId);
+		return SkinImageLoaderImpl.loadSkinImageData64x32(pixelsARGB8, modelId.getId());
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData_ARGB8I_64x32(int[] pixelsARGB8, int modelIdRaw) {
+		return SkinImageLoaderImpl.loadSkinImageData64x32(pixelsARGB8, modelIdRaw);
 	}
 
 	@Override
 	public IEaglerPlayerSkin loadSkinImageData(BufferedImage image, EnumSkinModel modelId) {
-		return SkinImageLoaderImpl.loadSkinImageData(image, modelId);
+		return SkinImageLoaderImpl.loadSkinImageData(image, modelId.getId());
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData(BufferedImage image, int modelIdRaw) {
+		return SkinImageLoaderImpl.loadSkinImageData(image, modelIdRaw);
 	}
 
 	@Override
 	public IEaglerPlayerSkin loadSkinImageData(InputStream inputStream, EnumSkinModel modelId) throws IOException {
-		return SkinImageLoaderImpl.loadSkinImageData(inputStream, modelId);
+		return SkinImageLoaderImpl.loadSkinImageData(inputStream, modelId.getId());
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData(InputStream inputStream, int modelIdRaw) throws IOException {
+		return SkinImageLoaderImpl.loadSkinImageData(inputStream, modelIdRaw);
 	}
 
 	@Override
 	public IEaglerPlayerSkin loadSkinImageData(File imageFile, EnumSkinModel modelId) throws IOException {
-		return SkinImageLoaderImpl.loadSkinImageData(imageFile, modelId);
+		return SkinImageLoaderImpl.loadSkinImageData(imageFile, modelId.getId());
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData(File imageFile, int modelIdRaw) throws IOException {
+		return SkinImageLoaderImpl.loadSkinImageData(imageFile, modelIdRaw);
 	}
 
 	@Override
 	public IEaglerPlayerSkin rewriteCustomSkinModelId(IEaglerPlayerSkin skin, EnumSkinModel modelId) {
-		return SkinImageLoaderImpl.rewriteCustomSkinModelId(skin, modelId);
+		return SkinImageLoaderImpl.rewriteCustomSkinModelId(skin, modelId.getId());
+	}
+
+	@Override
+	public IEaglerPlayerSkin rewriteCustomSkinModelId(IEaglerPlayerSkin skin, int modelIdRaw) {
+		return SkinImageLoaderImpl.rewriteCustomSkinModelId(skin, modelIdRaw);
 	}
 
 	@Override

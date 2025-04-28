@@ -74,22 +74,27 @@ public class CustomSkinPlayer extends BaseCustomSkin implements IModelRewritable
 	@Override
 	public GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast, EnumSkinModel rewriteModelId,
 			GamePluginMessageProtocol protocol) {
-		int modelIdInt = rewriteModelId.getId();
+		return getSkinPacket(rewriteUUIDMost, rewriteUUIDLeast, rewriteModelId.getId(), protocol);
+	}
+
+	@Override
+	public GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast, int rewriteModelIdRaw,
+			GamePluginMessageProtocol protocol) {
 		switch(protocol) {
 		case V3:
 			SPacketOtherSkinCustomV3EAG packetV3 = packetV3();
-			if(rewriteUUIDMost == packetV3.uuidMost && rewriteUUIDLeast == packetV3.uuidLeast && modelIdInt == packetV3.modelID) {
+			if(rewriteUUIDMost == packetV3.uuidMost && rewriteUUIDLeast == packetV3.uuidLeast && rewriteModelIdRaw == packetV3.modelID) {
 				return packetV3;
 			}else {
-				return new SPacketOtherSkinCustomV3EAG(rewriteUUIDMost, rewriteUUIDLeast, modelIdInt, packetV3.customSkin);
+				return new SPacketOtherSkinCustomV3EAG(rewriteUUIDMost, rewriteUUIDLeast, rewriteModelIdRaw, packetV3.customSkin);
 			}
 		case V4:
 		default:
 			SPacketOtherSkinCustomV4EAG packetV4 = packetV4();
-			if(rewriteUUIDMost == packetV4.uuidMost && rewriteUUIDLeast == packetV4.uuidLeast && modelIdInt == packetV4.modelID) {
+			if(rewriteUUIDMost == packetV4.uuidMost && rewriteUUIDLeast == packetV4.uuidLeast && rewriteModelIdRaw == packetV4.modelID) {
 				return packetV4;
 			}else {
-				return new SPacketOtherSkinCustomV4EAG(rewriteUUIDMost, rewriteUUIDLeast, modelIdInt, packetV4.customSkin);
+				return new SPacketOtherSkinCustomV4EAG(rewriteUUIDMost, rewriteUUIDLeast, rewriteModelIdRaw, packetV4.customSkin);
 			}
 		}
 	}
@@ -132,6 +137,11 @@ public class CustomSkinPlayer extends BaseCustomSkin implements IModelRewritable
 	@Override
 	public EnumSkinModel getCustomSkinModelId() {
 		return EnumSkinModel.getById(modelId());
+	}
+
+	@Override
+	public int getCustomSkinRawModelId() {
+		return modelId();
 	}
 
 	@Override

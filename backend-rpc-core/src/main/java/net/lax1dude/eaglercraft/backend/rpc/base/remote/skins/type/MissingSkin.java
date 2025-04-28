@@ -80,6 +80,11 @@ public class MissingSkin extends BasePresetSkin {
 	}
 
 	@Override
+	public int getCustomSkinRawModelId() {
+		throw new UnsupportedOperationException("EaglerPlayerSkin is not a custom skin");
+	}
+
+	@Override
 	protected int presetId() {
 		return skinId;
 	}

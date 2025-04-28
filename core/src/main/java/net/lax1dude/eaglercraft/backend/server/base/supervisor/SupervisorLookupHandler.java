@@ -89,7 +89,7 @@ public class SupervisorLookupHandler<PlayerObject> {
 			connection.sendSupervisorPacket(new CPacketSvOtherSkinPreset(uuid, skin.getPresetSkinId()));
 		} else {
 			connection.sendSupervisorPacket(new CPacketSvOtherSkinCustom(uuid,
-					skin.getCustomSkinModelId().getId(), UnsafeUtil.unsafeGetPixelsDirect(skin)));
+					skin.getCustomSkinRawModelId(), UnsafeUtil.unsafeGetPixelsDirect(skin)));
 		}
 	}
 

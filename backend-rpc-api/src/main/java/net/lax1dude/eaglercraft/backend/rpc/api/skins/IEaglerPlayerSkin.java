@@ -60,4 +60,6 @@ public interface IEaglerPlayerSkin extends IOptional<IEaglerPlayerSkin> {
 	@Nonnull
 	EnumSkinModel getCustomSkinModelId();
 
+	int getCustomSkinRawModelId();
+
 }

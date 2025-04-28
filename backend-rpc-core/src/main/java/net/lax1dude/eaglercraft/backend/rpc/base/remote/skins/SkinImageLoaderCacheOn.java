@@ -37,9 +37,17 @@ class SkinImageLoaderCacheOn extends SkinImageLoaderCacheOff {
 
 	@Override
 	public IEaglerPlayerSkin loadSkinImageData(File imageFile, EnumSkinModel modelId) throws IOException {
+		return loadSkinImageData(imageFile, modelId.getId());
+	}
+
+	@Override
+	public IEaglerPlayerSkin loadSkinImageData(File imageFile, int modelId) throws IOException {
+		if(modelId < 0 || modelId >= 0xFF) {
+			throw new IllegalArgumentException("Invalid model id: " + modelId);
+		}
 		try {
 			return SkinImageLoaderImpl.rewriteCustomSkinModelId(cachedSkinFiles.get(imageFile, () -> {
-				return SkinImageLoaderImpl.loadSkinImageData(imageFile, modelId);
+				return SkinImageLoaderImpl.loadSkinImageData(imageFile, (modelId & 0x7F) == 1 ? 1 : 0);
 			}), modelId);
 		} catch (ExecutionException e) {
 			Throwable cause = e.getCause();

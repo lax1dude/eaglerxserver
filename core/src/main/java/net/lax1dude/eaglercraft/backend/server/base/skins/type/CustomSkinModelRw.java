@@ -41,13 +41,19 @@ public class CustomSkinModelRw extends BaseCustomSkin implements IModelRewritabl
 	@Override
 	public GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast,
 			GamePluginMessageProtocol protocol) {
-		return data.getSkinPacket(rewriteUUIDMost, rewriteUUIDLeast, EnumSkinModel.getById(modelId), protocol);
+		return data.getSkinPacket(rewriteUUIDMost, rewriteUUIDLeast, modelId, protocol);
 	}
 
 	@Override
 	public GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast, EnumSkinModel rewriteModelId,
 			GamePluginMessageProtocol protocol) {
 		return data.getSkinPacket(rewriteUUIDMost, rewriteUUIDLeast, rewriteModelId, protocol);
+	}
+
+	@Override
+	public GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast, int rewriteModelIdRaw,
+			GamePluginMessageProtocol protocol) {
+		return data.getSkinPacket(rewriteUUIDMost, rewriteUUIDLeast, rewriteModelIdRaw, protocol);
 	}
 
 	@Override
@@ -87,12 +93,17 @@ public class CustomSkinModelRw extends BaseCustomSkin implements IModelRewritabl
 
 	@Override
 	public EnumSkinModel getCustomSkinModelId() {
-		return data.getCustomSkinModelId();
+		return EnumSkinModel.getById(modelId);
+	}
+
+	@Override
+	public int getCustomSkinRawModelId() {
+		return modelId;
 	}
 
 	@Override
 	protected int modelId() {
-		return data.modelId();
+		return modelId;
 	}
 
 	@Override

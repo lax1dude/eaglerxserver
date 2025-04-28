@@ -16,7 +16,6 @@
 
 package net.lax1dude.eaglercraft.backend.rpc.base.remote.skins;
 
-import net.lax1dude.eaglercraft.backend.rpc.api.skins.EnumSkinModel;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.rpc.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.rpc.base.remote.skins.type.InternUtils;
@@ -123,13 +122,13 @@ public class SkinRPCHelper {
 				if(len == 2 + 16384 && data[0] == (byte) 2) {
 					byte[] tmp = new byte[16384];
 					System.arraycopy(data, 2, tmp, 0, 16384);
-					return SkinImageLoaderImpl.loadSkinImageData64x64(tmp, EnumSkinModel.getById(data[1] & 0xFF));
+					return SkinImageLoaderImpl.loadSkinImageData64x64(tmp, data[1] & 0xFF);
 				}
 			}else {
 				if(len == 2 + 12288 && data[0] == (byte) 2) {
 					byte[] tmp = new byte[12288];
 					System.arraycopy(data, 2, tmp, 0, 12288);
-					return SkinImageLoaderImpl.loadSkinImageData64x64Eagler(tmp, EnumSkinModel.getById(data[1] & 0xFF));
+					return SkinImageLoaderImpl.loadSkinImageData64x64Eagler(tmp, data[1] & 0xFF);
 				}
 			}
 		}
@@ -173,7 +172,7 @@ public class SkinRPCHelper {
 			if(len > 2 + 12288) {
 				byte[] tmp = new byte[12288];
 				System.arraycopy(data, 2, tmp, 0, 12288);
-				return SkinImageLoaderImpl.loadSkinImageData64x64Eagler(tmp, EnumSkinModel.getById(data[1] & 0xFF));
+				return SkinImageLoaderImpl.loadSkinImageData64x64Eagler(tmp, data[1] & 0xFF);
 			}
 		}
 		return null;
