@@ -89,7 +89,7 @@ class VelocityPlayer implements IPlatformPlayer<Player> {
 	@Override
 	public void sendDataBackend(String channel, byte[] message) {
 		Optional<ServerConnection> serverCon = player.getCurrentServer();
-		if(serverCon.isPresent()) {
+		if (serverCon.isPresent()) {
 			VelocityUnsafe.sendDataBackend(serverCon.get(), channel, message);
 		}
 	}
@@ -106,9 +106,9 @@ class VelocityPlayer implements IPlatformPlayer<Player> {
 	@Override
 	public String getTexturesProperty() {
 		GameProfile profile = player.getGameProfile();
-		if(profile != null) {
-			for(GameProfile.Property prop : profile.getProperties()) {
-				if("textures".equals(prop.getName())) {
+		if (profile != null) {
+			for (GameProfile.Property prop : profile.getProperties()) {
+				if ("textures".equals(prop.getName())) {
 					return prop.getValue();
 				}
 			}

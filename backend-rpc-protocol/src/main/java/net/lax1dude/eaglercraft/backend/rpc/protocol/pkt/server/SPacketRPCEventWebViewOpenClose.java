@@ -47,11 +47,12 @@ public class SPacketRPCEventWebViewOpenClose implements EaglerBackendRPCPacket {
 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
-		if(channelName == null || channelName.length() == 0) {
+		if (channelName == null || channelName.length() == 0) {
 			throw new IOException("Channel name cannot be empty!");
 		}
-		if(channelName.length() > 255) {
-			throw new IOException("Channel name cannot be more than 255 chars! (got " + channelName.length() + " chars)");
+		if (channelName.length() > 255) {
+			throw new IOException(
+					"Channel name cannot be more than 255 chars! (got " + channelName.length() + " chars)");
 		}
 		buffer.writeBoolean(channelOpen);
 		byte[] nameBytes = channelName.getBytes(StandardCharsets.US_ASCII);

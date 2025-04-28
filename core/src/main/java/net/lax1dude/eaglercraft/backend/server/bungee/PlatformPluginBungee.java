@@ -147,10 +147,10 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 		cacheConsoleCommandSenderInstance = proxy.getConsole();
 		cacheConsoleCommandSenderHandle = new BungeeConsole(cacheConsoleCommandSenderInstance);
 		registeredServers = Collections.emptyMap();
-    	channelFactory = BungeeUnsafe.getChannelFactory();
-    	serverChannelFactory = BungeeUnsafe.getServerChannelFactory();
-    	bossEventLoopGroup = BungeeUnsafe.getBossEventLoopGroup(proxy);
-    	workerEventLoopGroup = BungeeUnsafe.getWorkerEventLoopGroup(proxy);
+		channelFactory = BungeeUnsafe.getChannelFactory();
+		serverChannelFactory = BungeeUnsafe.getServerChannelFactory();
+		bossEventLoopGroup = BungeeUnsafe.getBossEventLoopGroup(proxy);
+		workerEventLoopGroup = BungeeUnsafe.getWorkerEventLoopGroup(proxy);
 		Init<ProxiedPlayer> init = new InitProxying<ProxiedPlayer>() {
 
 			@Override
@@ -169,12 +169,14 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			}
 
 			@Override
-			public void setPipelineInitializer(IEaglerXServerNettyPipelineInitializer<? extends IPipelineData> initializer) {
+			public void setPipelineInitializer(
+					IEaglerXServerNettyPipelineInitializer<? extends IPipelineData> initializer) {
 				pipelineInitializer = (IEaglerXServerNettyPipelineInitializer<IPipelineData>) initializer;
 			}
 
 			@Override
-			public void setConnectionInitializer(IEaglerXServerConnectionInitializer<? extends IPipelineData, ?> initializer) {
+			public void setConnectionInitializer(
+					IEaglerXServerConnectionInitializer<? extends IPipelineData, ?> initializer) {
 				connectionInitializer = (IEaglerXServerConnectionInitializer<IPipelineData, Object>) initializer;
 			}
 
@@ -211,10 +213,10 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 		};
 		try {
 			((IEaglerXServerImpl<ProxiedPlayer>) new EaglerXServer<ProxiedPlayer>()).load(init);
-		}catch(AbortLoadException ex) {
+		} catch (AbortLoadException ex) {
 			logger().error("Server startup aborted: " + ex.getMessage());
 			Throwable t = ex.getCause();
-			if(t != null) {
+			if (t != null) {
 				logger().error("Caused by: ", t);
 			}
 			throw new IllegalStateException("Startup aborted");
@@ -223,15 +225,13 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 		aborted = false;
 	}
 
-	private static final ImmutableMap<String, EnumPipelineComponent> PIPELINE_COMPONENTS_MAP = 
-			ImmutableMap.<String, EnumPipelineComponent>builder()
-			.put("frame-decoder", EnumPipelineComponent.FRAME_DECODER)
+	private static final ImmutableMap<String, EnumPipelineComponent> PIPELINE_COMPONENTS_MAP = ImmutableMap
+			.<String, EnumPipelineComponent>builder().put("frame-decoder", EnumPipelineComponent.FRAME_DECODER)
 			.put("frame-prepender", EnumPipelineComponent.FRAME_ENCODER)
 			.put("frame-prepender-compress", EnumPipelineComponent.FRAME_ENCODER)
 			.put("packet-encoder", EnumPipelineComponent.MINECRAFT_ENCODER)
 			.put("packet-decoder", EnumPipelineComponent.MINECRAFT_DECODER)
-			.put("via-encoder", EnumPipelineComponent.VIA_ENCODER)
-			.put("via-decoder", EnumPipelineComponent.VIA_DECODER)
+			.put("via-encoder", EnumPipelineComponent.VIA_ENCODER).put("via-decoder", EnumPipelineComponent.VIA_DECODER)
 			.put("protocolize2-decoder", EnumPipelineComponent.PROTOCOLIZE_DECODER)
 			.put("protocolize2-encoder", EnumPipelineComponent.PROTOCOLIZE_ENCODER)
 			.put("timeout", EnumPipelineComponent.READ_TIMEOUT_HANDLER)
@@ -240,59 +240,58 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			.put("inbound-boss", EnumPipelineComponent.INBOUND_PACKET_HANDLER)
 			.put("pe-decoder-packetevents", EnumPipelineComponent.PACKETEVENTS_DECODER)
 			.put("pe-encoder-packetevents", EnumPipelineComponent.PACKETEVENTS_ENCODER)
-			.put("pe-timeout-handler-packetevents", EnumPipelineComponent.PACKETEVENTS_TIMEOUT_HANDLER)
-			.build();
+			.put("pe-timeout-handler-packetevents", EnumPipelineComponent.PACKETEVENTS_TIMEOUT_HANDLER).build();
 
 	@Override
 	public void onEnable() {
-		if(aborted) {
+		if (aborted) {
 			return;
 		}
 		aborted = true; // Will set to false if onEnable returns normally
 		ImmutableMap.Builder<String, IPlatformServer<ProxiedPlayer>> serverMapBuilder = ImmutableMap.builder();
-		for(Entry<String, ServerInfo> etr : getProxy().getServers().entrySet()) {
+		for (Entry<String, ServerInfo> etr : getProxy().getServers().entrySet()) {
 			serverMapBuilder.put(etr.getKey(), new BungeeServer(this, etr.getValue(), true));
 		}
 		registeredServers = serverMapBuilder.build();
 		ProxyServer bungee = getProxy();
 		PluginManager mgr = bungee.getPluginManager();
 		mgr.registerListener(this, new BungeeListener(this));
-		for(IEaglerXServerCommandType<ProxiedPlayer> cmd : commandsList) {
+		for (IEaglerXServerCommandType<ProxiedPlayer> cmd : commandsList) {
 			mgr.registerCommand(this, new BungeeCommand(this, cmd));
 		}
 		ImmutableMap.Builder<String, PluginMessageHandler> builder = ImmutableMap.builder();
-		for(IEaglerXServerMessageChannel<ProxiedPlayer> channel : playerChannelsList) {
+		for (IEaglerXServerMessageChannel<ProxiedPlayer> channel : playerChannelsList) {
 			PluginMessageHandler handler = new PluginMessageHandler(false, channel, channel.getHandler());
 			builder.put(channel.getLegacyName(), handler);
 			builder.put(channel.getModernName(), handler);
 		}
-		for(IEaglerXServerMessageChannel<ProxiedPlayer> channel : backendChannelsList) {
+		for (IEaglerXServerMessageChannel<ProxiedPlayer> channel : backendChannelsList) {
 			PluginMessageHandler handler = new PluginMessageHandler(true, channel, channel.getHandler());
 			builder.put(channel.getLegacyName(), handler);
 			builder.put(channel.getModernName(), handler);
 		}
 		registeredChannelsMap = builder.build();
-		for(String channel : registeredChannelsMap.keySet()) {
+		for (String channel : registeredChannelsMap.keySet()) {
 			bungee.registerChannel(channel);
 		}
 		cleanupListeners = BungeeUnsafe.injectChannelInitializer(getProxy(), (listener, channel) -> {
 			if (!channel.isActive()) {
 				return;
 			}
-			
+
 			List<IPipelineComponent> pipelineList = new ArrayList<>();
-			
+
 			ChannelPipeline pipeline = channel.pipeline();
-			for(String str : pipeline.names()) {
+			for (String str : pipeline.names()) {
 				ChannelHandler handler = pipeline.get(str);
-				if(handler != null) {
+				if (handler != null) {
 					pipelineList.add(new IPipelineComponent() {
 
 						private EnumPipelineComponent type = null;
 
 						@Override
 						public EnumPipelineComponent getIdentifiedType() {
-							if(type == null) {
+							if (type == null) {
 								type = PIPELINE_COMPONENTS_MAP.getOrDefault(str, EnumPipelineComponent.UNIDENTIFIED);
 								if (type == EnumPipelineComponent.UNIDENTIFIED
 										&& "io.netty.handler.codec.haproxy.HAProxyMessageDecoder"
@@ -316,44 +315,48 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 					});
 				}
 			}
-			
+
 			pipelineInitializer.initialize(new IPlatformNettyPipelineInitializer<IPipelineData>() {
 				@Override
 				public void setAttachment(IPipelineData object) {
 					channel.attr(PipelineAttributes.<IPipelineData>pipelineData()).set(object);
 				}
+
 				@Override
 				public List<IPipelineComponent> getPipeline() {
 					return pipelineList;
 				}
+
 				@Override
 				public IEaglerXServerListener getListener() {
 					return listener;
 				}
+
 				@Override
 				public Consumer<SocketAddress> realAddressHandle() {
 					return (addr) -> {
 						Object o = channel.pipeline().get("handler-boss");
-						if(o != null) {
+						if (o != null) {
 							BungeeUnsafe.updateRealAddress(o, addr);
 						}
 					};
 				}
+
 				@Override
 				public Channel getChannel() {
 					return channel;
 				}
 			});
-			
+
 		}, listenersList);
 
-		if(onServerEnable != null) {
+		if (onServerEnable != null) {
 			try {
 				onServerEnable.run();
-			}catch(AbortLoadException ex) {
+			} catch (AbortLoadException ex) {
 				logger().error("Server startup aborted: " + ex.getMessage());
 				Throwable t = ex.getCause();
-				if(t != null) {
+				if (t != null) {
 					logger().error("Caused by: ", t);
 				}
 				onDisable();
@@ -366,13 +369,13 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 
 	@Override
 	public void onDisable() {
-		if(aborted) {
+		if (aborted) {
 			return;
 		}
-		if(onServerDisable != null) {
+		if (onServerDisable != null) {
 			onServerDisable.run();
 		}
-		if(cleanupListeners != null) {
+		if (cleanupListeners != null) {
 			cleanupListeners.run();
 			cleanupListeners = null;
 		}
@@ -380,7 +383,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 		PluginManager mgr = bungee.getPluginManager();
 		mgr.unregisterListeners(this);
 		mgr.unregisterCommands(this);
-		for(String channel : registeredChannelsMap.keySet()) {
+		for (String channel : registeredChannelsMap.keySet()) {
 			bungee.unregisterChannel(channel);
 		}
 	}
@@ -411,13 +414,13 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	}
 
 	IPlatformCommandSender<ProxiedPlayer> getCommandSender(CommandSender obj) {
-		if(obj == null) {
+		if (obj == null) {
 			return null;
-		}else if(obj instanceof ProxiedPlayer player) {
+		} else if (obj instanceof ProxiedPlayer player) {
 			return getPlayer(player);
-		}else if(obj == cacheConsoleCommandSenderInstance) {
+		} else if (obj == cacheConsoleCommandSenderInstance) {
 			return cacheConsoleCommandSenderHandle;
-		}else {
+		} else {
 			return new BungeeConsole(obj);
 		}
 	}
@@ -440,9 +443,9 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	@Override
 	public IPlatformPlayer<ProxiedPlayer> getPlayer(String username) {
 		ProxiedPlayer player = getProxy().getPlayer(username);
-		if(player != null) {
+		if (player != null) {
 			return playerInstanceMap.get(player);
-		}else {
+		} else {
 			return null;
 		}
 	}
@@ -450,9 +453,9 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	@Override
 	public IPlatformPlayer<ProxiedPlayer> getPlayer(UUID uuid) {
 		ProxiedPlayer player = getProxy().getPlayer(uuid);
-		if(player != null) {
+		if (player != null) {
 			return playerInstanceMap.get(player);
-		}else {
+		} else {
 			return null;
 		}
 	}
@@ -465,13 +468,13 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	@Override
 	public IPlatformServer<ProxiedPlayer> getServer(String serverName) {
 		IPlatformServer<ProxiedPlayer> ret = registeredServers.get(serverName);
-		if(ret != null) {
+		if (ret != null) {
 			return ret;
-		}else {
+		} else {
 			Map<String, ServerInfo> servers = getProxy().getServers();
-			if(servers != null) {
+			if (servers != null) {
 				ServerInfo info = servers.get(serverName);
-				if(info != null) {
+				if (info != null) {
 					return new BungeeServer(this, info, false);
 				}
 			}
@@ -552,34 +555,38 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	public void initializeConnection(PendingConnection conn, IPipelineData pipelineData,
 			Consumer<BungeeConnection> setAttr) {
 		boolean eag = pipelineData != null && pipelineData.isEaglerPlayer();
-		if(eag) {
+		if (eag) {
 			BungeeUnsafe.injectCompressionDisable(conn);
 		}
-		BungeeConnection c = new BungeeConnection(this, conn,
-				eag ? pipelineData::awaitPlayState : null);
+		BungeeConnection c = new BungeeConnection(this, conn, eag ? pipelineData::awaitPlayState : null);
 		setAttr.accept(c);
 		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<IPipelineData, Object>() {
 			@Override
 			public void setConnectionAttachment(Object attachment) {
 				c.attachment = attachment;
 			}
+
 			@Override
 			public IPipelineData getPipelineAttachment() {
 				return pipelineData;
 			}
+
 			@Override
 			public IPlatformConnection getConnection() {
 				return c;
 			}
+
 			@Override
 			public void setUniqueId(UUID uuid) {
 				conn.setUniqueId(uuid);
 			}
+
 			@Override
 			public void setTexturesProperty(String propertyValue, String propertySignature) {
 				c.texturesPropertyValue = propertyValue;
 				c.texturesPropertySignature = propertySignature;
 			}
+
 			@Override
 			public void setEaglerPlayerProperty(boolean enable) {
 				c.eaglerPlayerProperty = enable ? (byte) 2 : (byte) 1;
@@ -594,19 +601,23 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			public void setPlayerAttachment(Object attachment) {
 				p.attachment = attachment;
 			}
+
 			@Override
 			public Object getConnectionAttachment() {
 				return connection.attachment;
 			}
+
 			@Override
 			public IPlatformPlayer<ProxiedPlayer> getPlayer() {
 				return p;
 			}
+
 			@Override
 			public void complete() {
 				playerInstanceMap.put(player, p);
 				onComplete.accept(true);
 			}
+
 			@Override
 			public void cancel() {
 				onComplete.accept(false);
@@ -616,21 +627,21 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 
 	public void handleServerPreConnect(IPlatformPlayer<ProxiedPlayer> player) {
 		IEaglerXServerJoinListener<ProxiedPlayer> listener = serverJoinListener;
-		if(listener != null) {
+		if (listener != null) {
 			listener.handlePreConnect(player);
 		}
 	}
 
 	public void handleServerPostConnect(IPlatformPlayer<ProxiedPlayer> player, IPlatformServer<ProxiedPlayer> server) {
 		IEaglerXServerJoinListener<ProxiedPlayer> listener = serverJoinListener;
-		if(listener != null) {
+		if (listener != null) {
 			listener.handlePostConnect(player, server);
 		}
 	}
 
 	public void dropPlayer(ProxiedPlayer player) {
 		BungeePlayer p = playerInstanceMap.remove(player);
-		if(p != null) {
+		if (p != null) {
 			playerInitializer.destroyPlayer(p);
 		}
 	}

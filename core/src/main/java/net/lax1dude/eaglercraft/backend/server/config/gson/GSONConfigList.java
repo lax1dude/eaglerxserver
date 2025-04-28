@@ -89,58 +89,64 @@ public class GSONConfigList implements IEaglerConfList {
 
 	@Override
 	public IEaglerConfSection getIfSection(int index) {
-		if(index < 0 || index >= json.size()) return null;
+		if (index < 0 || index >= json.size())
+			return null;
 		JsonElement el = json.get(index);
-		if(el != null && el.isJsonObject()) {
+		if (el != null && el.isJsonObject()) {
 			return new GSONConfigSection(owner, el.getAsJsonObject(), true);
-		}else {
+		} else {
 			return null;
 		}
 	}
 
 	@Override
 	public IEaglerConfList getIfList(int index) {
-		if(index < 0 || index >= json.size()) return null;
+		if (index < 0 || index >= json.size())
+			return null;
 		JsonElement el = json.get(index);
-		if(el != null && el.isJsonArray()) {
+		if (el != null && el.isJsonArray()) {
 			return new GSONConfigList(owner, el.getAsJsonArray(), true);
-		}else {
+		} else {
 			return null;
 		}
 	}
 
 	@Override
 	public boolean isInteger(int index) {
-		if(index < 0 || index >= json.size()) return false;
+		if (index < 0 || index >= json.size())
+			return false;
 		JsonElement el = json.get(index);
 		return el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isNumber();
 	}
 
 	@Override
 	public int getIfInteger(int index, int defaultVal) {
-		if(index < 0 || index >= json.size()) return defaultVal;
+		if (index < 0 || index >= json.size())
+			return defaultVal;
 		JsonElement el = json.get(index);
-		if(el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isNumber()) {
+		if (el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isNumber()) {
 			return el.getAsInt();
-		}else {
+		} else {
 			return defaultVal;
 		}
 	}
 
 	@Override
 	public boolean isString(int index) {
-		if(index < 0 || index >= json.size()) return false;
+		if (index < 0 || index >= json.size())
+			return false;
 		JsonElement el = json.get(index);
 		return el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isString();
 	}
 
 	@Override
 	public String getIfString(int index, String defaultVal) {
-		if(index < 0 || index >= json.size()) return defaultVal;
+		if (index < 0 || index >= json.size())
+			return defaultVal;
 		JsonElement el = json.get(index);
-		if(el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isNumber()) {
+		if (el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isNumber()) {
 			return el.getAsString();
-		}else {
+		} else {
 			return defaultVal;
 		}
 	}

@@ -24,8 +24,7 @@ import org.bukkit.event.HandlerList;
 
 import net.lax1dude.eaglercraft.backend.rpc.api.event.IEaglercraftPlayerReadyEvent;
 
-public abstract class EaglercraftPlayerReadyEvent extends Event
-		implements IEaglercraftPlayerReadyEvent<Player> {
+public abstract class EaglercraftPlayerReadyEvent extends Event implements IEaglercraftPlayerReadyEvent<Player> {
 
 	private static final HandlerList handlers = new HandlerList();
 

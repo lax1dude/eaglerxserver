@@ -92,13 +92,13 @@ public class CustomSkinModelRw extends BaseCustomSkin implements IModelRewritabl
 
 	@Override
 	public IEaglerPlayerSkin rewriteModelInternal(int modelId) {
-		if(modelId != this.modelId) {
-			if(modelId == data.modelId()) {
+		if (modelId != this.modelId) {
+			if (modelId == data.modelId()) {
 				return data;
-			}else {
+			} else {
 				return new CustomSkinModelRw(data, modelId);
 			}
-		}else {
+		} else {
 			return this;
 		}
 	}

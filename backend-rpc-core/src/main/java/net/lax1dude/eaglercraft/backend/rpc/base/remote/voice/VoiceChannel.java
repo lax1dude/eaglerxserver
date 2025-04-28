@@ -51,22 +51,22 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 	void addToChannel(VoiceManagerRemote<PlayerObject> mgr) {
 		Context oldContext = mgr.xchgActiveChannel(null);
 		boolean connect = false;
-		if(oldContext != null) {
+		if (oldContext != null) {
 			connect = oldContext.finish(false);
 		}
 		Context newContext = new Context(mgr);
 		oldContext = mgr.xchgActiveChannel(newContext);
-		if(oldContext != null) {
+		if (oldContext != null) {
 			connect = oldContext.finish(true);
 		}
-		if(connect) {
+		if (connect) {
 			newContext.handleVoiceSignalPacketTypeConnect();
 		}
 	}
 
 	void removeFromChannel(VoiceManagerRemote<PlayerObject> mgr, boolean dead) {
 		Context oldContext = mgr.xchgActiveChannel(null);
-		if(oldContext != null) {
+		if (oldContext != null) {
 			oldContext.finish(dead);
 		}
 	}
@@ -106,11 +106,11 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 
 		void handleVoiceSignalPacketTypeConnect() {
 			boolean empty = connectedPlayers.isEmpty();
-			if(connectedPlayers.putIfAbsent(selfUUID, this) != null) {
+			if (connectedPlayers.putIfAbsent(selfUUID, this) != null) {
 				return;
 			}
 			mgr.onStateChanged(EnumVoiceState.ENABLED);
-			if(empty) {
+			if (empty) {
 				return;
 			}
 			Object[] allPlayers = connectedPlayers.values().toArray();
@@ -118,48 +118,48 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 			EaglerVCPacket announcePacket = new SPacketVCAnnounce(selfUUID.getMostSignificantBits(),
 					selfUUID.getLeastSignificantBits());
 			SPacketVCPlayerList.UserData[] userDatas = new SPacketVCPlayerList.UserData[len];
-			for(int i = 0; i < len; ++i) {
+			for (int i = 0; i < len; ++i) {
 				Context ctx = (Context) allPlayers[i];
 				VoiceManagerRemote<PlayerObject> ctxMgr = ctx.mgr;
 				userDatas[i] = new SPacketVCPlayerList.UserData(ctx.selfUUID.getMostSignificantBits(),
 						ctx.selfUUID.getLeastSignificantBits(), ctxMgr.player.getUsername());
-				if(ctx != this) {
+				if (ctx != this) {
 					ctxMgr.writeOutboundVoicePacket(announcePacket);
 				}
 			}
 			EaglerVCPacket packetToBroadcast = new SPacketVCPlayerList(Arrays.asList(userDatas));
-			for(int i = 0; i < len; ++i) {
+			for (int i = 0; i < len; ++i) {
 				((Context) allPlayers[i]).mgr.writeOutboundVoicePacket(packetToBroadcast);
 			}
 		}
 
 		private boolean putRequest(Context other) {
 			long nanos = System.nanoTime();
-			if(putIfAbsent(other, new PendingState(nanos)) == null) {
-				if(!expirable) {
+			if (putIfAbsent(other, new PendingState(nanos)) == null) {
+				if (!expirable) {
 					lastFlush = nanos;
 					expirable = true;
 				}
 				return true;
-			}else {
+			} else {
 				return false;
 			}
 		}
 
 		private IVoiceState checkState(Context other) {
 			long nanos = System.nanoTime();
-			if(expirable) {
-				if(nanos - lastFlush > (30l * 1000l * 1000l * 1000l)) {
+			if (expirable) {
+				if (nanos - lastFlush > (30l * 1000l * 1000l * 1000l)) {
 					lastFlush = nanos;
 					expirable = false;
 					Iterator<IVoiceState> itr = values().iterator();
 					int i;
-					while(itr.hasNext()) {
+					while (itr.hasNext()) {
 						IVoiceState state = itr.next();
 						i = state.expired(nanos);
-						if(i == 1) {
+						if (i == 1) {
 							itr.remove();
-						}else if(i == 0) {
+						} else if (i == 0) {
 							expirable = true;
 						}
 					}
@@ -167,7 +167,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 				}
 			}
 			IVoiceState state = get(other);
-			if(state != null && state.expired(nanos) == 1) {
+			if (state != null && state.expired(nanos) == 1) {
 				remove(other);
 				return null;
 			}
@@ -176,22 +176,22 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 
 		void handleVoiceSignalPacketTypeRequest(UUID player) {
 			Context other = connectedPlayers.get(player);
-			if(other != null && other != this) {
+			if (other != null && other != this) {
 				IVoiceState newState = null;
-				synchronized(other) {
+				synchronized (other) {
 					IVoiceState otherState = other.checkState(this);
-					if(otherState == ESTABLISHED) {
+					if (otherState == ESTABLISHED) {
 						return;
-					}else if(otherState != null) {
+					} else if (otherState != null) {
 						newState = ESTABLISHED;
 						other.put(this, newState);
 					}
 				}
-				synchronized(this) {
-					if(newState == null) {
+				synchronized (this) {
+					if (newState == null) {
 						putRequest(other);
 						return;
-					}else {
+					} else {
 						put(other, newState);
 					}
 				}
@@ -204,9 +204,9 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 
 		void handleVoiceSignalPacketTypeICE(UUID player, byte[] str) {
 			Context other = connectedPlayers.get(player);
-			if(other != null && other != this) {
-				synchronized(this) {
-					if(checkState(other) != ESTABLISHED) {
+			if (other != null && other != this) {
+				synchronized (this) {
+					if (checkState(other) != ESTABLISHED) {
 						return;
 					}
 				}
@@ -217,9 +217,9 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 
 		void handleVoiceSignalPacketTypeDesc(UUID player, byte[] str) {
 			Context other = connectedPlayers.get(player);
-			if(other != null && other != this) {
-				synchronized(this) {
-					if(checkState(other) != ESTABLISHED) {
+			if (other != null && other != this) {
+				synchronized (this) {
+					if (checkState(other) != ESTABLISHED) {
 						return;
 					}
 				}
@@ -230,19 +230,19 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 
 		void handleVoiceSignalPacketTypeDisconnectPeer(UUID player) {
 			Context other = connectedPlayers.get(player);
-			if(other != null && other != this) {
+			if (other != null && other != this) {
 				IVoiceState state;
-				synchronized(this) {
+				synchronized (this) {
 					state = remove(other);
 				}
-				if(state == ESTABLISHED) {
-					synchronized(other) {
+				if (state == ESTABLISHED) {
+					synchronized (other) {
 						other.remove(this);
 					}
-					other.mgr.writeOutboundVoicePacket(new SPacketVCDisconnectPeer(
-							selfUUID.getMostSignificantBits(), selfUUID.getLeastSignificantBits()));
-					mgr.writeOutboundVoicePacket(new SPacketVCDisconnectPeer(
-							player.getMostSignificantBits(), player.getLeastSignificantBits()));
+					other.mgr.writeOutboundVoicePacket(new SPacketVCDisconnectPeer(selfUUID.getMostSignificantBits(),
+							selfUUID.getLeastSignificantBits()));
+					mgr.writeOutboundVoicePacket(new SPacketVCDisconnectPeer(player.getMostSignificantBits(),
+							player.getLeastSignificantBits()));
 				}
 			}
 		}
@@ -256,43 +256,43 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 		}
 
 		private boolean handleRemove(boolean dead) {
-			if(connectedPlayers.remove(selfUUID) == null) {
+			if (connectedPlayers.remove(selfUUID) == null) {
 				return false;
 			}
 			mgr.onStateChanged(EnumVoiceState.DISABLED);
 			Object[] allPlayers = connectedPlayers.values().toArray();
 			int len = allPlayers.length;
 			Object[] toNotify;
-			synchronized(this) {
+			synchronized (this) {
 				toNotify = keySet().toArray();
 				clear();
 				expirable = false;
 			}
 			int cnt = toNotify.length;
-			if(cnt > 0) {
+			if (cnt > 0) {
 				EaglerVCPacket pkt = new SPacketVCDisconnectPeer(selfUUID.getMostSignificantBits(),
 						selfUUID.getLeastSignificantBits());
-				for(int i = 0; i < cnt; ++i) {
+				for (int i = 0; i < cnt; ++i) {
 					Context ctx = (Context) toNotify[i];
 					IVoiceState voice;
-					synchronized(ctx) {
+					synchronized (ctx) {
 						voice = ctx.remove(this);
 					}
-					if(voice != null) {
-						if(!dead) {
+					if (voice != null) {
+						if (!dead) {
 							UUID uuid = ctx.selfUUID;
 							mgr.writeOutboundVoicePacket(new SPacketVCDisconnectPeer(uuid.getMostSignificantBits(),
 									uuid.getLeastSignificantBits()));
 						}
-						if(voice == ESTABLISHED) {
+						if (voice == ESTABLISHED) {
 							ctx.mgr.writeOutboundVoicePacket(pkt);
 						}
 					}
 				}
 			}
-			if(len > 0) {
+			if (len > 0) {
 				SPacketVCPlayerList.UserData[] userDatas = new SPacketVCPlayerList.UserData[len];
-				for(int i = 0; i < len; ++i) {
+				for (int i = 0; i < len; ++i) {
 					Context ctx = (Context) allPlayers[i];
 					PlayerInstanceRemote<PlayerObject> ctxPlayer = ctx.mgr.player;
 					UUID ctxUUID = ctxPlayer.getUniqueId();
@@ -300,7 +300,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 							ctxUUID.getLeastSignificantBits(), ctxPlayer.getUsername());
 				}
 				EaglerVCPacket packetToBroadcast = new SPacketVCPlayerList(Arrays.asList(userDatas));
-				for(int i = 0; i < len; ++i) {
+				for (int i = 0; i < len; ++i) {
 					((Context) allPlayers[i]).mgr.writeOutboundVoicePacket(packetToBroadcast);
 				}
 			}
@@ -324,8 +324,7 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 	}
 
 	Collection<IEaglerPlayer<PlayerObject>> listConnectedPlayers() {
-		return connectedPlayers.values().stream().map((ctx) -> ctx.mgr.player)
-				.collect(Collectors3.toImmutableList());
+		return connectedPlayers.values().stream().map((ctx) -> ctx.mgr.player).collect(Collectors3.toImmutableList());
 	}
 
 	@Override

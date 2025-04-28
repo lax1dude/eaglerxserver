@@ -46,30 +46,31 @@ public class BackendRPCConfigLoader {
 
 	@SuppressWarnings("unchecked")
 	public static ConfigDataRoot loadConfig(File dir) throws IOException {
-		if(!dir.isDirectory() && !dir.mkdirs()) {
+		if (!dir.isDirectory() && !dir.mkdirs()) {
 			throw new IOException("Failed to create config directory: " + dir.getAbsolutePath());
 		}
 		Yaml yaml = new Yaml();
 		Map<String, Object> map = loadConfigFile(yaml, dir, "settings");
-		boolean forceModernized = (boolean)map.getOrDefault("force_modernized_channel_names", Boolean.FALSE);
+		boolean forceModernized = (boolean) map.getOrDefault("force_modernized_channel_names", Boolean.FALSE);
 		Map<String, Object> mapRPC = (Map<String, Object>) map.get("backend_rpc");
-		int baseRequestTimeout = ((Number)mapRPC.getOrDefault("base_request_timeout_sec", 10)).intValue();
-		double timeoutResolutionSec = ((Number)mapRPC.getOrDefault("timeout_resolution_sec", 0.25)).doubleValue();
+		int baseRequestTimeout = ((Number) mapRPC.getOrDefault("base_request_timeout_sec", 10)).intValue();
+		double timeoutResolutionSec = ((Number) mapRPC.getOrDefault("timeout_resolution_sec", 0.25)).doubleValue();
 		Map<String, Object> mapVoice = (Map<String, Object>) map.get("backend_voice");
-		boolean backendVoice = (boolean)mapVoice.getOrDefault("enable_backend_voice_service", Boolean.FALSE);
-		boolean enableVoiceChatAllWorlds = (boolean)mapVoice.getOrDefault("enable_voice_all_worlds", Boolean.TRUE);
+		boolean backendVoice = (boolean) mapVoice.getOrDefault("enable_backend_voice_service", Boolean.FALSE);
+		boolean enableVoiceChatAllWorlds = (boolean) mapVoice.getOrDefault("enable_voice_all_worlds", Boolean.TRUE);
 		Set<String> enableVoiceChatOnWorlds = ImmutableSet
 				.copyOf((Collection<String>) mapVoice.getOrDefault("enable_voice_on_worlds", Collections.emptyList()));
-		boolean separateVoiceChannelsPerWorld = (boolean)mapVoice.getOrDefault("separate_world_voice_channels", Boolean.FALSE);
+		boolean separateVoiceChannelsPerWorld = (boolean) mapVoice.getOrDefault("separate_world_voice_channels",
+				Boolean.FALSE);
 		map = loadConfigFile(yaml, dir, "ice_servers");
-		boolean replaceICE = (boolean)map.getOrDefault("replace_ice_server_list", Boolean.FALSE);
+		boolean replaceICE = (boolean) map.getOrDefault("replace_ice_server_list", Boolean.FALSE);
 		ImmutableList.Builder<ICEServerEntry> builder = ImmutableList.builder();
 		List<Object> noPasswdList = (List<Object>) map.get("ice_servers_no_passwd");
-		for(Object obj : noPasswdList) {
-			builder.add(ICEServerEntry.create((String)obj));
+		for (Object obj : noPasswdList) {
+			builder.add(ICEServerEntry.create((String) obj));
 		}
 		List<Map<String, Object>> passwdList = (List<Map<String, Object>>) map.get("ice_servers_passwd");
-		for(Map<String, Object> obj : passwdList) {
+		for (Map<String, Object> obj : passwdList) {
 			builder.add(ICEServerEntry.create((String) obj.get("url"), (String) obj.get("username"),
 					(String) obj.get("password")));
 		}
@@ -84,15 +85,15 @@ public class BackendRPCConfigLoader {
 	@SuppressWarnings("unchecked")
 	private static Map<String, Object> loadConfigFile(Yaml yaml, File folder, String file) throws IOException {
 		File f = new File(folder, file + ".yml");
-		if(!f.isFile()) {
+		if (!f.isFile()) {
 			try (InputStream is = BackendRPCConfigLoader.class.getResourceAsStream("default_" + file + ".yml");
 					OutputStream os = new FileOutputStream(f)) {
 				is.transferTo(os);
 			}
 		}
-		try(Reader reader = new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8)) {
+		try (Reader reader = new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8)) {
 			return yaml.loadAs(reader, LinkedHashMap.class);
-		}catch(YAMLException ex) {
+		} catch (YAMLException ex) {
 			throw new IOException("YAML config file has a syntax error: " + f.getAbsolutePath(), ex);
 		}
 	}

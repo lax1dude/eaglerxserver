@@ -40,17 +40,17 @@ public class GsonUtil {
 		try {
 			GSON = (Gson) Class.forName("net.lax1dude.eaglercraft.backend.server.base.EaglerXServer")
 					.getField("GSON_PRETTY").get(null);
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 			throw new ExceptionInInitializerError(ex);
 		}
 		Field _mapField = null;
 		try {
 			JsonObject.class.getMethod("asMap");
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 			try {
 				_mapField = JsonObject.class.getDeclaredField("members");
 				_mapField.setAccessible(true);
-			}catch(ReflectiveOperationException exx) {
+			} catch (ReflectiveOperationException exx) {
 				throw new ExceptionInInitializerError(exx);
 			}
 		}
@@ -58,33 +58,33 @@ public class GsonUtil {
 	}
 
 	public static JsonObject loadJSONFile(File phile) throws IOException {
-		try(Reader reader = new InputStreamReader(new FileInputStream(phile), StandardCharsets.UTF_8)) {
+		try (Reader reader = new InputStreamReader(new FileInputStream(phile), StandardCharsets.UTF_8)) {
 			return GSON.fromJson(reader, JsonObject.class);
 		}
 	}
 
 	public static String optString(JsonElement el, String def) {
-		return (el != null && el.isJsonPrimitive() && ((JsonPrimitive)el).isString()) ? el.getAsString() : def;
+		return (el != null && el.isJsonPrimitive() && ((JsonPrimitive) el).isString()) ? el.getAsString() : def;
 	}
 
 	public static int optInt(JsonElement el, int def) {
-		return (el != null && el.isJsonPrimitive() && ((JsonPrimitive)el).isNumber()) ? el.getAsInt() : def;
+		return (el != null && el.isJsonPrimitive() && ((JsonPrimitive) el).isNumber()) ? el.getAsInt() : def;
 	}
 
 	public static boolean optBoolean(JsonElement el, boolean def) {
-		if(el != null && el.isJsonPrimitive()) {
+		if (el != null && el.isJsonPrimitive()) {
 			JsonPrimitive prim = el.getAsJsonPrimitive();
 			return prim.isBoolean() ? prim.getAsBoolean() : def;
-		}else {
+		} else {
 			return def;
 		}
 	}
 
 	public static float optFloat(JsonElement el, float def) {
-		if(el != null && el.isJsonPrimitive()) {
+		if (el != null && el.isJsonPrimitive()) {
 			JsonPrimitive prim = el.getAsJsonPrimitive();
 			return prim.isNumber() ? prim.getAsFloat() : def;
-		}else {
+		} else {
 			return def;
 		}
 	}
@@ -94,9 +94,9 @@ public class GsonUtil {
 	}
 
 	public static Map<String, JsonElement> asMap(JsonObject object) {
-		if(mapField == null) {
+		if (mapField == null) {
 			return object.asMap();
-		}else {
+		} else {
 			try {
 				return (Map<String, JsonElement>) mapField.get(object);
 			} catch (ReflectiveOperationException e) {

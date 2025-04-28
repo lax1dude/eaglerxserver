@@ -61,26 +61,26 @@ public class SPacketNotifIconsRegisterV4EAG implements GameMessagePacket {
 	public void readPacket(GamePacketInputBuffer buffer) throws IOException {
 		int len = buffer.readVarInt();
 		iconsToCreate = new ArrayList<>(len);
-		for(int i = 0; i < len; ++i) {
+		for (int i = 0; i < len; ++i) {
 			iconsToCreate.add(new CreateIcon(buffer.readLong(), buffer.readLong(), PacketImageData.readRGB16(buffer)));
 		}
 	}
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
-		if(iconsToCreate instanceof RandomAccess) {
+		if (iconsToCreate instanceof RandomAccess) {
 			int len = iconsToCreate.size();
 			buffer.writeVarInt(len);
-			List<CreateIcon> vigg = (List<CreateIcon>)iconsToCreate;
-			for(int i = 0, l = vigg.size(); i < l; ++i) {
+			List<CreateIcon> vigg = (List<CreateIcon>) iconsToCreate;
+			for (int i = 0, l = vigg.size(); i < l; ++i) {
 				CreateIcon icn = vigg.get(i);
 				buffer.writeLong(icn.uuidMost);
 				buffer.writeLong(icn.uuidLeast);
 				PacketImageData.writeRGB16(buffer, icn.imageData);
 			}
-		}else {
+		} else {
 			buffer.writeVarInt(iconsToCreate.size());
-			for(CreateIcon icn : iconsToCreate) {
+			for (CreateIcon icn : iconsToCreate) {
 				buffer.writeLong(icn.uuidMost);
 				buffer.writeLong(icn.uuidLeast);
 				PacketImageData.writeRGB16(buffer, icn.imageData);
@@ -96,13 +96,13 @@ public class SPacketNotifIconsRegisterV4EAG implements GameMessagePacket {
 	@Override
 	public int length() {
 		int len = GamePacketOutputBuffer.getVarIntSize(iconsToCreate.size());
-		if(iconsToCreate instanceof RandomAccess) {
-			List<CreateIcon> vigg = (List<CreateIcon>)iconsToCreate;
-			for(int i = 0, l = vigg.size(); i < l; ++i) {
+		if (iconsToCreate instanceof RandomAccess) {
+			List<CreateIcon> vigg = (List<CreateIcon>) iconsToCreate;
+			for (int i = 0, l = vigg.size(); i < l; ++i) {
 				len += vigg.get(i).length();
 			}
-		}else {
-			for(CreateIcon icn : iconsToCreate) {
+		} else {
+			for (CreateIcon icn : iconsToCreate) {
 				len += icn.length();
 			}
 		}

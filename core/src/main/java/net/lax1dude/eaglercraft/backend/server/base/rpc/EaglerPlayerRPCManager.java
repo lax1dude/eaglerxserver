@@ -45,15 +45,17 @@ public class EaglerPlayerRPCManager<PlayerObject> extends BasePlayerRPCManager<P
 
 	@Override
 	protected void handleEnabled(EaglerBackendRPCProtocol protocol) {
-		if(protocol == EaglerBackendRPCProtocol.V1) {
+		if (protocol == EaglerBackendRPCProtocol.V1) {
 			sendRPCInitPacket(new SPacketRPCEnabledSuccess(protocol.vers, player.getEaglerProtocol().ver));
-		}else {
+		} else {
 			EaglerConnectionInstance conn = player.connectionImpl();
 			sendRPCInitPacket(new SPacketRPCEnabledSuccessEaglerV2(protocol.vers, player.getMinecraftProtocol(),
 					player.getEaglerXServer().getSupervisorService().getNodeId(), player.getHandshakeEaglerProtocol(),
 					player.getEaglerProtocol().ver, player.getRewindProtocolVersion(), conn.getCapabilityMask(),
-					conn.getCapabilityVers(), conn.getExtCapabilities().entrySet().stream().map(
-							(etr) -> new SPacketRPCEnabledSuccessEaglerV2.ExtCapability(etr.getKey(), etr.getValue() & 0xFF))
+					conn.getCapabilityVers(),
+					conn.getExtCapabilities().entrySet().stream()
+							.map((etr) -> new SPacketRPCEnabledSuccessEaglerV2.ExtCapability(etr.getKey(),
+									etr.getValue() & 0xFF))
 							.collect(Collectors.toList())));
 		}
 		handleEnableContext(new EaglerPlayerRPCContext<>(this, protocol));
@@ -62,6 +64,7 @@ public class EaglerPlayerRPCManager<PlayerObject> extends BasePlayerRPCManager<P
 	@Override
 	protected void sendReadyMessage() {
 		int renderDistance = player.getEaglerXServer().getConfig().getSettings().getEaglerPlayersViewDistance();
-		player.getPlatformPlayer().sendDataBackend(service.getReadyChannel(), new byte[] { (byte) 1, (byte) renderDistance });
+		player.getPlatformPlayer().sendDataBackend(service.getReadyChannel(),
+				new byte[] { (byte) 1, (byte) renderDistance });
 	}
 }

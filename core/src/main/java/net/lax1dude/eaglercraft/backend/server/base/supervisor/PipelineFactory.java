@@ -47,9 +47,9 @@ public class PipelineFactory {
 		server.bootstrapClient(addr).handler(getChildInitializer(controller, readTimeout))
 				.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout).option(ChannelOption.TCP_NODELAY, true)
 				.connect().addListener((future) -> {
-					if(future.isSuccess()) {
-						controller.handleChannelOpen(((ChannelFuture)future).channel().attr(HANDLER).get());
-					}else {
+					if (future.isSuccess()) {
+						controller.handleChannelOpen(((ChannelFuture) future).channel().attr(HANDLER).get());
+					} else {
 						controller.handleChannelFailure();
 					}
 				});

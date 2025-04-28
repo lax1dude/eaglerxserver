@@ -41,13 +41,13 @@ public class ConfigHelper {
 		supported = platform.getConfigFormats();
 		EnumConfigFormat pref = null;
 		shit: {
-			for(EnumConfigFormat fmt : PREFERRED_ORDER) {
-				if(supported.contains(fmt)) {
+			for (EnumConfigFormat fmt : PREFERRED_ORDER) {
+				if (supported.contains(fmt)) {
 					pref = fmt;
 					break shit;
 				}
 			}
-			if(!supported.isEmpty()) {
+			if (!supported.isEmpty()) {
 				pref = supported.iterator().next();
 				break shit;
 			}
@@ -55,8 +55,8 @@ public class ConfigHelper {
 		}
 		preferred = pref;
 		fromExtension = new HashMap<>();
-		for(EnumConfigFormat fmt : supported) {
-			for(String ext : fmt.getExts()) {
+		for (EnumConfigFormat fmt : supported) {
+			for (String ext : fmt.getExts()) {
 				fromExtension.put(ext, fmt);
 			}
 		}
@@ -70,24 +70,24 @@ public class ConfigHelper {
 		String singleFile = System.getProperty("eaglerxserver.singleConfigFile");
 		String formatProperty = System.getProperty("eaglerxserver.configFormat");
 		final EnumConfigFormat defaultFormat;
-		if(formatProperty != null) {
+		if (formatProperty != null) {
 			defaultFormat = fromExtension.get(formatProperty.toLowerCase());
-			if(defaultFormat == null) {
+			if (defaultFormat == null) {
 				throw new UnsupportedOperationException("Unknown eaglerxserver.configFormat: " + formatProperty);
 			}
-		}else {
-			if(singleFile != null) {
+		} else {
+			if (singleFile != null) {
 				int idx = singleFile.lastIndexOf('.');
-				if(idx != -1) {
+				if (idx != -1) {
 					defaultFormat = fromExtension.getOrDefault(singleFile.substring(idx + 1), preferred);
-				}else {
+				} else {
 					defaultFormat = preferred;
 				}
-			}else {
+			} else {
 				defaultFormat = preferred;
 			}
 		}
-		if(singleFile != null) {
+		if (singleFile != null) {
 			File f = new File(singleFile);
 			platform.logger().info("Using single config file at: " + f.getAbsolutePath());
 			IEaglerConfig conf = defaultFormat.getConfigFile(f);
@@ -97,32 +97,34 @@ public class ConfigHelper {
 				public File getBaseDir() {
 					return parent;
 				}
+
 				@Override
 				public <V> V loadConfig(String fileName, IConfigLoadFunction<V> func) throws IOException {
 					return func.call(conf.getRoot().getSection(fileName));
 				}
 			});
-			if(conf.saveIfModified()) {
+			if (conf.saveIfModified()) {
 				platform.logger().info("Config file was updated: " + f.getAbsolutePath());
 			}
 			return result;
-		}else {
+		} else {
 			File dataFolder = platform.getDataFolder();
 			return handler.load(new IConfigDirectory() {
 				@Override
 				public File getBaseDir() {
 					return dataFolder;
 				}
+
 				@Override
 				public <V> V loadConfig(String fileName, IConfigLoadFunction<V> func) throws IOException {
 					EnumConfigFormat fmt = defaultFormat;
 					File f = new File(dataFolder, fileName + "." + fmt.getDefaultExt());
-					if(!f.isFile()) {
-						search: for(EnumConfigFormat fmt2 : supported) {
-							if(fmt != fmt2) {
-								for(String s : fmt2.getExts()) {
+					if (!f.isFile()) {
+						search: for (EnumConfigFormat fmt2 : supported) {
+							if (fmt != fmt2) {
+								for (String s : fmt2.getExts()) {
 									File f2 = new File(dataFolder, fileName + "." + s);
-									if(f2.isFile()) {
+									if (f2.isFile()) {
 										fmt = fmt2;
 										f = f2;
 										break search;
@@ -133,7 +135,7 @@ public class ConfigHelper {
 					}
 					IEaglerConfig conf = fmt.getConfigFile(f);
 					V ret = func.call(conf.getRoot());
-					if(conf.saveIfModified()) {
+					if (conf.saveIfModified()) {
 						platform.logger().info("Config file was updated: " + f.getAbsolutePath());
 					}
 					return ret;

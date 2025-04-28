@@ -91,9 +91,9 @@ class BungeeConnection implements IPlatformConnection {
 	@Override
 	public void disconnect() {
 		ProxiedPlayer player = playerInstance;
-		if(player != null) {
+		if (player != null) {
 			player.disconnect(DEFAULT_KICK_MESSAGE);
-		}else {
+		} else {
 			pendingConnection.disconnect(DEFAULT_KICK_MESSAGE);
 		}
 	}
@@ -101,18 +101,18 @@ class BungeeConnection implements IPlatformConnection {
 	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
 		ProxiedPlayer player = playerInstance;
-		if(player != null) {
-			player.disconnect((BaseComponent)kickMessage);
-		}else {
-			pendingConnection.disconnect((BaseComponent)kickMessage);
+		if (player != null) {
+			player.disconnect((BaseComponent) kickMessage);
+		} else {
+			pendingConnection.disconnect((BaseComponent) kickMessage);
 		}
 	}
 
 	public void awaitPlayState(Runnable runnable) {
-		if(awaitPlayState != null) {
+		if (awaitPlayState != null) {
 			awaitPlayState.accept(runnable);
 			awaitPlayState = null;
-		}else {
+		} else {
 			runnable.run();
 		}
 	}

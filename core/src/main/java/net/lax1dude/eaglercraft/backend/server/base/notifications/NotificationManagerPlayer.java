@@ -49,16 +49,17 @@ public class NotificationManagerPlayer<PlayerObject> extends NotificationManager
 
 	@Override
 	protected void touchIcon(UUID uuid) {
-		if(uuid != null) {
-			synchronized(this) {
-				if(knownIcons == null) knownIcons = new ObjectHashSet<>(8);
-				if(!knownIcons.add(uuid)) {
+		if (uuid != null) {
+			synchronized (this) {
+				if (knownIcons == null)
+					knownIcons = new ObjectHashSet<>(8);
+				if (!knownIcons.add(uuid)) {
 					uuid = null;
 				}
 			}
-			if(uuid != null) {
+			if (uuid != null) {
 				Collection<SPacketNotifIconsRegisterV4EAG.CreateIcon> lst = service.getRegisteredIcon(uuid);
-				if(lst.size() > 0) {
+				if (lst.size() > 0) {
 					player.sendEaglerMessage(new SPacketNotifIconsRegisterV4EAG(lst));
 				}
 			}
@@ -67,33 +68,34 @@ public class NotificationManagerPlayer<PlayerObject> extends NotificationManager
 
 	@Override
 	protected void touchIcons(GameMessagePacket packet, UUID uuidA, UUID uuidB) {
-		eagler: if(uuidA != null || uuidB != null) {
-			synchronized(this) {
-				if(knownIcons == null) knownIcons = new ObjectHashSet<>(8);
-				if(uuidA != null) {
-					if(!knownIcons.add(uuidA)) {
+		eagler: if (uuidA != null || uuidB != null) {
+			synchronized (this) {
+				if (knownIcons == null)
+					knownIcons = new ObjectHashSet<>(8);
+				if (uuidA != null) {
+					if (!knownIcons.add(uuidA)) {
 						uuidA = null;
 					}
 				}
-				if(uuidB != null) {
-					if(!knownIcons.add(uuidB)) {
+				if (uuidB != null) {
+					if (!knownIcons.add(uuidB)) {
 						uuidB = null;
 					}
 				}
 			}
 			Collection<SPacketNotifIconsRegisterV4EAG.CreateIcon> lst;
-			if(uuidA != null) {
-				if(uuidB != null) {
+			if (uuidA != null) {
+				if (uuidB != null) {
 					lst = service.getRegisteredIcon2(uuidA, uuidB);
-				}else {
+				} else {
 					lst = service.getRegisteredIcon(uuidA);
 				}
-			}else if(uuidB != null) {
+			} else if (uuidB != null) {
 				lst = service.getRegisteredIcon(uuidB);
-			}else {
+			} else {
 				break eagler;
 			}
-			if(lst.size() > 0) {
+			if (lst.size() > 0) {
 				player.sendEaglerMessage(new SPacketNotifIconsRegisterV4EAG(lst));
 			}
 		}
@@ -104,31 +106,32 @@ public class NotificationManagerPlayer<PlayerObject> extends NotificationManager
 	protected void touchIcons(Collection<UUID> uuids, Collection<UUID> tmp) {
 		tmp.clear();
 		Iterator<UUID> itr = uuids.iterator();
-		synchronized(this) {
-			if(knownIcons == null) knownIcons = new ObjectHashSet<>(8);
-			while(itr.hasNext()) {
+		synchronized (this) {
+			if (knownIcons == null)
+				knownIcons = new ObjectHashSet<>(8);
+			while (itr.hasNext()) {
 				UUID uuid = itr.next();
-				if(knownIcons.add(uuid)) {
+				if (knownIcons.add(uuid)) {
 					tmp.add(uuid);
 				}
 			}
 		}
-		if(tmp.size() == 0) {
+		if (tmp.size() == 0) {
 			return;
 		}
 		Collection<SPacketNotifIconsRegisterV4EAG.CreateIcon> lst = service.getRegisteredIcons(tmp);
-		if(lst.size() > 0) {
+		if (lst.size() > 0) {
 			player.sendEaglerMessage(new SPacketNotifIconsRegisterV4EAG(lst));
 		}
 	}
 
 	@Override
 	protected void releaseIcon(UUID uuid) {
-		synchronized(this) {
-			if(knownIcons == null || knownIcons.removeAll(uuid) == 0) {
+		synchronized (this) {
+			if (knownIcons == null || knownIcons.removeAll(uuid) == 0) {
 				return;
 			}
-			if(knownIcons.size() == 0) {
+			if (knownIcons.size() == 0) {
 				knownIcons = null;
 			}
 		}
@@ -140,16 +143,16 @@ public class NotificationManagerPlayer<PlayerObject> extends NotificationManager
 	@Override
 	protected void releaseIcons() {
 		ObjectSet<UUID> toRelease;
-		synchronized(this) {
+		synchronized (this) {
 			toRelease = knownIcons;
-			if(toRelease == null) {
+			if (toRelease == null) {
 				return;
 			}
 			knownIcons = null;
 		}
 		int l = toRelease.size();
 		SPacketNotifIconsReleaseV4EAG.DestroyIcon[] icns = new SPacketNotifIconsReleaseV4EAG.DestroyIcon[l];
-		for(ObjectCursor<UUID> uuid : toRelease) {
+		for (ObjectCursor<UUID> uuid : toRelease) {
 			icns[--l] = new SPacketNotifIconsReleaseV4EAG.DestroyIcon(uuid.value.getMostSignificantBits(),
 					uuid.value.getLeastSignificantBits());
 		}
@@ -159,14 +162,14 @@ public class NotificationManagerPlayer<PlayerObject> extends NotificationManager
 	@Override
 	protected void releaseIcons(Collection<UUID> uuids, Collection<UUID> tmp) {
 		tmp.clear();
-		synchronized(this) {
-			if(knownIcons == null) {
+		synchronized (this) {
+			if (knownIcons == null) {
 				return;
 			}
-			for(UUID uuid : uuids) {
-				if(knownIcons.removeAll(uuid) > 0) {
+			for (UUID uuid : uuids) {
+				if (knownIcons.removeAll(uuid) > 0) {
 					tmp.add(uuid);
-					if(knownIcons.size() == 0) {
+					if (knownIcons.size() == 0) {
 						knownIcons = null;
 						break;
 					}
@@ -174,11 +177,11 @@ public class NotificationManagerPlayer<PlayerObject> extends NotificationManager
 			}
 		}
 		int l = tmp.size();
-		if(l == 0) {
+		if (l == 0) {
 			return;
 		}
 		SPacketNotifIconsReleaseV4EAG.DestroyIcon[] icns = new SPacketNotifIconsReleaseV4EAG.DestroyIcon[l];
-		for(UUID uuid : tmp) {
+		for (UUID uuid : tmp) {
 			icns[--l] = new SPacketNotifIconsReleaseV4EAG.DestroyIcon(uuid.getMostSignificantBits(),
 					uuid.getLeastSignificantBits());
 		}

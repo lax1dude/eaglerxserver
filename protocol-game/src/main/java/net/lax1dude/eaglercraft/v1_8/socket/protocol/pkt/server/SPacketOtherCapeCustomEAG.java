@@ -48,7 +48,7 @@ public class SPacketOtherCapeCustomEAG implements GameMessagePacket {
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
-		if(customCape.length != 1173) {
+		if (customCape.length != 1173) {
 			throw new IOException("Custom cape data length is not 1173 bytes! (" + customCape.length + ")");
 		}
 		buffer.writeLong(uuidMost);

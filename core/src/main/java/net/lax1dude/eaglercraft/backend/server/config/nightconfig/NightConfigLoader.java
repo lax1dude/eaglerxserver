@@ -36,12 +36,12 @@ public class NightConfigLoader {
 			config = CommentedFileConfig.builder(file).sync().preserveInsertionOrder()
 					.onFileNotFound(FileNotFoundAction.READ_NOTHING).build();
 			config.load();
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			try {
-				if(config != null) {
+				if (config != null) {
 					config.close();
 				}
-			}catch(Exception exx) {
+			} catch (Exception exx) {
 			}
 			throw new IOException("Failed to load config file: " + file.getAbsolutePath());
 		}
@@ -56,24 +56,24 @@ public class NightConfigLoader {
 
 	public static void writeConfigFile(CommentedFileConfig configIn) throws IOException {
 		File p = configIn.getFile().getAbsoluteFile().getParentFile();
-		if(p != null && !p.isDirectory() && !p.mkdirs()) {
+		if (p != null && !p.isDirectory() && !p.mkdirs()) {
 			throw new IOException("Could not create directory: " + p.getAbsolutePath());
 		}
 		try {
 			try {
 				configIn.save();
-			}finally {
+			} finally {
 				configIn.close();
 			}
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			throw new IOException("Failed to save config file: " + configIn.getFile().getAbsolutePath(), ex);
 		}
 	}
 
 	public static String createComment(String stringIn) {
-		if(stringIn != null) {
+		if (stringIn != null) {
 			return " " + WrapUtil.wrap(stringIn, TOML_COMMENT_WRAP, System.lineSeparator() + " ", false, " ");
-		}else {
+		} else {
 			return null;
 		}
 	}

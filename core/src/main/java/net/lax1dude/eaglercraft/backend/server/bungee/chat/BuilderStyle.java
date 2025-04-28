@@ -78,8 +78,8 @@ class BuilderStyle<ParentType> implements IBuilderStyle<ParentType> {
 	}
 
 	void applyTo(BaseComponent ret) {
-		if(color != null) {
-			switch(color) {
+		if (color != null) {
+			switch (color) {
 			case BLACK:
 				ret.setColor(ChatColor.BLACK);
 				break;
@@ -130,19 +130,19 @@ class BuilderStyle<ParentType> implements IBuilderStyle<ParentType> {
 				break;
 			}
 		}
-		if(bold) {
+		if (bold) {
 			ret.setBold(true);
 		}
-		if(italic) {
+		if (italic) {
 			ret.setItalic(true);
 		}
-		if(strikethrough) {
+		if (strikethrough) {
 			ret.setStrikethrough(true);
 		}
-		if(underline) {
+		if (underline) {
 			ret.setUnderlined(true);
 		}
-		if(obfuscated) {
+		if (obfuscated) {
 			ret.setObfuscated(true);
 		}
 	}

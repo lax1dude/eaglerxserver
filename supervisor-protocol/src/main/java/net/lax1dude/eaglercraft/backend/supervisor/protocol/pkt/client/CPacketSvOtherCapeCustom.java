@@ -46,7 +46,7 @@ public class CPacketSvOtherCapeCustom implements EaglerSupervisorPacket {
 	public void writePacket(ByteBuf buffer) {
 		buffer.writeLong(uuid.getMostSignificantBits());
 		buffer.writeLong(uuid.getLeastSignificantBits());
-		if(customCape.length != 1173) {
+		if (customCape.length != 1173) {
 			throw new IllegalArgumentException("Cape data is the wrong length");
 		}
 		buffer.writeBytes(customCape);

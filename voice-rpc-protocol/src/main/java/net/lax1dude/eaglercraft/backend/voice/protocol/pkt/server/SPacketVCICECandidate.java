@@ -50,7 +50,7 @@ public class SPacketVCICECandidate implements EaglerVCPacket {
 		uuidMost = buffer.readLong();
 		uuidLeast = buffer.readLong();
 		int descLen = buffer.readUnsignedShort();
-		if(descLen > 32750) {
+		if (descLen > 32750) {
 			throw new IOException("Voice signal packet ICE too long!");
 		}
 		ice = new byte[descLen];
@@ -59,7 +59,7 @@ public class SPacketVCICECandidate implements EaglerVCPacket {
 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
-		if(ice.length > 32750) {
+		if (ice.length > 32750) {
 			throw new IOException("Voice signal packet ICE too long!");
 		}
 		buffer.writeLong(uuidMost);

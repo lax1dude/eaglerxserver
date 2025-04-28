@@ -45,7 +45,7 @@ public class CPacketRPCSetPlayerCape implements EaglerBackendRPCPacket {
 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
-		if(capePacket.length > 32720) {
+		if (capePacket.length > 32720) {
 			throw new IOException("Cape data cannot be longer than 32720 bytes!");
 		}
 		buffer.writeBoolean(notifyOthers);

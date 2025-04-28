@@ -34,7 +34,7 @@ public class ServerV2RPCProtocolHandler extends ServerV1RPCProtocolHandler {
 
 	public void handleClient(CPacketRPCRequestPlayerInfo packet) {
 		try {
-			switch(packet.requestType) {
+			switch (packet.requestType) {
 			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_WEBVIEW_STATUS:
 				throw wrongPacket();
 			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_TEXTURE_DATA:
@@ -65,7 +65,7 @@ public class ServerV2RPCProtocolHandler extends ServerV1RPCProtocolHandler {
 				rpcContext.handleRequestPath(packet.requestID);
 				return;
 			}
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			rpcContext.sendRPCPacket(new SPacketRPCResponseTypeError(packet.requestID, ex.toString()));
 			rpcContext.manager().handleException(ex);
 			return;
@@ -98,11 +98,13 @@ public class ServerV2RPCProtocolHandler extends ServerV1RPCProtocolHandler {
 	}
 
 	public void handleClient(CPacketRPCDisplayWebViewBlobV2 packet) {
-		rpcContext.handleDisplayWebViewBlob(packet.embedTitle, SHA1Sum.create(packet.embedHash), EnumWebViewPerms.fromBits(packet.flags));
+		rpcContext.handleDisplayWebViewBlob(packet.embedTitle, SHA1Sum.create(packet.embedHash),
+				EnumWebViewPerms.fromBits(packet.flags));
 	}
 
 	public void handleClient(CPacketRPCDisplayWebViewAliasV2 packet) {
-		rpcContext.handleDisplayWebViewAlias(packet.embedTitle, packet.embedName, EnumWebViewPerms.fromBits(packet.flags));
+		rpcContext.handleDisplayWebViewAlias(packet.embedTitle, packet.embedName,
+				EnumWebViewPerms.fromBits(packet.flags));
 	}
 
 	public void handleClient(CPacketRPCGetSkinByURLV2 packet) {

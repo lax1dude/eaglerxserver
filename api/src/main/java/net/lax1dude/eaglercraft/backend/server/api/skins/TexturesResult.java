@@ -54,11 +54,14 @@ public final class TexturesResult {
 
 	public int hashCode() {
 		int code = 0;
-		if(skinURL != null) code += skinURL.hashCode();
+		if (skinURL != null)
+			code += skinURL.hashCode();
 		code *= 31;
-		if(skinModel != null) code += skinModel.hashCode();
+		if (skinModel != null)
+			code += skinModel.hashCode();
 		code *= 31;
-		if(capeURL != null) code += capeURL.hashCode();
+		if (capeURL != null)
+			code += capeURL.hashCode();
 		return code;
 	}
 

@@ -42,9 +42,9 @@ public class VanillaPlayerRPCManager<PlayerObject> extends BasePlayerRPCManager<
 
 	@Override
 	protected void handleEnabled(EaglerBackendRPCProtocol protocol) {
-		if(protocol == EaglerBackendRPCProtocol.V1) {
+		if (protocol == EaglerBackendRPCProtocol.V1) {
 			sendRPCInitPacket(new SPacketRPCEnabledFailure(SPacketRPCEnabledFailure.FAILURE_CODE_NOT_EAGLER_PLAYER));
-		}else {
+		} else {
 			sendRPCInitPacket(new SPacketRPCEnabledSuccessVanillaV2(protocol.vers, player.getMinecraftProtocol(),
 					player.getEaglerXServer().getSupervisorService().getNodeId()));
 			handleEnableContext(new VanillaPlayerRPCContext<>(this, protocol));

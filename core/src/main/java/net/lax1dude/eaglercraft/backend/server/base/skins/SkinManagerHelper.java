@@ -30,7 +30,7 @@ class SkinManagerHelper {
 		SPacketInvalidatePlayerCacheV4EAG invalidatePacket = new SPacketInvalidatePlayerCacheV4EAG(skin, cape,
 				uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
 		IPlatformServer<PlayerObject> server = playerIn.getPlatformPlayer().getServer();
-		if(server != null) {
+		if (server != null) {
 			server.forEachPlayer((player) -> {
 				EaglerPlayerInstance<PlayerObject> playerObj = player
 						.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().asEaglerPlayer();
@@ -39,7 +39,8 @@ class SkinManagerHelper {
 				}
 			});
 		}
-		playerIn.getEaglerXServer().getSupervisorService().notifySkinChange(uuid, server.getServerConfName(), skin, cape);
+		playerIn.getEaglerXServer().getSupervisorService().notifySkinChange(uuid, server.getServerConfName(), skin,
+				cape);
 	}
 
 }

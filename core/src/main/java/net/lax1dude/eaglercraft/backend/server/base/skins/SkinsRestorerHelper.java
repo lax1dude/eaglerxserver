@@ -29,14 +29,14 @@ public class SkinsRestorerHelper {
 	private static final boolean classExists = Util.classExists("net.skinsrestorer.api.SkinsRestorerProvider");
 
 	public static <PlayerObject> ISkinsRestorerHelper<PlayerObject> instance(EaglerXServer<PlayerObject> server) {
-		if(classExists) {
+		if (classExists) {
 			try {
 				return new Impl<>(server);
-			}catch(Throwable t) {
+			} catch (Throwable t) {
 				server.logger().error("Encountered exception trying to access SkinsRestorer API", t);
 				return null;
 			}
-		}else {
+		} else {
 			return null;
 		}
 	}
@@ -58,11 +58,11 @@ public class SkinsRestorerHelper {
 		}
 
 		private void skinApplyHandler(SkinApplyEvent evt) {
-			if(listener != null) {
+			if (listener != null) {
 				PlayerObject playerObj = evt.getPlayer(server.getPlayerClass());
-				if(playerObj != null) {
+				if (playerObj != null) {
 					BasePlayerInstance<PlayerObject> player = server.getPlayer(playerObj);
-					if(player != null) {
+					if (player != null) {
 						SkinProperty prop = evt.getProperty();
 						listener.handleSRSkinApply(player, prop.getValue(), prop.getSignature());
 					}

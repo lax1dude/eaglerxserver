@@ -35,9 +35,9 @@ abstract class DefaultHandler implements IRequestHandler {
 	@Override
 	public void handleRequest(IRequestContext requestContext) {
 		requestContext.setResponseCode(getCode());
-		if(response != null) {
+		if (response != null) {
 			requestContext.setResponseBody(response.retain());
-		}else {
+		} else {
 			requestContext.setResponseBody(getContents(server), StandardCharsets.UTF_8);
 		}
 		requestContext.addResponseHeader("content-type", "text/html; charset=utf-8");
@@ -49,7 +49,7 @@ abstract class DefaultHandler implements IRequestHandler {
 	}
 
 	void release() {
-		if(response != null) {
+		if (response != null) {
 			response.release();
 			response = null;
 		}

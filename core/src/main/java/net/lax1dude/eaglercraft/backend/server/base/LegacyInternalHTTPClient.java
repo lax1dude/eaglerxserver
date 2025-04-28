@@ -43,14 +43,14 @@ public class LegacyInternalHTTPClient implements IHTTPClient {
 	@Override
 	public void asyncRequest(String method, URI uri, Consumer<Response> responseCallback) {
 		String scheme = uri.getScheme();
-		if(!scheme.equals("http") && !scheme.equals("https")) {
+		if (!scheme.equals("http") && !scheme.equals("https")) {
 			responseCallback.accept(new Response(new UnsupportedOperationException("Unsupported scheme: " + scheme)));
 			return;
 		}
 		URL url;
 		try {
 			url = uri.toURL();
-		}catch(MalformedURLException ex) {
+		} catch (MalformedURLException ex) {
 			responseCallback.accept(new Response(ex));
 			return;
 		}
@@ -62,12 +62,12 @@ public class LegacyInternalHTTPClient implements IHTTPClient {
 				conn.connect();
 				ByteBuf buf = Unpooled.buffer(1024);
 				try {
-					try(InputStream is = conn.getInputStream()) {
+					try (InputStream is = conn.getInputStream()) {
 						is.transferTo(new ByteBufOutputStream(buf));
 					}
 					int responseCode = conn.getResponseCode();
 					res = new Response(responseCode, false, buf.retain());
-				}finally {
+				} finally {
 					buf.release();
 					conn.disconnect();
 				}

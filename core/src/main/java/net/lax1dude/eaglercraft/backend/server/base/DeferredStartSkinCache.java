@@ -31,14 +31,14 @@ class DeferredStartSkinCache implements ISkinCacheService {
 
 	void setDelegate(ISkinCacheService service) {
 		this.service = service;
-		if(service != null) {
+		if (service != null) {
 			List<Consumer<ISkinCacheService>> lst;
-			synchronized(deferredTasks) {
+			synchronized (deferredTasks) {
 				lst = new ArrayList<>(deferredTasks);
 				deferredTasks.clear();
 			}
-			if(!lst.isEmpty()) {
-				for(Consumer<ISkinCacheService> consumer : lst) {
+			if (!lst.isEmpty()) {
+				for (Consumer<ISkinCacheService> consumer : lst) {
 					consumer.accept(service);
 				}
 			}
@@ -48,10 +48,10 @@ class DeferredStartSkinCache implements ISkinCacheService {
 	@Override
 	public void resolveSkinByURL(String skinURL, Consumer<byte[]> callback) {
 		ISkinCacheService svc = service;
-		if(svc != null) {
+		if (svc != null) {
 			svc.resolveSkinByURL(skinURL, callback);
-		}else {
-			synchronized(deferredTasks) {
+		} else {
+			synchronized (deferredTasks) {
 				deferredTasks.add((svc2) -> {
 					svc2.resolveSkinByURL(skinURL, callback);
 				});
@@ -62,10 +62,10 @@ class DeferredStartSkinCache implements ISkinCacheService {
 	@Override
 	public void resolveCapeByURL(String capeURL, Consumer<byte[]> callback) {
 		ISkinCacheService svc = service;
-		if(svc != null) {
+		if (svc != null) {
 			svc.resolveCapeByURL(capeURL, callback);
-		}else {
-			synchronized(deferredTasks) {
+		} else {
+			synchronized (deferredTasks) {
 				deferredTasks.add((svc2) -> {
 					svc2.resolveCapeByURL(capeURL, callback);
 				});
@@ -76,7 +76,7 @@ class DeferredStartSkinCache implements ISkinCacheService {
 	@Override
 	public void tick() {
 		ISkinCacheService svc = service;
-		if(svc != null) {
+		if (svc != null) {
 			svc.tick();
 		}
 	}
@@ -84,9 +84,9 @@ class DeferredStartSkinCache implements ISkinCacheService {
 	@Override
 	public int getTotalMemorySkins() {
 		ISkinCacheService svc = service;
-		if(svc != null) {
+		if (svc != null) {
 			return svc.getTotalMemorySkins();
-		}else {
+		} else {
 			return 0;
 		}
 	}
@@ -94,9 +94,9 @@ class DeferredStartSkinCache implements ISkinCacheService {
 	@Override
 	public int getTotalMemoryCapes() {
 		ISkinCacheService svc = service;
-		if(svc != null) {
+		if (svc != null) {
 			return svc.getTotalMemoryCapes();
-		}else {
+		} else {
 			return 0;
 		}
 	}
@@ -104,9 +104,9 @@ class DeferredStartSkinCache implements ISkinCacheService {
 	@Override
 	public int getTotalStoredSkins() {
 		ISkinCacheService svc = service;
-		if(svc != null) {
+		if (svc != null) {
 			return svc.getTotalStoredSkins();
-		}else {
+		} else {
 			return 0;
 		}
 	}
@@ -114,9 +114,9 @@ class DeferredStartSkinCache implements ISkinCacheService {
 	@Override
 	public int getTotalStoredCapes() {
 		ISkinCacheService svc = service;
-		if(svc != null) {
+		if (svc != null) {
 			return svc.getTotalStoredCapes();
-		}else {
+		} else {
 			return 0;
 		}
 	}

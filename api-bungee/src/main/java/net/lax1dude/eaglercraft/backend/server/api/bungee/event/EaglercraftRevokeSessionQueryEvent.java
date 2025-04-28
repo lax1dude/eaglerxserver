@@ -72,7 +72,7 @@ public final class EaglercraftRevokeSessionQueryEvent
 
 	@Override
 	public void setResultStatus(@Nonnull EnumSessionRevokeStatus result) {
-		if(result == null) {
+		if (result == null) {
 			throw new NullPointerException("result");
 		}
 		this.result = result;

@@ -24,8 +24,7 @@ import org.bukkit.event.HandlerList;
 
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftRegisterSkinEvent;
 
-public abstract class EaglercraftRegisterSkinEvent extends Event
-		implements IEaglercraftRegisterSkinEvent<Player> {
+public abstract class EaglercraftRegisterSkinEvent extends Event implements IEaglercraftRegisterSkinEvent<Player> {
 
 	private static final HandlerList handlers = new HandlerList();
 

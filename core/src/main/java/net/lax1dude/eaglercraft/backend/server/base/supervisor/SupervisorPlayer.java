@@ -84,28 +84,28 @@ class SupervisorPlayer {
 	}
 
 	public int getNodeId() {
-		return (int)NODE_ID_HANDLE.getAcquire(this);
+		return (int) NODE_ID_HANDLE.getAcquire(this);
 	}
 
 	public void loadBrandUUID(UUID requester, Consumer<UUID> callback) {
 		UUID val = (UUID) BRAND_HANDLE.getAcquire(this);
-		if(val != null) {
+		if (val != null) {
 			callback.accept(val);
-		}else {
-			eag: synchronized(this) {
+		} else {
+			eag: synchronized (this) {
 				val = brandUUID;
-				if(val != null) {
+				if (val != null) {
 					break eag;
 				}
-				if(waitingBrandCallbacks == null) {
+				if (waitingBrandCallbacks == null) {
 					waitingBrandCallbacks = new KeyedConsumerList<>();
 					waitingBrandCallbacks.add(requester, callback);
-				}else {
+				} else {
 					waitingBrandCallbacks.add(requester, callback);
 					return;
 				}
 			}
-			if(val != null) {
+			if (val != null) {
 				callback.accept(val);
 				return;
 			}
@@ -115,23 +115,23 @@ class SupervisorPlayer {
 
 	public void loadSkinData(UUID requester, Consumer<IEaglerPlayerSkin> callback) {
 		IEaglerPlayerSkin val = (IEaglerPlayerSkin) SKIN_HANDLE.getAcquire(this);
-		if(val != null) {
+		if (val != null) {
 			callback.accept(val);
-		}else {
-			eag: synchronized(skinLock) {
+		} else {
+			eag: synchronized (skinLock) {
 				val = skin;
-				if(val != null) {
+				if (val != null) {
 					break eag;
 				}
-				if(waitingSkinCallbacks == null) {
+				if (waitingSkinCallbacks == null) {
 					waitingSkinCallbacks = new KeyedConsumerList<>();
 					waitingSkinCallbacks.add(requester, callback);
-				}else {
+				} else {
 					waitingSkinCallbacks.add(requester, callback);
 					return;
 				}
 			}
-			if(val != null) {
+			if (val != null) {
 				callback.accept(val);
 				return;
 			}
@@ -141,23 +141,23 @@ class SupervisorPlayer {
 
 	public void loadCapeData(UUID requester, Consumer<IEaglerPlayerCape> callback) {
 		IEaglerPlayerCape val = (IEaglerPlayerCape) CAPE_HANDLE.getAcquire(this);
-		if(val != null) {
+		if (val != null) {
 			callback.accept(val);
-		}else {
-			eag: synchronized(capeLock) {
+		} else {
+			eag: synchronized (capeLock) {
 				val = cape;
-				if(val != null) {
+				if (val != null) {
 					break eag;
 				}
-				if(waitingCapeCallbacks == null) {
+				if (waitingCapeCallbacks == null) {
 					waitingCapeCallbacks = new KeyedConsumerList<>();
 					waitingCapeCallbacks.add(requester, callback);
-				}else {
+				} else {
 					waitingCapeCallbacks.add(requester, callback);
 					return;
 				}
 			}
-			if(val != null) {
+			if (val != null) {
 				callback.accept(val);
 				return;
 			}
@@ -167,20 +167,20 @@ class SupervisorPlayer {
 
 	void onSkinReceived(IEaglerPlayerSkin skin) {
 		KeyedConsumerList<UUID, IEaglerPlayerSkin> toCall;
-		synchronized(skinLock) {
-			if(this.skin != null) {
+		synchronized (skinLock) {
+			if (this.skin != null) {
 				return; // ignore multiple results
 			}
 			SKIN_HANDLE.setRelease(this, skin);
 			toCall = waitingSkinCallbacks;
 			waitingSkinCallbacks = null;
 		}
-		if(toCall != null) {
+		if (toCall != null) {
 			List<Consumer<IEaglerPlayerSkin>> toCallList = toCall.getList();
-			for(int i = 0, l = toCallList.size(); i < l; ++i) {
+			for (int i = 0, l = toCallList.size(); i < l; ++i) {
 				try {
 					toCallList.get(i).accept(skin);
-				}catch(Exception ex) {
+				} catch (Exception ex) {
 					connection.logger().error("Caught error from lazy load callback", ex);
 				}
 			}
@@ -188,23 +188,23 @@ class SupervisorPlayer {
 	}
 
 	void onSkinError() {
-		if((int)NODE_ID_HANDLE.getAcquire(this) == -1) {
+		if ((int) NODE_ID_HANDLE.getAcquire(this) == -1) {
 			connection.onDropPlayer(playerUUID);
-		}else {
+		} else {
 			KeyedConsumerList<UUID, IEaglerPlayerSkin> toCall;
-			synchronized(skinLock) {
-				if(skin != null) {
+			synchronized (skinLock) {
+				if (skin != null) {
 					return; // ignore multiple results
 				}
 				toCall = waitingSkinCallbacks;
 				waitingSkinCallbacks = null;
 			}
-			if(toCall != null) {
+			if (toCall != null) {
 				List<Consumer<IEaglerPlayerSkin>> toCallList = toCall.getList();
-				for(int i = 0, l = toCallList.size(); i < l; ++i) {
+				for (int i = 0, l = toCallList.size(); i < l; ++i) {
 					try {
 						toCallList.get(i).accept(MissingSkin.MISSING_SKIN);
-					}catch(Exception ex) {
+					} catch (Exception ex) {
 						connection.logger().error("Caught error from lazy load callback", ex);
 					}
 				}
@@ -214,20 +214,20 @@ class SupervisorPlayer {
 
 	void onCapeReceived(IEaglerPlayerCape cape) {
 		KeyedConsumerList<UUID, IEaglerPlayerCape> toCall;
-		synchronized(capeLock) {
-			if(this.cape != null) {
+		synchronized (capeLock) {
+			if (this.cape != null) {
 				return; // ignore multiple results
 			}
 			CAPE_HANDLE.setRelease(this, cape);
 			toCall = waitingCapeCallbacks;
 			waitingCapeCallbacks = null;
 		}
-		if(toCall != null) {
+		if (toCall != null) {
 			List<Consumer<IEaglerPlayerCape>> toCallList = toCall.getList();
-			for(int i = 0, l = toCallList.size(); i < l; ++i) {
+			for (int i = 0, l = toCallList.size(); i < l; ++i) {
 				try {
 					toCallList.get(i).accept(cape);
-				}catch(Exception ex) {
+				} catch (Exception ex) {
 					connection.logger().error("Caught error from lazy load callback", ex);
 				}
 			}
@@ -235,23 +235,23 @@ class SupervisorPlayer {
 	}
 
 	void onCapeError() {
-		if((int)NODE_ID_HANDLE.getAcquire(this) == -1) {
+		if ((int) NODE_ID_HANDLE.getAcquire(this) == -1) {
 			connection.onDropPlayer(playerUUID);
-		}else {
+		} else {
 			KeyedConsumerList<UUID, IEaglerPlayerCape> toCall;
-			synchronized(capeLock) {
-				if(this.cape != null) {
+			synchronized (capeLock) {
+				if (this.cape != null) {
 					return; // ignore multiple results
 				}
 				toCall = waitingCapeCallbacks;
 				waitingCapeCallbacks = null;
 			}
-			if(toCall != null) {
+			if (toCall != null) {
 				List<Consumer<IEaglerPlayerCape>> toCallList = toCall.getList();
-				for(int i = 0, l = toCallList.size(); i < l; ++i) {
+				for (int i = 0, l = toCallList.size(); i < l; ++i) {
 					try {
 						toCallList.get(i).accept(MissingCape.MISSING_CAPE);
-					}catch(Exception ex) {
+					} catch (Exception ex) {
 						connection.logger().error("Caught error from lazy load callback", ex);
 					}
 				}
@@ -262,20 +262,20 @@ class SupervisorPlayer {
 	void onNodeIDReceived(int nodeId, UUID brandUUID) {
 		NODE_ID_HANDLE.setRelease(this, nodeId);
 		KeyedConsumerList<UUID, UUID> toCall;
-		synchronized(this) {
-			if(this.brandUUID != null) {
+		synchronized (this) {
+			if (this.brandUUID != null) {
 				return; // ignore multiple results
 			}
 			BRAND_HANDLE.setRelease(this, brandUUID);
 			toCall = waitingBrandCallbacks;
 			waitingBrandCallbacks = null;
 		}
-		if(toCall != null) {
+		if (toCall != null) {
 			List<Consumer<UUID>> toCallList = toCall.getList();
-			for(int i = 0, l = toCallList.size(); i < l; ++i) {
+			for (int i = 0, l = toCallList.size(); i < l; ++i) {
 				try {
 					toCallList.get(i).accept(brandUUID);
-				}catch(Exception ex) {
+				} catch (Exception ex) {
 					connection.logger().error("Caught error from lazy load callback", ex);
 				}
 			}
@@ -283,23 +283,23 @@ class SupervisorPlayer {
 	}
 
 	void onNodeIDError() {
-		if((int)NODE_ID_HANDLE.getAcquire(this) == -1) {
+		if ((int) NODE_ID_HANDLE.getAcquire(this) == -1) {
 			connection.onDropPlayer(playerUUID);
-		}else {
+		} else {
 			KeyedConsumerList<UUID, UUID> toCall;
-			synchronized(this) {
-				if(this.brandUUID != null) {
+			synchronized (this) {
+				if (this.brandUUID != null) {
 					return; // ignore multiple results
 				}
 				toCall = waitingBrandCallbacks;
 				waitingBrandCallbacks = null;
 			}
-			if(toCall != null) {
+			if (toCall != null) {
 				List<Consumer<UUID>> toCallList = toCall.getList();
-				for(int i = 0, l = toCallList.size(); i < l; ++i) {
+				for (int i = 0, l = toCallList.size(); i < l; ++i) {
 					try {
 						toCallList.get(i).accept(null);
-					}catch(Exception ex) {
+					} catch (Exception ex) {
 						connection.logger().error("Caught error from lazy load callback", ex);
 					}
 				}
@@ -311,44 +311,44 @@ class SupervisorPlayer {
 		KeyedConsumerList<UUID, UUID> toCallA;
 		KeyedConsumerList<UUID, IEaglerPlayerSkin> toCallB;
 		KeyedConsumerList<UUID, IEaglerPlayerCape> toCallC;
-		synchronized(this) {
+		synchronized (this) {
 			toCallA = waitingBrandCallbacks;
 			waitingBrandCallbacks = null;
 		}
-		if(toCallA != null) {
+		if (toCallA != null) {
 			List<Consumer<UUID>> toCallAList = toCallA.getList();
-			for(int i = 0, l = toCallAList.size(); i < l; ++i) {
+			for (int i = 0, l = toCallAList.size(); i < l; ++i) {
 				try {
 					toCallAList.get(i).accept(null);
-				}catch(Exception ex) {
+				} catch (Exception ex) {
 					connection.logger().error("Caught error from lazy load callback", ex);
 				}
 			}
 		}
-		synchronized(skinLock) {
+		synchronized (skinLock) {
 			toCallB = waitingSkinCallbacks;
 			waitingSkinCallbacks = null;
 		}
-		if(toCallB != null) {
+		if (toCallB != null) {
 			List<Consumer<IEaglerPlayerSkin>> toCallBList = toCallB.getList();
-			for(int i = 0, l = toCallBList.size(); i < l; ++i) {
+			for (int i = 0, l = toCallBList.size(); i < l; ++i) {
 				try {
 					toCallBList.get(i).accept(null);
-				}catch(Exception ex) {
+				} catch (Exception ex) {
 					connection.logger().error("Caught error from lazy load callback", ex);
 				}
 			}
 		}
-		synchronized(capeLock) {
+		synchronized (capeLock) {
 			toCallC = waitingCapeCallbacks;
 			waitingCapeCallbacks = null;
 		}
-		if(toCallC != null) {
+		if (toCallC != null) {
 			List<Consumer<IEaglerPlayerCape>> toCallCList = toCallC.getList();
-			for(int i = 0, l = toCallCList.size(); i < l; ++i) {
+			for (int i = 0, l = toCallCList.size(); i < l; ++i) {
 				try {
 					toCallCList.get(i).accept(null);
-				}catch(Exception ex) {
+				} catch (Exception ex) {
 					connection.logger().error("Caught error from lazy load callback", ex);
 				}
 			}
@@ -356,13 +356,13 @@ class SupervisorPlayer {
 	}
 
 	void onDropPartial(boolean skin, boolean cape) {
-		if(skin) {
-			synchronized(skinLock) {
+		if (skin) {
+			synchronized (skinLock) {
 				this.skin = null;
 			}
 		}
-		if(cape) {
-			synchronized(capeLock) {
+		if (cape) {
+			synchronized (capeLock) {
 				this.cape = null;
 			}
 		}

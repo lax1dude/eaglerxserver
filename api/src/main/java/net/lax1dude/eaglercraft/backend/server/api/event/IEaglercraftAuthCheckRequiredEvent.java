@@ -19,7 +19,8 @@ package net.lax1dude.eaglercraft.backend.server.api.event;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public interface IEaglercraftAuthCheckRequiredEvent<PlayerObject, ComponentObject> extends IBaseHandshakeEvent<PlayerObject> {
+public interface IEaglercraftAuthCheckRequiredEvent<PlayerObject, ComponentObject>
+		extends IBaseHandshakeEvent<PlayerObject> {
 
 	public static enum EnumAuthResponse {
 		SKIP, REQUIRE, DENY

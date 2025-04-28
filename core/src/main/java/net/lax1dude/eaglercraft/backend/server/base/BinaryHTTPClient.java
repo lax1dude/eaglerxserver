@@ -28,7 +28,8 @@ import net.lax1dude.eaglercraft.backend.skin_cache.IHTTPClient.Response;
 
 public class BinaryHTTPClient implements IBinaryHTTPClient {
 
-	private static class ResponseWrapper implements Consumer<Response>, IBinaryHTTPResponse, IBinaryHTTPResponse.NettyUnsafe {
+	private static class ResponseWrapper
+			implements Consumer<Response>, IBinaryHTTPResponse, IBinaryHTTPResponse.NettyUnsafe {
 
 		private final Consumer<IBinaryHTTPResponse> responseCallback;
 		private Response response;
@@ -40,13 +41,13 @@ public class BinaryHTTPClient implements IBinaryHTTPClient {
 		@Override
 		public void accept(Response t) {
 			try {
-				if(response != null || t == null) {
+				if (response != null || t == null) {
 					throw new IllegalStateException();
 				}
 				response = t;
 				responseCallback.accept(this);
-			}finally {
-				if(t.data != null) {
+			} finally {
+				if (t.data != null) {
 					t.data.release();
 				}
 			}
@@ -75,7 +76,7 @@ public class BinaryHTTPClient implements IBinaryHTTPClient {
 		@Override
 		public byte[] getResponseBody() {
 			ByteBuf buf = response.data;
-			if(buf == null) {
+			if (buf == null) {
 				return null;
 			}
 			byte[] data = new byte[buf.readableBytes()];
@@ -104,13 +105,13 @@ public class BinaryHTTPClient implements IBinaryHTTPClient {
 
 	@Override
 	public void asyncRequest(EnumRequestMethod method, URI requestURI, Consumer<IBinaryHTTPResponse> responseCallback) {
-		if(method == null) {
+		if (method == null) {
 			throw new NullPointerException("method");
 		}
-		if(requestURI == null) {
+		if (requestURI == null) {
 			throw new NullPointerException("requestURI");
 		}
-		if(responseCallback == null) {
+		if (responseCallback == null) {
 			throw new NullPointerException("responseCallback");
 		}
 		httpClient.asyncRequest(method.name(), requestURI, new ResponseWrapper(responseCallback));

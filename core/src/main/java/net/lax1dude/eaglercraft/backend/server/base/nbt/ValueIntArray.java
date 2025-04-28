@@ -40,15 +40,15 @@ class ValueIntArray implements INBTValue<int[]> {
 
 	@Override
 	public void mutate(int[] value) throws IOException {
-		if(value == null) {
+		if (value == null) {
 			throw new NullPointerException("Cannot mutate to a null value");
 		}
-		if(done) {
+		if (done) {
 			throw new IllegalStateException();
 		}
-		if(resolved == null) {
+		if (resolved == null) {
 			int len = dataSource.readInt();
-			if(len < 0 || len > (Integer.MAX_VALUE >> 2)) {
+			if (len < 0 || len > (Integer.MAX_VALUE >> 2)) {
 				throw new IOException("Invalid length!");
 			}
 			dataSource.skipBytes(len << 2);
@@ -58,38 +58,38 @@ class ValueIntArray implements INBTValue<int[]> {
 
 	@Override
 	public void write(DataOutput dataOutput, byte[] tmp) throws IOException {
-		if(done) {
+		if (done) {
 			throw new IllegalStateException();
 		}
-		if(resolved != null) {
+		if (resolved != null) {
 			int l = resolved.length;
 			dataOutput.writeInt(l);
 			writeInts(dataOutput, resolved, l);
-		}else {
+		} else {
 			done = true;
 			int len = dataSource.readInt();
-			if(len < 0 || len > (Integer.MAX_VALUE >> 2)) {
+			if (len < 0 || len > (Integer.MAX_VALUE >> 2)) {
 				throw new IOException("Invalid length!");
 			}
 			dataOutput.writeInt(len);
 			len <<= 2;
-			while(len > 0) {
+			while (len > 0) {
 				int j = Math.min(tmp.length, len);
 				dataSource.readFully(tmp, 0, j);
 				dataOutput.write(tmp, 0, j);
-				len -=j;
+				len -= j;
 			}
 		}
 	}
 
 	@Override
 	public int[] value() throws IOException {
-		if(done) {
+		if (done) {
 			throw new IllegalStateException();
 		}
-		if(resolved == null) {
+		if (resolved == null) {
 			int len = dataSource.readInt();
-			if(len < 0 || len > (Integer.MAX_VALUE >> 2)) {
+			if (len < 0 || len > (Integer.MAX_VALUE >> 2)) {
 				throw new IOException("Invalid length!");
 			}
 			resolved = new int[len];
@@ -99,11 +99,11 @@ class ValueIntArray implements INBTValue<int[]> {
 	}
 
 	void finish() throws IOException {
-		if(!done) {
+		if (!done) {
 			done = true;
-			if(resolved == null) {
+			if (resolved == null) {
 				int len = dataSource.readInt();
-				if(len < 0 || len > (Integer.MAX_VALUE >> 2)) {
+				if (len < 0 || len > (Integer.MAX_VALUE >> 2)) {
 					throw new IOException("Invalid length!");
 				}
 				dataSource.skipBytes(len << 2);
@@ -112,13 +112,13 @@ class ValueIntArray implements INBTValue<int[]> {
 	}
 
 	static void readInts(DataInput input, int[] output, int len) throws IOException {
-		for(int i = 0; i < len; ++i) {
+		for (int i = 0; i < len; ++i) {
 			output[i] = input.readInt();
 		}
 	}
 
 	static void writeInts(DataOutput output, int[] input, int len) throws IOException {
-		for(int i = 0; i < len; ++i) {
+		for (int i = 0; i < len; ++i) {
 			output.writeInt(input[i]);
 		}
 	}

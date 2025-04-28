@@ -30,8 +30,9 @@ class PauseMenuHelper {
 		return ((CustomPauseMenuLocal) pauseMenu).pauseMenu;
 	}
 
-	static EnumServerInfoButton wrap(net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumServerInfoButton value) {
-		return switch(value) {
+	static EnumServerInfoButton wrap(
+			net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumServerInfoButton value) {
+		return switch (value) {
 		default -> EnumServerInfoButton.NONE;
 		case EXTERNAL_URL -> EnumServerInfoButton.EXTERNAL_URL;
 		case WEBVIEW_URL -> EnumServerInfoButton.WEBVIEW_URL;
@@ -39,8 +40,9 @@ class PauseMenuHelper {
 		};
 	}
 
-	static net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumServerInfoButton unwrap(EnumServerInfoButton value) {
-		return switch(value) {
+	static net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumServerInfoButton unwrap(
+			EnumServerInfoButton value) {
+		return switch (value) {
 		default -> net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumServerInfoButton.NONE;
 		case EXTERNAL_URL -> net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumServerInfoButton.EXTERNAL_URL;
 		case WEBVIEW_URL -> net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumServerInfoButton.WEBVIEW_URL;
@@ -48,17 +50,20 @@ class PauseMenuHelper {
 		};
 	}
 
-	static EnumDiscordInviteButton wrap(net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumDiscordInviteButton value) {
-		return switch(value) {
+	static EnumDiscordInviteButton wrap(
+			net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumDiscordInviteButton value) {
+		return switch (value) {
 		default -> EnumDiscordInviteButton.NONE;
 		case EXTERNAL_URL -> EnumDiscordInviteButton.EXTERNAL_URL;
 		};
 	}
 
-	static net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumDiscordInviteButton unwrap(EnumDiscordInviteButton value) {
-		return switch(value) {
+	static net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumDiscordInviteButton unwrap(
+			EnumDiscordInviteButton value) {
+		return switch (value) {
 		default -> net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumDiscordInviteButton.NONE;
-		case EXTERNAL_URL -> net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumDiscordInviteButton.EXTERNAL_URL;
+		case EXTERNAL_URL ->
+			net.lax1dude.eaglercraft.backend.server.api.pause_menu.EnumDiscordInviteButton.EXTERNAL_URL;
 		};
 	}
 

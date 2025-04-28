@@ -60,17 +60,17 @@ class BuilderHover<ParentType> implements IBuilderHoverEvent<ParentType>, IAppen
 
 	@Override
 	public void append(Component comp) {
-		if(buildChildren == null) {
+		if (buildChildren == null) {
 			buildChildren = new ArrayList<>(4);
 		}
 		buildChildren.add(comp);
 	}
 
 	Component applyTo(Component ret) {
-		if(action == EnumHoverAction.SHOW_TEXT && buildChildren != null) {
-			if(buildChildren.size() > 1) {
+		if (action == EnumHoverAction.SHOW_TEXT && buildChildren != null) {
+			if (buildChildren.size() > 1) {
 				ret = ret.hoverEvent(HoverEvent.showText(Component.empty().children(buildChildren)));
-			}else {
+			} else {
 				ret = ret.hoverEvent(HoverEvent.showText(buildChildren.get(0)));
 			}
 		}

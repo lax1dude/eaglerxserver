@@ -64,7 +64,7 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 
 	public void sendRPCPacket(EaglerBackendRPCPacket packet) {
 		BasePlayerRPCContext<PlayerObject> ctx = (BasePlayerRPCContext<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
-		if(ctx != null) {
+		if (ctx != null) {
 			byte[] data;
 			try {
 				data = ctx.serialize(packet);
@@ -78,7 +78,7 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 
 	public void handleRPCPacketData(byte[] data) {
 		BasePlayerRPCContext<PlayerObject> ctx = (BasePlayerRPCContext<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
-		if(ctx != null) {
+		if (ctx != null) {
 			EaglerBackendRPCPacket packet;
 			try {
 				packet = ctx.deserialize(data);
@@ -88,10 +88,10 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 			}
 			try {
 				packet.handlePacket(ctx.packetHandler());
-			} catch(Exception e) {
+			} catch (Exception e) {
 				handleException(e);
 			}
-		}else {
+		} else {
 			EaglerBackendRPCPacket packet;
 			try {
 				packet = service.handshakeCtx.deserialize(data);
@@ -99,22 +99,27 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 				handleException(e);
 				return;
 			}
-			if(packet instanceof CPacketRPCEnabled pkt) {
+			if (packet instanceof CPacketRPCEnabled pkt) {
 				boolean V1 = false, V2 = false;
-				for(int i : pkt.supportedProtocols) {
-					if(i == 1) V1 = true;
-					if(i == 2) V2 = true;
-					if(V2) break;
+				for (int i : pkt.supportedProtocols) {
+					if (i == 1)
+						V1 = true;
+					if (i == 2)
+						V2 = true;
+					if (V2)
+						break;
 				}
-				if(V2) {
+				if (V2) {
 					handleEnabled(EaglerBackendRPCProtocol.V2);
-				}else if(V1) {
+				} else if (V1) {
 					handleEnabled(EaglerBackendRPCProtocol.V1);
-				}else {
-					sendRPCInitPacket(new SPacketRPCEnabledFailure(SPacketRPCEnabledFailure.FAILURE_CODE_OUTDATED_SERVER));
+				} else {
+					sendRPCInitPacket(
+							new SPacketRPCEnabledFailure(SPacketRPCEnabledFailure.FAILURE_CODE_OUTDATED_SERVER));
 				}
-			}else {
-				handleException(new IllegalStateException("Unexpected packet type for handshake: " + packet.getClass().getName()));
+			} else {
+				handleException(new IllegalStateException(
+						"Unexpected packet type for handshake: " + packet.getClass().getName()));
 				sendRPCInitPacket(new SPacketRPCEnabledFailure(SPacketRPCEnabledFailure.FAILURE_CODE_INTERNAL_ERROR));
 			}
 		}
@@ -122,15 +127,16 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 
 	BasePlayerRPCContext<PlayerObject> context() {
 		BasePlayerRPCContext<PlayerObject> ctx = (BasePlayerRPCContext<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
-		if(ctx != null) {
+		if (ctx != null) {
 			return ctx;
-		}else {
+		} else {
 			throw new IllegalStateException();
 		}
 	}
 
 	void handleException(Exception ex) {
-		getPlayer().getEaglerXServer().logger().error("Exception thrown while handling backend RPC packet for \"" + getPlayer().getUsername() + "\"!", ex);
+		getPlayer().getEaglerXServer().logger().error(
+				"Exception thrown while handling backend RPC packet for \"" + getPlayer().getUsername() + "\"!", ex);
 	}
 
 	protected abstract void handleEnabled(EaglerBackendRPCProtocol ver);
@@ -145,7 +151,7 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 
 	public void handleServerPreConnect() {
 		BasePlayerRPCContext<PlayerObject> ctx = (BasePlayerRPCContext<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
-		if(ctx != null) {
+		if (ctx != null) {
 			ctx.handleDisabled();
 		}
 	}
@@ -158,21 +164,21 @@ public abstract class BasePlayerRPCManager<PlayerObject> {
 
 	public void fireWebViewOpenClose(boolean open, String channel) {
 		BasePlayerRPCContext<PlayerObject> ctx = (BasePlayerRPCContext<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
-		if(ctx != null) {
+		if (ctx != null) {
 			ctx.fireWebViewOpenClose(open, channel);
 		}
 	}
 
 	public void fireWebViewMessage(String channel, boolean binary, byte[] data) {
 		BasePlayerRPCContext<PlayerObject> ctx = (BasePlayerRPCContext<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
-		if(ctx != null) {
+		if (ctx != null) {
 			ctx.fireWebViewMessage(channel, binary, data);
 		}
 	}
 
 	public void fireToggleVoice(EnumVoiceState oldVoiceState, EnumVoiceState newVoiceState) {
 		BasePlayerRPCContext<PlayerObject> ctx = (BasePlayerRPCContext<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
-		if(ctx != null) {
+		if (ctx != null) {
 			ctx.fireToggleVoice(oldVoiceState, newVoiceState);
 		}
 	}

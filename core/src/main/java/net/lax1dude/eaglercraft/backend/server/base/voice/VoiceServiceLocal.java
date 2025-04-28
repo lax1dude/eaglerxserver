@@ -62,7 +62,7 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceServiceImpl<Player
 
 	@Override
 	public void setICEServers(Collection<ICEServerEntry> newICEServers) {
-		if(newICEServers == null) {
+		if (newICEServers == null) {
 			throw new NullPointerException("newICEServers");
 		}
 		newICEServers = iceServers = ImmutableList.copyOf(newICEServers);
@@ -72,10 +72,10 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceServiceImpl<Player
 	static String[] prepareICEServers(Collection<ICEServerEntry> newICEServers) {
 		String[] newArray = new String[newICEServers.size()];
 		int i = 0;
-		for(ICEServerEntry etr : newICEServers) {
+		for (ICEServerEntry etr : newICEServers) {
 			newArray[i++] = etr.toString();
 		}
-		if(i != newArray.length) {
+		if (i != newArray.length) {
 			throw new IllegalStateException("fuck you");
 		}
 		return newArray;
@@ -112,7 +112,7 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceServiceImpl<Player
 
 	@Override
 	public boolean isVoiceEnabledOnServer(String serverName) {
-		if(serverName == null) {
+		if (serverName == null) {
 			throw new NullPointerException("serverName");
 		}
 		return allServer || configServersEnabled.contains(serverName);
@@ -135,21 +135,22 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceServiceImpl<Player
 
 	@Override
 	public IVoiceChannel getServerVoiceChannel(String serverName) {
-		if(serverName == null) {
+		if (serverName == null) {
 			throw new NullPointerException("serverName");
 		}
-		if(allServer || configServersEnabled.contains(serverName)) {
-			if(separateServer) {
+		if (allServer || configServersEnabled.contains(serverName)) {
+			if (separateServer) {
 				try {
 					return serverChannels.get(serverName);
 				} catch (ExecutionException e) {
-					if(e.getCause() instanceof RuntimeException ee) throw ee;
+					if (e.getCause() instanceof RuntimeException ee)
+						throw ee;
 					throw new RuntimeException(e.getCause());
 				}
-			}else {
+			} else {
 				return globalChannel;
 			}
-		}else {
+		} else {
 			return DisabledChannel.INSTANCE;
 		}
 	}
@@ -161,13 +162,13 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceServiceImpl<Player
 
 	@Override
 	public Collection<IEaglerPlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel) {
-		if(channel == null) {
+		if (channel == null) {
 			throw new NullPointerException("Voice channel cannot be null!");
 		}
-		if(channel == DisabledChannel.INSTANCE) {
+		if (channel == DisabledChannel.INSTANCE) {
 			throw new UnsupportedOperationException("Cannot list players connected to the disabled channel");
 		}
-		if(!(channel instanceof VoiceChannel ch) || ch.owner != this) {
+		if (!(channel instanceof VoiceChannel ch) || ch.owner != this) {
 			throw new IllegalArgumentException("Unknown voice channel");
 		}
 		return ch.listConnectedPlayers();

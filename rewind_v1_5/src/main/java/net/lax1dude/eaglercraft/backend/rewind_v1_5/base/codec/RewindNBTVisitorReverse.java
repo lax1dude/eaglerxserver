@@ -58,9 +58,9 @@ public class RewindNBTVisitorReverse implements INBTVisitor {
 
 	@Override
 	public INBTVisitor visitTag(EnumDataType tagType, INBTValue<String> tagName) throws IOException {
-		if(tagType == EnumDataType.COMPOUND && "ExtraType".equals(tagName.value())) {
+		if (tagType == EnumDataType.COMPOUND && "ExtraType".equals(tagName.value())) {
 			tagName.mutate("Owner");
-		} else if(tagType == EnumDataType.LIST && "pages".equals(tagName.value())) {
+		} else if (tagType == EnumDataType.LIST && "pages".equals(tagName.value())) {
 			parent().visitTag(tagType, tagName);
 			return new PagesTransformer();
 		}
@@ -103,7 +103,7 @@ public class RewindNBTVisitorReverse implements INBTVisitor {
 			if (w >= len) {
 				return parent().visitTag(tagType, tagName);
 			}
-			if(tagType == EnumDataType.STRING) {
+			if (tagType == EnumDataType.STRING) {
 				w++;
 			}
 			parent().visitTag(tagType, tagName);
@@ -113,7 +113,8 @@ public class RewindNBTVisitorReverse implements INBTVisitor {
 		@Override
 		public void visitTagString(INBTValue<String> str) throws IOException {
 			if (w < len) {
-				String transformedText = "\"" + str.value().replaceAll("\\\\", "\\\\").replaceAll("\"", "\\\\\"") + "\"";
+				String transformedText = "\"" + str.value().replaceAll("\\\\", "\\\\").replaceAll("\"", "\\\\\"")
+						+ "\"";
 				str.mutate(transformedText);
 			}
 			parent().visitTagString(str);

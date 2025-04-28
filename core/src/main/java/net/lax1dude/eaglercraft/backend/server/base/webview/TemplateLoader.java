@@ -54,7 +54,7 @@ public class TemplateLoader implements ITemplateLoader {
 
 	@Override
 	public void setBaseDir(File file) {
-		if(file == null) {
+		if (file == null) {
 			throw new NullPointerException("file");
 		}
 		baseDir = file;
@@ -62,7 +62,7 @@ public class TemplateLoader implements ITemplateLoader {
 
 	@Override
 	public Map<String, String> getVariables() {
-		if(variables == null) {
+		if (variables == null) {
 			variables = new HashMap<>();
 		}
 		return variables;
@@ -75,28 +75,28 @@ public class TemplateLoader implements ITemplateLoader {
 
 	@Override
 	public void setVariable(String key, String value) {
-		if(key == null) {
+		if (key == null) {
 			throw new NullPointerException("key");
 		}
-		if(variables == null) {
-			if(value == null) {
+		if (variables == null) {
+			if (value == null) {
 				return;
 			}
 			variables = new HashMap<>();
 		}
-		if(value != null) {
+		if (value != null) {
 			variables.put(key, value);
-		}else {
+		} else {
 			variables.remove(key);
 		}
 	}
 
 	@Override
 	public void removeVariable(String key) {
-		if(key == null) {
+		if (key == null) {
 			throw new NullPointerException("key");
 		}
-		if(variables != null) {
+		if (variables != null) {
 			variables.remove(key);
 		}
 	}
@@ -123,14 +123,14 @@ public class TemplateLoader implements ITemplateLoader {
 
 	@Override
 	public String loadWebViewTemplate(String template) throws IOException, InvalidMacroException {
-		if(template == null) {
+		if (template == null) {
 			throw new NullPointerException("template");
 		}
 		final Map<String, String> globals = owner.getTemplateGlobals();
 		return TemplateParser.loadTemplate(template, baseDir, allowEval, (key) -> {
-			if(variables != null) {
+			if (variables != null) {
 				String str = variables.get(key);
-				if(str != null) {
+				if (str != null) {
 					return str;
 				}
 			}
@@ -140,7 +140,7 @@ public class TemplateLoader implements ITemplateLoader {
 
 	@Override
 	public String loadWebViewTemplate(Reader reader) throws IOException, InvalidMacroException {
-		if(reader == null) {
+		if (reader == null) {
 			throw new NullPointerException("reader");
 		}
 		return loadWebViewTemplate(CharStreams.toString(reader));

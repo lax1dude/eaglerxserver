@@ -34,9 +34,9 @@ public interface IOptional<T> {
 	@Nullable
 	@SuppressWarnings("unchecked")
 	default T orDefault(@Nullable T defaultValue) {
-		if(isSuccess()) {
+		if (isSuccess()) {
 			return (T) this;
-		}else {
+		} else {
 			return defaultValue;
 		}
 	}
@@ -44,9 +44,9 @@ public interface IOptional<T> {
 	@Nullable
 	@SuppressWarnings("unchecked")
 	default T orDefault(@Nonnull Supplier<T> defaultValue) {
-		if(isSuccess()) {
+		if (isSuccess()) {
 			return (T) this;
-		}else {
+		} else {
 			return defaultValue.get();
 		}
 	}
@@ -54,9 +54,9 @@ public interface IOptional<T> {
 	@Nonnull
 	@SuppressWarnings("unchecked")
 	default T orThrow() throws IllegalStateException {
-		if(isSuccess()) {
+		if (isSuccess()) {
 			return (T) this;
-		}else {
+		} else {
 			throw new IllegalStateException("Resulting value is not successful");
 		}
 	}

@@ -57,7 +57,7 @@ class BungeeServer implements IPlatformServer<ProxiedPlayer> {
 	public void forEachPlayer(Consumer<IPlatformPlayer<ProxiedPlayer>> callback) {
 		serverInfo.getPlayers().forEach((player) -> {
 			IPlatformPlayer<ProxiedPlayer> platformPlayer = plugin.getPlayer(player);
-			if(platformPlayer != null) {
+			if (platformPlayer != null) {
 				callback.accept(platformPlayer);
 			}
 		});

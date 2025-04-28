@@ -55,7 +55,7 @@ public class SPacketServerInfoDataChunkV4EAG implements GameMessagePacket {
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
-		if(finalHash.length != 20) {
+		if (finalHash.length != 20) {
 			throw new IOException("Hash must be 20 bytes! (" + finalHash.length + " given)");
 		}
 		buffer.writeBoolean(lastChunk);

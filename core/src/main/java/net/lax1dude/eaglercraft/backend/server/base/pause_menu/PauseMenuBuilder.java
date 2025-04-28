@@ -62,11 +62,13 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 		serverInfoButtonBlobHash = builder.serverInfoButtonBlobHash;
 		serverInfoTitle = builder.serverInfoTitle;
 		serverInfoPerms = builder.serverInfoPerms != null && !builder.serverInfoPerms.isEmpty()
-				? EnumSet.copyOf(builder.serverInfoPerms) : null;
+				? EnumSet.copyOf(builder.serverInfoPerms)
+				: null;
 		discordButtonMode = builder.discordButtonMode;
 		discordButtonText = builder.discordButtonText;
 		discordButtonURL = builder.discordButtonURL;
-		customIcons = builder.customIcons != null && !builder.customIcons.isEmpty() ? new HashMap<>(builder.customIcons) : null;
+		customIcons = builder.customIcons != null && !builder.customIcons.isEmpty() ? new HashMap<>(builder.customIcons)
+				: null;
 		return this;
 	}
 
@@ -74,7 +76,7 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 	public IPauseMenuBuilder copyFrom(ICustomPauseMenu pauseMenu) {
 		IPauseMenuImpl impl = (IPauseMenuImpl) pauseMenu;
 		SPacketCustomizePauseMenuV4EAG pkt = impl.getPacket();
-		switch(pkt.serverInfoMode) {
+		switch (pkt.serverInfoMode) {
 		case SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_NONE:
 		default:
 			serverInfoButtonMode = EnumServerInfoButton.NONE;
@@ -101,7 +103,8 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 			serverInfoButtonBlob = null;
 			serverInfoButtonBlobHash = null;
 			serverInfoTitle = pkt.serverInfoEmbedTitle;
-			serverInfoPerms = pkt.serverInfoEmbedPerms != 0 ? EnumWebViewPerms.fromBits(pkt.serverInfoEmbedPerms) : null;
+			serverInfoPerms = pkt.serverInfoEmbedPerms != 0 ? EnumWebViewPerms.fromBits(pkt.serverInfoEmbedPerms)
+					: null;
 			break;
 		case SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_SHOW_EMBED_OVER_WS:
 			serverInfoButtonMode = EnumServerInfoButton.WEBVIEW_URL;
@@ -109,17 +112,18 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 			serverInfoURL = null;
 			serverInfoButtonBlob = impl.getBlob();
 			serverInfoButtonBlobHash = SHA1Sum.create(pkt.serverInfoHash);
-			if(serverInfoButtonBlob != null) {
+			if (serverInfoButtonBlob != null) {
 				SHA1Sum sum = serverInfoButtonBlob.getHash();
-				if(sum.equals(serverInfoButtonBlobHash)) {
+				if (sum.equals(serverInfoButtonBlobHash)) {
 					serverInfoButtonBlobHash = sum;
 				}
 			}
 			serverInfoTitle = pkt.serverInfoEmbedTitle;
-			serverInfoPerms = pkt.serverInfoEmbedPerms != 0 ? EnumWebViewPerms.fromBits(pkt.serverInfoEmbedPerms) : null;
+			serverInfoPerms = pkt.serverInfoEmbedPerms != 0 ? EnumWebViewPerms.fromBits(pkt.serverInfoEmbedPerms)
+					: null;
 			break;
 		}
-		switch(pkt.discordButtonMode) {
+		switch (pkt.discordButtonMode) {
 		case SPacketCustomizePauseMenuV4EAG.DISCORD_MODE_NONE:
 		default:
 			discordButtonMode = EnumDiscordInviteButton.NONE;
@@ -132,15 +136,15 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 			discordButtonURL = pkt.discordInviteURL;
 			break;
 		}
-		if(pkt.imageMappings != null && !pkt.imageMappings.isEmpty()) {
+		if (pkt.imageMappings != null && !pkt.imageMappings.isEmpty()) {
 			customIcons = new HashMap<>();
-			for(Entry<String, Integer> etr : pkt.imageMappings.entrySet()) {
+			for (Entry<String, Integer> etr : pkt.imageMappings.entrySet()) {
 				int i = etr.getValue();
-				if(i >= 0 && i < pkt.imageData.size()) {
+				if (i >= 0 && i < pkt.imageData.size()) {
 					customIcons.put(etr.getKey(), pkt.imageData.get(i));
 				}
 			}
-		}else {
+		} else {
 			customIcons = null;
 		}
 		return this;
@@ -165,10 +169,10 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 
 	@Override
 	public IPauseMenuBuilder setServerInfoButtonModeURL(String text, String url) {
-		if(text == null) {
+		if (text == null) {
 			throw new NullPointerException("text");
 		}
-		if(url == null) {
+		if (url == null) {
 			throw new NullPointerException("url");
 		}
 		serverInfoButtonMode = EnumServerInfoButton.EXTERNAL_URL;
@@ -184,13 +188,13 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 	@Override
 	public IPauseMenuBuilder setServerInfoButtonModeWebViewURL(String text, String title,
 			Set<EnumWebViewPerms> permissions, String url) {
-		if(text == null) {
+		if (text == null) {
 			throw new NullPointerException("text");
 		}
-		if(title == null) {
+		if (title == null) {
 			throw new NullPointerException("title");
 		}
-		if(url == null) {
+		if (url == null) {
 			throw new NullPointerException("url");
 		}
 		serverInfoButtonMode = EnumServerInfoButton.WEBVIEW_URL;
@@ -206,13 +210,13 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 	@Override
 	public IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(String text, String title,
 			Set<EnumWebViewPerms> permissions, IWebViewBlob blob) {
-		if(text == null) {
+		if (text == null) {
 			throw new NullPointerException("text");
 		}
-		if(title == null) {
+		if (title == null) {
 			throw new NullPointerException("title");
 		}
-		if(blob == null) {
+		if (blob == null) {
 			throw new NullPointerException("blob");
 		}
 		serverInfoButtonMode = EnumServerInfoButton.WEBVIEW_BLOB;
@@ -228,13 +232,13 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 	@Override
 	public IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(String text, String title,
 			Set<EnumWebViewPerms> permissions, SHA1Sum hash) {
-		if(text == null) {
+		if (text == null) {
 			throw new NullPointerException("text");
 		}
-		if(title == null) {
+		if (title == null) {
 			throw new NullPointerException("title");
 		}
-		if(hash == null) {
+		if (hash == null) {
 			throw new NullPointerException("hash");
 		}
 		serverInfoButtonMode = EnumServerInfoButton.WEBVIEW_BLOB;
@@ -292,10 +296,10 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 
 	@Override
 	public IPauseMenuBuilder setDiscordInviteButtonModeURL(String text, String url) {
-		if(text == null) {
+		if (text == null) {
 			throw new NullPointerException("text");
 		}
-		if(url == null) {
+		if (url == null) {
 			throw new NullPointerException("url");
 		}
 		discordButtonMode = EnumDiscordInviteButton.EXTERNAL_URL;
@@ -321,7 +325,7 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 
 	@Override
 	public PacketImageData getMenuIcon(String icon) {
-		if(icon == null) {
+		if (icon == null) {
 			throw new NullPointerException("icon");
 		}
 		return customIcons != null ? customIcons.get(icon) : null;
@@ -329,16 +333,16 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 
 	@Override
 	public IPauseMenuBuilder setMenuIcon(EnumPauseMenuIcon icon, PacketImageData imageData) {
-		if(icon == null) {
+		if (icon == null) {
 			throw new NullPointerException("icon");
 		}
-		if(imageData != null) {
+		if (imageData != null) {
 			checkDimensions(imageData);
-			if(customIcons == null) {
+			if (customIcons == null) {
 				customIcons = new HashMap<>();
 			}
 			customIcons.put(icon.getIconName(), imageData);
-		}else if(customIcons != null) {
+		} else if (customIcons != null) {
 			customIcons.remove(icon.getIconName());
 		}
 		return this;
@@ -346,16 +350,16 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 
 	@Override
 	public IPauseMenuBuilder setMenuIcon(String icon, PacketImageData imageData) {
-		if(icon == null) {
+		if (icon == null) {
 			throw new NullPointerException("icon");
 		}
-		if(imageData != null) {
+		if (imageData != null) {
 			checkDimensions(imageData);
-			if(customIcons == null) {
+			if (customIcons == null) {
 				customIcons = new HashMap<>();
 			}
 			customIcons.put(icon, imageData);
-		}else if(customIcons != null) {
+		} else if (customIcons != null) {
 			customIcons.remove(icon);
 		}
 		return this;
@@ -368,8 +372,9 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 	}
 
 	private static void checkDimensions(PacketImageData etr) {
-		if(etr.width < 1 || etr.width > 64 || etr.height < 1 || etr.height > 64) {
-			throw new IllegalArgumentException("Invalid image dimensions, must be between 1x1 and 64x64, got " + etr.width + "x" + etr.height);
+		if (etr.width < 1 || etr.width > 64 || etr.height < 1 || etr.height > 64) {
+			throw new IllegalArgumentException(
+					"Invalid image dimensions, must be between 1x1 and 64x64, got " + etr.width + "x" + etr.height);
 		}
 	}
 
@@ -383,7 +388,7 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 		String serverInfoEmbedTitle;
 		IWebViewBlob serverInfoBlob;
 		boolean permitChannel;
-		switch(serverInfoButtonMode) {
+		switch (serverInfoButtonMode) {
 		case NONE:
 		default:
 			serverInfoMode = SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_NONE;
@@ -413,7 +418,8 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 			serverInfoEmbedPerms = serverInfoPerms != null ? EnumWebViewPerms.toBits(serverInfoPerms) : 0;
 			serverInfoEmbedTitle = serverInfoTitle;
 			serverInfoBlob = null;
-			permitChannel = (serverInfoEmbedPerms & SPacketCustomizePauseMenuV4EAG.SERVER_INFO_EMBED_PERMS_MESSAGE_API) != 0;
+			permitChannel = (serverInfoEmbedPerms
+					& SPacketCustomizePauseMenuV4EAG.SERVER_INFO_EMBED_PERMS_MESSAGE_API) != 0;
 			break;
 		case WEBVIEW_BLOB:
 			serverInfoMode = SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_SHOW_EMBED_OVER_WS;
@@ -423,13 +429,14 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 			serverInfoEmbedPerms = serverInfoPerms != null ? EnumWebViewPerms.toBits(serverInfoPerms) : 0;
 			serverInfoEmbedTitle = serverInfoTitle;
 			serverInfoBlob = serverInfoButtonBlob;
-			permitChannel = (serverInfoEmbedPerms & SPacketCustomizePauseMenuV4EAG.SERVER_INFO_EMBED_PERMS_MESSAGE_API) != 0;
+			permitChannel = (serverInfoEmbedPerms
+					& SPacketCustomizePauseMenuV4EAG.SERVER_INFO_EMBED_PERMS_MESSAGE_API) != 0;
 			break;
 		}
 		int discordButtonMode;
 		String discordButtonText;
 		String discordInviteURL;
-		switch(this.discordButtonMode) {
+		switch (this.discordButtonMode) {
 		case NONE:
 		default:
 			discordButtonMode = SPacketCustomizePauseMenuV4EAG.DISCORD_MODE_NONE;
@@ -444,24 +451,24 @@ public class PauseMenuBuilder implements IPauseMenuBuilder {
 		}
 		Map<String, Integer> imageMappings;
 		List<PacketImageData> imageData;
-		if(customIcons != null && !customIcons.isEmpty()) {
+		if (customIcons != null && !customIcons.isEmpty()) {
 			imageMappings = new HashMap<>(customIcons.size());
 			Map<PacketImageData, Integer> imageDataMap = new HashMap<>(customIcons.size());
-			for(Map.Entry<String, PacketImageData> etr : customIcons.entrySet()) {
+			for (Map.Entry<String, PacketImageData> etr : customIcons.entrySet()) {
 				int sz = imageDataMap.size();
 				Integer i = imageDataMap.putIfAbsent(etr.getValue(), sz);
-				if(i != null) {
+				if (i != null) {
 					imageMappings.put(etr.getKey(), i);
-				}else {
+				} else {
 					imageMappings.put(etr.getKey(), sz);
 				}
 			}
 			PacketImageData[] imageDataArr = new PacketImageData[imageDataMap.size()];
-			for(Map.Entry<PacketImageData, Integer> etr : imageDataMap.entrySet()) {
+			for (Map.Entry<PacketImageData, Integer> etr : imageDataMap.entrySet()) {
 				imageDataArr[etr.getValue()] = etr.getKey();
 			}
 			imageData = Arrays.asList(imageDataArr);
-		}else {
+		} else {
 			imageMappings = null;
 			imageData = null;
 		}

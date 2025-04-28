@@ -68,8 +68,8 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 	@Override
 	public void handleWorldChanged(PlayerInstanceRemote<PlayerObject> player, String worldName) {
 		IVoiceManager<PlayerObject> voiceMgr = player.getVoiceManager();
-		if(voiceMgr != null) {
-			((VoiceManagerRemote<PlayerObject>)voiceMgr).handleWorldChanged(worldName);
+		if (voiceMgr != null) {
+			((VoiceManagerRemote<PlayerObject>) voiceMgr).handleWorldChanged(worldName);
 		}
 	}
 
@@ -90,7 +90,7 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 
 	@Override
 	public boolean isVoiceEnabledOnWorld(String worldName) {
-		if(worldName == null) {
+		if (worldName == null) {
 			throw new NullPointerException("worldName");
 		}
 		return allWorld || configWorldsEnabled.contains(worldName);
@@ -108,7 +108,7 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 
 	@Override
 	public void setICEServers(Collection<ICEServerEntry> newICEServers) {
-		if(newICEServers == null) {
+		if (newICEServers == null) {
 			throw new NullPointerException("newICEServers");
 		}
 		newICEServers = iceServers = ImmutableList.copyOf(newICEServers);
@@ -118,10 +118,10 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 	static String[] prepareICEServers(Collection<ICEServerEntry> newICEServers) {
 		String[] newArray = new String[newICEServers.size()];
 		int i = 0;
-		for(ICEServerEntry etr : newICEServers) {
+		for (ICEServerEntry etr : newICEServers) {
 			newArray[i++] = etr.toString();
 		}
-		if(i != newArray.length) {
+		if (i != newArray.length) {
 			throw new IllegalStateException("fuck you");
 		}
 		return newArray;
@@ -153,21 +153,22 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 
 	@Override
 	public IVoiceChannel getWorldVoiceChannel(String worldName) {
-		if(worldName == null) {
+		if (worldName == null) {
 			throw new NullPointerException("worldName");
 		}
-		if(allWorld || configWorldsEnabled.contains(worldName)) {
-			if(separateWorld) {
+		if (allWorld || configWorldsEnabled.contains(worldName)) {
+			if (separateWorld) {
 				try {
 					return worldChannels.get(worldName);
 				} catch (ExecutionException e) {
-					if(e.getCause() instanceof RuntimeException ee) throw ee;
+					if (e.getCause() instanceof RuntimeException ee)
+						throw ee;
 					throw new RuntimeException(e.getCause());
 				}
-			}else {
+			} else {
 				return globalChannel;
 			}
-		}else {
+		} else {
 			return DisabledChannel.INSTANCE;
 		}
 	}
@@ -179,13 +180,13 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 
 	@Override
 	public Collection<IEaglerPlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel) {
-		if(channel == null) {
+		if (channel == null) {
 			throw new NullPointerException("Voice channel cannot be null!");
 		}
-		if(channel == DisabledChannel.INSTANCE) {
+		if (channel == DisabledChannel.INSTANCE) {
 			throw new UnsupportedOperationException("Cannot list players connected to the disabled channel");
 		}
-		if(!(channel instanceof VoiceChannel ch) || ch.owner != this) {
+		if (!(channel instanceof VoiceChannel ch) || ch.owner != this) {
 			throw new IllegalArgumentException("Unknown voice channel");
 		}
 		return ch.listConnectedPlayers();

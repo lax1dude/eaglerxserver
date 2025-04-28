@@ -69,7 +69,7 @@ public final class EaglercraftWebSocketOpenEvent extends Event implements IEagle
 	@Nullable
 	@Override
 	public String getRawHeader(String name) {
-		if(name == null) {
+		if (name == null) {
 			throw new NullPointerException("name");
 		}
 		return request.headers().get(name);
@@ -78,7 +78,7 @@ public final class EaglercraftWebSocketOpenEvent extends Event implements IEagle
 	@Nonnull
 	@Override
 	public List<String> getRawHeaders(String name) {
-		if(name == null) {
+		if (name == null) {
 			throw new NullPointerException("name");
 		}
 		return request.headers().getAll(name);

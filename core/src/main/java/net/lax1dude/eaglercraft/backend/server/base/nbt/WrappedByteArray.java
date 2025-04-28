@@ -31,7 +31,7 @@ class WrappedByteArray implements INBTValue<byte[]> {
 
 	@Override
 	public void mutate(byte[] value) {
-		if(value == null) {
+		if (value == null) {
 			throw new NullPointerException("Cannot mutate to a null value");
 		}
 		this.value = value;

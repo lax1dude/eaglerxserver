@@ -61,7 +61,8 @@ class VelocityListener {
 
 	private static final Property isEaglerPlayerT = new Property("isEaglerPlayer", "true", "");
 	private static final Property isEaglerPlayerF = new Property("isEaglerPlayer", "false", "");
-	private static final Predicate<Property> isEaglerPlayerPredicate = (prop) -> "isEaglerPlayer".equals(prop.getName());
+	private static final Predicate<Property> isEaglerPlayerPredicate = (prop) -> "isEaglerPlayer"
+			.equals(prop.getName());
 	private static final Predicate<Property> texturesPredicate = (prop) -> "textures".equals(prop.getName());
 
 	VelocityListener(PlatformPluginVelocity plugin) {
@@ -70,7 +71,7 @@ class VelocityListener {
 
 	@Subscribe(async = false)
 	public void onListenerBound(ListenerBoundEvent bindEvent) {
-		if(bindEvent.getListenerType() == ListenerType.MINECRAFT) {
+		if (bindEvent.getListenerType() == ListenerType.MINECRAFT) {
 			VelocityUnsafe.injectListenerAttr(plugin.proxy(), bindEvent.getAddress(), plugin.listenersToInit);
 		}
 	}
@@ -90,27 +91,27 @@ class VelocityListener {
 				.attr(PipelineAttributes.<VelocityConnection>connectionData()).get();
 		GameProfile gameProfile = gameProfileEvent.getGameProfile();
 		boolean changed = false;
-		if(conn.uuid != null && !conn.uuid.equals(gameProfile.getId())) {
+		if (conn.uuid != null && !conn.uuid.equals(gameProfile.getId())) {
 			gameProfile = gameProfile.withId(conn.uuid);
 			changed = true;
 		}
-		if(conn.texturesPropertyValue != null || conn.eaglerPlayerProperty != (byte) 0) {
+		if (conn.texturesPropertyValue != null || conn.eaglerPlayerProperty != (byte) 0) {
 			List<GameProfile.Property> props = gameProfile.getProperties();
 			List<GameProfile.Property> fixedProps = new LinkedList<>(props);
-			if(conn.texturesPropertyValue != null) {
+			if (conn.texturesPropertyValue != null) {
 				fixedProps.removeIf(texturesPredicate);
 				fixedProps.add(new Property("textures", conn.texturesPropertyValue, conn.texturesPropertySignature));
 				conn.texturesPropertyValue = null;
 				conn.texturesPropertySignature = null;
 			}
-			if(conn.eaglerPlayerProperty != (byte) 0) {
+			if (conn.eaglerPlayerProperty != (byte) 0) {
 				fixedProps.removeIf(isEaglerPlayerPredicate);
 				fixedProps.add(conn.eaglerPlayerProperty == (byte) 2 ? isEaglerPlayerT : isEaglerPlayerF);
 			}
 			gameProfile = gameProfile.withProperties(fixedProps);
 			changed = true;
 		}
-		if(changed) {
+		if (changed) {
 			gameProfileEvent.setGameProfile(gameProfile);
 		}
 	}
@@ -119,10 +120,10 @@ class VelocityListener {
 	public void onPermissionsSetupEvent(PermissionsSetupEvent permissionsSetupEvent) {
 		// Fired right before compression is enabled
 		PermissionSubject p = permissionsSetupEvent.getSubject();
-		if(p instanceof Player player) {
+		if (p instanceof Player player) {
 			VelocityConnection conn = VelocityUnsafe.getInboundChannel(player)
 					.attr(PipelineAttributes.<VelocityConnection>connectionData()).get();
-			if(conn.compressionDisable) {
+			if (conn.compressionDisable) {
 				VelocityUnsafe.injectCompressionDisable(plugin.proxy(), player);
 			}
 		}
@@ -136,13 +137,13 @@ class VelocityListener {
 		conn.awaitPlayState(() -> {
 			try {
 				plugin.initializePlayer(player, conn, (b) -> {
-					if(b) {
+					if (b) {
 						cont.resume();
-					}else {
+					} else {
 						// Hang forever on cancel, connection is already dead, async callback will GC
 					}
 				});
-			}catch(Exception ex) {
+			} catch (Exception ex) {
 				cont.resumeWithException(ex);
 			}
 		});
@@ -155,10 +156,10 @@ class VelocityListener {
 
 	@Subscribe(priority = Short.MIN_VALUE, async = false)
 	public void onServerPreConnected(ServerPreConnectEvent connectEvent) {
-		if(connectEvent.getResult().isAllowed()) {
+		if (connectEvent.getResult().isAllowed()) {
 			IPlatformPlayer<Player> platformPlayer = plugin.getPlayer(connectEvent.getPlayer());
-			if(platformPlayer != null) {
-				((VelocityPlayer)platformPlayer).server = null;
+			if (platformPlayer != null) {
+				((VelocityPlayer) platformPlayer).server = null;
 				plugin.handleServerPreConnect(platformPlayer);
 			}
 		}
@@ -167,16 +168,16 @@ class VelocityListener {
 	@Subscribe(priority = Short.MAX_VALUE, async = false)
 	public void onServerPostConnected(ServerPostConnectEvent connectEvent) {
 		Optional<ServerConnection> serverCon = connectEvent.getPlayer().getCurrentServer();
-		if(serverCon.isPresent()) {
+		if (serverCon.isPresent()) {
 			RegisteredServer server = serverCon.get().getServer();
 			IPlatformPlayer<Player> platformPlayer = plugin.getPlayer(connectEvent.getPlayer());
-			if(platformPlayer != null) {
+			if (platformPlayer != null) {
 				IPlatformServer<Player> platformServer = null;
 				platformServer = plugin.getRegisteredServers().get(server.getServerInfo().getName());
-				if(platformServer == null) {
+				if (platformServer == null) {
 					platformServer = new VelocityServer(plugin, server, false);
 				}
-				((VelocityPlayer)platformPlayer).server = platformServer;
+				((VelocityPlayer) platformPlayer).server = platformServer;
 				plugin.handleServerPostConnect(platformPlayer, platformServer);
 			}
 		}
@@ -185,23 +186,23 @@ class VelocityListener {
 	@Subscribe(priority = Short.MAX_VALUE, async = false)
 	public void onPluginMessageEvent(PluginMessageEvent evt) {
 		PluginMessageHandler handler = plugin.registeredChannelsMap.get(evt.getIdentifier());
-		if(handler != null) {
+		if (handler != null) {
 			evt.setResult(ForwardResult.handled());
 			ChannelMessageSource src = evt.getSource();
 			ChannelMessageSink dst = evt.getTarget();
-			if(handler.backend) {
+			if (handler.backend) {
 				IEaglerXServerMessageHandler<Player> ls = handler.handler;
-				if(ls != null && (src instanceof ServerConnection) && (dst instanceof Player dst2)) {
+				if (ls != null && (src instanceof ServerConnection) && (dst instanceof Player dst2)) {
 					IPlatformPlayer<Player> player = plugin.getPlayer(dst2);
-					if(player != null) {
+					if (player != null) {
 						ls.handle(handler.channel, player, evt.getData());
 					}
 				}
-			}else {
+			} else {
 				IEaglerXServerMessageHandler<Player> ls = handler.handler;
-				if(ls != null && (src instanceof Player src2) && (dst instanceof ServerConnection)) {
+				if (ls != null && (src instanceof Player src2) && (dst instanceof ServerConnection)) {
 					IPlatformPlayer<Player> player = plugin.getPlayer(src2);
-					if(player != null) {
+					if (player != null) {
 						ls.handle(handler.channel, player, evt.getData());
 					}
 				}
@@ -212,7 +213,7 @@ class VelocityListener {
 	@Subscribe(priority = 16384, async = false)
 	public void onProxyPingEvent(ProxyPingEvent evt) {
 		IEaglerXServerPlayerCountHandler count = plugin.playerCountHandler;
-		if(count != null) {
+		if (count != null) {
 			evt.setPing(evt.getPing().asBuilder().onlinePlayers(count.getPlayerTotal())
 					.maximumPlayers(count.getPlayerMax()).build());
 		}
@@ -221,7 +222,7 @@ class VelocityListener {
 	@Subscribe(priority = 16384, async = false)
 	public void onProxyQueryEvent(ProxyQueryEvent evt) {
 		IEaglerXServerPlayerCountHandler count = plugin.playerCountHandler;
-		if(count != null) {
+		if (count != null) {
 			evt.setResponse(evt.getResponse().toBuilder().currentPlayers(count.getPlayerTotal())
 					.maxPlayers(count.getPlayerMax()).build());
 		}

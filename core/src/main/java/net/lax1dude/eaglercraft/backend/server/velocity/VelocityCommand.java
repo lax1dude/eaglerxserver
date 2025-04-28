@@ -39,7 +39,7 @@ class VelocityCommand implements SimpleCommand {
 	}
 
 	@Override
-    public boolean hasPermission(Invocation invocation) {
+	public boolean hasPermission(Invocation invocation) {
 		String perm = cmd.getPermission();
 		return perm == null || invocation.source().hasPermission(perm);
 	}
@@ -49,7 +49,7 @@ class VelocityCommand implements SimpleCommand {
 		CommandMeta.Builder builder = cmdManager.metaBuilder(cmd.getCommandName());
 		builder.plugin(plugin);
 		String[] aliases = cmd.getCommandAliases();
-		if(aliases != null && aliases.length > 0) {
+		if (aliases != null && aliases.length > 0) {
 			builder.aliases(aliases);
 		}
 		CommandMeta ret = builder.build();

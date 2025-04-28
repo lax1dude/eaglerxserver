@@ -91,15 +91,16 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 		this.eaglerRewindProtocol = enablePacket.eaglerRewindProtocol;
 		this.eaglerStandardCaps = enablePacket.eaglerStandardCaps;
 		this.eaglerStandardCapsVersions = enablePacket.eaglerStandardCapsVersions != null
-				? enablePacket.eaglerStandardCapsVersions : Util.ZERO_BYTES;
+				? enablePacket.eaglerStandardCapsVersions
+				: Util.ZERO_BYTES;
 		this.webviewCap = hasCapability(EnumCapabilitySpec.WEBVIEW_V0);
-		if(enablePacket.eaglerExtendedCaps != null && !enablePacket.eaglerExtendedCaps.isEmpty()) {
+		if (enablePacket.eaglerExtendedCaps != null && !enablePacket.eaglerExtendedCaps.isEmpty()) {
 			ImmutableMap.Builder<UUID, Byte> builder = ImmutableMap.builder();
-			for(ExtCapability cap : enablePacket.eaglerExtendedCaps) {
+			for (ExtCapability cap : enablePacket.eaglerExtendedCaps) {
 				builder.put(cap.uuid, (byte) cap.version);
 			}
 			this.eaglerExtendedCapsVersions = builder.build();
-		}else {
+		} else {
 			this.eaglerExtendedCapsVersions = Collections.emptyMap();
 		}
 	}
@@ -141,7 +142,8 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public boolean hasCapability(EnumCapabilitySpec capability) {
-		return CapabilityBits.hasCapability(eaglerStandardCaps, eaglerStandardCapsVersions, capability.getId(), capability.getVer());
+		return CapabilityBits.hasCapability(eaglerStandardCaps, eaglerStandardCapsVersions, capability.getId(),
+				capability.getVer());
 	}
 
 	@Override
@@ -151,7 +153,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public boolean hasExtendedCapability(UUID extendedCapability, int version) {
-		if(extendedCapability == null) {
+		if (extendedCapability == null) {
 			throw new NullPointerException("extendedCapability");
 		}
 		Byte b = eaglerExtendedCapsVersions.get(extendedCapability);
@@ -160,7 +162,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public int getExtendedCapability(UUID extendedCapability) {
-		if(extendedCapability == null) {
+		if (extendedCapability == null) {
 			throw new NullPointerException("extendedCapability");
 		}
 		Byte b = eaglerExtendedCapsVersions.get(extendedCapability);
@@ -169,24 +171,24 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public IRPCFuture<String> getRealAddress(int timeoutSec) {
-		if(open) {
+		if (open) {
 			RPCRequestFuture<String> ret = createRequest(timeoutSec);
 			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REAL_IP));
 			return ret;
-		}else {
+		} else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
 		}
 	}
 
 	@Override
 	public IRPCFuture<String> getWebSocketHeader(EnumWebSocketHeader header, int timeoutSec) {
-		if(header == null) {
+		if (header == null) {
 			throw new NullPointerException("header");
 		}
-		if(open) {
+		if (open) {
 			int type;
-			switch(header) {
+			switch (header) {
 			case HEADER_ORIGIN:
 				type = CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_ORIGIN;
 				break;
@@ -208,91 +210,91 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 			RPCRequestFuture<String> ret = createRequest(timeoutSec);
 			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(), type));
 			return ret;
-		}else {
+		} else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
 		}
 	}
 
 	@Override
 	public IRPCFuture<String> getWebSocketPath(int timeoutSec) {
-		if(open) {
+		if (open) {
 			RPCRequestFuture<String> ret = createRequest(timeoutSec);
 			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REQUEST_PATH));
 			return ret;
-		}else {
+		} else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
 		}
 	}
 
 	@Override
 	public IRPCFuture<CookieData> getCookieData(int timeoutSec) {
-		if(open) {
+		if (open) {
 			RPCRequestFuture<CookieData> ret = createRequest(timeoutSec);
 			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_COOKIE));
 			return ret;
-		}else {
+		} else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
 		}
 	}
 
 	@Override
 	public IRPCFuture<BrandData> getBrandData(int timeoutSec) {
-		if(open) {
+		if (open) {
 			RPCRequestFuture<BrandData> ret = createRequest(timeoutSec);
 			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_DATA));
 			return ret;
-		}else {
+		} else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
 		}
 	}
 
 	@Override
 	public IRPCFuture<byte[]> getAuthUsername(int timeoutSec) {
-		if(open) {
+		if (open) {
 			RPCRequestFuture<byte[]> ret = createRequest(timeoutSec);
 			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_AUTH_USERNAME));
 			return ret;
-		}else {
+		} else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
 		}
 	}
 
 	@Override
 	public IRPCFuture<EnumVoiceState> getVoiceState(int timeoutSec) {
-		if(open) {
+		if (open) {
 			RPCRequestFuture<EnumVoiceState> ret = createRequest(timeoutSec);
 			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_VOICE_STATUS));
 			return ret;
-		}else {
+		} else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
 		}
 	}
 
 	@Override
 	public IRPCFuture<WebViewStateData> getWebViewState(int timeoutSec) {
-		if(open) {
+		if (open) {
 			RPCRequestFuture<WebViewStateData> ret = createRequest(timeoutSec);
 			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_WEBVIEW_STATUS_V2));
 			return ret;
-		}else {
+		} else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
 		}
 	}
 
 	@Override
 	public void injectRawBinaryFrame(byte[] data) {
-		if(data == null) {
+		if (data == null) {
 			throw new NullPointerException("data");
 		}
-		if(open) {
+		if (open) {
 			writeOutboundPacket(new CPacketRPCInjectRawBinaryFrameV2(data));
-		}else {
+		} else {
 			printClosedError();
 		}
 	}
@@ -305,37 +307,37 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	@Override
 	public void addGenericEventListener(EnumSubscribeEvents eventType,
 			IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler) {
-		if(eventType == null) {
+		if (eventType == null) {
 			throw new NullPointerException("eventType");
 		}
-		if(handler == null) {
+		if (handler == null) {
 			throw new NullPointerException("handler");
 		}
 		int i;
-		synchronized(this) {
+		synchronized (this) {
 			RPCEventBus<PlayerObject> eventBus = this.eventBus;
 			if (eventBus == null) {
 				eventBus = new RPCEventBus<PlayerObject>(this,
 						((EaglerXBackendRPCRemote<PlayerObject>) getServerAPI()).getPlatform().getScheduler());
 				i = eventBus.addEventListener(eventType, handler);
-				if(i > 0) {
+				if (i > 0) {
 					this.eventBus = eventBus;
 					subscribedEvents = i;
-				}else {
+				} else {
 					return;
 				}
-			}else {
+			} else {
 				i = eventBus.addEventListener(eventType, handler);
-				if(i != -1) {
+				if (i != -1) {
 					subscribedEvents = i;
-				}else {
+				} else {
 					return;
 				}
 			}
 		}
-		if(open) {
+		if (open) {
 			writeOutboundPacket(new CPacketRPCSubscribeEvents(i));
-		}else {
+		} else {
 			printClosedError();
 		}
 	}
@@ -343,17 +345,17 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	@Override
 	public void removeGenericEventListener(EnumSubscribeEvents eventType,
 			IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler) {
-		if(eventType == null) {
+		if (eventType == null) {
 			throw new NullPointerException("eventType");
 		}
-		if(handler == null) {
+		if (handler == null) {
 			throw new NullPointerException("handler");
 		}
-		synchronized(this) {
+		synchronized (this) {
 			RPCEventBus<PlayerObject> eventBus = this.eventBus;
-			if(eventBus != null) {
+			if (eventBus != null) {
 				int i = eventBus.removeEventListener(eventType, handler);
-				if(i != -1 && (subscribedEvents = i) == 0) {
+				if (i != -1 && (subscribedEvents = i) == 0) {
 					this.eventBus = null;
 				}
 			}
@@ -363,7 +365,7 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	@Override
 	public void fireRemoteEvent(IRPCEvent event) {
 		RPCEventBus<PlayerObject> eventBus = this.eventBus;
-		if(eventBus != null) {
+		if (eventBus != null) {
 			eventBus.dispatchEvent(event, logger());
 		}
 	}
@@ -375,16 +377,16 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void redirectPlayerToWebSocket(String webSocketURI) {
-		if(webSocketURI == null) {
+		if (webSocketURI == null) {
 			throw new NullPointerException("webSocketURI");
 		}
-		if(hasCapability(EnumCapabilitySpec.REDIRECT_V0)) {
-			if(open) {
+		if (hasCapability(EnumCapabilitySpec.REDIRECT_V0)) {
+			if (open) {
 				writeOutboundPacket(new CPacketRPCRedirectPlayer(webSocketURI));
-			}else {
+			} else {
 				printClosedError();
 			}
-		}else {
+		} else {
 			logger().error("Tried to redirect a player using an unsupported client");
 		}
 	}
@@ -396,76 +398,76 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void setPauseMenuCustomizationState(ICustomPauseMenu pauseMenu) {
-		if(pauseMenu == null) {
+		if (pauseMenu == null) {
 			throw new NullPointerException("pauseMenu");
 		}
-		if(hasCapability(EnumCapabilitySpec.PAUSE_MENU_V0)) {
-			if(open) {
+		if (hasCapability(EnumCapabilitySpec.PAUSE_MENU_V0)) {
+			if (open) {
 				writeOutboundPacket(CustomPauseMenuWrapper.unwrap(pauseMenu));
-			}else {
+			} else {
 				printClosedError();
 			}
-		}else {
+		} else {
 			logger().error("Tried to send custom pause menu to an unsupported client");
 		}
 	}
 
 	@Override
 	public void sendWebViewMessageString(String channelName, String data) {
-		if(channelName == null) {
+		if (channelName == null) {
 			throw new NullPointerException("channelName");
 		}
-		if(data == null) {
+		if (data == null) {
 			throw new NullPointerException("data");
 		}
-		if(webviewCap) {
-			if(open) {
+		if (webviewCap) {
+			if (open) {
 				writeOutboundPacket(new CPacketRPCSendWebViewMessage(channelName,
 						CPacketRPCSendWebViewMessage.MESSAGE_TYPE_STRING, data.getBytes(StandardCharsets.UTF_8)));
-			}else {
+			} else {
 				printClosedError();
 			}
-		}else {
+		} else {
 			logger().error("Tried to send webview message to an unsupported client");
 		}
 	}
 
 	@Override
 	public void sendWebViewMessageString(String channelName, byte[] data) {
-		if(channelName == null) {
+		if (channelName == null) {
 			throw new NullPointerException("channelName");
 		}
-		if(data == null) {
+		if (data == null) {
 			throw new NullPointerException("data");
 		}
 		if (webviewCap) {
-			if(open) {
+			if (open) {
 				writeOutboundPacket(new CPacketRPCSendWebViewMessage(channelName,
 						CPacketRPCSendWebViewMessage.MESSAGE_TYPE_STRING, data));
-			}else {
+			} else {
 				printClosedError();
 			}
-		}else {
+		} else {
 			logger().error("Tried to send webview message to an unsupported client");
 		}
 	}
 
 	@Override
 	public void sendWebViewMessageBytes(String channelName, byte[] data) {
-		if(channelName == null) {
+		if (channelName == null) {
 			throw new NullPointerException("channelName");
 		}
-		if(data == null) {
+		if (data == null) {
 			throw new NullPointerException("data");
 		}
 		if (webviewCap) {
-			if(open) {
+			if (open) {
 				writeOutboundPacket(new CPacketRPCSendWebViewMessage(channelName,
 						CPacketRPCSendWebViewMessage.MESSAGE_TYPE_BINARY, data));
-			}else {
+			} else {
 				printClosedError();
 			}
-		}else {
+		} else {
 			logger().error("Tried to send webview message to an unsupported client");
 		}
 	}
@@ -478,27 +480,27 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 	@Override
 	public void setCookieData(byte[] cookieData, long expiresAfterSec, boolean revokeQuerySupported,
 			boolean saveToDisk) {
-		if(expiresAfterSec < 0L || expiresAfterSec > 0xFFFFFFFFL) {
+		if (expiresAfterSec < 0L || expiresAfterSec > 0xFFFFFFFFL) {
 			throw new IllegalArgumentException("Cookie expiresAfterSec out of range: " + expiresAfterSec);
 		}
-		if(hasCapability(EnumCapabilitySpec.COOKIE_V0)) {
+		if (hasCapability(EnumCapabilitySpec.COOKIE_V0)) {
 			if (open) {
 				writeOutboundPacket(new CPacketRPCSetPlayerCookie(revokeQuerySupported, saveToDisk,
 						(int) expiresAfterSec, cookieData));
-			}else {
+			} else {
 				printClosedError();
 			}
-		}else {
+		} else {
 			logger().error("Tried to send webview message to an unsupported client");
 		}
 	}
 
 	@Override
 	public void setEnableFNAWSkins(EnumEnableFNAW state) {
-		if(state == null) {
+		if (state == null) {
 			throw new NullPointerException("state");
 		}
-		switch(state) {
+		switch (state) {
 		case DISABLED:
 			writeOutboundPacket(new CPacketRPCSetPlayerFNAWEn(false, false));
 			break;
@@ -513,9 +515,9 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void resetEnableFNAWSkins() {
-		if(open) {
+		if (open) {
 			writeOutboundPacket(new CPacketRPCResetPlayerMulti(false, false, true, false));
-		}else {
+		} else {
 			printClosedError();
 		}
 	}
@@ -527,78 +529,78 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void registerNotificationIcon(UUID iconUUID, IPacketImageData icon) {
-		if(iconUUID == null) {
+		if (iconUUID == null) {
 			throw new NullPointerException("iconUUID");
 		}
-		if(icon == null) {
+		if (icon == null) {
 			throw new NullPointerException("icon");
 		}
-		if(open) {
-			writeOutboundPacket(new CPacketRPCNotifIconRegister(Arrays
-					.asList(new CPacketRPCNotifIconRegister.RegisterIcon(iconUUID, PacketImageDataWrapper.unwrap(icon)))));
-		}else {
+		if (open) {
+			writeOutboundPacket(new CPacketRPCNotifIconRegister(Arrays.asList(
+					new CPacketRPCNotifIconRegister.RegisterIcon(iconUUID, PacketImageDataWrapper.unwrap(icon)))));
+		} else {
 			printClosedError();
 		}
 	}
 
 	@Override
 	public void registerNotificationIcons(Collection<IconDef> icons) {
-		if(icons == null) {
+		if (icons == null) {
 			throw new NullPointerException("icons");
 		}
-		if(open) {
+		if (open) {
 			writeOutboundPacket(new CPacketRPCNotifIconRegister(
 					icons.stream().map((icn) -> new CPacketRPCNotifIconRegister.RegisterIcon(icn.getUUID(),
 							PacketImageDataWrapper.unwrap(icn.getIcon()))).toList()));
-		}else {
+		} else {
 			printClosedError();
 		}
 	}
 
 	@Override
 	public void releaseNotificationIcon(UUID iconUUID) {
-		if(iconUUID == null) {
+		if (iconUUID == null) {
 			throw new NullPointerException("iconUUID");
 		}
-		if(open) {
+		if (open) {
 			writeOutboundPacket(new CPacketRPCNotifIconRelease(Arrays.asList(iconUUID)));
-		}else {
+		} else {
 			printClosedError();
 		}
 	}
 
 	@Override
 	public void releaseNotificationIcons(Collection<UUID> iconUUIDs) {
-		if(iconUUIDs == null) {
+		if (iconUUIDs == null) {
 			throw new NullPointerException("iconUUIDs");
 		}
-		if(open) {
+		if (open) {
 			writeOutboundPacket(new CPacketRPCNotifIconRelease(iconUUIDs));
-		}else {
+		} else {
 			printClosedError();
 		}
 	}
 
 	@Override
 	public void showNotificationBadge(INotificationBadge badge) {
-		if(badge == null) {
+		if (badge == null) {
 			throw new NullPointerException("badge");
 		}
-		if(open) {
+		if (open) {
 			writeOutboundPacket(NotificationBadgeWrapper.unwrap(badge));
-		}else {
+		} else {
 			printClosedError();
 		}
 	}
 
 	@Override
 	public void hideNotificationBadge(UUID badgeUUID) {
-		if(badgeUUID == null) {
+		if (badgeUUID == null) {
 			throw new NullPointerException("badgeUUID");
 		}
-		if(open) {
+		if (open) {
 			writeOutboundPacket(new CPacketRPCNotifBadgeHide(badgeUUID));
-		}else {
+		} else {
 			printClosedError();
 		}
 	}
@@ -610,60 +612,60 @@ public class EaglerPlayerRPC<PlayerObject> extends BasePlayerRPC<PlayerObject>
 
 	@Override
 	public void displayWebViewURL(String title, String url, Set<EnumWebViewPerms> permissions) {
-		if(title == null) {
+		if (title == null) {
 			throw new NullPointerException("title");
 		}
-		if(url == null) {
+		if (url == null) {
 			throw new NullPointerException("url");
 		}
-		if(isDisplayWebViewSupported()) {
-			if(open) {
+		if (isDisplayWebViewSupported()) {
+			if (open) {
 				writeOutboundPacket(new CPacketRPCDisplayWebViewURLV2(
 						permissions != null ? EnumWebViewPerms.toBits(permissions) : 0, title, url));
-			}else {
+			} else {
 				printClosedError();
 			}
-		}else {
+		} else {
 			logger().error("Tried to display webview screen to an unsupported client");
 		}
 	}
 
 	@Override
 	public void displayWebViewBlob(String title, SHA1Sum hash, Set<EnumWebViewPerms> permissions) {
-		if(title == null) {
+		if (title == null) {
 			throw new NullPointerException("title");
 		}
-		if(hash == null) {
+		if (hash == null) {
 			throw new NullPointerException("hash");
 		}
-		if(isDisplayWebViewSupported()) {
-			if(open) {
+		if (isDisplayWebViewSupported()) {
+			if (open) {
 				writeOutboundPacket(new CPacketRPCDisplayWebViewBlobV2(
 						permissions != null ? EnumWebViewPerms.toBits(permissions) : 0, title, hash.asBytes()));
-			}else {
+			} else {
 				printClosedError();
 			}
-		}else {
+		} else {
 			logger().error("Tried to display webview screen to an unsupported client");
 		}
 	}
 
 	@Override
 	public void displayWebViewBlob(String title, String alias, Set<EnumWebViewPerms> permissions) {
-		if(title == null) {
+		if (title == null) {
 			throw new NullPointerException("title");
 		}
-		if(alias == null) {
+		if (alias == null) {
 			throw new NullPointerException("alias");
 		}
-		if(isDisplayWebViewSupported()) {
-			if(open) {
+		if (isDisplayWebViewSupported()) {
+			if (open) {
 				writeOutboundPacket(new CPacketRPCDisplayWebViewAliasV2(
 						permissions != null ? EnumWebViewPerms.toBits(permissions) : 0, title, alias));
-			}else {
+			} else {
 				printClosedError();
 			}
-		}else {
+		} else {
 			logger().error("Tried to display webview screen to an unsupported client");
 		}
 	}

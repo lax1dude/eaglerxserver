@@ -56,28 +56,31 @@ public abstract class WebViewBlobBuilder<T extends Closeable> implements IWebVie
 					protected int currentChunkSize = 4;
 					protected List<byte[]> chunkList = new ArrayList<>();
 					protected int totalSize = 0;
+
 					private void nextChunk() {
-						if(currentChunkSize == currentChunk.length) {
+						if (currentChunkSize == currentChunk.length) {
 							chunkList.add(currentChunk);
 							currentChunk = new byte[chunkSize];
 							totalSize += currentChunkSize;
 							currentChunkSize = 0;
 						}
 					}
+
 					@Override
 					public void write(int b) throws IOException {
-						if(currentChunk == null) {
+						if (currentChunk == null) {
 							throw new IOException("Stream is closed");
 						}
 						nextChunk();
 						currentChunk[currentChunkSize++] = (byte) b;
 					}
+
 					@Override
 					public void write(byte[] b, int off, int len) throws IOException {
-						if(currentChunk == null) {
+						if (currentChunk == null) {
 							throw new IOException("Stream is closed");
 						}
-						for(; len > 0;) {
+						for (; len > 0;) {
 							nextChunk();
 							int nextLen = Math.min(chunkSize - currentChunkSize, len);
 							System.arraycopy(b, off, currentChunk, currentChunkSize, nextLen);
@@ -86,15 +89,16 @@ public abstract class WebViewBlobBuilder<T extends Closeable> implements IWebVie
 							len -= nextLen;
 						}
 					}
+
 					@Override
 					public void close() throws IOException {
-						if(currentChunk == null) {
+						if (currentChunk == null) {
 							return;
 						}
-						if(currentChunkSize > 0) {
-							if(currentChunkSize == currentChunk.length) {
+						if (currentChunkSize > 0) {
+							if (currentChunkSize == currentChunk.length) {
 								chunkList.add(currentChunk);
-							}else {
+							} else {
 								chunkList.add(Arrays.copyOf(currentChunk, currentChunkSize));
 							}
 							totalSize += currentChunkSize;
@@ -105,14 +109,14 @@ public abstract class WebViewBlobBuilder<T extends Closeable> implements IWebVie
 						byte[] b = chunkList.get(0);
 						int l = totalSize;
 						int j = totalUncompressedSize;
-						b[0] = (byte)(j >>> 24);
-						b[1] = (byte)(j >>> 16);
-						b[2] = (byte)(j >>> 8);
-						b[3] = (byte)j;
+						b[0] = (byte) (j >>> 24);
+						b[1] = (byte) (j >>> 16);
+						b[2] = (byte) (j >>> 8);
+						b[3] = (byte) j;
 						ImmutableList.Builder<SPacketServerInfoDataChunkV4EAG> builder = ImmutableBuilders
 								.listBuilderWithExpected(chunkList.size());
 						int k = 0;
-						for(byte[] bb : chunkList) {
+						for (byte[] bb : chunkList) {
 							builder.add(new SPacketServerInfoDataChunkV4EAG(false, k++, csum, l, bb));
 						}
 						List<SPacketServerInfoDataChunkV4EAG> chunks = builder.build();
@@ -120,35 +124,39 @@ public abstract class WebViewBlobBuilder<T extends Closeable> implements IWebVie
 						result = new WebViewBlob(SHA1Sum.create(csum), chunks);
 					}
 				});
+
 				@Override
 				public void write(int b) throws IOException {
 					delegate.write(b);
-					digest.update((byte)b);
+					digest.update((byte) b);
 					++totalUncompressedSize;
 				}
+
 				@Override
 				public void write(byte[] b, int off, int len) throws IOException {
 					delegate.write(b, off, len);
 					digest.update(b, off, len);
 					totalUncompressedSize += len;
 				}
+
 				@Override
 				public void flush() throws IOException {
 					delegate.flush();
 				}
+
 				@Override
 				public void close() throws IOException {
 					delegate.close();
 				}
 			};
-		}catch(IOException ex) {
+		} catch (IOException ex) {
 			throw new RuntimeException("Unexpected IOException thrown");
 		}
 	}
 
 	@Override
 	public T stream() {
-		if(streamInstance == null) {
+		if (streamInstance == null) {
 			streamInstance = wrap(init());
 		}
 		return streamInstance;
@@ -156,10 +164,10 @@ public abstract class WebViewBlobBuilder<T extends Closeable> implements IWebVie
 
 	@Override
 	public IWebViewBlob build() {
-		if(result == null) {
-			if(streamInstance != null) {
+		if (result == null) {
+			if (streamInstance != null) {
 				throw new IllegalStateException("Builder stream is still open");
-			}else {
+			} else {
 				return WebViewService.zeroByteBlob;
 			}
 		}
@@ -168,7 +176,7 @@ public abstract class WebViewBlobBuilder<T extends Closeable> implements IWebVie
 
 	@Override
 	public void close() throws IOException {
-		if(streamInstance != null) {
+		if (streamInstance != null) {
 			streamInstance.close();
 		}
 	}

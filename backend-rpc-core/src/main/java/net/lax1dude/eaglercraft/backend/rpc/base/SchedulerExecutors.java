@@ -33,7 +33,7 @@ public class SchedulerExecutors {
 		tiny = (runnable) -> {
 			try {
 				runnable.run();
-			}catch(Exception ex) {
+			} catch (Exception ex) {
 				logger.error("Caught exception from 'tiny' RPC future callback executor", ex);
 			}
 		};

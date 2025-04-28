@@ -75,7 +75,7 @@ abstract class BuilderTextBase<ParentType> implements IBuilderComponentText<Pare
 
 	@Override
 	public void append(BaseComponent comp) {
-		if(buildChildren == null) {
+		if (buildChildren == null) {
 			buildChildren = new ArrayList<>(4);
 		}
 		buildChildren.add(comp);
@@ -83,19 +83,19 @@ abstract class BuilderTextBase<ParentType> implements IBuilderComponentText<Pare
 
 	protected BaseComponent build() {
 		TextComponent ret = text != null ? new TextComponent(text) : new TextComponent();
-		if(insertion != null) {
+		if (insertion != null) {
 			ret.setInsertion(insertion);
 		}
-		if(style != null) {
+		if (style != null) {
 			style.applyTo(ret);
 		}
-		if(click != null) {
+		if (click != null) {
 			click.applyTo(ret);
 		}
-		if(hover != null) {
+		if (hover != null) {
 			hover.applyTo(ret);
 		}
-		if(buildChildren != null) {
+		if (buildChildren != null) {
 			ret.setExtra(buildChildren);
 		}
 		return ret;

@@ -36,22 +36,22 @@ public class BufferUtils {
 		try {
 			ByteBuf.class.getMethod("readCharSequence", int.class, Charset.class);
 			b = true;
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 		}
 		CHARSEQ_SUPPORT = b;
 		b = false;
 		try {
 			ByteBuf.class.getMethod("readIntLE");
 			b = true;
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 		}
 		LITTLE_ENDIAN_SUPPORT = b;
 	}
 
 	public static CharSequence readCharSequence(ByteBuf buffer, int len, Charset charset) {
-		if(CHARSEQ_SUPPORT) {
+		if (CHARSEQ_SUPPORT) {
 			return buffer.readCharSequence(len, charset);
-		}else {
+		} else {
 			byte[] buf = new byte[len];
 			buffer.readBytes(buf);
 			return new String(buf, charset);
@@ -59,9 +59,9 @@ public class BufferUtils {
 	}
 
 	public static int writeCharSequence(ByteBuf buffer, CharSequence seq, Charset charset) {
-		if(CHARSEQ_SUPPORT) {
+		if (CHARSEQ_SUPPORT) {
 			return buffer.writeCharSequence(seq, charset);
-		}else {
+		} else {
 			byte[] bytes = seq.toString().getBytes(charset);
 			buffer.writeBytes(bytes);
 			return bytes.length;
@@ -144,11 +144,11 @@ public class BufferUtils {
 
 	public static String readLegacyMCString(ByteBuf buffer, int maxLen) {
 		int len = buffer.readUnsignedShort();
-		if(len > maxLen) {
+		if (len > maxLen) {
 			throw new IndexOutOfBoundsException("String too long");
 		}
 		char[] chars = new char[len];
-		for(int i = 0; i < len; ++i) {
+		for (int i = 0; i < len; ++i) {
 			chars[i] = buffer.readChar();
 		}
 		return new String(chars);
@@ -156,31 +156,31 @@ public class BufferUtils {
 
 	public static void writeLegacyMCString(ByteBuf buffer, String value, int maxLen) {
 		int len = value.length();
-		if(len > maxLen) {
+		if (len > maxLen) {
 			value = value.substring(0, maxLen);
 			len = maxLen;
 			// throw new IndexOutOfBoundsException();
 		}
 		buffer.writeShort(len);
-		for(int i = 0; i < len; ++i) {
+		for (int i = 0; i < len; ++i) {
 			buffer.writeChar(value.charAt(i));
 		}
 	}
 
 	public static String readMCString(ByteBuf buffer, int maxLen) {
 		int len = readVarInt(buffer);
-		if(len > maxLen * 4) {
+		if (len > maxLen * 4) {
 			throw new IndexOutOfBoundsException();
 		}
 		CharSequence ret = BufferUtils.readCharSequence(buffer, len, StandardCharsets.UTF_8);
-		if(ret.length() > maxLen) {
+		if (ret.length() > maxLen) {
 			throw new IndexOutOfBoundsException();
 		}
 		return ret.toString();
 	}
 
 	public static void writeMCString(ByteBuf buffer, String value, int maxLen) {
-		if(value.length() > maxLen) {
+		if (value.length() > maxLen) {
 			throw new IndexOutOfBoundsException();
 		}
 		byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
@@ -194,10 +194,10 @@ public class BufferUtils {
 
 	public static void convertMCString2Legacy(ByteBuf bufferIn, int maxInputLen, ByteBuf bufferOut, int maxLen) {
 		int len = readVarInt(bufferIn, 5);
-		if(maxLen > 32767) {
+		if (maxLen > 32767) {
 			maxLen = 32767;
 		}
-		if(len > maxInputLen * 4) {
+		if (len > maxInputLen * 4) {
 			throw new IndexOutOfBoundsException();
 		}
 		int writeLenAt = bufferOut.writerIndex();
@@ -205,59 +205,59 @@ public class BufferUtils {
 		int charsRead = 0;
 		int charsWritten = 0;
 		int cnt = 0;
-		while(cnt < len && charsRead <= maxInputLen) {
+		while (cnt < len && charsRead <= maxInputLen) {
 			int b = bufferIn.readUnsignedByte();
 			++cnt;
-			if(b < 127) {
+			if (b < 127) {
 				++charsRead;
-				if(charsWritten < maxLen) {
+				if (charsWritten < maxLen) {
 					bufferOut.writeChar(b);
 					++charsWritten;
 				}
-			}else {
-				switch((b >> 4) & 0x7) {
+			} else {
+				switch ((b >> 4) & 0x7) {
 				case 0b100:
 				case 0b101:
-					if(cnt < len) {
+					if (cnt < len) {
 						int b2 = bufferIn.readUnsignedByte();
 						++cnt;
 						++charsRead;
-						if(charsWritten < maxLen) {
+						if (charsWritten < maxLen) {
 							bufferOut.writeChar(((b & 0x1F) << 6) | (b2 & 0x3F));
 							++charsWritten;
 						}
 					}
 					break;
 				case 0b110:
-					if(cnt + 1 < len) {
+					if (cnt + 1 < len) {
 						int b2 = bufferIn.readUnsignedByte();
 						int b3 = bufferIn.readUnsignedByte();
 						cnt += 2;
 						++charsRead;
-						if(charsWritten < maxLen) {
+						if (charsWritten < maxLen) {
 							bufferOut.writeChar(((b & 0x0F) << 12) | ((b2 & 0x3F) << 6) | (b3 & 0x3F));
 							++charsWritten;
 						}
 					}
 					break;
 				case 0b111:
-					if(cnt + 2 < len) {
+					if (cnt + 2 < len) {
 						int b2 = bufferIn.readUnsignedByte();
 						int b3 = bufferIn.readUnsignedByte();
 						int b4 = bufferIn.readUnsignedByte();
 						cnt += 3;
 						++charsRead;
 						int codepoint = (((b & 0x07) << 18) | ((b2 & 0x3F) << 12) | ((b3 & 0x3F) << 6) | (b4 & 0x3F));
-						if(codepoint >= 0xD800 && codepoint <= 0xDFFF) {
+						if (codepoint >= 0xD800 && codepoint <= 0xDFFF) {
 							continue;
-						}else if(codepoint < 0x10000) {
-							if(charsWritten < maxLen) {
+						} else if (codepoint < 0x10000) {
+							if (charsWritten < maxLen) {
 								bufferOut.writeChar(codepoint);
 								++charsWritten;
 							}
-						}else {
+						} else {
 							++charsRead;
-							if(charsWritten + 1 < maxLen) {
+							if (charsWritten + 1 < maxLen) {
 								codepoint -= 0x10000;
 								bufferOut.writeChar(0xD800 | (codepoint >> 10));
 								bufferOut.writeChar(0xDC00 | (codepoint & 0x03FF));
@@ -269,54 +269,54 @@ public class BufferUtils {
 				}
 			}
 		}
-		if(charsRead > maxInputLen) {
+		if (charsRead > maxInputLen) {
 			throw new IndexOutOfBoundsException();
 		}
-		if(charsWritten > 0) {
+		if (charsWritten > 0) {
 			bufferOut.setShort(writeLenAt, charsWritten);
 		}
 	}
 
 	public static void convertLegacyMCString(ByteBuf bufferIn, ByteBuf bufferOut, int maxLen) {
 		int len = bufferIn.readShort();
-		if(len < 0 || len > maxLen) {
+		if (len < 0 || len > maxLen) {
 			throw new IndexOutOfBoundsException();
 		}
 		int startAt = bufferIn.readerIndex();
 		int utf8Length = 0;
-		for(int i = 0; i < len; ++i) {
+		for (int i = 0; i < len; ++i) {
 			char c = bufferIn.getChar(startAt + (i << 1));
-			if(c <= 0x7F) {
+			if (c <= 0x7F) {
 				++utf8Length;
-			}else if(c <= 0x07FF) {
+			} else if (c <= 0x07FF) {
 				utf8Length += 2;
-			}else if(c <= 0xD7FF || c > 0xDFFF) {
+			} else if (c <= 0xD7FF || c > 0xDFFF) {
 				utf8Length += 3;
-			}else {
-				if(i + 1 < len) {
+			} else {
+				if (i + 1 < len) {
 					char c2 = bufferIn.getChar(startAt + (++i << 1));
-					if(c2 > 0xD7FF && c <= 0xDFFF && ((c & 0xFC00) == 0xD800) && ((c2 & 0xFC00) == 0xDC00)) {
+					if (c2 > 0xD7FF && c <= 0xDFFF && ((c & 0xFC00) == 0xD800) && ((c2 & 0xFC00) == 0xDC00)) {
 						utf8Length += 4;
 					}
 				}
 			}
 		}
 		BufferUtils.writeVarInt(bufferOut, utf8Length);
-		for(int i = 0; i < len; ++i) {
+		for (int i = 0; i < len; ++i) {
 			char c = bufferIn.getChar(startAt + (i << 1));
-			if(c <= 0x7F) {
+			if (c <= 0x7F) {
 				bufferOut.writeByte(c);
-			}else if(c <= 0x07FF) {
+			} else if (c <= 0x07FF) {
 				bufferOut.writeByte(((c >>> 6) & 0x1F) | 0xC0);
 				bufferOut.writeByte((c & 0x3F) | 0x80);
-			}else if(c <= 0xD7FF || c > 0xDFFF) {
+			} else if (c <= 0xD7FF || c > 0xDFFF) {
 				bufferOut.writeByte(((c >>> 12) & 0x0F) | 0xE0);
 				bufferOut.writeByte(((c >>> 6) & 0x3F) | 0x80);
 				bufferOut.writeByte((c & 0x3F) | 0x80);
-			}else {
-				if(i + 1 < len) {
+			} else {
+				if (i + 1 < len) {
 					char c2 = bufferIn.getChar(startAt + (++i << 1));
-					if(c2 > 0xD7FF && c <= 0xDFFF && ((c & 0xFC00) == 0xD800) && ((c2 & 0xFC00) == 0xDC00)) {
+					if (c2 > 0xD7FF && c <= 0xDFFF && ((c & 0xFC00) == 0xD800) && ((c2 & 0xFC00) == 0xDC00)) {
 						int codepoint = (((c & 0x03FF) << 10) | (c2 & 0x03FF)) + 0x10000;
 						bufferOut.writeByte(((codepoint >>> 18) & 0x07) | 0xF0);
 						bufferOut.writeByte(((codepoint >>> 12) & 0x3F) | 0x80);
@@ -367,7 +367,7 @@ public class BufferUtils {
 		bb.writerIndex(wi);
 
 		try (ByteBufInputStream bbis = new ByteBufInputStream(buffer);
-			 DataOutputStream dos = context.createGZIPOutputStream(bb)) {
+				DataOutputStream dos = context.createGZIPOutputStream(bb)) {
 
 			RewindNBTVisitor.apply(context.getNBTContext(), bbis, dos, context.getComponentHelper());
 
@@ -375,8 +375,8 @@ public class BufferUtils {
 
 			bb.setShort(wi - 2, bb.writerIndex() - wi);
 		} catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static void convertLegacyNBT(ByteBuf buffer, ByteBuf bb, RewindPlayer<?> context) {
@@ -384,7 +384,7 @@ public class BufferUtils {
 		if (len1 == -1) {
 			bb.writeByte(0);
 			return;
-		}else if (len1 < 0) {
+		} else if (len1 < 0) {
 			throw new IndexOutOfBoundsException();
 		}
 		int oldEnd = buffer.writerIndex();
@@ -417,19 +417,20 @@ public class BufferUtils {
 		int count3 = 4096 * count;
 		bb.ensureWritable(guh2 + guh);
 
-		if(LITTLE_ENDIAN_SUPPORT) {
+		if (LITTLE_ENDIAN_SUPPORT) {
 			for (int i = 0; i < count2; i += 4) {
 				int state = data18.getIntLE(absInd + i);
-				bb.setShortLE(absWInd + (i >> 1), convertType2Legacy((state >>> 4) & 0xFFF) | (convertType2Legacy(state >>> 20) << 8));
+				bb.setShortLE(absWInd + (i >> 1),
+						convertType2Legacy((state >>> 4) & 0xFFF) | (convertType2Legacy(state >>> 20) << 8));
 				bb.setByte(absWInd + count3 + (i >> 2), (byte) ((state & 0xF) | (((state >>> 16) & 0xF) << 4)));
 			}
-		}else {
+		} else {
 			for (int i = 0; i < count2; i += 4) {
 				int stateA = data18.getUnsignedByte(absInd + i) | (data18.getUnsignedByte(absInd + i + 1) << 8);
 				int stateB = data18.getUnsignedByte(absInd + i + 2) | (data18.getUnsignedByte(absInd + i + 3) << 8);
 				bb.setByte(absWInd + (i >> 1), convertType2Legacy(stateA >> 4));
 				bb.setByte(absWInd + (i >> 1) + 1, convertType2Legacy(stateB >> 4));
-				bb.setByte(absWInd + count3 + (i >> 2), (byte)((stateA & 0xF) | ((stateB & 0xF) << 4)));
+				bb.setByte(absWInd + count3 + (i >> 2), (byte) ((stateA & 0xF) | ((stateB & 0xF) << 4)));
 			}
 		}
 
@@ -449,27 +450,27 @@ public class BufferUtils {
 
 	public static int notDeflate(ByteBuf dataIn, ByteBuf dataOut, Deflater notDeflater) {
 		notDeflater.reset();
-		if(dataIn.hasArray()) {
+		if (dataIn.hasArray()) {
 			byte[] arr = dataIn.array();
 			int arrIndex = dataIn.arrayOffset();
 			notDeflater.setInput(arr, arrIndex + dataIn.readerIndex(), dataIn.readableBytes());
-		}else if(dataIn.nioBufferCount() == 1) {
+		} else if (dataIn.nioBufferCount() == 1) {
 			notDeflater.setInput(dataIn.internalNioBuffer(dataIn.readerIndex(), dataIn.readableBytes()));
-		}else {
+		} else {
 			throw new IllegalStateException("Composite buffers not supported! (Input)");
 		}
 		notDeflater.finish();
 		int len;
-		if(dataOut.hasArray()) {
+		if (dataOut.hasArray()) {
 			byte[] arr = dataOut.array();
 			int arrIndex = dataOut.arrayOffset();
 			len = notDeflater.deflate(arr, arrIndex + dataOut.writerIndex(), dataOut.writableBytes());
-		}else if(dataOut.nioBufferCount() == 1) {
+		} else if (dataOut.nioBufferCount() == 1) {
 			len = notDeflater.deflate(dataOut.internalNioBuffer(dataOut.writerIndex(), dataOut.writableBytes()));
-		}else {
+		} else {
 			throw new IllegalStateException("Composite buffers not supported! (Output)");
 		}
-		if((len == 0 && notDeflater.needsInput()) || !notDeflater.finished()) {
+		if ((len == 0 && notDeflater.needsInput()) || !notDeflater.finished()) {
 			throw new IndexOutOfBoundsException();
 		}
 		dataIn.skipBytes(notDeflater.getTotalIn());
@@ -478,15 +479,15 @@ public class BufferUtils {
 	}
 
 	public static int posX(long position) {
-		return (int)(position >> 38);
+		return (int) (position >> 38);
 	}
 
 	public static int posY(long position) {
-		return (int)((position >> 26) & 0xFFF);
+		return (int) ((position >> 26) & 0xFFF);
 	}
 
 	public static int posZ(long position) {
-		return (int)(position << 38 >> 38);
+		return (int) (position << 38 >> 38);
 	}
 
 	public static long createPosition(int x, int y, int z) {
@@ -515,41 +516,38 @@ public class BufferUtils {
 				continue;
 			}
 			switch (type) {
-				case 0:
-					remapMeta(entityType, index, type, bb, buffer.readByte());
-					break;
-				case 1:
-					remapMeta(entityType, index, type, bb, buffer.readShort());
-					break;
-				case 2:
-					remapMeta(entityType, index, type, bb, buffer.readInt());
-					break;
-				case 3:
-					remapMeta(entityType, index, type, bb, buffer.readFloat());
-					break;
-				case 4:
-					PlayerNameHolder playerNameHolder = entityType == 300 ? new PlayerNameHolder() : null;
-					remapMeta(entityType, index, type, bb, BufferUtils.readMCString(buffer, 32767), playerNameHolder);
-					if (playerNameHolder != null) {
-						playerNameWowie = playerNameHolder.name;
-					}
-					break;
-				case 5:
-					ByteBuf tmp = context.getChannel().alloc().buffer();
-					try {
-						BufferUtils.convertSlot2Legacy(buffer, tmp, context);
-						remapMeta(entityType, index, type, bb, tmp);
-					} finally {
-						tmp.release();
-					}
-					break;
-				case 6:
-					remapMeta(entityType, index, type, bb, new int[] {
-							buffer.readInt(),
-							buffer.readInt(),
-							buffer.readInt()
-					});
-					break;
+			case 0:
+				remapMeta(entityType, index, type, bb, buffer.readByte());
+				break;
+			case 1:
+				remapMeta(entityType, index, type, bb, buffer.readShort());
+				break;
+			case 2:
+				remapMeta(entityType, index, type, bb, buffer.readInt());
+				break;
+			case 3:
+				remapMeta(entityType, index, type, bb, buffer.readFloat());
+				break;
+			case 4:
+				PlayerNameHolder playerNameHolder = entityType == 300 ? new PlayerNameHolder() : null;
+				remapMeta(entityType, index, type, bb, BufferUtils.readMCString(buffer, 32767), playerNameHolder);
+				if (playerNameHolder != null) {
+					playerNameWowie = playerNameHolder.name;
+				}
+				break;
+			case 5:
+				ByteBuf tmp = context.getChannel().alloc().buffer();
+				try {
+					BufferUtils.convertSlot2Legacy(buffer, tmp, context);
+					remapMeta(entityType, index, type, bb, tmp);
+				} finally {
+					tmp.release();
+				}
+				break;
+			case 6:
+				remapMeta(entityType, index, type, bb,
+						new int[] { buffer.readInt(), buffer.readInt(), buffer.readInt() });
+				break;
 			}
 		}
 		if (bb.getByte(bb.writerIndex() - 1) != 0x7F) {
@@ -567,7 +565,8 @@ public class BufferUtils {
 		remapMeta(entityType, index, entryType, bb, entryValue, null);
 	}
 
-	private static void remapMeta(int entityType, int index, int entryType, ByteBuf bb, Object entryValue, PlayerNameHolder playerNameHolder) {
+	private static void remapMeta(int entityType, int index, int entryType, ByteBuf bb, Object entryValue,
+			PlayerNameHolder playerNameHolder) {
 		boolean mobNotObject = entityType >= 100 && entityType <= 300;
 		if (entityType >= 300) {
 			entityType -= 300;
@@ -602,7 +601,8 @@ public class BufferUtils {
 		} else if (mobNotObject) {
 			if (entityType == 0 && index == 9 && entryType == 0) {
 				index = 10;
-			} else if (entityType == 0 && (((index == 10 || index == 16) && entryType == 0) || (index == 17 && entryType == 3))) {
+			} else if (entityType == 0
+					&& (((index == 10 || index == 16) && entryType == 0) || (index == 17 && entryType == 3))) {
 				return;
 			} else if (entityType == 0 && index == 18 && entryType == 2) {
 				return;
@@ -630,7 +630,8 @@ public class BufferUtils {
 				return;
 			}
 		} else {
-			if ((entityType == 1 || entityType == 10 || entityType == 11 || entityType == 12) && index == 19 && entryType == 3) {
+			if ((entityType == 1 || entityType == 10 || entityType == 11 || entityType == 12) && index == 19
+					&& entryType == 3) {
 				entryType = 2;
 				entryValue = (int) (float) entryValue;
 			} else if (entityType == 51 && index == 8 && entryType == 2) {
@@ -653,142 +654,142 @@ public class BufferUtils {
 
 		bb.writeByte((entryType << 5) | index);
 		switch (entryType) {
-			case 0:
-				bb.writeByte((byte) entryValue);
-				break;
-			case 1:
-				bb.writeShort((short) entryValue);
-				break;
-			case 2:
-				bb.writeInt((int) entryValue);
-				break;
-			case 3:
-				bb.writeFloat((float) entryValue);
-				break;
-			case 4:
-				BufferUtils.writeLegacyMCString(bb, (String) entryValue, 64);
-				break;
-			case 5:
-				bb.writeBytes((ByteBuf) entryValue);
-				break;
-			case 6:
-				int[] fard = (int[]) entryValue;
-				bb.writeInt(fard[0]);
-				bb.writeInt(fard[1]);
-				bb.writeInt(fard[2]);
-				break;
+		case 0:
+			bb.writeByte((byte) entryValue);
+			break;
+		case 1:
+			bb.writeShort((short) entryValue);
+			break;
+		case 2:
+			bb.writeInt((int) entryValue);
+			break;
+		case 3:
+			bb.writeFloat((float) entryValue);
+			break;
+		case 4:
+			BufferUtils.writeLegacyMCString(bb, (String) entryValue, 64);
+			break;
+		case 5:
+			bb.writeBytes((ByteBuf) entryValue);
+			break;
+		case 6:
+			int[] fard = (int[]) entryValue;
+			bb.writeInt(fard[0]);
+			bb.writeInt(fard[1]);
+			bb.writeInt(fard[2]);
+			break;
 		}
 	}
 
 	public static int convertItem2Legacy(int item) {
 		item = convertType2Legacy(item);
 		switch (item) {
-			case 409:
-				return 318;
-			case 410:
-				return 289;
-			case 411:
-				return 365;
-			case 412:
-			case 423:
-			case 424:
-				return 366;
-			case 413:
-				return 282;
-			case 414:
-				return 376;
-			case 415:
-				return 334;
-			case 416:
-			case 420:
-			case 421:
-				return 280;
-			case 425:
-				return 323;
-			case 427:
-			case 428:
-			case 429:
-			case 430:
-			case 431:
-				return 324;
-			case 422:
-				return 328;
-			case 417:
-			case 418:
-			case 419:
-				return 329;
+		case 409:
+			return 318;
+		case 410:
+			return 289;
+		case 411:
+			return 365;
+		case 412:
+		case 423:
+		case 424:
+			return 366;
+		case 413:
+			return 282;
+		case 414:
+			return 376;
+		case 415:
+			return 334;
+		case 416:
+		case 420:
+		case 421:
+			return 280;
+		case 425:
+			return 323;
+		case 427:
+		case 428:
+		case 429:
+		case 430:
+		case 431:
+			return 324;
+		case 422:
+			return 328;
+		case 417:
+		case 418:
+		case 419:
+			return 329;
 		}
 		return item;
 	}
 
 	public static int convertType2Legacy(int type) {
 		switch (type) {
-			case 165:
-				return 133;
-			case 166:
-			case 95:
-				return 20;
-			case 167:
-				return 96;
-			case 168:
-				return 48;
-			case 169:
-				return 89;
-			case 176:
-				return 63;
-			case 177:
-				return 68;
-			case 179:
-				return 24;
-			case 180:
-				return 128;
-			case 181:
-				return 43;
-			case 182:
-				return 44;
-			case 183:
-			case 184:
-			case 185:
-			case 186:
-			case 187:
-				return 107;
-			case 188:
-			case 189:
-			case 190:
-			case 191:
-			case 192:
-				return 85;
-			case 193:
-			case 194:
-			case 195:
-			case 196:
-			case 197:
-				return 64;
-			case 178:
-				return 151;
-			case 160:
-				return 102;
-			case 161:
-				return 18;
-			case 162:
-				return 17;
-			case 163:
-			case 164:
-				return 53;
-			case 174:
-				return 80;
-			case 175:
-				return 38;
-			case 159:
-				return 82;
-			case 170:
-				return 1;
-			case 171:
-				return 70;
-			case 172:
-				return 82;
-			case 173:
-				return 1;
+		case 165:
+			return 133;
+		case 166:
+		case 95:
+			return 20;
+		case 167:
+			return 96;
+		case 168:
+			return 48;
+		case 169:
+			return 89;
+		case 176:
+			return 63;
+		case 177:
+			return 68;
+		case 179:
+			return 24;
+		case 180:
+			return 128;
+		case 181:
+			return 43;
+		case 182:
+			return 44;
+		case 183:
+		case 184:
+		case 185:
+		case 186:
+		case 187:
+			return 107;
+		case 188:
+		case 189:
+		case 190:
+		case 191:
+		case 192:
+			return 85;
+		case 193:
+		case 194:
+		case 195:
+		case 196:
+		case 197:
+			return 64;
+		case 178:
+			return 151;
+		case 160:
+			return 102;
+		case 161:
+			return 18;
+		case 162:
+			return 17;
+		case 163:
+		case 164:
+			return 53;
+		case 174:
+			return 80;
+		case 175:
+			return 38;
+		case 159:
+			return 82;
+		case 170:
+			return 1;
+		case 171:
+			return 70;
+		case 172:
+			return 82;
+		case 173:
+			return 1;
 		}
 		return type;
 	}
@@ -796,44 +797,44 @@ public class BufferUtils {
 	public static byte convertMapColor2Legacy(byte color) {
 		int realColor = (color & 0xFF) >> 2;
 		switch (realColor) {
-			case 14:
-				realColor = 8;
-				break;
-			case 15:
-			case 26:
-			case 34:
-			case 36:
-				realColor = 10;
-				break;
-			case 16:
-			case 17:
-			case 23:
-			case 24:
-			case 25:
-			case 31:
-			case 32:
-				realColor = 5;
-				break;
-			case 18:
-			case 30:
-				realColor = 2;
-				break;
-			case 19:
-				realColor = 1;
-				break;
-			case 20:
-			case 28:
-			case 35:
-				realColor = 4;
-				break;
-			case 21:
-			case 22:
-			case 29:
-				realColor = 11;
-				break;
-			case 27:
-			case 33:
-				realColor = 7;
+		case 14:
+			realColor = 8;
+			break;
+		case 15:
+		case 26:
+		case 34:
+		case 36:
+			realColor = 10;
+			break;
+		case 16:
+		case 17:
+		case 23:
+		case 24:
+		case 25:
+		case 31:
+		case 32:
+			realColor = 5;
+			break;
+		case 18:
+		case 30:
+			realColor = 2;
+			break;
+		case 19:
+			realColor = 1;
+			break;
+		case 20:
+		case 28:
+		case 35:
+			realColor = 4;
+			break;
+		case 21:
+		case 22:
+		case 29:
+			realColor = 11;
+			break;
+		case 27:
+		case 33:
+			realColor = 7;
 		}
 		return (byte) ((realColor << 2) + (color & 0b11));
 	}

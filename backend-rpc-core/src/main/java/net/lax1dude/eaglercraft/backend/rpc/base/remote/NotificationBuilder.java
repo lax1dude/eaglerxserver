@@ -81,23 +81,23 @@ public class NotificationBuilder<ComponentObject> implements INotificationBuilde
 		badgeUUID = packet.badgeUUID;
 		try {
 			bodyComponent = (ComponentObject) componentHelper.parseLegacyJSON(packet.bodyComponent);
-		}catch(Exception t) {
+		} catch (Exception t) {
 			bodyComponent = (ComponentObject) componentHelper.createTextComponent(packet.bodyComponent);
 		}
 		try {
 			titleComponent = (ComponentObject) componentHelper.parseLegacyJSON(packet.titleComponent);
-		}catch(Exception t) {
+		} catch (Exception t) {
 			titleComponent = (ComponentObject) componentHelper.createTextComponent(packet.titleComponent);
 		}
 		try {
 			sourceComponent = (ComponentObject) componentHelper.parseLegacyJSON(packet.sourceComponent);
-		}catch(Exception t) {
+		} catch (Exception t) {
 			sourceComponent = (ComponentObject) componentHelper.createTextComponent(packet.sourceComponent);
 		}
 		originalTimestampSec = packet.originalTimestampSec;
 		silent = packet.silent;
 		managed = packet.managed;
-		priority = switch(packet.priority) {
+		priority = switch (packet.priority) {
 		case LOW -> EnumBadgePriority.LOW;
 		default -> EnumBadgePriority.NORMAL;
 		case HIGHER -> EnumBadgePriority.HIGHER;
@@ -122,7 +122,7 @@ public class NotificationBuilder<ComponentObject> implements INotificationBuilde
 
 	@Override
 	public INotificationBuilder<ComponentObject> setBadgeUUID(UUID uuid) {
-		if(uuid == null) {
+		if (uuid == null) {
 			throw new NullPointerException("uuid");
 		}
 		this.badgeUUID = uuid;
@@ -236,7 +236,7 @@ public class NotificationBuilder<ComponentObject> implements INotificationBuilde
 
 	@Override
 	public INotificationBuilder<ComponentObject> setPriority(EnumBadgePriority priority) {
-		if(priority == null) {
+		if (priority == null) {
 			throw new NullPointerException("priority");
 		}
 		this.priority = priority;
@@ -342,28 +342,28 @@ public class NotificationBuilder<ComponentObject> implements INotificationBuilde
 
 	@Override
 	public INotificationBadge buildPacket() {
-		if(packetDirty || packetCache == null) {
-			if(badgeUUID == null) {
+		if (packetDirty || packetCache == null) {
+			if (badgeUUID == null) {
 				badgeUUID = UUID.randomUUID();
-			}else if(badgeUUID.getMostSignificantBits() == 0l && badgeUUID.getLeastSignificantBits() == 0l) {
+			} else if (badgeUUID.getMostSignificantBits() == 0l && badgeUUID.getLeastSignificantBits() == 0l) {
 				throw new IllegalStateException("Badge UUID cannot be 0!");
 			}
-			CPacketRPCNotifBadgeShow.EnumBadgePriority internalPriority = switch(priority) {
+			CPacketRPCNotifBadgeShow.EnumBadgePriority internalPriority = switch (priority) {
 			case LOW -> CPacketRPCNotifBadgeShow.EnumBadgePriority.LOW;
 			default -> CPacketRPCNotifBadgeShow.EnumBadgePriority.NORMAL;
 			case HIGHER -> CPacketRPCNotifBadgeShow.EnumBadgePriority.HIGHER;
 			case HIGHEST -> CPacketRPCNotifBadgeShow.EnumBadgePriority.HIGHEST;
 			};
 			String bodyComp = bodyComponent != null ? componentHelper.serializeLegacyJSON(bodyComponent) : "";
-			if(bodyComp.length() > 32767) {
+			if (bodyComp.length() > 32767) {
 				throw new IllegalStateException("Body component is longer than 32767 chars serialized!");
 			}
 			String titleComp = titleComponent != null ? componentHelper.serializeLegacyJSON(titleComponent) : "";
-			if(titleComp.length() > 255) {
+			if (titleComp.length() > 255) {
 				throw new IllegalStateException("Title component is longer than 255 chars serialized!");
 			}
 			String sourceComp = sourceComponent != null ? componentHelper.serializeLegacyJSON(sourceComponent) : "";
-			if(sourceComp.length() > 255) {
+			if (sourceComp.length() > 255) {
 				throw new IllegalStateException("Body component is longer than 255 chars serialized!");
 			}
 			packetCache = new CPacketRPCNotifBadgeShow(badgeUUID, bodyComp, titleComp, sourceComp, originalTimestampSec,

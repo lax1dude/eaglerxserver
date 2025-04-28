@@ -122,61 +122,63 @@ public class EaglerXSupervisorServer implements Runnable {
 
 		eventLoopGroup = PipelineFactory.createEventLoopGroup();
 
-		if(config.isDownloadVanillaSkins()) {
+		if (config.isDownloadVanillaSkins()) {
 			logger.info("Starting skin cache...");
-			
+
 			skinHTTPClient = new HTTPClient(() -> {
 				return new Bootstrap().channel(PipelineFactory.getClientChannel(null)).group(eventLoopGroup);
 			}, getUserAgent());
-			
-			ISkinCacheDownloader downloader = new SkinCacheDownloader(skinHTTPClient, config.getAllowedSkinDownloadOrigins());
-			
+
+			ISkinCacheDownloader downloader = new SkinCacheDownloader(skinHTTPClient,
+					config.getAllowedSkinDownloadOrigins());
+
 			int threads = config.getSkinCacheThreadPoolSize();
-			if(threads <= 0) {
+			if (threads <= 0) {
 				threads = Runtime.getRuntime().availableProcessors();
 			}
-			
+
 			try {
 				skinJDBCConnection = EaglerDrivers.connectToDatabase(config.getSkinCacheDBURI(),
-						config.getSQLDriverClass(), config.getSQLDriverPath(), new Properties(),
-						new File("."), LoggerSv.getLogger("EaglerDrivers"));
-				datastore = new SkinCacheDatastore(skinJDBCConnection, threads,
-						config.getDatabaseKeepObjectsDays(), config.getDatabaseMaxObjects(),
-						config.getDatabaseCompressionLevel(), config.getSkinCacheDBSQLiteCompatible(),
-						LoggerSv.getLogger("SkinCacheDatastore"));
+						config.getSQLDriverClass(), config.getSQLDriverPath(), new Properties(), new File("."),
+						LoggerSv.getLogger("EaglerDrivers"));
+				datastore = new SkinCacheDatastore(skinJDBCConnection, threads, config.getDatabaseKeepObjectsDays(),
+						config.getDatabaseMaxObjects(), config.getDatabaseCompressionLevel(),
+						config.getSkinCacheDBSQLiteCompatible(), LoggerSv.getLogger("SkinCacheDatastore"));
 				logger.info("Connected to database: '{}'", config.getSkinCacheDBURI());
-			}catch(SQLException ex) {
+			} catch (SQLException ex) {
 				logger.info("Failed to connect to database!", ex);
-				if(skinJDBCConnection != null) {
+				if (skinJDBCConnection != null) {
 					try {
 						skinJDBCConnection.close();
-					}catch(SQLException exx) {
+					} catch (SQLException exx) {
 					}
 				}
 				return;
 			}
-			
+
 			skinCache = new SkinCacheService(downloader, datastore, config.getMemoryCacheKeepObjectsSeconds(),
 					Math.min(1024, config.getMemoryCacheMaxObjects()), config.getMemoryCacheMaxObjects(),
 					LoggerSv.getLogger("SkinCacheService"));
 		}
 
 		logger.info("Starting listeners...");
-	
+
 		eventLoopGroup = PipelineFactory.createEventLoopGroup();
 
 		CountDownLatch cnt = new CountDownLatch(2);
 		AtomicBoolean issues = new AtomicBoolean(false);
-	
-		PipelineFactory.bindListener(eventLoopGroup, config.getListenAddress(),
-				PipelineFactory.getServerChildInitializer(this, config.getReadTimeout())).addListener((future) -> {
-					if(future.isSuccess()) {
-						synchronized(listeningChannels) {
+
+		PipelineFactory
+				.bindListener(eventLoopGroup, config.getListenAddress(),
+						PipelineFactory.getServerChildInitializer(this, config.getReadTimeout()))
+				.addListener((future) -> {
+					if (future.isSuccess()) {
+						synchronized (listeningChannels) {
 							logger.info("Supervisor server is listening on: {}", config.getListenAddress());
-							listeningChannels.add(((ChannelFuture)future).channel());
+							listeningChannels.add(((ChannelFuture) future).channel());
 						}
-					}else {
-						synchronized(listeningChannels) {
+					} else {
+						synchronized (listeningChannels) {
 							logger.error("Could not bind port: {}", config.getListenAddress());
 							logger.error("Reason: {}", future.cause().toString());
 						}
@@ -184,18 +186,20 @@ public class EaglerXSupervisorServer implements Runnable {
 					}
 					cnt.countDown();
 				});
-		
-		if(config.isEnableStatus()) {
+
+		if (config.isEnableStatus()) {
 			statusRendererHTML = new StatusRendererHTML(this);
-			PipelineFactory.bindListener(eventLoopGroup, config.getListenStatusAddress(),
-					PipelineFactory.getStatusChildInitializer(this, config.getReadTimeout())).addListener((future) -> {
-						if(future.isSuccess()) {
-							synchronized(listeningChannels) {
+			PipelineFactory
+					.bindListener(eventLoopGroup, config.getListenStatusAddress(),
+							PipelineFactory.getStatusChildInitializer(this, config.getReadTimeout()))
+					.addListener((future) -> {
+						if (future.isSuccess()) {
+							synchronized (listeningChannels) {
 								logger.info("Status HTTP server is listening on: {}", config.getListenStatusAddress());
-								listeningChannels.add(((ChannelFuture)future).channel());
+								listeningChannels.add(((ChannelFuture) future).channel());
 							}
-						}else {
-							synchronized(listeningChannels) {
+						} else {
+							synchronized (listeningChannels) {
 								logger.error("Could not bind port: {}", config.getListenStatusAddress());
 								logger.error("Reason: {}", future.cause().toString());
 							}
@@ -203,7 +207,7 @@ public class EaglerXSupervisorServer implements Runnable {
 						}
 						cnt.countDown();
 					});
-		}else {
+		} else {
 			cnt.countDown();
 		}
 
@@ -216,13 +220,13 @@ public class EaglerXSupervisorServer implements Runnable {
 			return;
 		}
 
-		if(issues.get()) {
+		if (issues.get()) {
 			logger.error("One or more listeners failed to bind ports!");
 			stopListeners();
 			running = false;
 			return;
 		}
-	
+
 		console = new EaglerXSupervisorConsole(this);
 		consoleThread = new Thread(console, "Console Thread");
 		consoleThread.setDaemon(true);
@@ -231,11 +235,11 @@ public class EaglerXSupervisorServer implements Runnable {
 		logger.info("Server started successfully!");
 		logger.info("Type \"help\" for a list of commands");
 
-		while(running) {
+		while (running) {
 			try {
 				runServerTick();
 				Thread.sleep(1000l);
-			}catch(Throwable t) {
+			} catch (Throwable t) {
 				logger.error("Caught exception from tick loop", t);
 			}
 		}
@@ -243,13 +247,13 @@ public class EaglerXSupervisorServer implements Runnable {
 		logger.info("Closing listeners...");
 		stopListeners();
 
-		if(skinCache != null) {
+		if (skinCache != null) {
 			logger.info("Stopping skin cache...");
 			datastore.dispose();
 			eag: {
 				try {
 					skinJDBCConnection.close();
-				}catch(SQLException ex) {
+				} catch (SQLException ex) {
 					logger.error("Failed to disconnect from database '{}'", ex);
 					break eag;
 				}
@@ -268,21 +272,21 @@ public class EaglerXSupervisorServer implements Runnable {
 
 	private void runServerTick() {
 		List<SupervisorClientInstance> clients = getClientList();
-		for(SupervisorClientInstance cl : clients) {
+		for (SupervisorClientInstance cl : clients) {
 			cl.update();
 		}
-		if(skinCache != null) {
+		if (skinCache != null) {
 			skinCache.tick();
 		}
 	}
 
 	public void stopListeners() {
 		List<Channel> ch;
-		synchronized(listeningChannels) {
+		synchronized (listeningChannels) {
 			ch = new ArrayList<>(listeningChannels);
 			listeningChannels.clear();
 		}
-		for(Channel c : ch) {
+		for (Channel c : ch) {
 			c.close().syncUninterruptibly();
 			logger.info("Listener closed: {}", c.attr(PipelineFactory.LOCAL_ADDRESS).get().toString());
 		}
@@ -302,15 +306,15 @@ public class EaglerXSupervisorServer implements Runnable {
 			int i;
 			do {
 				i = ++nextNodeId;
-			}while(activeClientsMap.containsKey(i));
-			
+			} while (activeClientsMap.containsKey(i));
+
 			SupervisorClientInstance client = new SupervisorClientInstance(i, this, handler);
-			
+
 			activeClients.add(client);
 			activeClientsMap.put(i, client);
-			
+
 			return client;
-		}finally {
+		} finally {
 			activeClientsLock.writeLock().unlock();
 		}
 	}
@@ -321,17 +325,17 @@ public class EaglerXSupervisorServer implements Runnable {
 		int newTotal;
 		activePlayersLock.writeLock().lock();
 		try {
-			if(activePlayersMap.containsKey(playerUUID)) {
+			if (activePlayersMap.containsKey(playerUUID)) {
 				throw AlreadyRegisteredException.uuid();
 			}
-			if(activePlayersNameMap.containsKey(username)) {
+			if (activePlayersNameMap.containsKey(username)) {
 				throw AlreadyRegisteredException.username();
 			}
 			player = new SupervisorPlayerInstance(owner, playerUUID, brandUUID, gameProtocol, eaglerProtocol, username);
 			activePlayersMap.put(playerUUID, player);
 			activePlayersNameMap.put(username, player);
 			newTotal = activePlayersMap.size();
-		}finally {
+		} finally {
 			activePlayersLock.writeLock().unlock();
 		}
 		resendPlayerCounts(newTotal, maxPlayers);
@@ -342,7 +346,7 @@ public class EaglerXSupervisorServer implements Runnable {
 		activePlayersLock.readLock().lock();
 		try {
 			return activePlayersMap.get(playerUUID);
-		}finally {
+		} finally {
 			activePlayersLock.readLock().unlock();
 		}
 	}
@@ -351,7 +355,7 @@ public class EaglerXSupervisorServer implements Runnable {
 		activePlayersLock.readLock().lock();
 		try {
 			return activePlayersNameMap.get(playerName);
-		}finally {
+		} finally {
 			activePlayersLock.readLock().unlock();
 		}
 	}
@@ -360,12 +364,12 @@ public class EaglerXSupervisorServer implements Runnable {
 		activeClientsLock.writeLock().lock();
 		int nodeId;
 		try {
-			if(!activeClients.remove(client)) {
+			if (!activeClients.remove(client)) {
 				return;
 			}
 			nodeId = client.getNodeId();
 			activeClientsMap.remove(nodeId);
-		}finally {
+		} finally {
 			activeClientsLock.writeLock().unlock();
 		}
 		recalcMaxPlayers();
@@ -373,36 +377,36 @@ public class EaglerXSupervisorServer implements Runnable {
 		activePlayersLock.writeLock().lock();
 		try {
 			Iterator<SupervisorPlayerInstance> itr = activePlayersMap.values().iterator();
-			while(itr.hasNext()) {
+			while (itr.hasNext()) {
 				SupervisorPlayerInstance player = itr.next();
-				if(player.getOwner().getNodeId() == nodeId) {
+				if (player.getOwner().getNodeId() == nodeId) {
 					itr.remove();
 					activePlayersNameMap.remove(player.getUsername());
-					if(clientSet == null) {
+					if (clientSet == null) {
 						clientSet = new IntHashSet();
 					}
 					player.addKnownClientsNotOwner(clientSet);
 				}
 				player.forgetClient(nodeId);
 			}
-		}finally {
+		} finally {
 			activePlayersLock.writeLock().unlock();
 		}
-		if(clientSet != null) {
+		if (clientSet != null) {
 			List<SupervisorClientInstance> toNotify = new ArrayList<>(clientSet.size());
 			activeClientsLock.readLock().lock();
 			try {
-				for(IntCursor cur : clientSet) {
+				for (IntCursor cur : clientSet) {
 					SupervisorClientInstance client2 = activeClientsMap.get(cur.value);
-					if(client2 != null) {
+					if (client2 != null) {
 						toNotify.add(client2);
 					}
 				}
-			}finally {
+			} finally {
 				activeClientsLock.readLock().unlock();
 			}
 			SPacketSvDropAllPlayers dropPacket = new SPacketSvDropAllPlayers(nodeId);
-			for(int i = 0, l = toNotify.size(); i < l; ++i) {
+			for (int i = 0, l = toNotify.size(); i < l; ++i) {
 				toNotify.get(i).sendPacket(dropPacket);
 			}
 		}
@@ -414,33 +418,33 @@ public class EaglerXSupervisorServer implements Runnable {
 		SupervisorPlayerInstance player;
 		try {
 			player = activePlayersMap.remove(playerUUID);
-			if(player != null) {
+			if (player != null) {
 				activePlayersNameMap.remove(player.getUsername());
 			}
 			total = activePlayersMap.size();
-		}finally {
+		} finally {
 			activePlayersLock.writeLock().unlock();
 		}
-		if(player != null) {
+		if (player != null) {
 			IntContainer lst = player.allKnownClients();
 			List<SupervisorClientInstance> toNotify = null;
 			activeClientsLock.readLock().lock();
 			try {
-				for(IntCursor cur : lst) {
+				for (IntCursor cur : lst) {
 					SupervisorClientInstance client = activeClientsMap.get(cur.value);
-					if(client != null) {
-						if(toNotify == null) {
+					if (client != null) {
+						if (toNotify == null) {
 							toNotify = new ArrayList<>(activeClientsMap.size());
 						}
 						toNotify.add(client);
 					}
 				}
-			}finally {
+			} finally {
 				activeClientsLock.readLock().unlock();
 			}
-			if(toNotify != null) {
+			if (toNotify != null) {
 				SPacketSvDropPlayer dropPacket = new SPacketSvDropPlayer(player.getPlayerUUID());
-				for(int i = 0, l = toNotify.size(); i < l; ++i) {
+				for (int i = 0, l = toNotify.size(); i < l; ++i) {
 					toNotify.get(i).sendPacket(dropPacket);
 				}
 			}
@@ -452,13 +456,13 @@ public class EaglerXSupervisorServer implements Runnable {
 		int max = 0;
 		activeClientsLock.readLock().lock();
 		try {
-			for(SupervisorClientInstance client : activeClients) {
+			for (SupervisorClientInstance client : activeClients) {
 				max += client.getPlayerMax();
 			}
-		}finally {
+		} finally {
 			activeClientsLock.readLock().unlock();
 		}
-		if(maxPlayers != max) {
+		if (maxPlayers != max) {
 			maxPlayers = max;
 			resendPlayerCounts(getPlayerCount(), max);
 		}
@@ -468,7 +472,7 @@ public class EaglerXSupervisorServer implements Runnable {
 		activePlayersLock.readLock().lock();
 		try {
 			return activePlayersMap.size();
-		}finally {
+		} finally {
 			activePlayersLock.readLock().unlock();
 		}
 	}
@@ -479,10 +483,10 @@ public class EaglerXSupervisorServer implements Runnable {
 		activeClientsLock.readLock().lock();
 		try {
 			toNotify = new ArrayList<>(activeClients);
-		}finally {
+		} finally {
 			activeClientsLock.readLock().unlock();
 		}
-		for(SupervisorClientInstance client : toNotify) {
+		for (SupervisorClientInstance client : toNotify) {
 			client.getHandler().channelWrite(pkt);
 		}
 	}
@@ -531,7 +535,7 @@ public class EaglerXSupervisorServer implements Runnable {
 		activeClientsLock.readLock().lock();
 		try {
 			return activeClientsMap.get(nodeId);
-		}finally {
+		} finally {
 			activeClientsLock.readLock().unlock();
 		}
 	}
@@ -540,10 +544,10 @@ public class EaglerXSupervisorServer implements Runnable {
 		List<SupervisorClientInstance> ret = new ArrayList<>(lst.size());
 		activeClientsLock.readLock().lock();
 		try {
-			for(IntCursor cur : lst) {
+			for (IntCursor cur : lst) {
 				ret.add(activeClientsMap.get(cur.value));
 			}
-		}finally {
+		} finally {
 			activeClientsLock.readLock().unlock();
 		}
 		return ret;
@@ -553,7 +557,7 @@ public class EaglerXSupervisorServer implements Runnable {
 		activeClientsLock.readLock().lock();
 		try {
 			return new ArrayList<>(activeClients);
-		}finally {
+		} finally {
 			activeClientsLock.readLock().unlock();
 		}
 	}
@@ -562,14 +566,14 @@ public class EaglerXSupervisorServer implements Runnable {
 		activePlayersLock.readLock().lock();
 		try {
 			return new ArrayList<>(activePlayersMap.values());
-		}finally {
+		} finally {
 			activePlayersLock.readLock().unlock();
 		}
 	}
 
 	public void shutdownHook() {
 		shutdown();
-		synchronized(this) {
+		synchronized (this) {
 			logger.info("Aquired lock");
 		}
 	}
@@ -583,28 +587,28 @@ public class EaglerXSupervisorServer implements Runnable {
 		PlayerCapeData err2 = PlayerCapeData.ERROR;
 		activePlayersLock.readLock().lock();
 		try {
-			for(SupervisorPlayerInstance player : activePlayersMap.values()) {
+			for (SupervisorPlayerInstance player : activePlayersMap.values()) {
 				PlayerSkinData dat = player.getSkinDataIfLoaded();
-				if(dat != null && dat != err) {
-					if(dat instanceof PlayerSkinData.Custom) {
+				if (dat != null && dat != err) {
+					if (dat instanceof PlayerSkinData.Custom) {
 						++totalCustomSkins;
-					}else {
+					} else {
 						++totalPresetSkins;
 					}
 				}
 				PlayerCapeData dat2 = player.getCapeDataIfLoaded();
-				if(dat2 != null && dat2 != err2) {
-					if(dat2 instanceof PlayerCapeData.Custom) {
+				if (dat2 != null && dat2 != err2) {
+					if (dat2 instanceof PlayerCapeData.Custom) {
 						++totalCustomCapes;
-					}else {
+					} else {
 						++totalPresetCapes;
 					}
 				}
 			}
-		}finally {
+		} finally {
 			activePlayersLock.readLock().unlock();
 		}
-		if(skinCache != null) {
+		if (skinCache != null) {
 			int downloadedMemorySkins = skinCache.getTotalMemorySkins();
 			int downloadedMemoryCapes = skinCache.getTotalMemoryCapes();
 			int downloadedDatabaseSkins = datastore.getTotalStoredSkins();

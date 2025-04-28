@@ -37,9 +37,9 @@ class KeyedRequestHelper<T> {
 		@Override
 		public void accept(T t) {
 			Consumer<T> cs;
-			synchronized(KeyedRequestHelper.this) {
+			synchronized (KeyedRequestHelper.this) {
 				cs = consumer;
-				if(internalMap != null && internalMap.remove(url) != null && internalMap.isEmpty()) {
+				if (internalMap != null && internalMap.remove(url) != null && internalMap.isEmpty()) {
 					internalMap = null;
 				}
 			}
@@ -53,26 +53,26 @@ class KeyedRequestHelper<T> {
 
 	synchronized Consumer<T> add(String url, Consumer<T> consumer) {
 		long now = System.nanoTime();
-		if(now - lastFlush > 30l * 1000000000l) {
+		if (now - lastFlush > 30l * 1000000000l) {
 			lastFlush = now;
-			if(internalMap != null) {
+			if (internalMap != null) {
 				flush(now);
 			}
 		}
-		if(internalMap == null) {
+		if (internalMap == null) {
 			internalMap = new ObjectObjectHashMap<>();
 			KeyedRequest req = new KeyedRequest(url, now);
 			req.consumer = consumer;
 			internalMap.put(url, req);
 			return req;
-		}else {
+		} else {
 			KeyedRequest req = internalMap.get(url);
-			if(req == null) {
+			if (req == null) {
 				req = new KeyedRequest(url, now);
 				req.consumer = consumer;
 				internalMap.put(url, req);
 				return req;
-			}else {
+			} else {
 				req.consumer = consumer;
 				return null;
 			}

@@ -49,10 +49,10 @@ public class CPacketRPCSendRawMessage implements EaglerBackendRPCPacket {
 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
-		if(messageChannel.length() > 32) {
+		if (messageChannel.length() > 32) {
 			throw new IOException("Message channel name cannot be longer than 32 chars!");
 		}
-		if(messageData.length > 32720) {
+		if (messageData.length > 32720) {
 			throw new IOException("Message data cannot be longer than 32720 bytes!");
 		}
 		writeString(buffer, messageChannel, false, StandardCharsets.US_ASCII);

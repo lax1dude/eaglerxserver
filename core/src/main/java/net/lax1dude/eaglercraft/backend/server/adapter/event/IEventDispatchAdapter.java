@@ -88,7 +88,8 @@ public interface IEventDispatchAdapter<PlayerObject, ComponentObject> {
 			IEventDispatchCallback<IEaglercraftRevokeSessionQueryEvent<PlayerObject>> onComplete);
 
 	void dispatchVoiceChangeEvent(IEaglerPlayer<PlayerObject> player, EnumVoiceState voiceStateOld,
-			EnumVoiceState voiceStateNew, IEventDispatchCallback<IEaglercraftVoiceChangeEvent<PlayerObject>> onComplete);
+			EnumVoiceState voiceStateNew,
+			IEventDispatchCallback<IEaglercraftVoiceChangeEvent<PlayerObject>> onComplete);
 
 	void dispatchWebSocketOpenEvent(IEaglerConnection delegate, FullHttpRequest request,
 			IEventDispatchCallback<IEaglercraftWebSocketOpenEvent<PlayerObject>> onComplete);
@@ -96,7 +97,7 @@ public interface IEventDispatchAdapter<PlayerObject, ComponentObject> {
 	void dispatchWebViewChannelEvent(IEaglerPlayer<PlayerObject> player, EnumEventType type, String channel,
 			IEventDispatchCallback<IEaglercraftWebViewChannelEvent<PlayerObject>> onComplete);
 
-	void dispatchWebViewMessageEvent(IEaglerPlayer<PlayerObject> player, String channel, EnumMessageType type, byte[] data,
-			IEventDispatchCallback<IEaglercraftWebViewMessageEvent<PlayerObject>> onComplete);
+	void dispatchWebViewMessageEvent(IEaglerPlayer<PlayerObject> player, String channel, EnumMessageType type,
+			byte[] data, IEventDispatchCallback<IEaglercraftWebViewMessageEvent<PlayerObject>> onComplete);
 
 }

@@ -43,42 +43,42 @@ public class SupervisorLookupHandler<PlayerObject> {
 
 	void handleSupervisorSkinLookup(UUID uuid) {
 		BasePlayerInstance<PlayerObject> player = service.getEaglerXServer().getPlayerByUUID(uuid);
-		if(player != null) {
+		if (player != null) {
 			ISkinManagerBase<PlayerObject> skinMgr = player.getSkinManager();
-			if(skinMgr.isEaglerPlayer()) {
+			if (skinMgr.isEaglerPlayer()) {
 				sendSkinResponse(uuid, skinMgr.getPlayerSkinIfLoaded());
-			}else {
-				if(skinMgr instanceof SkinManagerVanillaOnline<PlayerObject> vanillaOnlineMgr) {
+			} else {
+				if (skinMgr instanceof SkinManagerVanillaOnline<PlayerObject> vanillaOnlineMgr) {
 					String url;
 					int mdl = 0;
 					IEaglerPlayerSkin skin = null;
-					synchronized(skinMgr) {
-						if((url = vanillaOnlineMgr.getEffectiveSkinURLInternal()) == null) {
+					synchronized (skinMgr) {
+						if ((url = vanillaOnlineMgr.getEffectiveSkinURLInternal()) == null) {
 							skin = skinMgr.getPlayerSkinIfLoaded();
-						}else {
+						} else {
 							mdl = vanillaOnlineMgr.getEffectiveSkinModelInternal().getId();
 						}
 					}
-					if(url != null) {
+					if (url != null) {
 						connection.sendSupervisorPacket(new CPacketSvOtherSkinURL(uuid, mdl, url));
-					}else if(skin != null) {
+					} else if (skin != null) {
 						sendSkinResponse(uuid, skin);
-					}else {
-						throw new IllegalStateException("SkinManagerVanillaOnline skin is in a bad state for: " + uuid + " ("
-								+ player.getUsername() + ")");
+					} else {
+						throw new IllegalStateException("SkinManagerVanillaOnline skin is in a bad state for: " + uuid
+								+ " (" + player.getUsername() + ")");
 					}
-				}else {
+				} else {
 					IEaglerPlayerSkin skin = skinMgr.getPlayerSkinIfLoaded();
-					if(skin != null) {
+					if (skin != null) {
 						sendSkinResponse(uuid, skin);
-					}else {
+					} else {
 						skinMgr.resolvePlayerSkin((skin2) -> {
 							sendSkinResponse(uuid, skin2);
 						});
 					}
 				}
 			}
-		}else {
+		} else {
 			service.logger().warn("Received skin lookup request from supervisor for unknown player: " + uuid);
 			connection.sendSupervisorPacket(new CPacketSvOtherSkinPreset(uuid, (uuid.hashCode() & 1) != 0 ? 1 : 0));
 		}
@@ -88,46 +88,46 @@ public class SupervisorLookupHandler<PlayerObject> {
 		if (skin.isSkinPreset()) {
 			connection.sendSupervisorPacket(new CPacketSvOtherSkinPreset(uuid, skin.getPresetSkinId()));
 		} else {
-			connection.sendSupervisorPacket(new CPacketSvOtherSkinCustom(uuid,
-					skin.getCustomSkinRawModelId(), UnsafeUtil.unsafeGetPixelsDirect(skin)));
+			connection.sendSupervisorPacket(new CPacketSvOtherSkinCustom(uuid, skin.getCustomSkinRawModelId(),
+					UnsafeUtil.unsafeGetPixelsDirect(skin)));
 		}
 	}
 
 	void handleSupervisorCapeLookup(UUID uuid) {
 		BasePlayerInstance<PlayerObject> player = service.getEaglerXServer().getPlayerByUUID(uuid);
-		if(player != null) {
+		if (player != null) {
 			ISkinManagerBase<PlayerObject> skinMgr = player.getSkinManager();
-			if(skinMgr.isEaglerPlayer()) {
+			if (skinMgr.isEaglerPlayer()) {
 				sendCapeResponse(uuid, skinMgr.getPlayerCapeIfLoaded());
-			}else {
-				if(skinMgr instanceof SkinManagerVanillaOnline<PlayerObject> vanillaOnlineMgr) {
+			} else {
+				if (skinMgr instanceof SkinManagerVanillaOnline<PlayerObject> vanillaOnlineMgr) {
 					String url;
 					IEaglerPlayerCape cape = null;
-					synchronized(vanillaOnlineMgr.capeLock) {
-						if((url = vanillaOnlineMgr.getEffectiveCapeURLInternal()) == null) {
+					synchronized (vanillaOnlineMgr.capeLock) {
+						if ((url = vanillaOnlineMgr.getEffectiveCapeURLInternal()) == null) {
 							cape = skinMgr.getPlayerCapeIfLoaded();
 						}
 					}
-					if(url != null) {
+					if (url != null) {
 						connection.sendSupervisorPacket(new CPacketSvOtherCapeURL(uuid, url));
-					}else if(cape != null) {
+					} else if (cape != null) {
 						sendCapeResponse(uuid, cape);
-					}else {
-						throw new IllegalStateException("SkinManagerVanillaOnline cape is in a bad state for: " + uuid + " ("
-								+ player.getUsername() + ")");
+					} else {
+						throw new IllegalStateException("SkinManagerVanillaOnline cape is in a bad state for: " + uuid
+								+ " (" + player.getUsername() + ")");
 					}
-				}else {
+				} else {
 					IEaglerPlayerCape cape = skinMgr.getPlayerCapeIfLoaded();
-					if(cape != null) {
+					if (cape != null) {
 						sendCapeResponse(uuid, cape);
-					}else {
+					} else {
 						skinMgr.resolvePlayerCape((cape2) -> {
 							sendCapeResponse(uuid, cape2);
 						});
 					}
 				}
 			}
-		}else {
+		} else {
 			service.logger().warn("Received skin lookup request from supervisor for unknown player: " + uuid);
 			connection.sendSupervisorPacket(new CPacketSvOtherCapePreset(uuid, (uuid.hashCode() & 1) != 0 ? 1 : 0));
 		}

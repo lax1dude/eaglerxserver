@@ -56,7 +56,7 @@ public class VoiceServiceDisabled<PlayerObject> implements IVoiceServiceImpl<Pla
 
 	@Override
 	public boolean isVoiceEnabledOnServer(String serverName) {
-		if(serverName == null) {
+		if (serverName == null) {
 			throw new NullPointerException("serverName");
 		}
 		return false;
@@ -74,7 +74,7 @@ public class VoiceServiceDisabled<PlayerObject> implements IVoiceServiceImpl<Pla
 
 	@Override
 	public void setICEServers(Collection<ICEServerEntry> servers) {
-		if(servers == null) {
+		if (servers == null) {
 			throw new NullPointerException("servers");
 		}
 	}
@@ -91,7 +91,7 @@ public class VoiceServiceDisabled<PlayerObject> implements IVoiceServiceImpl<Pla
 
 	@Override
 	public IVoiceChannel getServerVoiceChannel(String serverName) {
-		if(serverName == null) {
+		if (serverName == null) {
 			throw new NullPointerException("serverName");
 		}
 		throw disabledError();
@@ -104,7 +104,7 @@ public class VoiceServiceDisabled<PlayerObject> implements IVoiceServiceImpl<Pla
 
 	@Override
 	public Collection<IEaglerPlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel) {
-		if(channel == null) {
+		if (channel == null) {
 			throw new NullPointerException("channel");
 		}
 		throw disabledError();

@@ -39,29 +39,29 @@ public class SPacketVoiceSignalAllowedEAG implements GameMessagePacket {
 	@Override
 	public void readPacket(GamePacketInputBuffer buffer) throws IOException {
 		allowed = buffer.readBoolean();
-		if(allowed) {
+		if (allowed) {
 			int numIce = buffer.readVarInt();
-			if(numIce > 64) {
+			if (numIce > 64) {
 				throw new IOException("Too many STUN/TURN servers recieved! (" + numIce + ", max is 64!)");
 			}
 			iceServers = new String[numIce];
-			for(int i = 0; i < iceServers.length; ++i) {
+			for (int i = 0; i < iceServers.length; ++i) {
 				iceServers[i] = buffer.readStringMC(1024);
 			}
-		}else {
+		} else {
 			iceServers = null;
 		}
 	}
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
-		if(allowed && iceServers.length > 64) {
+		if (allowed && iceServers.length > 64) {
 			throw new IOException("Too many STUN/TURN servers to send! (" + iceServers.length + ", max is 64!)");
 		}
 		buffer.writeBoolean(allowed);
-		if(allowed) {
+		if (allowed) {
 			buffer.writeVarInt(iceServers.length);
-			for(int i = 0; i < iceServers.length; ++i) {
+			for (int i = 0; i < iceServers.length; ++i) {
 				buffer.writeStringMC(iceServers[i]);
 			}
 		}

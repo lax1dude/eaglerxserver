@@ -47,8 +47,10 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 			MethodHandles.Lookup l = MethodHandles.lookup();
 			SERVER_ENABLE_HANDLE = l.findVarHandle(VoiceManagerRemote.class, "isServerEnable", int.class);
 			LAST_STATE_HANDLE = l.findVarHandle(VoiceManagerRemote.class, "lastVoiceState", EnumVoiceState.class);
-			ACTIVE_CHANNEL_HANDLE = l.findVarHandle(VoiceManagerRemote.class, "activeChannel", VoiceChannel.Context.class);
-			CURRENT_VOICE_CHANNEL_HANDLE = l.findVarHandle(VoiceManagerRemote.class, "currentVoiceChannel", IVoiceChannel.class);
+			ACTIVE_CHANNEL_HANDLE = l.findVarHandle(VoiceManagerRemote.class, "activeChannel",
+					VoiceChannel.Context.class);
+			CURRENT_VOICE_CHANNEL_HANDLE = l.findVarHandle(VoiceManagerRemote.class, "currentVoiceChannel",
+					IVoiceChannel.class);
 		} catch (ReflectiveOperationException e) {
 			throw new ExceptionInInitializerError(e);
 		}
@@ -96,14 +98,14 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	}
 
 	public boolean isVoiceCapable() {
-		return (int)SERVER_ENABLE_HANDLE.getAcquire(this) != 0;
+		return (int) SERVER_ENABLE_HANDLE.getAcquire(this) != 0;
 	}
 
 	@Override
 	public EnumVoiceState getVoiceState() {
-		if((IVoiceChannel)CURRENT_VOICE_CHANNEL_HANDLE.getOpaque(this) != DisabledChannel.INSTANCE) {
+		if ((IVoiceChannel) CURRENT_VOICE_CHANNEL_HANDLE.getOpaque(this) != DisabledChannel.INSTANCE) {
 			VoiceChannel<PlayerObject>.Context ch = aquireActiveChannel();
-			if(ch != null) {
+			if (ch != null) {
 				return ch.isConnected() ? EnumVoiceState.ENABLED : EnumVoiceState.DISABLED;
 			}
 		}
@@ -112,7 +114,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 
 	@Override
 	public IVoiceChannel getVoiceChannel() {
-		return (IVoiceChannel)CURRENT_VOICE_CHANNEL_HANDLE.getAcquire(this);
+		return (IVoiceChannel) CURRENT_VOICE_CHANNEL_HANDLE.getAcquire(this);
 	}
 
 	@Override
@@ -122,19 +124,19 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	}
 
 	private void setVoiceChannel0(IVoiceChannel channel) {
-		if(channel == null) {
+		if (channel == null) {
 			throw new NullPointerException("Voice channel cannot be null!");
 		}
 		if (channel != DisabledChannel.INSTANCE && (!(channel instanceof VoiceChannel ch) || ch.owner != voice)) {
 			throw new IllegalArgumentException("Unknown voice channel");
 		}
 		IVoiceChannel oldChannel;
-		synchronized(this) {
-			if(!isAlive) {
+		synchronized (this) {
+			if (!isAlive) {
 				return;
 			}
 			oldChannel = currentVoiceChannel;
-			if(channel == oldChannel) {
+			if (channel == oldChannel) {
 				return;
 			}
 			CURRENT_VOICE_CHANNEL_HANDLE.setRelease(this, channel);
@@ -153,7 +155,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	}
 
 	void handleWorldChanged(String worldName) {
-		if(isManaged) {
+		if (isManaged) {
 			setVoiceChannel0(DisabledChannel.INSTANCE);
 			setVoiceChannel0(voice.getWorldVoiceChannel(worldName));
 			onStateChanged();
@@ -162,13 +164,13 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 
 	public void destroyVoiceManager() {
 		IVoiceChannel oldChannel;
-		synchronized(this) {
-			if(!isAlive) {
+		synchronized (this) {
+			if (!isAlive) {
 				return;
 			}
 			isAlive = false;
 			oldChannel = currentVoiceChannel;
-			if(DisabledChannel.INSTANCE == oldChannel) {
+			if (DisabledChannel.INSTANCE == oldChannel) {
 				return;
 			}
 			CURRENT_VOICE_CHANNEL_HANDLE.setRelease(this, DisabledChannel.INSTANCE);
@@ -177,13 +179,13 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	}
 
 	private void switchChannels(IVoiceChannel oldChannel, IVoiceChannel newChannel) {
-		if(newChannel != DisabledChannel.INSTANCE) {
-			if(oldChannel == DisabledChannel.INSTANCE) {
+		if (newChannel != DisabledChannel.INSTANCE) {
+			if (oldChannel == DisabledChannel.INSTANCE) {
 				enableVoice();
 			}
 			((VoiceChannel<PlayerObject>) newChannel).addToChannel(this);
-		}else {
-			if(oldChannel != DisabledChannel.INSTANCE) {
+		} else {
+			if (oldChannel != DisabledChannel.INSTANCE) {
 				((VoiceChannel<PlayerObject>) oldChannel).removeFromChannel(this, true);
 			}
 			disableVoice();
@@ -192,14 +194,14 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 
 	public void handleInboundVoiceMessage(byte[] packet) {
 		EaglerVCPacket pkt;
-		eagler: if((int)SERVER_ENABLE_HANDLE.getAcquire(this) == 0) {
-			synchronized(initLock) {
-				if((int)SERVER_ENABLE_HANDLE.getAcquire(this) != 0) {
+		eagler: if ((int) SERVER_ENABLE_HANDLE.getAcquire(this) == 0) {
+			synchronized (initLock) {
+				if ((int) SERVER_ENABLE_HANDLE.getAcquire(this) != 0) {
 					break eagler;
 				}
 				try {
 					pkt = deserialize(EaglerVCProtocol.INIT, packet);
-				}catch(Exception ex) {
+				} catch (Exception ex) {
 					onException(ex);
 					return;
 				}
@@ -209,7 +211,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 		}
 		try {
 			pkt = deserialize(EaglerVCProtocol.V1, packet);
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			onException(ex);
 			return;
 		}
@@ -222,11 +224,11 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	}
 
 	public void handleInboundVoiceHandshake(EaglerVCPacket packet) {
-		if(packet instanceof CPacketVCCapable pkt) {
+		if (packet instanceof CPacketVCCapable pkt) {
 			eagler: {
 				int[] vers = pkt.versions;
-				for(int i = 0; i < vers.length; ++i) {
-					if(vers[i] == 1) {
+				for (int i = 0; i < vers.length; ++i) {
+					if (vers[i] == 1) {
 						break eagler;
 					}
 				}
@@ -239,7 +241,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 			try {
 				packetOut = serialize(EaglerVCProtocol.INIT,
 						new SPacketVCCapable(1, false, service.getOverrideICEServers(), service.getICEServersStr()));
-			}catch(Exception ex) {
+			} catch (Exception ex) {
 				onException(ex);
 				return;
 			}
@@ -249,11 +251,11 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 			String worldName = player.getPlatformPlayer().getWorldName();
 			IVoiceChannel setChannel = worldName != null ? voice.getWorldVoiceChannel(worldName)
 					: voice.getGlobalVoiceChannel();
-			player.getEaglerXBackendRPC().getPlatform().eventDispatcher().dispatchVoiceCapableEvent(player,
-					setChannel, (res) -> {
-				setVoiceChannel(res.getTargetChannel());
-			});
-		}else {
+			player.getEaglerXBackendRPC().getPlatform().eventDispatcher().dispatchVoiceCapableEvent(player, setChannel,
+					(res) -> {
+						setVoiceChannel(res.getTargetChannel());
+					});
+		} else {
 			throw new WrongVCPacketException();
 		}
 	}
@@ -266,7 +268,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 		byte[] pkt;
 		try {
 			pkt = serialize(EaglerVCProtocol.V1, packet);
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			onException(ex);
 			return;
 		}
@@ -274,13 +276,13 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	}
 
 	private void enableVoice() {
-		if((int)SERVER_ENABLE_HANDLE.compareAndExchange(this, 1, 2) == 1) {
+		if ((int) SERVER_ENABLE_HANDLE.compareAndExchange(this, 1, 2) == 1) {
 			writeOutboundVoicePacket(new SPacketVCAllowed(true));
 		}
 	}
 
 	private void disableVoice() {
-		if((int)SERVER_ENABLE_HANDLE.compareAndExchange(this, 2, 1) == 2) {
+		if ((int) SERVER_ENABLE_HANDLE.compareAndExchange(this, 2, 1) == 2) {
 			writeOutboundVoicePacket(new SPacketVCAllowed(false));
 		}
 	}
@@ -291,49 +293,50 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 
 	void onStateChanged(EnumVoiceState newState) {
 		EnumVoiceState oldState = (EnumVoiceState) LAST_STATE_HANDLE.getAndSet(this, newState);
-		if(newState != oldState) {
-			player.getEaglerXBackendRPC().getPlatform().eventDispatcher().dispatchVoiceChangeEvent(player, oldState, newState);
+		if (newState != oldState) {
+			player.getEaglerXBackendRPC().getPlatform().eventDispatcher().dispatchVoiceChangeEvent(player, oldState,
+					newState);
 		}
 	}
 
 	void handlePlayerSignalPacketTypeConnect() {
 		VoiceChannel<PlayerObject>.Context ch = aquireActiveChannel();
-		if(ch != null) {
+		if (ch != null) {
 			ch.handleVoiceSignalPacketTypeConnect();
 		}
 	}
 
 	void handlePlayerSignalPacketTypeRequest(long playerUUIDMost, long playerUUIDLeast) {
 		VoiceChannel<PlayerObject>.Context ch = aquireActiveChannel();
-		if(ch != null) {
+		if (ch != null) {
 			ch.handleVoiceSignalPacketTypeRequest(new UUID(playerUUIDMost, playerUUIDLeast));
 		}
 	}
 
 	void handlePlayerSignalPacketTypeICE(long playerUUIDMost, long playerUUIDLeast, byte[] str) {
 		VoiceChannel<PlayerObject>.Context ch = aquireActiveChannel();
-		if(ch != null) {
+		if (ch != null) {
 			ch.handleVoiceSignalPacketTypeICE(new UUID(playerUUIDMost, playerUUIDLeast), str);
 		}
 	}
 
 	void handlePlayerSignalPacketTypeDesc(long playerUUIDMost, long playerUUIDLeast, byte[] str) {
 		VoiceChannel<PlayerObject>.Context ch = aquireActiveChannel();
-		if(ch != null) {
+		if (ch != null) {
 			ch.handleVoiceSignalPacketTypeDesc(new UUID(playerUUIDMost, playerUUIDLeast), str);
 		}
 	}
 
 	void handlePlayerSignalPacketTypeDisconnectPeer(long playerUUIDMost, long playerUUIDLeast) {
 		VoiceChannel<PlayerObject>.Context ch = aquireActiveChannel();
-		if(ch != null) {
+		if (ch != null) {
 			ch.handleVoiceSignalPacketTypeDisconnectPeer(new UUID(playerUUIDMost, playerUUIDLeast));
 		}
 	}
 
 	void handlePlayerSignalPacketTypeDisconnect() {
 		VoiceChannel<PlayerObject>.Context ch = aquireActiveChannel();
-		if(ch != null) {
+		if (ch != null) {
 			ch.handleVoiceSignalPacketTypeDisconnect();
 		}
 	}

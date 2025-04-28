@@ -29,7 +29,7 @@ public class RewindMessageInjector implements IOutboundInjector {
 
 	@Override
 	public void injectOutbound(IMessage msg) {
-		if(channel.isActive()) {
+		if (channel.isActive()) {
 			channel.writeAndFlush(msg);
 		}
 	}

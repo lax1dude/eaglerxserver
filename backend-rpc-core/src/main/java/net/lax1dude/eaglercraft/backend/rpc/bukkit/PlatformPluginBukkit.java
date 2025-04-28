@@ -87,22 +87,27 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			public void setOnServerEnable(Runnable enable) {
 				onServerEnable = enable;
 			}
+
 			@Override
 			public void setOnServerDisable(Runnable disable) {
 				onServerDisable = disable;
 			}
+
 			@Override
 			public void setPlayerInitializer(IBackendRPCPlayerInitializer<?, Player> initializer) {
 				playerInitializer = (IBackendRPCPlayerInitializer<Object, Player>) initializer;
 			}
+
 			@Override
 			public void setWorldChangeHandler(IBackendRPCWorldChangeHandler<Player> handler) {
 				worldChangeHandler = handler;
 			}
+
 			@Override
 			public IPlatform<Player> getPlatform() {
 				return PlatformPluginBukkit.this;
 			}
+
 			@Override
 			public InitLocalMode<Player> localMode() {
 				localMode = true;
@@ -111,20 +116,24 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 					public void setOnInitializePlayer(Consumer<IEaglercraftInitializePlayerEvent<Player>> handler) {
 						initializePlayerHandler = handler;
 					}
+
 					@Override
 					public void setOnWebViewChannel(Consumer<IEaglercraftWebViewChannelEvent<Player>> handler) {
 						localWebViewChannelHandler = handler;
 					}
+
 					@Override
 					public void setOnWebViewMessage(Consumer<IEaglercraftWebViewMessageEvent<Player>> handler) {
 						localWebViewMessageHandler = handler;
 					}
+
 					@Override
 					public void setOnVoiceChange(Consumer<IEaglercraftVoiceChangeEvent<Player>> handler) {
 						localVoiceChangeHandler = handler;
 					}
 				};
 			}
+
 			@Override
 			public InitRemoteMode<Player> remoteMode() {
 				localMode = false;
@@ -144,51 +153,51 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		Server server = getServer();
 		PluginManager pluginManager = server.getPluginManager();
 		pluginManager.registerEvents(new BukkitListener(this), this);
-		if(localMode) {
+		if (localMode) {
 			pluginManager.registerEvents(new BukkitListenerLocal(this), this);
-		}else {
+		} else {
 			Messenger msgr = server.getMessenger();
-			for(IBackendRPCMessageChannel<Player> channel : channelsList) {
+			for (IBackendRPCMessageChannel<Player> channel : channelsList) {
 				IBackendRPCMessageHandler<Player> handler = channel.getHandler();
 				msgr.registerOutgoingPluginChannel(this, channel.getModernName());
-				if(!post_v1_13) {
+				if (!post_v1_13) {
 					msgr.registerOutgoingPluginChannel(this, channel.getLegacyName());
 				}
-				if(handler != null) {
+				if (handler != null) {
 					PluginMessageListener ls = (ch, player, data) -> {
 						IPlatformPlayer<Player> platformPlayer = getPlayer(player);
-						if(platformPlayer != null) {
+						if (platformPlayer != null) {
 							handler.handle(channel, platformPlayer, data);
 						}
 					};
 					msgr.registerIncomingPluginChannel(this, channel.getModernName(), ls);
-					if(!post_v1_13) {
+					if (!post_v1_13) {
 						msgr.registerIncomingPluginChannel(this, channel.getLegacyName(), ls);
 					}
 				}
 			}
 		}
-		if(onServerEnable != null) {
+		if (onServerEnable != null) {
 			onServerEnable.run();
 		}
 	}
 
 	@Override
 	public void onDisable() {
-		if(onServerDisable != null) {
+		if (onServerDisable != null) {
 			onServerDisable.run();
 		}
-		if(!localMode) {
+		if (!localMode) {
 			Messenger msgr = getServer().getMessenger();
-			for(IBackendRPCMessageChannel<Player> channel : channelsList) {
+			for (IBackendRPCMessageChannel<Player> channel : channelsList) {
 				IBackendRPCMessageHandler<Player> handler = channel.getHandler();
 				msgr.unregisterOutgoingPluginChannel(this, channel.getModernName());
-				if(!post_v1_13) {
+				if (!post_v1_13) {
 					msgr.unregisterOutgoingPluginChannel(this, channel.getLegacyName());
 				}
-				if(handler != null) {
+				if (handler != null) {
 					msgr.unregisterIncomingPluginChannel(this, channel.getModernName());
-					if(!post_v1_13) {
+					if (!post_v1_13) {
 						msgr.unregisterIncomingPluginChannel(this, channel.getLegacyName());
 					}
 				}
@@ -234,9 +243,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public IPlatformPlayer<Player> getPlayer(String username) {
 		Player player = getServer().getPlayer(username);
-		if(player != null) {
+		if (player != null) {
 			return playerInstanceMap.get(player);
-		}else {
+		} else {
 			return null;
 		}
 	}
@@ -244,9 +253,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public IPlatformPlayer<Player> getPlayer(UUID uuid) {
 		Player player = getServer().getPlayer(uuid);
-		if(player != null) {
+		if (player != null) {
 			return playerInstanceMap.get(player);
-		}else {
+		} else {
 			return null;
 		}
 	}
@@ -273,10 +282,12 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			public void setPlayerAttachment(Object attachment) {
 				p.attachment = attachment;
 			}
+
 			@Override
 			public IPlatformPlayer<Player> getPlayer() {
 				return p;
 			}
+
 			@Override
 			public boolean isEaglerPlayerProperty() {
 				return BukkitUnsafe.isEaglerPlayerProperty(player);
@@ -285,16 +296,17 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		playerInstanceMap.put(player, p);
 		p.confirmTask = getServer().getScheduler().runTaskLater(this, () -> {
 			p.confirmTask = null;
-			getLogger().warning("Player " + p.getUsername() + " was initialized, but never fired PlayerJoinEvent, dropping...");
+			getLogger().warning(
+					"Player " + p.getUsername() + " was initialized, but never fired PlayerJoinEvent, dropping...");
 			dropPlayer(player);
 		}, 5000l);
 	}
 
 	void confirmPlayer(Player player) {
 		BukkitPlayer p = playerInstanceMap.get(player);
-		if(p != null) {
+		if (p != null) {
 			BukkitTask conf = p.xchgConfirmTask();
-			if(conf != null) {
+			if (conf != null) {
 				conf.cancel();
 			}
 			playerInitializer.confirmPlayer(p);
@@ -303,9 +315,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	void dropPlayer(Player player) {
 		BukkitPlayer p = playerInstanceMap.remove(player);
-		if(p != null) {
+		if (p != null) {
 			BukkitTask conf = p.xchgConfirmTask();
-			if(conf != null) {
+			if (conf != null) {
 				conf.cancel();
 			}
 			playerInitializer.destroyPlayer(p);
@@ -319,12 +331,12 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	private boolean checkPost_v1_13() {
 		String[] ver = getServer().getBukkitVersion().split("[\\.\\-]");
-		if(ver.length >= 2) {
+		if (ver.length >= 2) {
 			try {
 				int i = Integer.parseInt(ver[0]);
 				int j = Integer.parseInt(ver[1]);
 				return i > 1 || (i == 1 && j >= 13);
-			}catch(NumberFormatException ex) {
+			} catch (NumberFormatException ex) {
 			}
 		}
 		return false;

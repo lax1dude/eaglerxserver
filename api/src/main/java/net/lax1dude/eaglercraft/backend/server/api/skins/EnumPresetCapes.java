@@ -80,7 +80,7 @@ public enum EnumPresetCapes {
 	static {
 		EnumPresetCapes[] skins = values();
 		EnumPresetCapes[] arr = new EnumPresetCapes[32];
-		for(int i = 0; i < skins.length; ++i) {
+		for (int i = 0; i < skins.length; ++i) {
 			arr[skins[i].presetId] = skins[i];
 		}
 		VALUES = arr;

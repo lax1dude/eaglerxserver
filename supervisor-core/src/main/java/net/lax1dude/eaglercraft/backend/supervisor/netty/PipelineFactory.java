@@ -85,26 +85,26 @@ public class PipelineFactory {
 
 	static {
 		String ts = System.getProperty("eaglerxsupervisor.threadPoolSize");
-		if(ts != null) {
+		if (ts != null) {
 			try {
 				threadPoolSize = Integer.parseInt(ts);
 				logger.info("Setting thread pool size: {}", threadPoolSize);
-			}catch(NumberFormatException ex) {
+			} catch (NumberFormatException ex) {
 				logger.warn("Invalid thread pool size: {}", ts);
 			}
 		}
-		if(!PlatformDependent.isWindows()) {
-			if(Boolean.parseBoolean(System.getProperty("eaglerxsupervisor.kqueue", "true"))) {
-				if(enableKQueue = KQueue.isAvailable()) {
+		if (!PlatformDependent.isWindows()) {
+			if (Boolean.parseBoolean(System.getProperty("eaglerxsupervisor.kqueue", "true"))) {
+				if (enableKQueue = KQueue.isAvailable()) {
 					logger.info("Enabled kqueue support");
-				}else if(System.getProperty("eaglerxsupervisor.kqueue") != null) {
+				} else if (System.getProperty("eaglerxsupervisor.kqueue") != null) {
 					logger.warn("Tried to enable kqueue, but it is not available!", KQueue.unavailabilityCause());
 				}
 			}
-			if(Boolean.parseBoolean(System.getProperty("eaglerxsupervisor.epoll", "true"))) {
-				if(enableEpoll = Epoll.isAvailable()) {
+			if (Boolean.parseBoolean(System.getProperty("eaglerxsupervisor.epoll", "true"))) {
+				if (enableEpoll = Epoll.isAvailable()) {
 					logger.info("Enabled epoll support");
-				}else if(System.getProperty("eaglerxsupervisor.epoll") != null) {
+				} else if (System.getProperty("eaglerxsupervisor.epoll") != null) {
 					logger.warn("Tried to enable epoll, but it is not available!", Epoll.unavailabilityCause());
 				}
 			}
@@ -113,16 +113,17 @@ public class PipelineFactory {
 
 	public static EventLoopGroup createEventLoopGroup() {
 		ThreadFactory factory = (new ThreadFactoryBuilder()).setNameFormat("Supervisor IO Thread #%1$d").build();
-		if(enableKQueue) {
+		if (enableKQueue) {
 			return new KQueueEventLoopGroup(threadPoolSize, factory);
-		}else if(enableEpoll) {
+		} else if (enableEpoll) {
 			return new EpollEventLoopGroup(threadPoolSize, factory);
-		}else {
+		} else {
 			return new NioEventLoopGroup(threadPoolSize, factory);
 		}
 	}
 
-	public static ChannelInitializer<Channel> getServerChildInitializer(EaglerXSupervisorServer server, int readTimeout) {
+	public static ChannelInitializer<Channel> getServerChildInitializer(EaglerXSupervisorServer server,
+			int readTimeout) {
 		return new ChannelInitializer<Channel>() {
 			@Override
 			protected void initChannel(Channel channel) throws Exception {
@@ -146,7 +147,8 @@ public class PipelineFactory {
 		};
 	}
 
-	public static ChannelInitializer<Channel> getStatusChildInitializer(EaglerXSupervisorServer server, int readTimeout) {
+	public static ChannelInitializer<Channel> getStatusChildInitializer(EaglerXSupervisorServer server,
+			int readTimeout) {
 		return new ChannelInitializer<Channel>() {
 			@Override
 			protected void initChannel(Channel channel) throws Exception {
@@ -159,43 +161,40 @@ public class PipelineFactory {
 		};
 	}
 
-	public static ChannelFuture bindListener(EventLoopGroup eventLoopGroup, SocketAddress address, ChannelInitializer<Channel> initializer) {
+	public static ChannelFuture bindListener(EventLoopGroup eventLoopGroup, SocketAddress address,
+			ChannelInitializer<Channel> initializer) {
 		return (new ServerBootstrap()).option(ChannelOption.SO_REUSEADDR, true)
-				.childOption(ChannelOption.TCP_NODELAY, true)
-				.channel(PipelineFactory.getServerChannel(address))
-				.group(eventLoopGroup)
-				.attr(PipelineFactory.LOCAL_ADDRESS, address)
-				.localAddress(address)
-				.childHandler(initializer)
-				.bind();
+				.childOption(ChannelOption.TCP_NODELAY, true).channel(PipelineFactory.getServerChannel(address))
+				.group(eventLoopGroup).attr(PipelineFactory.LOCAL_ADDRESS, address).localAddress(address)
+				.childHandler(initializer).bind();
 	}
 
 	public static Class<? extends Channel> getClientChannel(SocketAddress address) {
 		if (address != null && (address instanceof DomainSocketAddress)) {
-			if(!enableEpoll) {
+			if (!enableEpoll) {
 				throw new IllegalStateException("Epoll required to have UNIX sockets");
 			}
 			return EpollDomainSocketChannel.class;
-		}else if(enableKQueue) {
+		} else if (enableKQueue) {
 			return KQueueSocketChannel.class;
-		}else if(enableEpoll) {
+		} else if (enableEpoll) {
 			return EpollSocketChannel.class;
-		}else {
+		} else {
 			return NioSocketChannel.class;
 		}
 	}
 
 	public static Class<? extends ServerChannel> getServerChannel(SocketAddress address) {
 		if (address != null && (address instanceof DomainSocketAddress)) {
-			if(!enableEpoll) {
+			if (!enableEpoll) {
 				throw new IllegalStateException("Epoll required to have UNIX sockets");
 			}
 			return EpollServerDomainSocketChannel.class;
-		}else if(enableKQueue) {
+		} else if (enableKQueue) {
 			return KQueueServerSocketChannel.class;
-		}else if(enableEpoll) {
+		} else if (enableEpoll) {
 			return EpollServerSocketChannel.class;
-		}else {
+		} else {
 			return NioServerSocketChannel.class;
 		}
 	}

@@ -75,7 +75,7 @@ public class PlayerRateLimits {
 
 	public boolean ratelimitSkin() {
 		RateLimiterBasic limiter = ratelimitSkin;
-		if(limiter == null) {
+		if (limiter == null) {
 			limiter = ratelimitSkin = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(params.limitSkin);
@@ -83,7 +83,7 @@ public class PlayerRateLimits {
 
 	public boolean ratelimitCape() {
 		RateLimiterBasic limiter = ratelimitCape;
-		if(limiter == null) {
+		if (limiter == null) {
 			limiter = ratelimitCape = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(params.limitCape);
@@ -91,7 +91,7 @@ public class PlayerRateLimits {
 
 	public boolean ratelimitVoiceCon() {
 		RateLimiterBasic limiter = ratelimitVoiceCon;
-		if(limiter == null) {
+		if (limiter == null) {
 			limiter = ratelimitVoiceCon = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(params.limitVoiceCon);
@@ -99,7 +99,7 @@ public class PlayerRateLimits {
 
 	public boolean ratelimitVoiceReq() {
 		RateLimiterBasic limiter = ratelimitVoiceReq;
-		if(limiter == null) {
+		if (limiter == null) {
 			limiter = ratelimitVoiceReq = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(params.limitVoiceReq);
@@ -107,7 +107,7 @@ public class PlayerRateLimits {
 
 	public boolean ratelimitVoiceICE() {
 		RateLimiterBasic limiter = ratelimitVoiceICE;
-		if(limiter == null) {
+		if (limiter == null) {
 			limiter = ratelimitVoiceICE = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(params.limitVoiceICE);
@@ -115,7 +115,7 @@ public class PlayerRateLimits {
 
 	public boolean ratelimitBrand() {
 		RateLimiterBasic limiter = ratelimitBrand;
-		if(limiter == null) {
+		if (limiter == null) {
 			limiter = ratelimitBrand = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(params.limitBrand);
@@ -123,7 +123,7 @@ public class PlayerRateLimits {
 
 	public boolean ratelimitWebViewData() {
 		RateLimiterBasic limiter = ratelimitWebViewData;
-		if(limiter == null) {
+		if (limiter == null) {
 			limiter = ratelimitWebViewData = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(params.limitWebViewData);
@@ -131,7 +131,7 @@ public class PlayerRateLimits {
 
 	public boolean ratelimitWebViewMsg() {
 		RateLimiterBasic limiter = ratelimitWebViewMsg;
-		if(limiter == null) {
+		if (limiter == null) {
 			limiter = ratelimitWebViewMsg = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(params.limitWebViewMsg);
@@ -144,7 +144,7 @@ public class PlayerRateLimits {
 
 	public boolean ratelimitSkinAntagonist() {
 		RateLimiterBasic limiter = skinAntagonistTracker;
-		if(limiter == null) {
+		if (limiter == null) {
 			limiter = skinAntagonistTracker = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(params.limitSkinAntagonist);
@@ -157,7 +157,7 @@ public class PlayerRateLimits {
 
 	public boolean ratelimitSvSkinAntagonist() {
 		RateLimiterBasic limiter = svSkinAntagonistTracker;
-		if(limiter == null) {
+		if (limiter == null) {
 			limiter = svSkinAntagonistTracker = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(params.limitSvSkinAntagonist);
@@ -170,7 +170,7 @@ public class PlayerRateLimits {
 
 	public boolean ratelimitSvBrandAntagonist() {
 		RateLimiterBasic limiter = svBrandAntagonistTracker;
-		if(limiter == null) {
+		if (limiter == null) {
 			limiter = svBrandAntagonistTracker = new RateLimiterBasic();
 		}
 		return limiter.rateLimit(params.limitSvBrandAntagonist);

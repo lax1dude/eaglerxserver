@@ -48,6 +48,7 @@ class TemplateParser {
 		private boolean strEscape;
 		private boolean disableMacros;
 		private boolean enableEval;
+
 		private State(File baseDir, boolean evalAllowed, Function<String, String> globals,
 				ITranslationProvider translations) {
 			this.baseDir = baseDir;
@@ -55,6 +56,7 @@ class TemplateParser {
 			this.globals = globals;
 			this.translations = translations;
 		}
+
 		private State push() {
 			return new State(baseDir, evalAllowed, globals, translations);
 		}
@@ -68,14 +70,14 @@ class TemplateParser {
 	private static String loadTemplate(String content, State state) throws IOException {
 		StringBuilder ret = new StringBuilder();
 		int i = 0, j = 0;
-		while((i = content.indexOf("{%", j)) != -1) {
+		while ((i = content.indexOf("{%", j)) != -1) {
 			ret.append(content, j, i);
 			j = i;
 			i = content.indexOf("%}", j + 2);
-			if(i != -1) {
+			if (i != -1) {
 				ret.append(processMacro(content.substring(j + 2, i), state));
 				j = i + 2;
-			}else {
+			} else {
 				break;
 			}
 		}
@@ -87,15 +89,15 @@ class TemplateParser {
 		String trimmed = content.trim();
 		try {
 			String[] strs = (new StrTokenizer(trimmed, ' ', '`')).getTokenArray();
-			if(strs.length < 1) {
+			if (strs.length < 1) {
 				return "{%" + content + "%}";
 			}
-			if(strs[0].equals("disablemacros") && strs.length == 2) {
-				switch(strs[1]) {
+			if (strs[0].equals("disablemacros") && strs.length == 2) {
+				switch (strs[1]) {
 				case "on":
-					if(state.disableMacros) {
+					if (state.disableMacros) {
 						return "{%" + content + "%}";
-					}else {
+					} else {
 						state.disableMacros = true;
 						return "";
 					}
@@ -103,33 +105,39 @@ class TemplateParser {
 					state.disableMacros = false;
 					return "";
 				default:
-					if(state.disableMacros) {
+					if (state.disableMacros) {
 						return "{%" + content + "%}";
-					}else {
-						throw new InvalidMacroException("Unknown disablemacros mode: " + strs[1] + " (Expected: on, off)");
+					} else {
+						throw new InvalidMacroException(
+								"Unknown disablemacros mode: " + strs[1] + " (Expected: on, off)");
 					}
 				}
-			}else if(!state.disableMacros) {
-				switch(strs[0]) {
+			} else if (!state.disableMacros) {
+				switch (strs[0]) {
 				case "embed":
 					argCheck(3, strs.length);
-					switch(strs[1]) {
+					switch (strs[1]) {
 					case "base64":
-						return Base64.getEncoder().encodeToString(loadFileToByteArray(new File(state.baseDir, strs[2])));
+						return Base64.getEncoder()
+								.encodeToString(loadFileToByteArray(new File(state.baseDir, strs[2])));
 					case "text":
 						return escapeMacroResult(loadFileToString(new File(state.baseDir, strs[2])), state);
 					case "eval":
-						if(state.evalAllowed) {
-							return escapeMacroResult(loadTemplate(loadFileToString(new File(state.baseDir, strs[2])), state.push()), state);
-						}else {
-							throw new InvalidMacroException("Template tried to eval file \"" + strs[2] + "\"! (eval is disabled)");
+						if (state.evalAllowed) {
+							return escapeMacroResult(
+									loadTemplate(loadFileToString(new File(state.baseDir, strs[2])), state.push()),
+									state);
+						} else {
+							throw new InvalidMacroException(
+									"Template tried to eval file \"" + strs[2] + "\"! (eval is disabled)");
 						}
 					default:
-						throw new InvalidMacroException("Unknown embed mode: " + strs[1] + " (Expected: base64, text, eval)");
+						throw new InvalidMacroException(
+								"Unknown embed mode: " + strs[1] + " (Expected: base64, text, eval)");
 					}
 				case "htmlescape":
 					argCheck(2, strs.length);
-					switch(strs[1]) {
+					switch (strs[1]) {
 					case "on":
 						state.htmlEscape = true;
 						return "";
@@ -141,7 +149,7 @@ class TemplateParser {
 					}
 				case "strescape":
 					argCheck(2, strs.length);
-					switch(strs[1]) {
+					switch (strs[1]) {
 					case "on":
 						state.strEscape = true;
 						return "";
@@ -153,9 +161,9 @@ class TemplateParser {
 					}
 				case "eval":
 					argCheck(2, strs.length);
-					switch(strs[1]) {
+					switch (strs[1]) {
 					case "on":
-						if(!state.evalAllowed) {
+						if (!state.evalAllowed) {
 							throw new InvalidMacroException("Template tried to enable eval! (eval is disabled)");
 						}
 						state.enableEval = true;
@@ -169,10 +177,10 @@ class TemplateParser {
 				case "global":
 					argCheck(2, 3, strs.length);
 					String ret = state.globals.apply(strs[1]);
-					if(ret == null) {
-						if(strs.length == 3) {
+					if (ret == null) {
+						if (strs.length == 3) {
 							ret = strs[2];
-						}else {
+						} else {
 							throw new InvalidMacroException("Unknown global \"" + strs[1] + "\"!");
 						}
 					}
@@ -180,10 +188,10 @@ class TemplateParser {
 				case "property":
 					argCheck(2, 3, strs.length);
 					ret = System.getProperty(strs[1]);
-					if(ret == null) {
-						if(strs.length == 3) {
+					if (ret == null) {
+						if (strs.length == 3) {
 							ret = strs[2];
-						}else {
+						} else {
 							throw new InvalidMacroException("Unknown system property \"" + strs[1] + "\"!");
 						}
 					}
@@ -193,51 +201,51 @@ class TemplateParser {
 					return escapeMacroResult(strs[1], state);
 				case "translate":
 					argCheckMin(2, strs.length);
-					if(state.translations != null) {
+					if (state.translations != null) {
 						String[] args = new String[strs.length - 2];
 						System.arraycopy(strs, 2, args, 0, args.length);
 						String res = state.translations.format(strs[1], args);
 						return escapeMacroResult(res != null ? res : strs[1], state);
-					}else {
+					} else {
 						return escapeMacroResult(strs[1], state);
 					}
 				default:
 					return "{%" + content + "%}";
 				}
-			}else {
+			} else {
 				return "{%" + content + "%}";
 			}
-		}catch(InvalidMacroException ex) {
+		} catch (InvalidMacroException ex) {
 			throw new IOException("Invalid macro: {% " + trimmed + " %}, message: " + ex.getMessage(), ex);
-		}catch(Throwable th) {
+		} catch (Throwable th) {
 			throw new IOException("Error processing: {% " + trimmed + " %}, raised: " + th.toString(), th);
 		}
 	}
 
 	private static String loadFileToString(File file) throws IOException {
-		try(Reader is = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
+		try (Reader is = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
 			return CharStreams.toString(is);
 		}
 	}
 
 	private static byte[] loadFileToByteArray(File file) throws IOException {
-		try(FileInputStream is = new FileInputStream(file)) {
+		try (FileInputStream is = new FileInputStream(file)) {
 			return ByteStreams.toByteArray(is);
 		}
 	}
 
 	private static String escapeMacroResult(String str, State state) throws IOException {
-		if(str.length() > 0) {
-			if(state.evalAllowed && state.enableEval) {
+		if (str.length() > 0) {
+			if (state.evalAllowed && state.enableEval) {
 				str = loadTemplate(str, state.push());
 			}
-			if(state.strEscape) {
+			if (state.strEscape) {
 				str = jsonEscaper.toJson(str);
-				if(str.length() >= 2) {
+				if (str.length() >= 2) {
 					str = str.substring(1, str.length() - 1);
 				}
 			}
-			if(state.htmlEscape) {
+			if (state.htmlEscape) {
 				str = HtmlEscapers.htmlEscaper().escape(str);
 			}
 		}
@@ -245,20 +253,22 @@ class TemplateParser {
 	}
 
 	private static void argCheck(int expect, int actual) {
-		if(expect != actual) {
+		if (expect != actual) {
 			throw new InvalidMacroException("Wrong number of arguments (" + actual + ", expected " + expect + ")");
 		}
 	}
 
 	private static void argCheck(int expectMin, int expectMax, int actual) {
-		if(expectMin > actual || expectMax < actual) {
-			throw new InvalidMacroException("Wrong number of arguments (" + actual + ", expected " + expectMin + " to " + expectMax + ")");
+		if (expectMin > actual || expectMax < actual) {
+			throw new InvalidMacroException(
+					"Wrong number of arguments (" + actual + ", expected " + expectMin + " to " + expectMax + ")");
 		}
 	}
 
 	private static void argCheckMin(int expectMin, int actual) {
-		if(expectMin > actual) {
-			throw new InvalidMacroException("Wrong number of arguments (expected " + expectMin + " or more, got " + actual + ")");
+		if (expectMin > actual) {
+			throw new InvalidMacroException(
+					"Wrong number of arguments (expected " + expectMin + " or more, got " + actual + ")");
 		}
 	}
 

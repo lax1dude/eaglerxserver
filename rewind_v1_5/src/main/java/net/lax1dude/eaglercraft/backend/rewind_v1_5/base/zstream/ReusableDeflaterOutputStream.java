@@ -45,7 +45,7 @@ public class ReusableDeflaterOutputStream extends OutputStream {
 		def.reset();
 		this.closed = false;
 		this.array = buf.hasArray();
-		if(!array && buf.nioBufferCount() != 1) {
+		if (!array && buf.nioBufferCount() != 1) {
 			throw new IllegalStateException("Composite buffers not supported! (Output)");
 		}
 		this.buf = buf;
@@ -91,15 +91,15 @@ public class ReusableDeflaterOutputStream extends OutputStream {
 
 	protected void deflate() throws IOException {
 		int writable = buf.writableBytes();
-		if(writable < BLOCK_SIZE) {
+		if (writable < BLOCK_SIZE) {
 			writable = BLOCK_SIZE;
 		}
 		buf.ensureWritable(writable);
 		int len;
 		int writerIndex = buf.writerIndex();
-		if(array) {
+		if (array) {
 			len = def.deflate(buf.array(), buf.arrayOffset() + writerIndex, writable);
-		}else {
+		} else {
 			len = def.deflate(buf.internalNioBuffer(writerIndex, writable));
 		}
 		if (len > 0) {

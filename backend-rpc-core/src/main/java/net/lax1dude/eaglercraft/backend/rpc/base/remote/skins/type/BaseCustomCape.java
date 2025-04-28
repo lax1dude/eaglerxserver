@@ -28,9 +28,9 @@ abstract class BaseCustomCape implements IEaglerPlayerCape {
 	protected abstract byte[] textureData();
 
 	public int hashCode() {
-		if(hashCode == 0 && !hashZero) {
+		if (hashCode == 0 && !hashZero) {
 			hashCode = Arrays.hashCode(textureData());
-			if(hashCode == 0) {
+			if (hashCode == 0) {
 				hashZero = true;
 			}
 		}

@@ -44,35 +44,39 @@ public class SupervisorServerHandshakeHandler implements EaglerSupervisorHandler
 	public void handleClient(CPacketSvHandshake pkt) {
 		find_vers: {
 			int[] pp = pkt.supportedProtocols;
-			for(int i = 0; i < pp.length; ++i) {
-				if(pp[i] == 1) {
+			for (int i = 0; i < pp.length; ++i) {
+				if (pp[i] == 1) {
 					break find_vers;
 				}
 			}
-			logger.error("[{}]: Dropping connection because of protocol version mismatch", handler.getChannel().remoteAddress());
+			logger.error("[{}]: Dropping connection because of protocol version mismatch",
+					handler.getChannel().remoteAddress());
 			handler.getChannel()
-					.writeAndFlush(new SPacketSvHandshakeFailure(SPacketSvHandshakeFailure.FAILURE_CODE_OUTDATED_SERVER))
+					.writeAndFlush(
+							new SPacketSvHandshakeFailure(SPacketSvHandshakeFailure.FAILURE_CODE_OUTDATED_SERVER))
 					.addListener(ChannelFutureListener.CLOSE);
 			return;
 		}
-		
+
 		String k = server.getConfig().getSecretKey();
-		if(k != null && !k.equals(pkt.secretKey)) {
-			logger.error("[{}]: Dropping connection because of invalid secret key", handler.getChannel().remoteAddress());
+		if (k != null && !k.equals(pkt.secretKey)) {
+			logger.error("[{}]: Dropping connection because of invalid secret key",
+					handler.getChannel().remoteAddress());
 			handler.getChannel()
 					.writeAndFlush(new SPacketSvHandshakeFailure(SPacketSvHandshakeFailure.FAILURE_CODE_INVALID_SECRET))
 					.addListener(ChannelFutureListener.CLOSE);
 			return;
 		}
-		
+
 		SupervisorClientInstance client = server.registerClient(handler);
-		
+
 		handler.getChannel().writeAndFlush(new SPacketSvHandshakeSuccess(1, client.getNodeId()));
-		
+
 		handler.setConnectionProtocol(EaglerSupervisorProtocol.V1);
 		handler.setConnectionHandler(new SupervisorServerV1Handler(server, handler, client));
 
-		logger.info("[{}]: Handshake successful, connected with {} protocol", handler.getChannel().remoteAddress(), handler.getConnectionProtocol().name());
+		logger.info("[{}]: Handshake successful, connected with {} protocol", handler.getChannel().remoteAddress(),
+				handler.getConnectionProtocol().name());
 		logger.info("[{}]: Assigned node id #{}", handler.getChannel().remoteAddress(), client.getNodeId());
 	}
 

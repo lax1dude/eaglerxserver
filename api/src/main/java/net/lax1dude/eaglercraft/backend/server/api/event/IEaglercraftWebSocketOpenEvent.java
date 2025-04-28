@@ -24,7 +24,8 @@ import javax.annotation.Nullable;
 import io.netty.handler.codec.http.FullHttpRequest;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerConnection;
 
-public interface IEaglercraftWebSocketOpenEvent<PlayerObject> extends IBaseServerEvent<PlayerObject>, ICancellableEvent {
+public interface IEaglercraftWebSocketOpenEvent<PlayerObject>
+		extends IBaseServerEvent<PlayerObject>, ICancellableEvent {
 
 	@Nonnull
 	IEaglerConnection getConnection();

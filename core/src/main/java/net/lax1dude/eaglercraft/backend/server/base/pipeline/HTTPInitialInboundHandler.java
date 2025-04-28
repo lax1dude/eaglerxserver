@@ -52,41 +52,43 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msgRaw) throws Exception {
 		try {
-			if(!ctx.channel().isActive()) {
+			if (!ctx.channel().isActive()) {
 				return;
 			}
-			NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
-			if(!pipelineData.initStall && (msgRaw instanceof FullHttpRequest msg)) {
-				if(HTTPMessageUtils.getProtocolVersion(msg) != HttpVersion.HTTP_1_1) {
+			NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData())
+					.get();
+			if (!pipelineData.initStall && (msgRaw instanceof FullHttpRequest msg)) {
+				if (HTTPMessageUtils.getProtocolVersion(msg) != HttpVersion.HTTP_1_1) {
 					pipelineData.initStall = true;
 					ctx.close();
 					return;
 				}
-				
+
 				HttpHeaders headers = msg.headers();
-				
+
 				EaglerListener listener = pipelineData.listenerInfo;
 				ConfigDataListener conf = listener.getConfigData();
-				
-				if(conf.isForwardSecret()) {
-					if(!conf.getForwardSecretValue().equals(headers.get(conf.getForwardSecretHeader()))) {
-						pipelineData.connectionLogger.error("Connected without a valid forwarding secret header, disconnecting...");
+
+				if (conf.isForwardSecret()) {
+					if (!conf.getForwardSecretValue().equals(headers.get(conf.getForwardSecretHeader()))) {
+						pipelineData.connectionLogger
+								.error("Connected without a valid forwarding secret header, disconnecting...");
 						pipelineData.initStall = true;
 						ctx.close();
 						return;
 					}
 				}
-				
-				if(conf.isForwardIP()) {
+
+				if (conf.isForwardIP()) {
 					List<String> forwardedIP = headers.getAll(conf.getForwardIPHeader());
-					if(forwardedIP != null && !forwardedIP.isEmpty()) {
+					if (forwardedIP != null && !forwardedIP.isEmpty()) {
 						pipelineData.realAddress = forwardedIP.get(0);
 						CompoundRateLimiterMap rateLimiter = pipelineData.listenerInfo.getRateLimiter();
-						if(rateLimiter != null) {
+						if (rateLimiter != null) {
 							InetAddress addr;
 							try {
 								addr = InetAddresses.forString(pipelineData.realAddress);
-							}catch(IllegalArgumentException ex) {
+							} catch (IllegalArgumentException ex) {
 								pipelineData.connectionLogger.error("Connected with an invalid \""
 										+ conf.getForwardIPHeader() + "\" header, disconnecting...", ex);
 								pipelineData.initStall = true;
@@ -94,13 +96,13 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 								return;
 							}
 							pipelineData.realInetAddress = addr;
-							if((pipelineData.rateLimits = rateLimiter.rateLimit(addr)) == null) {
+							if ((pipelineData.rateLimits = rateLimiter.rateLimit(addr)) == null) {
 								pipelineData.initStall = true;
 								ctx.close();
 								return;
 							}
 						}
-					}else {
+					} else {
 						pipelineData.connectionLogger.error(
 								"Connected without a \"" + conf.getForwardIPHeader() + "\" header, disconnecting...");
 						pipelineData.initStall = true;
@@ -108,29 +110,30 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 						return;
 					}
 				}
-				
+
 				String connection = headers.get("connection");
-				if(connection != null && "upgrade".equalsIgnoreCase(connection)) {
+				if (connection != null && "upgrade".equalsIgnoreCase(connection)) {
 					String upgrade = headers.get("upgrade");
-					if(upgrade != null && "websocket".equalsIgnoreCase(upgrade)) {
+					if (upgrade != null && "websocket".equalsIgnoreCase(upgrade)) {
 						pipelineData.initStall = true;
 						handleWebSocket(ctx, pipelineData, msg);
 						return;
 					}
 				}
-				
+
 				handleHTTP(ctx, pipelineData, msg);
-			}else {
+			} else {
 				ctx.close();
 			}
-		}catch(Throwable t) {
+		} catch (Throwable t) {
 			t.printStackTrace();
-		}finally {
+		} finally {
 			ReferenceCountUtil.release(msgRaw);
 		}
 	}
 
-	private void handleWebSocket(ChannelHandlerContext ctx, NettyPipelineData pipelineData, FullHttpRequest msg) throws Exception {
+	private void handleWebSocket(ChannelHandlerContext ctx, NettyPipelineData pipelineData, FullHttpRequest msg)
+			throws Exception {
 		HttpHeaders headers = msg.headers();
 		pipelineData.headerHost = headers.get("host");
 		pipelineData.headerOrigin = headers.get("origin");
@@ -138,7 +141,7 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 		pipelineData.headerCookie = headers.get("cookie");
 		pipelineData.headerAuthorization = headers.get("authorization");
 		pipelineData.requestPath = HTTPMessageUtils.getURI(msg);
-		
+
 		ConfigDataSettings settings = pipelineData.server.getConfig().getSettings();
 		ChannelPipeline pipeline = ctx.pipeline();
 		pipeline.replace(PipelineTransformer.HANDLER_HTTP_AGGREGATOR, PipelineTransformer.HANDLER_WS_AGGREGATOR,
@@ -147,52 +150,55 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 				WebSocketInitialHandler.INSTANCE);
 		pipeline.addBefore(PipelineTransformer.HANDLER_WS_INITIAL, PipelineTransformer.HANDLER_WS_PING,
 				new WebSocketPingFrameHandler());
-		
+
 		IEventDispatchAdapter<?, ?> dispatch = pipelineData.server.eventDispatcher();
 		msg.retain();
 		dispatch.dispatchWebSocketOpenEvent(pipelineData, msg, (evt, err) -> {
 			ctx.channel().eventLoop().execute(() -> {
 				try {
-					if(err == null) {
-						if(ctx.channel().isActive()) {
-							if(!evt.isCancelled()) {
+					if (err == null) {
+						if (ctx.channel().isActive()) {
+							if (!evt.isCancelled()) {
 								handshakeWebSocket(ctx, pipelineData, msg, settings.getHTTPWebSocketMaxFrameLength());
-							}else {
+							} else {
 								ctx.close();
 							}
 						}
-					}else {
-						pipelineData.connectionLogger.error("Exception thrown while handling web socket open event", err);
+					} else {
+						pipelineData.connectionLogger.error("Exception thrown while handling web socket open event",
+								err);
 						ctx.close();
 					}
-				}finally {
+				} finally {
 					msg.release();
 				}
 			});
 		});
 	}
 
-	private void handshakeWebSocket(ChannelHandlerContext ctx, NettyPipelineData pipelineData, FullHttpRequest msg, int maxFrameLen) {
+	private void handshakeWebSocket(ChannelHandlerContext ctx, NettyPipelineData pipelineData, FullHttpRequest msg,
+			int maxFrameLen) {
 		WebSocketServerHandshakerFactory factory = new WebSocketServerHandshakerFactory(
 				(pipelineData.wss ? "wss://" : "ws://") + pipelineData.headerHost + pipelineData.requestPath, null,
 				true, maxFrameLen);
 		WebSocketServerHandshaker hs = factory.newHandshaker(msg);
-		if(hs != null) {
+		if (hs != null) {
 			hs.handshake(ctx.channel(), msg).addListener((future) -> {
-				if(future.isSuccess()) {
+				if (future.isSuccess()) {
 					pipelineData.initStall = false;
 					pipelineData.scheduleLoginTimeoutHelper();
-				}else {
+				} else {
 					ctx.close();
 				}
 			});
-		}else {
+		} else {
 			WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel())
 					.addListener(ChannelFutureListener.CLOSE);
 		}
 	}
 
-	private void handleHTTP(ChannelHandlerContext ctx, NettyPipelineData pipelineData, FullHttpRequest msg) throws Exception {
+	private void handleHTTP(ChannelHandlerContext ctx, NettyPipelineData pipelineData, FullHttpRequest msg)
+			throws Exception {
 		ChannelPipeline pipeline = ctx.pipeline();
 		pipelineData.server.getPipelineTransformer().removeVanillaHandlers(pipeline);
 		pipeline.addLast(PipelineTransformer.HANDLER_HTTP,
@@ -202,48 +208,50 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 		pipeline.remove(PipelineTransformer.HANDLER_HTTP_INITIAL);
 	}
 
-	static boolean recheckRatelimitAddress(ChannelHandlerContext ctx, NettyPipelineData pipelineData, FullHttpRequest msg) {
+	static boolean recheckRatelimitAddress(ChannelHandlerContext ctx, NettyPipelineData pipelineData,
+			FullHttpRequest msg) {
 		EaglerListener listener = pipelineData.listenerInfo;
 		ConfigDataListener conf = listener.getConfigData();
 		HttpHeaders headers = msg.headers();
-		if(conf.isForwardSecret()) {
-			if(!conf.getForwardSecretValue().equals(headers.get(conf.getForwardSecretHeader()))) {
-				pipelineData.connectionLogger.error("Connected without a valid forwarding secret header, disconnecting...");
+		if (conf.isForwardSecret()) {
+			if (!conf.getForwardSecretValue().equals(headers.get(conf.getForwardSecretHeader()))) {
+				pipelineData.connectionLogger
+						.error("Connected without a valid forwarding secret header, disconnecting...");
 				return false;
 			}
 		}
-		if(conf.isForwardIP()) {
+		if (conf.isForwardIP()) {
 			List<String> forwardedIP = headers.getAll(conf.getForwardIPHeader());
-			if(forwardedIP != null && !forwardedIP.isEmpty()) {
+			if (forwardedIP != null && !forwardedIP.isEmpty()) {
 				pipelineData.realAddress = forwardedIP.get(0);
 				CompoundRateLimiterMap rateLimiter = pipelineData.listenerInfo.getRateLimiter();
-				if(rateLimiter != null) {
+				if (rateLimiter != null) {
 					InetAddress addr;
 					try {
 						addr = InetAddresses.forString(pipelineData.realAddress);
-					}catch(IllegalArgumentException ex) {
-						pipelineData.connectionLogger.error("Connected with an invalid \""
-								+ conf.getForwardIPHeader() + "\" header, disconnecting...", ex);
+					} catch (IllegalArgumentException ex) {
+						pipelineData.connectionLogger.error("Connected with an invalid \"" + conf.getForwardIPHeader()
+								+ "\" header, disconnecting...", ex);
 						return false;
 					}
 					pipelineData.realInetAddress = addr;
 					pipelineData.rateLimits = rateLimiter.getRateLimit(addr);
 				}
 				return true;
-			}else {
-				pipelineData.connectionLogger.error(
-						"Connected without a \"" + conf.getForwardIPHeader() + "\" header, disconnecting...");
+			} else {
+				pipelineData.connectionLogger
+						.error("Connected without a \"" + conf.getForwardIPHeader() + "\" header, disconnecting...");
 				return false;
 			}
-		}else {
+		} else {
 			CompoundRateLimiterMap rateLimiter = pipelineData.listenerInfo.getRateLimiter();
-			if(rateLimiter != null) {
+			if (rateLimiter != null) {
 				SocketAddress addr = ctx.channel().remoteAddress();
-				if(addr instanceof InetSocketAddress inetAddr) {
+				if (addr instanceof InetSocketAddress inetAddr) {
 					pipelineData.rateLimits = rateLimiter.getRateLimit(inetAddr.getAddress());
-				}else {
-					pipelineData.connectionLogger.warn("Unable to ratelimit unknown address type: " + addr.getClass().getName()
-							+ " - \"" + addr + "\"");
+				} else {
+					pipelineData.connectionLogger.warn("Unable to ratelimit unknown address type: "
+							+ addr.getClass().getName() + " - \"" + addr + "\"");
 				}
 			}
 			return true;

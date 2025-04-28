@@ -74,7 +74,7 @@ public class PauseMenuService<PlayerObject> implements IPauseMenuService<PlayerO
 
 	@Override
 	public void setDefaultPauseMenu(ICustomPauseMenu pauseMenu) {
-		if(pauseMenu == null) {
+		if (pauseMenu == null) {
 			throw new NullPointerException("pauseMenu");
 		}
 		defaultPauseMenu = (IPauseMenuImpl) pauseMenu;
@@ -82,12 +82,12 @@ public class PauseMenuService<PlayerObject> implements IPauseMenuService<PlayerO
 
 	@Override
 	public void updateAllPlayersPauseMenu(ICustomPauseMenu pauseMenu) {
-		if(pauseMenu == null) {
+		if (pauseMenu == null) {
 			throw new NullPointerException("pauseMenu");
 		}
 		server.forEachEaglerPlayer((player) -> {
 			IPauseMenuManager<PlayerObject> mgr = player.getPauseMenuManager();
-			if(mgr != null) {
+			if (mgr != null) {
 				mgr.updatePauseMenu(pauseMenu);
 			}
 		});
@@ -120,11 +120,11 @@ public class PauseMenuService<PlayerObject> implements IPauseMenuService<PlayerO
 	}
 
 	public PauseMenuManager<PlayerObject> createPauseMenuManager(EaglerPlayerInstance<PlayerObject> player) {
-		if(player.hasCapability(EnumCapabilitySpec.PAUSE_MENU_V0)) {
+		if (player.hasCapability(EnumCapabilitySpec.PAUSE_MENU_V0)) {
 			PauseMenuManager<PlayerObject> mgr = new PauseMenuManager<>(player, this);
 			mgr.updatePauseMenu(defaultPauseMenu);
 			return mgr;
-		}else {
+		} else {
 			return null;
 		}
 	}

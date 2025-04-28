@@ -31,7 +31,7 @@ public class CompoundFrameUpdater implements IFrameUpdater {
 	@Override
 	public boolean update(IMOTDConnection connection) {
 		boolean ret = false;
-		for(int i = 0, l = updaters.size(); i < l; ++i) {
+		for (int i = 0, l = updaters.size(); i < l; ++i) {
 			ret |= updaters.get(i).update(connection);
 		}
 		return ret;

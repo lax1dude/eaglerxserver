@@ -47,36 +47,36 @@ public class RateLimiterLocking extends AtomicInteger {
 
 	public EnumRateLimitState rateLimit(Config conf) {
 		int limitVal = conf.limit;
-		if(incrementAndGet() >= limitVal) {
-			synchronized(this) {
+		if (incrementAndGet() >= limitVal) {
+			synchronized (this) {
 				int v = getPlain();
-				if(v < limitVal) {
+				if (v < limitVal) {
 					return EnumRateLimitState.OK;
 				}
 				long now = System.nanoTime();
-				if(lockedTimer != -1l) {
-					if(now - lockedTimer > conf.lockoutDuration) {
+				if (lockedTimer != -1l) {
+					if (now - lockedTimer > conf.lockoutDuration) {
 						lockedTimer = -1l;
 						setPlain(0);
 						return EnumRateLimitState.OK;
 					}
 					return EnumRateLimitState.LOCKED;
-				}else {
-					if(v >= conf.limitLockout) {
+				} else {
+					if (v >= conf.limitLockout) {
 						lockedTimer = now;
 						return EnumRateLimitState.BLOCKED_LOCKED;
 					}
-					long period = (long)(conf.period / limitVal);
+					long period = (long) (conf.period / limitVal);
 					long delta = (now - timer) / period;
-					if(delta > 0l) {
+					if (delta > 0l) {
 						timer += delta * period;
-						return addAndGet(-Math.min((int)delta, v)) < limitVal ? EnumRateLimitState.BLOCKED
+						return addAndGet(-Math.min((int) delta, v)) < limitVal ? EnumRateLimitState.BLOCKED
 								: EnumRateLimitState.OK;
 					}
 					return EnumRateLimitState.BLOCKED;
 				}
 			}
-		}else {
+		} else {
 			return EnumRateLimitState.OK;
 		}
 	}

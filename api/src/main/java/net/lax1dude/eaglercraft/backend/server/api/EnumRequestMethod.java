@@ -45,9 +45,9 @@ public enum EnumRequestMethod {
 
 	public static int toBits(@Nonnull EnumRequestMethod[] methods) {
 		int r = 0, j;
-		for(int i = 0; i < methods.length; ++i) {
+		for (int i = 0; i < methods.length; ++i) {
 			j = methods[i].bit;
-			if(j == -1) {
+			if (j == -1) {
 				throw new IllegalArgumentException("Cannot have OPTIONS in bitfield!");
 			}
 			r |= j;
@@ -60,7 +60,7 @@ public enum EnumRequestMethod {
 		bits &= EnumRequestMethod.bits;
 		int cnt = Integer.bitCount(bits);
 		EnumRequestMethod[] ret = new EnumRequestMethod[cnt];
-		for(int i = 0; i < cnt; ++i) {
+		for (int i = 0; i < cnt; ++i) {
 			int j = Integer.numberOfTrailingZeros(bits);
 			ret[i] = BIT_LOOKUP[j];
 			bits &= ((EnumRequestMethod.bits - 1) << j);

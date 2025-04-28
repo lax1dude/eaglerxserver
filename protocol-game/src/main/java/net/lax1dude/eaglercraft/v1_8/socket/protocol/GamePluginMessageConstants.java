@@ -30,7 +30,7 @@ public class GamePluginMessageConstants {
 	public static final int SERVER_TO_CLIENT = 1;
 
 	public static String getModernName(String channel) {
-		switch(channel) {
+		switch (channel) {
 		case V3_SKIN_CHANNEL:
 			return "eagler:skins-1-8";
 		case V3_CAPE_CHANNEL:
@@ -49,7 +49,7 @@ public class GamePluginMessageConstants {
 	}
 
 	public static String getDirectionString(int dir) {
-		switch(dir) {
+		switch (dir) {
 		case CLIENT_TO_SERVER:
 			return "CLIENT_TO_SERVER";
 		case SERVER_TO_CLIENT:
@@ -60,7 +60,7 @@ public class GamePluginMessageConstants {
 	}
 
 	public static int oppositeDirection(int dir) {
-		switch(dir) {
+		switch (dir) {
 		case CLIENT_TO_SERVER:
 			return SERVER_TO_CLIENT;
 		case SERVER_TO_CLIENT:

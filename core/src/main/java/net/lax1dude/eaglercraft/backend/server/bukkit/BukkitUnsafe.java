@@ -112,72 +112,72 @@ public class BukkitUnsafe {
 	private static Field field_LoginListener_gameProfile = null;
 
 	private static synchronized void bindLoginConnection(Object networkManager) {
-		if(class_NetworkManager != null) {
+		if (class_NetworkManager != null) {
 			return;
 		}
 		Class<?> clz = networkManager.getClass();
 		try {
 			Field[] fields = clz.getFields();
-			for(int i = 0; i < fields.length; ++i) {
+			for (int i = 0; i < fields.length; ++i) {
 				Field f = fields[i];
-				if(Channel.class.isAssignableFrom(f.getType())) {
+				if (Channel.class.isAssignableFrom(f.getType())) {
 					field_NetworkManager_channel = f;
 					break;
 				}
 			}
-			if(field_NetworkManager_channel == null) {
+			if (field_NetworkManager_channel == null) {
 				throw new IllegalStateException("Could not locate channel field of " + clz.getName());
 			}
 			Method[] meth = clz.getMethods();
-			for(int i = 0; i < meth.length; ++i) {
+			for (int i = 0; i < meth.length; ++i) {
 				Method m = meth[i];
-				if(m.getParameterCount() == 0 && m.getReturnType().getSimpleName().equals("PacketListener")) {
+				if (m.getParameterCount() == 0 && m.getReturnType().getSimpleName().equals("PacketListener")) {
 					method_NetworkManager_getPacketListener = m;
 					break;
 				}
 			}
-			if(method_NetworkManager_getPacketListener == null) {
+			if (method_NetworkManager_getPacketListener == null) {
 				throw new IllegalStateException("Could not locate getPacketListener method of " + clz.getName());
 			}
 			Object packetListener = method_NetworkManager_getPacketListener.invoke(networkManager);
-			if(packetListener == null) {
+			if (packetListener == null) {
 				throw new IllegalStateException("NetworkManager.getPacketListener is null!");
 			}
 			Class<?> clz2 = packetListener.getClass();
 			method_LoginListener_disconnect = clz2.getMethod("disconnect", String.class);
 			fields = clz2.getDeclaredFields();
-			for(int i = 0; i < fields.length; ++i) {
+			for (int i = 0; i < fields.length; ++i) {
 				Field f = fields[i];
-				if(GameProfile.class.isAssignableFrom(f.getType())) {
+				if (GameProfile.class.isAssignableFrom(f.getType())) {
 					f.setAccessible(true);
 					field_LoginListener_gameProfile = f;
 					break;
 				}
 			}
-			if(field_LoginListener_gameProfile == null) {
+			if (field_LoginListener_gameProfile == null) {
 				throw new IllegalStateException("LoginListener gameProfile field could not be found for "
 						+ packetListener.getClass().getName());
 			}
 			class_LoginListener_maybe = clz2;
 			class_NetworkManager = clz;
-		}catch(IllegalStateException ex) {
+		} catch (IllegalStateException ex) {
 			throw ex;
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			throw Util.propagateReflectThrowable(ex);
 		}
-		
+
 	}
 
 	public static LoginConnectionHolder getLoginConnection(Object networkManager) {
-		if(class_NetworkManager == null) {
+		if (class_NetworkManager == null) {
 			bindLoginConnection(networkManager);
 		}
 		try {
 			Object packetListener = method_NetworkManager_getPacketListener.invoke(networkManager);
-			if(packetListener == null) {
+			if (packetListener == null) {
 				throw new IllegalStateException("NetworkManager.getPacketListener is null!");
 			}
-			if(!class_LoginListener_maybe.isAssignableFrom(packetListener.getClass())) {
+			if (!class_LoginListener_maybe.isAssignableFrom(packetListener.getClass())) {
 				throw new IllegalStateException("PacketListener class is not LoginListener: "
 						+ packetListener.getClass().getName() + " != " + class_LoginListener_maybe.getName());
 			}
@@ -197,7 +197,7 @@ public class BukkitUnsafe {
 	private static Field field_PlayerConnection_networkManager = null;
 
 	private static synchronized void bindCraftPlayer(Player playerObject) {
-		if(class_CraftPlayer != null) {
+		if (class_CraftPlayer != null) {
 			return;
 		}
 		Class<?> clz = playerObject.getClass();
@@ -206,32 +206,32 @@ public class BukkitUnsafe {
 			method_CraftPlayer_addChannel = clz.getMethod("addChannel", String.class);
 			Object entityPlayer = method_CraftPlayer_getHandle.invoke(playerObject);
 			Class<?> clz2 = entityPlayer.getClass();
-			for(Field f : clz2.getFields()) {
-				if(f.getType().getSimpleName().equals("PlayerConnection")) {
+			for (Field f : clz2.getFields()) {
+				if (f.getType().getSimpleName().equals("PlayerConnection")) {
 					field_EntityPlayer_playerConnection = f;
 					break;
 				}
 			}
-			if(field_EntityPlayer_playerConnection == null) {
+			if (field_EntityPlayer_playerConnection == null) {
 				throw new IllegalStateException("Could not locate player connection field of " + clz2.getName());
 			}
 			Class<?> clz3 = field_EntityPlayer_playerConnection.getType();
-			for(Field f : clz3.getFields()) {
-				if(f.getType().getSimpleName().equals("NetworkManager")) {
+			for (Field f : clz3.getFields()) {
+				if (f.getType().getSimpleName().equals("NetworkManager")) {
 					field_PlayerConnection_networkManager = f;
 					break;
 				}
 			}
-			if(field_PlayerConnection_networkManager == null) {
+			if (field_PlayerConnection_networkManager == null) {
 				throw new IllegalStateException("Could not locate network manager field of " + clz3.getName());
 			}
 			Class<?> clz4 = field_PlayerConnection_networkManager.getType();
-			for(Field f : clz4.getFields()) {
-				if(Channel.class.isAssignableFrom(f.getType())) {
+			for (Field f : clz4.getFields()) {
+				if (Channel.class.isAssignableFrom(f.getType())) {
 					field_NetworkManager_channel = f;
 				}
 			}
-			if(field_NetworkManager_channel == null) {
+			if (field_NetworkManager_channel == null) {
 				throw new IllegalStateException("Could not locate channel field of " + clz4.getName());
 			}
 			method_EntityPlayer_getProfile = clz2.getMethod("getProfile");
@@ -239,13 +239,13 @@ public class BukkitUnsafe {
 			class_PlayerConnection = clz3;
 			class_EntityPlayer = clz2;
 			class_CraftPlayer = clz;
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			throw Util.propagateReflectThrowable(ex);
 		}
 	}
 
 	public static Channel getPlayerChannel(Player playerObject) {
-		if(class_CraftPlayer == null) {
+		if (class_CraftPlayer == null) {
 			bindCraftPlayer(playerObject);
 		}
 		try {
@@ -257,14 +257,14 @@ public class BukkitUnsafe {
 	}
 
 	public static String getTexturesProperty(Player player) {
-		if(class_CraftPlayer == null) {
+		if (class_CraftPlayer == null) {
 			bindCraftPlayer(player);
 		}
 		try {
 			Multimap<String, Property> props = ((GameProfile) method_EntityPlayer_getProfile
 					.invoke(method_CraftPlayer_getHandle.invoke(player))).getProperties();
 			Collection<Property> tex = props.get("textures");
-			if(!tex.isEmpty()) {
+			if (!tex.isEmpty()) {
 				return tex.iterator().next().getValue();
 			}
 		} catch (ReflectiveOperationException e) {
@@ -300,19 +300,20 @@ public class BukkitUnsafe {
 	}
 
 	public static BukkitUnsafe.PropertyInjector propertyInjector(Player player) {
-		if(class_CraftPlayer == null) {
+		if (class_CraftPlayer == null) {
 			bindCraftPlayer(player);
 		}
 		try {
-			return new PropertyInjector(((GameProfile) method_EntityPlayer_getProfile
-					.invoke(method_CraftPlayer_getHandle.invoke(player))).getProperties());
+			return new PropertyInjector(
+					((GameProfile) method_EntityPlayer_getProfile.invoke(method_CraftPlayer_getHandle.invoke(player)))
+							.getProperties());
 		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 	}
 
 	public static Object getHandle(Player player) {
-		if(class_CraftPlayer == null) {
+		if (class_CraftPlayer == null) {
 			bindCraftPlayer(player);
 		}
 		try {
@@ -334,12 +335,12 @@ public class BukkitUnsafe {
 	private static Field field_realAddr_NetworkManager_address = null;
 
 	private static synchronized void bindRealAddress(Object networkManager) {
-		if(class_realAddr_NetworkManager != null) {
+		if (class_realAddr_NetworkManager != null) {
 			return;
 		}
-		class_realAddr_NetworkManager =  networkManager.getClass();
-		for(Field field : class_realAddr_NetworkManager.getDeclaredFields()) {
-			if(SocketAddress.class.isAssignableFrom(field.getType())) {
+		class_realAddr_NetworkManager = networkManager.getClass();
+		for (Field field : class_realAddr_NetworkManager.getDeclaredFields()) {
+			if (SocketAddress.class.isAssignableFrom(field.getType())) {
 				field.setAccessible(true);
 				field_realAddr_NetworkManager_address = field;
 				return;
@@ -350,7 +351,7 @@ public class BukkitUnsafe {
 	}
 
 	public static void updateRealAddress(Object networkManager, SocketAddress address) {
-		if(class_realAddr_NetworkManager == null) {
+		if (class_realAddr_NetworkManager == null) {
 			bindRealAddress(networkManager);
 		}
 		if (field_realAddr_NetworkManager_address != null
@@ -364,7 +365,7 @@ public class BukkitUnsafe {
 	}
 
 	public static void addPlayerChannel(Player player, String ch) {
-		if(class_CraftPlayer == null) {
+		if (class_CraftPlayer == null) {
 			bindCraftPlayer(player);
 		}
 		try {
@@ -380,8 +381,8 @@ public class BukkitUnsafe {
 
 		@Override
 		public void accept(ChannelInitializerHijacker c) {
-			synchronized(this) {
-				if(cleanup != null) {
+			synchronized (this) {
+				if (cleanup != null) {
 					cleanup.add(c);
 					return;
 				}
@@ -392,11 +393,11 @@ public class BukkitUnsafe {
 		@Override
 		public void run() {
 			List<ChannelInitializerHijacker> cc;
-			synchronized(this) {
+			synchronized (this) {
 				cc = new ArrayList<>(cleanup);
 				cleanup = null;
 			}
-			for(ChannelInitializerHijacker c : cc) {
+			for (ChannelInitializerHijacker c : cc) {
 				c.deactivate();
 			}
 		}
@@ -408,18 +409,22 @@ public class BukkitUnsafe {
 		public static final Key EAGLER_KEY = Key.key("eaglerxserver", "channel_initializer");
 	}
 
-	public static Runnable injectChannelInitializer(Server server, Consumer<Channel> initHandler, IEaglerXServerListener listener) {
+	public static Runnable injectChannelInitializer(Server server, Consumer<Channel> initHandler,
+			IEaglerXServerListener listener) {
 		Object eaglerKey;
 		Class<?> paperChannelInitHolder;
 		Class<?> paperChannelInitListener;
 		try {
-			eaglerKey = Class.forName("net.lax1dude.eaglercraft.backend.server.bukkit.BukkitUnsafe.KeyHolder").getField("EAGLER_KEY").get(null);
+			eaglerKey = Class.forName("net.lax1dude.eaglercraft.backend.server.bukkit.BukkitUnsafe.KeyHolder")
+					.getField("EAGLER_KEY").get(null);
 			paperChannelInitHolder = Class.forName("io.papermc.paper.network.ChannelInitializeListenerHolder");
 			paperChannelInitListener = Class.forName("io.papermc.paper.network.ChannelInitializeListener");
-		}catch(ClassNotFoundException | IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException ex) {
+		} catch (ClassNotFoundException | IllegalArgumentException | IllegalAccessException | NoSuchFieldException
+				| SecurityException ex) {
 			return injectChannelInitializerOld(server, initHandler, listener);
 		}
-		return injectChannelInitializerPaper(paperChannelInitHolder, paperChannelInitListener, eaglerKey, initHandler, listener);
+		return injectChannelInitializerPaper(paperChannelInitHolder, paperChannelInitListener, eaglerKey, initHandler,
+				listener);
 	}
 
 	private static Runnable injectChannelInitializerPaper(Class<?> paperChannelInitHolder,
@@ -443,35 +448,36 @@ public class BukkitUnsafe {
 		}
 	}
 
-	private static Runnable injectChannelInitializerOld(Server server, Consumer<Channel> initHandler, IEaglerXServerListener listener) {
+	private static Runnable injectChannelInitializerOld(Server server, Consumer<Channel> initHandler,
+			IEaglerXServerListener listener) {
 		try {
 			Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
 			Object minecraftServer = dedicatedPlayerList.getClass().getMethod("getServer").invoke(dedicatedPlayerList);
 			Method getServerConnection = minecraftServer.getClass().getMethod("getServerConnection");
 			Object serverConnection = getServerConnection.invoke(minecraftServer);
 			Class<?> serverConnectionClass;
-			if(serverConnection == null) {
+			if (serverConnection == null) {
 				serverConnectionClass = getServerConnection.getReturnType();
-				for(Method meth : minecraftServer.getClass().getMethods()) {
-					if(meth.getReturnType() == serverConnectionClass && !meth.equals(getServerConnection)) {
+				for (Method meth : minecraftServer.getClass().getMethods()) {
+					if (meth.getReturnType() == serverConnectionClass && !meth.equals(getServerConnection)) {
 						serverConnection = meth.invoke(minecraftServer);
-						if(serverConnection != null) {
+						if (serverConnection != null) {
 							break;
 						}
 					}
 				}
-				if(serverConnection == null) {
+				if (serverConnection == null) {
 					throw new RuntimeException("Could not get ServerConnection instance from server! (Try Paper)");
 				}
 			}
 			serverConnectionClass = serverConnection.getClass();
 			Field channelFuturesList = null;
-			for(Field f : serverConnectionClass.getDeclaredFields()) {
-				if(List.class.isAssignableFrom(f.getType())) {
+			for (Field f : serverConnectionClass.getDeclaredFields()) {
+				if (List.class.isAssignableFrom(f.getType())) {
 					Type t = f.getGenericType();
-					if(t instanceof ParameterizedType tt) {
+					if (t instanceof ParameterizedType tt) {
 						Type[] params = tt.getActualTypeArguments();
-						if(params.length == 1 && "io.netty.channel.ChannelFuture".equals(params[0].getTypeName())) {
+						if (params.length == 1 && "io.netty.channel.ChannelFuture".equals(params[0].getTypeName())) {
 							channelFuturesList = f;
 							channelFuturesList.setAccessible(true);
 							break;
@@ -479,12 +485,12 @@ public class BukkitUnsafe {
 					}
 				}
 			}
-			if(channelFuturesList == null) {
+			if (channelFuturesList == null) {
 				throw new RuntimeException("Could not get ServerConnection channel futures list! (Try Paper)");
 			}
 			CleanupList cleanupList = new CleanupList();
 			final List<ChannelFuture> oldList = (List<ChannelFuture>) channelFuturesList.get(serverConnection);
-			for(ChannelFuture ch : oldList) {
+			for (ChannelFuture ch : oldList) {
 				injectChannelInitializer(ch, listener, initHandler, cleanupList);
 			}
 			List<ChannelFuture> hackList = new ForwardingList<ChannelFuture>() {
@@ -492,6 +498,7 @@ public class BukkitUnsafe {
 				protected List<ChannelFuture> delegate() {
 					return oldList;
 				}
+
 				@Override
 				public boolean add(ChannelFuture element) {
 					super.add(element);
@@ -511,7 +518,7 @@ public class BukkitUnsafe {
 		channel.addListener(new ChannelFutureListener() {
 			@Override
 			public void operationComplete(ChannelFuture var1) throws Exception {
-				if(var1.isSuccess() && cleanupCallback.cleanup != null) {
+				if (var1.isSuccess() && cleanupCallback.cleanup != null) {
 					injectChannelInitializer(var1.channel(), listenerConf, initHandler, cleanupCallback);
 				}
 			}
@@ -525,25 +532,25 @@ public class BukkitUnsafe {
 		ChannelHandler foundHandler;
 		Field foundField;
 		eagler: {
-			for(String name : names) {
+			for (String name : names) {
 				ChannelHandler handler = channel.pipeline().get(name);
-				if(isServerInitializer(handler)) {
+				if (isServerInitializer(handler)) {
 					try {
 						foundField = handler.getClass().getDeclaredField("childHandler");
 						foundField.setAccessible(true);
 						foundHandler = handler;
 						break eagler;
-					}catch (IllegalArgumentException | NoSuchFieldException | SecurityException ex) {
+					} catch (IllegalArgumentException | NoSuchFieldException | SecurityException ex) {
 					}
 				}
 			}
 			foundHandler = channel.pipeline().first();
-			if(isServerInitializer(foundHandler)) {
+			if (isServerInitializer(foundHandler)) {
 				try {
 					foundField = foundHandler.getClass().getDeclaredField("childHandler");
 					foundField.setAccessible(true);
 					break eagler;
-				}catch (IllegalArgumentException | NoSuchFieldException | SecurityException ex) {
+				} catch (IllegalArgumentException | NoSuchFieldException | SecurityException ex) {
 					throw new RuntimeException("Could not find ChannelBootstrapAccelerator to inject into!");
 				}
 			}
@@ -583,14 +590,14 @@ public class BukkitUnsafe {
 				} catch (IllegalArgumentException | IllegalAccessException e) {
 					throw Util.propagateReflectThrowable(e);
 				}
-				if(this != newInitializer) {
+				if (this != newInitializer) {
 					System.err.println("Detected another plugin's channel initializer ("
 							+ newInitializer.getClass().getName() + ") injected into the pipeline, "
 							+ "reinjecting EaglerXServer again to make sure its first, because we "
 							+ "really are that rude");
 					injectInto(foundHandler, foundField, init, cleanupCallback);
 					return true;
-				}else {
+				} else {
 					return false;
 				}
 			}
@@ -613,20 +620,20 @@ public class BukkitUnsafe {
 			Field f = server.getClass().getDeclaredField("commandMap");
 			f.setAccessible(true);
 			return (CommandMap) f.get(server);
-		}catch(IllegalAccessException | NoSuchFieldException | SecurityException ex) {
+		} catch (IllegalAccessException | NoSuchFieldException | SecurityException ex) {
 			try {
 				Method m = server.getClass().getDeclaredMethod("getCommandMap");
 				m.setAccessible(true);
 				return (CommandMap) m.invoke(server);
-			} catch(ReflectiveOperationException ex1) {
+			} catch (ReflectiveOperationException ex1) {
 				throw Util.propagateReflectThrowable(ex1);
 			}
 		}
 	}
 
 	private static Field findField(Class<?> clazz, Class<?> fieldType) throws NoSuchFieldException {
-		for(Field field : clazz.getDeclaredFields()) {
-			if(field.getType() == fieldType) {
+		for (Field field : clazz.getDeclaredFields()) {
+			if (field.getType() == fieldType) {
 				field.setAccessible(true);
 				return field;
 			}
@@ -660,16 +667,17 @@ public class BukkitUnsafe {
 
 	public static EventLoopGroup getEventLoopGroup(Class<?> serverConnection, boolean enableNativeTransport) {
 		Field[] fields = serverConnection.getFields();
-		if(enableNativeTransport) {
-			for(Field field : fields) {
+		if (enableNativeTransport) {
+			for (Field field : fields) {
 				Class<?> clz = field.getType();
-				if(clz.getSimpleName().equals("LazyInitVar")) {
+				if (clz.getSimpleName().equals("LazyInitVar")) {
 					Type type = field.getGenericType();
-					if(type instanceof ParameterizedType tt) {
+					if (type instanceof ParameterizedType tt) {
 						Type[] args = tt.getActualTypeArguments();
-						if(args.length == 1 && "io.netty.channel.epoll.EpollEventLoopGroup".equals(args[0].getTypeName())) {
-							for(Method m : clz.getMethods()) {
-								if(m.getGenericReturnType() != m.getReturnType()) {
+						if (args.length == 1
+								&& "io.netty.channel.epoll.EpollEventLoopGroup".equals(args[0].getTypeName())) {
+							for (Method m : clz.getMethods()) {
+								if (m.getGenericReturnType() != m.getReturnType()) {
 									try {
 										return (EventLoopGroup) m.invoke(field.get(null));
 									} catch (ReflectiveOperationException e) {
@@ -682,15 +690,15 @@ public class BukkitUnsafe {
 				}
 			}
 		}
-		for(Field field : fields) {
+		for (Field field : fields) {
 			Class<?> clz = field.getType();
-			if(clz.getSimpleName().equals("LazyInitVar")) {
+			if (clz.getSimpleName().equals("LazyInitVar")) {
 				Type type = field.getGenericType();
-				if(type instanceof ParameterizedType tt) {
+				if (type instanceof ParameterizedType tt) {
 					Type[] args = tt.getActualTypeArguments();
-					if(args.length == 1 && "io.netty.channel.nio.NioEventLoopGroup".equals(args[0].getTypeName())) {
-						for(Method m : clz.getMethods()) {
-							if(m.getGenericReturnType() != m.getReturnType()) {
+					if (args.length == 1 && "io.netty.channel.nio.NioEventLoopGroup".equals(args[0].getTypeName())) {
+						for (Method m : clz.getMethods()) {
+							if (m.getGenericReturnType() != m.getReturnType()) {
 								try {
 									return (EventLoopGroup) m.invoke(field.get(null));
 								} catch (ReflectiveOperationException e) {

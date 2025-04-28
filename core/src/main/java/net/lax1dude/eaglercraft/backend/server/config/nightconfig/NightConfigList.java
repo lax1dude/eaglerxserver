@@ -34,6 +34,7 @@ public class NightConfigList implements IEaglerConfList {
 
 	public interface IContext {
 		void setComment(String comment);
+
 		CommentedConfig genSection();
 	}
 
@@ -80,6 +81,7 @@ public class NightConfigList implements IEaglerConfList {
 			@Override
 			public void setComment(String comment) {
 			}
+
 			@Override
 			public CommentedConfig genSection() {
 				return commentSetter.genSection();
@@ -108,19 +110,22 @@ public class NightConfigList implements IEaglerConfList {
 
 	@Override
 	public IEaglerConfSection getIfSection(int index) {
-		if(index < 0 || index >= data.size()) return null;
+		if (index < 0 || index >= data.size())
+			return null;
 		Object val = data.get(index);
 		return (val instanceof CommentedConfig vall) ? new NightConfigSection(owner, vall, null, true) : null;
 	}
 
 	@Override
 	public IEaglerConfList getIfList(int index) {
-		if(index < 0 || index >= data.size()) return null;
+		if (index < 0 || index >= data.size())
+			return null;
 		Object val = data.get(index);
 		return (val instanceof List) ? new NightConfigList(owner, (List<Object>) val, new IContext() {
 			@Override
 			public void setComment(String comment) {
 			}
+
 			@Override
 			public CommentedConfig genSection() {
 				return commentSetter.genSection();
@@ -130,26 +135,30 @@ public class NightConfigList implements IEaglerConfList {
 
 	@Override
 	public boolean isInteger(int index) {
-		if(index < 0 || index >= data.size()) return false;
+		if (index < 0 || index >= data.size())
+			return false;
 		return (data.get(index) instanceof Number);
 	}
 
 	@Override
 	public int getIfInteger(int index, int defaultVal) {
-		if(index < 0 || index >= data.size()) return defaultVal;
+		if (index < 0 || index >= data.size())
+			return defaultVal;
 		Object val = data.get(index);
 		return (val instanceof Number num) ? num.intValue() : defaultVal;
 	}
 
 	@Override
 	public boolean isString(int index) {
-		if(index < 0 || index >= data.size()) return false;
+		if (index < 0 || index >= data.size())
+			return false;
 		return (data.get(index) instanceof String);
 	}
 
 	@Override
 	public String getIfString(int index, String defaultVal) {
-		if(index < 0 || index >= data.size()) return defaultVal;
+		if (index < 0 || index >= data.size())
+			return defaultVal;
 		Object val = data.get(index);
 		return (val instanceof String str) ? str : defaultVal;
 	}

@@ -32,9 +32,9 @@ abstract class BaseCustomSkin implements IEaglerPlayerSkin {
 	protected abstract byte[] textureDataV4();
 
 	public int hashCode() {
-		if(hashCode == 0 && !hashZero) {
+		if (hashCode == 0 && !hashZero) {
 			hashCode = Arrays.hashCode(textureDataV4());
-			if(hashCode == 0) {
+			if (hashCode == 0) {
 				hashZero = true;
 			}
 		}

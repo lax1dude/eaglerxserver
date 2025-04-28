@@ -30,8 +30,7 @@ class BukkitRevokeSessionQueryEventImpl extends EaglercraftRevokeSessionQueryEve
 	private EnumSessionRevokeStatus result;
 	private boolean shouldDelete;
 
-	BukkitRevokeSessionQueryEventImpl(IEaglerXServerAPI<Player> api, IQueryConnection query,
-			byte[] cookieData) {
+	BukkitRevokeSessionQueryEventImpl(IEaglerXServerAPI<Player> api, IQueryConnection query, byte[] cookieData) {
 		this.api = api;
 		this.query = query;
 		this.cookieData = cookieData;
@@ -61,7 +60,7 @@ class BukkitRevokeSessionQueryEventImpl extends EaglercraftRevokeSessionQueryEve
 
 	@Override
 	public void setResultStatus(EnumSessionRevokeStatus result) {
-		if(result == null) {
+		if (result == null) {
 			throw new NullPointerException("result");
 		}
 		this.result = result;

@@ -40,13 +40,13 @@ class ValueString implements INBTValue<String> {
 
 	@Override
 	public void mutate(String value) throws IOException {
-		if(value == null) {
+		if (value == null) {
 			throw new NullPointerException("Cannot mutate to a null value");
 		}
-		if(done) {
+		if (done) {
 			throw new IllegalStateException();
 		}
-		if(resolved == null) {
+		if (resolved == null) {
 			dataSource.skipBytes(dataSource.readUnsignedShort());
 		}
 		resolved = value;
@@ -54,16 +54,16 @@ class ValueString implements INBTValue<String> {
 
 	@Override
 	public void write(DataOutput dataOutput, byte[] tmp) throws IOException {
-		if(done) {
+		if (done) {
 			throw new IllegalStateException();
 		}
-		if(resolved != null) {
+		if (resolved != null) {
 			dataOutput.writeUTF(resolved);
-		}else {
+		} else {
 			done = true;
 			int len = dataSource.readUnsignedShort();
 			dataOutput.writeShort(len);
-			while(len > 0) {
+			while (len > 0) {
 				int j = Math.min(tmp.length, len);
 				dataSource.readFully(tmp, 0, j);
 				dataOutput.write(tmp, 0, j);
@@ -74,19 +74,19 @@ class ValueString implements INBTValue<String> {
 
 	@Override
 	public String value() throws IOException {
-		if(done) {
+		if (done) {
 			throw new IllegalStateException();
 		}
-		if(resolved == null) {
+		if (resolved == null) {
 			resolved = dataSource.readUTF();
 		}
 		return resolved;
 	}
 
 	void finish() throws IOException {
-		if(!done) {
+		if (!done) {
 			done = true;
-			if(resolved == null) {
+			if (resolved == null) {
 				dataSource.skipBytes(dataSource.readUnsignedShort());
 			}
 		}

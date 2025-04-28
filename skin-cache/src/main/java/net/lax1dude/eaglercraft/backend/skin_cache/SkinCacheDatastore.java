@@ -73,18 +73,18 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 			inflater = compressionLevel > 0 ? new Inflater() : null;
 			try {
 				sha1Digest = MessageDigest.getInstance("SHA-1");
-			}catch(NoSuchAlgorithmException ex) {
+			} catch (NoSuchAlgorithmException ex) {
 				throw new RuntimeException("This JRE does not support SHA-1!", ex);
 			}
 			thread = new Thread(() -> {
-				while(!disposed) {
+				while (!disposed) {
 					try {
 						semaphore.acquire();
 						SkinCacheDatastoreRunnable runnable = databaseQueue.poll();
-						if(runnable != null) {
+						if (runnable != null) {
 							runnable.run(this);
 						}
-					}catch(Throwable ex) {
+					} catch (Throwable ex) {
 						logger.error("Caught exception in worker thread #" + (i + 1), ex);
 					}
 				}
@@ -98,10 +98,10 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 		public void dispose() {
 			skinEnv.dispose();
 			capeEnv.dispose();
-			if(deflater != null) {
+			if (deflater != null) {
 				deflater.end();
 			}
-			if(inflater != null) {
+			if (inflater != null) {
 				inflater.end();
 			}
 		}
@@ -124,7 +124,7 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 		disposed = false;
 		disposeLatch = new CountDownLatch(threadCount);
 		threads = new SkinCacheDatastoreThreadEnv[threadCount];
-		for(int i = 0; i < threadCount; ++i) {
+		for (int i = 0; i < threadCount; ++i) {
 			threads[i] = new SkinCacheDatastoreThreadEnv(i, compressionLevel, conn);
 		}
 	}
@@ -140,22 +140,22 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 			byte[] result;
 			try {
 				result = skin.loadSkin(env.skinEnv, skinURL);
-			}catch(SQLException ex) {
+			} catch (SQLException ex) {
 				logger.error("Could not load skin \"" + skinURL + "\" from database!");
 				callback.accept(null);
 				return;
 			}
-			if(result != null) {
+			if (result != null) {
 				byte[] res;
 				try {
 					res = decompressSkin(env, result, SKIN_LENGTH);
-				}catch(DataFormatException ex) {
+				} catch (DataFormatException ex) {
 					logger.warn("Skin \"" + skinURL + "\" could not be decompressed!");
 					callback.accept(null);
 					return;
 				}
 				callback.accept(res);
-			}else {
+			} else {
 				callback.accept(null);
 			}
 		});
@@ -167,35 +167,35 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 			byte[] result;
 			try {
 				result = cape.loadSkin(env.capeEnv, capeURL);
-			}catch(SQLException ex) {
+			} catch (SQLException ex) {
 				logger.error("Could not load cape \"" + capeURL + "\" from database!");
 				callback.accept(null);
 				return;
 			}
-			if(result != null) {
+			if (result != null) {
 				byte[] res;
 				try {
 					res = decompressSkin(env, result, CAPE_LENGTH);
-				}catch(DataFormatException ex) {
+				} catch (DataFormatException ex) {
 					logger.warn("Cape \"" + capeURL + "\" could not be decompressed!");
 					callback.accept(null);
 					return;
 				}
 				callback.accept(res);
-			}else {
+			} else {
 				callback.accept(null);
 			}
 		});
 	}
 
 	private byte[] decompressSkin(SkinCacheDatastoreThreadEnv env, byte[] input, int len) throws DataFormatException {
-		if(env.inflater == null && input.length == len) {
+		if (env.inflater == null && input.length == len) {
 			return input;
 		}
 		byte[] ret = new byte[len];
 		env.inflater.reset();
 		env.inflater.setInput(input, 0, input.length);
-		if(env.inflater.inflate(ret, 0, len) != len) {
+		if (env.inflater.inflate(ret, 0, len) != len) {
 			throw new DataFormatException();
 		}
 		return ret;
@@ -203,7 +203,7 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 
 	@Override
 	public void storeSkin(String skinURL, byte[] data) {
-		if(data.length != SKIN_LENGTH) {
+		if (data.length != SKIN_LENGTH) {
 			throw new IllegalArgumentException("Skin length is not " + SKIN_LENGTH + " bytes!");
 		}
 		execute((env) -> {
@@ -217,7 +217,7 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 
 	@Override
 	public void storeCape(String capeURL, byte[] data) {
-		if(data.length != CAPE_LENGTH) {
+		if (data.length != CAPE_LENGTH) {
 			throw new IllegalArgumentException("Cape length is not " + CAPE_LENGTH + " bytes!");
 		}
 		execute((env) -> {
@@ -230,14 +230,14 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 	}
 
 	private byte[] compressSkin(SkinCacheDatastoreThreadEnv env, byte[] data) {
-		if(env.deflater == null) {
+		if (env.deflater == null) {
 			return data;
 		}
 		env.deflater.reset();
 		env.deflater.setInput(data, 0, data.length);
 		env.deflater.finish();
 		int i = env.deflater.deflate(env.compressionTmp, 0, env.compressionTmp.length);
-		if(i <= 0) {
+		if (i <= 0) {
 			throw new IllegalStateException();
 		}
 		return Arrays.copyOf(env.compressionTmp, i);
@@ -251,11 +251,11 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 	@Override
 	public void tick() {
 		long millisSteady = SteadyTime.millis();
-		if(millisSteady - lastCleanup > (600l * 1000l)) {
+		if (millisSteady - lastCleanup > (600l * 1000l)) {
 			lastCleanup = millisSteady;
 			try {
 				runCleanup();
-			}catch(SQLException ex) {
+			} catch (SQLException ex) {
 				logger.error("Could not clean up skin cache!", ex);
 			}
 		}
@@ -282,7 +282,7 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 	}
 
 	static void disposeStmt(PreparedStatement stmt) {
-		if(stmt != null) {
+		if (stmt != null) {
 			try {
 				stmt.close();
 			} catch (SQLException e) {

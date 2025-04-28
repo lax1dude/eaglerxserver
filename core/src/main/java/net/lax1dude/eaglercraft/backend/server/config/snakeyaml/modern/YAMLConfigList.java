@@ -58,7 +58,7 @@ public class YAMLConfigList implements IEaglerConfList {
 
 	@Override
 	public void setComment(String comment) {
-		if(commentSetter != null) {
+		if (commentSetter != null) {
 			commentSetter.accept(comment);
 		}
 	}
@@ -103,11 +103,12 @@ public class YAMLConfigList implements IEaglerConfList {
 	@Override
 	public IEaglerConfSection getIfSection(int index) {
 		List<Node> lst = yaml.getValue();
-		if(index < 0 || index >= lst.size()) return null;
+		if (index < 0 || index >= lst.size())
+			return null;
 		Node t = lst.get(index);
-		if(t instanceof MappingNode tt) {
+		if (t instanceof MappingNode tt) {
 			return new YAMLConfigSection(owner, tt, null, true);
-		}else {
+		} else {
 			return null;
 		}
 	}
@@ -115,11 +116,12 @@ public class YAMLConfigList implements IEaglerConfList {
 	@Override
 	public IEaglerConfList getIfList(int index) {
 		List<Node> lst = yaml.getValue();
-		if(index < 0 || index >= lst.size()) return null;
+		if (index < 0 || index >= lst.size())
+			return null;
 		Node t = lst.get(index);
-		if(t instanceof SequenceNode tt) {
+		if (t instanceof SequenceNode tt) {
 			return new YAMLConfigList(owner, tt, null, true);
-		}else {
+		} else {
 			return null;
 		}
 	}
@@ -127,12 +129,13 @@ public class YAMLConfigList implements IEaglerConfList {
 	@Override
 	public boolean isInteger(int index) {
 		List<Node> lst = yaml.getValue();
-		if(index < 0 || index >= lst.size()) return false;
+		if (index < 0 || index >= lst.size())
+			return false;
 		Node t = lst.get(index);
-		if(t != null && (t instanceof ScalarNode tt)) {
+		if (t != null && (t instanceof ScalarNode tt)) {
 			try {
 				Double.parseDouble(tt.getValue());
-			}catch(NumberFormatException ex) {
+			} catch (NumberFormatException ex) {
 				return false;
 			}
 			return true;
@@ -143,12 +146,13 @@ public class YAMLConfigList implements IEaglerConfList {
 	@Override
 	public int getIfInteger(int index, int defaultVal) {
 		List<Node> lst = yaml.getValue();
-		if(index < 0 || index >= lst.size()) return defaultVal;
+		if (index < 0 || index >= lst.size())
+			return defaultVal;
 		Node t = lst.get(index);
-		if(t != null && (t instanceof ScalarNode tt)) {
+		if (t != null && (t instanceof ScalarNode tt)) {
 			try {
 				return (int) Double.parseDouble(tt.getValue());
-			}catch(NumberFormatException ex) {
+			} catch (NumberFormatException ex) {
 			}
 		}
 		return defaultVal;
@@ -157,9 +161,10 @@ public class YAMLConfigList implements IEaglerConfList {
 	@Override
 	public boolean isString(int index) {
 		List<Node> lst = yaml.getValue();
-		if(index < 0 || index >= lst.size()) return false;
+		if (index < 0 || index >= lst.size())
+			return false;
 		Node t = lst.get(index);
-		if(t != null && (t instanceof ScalarNode)) {
+		if (t != null && (t instanceof ScalarNode)) {
 			return true;
 		}
 		return false;
@@ -168,9 +173,10 @@ public class YAMLConfigList implements IEaglerConfList {
 	@Override
 	public String getIfString(int index, String defaultVal) {
 		List<Node> lst = yaml.getValue();
-		if(index < 0 || index >= lst.size()) return defaultVal;
+		if (index < 0 || index >= lst.size())
+			return defaultVal;
 		Node t = lst.get(index);
-		if(t != null && (t instanceof ScalarNode tt)) {
+		if (t != null && (t instanceof ScalarNode tt)) {
 			return tt.getValue();
 		}
 		return defaultVal;

@@ -117,9 +117,9 @@ public class SkinManagerVanillaOffline<PlayerObject> implements ISkinManagerBase
 
 	@Override
 	public void changePlayerSkin(IEaglerPlayerSkin newSkin, boolean notifyOthers) {
-		if(!newSkin.equals(skin)) {
+		if (!newSkin.equals(skin)) {
 			skin = newSkin;
-			if(notifyOthers) {
+			if (notifyOthers) {
 				SkinManagerHelper.notifyOthers(player, true, false);
 			}
 		}
@@ -132,9 +132,9 @@ public class SkinManagerVanillaOffline<PlayerObject> implements ISkinManagerBase
 
 	@Override
 	public void changePlayerCape(IEaglerPlayerCape newCape, boolean notifyOthers) {
-		if(!newCape.equals(cape)) {
+		if (!newCape.equals(cape)) {
 			cape = newCape;
-			if(notifyOthers) {
+			if (notifyOthers) {
 				SkinManagerHelper.notifyOthers(player, false, true);
 			}
 		}
@@ -148,14 +148,14 @@ public class SkinManagerVanillaOffline<PlayerObject> implements ISkinManagerBase
 	@Override
 	public void changePlayerTextures(IEaglerPlayerSkin newSkin, IEaglerPlayerCape newCape, boolean notifyOthers) {
 		boolean s = !newSkin.equals(skin), c = !newCape.equals(cape);
-		if(s || c) {
-			if(s) {
+		if (s || c) {
+			if (s) {
 				skin = newSkin;
 			}
-			if(c) {
+			if (c) {
 				cape = newCape;
 			}
-			if(notifyOthers) {
+			if (notifyOthers) {
 				SkinManagerHelper.notifyOthers(player, s, c);
 			}
 		}
@@ -163,7 +163,8 @@ public class SkinManagerVanillaOffline<PlayerObject> implements ISkinManagerBase
 
 	@Override
 	public void changePlayerTextures(EnumPresetSkins newSkin, EnumPresetCapes newCape, boolean notifyOthers) {
-		changePlayerTextures(InternUtils.getPresetSkin(newSkin.getId()), InternUtils.getPresetCape(newCape.getId()), notifyOthers);
+		changePlayerTextures(InternUtils.getPresetSkin(newSkin.getId()), InternUtils.getPresetCape(newCape.getId()),
+				notifyOthers);
 	}
 
 	@Override
@@ -180,14 +181,14 @@ public class SkinManagerVanillaOffline<PlayerObject> implements ISkinManagerBase
 	public void resetPlayerTextures(boolean notifyOthers) {
 		IEaglerPlayerCape oldCape = InternUtils.getPresetCape(0);
 		boolean s = !oldSkin.equals(skin), c = !oldCape.equals(cape);
-		if(s || c) {
-			if(s) {
+		if (s || c) {
+			if (s) {
 				skin = oldSkin;
 			}
-			if(c) {
+			if (c) {
 				cape = oldCape;
 			}
-			if(notifyOthers) {
+			if (notifyOthers) {
 				SkinManagerHelper.notifyOthers(player, s, c);
 			}
 		}

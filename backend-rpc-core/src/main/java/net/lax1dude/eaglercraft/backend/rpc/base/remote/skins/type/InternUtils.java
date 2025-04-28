@@ -29,24 +29,24 @@ public class InternUtils {
 	private static final Interner<PresetCapeGeneric> presetCapeInterner = Interners.newWeakInterner();
 
 	static {
-		for(int i = 0; i < POOL_SIZE; ++i) {
+		for (int i = 0; i < POOL_SIZE; ++i) {
 			presetSkinPool[i] = presetSkinInterner.intern(new PresetSkinGeneric(i));
 			presetCapePool[i] = presetCapeInterner.intern(new PresetCapeGeneric(i));
 		}
 	}
 
 	public static PresetSkinGeneric getPresetSkin(int presetId) {
-		if(presetId >= 0 && presetId < POOL_SIZE) {
+		if (presetId >= 0 && presetId < POOL_SIZE) {
 			return presetSkinPool[presetId];
-		}else {
+		} else {
 			return presetSkinInterner.intern(new PresetSkinGeneric(presetId));
 		}
 	}
 
 	public static PresetCapeGeneric getPresetCape(int presetId) {
-		if(presetId >= 0 && presetId < POOL_SIZE) {
+		if (presetId >= 0 && presetId < POOL_SIZE) {
 			return presetCapePool[presetId];
-		}else {
+		} else {
 			return presetCapeInterner.intern(new PresetCapeGeneric(presetId));
 		}
 	}

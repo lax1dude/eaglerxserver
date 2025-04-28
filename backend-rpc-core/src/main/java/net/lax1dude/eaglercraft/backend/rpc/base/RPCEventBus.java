@@ -50,8 +50,7 @@ public class RPCEventBus<PlayerObject> {
 		private final IPlatformLogger logger;
 		private final T event;
 
-		private RPCEventWrapper(IRPCEventHandler<PlayerObject, T> handler, IPlatformLogger logger,
-				T event) {
+		private RPCEventWrapper(IRPCEventHandler<PlayerObject, T> handler, IPlatformLogger logger, T event) {
 			this.handler = handler;
 			this.logger = logger;
 			this.event = event;
@@ -61,7 +60,7 @@ public class RPCEventBus<PlayerObject> {
 		public void run() {
 			try {
 				handler.handleEvent(owner, event.getEventType(), event);
-			}catch(Exception ex) {
+			} catch (Exception ex) {
 				logger.error("Caught exception while dispatching RPC event to handler: " + handler, ex);
 			}
 		}
@@ -74,22 +73,22 @@ public class RPCEventBus<PlayerObject> {
 		lock.readLock().lock();
 		try {
 			Set<IRPCEventHandler<PlayerObject, ? extends IRPCEvent>> h = handlers[eventType.getId()];
-			if(h == null) {
+			if (h == null) {
 				return;
 			}
 			tmp = h.toArray();
-		}finally {
+		} finally {
 			lock.readLock().unlock();
 		}
-		for(int i = 0; i < tmp.length; ++i) {
+		for (int i = 0; i < tmp.length; ++i) {
 			IRPCEventHandler<PlayerObject, T> handler = (IRPCEventHandler<PlayerObject, T>) tmp[i];
 			RPCEventWrapper<T> evt = new RPCEventWrapper<>(handler, logger, event);
 			EnumExecutorType type = handler.getExecutor();
-			if(type == EnumExecutorType.SYNC) {
+			if (type == EnumExecutorType.SYNC) {
 				scheduler.execute(evt);
-			}else if(type == EnumExecutorType.ASYNC) {
+			} else if (type == EnumExecutorType.ASYNC) {
 				scheduler.executeAsync(evt);
-			}else {
+			} else {
 				evt.run();
 			}
 		}
@@ -101,25 +100,25 @@ public class RPCEventBus<PlayerObject> {
 		lock.readLock().lock();
 		try {
 			Set<IRPCEventHandler<PlayerObject, ? extends IRPCEvent>> h = handlers[eventType.getId()];
-			if(h == null) {
+			if (h == null) {
 				return;
 			}
 			tmp = h.toArray();
-		}finally {
+		} finally {
 			lock.readLock().unlock();
 		}
 		int j = tmp.length;
-		if(j > 0) {
+		if (j > 0) {
 			T evtObj = conv.apply(event);
-			for(int i = 0; i < j; ++i) {
+			for (int i = 0; i < j; ++i) {
 				IRPCEventHandler<PlayerObject, T> handler = (IRPCEventHandler<PlayerObject, T>) tmp[i];
 				RPCEventWrapper<T> evt = new RPCEventWrapper<>(handler, logger, evtObj);
 				EnumExecutorType type = handler.getExecutor();
-				if(type == EnumExecutorType.SYNC) {
+				if (type == EnumExecutorType.SYNC) {
 					scheduler.execute(evt);
-				}else if(type == EnumExecutorType.ASYNC) {
+				} else if (type == EnumExecutorType.ASYNC) {
 					scheduler.executeAsync(evt);
-				}else {
+				} else {
 					evt.run();
 				}
 			}
@@ -132,15 +131,15 @@ public class RPCEventBus<PlayerObject> {
 		lock.writeLock().lock();
 		try {
 			Set<IRPCEventHandler<PlayerObject, ? extends IRPCEvent>> h = handlers[id];
-			if(h == null) {
+			if (h == null) {
 				handlers[id] = h = Sets.newIdentityHashSet();
 				h.add(handler);
 				return subscribed |= eventType.getBit();
-			}else {
+			} else {
 				h.add(handler);
 				return -1;
 			}
-		}finally {
+		} finally {
 			lock.writeLock().unlock();
 		}
 	}
@@ -151,13 +150,13 @@ public class RPCEventBus<PlayerObject> {
 		lock.writeLock().lock();
 		try {
 			Set<IRPCEventHandler<PlayerObject, ? extends IRPCEvent>> h = handlers[id];
-			if(h != null && h.remove(handler) && h.isEmpty()) {
+			if (h != null && h.remove(handler) && h.isEmpty()) {
 				handlers[id] = null;
 				return subscribed ^= eventType.getBit();
-			}else {
+			} else {
 				return -1;
 			}
-		}finally {
+		} finally {
 			lock.writeLock().unlock();
 		}
 	}

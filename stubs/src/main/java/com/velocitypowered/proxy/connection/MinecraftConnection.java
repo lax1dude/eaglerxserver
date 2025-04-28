@@ -24,7 +24,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 
 // For performance, these functions will be called directly
 public class MinecraftConnection extends ChannelInboundHandlerAdapter {
-	
+
 	public Channel getChannel() {
 		return null;
 	}
@@ -38,11 +38,11 @@ public class MinecraftConnection extends ChannelInboundHandlerAdapter {
 	}
 
 	public void closeWith(Object msg) {
-		
+
 	}
 
 	public void close() {
-		
+
 	}
 
 }

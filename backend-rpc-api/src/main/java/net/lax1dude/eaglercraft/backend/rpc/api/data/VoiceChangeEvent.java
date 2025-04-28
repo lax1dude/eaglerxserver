@@ -26,10 +26,10 @@ public final class VoiceChangeEvent implements IRPCEvent {
 
 	@Nonnull
 	public static VoiceChangeEvent create(@Nonnull EnumVoiceState oldState, @Nonnull EnumVoiceState newState) {
-		if(oldState == null) {
+		if (oldState == null) {
 			throw new NullPointerException("oldState");
 		}
-		if(newState == null) {
+		if (newState == null) {
 			throw new NullPointerException("newState");
 		}
 		return new VoiceChangeEvent(oldState, newState);

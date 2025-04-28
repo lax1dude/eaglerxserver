@@ -28,17 +28,18 @@ public class NBTVisitorReader {
 
 	public static void read(DataInput dataInput, INBTVisitor visitor, IWrapperFactory wrapper) throws IOException {
 		int type = dataInput.readUnsignedByte();
-		if(type != 10) {
+		if (type != 10) {
 			throw new IOException("Root tag is not a compound tag!");
 		}
 		dataInput.skipBytes(dataInput.readUnsignedShort());
 		readCompound(dataInput, 0, visitor.visitRootTag(EnumDataType.COMPOUND), wrapper);
 	}
 
-	private static void readCompound(DataInput dataInput, int lvl, INBTVisitor visitor, IWrapperFactory wrapper) throws IOException {
-		for(;;) {
+	private static void readCompound(DataInput dataInput, int lvl, INBTVisitor visitor, IWrapperFactory wrapper)
+			throws IOException {
+		for (;;) {
 			int type = dataInput.readUnsignedByte();
-			if(type == 0) {
+			if (type == 0) {
 				break;
 			}
 			EnumDataType typeEnum = parseTag(type);
@@ -50,11 +51,12 @@ public class NBTVisitorReader {
 		visitor.visitTagEnd();
 	}
 
-	private static void readValue(DataInput dataInput, int lvl, int type, INBTVisitor visitor, IWrapperFactory wrapper) throws IOException {
-		if(lvl > MAX_RECURSION) {
+	private static void readValue(DataInput dataInput, int lvl, int type, INBTVisitor visitor, IWrapperFactory wrapper)
+			throws IOException {
+		if (lvl > MAX_RECURSION) {
 			throw new IOException("Reached tag recursion limit");
 		}
-		switch(type) {
+		switch (type) {
 		case 1:
 			visitor.visitTagByte(dataInput.readByte());
 			break;
@@ -88,19 +90,19 @@ public class NBTVisitorReader {
 		case 9: {
 			int listTypeId = dataInput.readUnsignedByte();
 			int len = dataInput.readInt();
-			if(listTypeId == 0) {
-				if(len != 0) {
+			if (listTypeId == 0) {
+				if (len != 0) {
 					throw new IOException("Invalid list length for empty list: " + len);
 				}
 				visitor.visitTagList(EnumDataType.NONE, 0);
 				break;
 			}
 			EnumDataType listType = parseTag(listTypeId);
-			if(len < 0) {
+			if (len < 0) {
 				throw new IOException("Invalid list length: " + len);
 			}
 			INBTVisitor visitor2 = visitor.visitTagList(listType, len);
-			for(int i = 0; i < len; ++i) {
+			for (int i = 0; i < len; ++i) {
 				readValue(dataInput, lvl + 1, listTypeId, visitor2, wrapper);
 			}
 			break;
@@ -127,7 +129,7 @@ public class NBTVisitorReader {
 
 	private static EnumDataType parseTag(int type) throws IOException {
 		EnumDataType ret = EnumDataType.getById(type);
-		if(ret == null) {
+		if (ret == null) {
 			throw new IOException("Unknown tag type: " + type);
 		}
 		return ret;

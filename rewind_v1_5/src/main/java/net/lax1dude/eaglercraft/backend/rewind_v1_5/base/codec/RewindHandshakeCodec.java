@@ -30,7 +30,8 @@ import net.lax1dude.eaglercraft.backend.server.api.rewind.IPacket2ClientProtocol
 
 public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Codec<PlayerObject> {
 
-	private static final int CAPABILITIES_MASK = EnumCapabilityType.VOICE.getBit() | EnumCapabilityType.REDIRECT.getBit();
+	private static final int CAPABILITIES_MASK = EnumCapabilityType.VOICE.getBit()
+			| EnumCapabilityType.REDIRECT.getBit();
 	private static final int[] CAPABILITIES_VER = new int[] { 1, 1 };
 
 	private static final byte[] REWIND_STR = "rewind".getBytes(StandardCharsets.US_ASCII);
@@ -57,10 +58,10 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
-		if(state != STATE_COMPLETED) {
+		if (state != STATE_COMPLETED) {
 			try {
 				int type = buf.readUnsignedByte();
-				switch(type) {
+				switch (type) {
 				case 0xCD: // Packet205ClientCommand
 					handleClientClientCommand(ctx, buf, out);
 					break;
@@ -71,7 +72,7 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 					handleUnexpectedClientPacket(ctx, type);
 					break;
 				}
-			}catch(IndexOutOfBoundsException ex) {
+			} catch (IndexOutOfBoundsException ex) {
 				state = STATE_COMPLETED;
 				ctx.close();
 			}
@@ -79,21 +80,21 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 	}
 
 	private void handleClientClientCommand(ChannelHandlerContext ctx, ByteBuf buf, List<Object> output) {
-		if(buf.readUnsignedByte() != 0) {
+		if (buf.readUnsignedByte() != 0) {
 			handleUnexpectedClientPacket(ctx, 0xCD);
 		}
-		if(buf.isReadable()) {
+		if (buf.isReadable()) {
 			throw new IndexOutOfBoundsException();
 		}
-		if(state == STATE_SENT_RECEIVED_ALLOW_LOGIN) {
+		if (state == STATE_SENT_RECEIVED_ALLOW_LOGIN) {
 			state = STATE_STALLING;
 			boolean skin = false, cape = false;
 			int total = 1;
-			if(skinData != null && skinData != ERR) {
+			if (skinData != null && skinData != ERR) {
 				skin = true;
 				++total;
 			}
-			if(capeData != null && capeData != ERR) {
+			if (capeData != null && capeData != ERR) {
 				cape = true;
 				++total;
 			}
@@ -102,13 +103,13 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 				// PROTOCOL_CLIENT_PROFILE_DATA
 				packet.writeByte(0x07);
 				packet.writeByte(total);
-				if(skin) {
+				if (skin) {
 					packet.writeByte(SKIN_V1_STR.length);
 					packet.writeBytes(SKIN_V1_STR);
 					packet.writeShort(skinData.length);
 					packet.writeBytes(skinData);
 				}
-				if(cape) {
+				if (cape) {
 					packet.writeByte(CAPE_V1_STR.length);
 					packet.writeBytes(CAPE_V1_STR);
 					packet.writeShort(capeData.length);
@@ -121,7 +122,7 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 				packet.writeLong(uuid.getMostSignificantBits());
 				packet.writeLong(uuid.getLeastSignificantBits());
 				output.add(packet.retain());
-			}finally {
+			} finally {
 				packet.release();
 				skinData = null;
 				capeData = null;
@@ -132,71 +133,72 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 				packet.writeByte(0x08);
 				state = STATE_SENT_FINISH_LOGIN;
 				output.add(packet.retain());
-			}finally {
+			} finally {
 				packet.release();
 			}
-		}else {
+		} else {
 			handleUnexpectedClientPacket(ctx, 0xCD);
 		}
 	}
 
 	private void handleClientCustomPayload(ChannelHandlerContext ctx, ByteBuf buf) {
-		if(state == STATE_SENT_HANDSHAKE || state == STATE_SENT_REQUESTED_LOGIN || state == STATE_SENT_RECEIVED_ALLOW_LOGIN) {
+		if (state == STATE_SENT_HANDSHAKE || state == STATE_SENT_REQUESTED_LOGIN
+				|| state == STATE_SENT_RECEIVED_ALLOW_LOGIN) {
 			String channelName = BufferUtils.readLegacyMCString(buf, 20);
-			if("EAG|MySkin".equals(channelName)) {
+			if ("EAG|MySkin".equals(channelName)) {
 				int len = buf.readShort();
-				if(len > 0 && len < 32767) {
+				if (len > 0 && len < 32767) {
 					ByteBuf buf2 = buf.readSlice(len);
-					if(buf.isReadable()) {
+					if (buf.isReadable()) {
 						throw new IndexOutOfBoundsException();
 					}
 					handleEagMySkin(ctx, buf2);
 				}
-			}else if("EAG|MyCape".equals(channelName)) {
+			} else if ("EAG|MyCape".equals(channelName)) {
 				int len = buf.readShort();
-				if(len > 0 && len < 32767) {
+				if (len > 0 && len < 32767) {
 					ByteBuf buf2 = buf.readSlice(len);
-					if(buf.isReadable()) {
+					if (buf.isReadable()) {
 						throw new IndexOutOfBoundsException();
 					}
 					handleEagMyCape(ctx, buf2);
 				}
-			}else {
+			} else {
 				handleUnexpectedClientPacket(ctx, 0xFA);
 			}
-		}else {
+		} else {
 			handleUnexpectedClientPacket(ctx, 0xFA);
 		}
 	}
 
 	private void handleEagMySkin(ChannelHandlerContext ctx, ByteBuf data) {
-		if(skinData != null) {
+		if (skinData != null) {
 			handleUnexpectedClientPacket(ctx, 0xFA);
 			return;
 		}
 		skinData = SkinPacketUtils.rewriteLegacyHandshakeSkinToV1(data);
-		if(skinData == null) {
+		if (skinData == null) {
 			skinData = ERR;
 		}
 	}
 
 	private void handleEagMyCape(ChannelHandlerContext ctx, ByteBuf data) {
-		if(capeData != null) {
+		if (capeData != null) {
 			handleUnexpectedClientPacket(ctx, 0xFA);
 			return;
 		}
 		capeData = SkinPacketUtils.rewriteLegacyHandshakeCapeToV1(data);
-		if(capeData == null) {
+		if (capeData == null) {
 			capeData = ERR;
 		}
 	}
 
 	@Override
 	protected void encode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
-		if(state != STATE_COMPLETED && buf.readableBytes() >= 1) {
+		if (state != STATE_COMPLETED && buf.readableBytes() >= 1) {
 			try {
 				int type = buf.readUnsignedByte();
-				switch(type) {
+				switch (type) {
 				case 0x02: // PROTOCOL_SERVER_VERISON
 					handleServerVersion(ctx, buf);
 					break;
@@ -222,13 +224,13 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 					handleUnexpectedServerPacket(ctx, type);
 					break;
 				}
-			}catch(IndexOutOfBoundsException ex) {
+			} catch (IndexOutOfBoundsException ex) {
 				state = STATE_COMPLETED;
 				ctx.close();
 				logger().error("Failed to decode response from backend", ex);
 			}
 		}
-		if(out.isEmpty()) {
+		if (out.isEmpty()) {
 			out.add(Unpooled.EMPTY_BUFFER); // :(
 		}
 	}
@@ -240,20 +242,21 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 			packet.writeByte(0xFF);
 			BufferUtils.writeLegacyMCString(packet, "Internal Error", 256);
 			ctx.writeAndFlush(packet.retain()).addListener(ChannelFutureListener.CLOSE);
-		}finally {
+		} finally {
 			packet.release();
 		}
 	}
 
 	private void handleServerVersion(ChannelHandlerContext ctx, ByteBuf buf) {
-		if(state == STATE_SENT_HANDSHAKE) {
+		if (state == STATE_SENT_HANDSHAKE) {
 			state = STATE_STALLING;
 			int protocolVers = buf.readUnsignedShort();
 			int gameVers = buf.readUnsignedShort();
-			if(protocolVers != 5 || gameVers != 47) {
+			if (protocolVers != 5 || gameVers != 47) {
 				state = STATE_COMPLETED;
 				kickClient(ctx);
-				logger().error("Backend response does not match the requested protocol: V" + protocolVers + ", mc" + gameVers);
+				logger().error(
+						"Backend response does not match the requested protocol: V" + protocolVers + ", mc" + gameVers);
 				return;
 			}
 			ByteBuf packet = ctx.alloc().buffer();
@@ -268,44 +271,44 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 				packet.writeBoolean(false);
 				packet.writeByte(0);
 				BufferUtils.writeVarInt(packet, CAPABILITIES_MASK);
-				for(int i = 0; i < CAPABILITIES_VER.length; ++i) {
+				for (int i = 0; i < CAPABILITIES_VER.length; ++i) {
 					BufferUtils.writeVarInt(packet, CAPABILITIES_VER[i]);
 				}
 				packet.writeByte(0);
 				state = STATE_SENT_REQUESTED_LOGIN;
 				ctx.fireChannelRead(packet.retain());
-			}finally {
+			} finally {
 				packet.release();
 			}
-		}else {
+		} else {
 			handleUnexpectedServerPacket(ctx, 0x02);
 		}
 	}
 
 	private void handleServerVersionMismatch(ChannelHandlerContext ctx, ByteBuf buf) {
-		if(state == STATE_SENT_HANDSHAKE) {
+		if (state == STATE_SENT_HANDSHAKE) {
 			state = STATE_COMPLETED;
 			kickClient(ctx);
 			logger().error("Backend responded with PROTOCOL_VERISON_MISMATCH to requested protocol: V5, mc47");
-		}else {
+		} else {
 			handleUnexpectedServerPacket(ctx, 0x03);
 		}
 	}
 
 	private void handleServerAllowLogin(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) {
-		if(state == STATE_SENT_REQUESTED_LOGIN) {
+		if (state == STATE_SENT_REQUESTED_LOGIN) {
 			state = STATE_STALLING;
-			
+
 			int usernameLen = buf.readUnsignedByte();
-			if(!charSeqEqual(BufferUtils.readCharSequence(buf, usernameLen, StandardCharsets.US_ASCII), username)) {
+			if (!charSeqEqual(BufferUtils.readCharSequence(buf, usernameLen, StandardCharsets.US_ASCII), username)) {
 				state = STATE_COMPLETED;
 				kickClient(ctx);
 				logger().error("Backend assigned an unexpected username");
 				return;
 			}
-			
+
 			buf.skipBytes(16); // skip uuid
-			
+
 			ByteBuf packet = ctx.alloc().buffer();
 			try {
 				// Packet252SharedKey
@@ -314,21 +317,21 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 				packet.writeShort(0);
 				out.add(packet.retain());
 				state = STATE_SENT_RECEIVED_ALLOW_LOGIN;
-			}finally {
+			} finally {
 				packet.release();
 			}
-		}else {
+		} else {
 			handleUnexpectedServerPacket(ctx, 0x05);
 		}
 	}
 
 	private boolean charSeqEqual(CharSequence seq1, String seq2) {
 		int l = seq1.length();
-		if(l != seq2.length()) {
+		if (l != seq2.length()) {
 			return false;
 		}
-		for(int i = 0; i < l; ++i) {
-			if(seq1.charAt(i) != seq2.charAt(i)) {
+		for (int i = 0; i < l; ++i) {
+			if (seq1.charAt(i) != seq2.charAt(i)) {
 				return false;
 			}
 		}
@@ -336,17 +339,17 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 	}
 
 	private void handleServerDenyLogin(ChannelHandlerContext ctx, ByteBuf buf) {
-		if(state == STATE_SENT_REQUESTED_LOGIN) {
+		if (state == STATE_SENT_REQUESTED_LOGIN) {
 			state = STATE_STALLING;
 			int len = buf.readUnsignedShort();
 			String json = BufferUtils.readCharSequence(buf, len, StandardCharsets.UTF_8).toString();
-			if(json.startsWith("{")) {
+			if (json.startsWith("{")) {
 				try {
 					json = serverAPI().getComponentHelper().convertJSONToLegacySection(json);
-				}catch(Exception ex) {
+				} catch (Exception ex) {
 				}
 			}
-			if(json.length() > 256) {
+			if (json.length() > 256) {
 				json = json.substring(0, 256);
 			}
 			ByteBuf packet = ctx.alloc().buffer();
@@ -356,19 +359,19 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 				BufferUtils.writeLegacyMCString(packet, json, 256);
 				state = STATE_COMPLETED;
 				ctx.writeAndFlush(packet.retain()).addListener(ChannelFutureListener.CLOSE);
-			}finally {
+			} finally {
 				packet.release();
 			}
-		}else {
+		} else {
 			handleUnexpectedServerPacket(ctx, 0x06);
 		}
 	}
 
 	private void handleServerFinishLogin(ChannelHandlerContext ctx, ByteBuf buf) {
-		if(state == STATE_SENT_FINISH_LOGIN) {
+		if (state == STATE_SENT_FINISH_LOGIN) {
 			state = STATE_COMPLETED;
 			enterPlayState();
-		}else {
+		} else {
 			handleUnexpectedServerPacket(ctx, 0x09);
 		}
 	}
@@ -390,13 +393,13 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 		buf.writeByte(0);
 		buf.writeByte(0xFA);
 		buf.writeShort(len);
-		for(int i = 0; i < len; ++i) {
+		for (int i = 0; i < len; ++i) {
 			buf.writeChar(str.charAt(i));
 		}
 	}
 
 	private void handleServerRedirectTo(ChannelHandlerContext ctx, ByteBuf buf) {
-		if(state == STATE_SENT_REQUESTED_LOGIN) {
+		if (state == STATE_SENT_REQUESTED_LOGIN) {
 			state = STATE_COMPLETED;
 			int len = buf.readUnsignedShort();
 			ByteBuf packet = ctx.alloc().buffer(LEGACY_REDIRECT.length + len + 2);
@@ -404,10 +407,10 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 				packet.writeBytes(LEGACY_REDIRECT);
 				packet.writeBytes(buf, buf.readerIndex() - 2, len + 2);
 				ctx.writeAndFlush(packet.retain()).addListener(ChannelFutureListener.CLOSE);
-			}finally {
+			} finally {
 				packet.release();
 			}
-		}else {
+		} else {
 			handleUnexpectedServerPacket(ctx, 0x0A);
 		}
 	}
@@ -417,13 +420,13 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 		int errorCode = buf.readUnsignedByte();
 		int stringLen = buf.readUnsignedShort();
 		String str = BufferUtils.readCharSequence(buf, stringLen, StandardCharsets.UTF_8).toString();
-		if(errorCode == 0x08) {
+		if (errorCode == 0x08) {
 			// SERVER_ERROR_CUSTOM_MESSAGE
 			String str2 = str;
-			if(str2.startsWith("{")) {
+			if (str2.startsWith("{")) {
 				try {
 					str2 = serverAPI().getComponentHelper().convertJSONToLegacySection(str2);
-				}catch(Exception ex) {
+				} catch (Exception ex) {
 				}
 			}
 			ByteBuf packet = ctx.alloc().buffer();
@@ -432,10 +435,10 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 				packet.writeByte(0xFF);
 				BufferUtils.writeLegacyMCString(packet, str2, 256);
 				ctx.writeAndFlush(packet.retain()).addListener(ChannelFutureListener.CLOSE);
-			}finally {
+			} finally {
 				packet.release();
 			}
-		}else {
+		} else {
 			kickClient(ctx);
 		}
 		logger().error("Received error code " + errorCode + " from server: \"" + str + "\"");

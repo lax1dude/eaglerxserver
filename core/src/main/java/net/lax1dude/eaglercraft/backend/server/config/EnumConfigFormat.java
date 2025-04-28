@@ -71,7 +71,7 @@ public enum EnumConfigFormat {
 	}
 
 	public boolean isSupported() {
-		if(supported == 0) {
+		if (supported == 0) {
 			supported = classAvailable(depends) ? 2 : 1;
 		}
 		return supported == 2;
@@ -79,8 +79,8 @@ public enum EnumConfigFormat {
 
 	public static Set<EnumConfigFormat> getSupported() {
 		Set<EnumConfigFormat> ret = EnumSet.noneOf(EnumConfigFormat.class);
-		for(EnumConfigFormat fmt : values()) {
-			if(fmt.isSupported()) {
+		for (EnumConfigFormat fmt : values()) {
+			if (fmt.isSupported()) {
 				ret.add(fmt);
 			}
 		}
@@ -91,7 +91,7 @@ public enum EnumConfigFormat {
 		try {
 			Class.forName(name);
 			return true;
-		}catch(ClassNotFoundException ex) {
+		} catch (ClassNotFoundException ex) {
 			return false;
 		}
 	}

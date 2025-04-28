@@ -36,9 +36,9 @@ class CommandEaglerWeb extends Command {
 
 	@Override
 	public void execute(CommandSender sender, String[] args) {
-		if(args.length == 1 && "refresh".equalsIgnoreCase(args[0])) {
+		if (args.length == 1 && "refresh".equalsIgnoreCase(args[0])) {
 			IEaglerWebPlatform.IHandleRefresh handler = plugin.handleRefresh;
-			if(handler == null) {
+			if (handler == null) {
 				BaseComponent comp = new TextComponent("Plugin is not enabled!");
 				comp.setColor(ChatColor.RED);
 				sender.sendMessage(comp);
@@ -50,7 +50,7 @@ class CommandEaglerWeb extends Command {
 			int cnt;
 			try {
 				cnt = handler.refresh();
-			}catch(IOException ex) {
+			} catch (IOException ex) {
 				plugin.logger().error("Failed to index pages!", ex);
 				comp = new TextComponent("Failed to index pages! (Check Proxy Log)");
 				comp.setColor(ChatColor.RED);
@@ -63,7 +63,7 @@ class CommandEaglerWeb extends Command {
 			comp = new TextComponent("Indexed " + cnt + " pages total!");
 			comp.setColor(ChatColor.AQUA);
 			sender.sendMessage(comp);
-		}else {
+		} else {
 			BaseComponent comp = new TextComponent("Usage: /eaglerweb refresh");
 			comp.setColor(ChatColor.RED);
 			sender.sendMessage(comp);

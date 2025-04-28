@@ -46,7 +46,7 @@ public class HandshakerV1 extends HandshakerInstance {
 	public void handleInbound(ChannelHandlerContext ctx, ByteBuf buffer) {
 		try {
 			int packetId = buffer.readUnsignedByte();
-			switch(packetId) {
+			switch (packetId) {
 			case HandshakePacketTypes.PROTOCOL_CLIENT_REQUEST_LOGIN:
 				handleInboundRequestLogin(ctx, buffer);
 				break;
@@ -60,10 +60,10 @@ public class HandshakerV1 extends HandshakerInstance {
 				handleUnknownPacket(ctx, packetId);
 				break;
 			}
-		}catch(IndexOutOfBoundsException ex) {
+		} catch (IndexOutOfBoundsException ex) {
 			ex.printStackTrace();
 			handleInvalidData(ctx);
-		}catch(Throwable ex) {
+		} catch (Throwable ex) {
 			ex.printStackTrace();
 		}
 	}
@@ -76,7 +76,7 @@ public class HandshakerV1 extends HandshakerInstance {
 		strlen = buffer.readUnsignedByte();
 		byte[] authPassword = Util.newByteArray(strlen);
 		buffer.readBytes(authPassword);
-		if(buffer.isReadable()) {
+		if (buffer.isReadable()) {
 			throw new IndexOutOfBoundsException();
 		}
 		handlePacketRequestLogin(ctx, username, requestedServer, authPassword, false, Util.ZERO_BYTES,
@@ -97,14 +97,14 @@ public class HandshakerV1 extends HandshakerInstance {
 		strlen = buffer.readUnsignedShort();
 		byte[] readData = Util.newByteArray(strlen);
 		buffer.readBytes(readData);
-		if(buffer.isReadable()) {
+		if (buffer.isReadable()) {
 			throw new IndexOutOfBoundsException();
 		}
 		handlePacketProfileData(ctx, type, readData);
 	}
 
 	protected void handleInboundFinishLogin(ChannelHandlerContext ctx, ByteBuf buffer) {
-		if(buffer.isReadable()) {
+		if (buffer.isReadable()) {
 			throw new IndexOutOfBoundsException();
 		}
 		handlePacketFinishLogin(ctx);
@@ -133,28 +133,28 @@ public class HandshakerV1 extends HandshakerInstance {
 		try {
 			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
 			buffer.writeByte(1);
-			
+
 			int len = serverBrand.length();
-			if(len > 255) {
+			if (len > 255) {
 				serverBrand = serverBrand.substring(0, 255);
 				len = 255;
 			}
 			buffer.writeByte(len);
 			BufferUtils.writeCharSequence(buffer, serverBrand, StandardCharsets.US_ASCII);
-			
+
 			len = serverVersion.length();
-			if(len > 255) {
+			if (len > 255) {
 				serverVersion = serverVersion.substring(0, 255);
 				len = 255;
 			}
 			buffer.writeByte(len);
 			BufferUtils.writeCharSequence(buffer, serverVersion, StandardCharsets.US_ASCII);
-			
+
 			buffer.writeByte(0);
 			buffer.writeShort(0);
-			
+
 			return ctx.writeAndFlush(buffer.retain());
-		}finally {
+		} finally {
 			buffer.release();
 		}
 	}
@@ -162,7 +162,8 @@ public class HandshakerV1 extends HandshakerInstance {
 	@Override
 	protected ChannelFuture sendPacketVersionAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
 			int selectedMinecraftProtocol, String serverBrand, String serverVersion,
-			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData, boolean nicknameSelection) {
+			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData,
+			boolean nicknameSelection) {
 		throw new IllegalStateException();
 	}
 
@@ -177,7 +178,7 @@ public class HandshakerV1 extends HandshakerInstance {
 			buffer.writeLong(setUUID.getMostSignificantBits());
 			buffer.writeLong(setUUID.getLeastSignificantBits());
 			return ctx.writeAndFlush(buffer.retain());
-		}finally {
+		} finally {
 			buffer.release();
 		}
 	}
@@ -189,7 +190,7 @@ public class HandshakerV1 extends HandshakerInstance {
 
 	@Override
 	protected ChannelFuture sendPacketDenyLogin(ChannelHandlerContext ctx, String message) {
-		if(message.length() > 255) {
+		if (message.length() > 255) {
 			message = message.substring(0, 255);
 		}
 		ByteBuf buffer = ctx.alloc().buffer();
@@ -197,13 +198,13 @@ public class HandshakerV1 extends HandshakerInstance {
 			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_DENY_LOGIN);
 			byte[] msg = message.getBytes(StandardCharsets.UTF_8);
 			int len = msg.length;
-			if(len > 255) {
+			if (len > 255) {
 				len = 255;
 			}
 			buffer.writeByte(len);
 			buffer.writeBytes(msg, 0, len);
 			return ctx.writeAndFlush(buffer.retain());
-		}finally {
+		} finally {
 			buffer.release();
 		}
 	}
@@ -214,7 +215,7 @@ public class HandshakerV1 extends HandshakerInstance {
 		try {
 			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_FINISH_LOGIN);
 			return ctx.writeAndFlush(buffer.retain());
-		}finally {
+		} finally {
 			buffer.release();
 		}
 	}

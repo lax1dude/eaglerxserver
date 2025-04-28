@@ -23,11 +23,11 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 public class UnsafeUtil {
 
 	public static byte[] unsafeGetPixelsDirect(IEaglerPlayerSkin skin) {
-		return ((BaseCustomSkin)skin).textureDataV4();
+		return ((BaseCustomSkin) skin).textureDataV4();
 	}
 
 	public static byte[] unsafeGetPixelsDirect(IEaglerPlayerCape skin) {
-		return ((BaseCustomCape)skin).textureData();
+		return ((BaseCustomCape) skin).textureData();
 	}
 
 	static UnsupportedOperationException wrongProtocol(GamePluginMessageProtocol protocol) {

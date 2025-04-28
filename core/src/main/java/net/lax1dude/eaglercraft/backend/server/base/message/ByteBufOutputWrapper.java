@@ -94,15 +94,15 @@ public class ByteBufOutputWrapper implements GamePacketOutputBuffer {
 	@Override
 	public void writeBytes(String s) throws IOException {
 		int l = s.length();
-		for(int i = 0; i < l; ++i) {
-			buffer.writeByte((int)s.charAt(i));
+		for (int i = 0; i < l; ++i) {
+			buffer.writeByte((int) s.charAt(i));
 		}
 	}
 
 	@Override
 	public void writeChars(String s) throws IOException {
 		int l = s.length();
-		for(int i = 0; i < l; ++i) {
+		for (int i = 0; i < l; ++i) {
 			buffer.writeChar(s.charAt(i));
 		}
 	}
@@ -115,8 +115,8 @@ public class ByteBufOutputWrapper implements GamePacketOutputBuffer {
 		}
 		byte[] arr = new byte[(int) utfCount + 2];
 		int offset = 2;
-		arr[0] = (byte)(utfCount >>> 8l);
-		arr[1] = (byte)utfCount;
+		arr[0] = (byte) (utfCount >>> 8l);
+		arr[1] = (byte) utfCount;
 		offset = writeUTFBytesToBuffer(str, arr, offset);
 		buffer.writeBytes(arr, 0, offset);
 	}
@@ -179,14 +179,14 @@ public class ByteBufOutputWrapper implements GamePacketOutputBuffer {
 	@Override
 	public void writeStringEaglerASCII8(String str) throws IOException {
 		int len = str.length();
-		if(len > 255) {
+		if (len > 255) {
 			throw new IOException("String is longer than 255 chars! (" + len + ")");
 		}
 		buffer.writeByte(len);
-		for(int i = 0, j; i < len; ++i) {
-			j = (int)str.charAt(i);
-			if(j > 255) {
-				j = (int)'?';
+		for (int i = 0, j; i < len; ++i) {
+			j = (int) str.charAt(i);
+			if (j > 255) {
+				j = (int) '?';
 			}
 			buffer.writeByte(j);
 		}
@@ -195,14 +195,14 @@ public class ByteBufOutputWrapper implements GamePacketOutputBuffer {
 	@Override
 	public void writeStringEaglerASCII16(String str) throws IOException {
 		int len = str.length();
-		if(len > 65535) {
+		if (len > 65535) {
 			throw new IOException("String is longer than 65535 chars! (" + len + ")");
 		}
 		buffer.writeShort(len);
-		for(int i = 0, j; i < len; ++i) {
-			j = (int)str.charAt(i);
-			if(j > 255) {
-				j = (int)'?';
+		for (int i = 0, j; i < len; ++i) {
+			j = (int) str.charAt(i);
+			if (j > 255) {
+				j = (int) '?';
 			}
 			buffer.writeByte(j);
 		}

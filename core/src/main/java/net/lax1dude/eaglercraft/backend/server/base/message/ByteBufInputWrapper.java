@@ -136,8 +136,8 @@ public class ByteBufInputWrapper implements GamePacketInputBuffer {
 	public String readStringEaglerASCII8() throws IOException {
 		int len = readUnsignedByte();
 		char[] ret = new char[len];
-		for(int i = 0; i < len; ++i) {
-			ret[i] = (char)readByte();
+		for (int i = 0; i < len; ++i) {
+			ret[i] = (char) readByte();
 		}
 		return new String(ret);
 	}
@@ -146,8 +146,8 @@ public class ByteBufInputWrapper implements GamePacketInputBuffer {
 	public String readStringEaglerASCII16() throws IOException {
 		int len = readUnsignedShort();
 		char[] ret = new char[len];
-		for(int i = 0; i < len; ++i) {
-			ret[i] = (char)readByte();
+		for (int i = 0; i < len; ++i) {
+			ret[i] = (char) readByte();
 		}
 		return new String(ret);
 	}

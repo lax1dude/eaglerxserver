@@ -37,15 +37,16 @@ import net.lax1dude.eaglercraft.backend.server.util.GsonLenient;
 
 public class GSONConfigLoader {
 
-	private static final Gson GSON = GsonLenient.setLenient(new GsonBuilder()).setPrettyPrinting().serializeNulls().create();
+	private static final Gson GSON = GsonLenient.setLenient(new GsonBuilder()).setPrettyPrinting().serializeNulls()
+			.create();
 
 	public static IEaglerConfig getConfigFile(File file) throws IOException {
 		JsonObject obj;
-		try(Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
+		try (Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
 			obj = GSON.fromJson(reader, JsonObject.class);
-		}catch(FileNotFoundException ex) {
+		} catch (FileNotFoundException ex) {
 			obj = new JsonObject();
-		}catch(JsonParseException ex) {
+		} catch (JsonParseException ex) {
 			throw new IOException("JSON config file has a syntax error: " + file.getAbsolutePath(), ex);
 		}
 		return getConfigFile(file, obj);
@@ -59,10 +60,10 @@ public class GSONConfigLoader {
 
 	public static void writeConfigFile(JsonObject configIn, File file) throws IOException {
 		File p = file.getAbsoluteFile().getParentFile();
-		if(p != null && !p.isDirectory() && !p.mkdirs()) {
+		if (p != null && !p.isDirectory() && !p.mkdirs()) {
 			throw new IOException("Could not create directory: " + p.getAbsolutePath());
 		}
-		try(Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
+		try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
 			GSON.toJson(configIn, writer);
 		}
 	}

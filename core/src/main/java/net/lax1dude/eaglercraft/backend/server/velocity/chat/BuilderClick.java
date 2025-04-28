@@ -50,8 +50,8 @@ class BuilderClick<ParentType> implements IBuilderClickEvent<ParentType> {
 	}
 
 	Component applyTo(Component ret) {
-		if(action != null) {
-			switch(action) {
+		if (action != null) {
+			switch (action) {
 			case OPEN_URL:
 				ret = ret.clickEvent(ClickEvent.openUrl(value));
 				break;

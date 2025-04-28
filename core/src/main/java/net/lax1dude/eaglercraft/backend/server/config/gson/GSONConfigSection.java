@@ -57,9 +57,9 @@ public class GSONConfigSection implements IEaglerConfSection {
 	@Override
 	public IEaglerConfSection getIfSection(String name) {
 		JsonElement el = json.get(name);
-		if(el != null && el.isJsonObject()) {
+		if (el != null && el.isJsonObject()) {
 			return new GSONConfigSection(owner, el.getAsJsonObject(), true);
-		}else {
+		} else {
 			return null;
 		}
 	}
@@ -67,9 +67,9 @@ public class GSONConfigSection implements IEaglerConfSection {
 	@Override
 	public IEaglerConfSection getSection(String name) {
 		JsonElement el = json.get(name);
-		if(el != null && el.isJsonObject()) {
+		if (el != null && el.isJsonObject()) {
 			return new GSONConfigSection(owner, el.getAsJsonObject(), true);
-		}else {
+		} else {
 			JsonObject obj = new JsonObject();
 			json.add(name, obj);
 			owner.modified = true;
@@ -81,9 +81,9 @@ public class GSONConfigSection implements IEaglerConfSection {
 	@Override
 	public IEaglerConfList getIfList(String name) {
 		JsonElement el = json.get(name);
-		if(el != null && el.isJsonArray()) {
+		if (el != null && el.isJsonArray()) {
 			return new GSONConfigList(owner, el.getAsJsonArray(), true);
-		}else {
+		} else {
 			return null;
 		}
 	}
@@ -91,9 +91,9 @@ public class GSONConfigSection implements IEaglerConfSection {
 	@Override
 	public IEaglerConfList getList(String name) {
 		JsonElement el = json.get(name);
-		if(el != null && el.isJsonArray()) {
+		if (el != null && el.isJsonArray()) {
 			return new GSONConfigList(owner, el.getAsJsonArray(), true);
-		}else {
+		} else {
 			JsonArray obj = new JsonArray();
 			json.add(name, obj);
 			owner.modified = true;
@@ -116,16 +116,15 @@ public class GSONConfigSection implements IEaglerConfSection {
 	@Override
 	public boolean getBoolean(String name) {
 		JsonElement el = json.get(name);
-		return el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isBoolean()
-				&& el.getAsBoolean();
+		return el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isBoolean() && el.getAsBoolean();
 	}
 
 	@Override
 	public boolean getBoolean(String name, boolean defaultValue, String comment) {
 		JsonElement el = json.get(name);
-		if(el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isBoolean()) {
+		if (el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isBoolean()) {
 			return el.getAsBoolean();
-		}else {
+		} else {
 			json.addProperty(name, defaultValue);
 			owner.modified = true;
 			initialized = true;
@@ -136,9 +135,9 @@ public class GSONConfigSection implements IEaglerConfSection {
 	@Override
 	public boolean getBoolean(String name, Supplier<Boolean> defaultValue, String comment) {
 		JsonElement el = json.get(name);
-		if(el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isBoolean()) {
+		if (el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isBoolean()) {
 			return el.getAsBoolean();
-		}else {
+		} else {
 			boolean b = defaultValue.get();
 			json.addProperty(name, b);
 			owner.modified = true;
@@ -156,9 +155,9 @@ public class GSONConfigSection implements IEaglerConfSection {
 	@Override
 	public int getInteger(String name, int defaultValue, String comment) {
 		JsonElement el = json.get(name);
-		if(el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isNumber()) {
+		if (el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isNumber()) {
 			return el.getAsJsonPrimitive().getAsInt();
-		}else {
+		} else {
 			json.addProperty(name, defaultValue);
 			owner.modified = true;
 			initialized = true;
@@ -169,9 +168,9 @@ public class GSONConfigSection implements IEaglerConfSection {
 	@Override
 	public int getInteger(String name, Supplier<Integer> defaultValue, String comment) {
 		JsonElement el = json.get(name);
-		if(el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isNumber()) {
+		if (el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isNumber()) {
 			return el.getAsJsonPrimitive().getAsInt();
-		}else {
+		} else {
 			Integer i = defaultValue.get();
 			json.addProperty(name, i);
 			owner.modified = true;
@@ -189,9 +188,9 @@ public class GSONConfigSection implements IEaglerConfSection {
 	@Override
 	public String getIfString(String name) {
 		JsonElement el = json.get(name);
-		if(el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isString()) {
+		if (el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isString()) {
 			return el.getAsString();
-		}else {
+		} else {
 			return null;
 		}
 	}
@@ -199,9 +198,9 @@ public class GSONConfigSection implements IEaglerConfSection {
 	@Override
 	public String getString(String name, String defaultValue, String comment) {
 		JsonElement el = json.get(name);
-		if(el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isString()) {
+		if (el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isString()) {
 			return el.getAsString();
-		}else {
+		} else {
 			json.addProperty(name, defaultValue);
 			owner.modified = true;
 			initialized = true;
@@ -212,9 +211,9 @@ public class GSONConfigSection implements IEaglerConfSection {
 	@Override
 	public String getString(String name, Supplier<String> defaultValue, String comment) {
 		JsonElement el = json.get(name);
-		if(el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isString()) {
+		if (el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isString()) {
 			return el.getAsString();
-		}else {
+		} else {
 			String d = defaultValue.get();
 			json.addProperty(name, d);
 			owner.modified = true;

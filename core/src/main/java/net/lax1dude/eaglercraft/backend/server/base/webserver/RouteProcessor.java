@@ -39,6 +39,7 @@ public class RouteProcessor extends RouteMap.Result<Object> implements Iterator<
 		public boolean hasNext() {
 			return false;
 		}
+
 		@Override
 		public CharSequence next() {
 			throw new NoSuchElementException();
@@ -46,11 +47,11 @@ public class RouteProcessor extends RouteMap.Result<Object> implements Iterator<
 	};
 
 	private boolean adjustBounds() {
-		while(index < end && url.charAt(index) == SEPARATOR) {
+		while (index < end && url.charAt(index) == SEPARATOR) {
 			++index;
 		}
 		boolean dir = false;
-		while(end > 0 && url.charAt(end - 1) == SEPARATOR) {
+		while (end > 0 && url.charAt(end - 1) == SEPARATOR) {
 			dir = true;
 			--end;
 		}
@@ -59,18 +60,18 @@ public class RouteProcessor extends RouteMap.Result<Object> implements Iterator<
 
 	public <L, T> boolean register(CharSequence url, L listener, int method, RouteMap<L, T> routeMap, T value) {
 		int len = url.length();
-		if(len == 0) {
+		if (len == 0) {
 			return routeMap.register(NOP_ITERATOR, false, listener, method, value);
-		}else if(len == 1 && url.charAt(0) == SEPARATOR) {
+		} else if (len == 1 && url.charAt(0) == SEPARATOR) {
 			return routeMap.register(NOP_ITERATOR, true, listener, method, value);
-		}else {
+		} else {
 			try {
 				this.url = url;
 				this.index = 0;
 				this.nextIndex = -2;
 				this.end = len;
 				return routeMap.register(this, adjustBounds(), listener, method, value);
-			}finally {
+			} finally {
 				this.url = null;
 			}
 		}
@@ -78,18 +79,18 @@ public class RouteProcessor extends RouteMap.Result<Object> implements Iterator<
 
 	public <L, T> boolean remove(CharSequence url, L listener, int method, RouteMap<L, T> routeMap, T value) {
 		int len = url.length();
-		if(len == 0) {
+		if (len == 0) {
 			return routeMap.remove(NOP_ITERATOR, false, listener, method, value);
-		}else if(len == 1 && url.charAt(0) == SEPARATOR) {
+		} else if (len == 1 && url.charAt(0) == SEPARATOR) {
 			return routeMap.remove(NOP_ITERATOR, true, listener, method, value);
-		}else {
+		} else {
 			try {
 				this.url = url;
 				this.index = 0;
 				this.nextIndex = -2;
 				this.end = len;
 				return routeMap.remove(this, adjustBounds(), listener, method, value);
-			}finally {
+			} finally {
 				this.url = null;
 			}
 		}
@@ -98,44 +99,45 @@ public class RouteProcessor extends RouteMap.Result<Object> implements Iterator<
 	public <L, T> RouteMap.Result<T> find(CharSequence url, L listener, int method, RouteMap<L, T> routeMap) {
 		this.result = null;
 		RouteMap.Result<T> ret = (RouteMap.Result<T>) this;
-		if(method >= 6) {
+		if (method >= 6) {
 			return ret;
 		}
 		int len = url.length();
-		if(len == 0) {
+		if (len == 0) {
 			routeMap.get(NOP_ITERATOR, false, listener, method, ret);
-		}else if(len == 1 && url.charAt(0) == SEPARATOR) {
+		} else if (len == 1 && url.charAt(0) == SEPARATOR) {
 			routeMap.get(NOP_ITERATOR, true, listener, method, ret);
-		}else {
+		} else {
 			try {
 				this.url = url;
 				this.index = 0;
 				this.nextIndex = -2;
 				this.end = len;
 				routeMap.get(this, adjustBounds(), listener, method, ret);
-			}finally {
+			} finally {
 				this.url = null;
 			}
 		}
 		return ret;
 	}
 
-	public <L, T> RouteMap.Result<List<EnumRequestMethod>> options(CharSequence url, L listener, RouteMap<L, T> routeMap) {
+	public <L, T> RouteMap.Result<List<EnumRequestMethod>> options(CharSequence url, L listener,
+			RouteMap<L, T> routeMap) {
 		this.result = null;
 		RouteMap.Result<List<EnumRequestMethod>> ret = (RouteMap.Result<List<EnumRequestMethod>>) (Object) this;
 		int len = url.length();
-		if(len == 0) {
+		if (len == 0) {
 			routeMap.getOptions(NOP_ITERATOR, false, listener, ret);
-		}else if(len == 1 && url.charAt(0) == SEPARATOR) {
+		} else if (len == 1 && url.charAt(0) == SEPARATOR) {
 			routeMap.getOptions(NOP_ITERATOR, true, listener, ret);
-		}else {
+		} else {
 			try {
 				this.url = url;
 				this.index = 0;
 				this.nextIndex = -2;
 				this.end = len;
 				routeMap.getOptions(this, adjustBounds(), listener, ret);
-			}finally {
+			} finally {
 				this.url = null;
 			}
 		}
@@ -144,24 +146,24 @@ public class RouteProcessor extends RouteMap.Result<Object> implements Iterator<
 
 	private void findNext() {
 		int i = indexOf(url, SEPARATOR, index, end);
-		if(i == -1 && index < end) {
+		if (i == -1 && index < end) {
 			i = end;
 		}
 		nextIndex = nextIndexEnd = i;
-		if(nextIndex < 0) {
+		if (nextIndex < 0) {
 			return;
 		}
-		while((i = nextIndexEnd + 1) < end && url.charAt(i) == SEPARATOR) {
+		while ((i = nextIndexEnd + 1) < end && url.charAt(i) == SEPARATOR) {
 			nextIndexEnd = i;
 		}
 	}
 
 	@Override
 	public boolean hasNext() {
-		if(url == null) {
+		if (url == null) {
 			throw new UnsupportedOperationException();
 		}
-		if(nextIndex == -2) {
+		if (nextIndex == -2) {
 			findNext();
 		}
 		return nextIndex >= 0;
@@ -169,13 +171,13 @@ public class RouteProcessor extends RouteMap.Result<Object> implements Iterator<
 
 	@Override
 	public CharSequence next() {
-		if(url == null) {
+		if (url == null) {
 			throw new UnsupportedOperationException();
 		}
-		if(nextIndex == -2) {
+		if (nextIndex == -2) {
 			findNext();
 		}
-		if(nextIndex < 0) {
+		if (nextIndex < 0) {
 			throw new NoSuchElementException();
 		}
 		CharSequence ret = subsequence.set(url, index, nextIndex - index);

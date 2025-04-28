@@ -34,28 +34,28 @@ class BukkitListenerLocal implements Listener {
 
 	@EventHandler
 	public void onInitializePlayer(EaglercraftInitializePlayerEvent evt) {
-		if(plugin.initializePlayerHandler != null) {
+		if (plugin.initializePlayerHandler != null) {
 			plugin.initializePlayerHandler.accept(evt);
 		}
 	}
 
 	@EventHandler
 	public void onWebViewChannel(EaglercraftWebViewChannelEvent evt) {
-		if(plugin.localWebViewChannelHandler != null) {
+		if (plugin.localWebViewChannelHandler != null) {
 			plugin.localWebViewChannelHandler.accept(evt);
 		}
 	}
 
 	@EventHandler
 	public void onWebViewMessage(EaglercraftWebViewMessageEvent evt) {
-		if(plugin.localWebViewMessageHandler != null) {
+		if (plugin.localWebViewMessageHandler != null) {
 			plugin.localWebViewMessageHandler.accept(evt);
 		}
 	}
 
 	@EventHandler
 	public void onToggleVoice(EaglercraftVoiceChangeEvent evt) {
-		if(plugin.localVoiceChangeHandler != null) {
+		if (plugin.localVoiceChangeHandler != null) {
 			plugin.localVoiceChangeHandler.accept(evt);
 		}
 	}

@@ -135,15 +135,17 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		post_v1_13 = isPost_v1_13();
 		Server server = getServer();
 		loggerImpl = new JavaLogger(getLogger());
-		eventDispatcherImpl = new BukkitEventDispatchAdapter(this, server, server.getPluginManager(), server.getScheduler());
+		eventDispatcherImpl = new BukkitEventDispatchAdapter(this, server, server.getPluginManager(),
+				server.getScheduler());
 		schedulerImpl = new BukkitScheduler(this, server.getScheduler());
-		componentHelperImpl = new BungeeComponentHelper(new TextComponent("Username is already connected to this server!"));
+		componentHelperImpl = new BungeeComponentHelper(
+				new TextComponent("Username is already connected to this server!"));
 		cacheConsoleCommandSenderInstance = server.getConsoleSender();
 		cacheConsoleCommandSenderHandle = new BukkitConsole(cacheConsoleCommandSenderInstance);
 		enableNativeTransport = Epoll.isAvailable() && BukkitUnsafe.isEnableNativeTransport(server);
 		eventLoopGroup = BukkitUnsafe.getEventLoopGroup(server, enableNativeTransport);
 		postLoginInjector = new PlayerPostLoginInjector(this);
-		if(enableNativeTransport && !(eventLoopGroup instanceof EpollEventLoopGroup)) {
+		if (enableNativeTransport && !(eventLoopGroup instanceof EpollEventLoopGroup)) {
 			enableNativeTransport = false;
 		}
 		Init<Player> init = new InitNonProxying<Player>() {
@@ -159,12 +161,14 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 
 			@Override
-			public void setPipelineInitializer(IEaglerXServerNettyPipelineInitializer<? extends IPipelineData> initializer) {
+			public void setPipelineInitializer(
+					IEaglerXServerNettyPipelineInitializer<? extends IPipelineData> initializer) {
 				pipelineInitializer = (IEaglerXServerNettyPipelineInitializer<IPipelineData>) initializer;
 			}
 
 			@Override
-			public void setConnectionInitializer(IEaglerXServerConnectionInitializer<? extends IPipelineData, ?> initializer) {
+			public void setConnectionInitializer(
+					IEaglerXServerConnectionInitializer<? extends IPipelineData, ?> initializer) {
 				connectionInitializer = (IEaglerXServerConnectionInitializer<IPipelineData, Object>) initializer;
 			}
 
@@ -206,10 +210,10 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		};
 		try {
 			((IEaglerXServerImpl<Player>) new EaglerXServer<Player>()).load(init);
-		}catch(AbortLoadException ex) {
+		} catch (AbortLoadException ex) {
 			logger().error("Server startup aborted: " + ex.getMessage());
 			Throwable t = ex.getCause();
-			if(t != null) {
+			if (t != null) {
 				logger().error("Caused by: ", t);
 			}
 			throw new IllegalStateException("Startup aborted");
@@ -217,14 +221,12 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		aborted = false;
 	}
 
-	private static final ImmutableMap<String, EnumPipelineComponent> PIPELINE_COMPONENTS_MAP = 
-			ImmutableMap.<String, EnumPipelineComponent>builder()
-			.put("splitter", EnumPipelineComponent.FRAME_DECODER)
+	private static final ImmutableMap<String, EnumPipelineComponent> PIPELINE_COMPONENTS_MAP = ImmutableMap
+			.<String, EnumPipelineComponent>builder().put("splitter", EnumPipelineComponent.FRAME_DECODER)
 			.put("prepender", EnumPipelineComponent.FRAME_ENCODER)
 			.put("encoder", EnumPipelineComponent.MINECRAFT_ENCODER)
 			.put("decoder", EnumPipelineComponent.MINECRAFT_DECODER)
-			.put("via-encoder", EnumPipelineComponent.VIA_ENCODER)
-			.put("via-decoder", EnumPipelineComponent.VIA_DECODER)
+			.put("via-encoder", EnumPipelineComponent.VIA_ENCODER).put("via-decoder", EnumPipelineComponent.VIA_DECODER)
 			.put("protocol_lib_inbound_interceptor", EnumPipelineComponent.PROTOCOLLIB_INBOUND_INTERCEPTOR)
 			.put("protocol_lib_inbound_protocol_getter", EnumPipelineComponent.PROTOCOLLIB_PROTOCOL_GETTER_NAME)
 			.put("protocol_lib_wire_packet_encoder", EnumPipelineComponent.PROTOCOLLIB_WIRE_PACKET_ENCODER)
@@ -233,47 +235,46 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			.put("packet_handler", EnumPipelineComponent.INBOUND_PACKET_HANDLER)
 			.put("pe-decoder-packetevents", EnumPipelineComponent.PACKETEVENTS_DECODER)
 			.put("pe-encoder-packetevents", EnumPipelineComponent.PACKETEVENTS_ENCODER)
-			.put("pe-timeout-handler-packetevents", EnumPipelineComponent.PACKETEVENTS_TIMEOUT_HANDLER)
-			.build();
+			.put("pe-timeout-handler-packetevents", EnumPipelineComponent.PACKETEVENTS_TIMEOUT_HANDLER).build();
 
 	@Override
 	public void onEnable() {
-		if(aborted) {
+		if (aborted) {
 			return;
 		}
 		aborted = true; // Will set to false if onEnable completes normally
 		Server server = getServer();
 		server.getPluginManager().registerEvents(new BukkitListener(this), this);
 		CommandMap cmdMap = BukkitUnsafe.getCommandMap(server);
-		for(IEaglerXServerCommandType<Player> cmd : commandsList) {
+		for (IEaglerXServerCommandType<Player> cmd : commandsList) {
 			cmdMap.register("eagler", new BukkitCommand(this, cmd));
 		}
 		Messenger msgr = server.getMessenger();
 		PluginMessageListener ls = (ch, player, data) -> {
 			BukkitPlayer playerInstance = playerInstanceMap.get(player);
-			if(playerInstance != null) {
+			if (playerInstance != null) {
 				playerInstance.handleMCBrandMessage(data);
 			}
 		};
-		if(!post_v1_13) {
+		if (!post_v1_13) {
 			msgr.registerIncomingPluginChannel(this, "MC|Brand", ls);
 		}
 		msgr.registerIncomingPluginChannel(this, "minecraft:brand", ls);
-		for(IEaglerXServerMessageChannel<Player> channel : playerChannelsList) {
+		for (IEaglerXServerMessageChannel<Player> channel : playerChannelsList) {
 			IEaglerXServerMessageHandler<Player> handler = channel.getHandler();
 			msgr.registerOutgoingPluginChannel(this, channel.getModernName());
-			if(!post_v1_13) {
+			if (!post_v1_13) {
 				msgr.registerOutgoingPluginChannel(this, channel.getLegacyName());
 			}
-			if(handler != null) {
+			if (handler != null) {
 				ls = (ch, player, data) -> {
 					BukkitPlayer playerInstance = playerInstanceMap.get(player);
-					if(playerInstance != null) {
+					if (playerInstance != null) {
 						handler.handle(channel, playerInstance, data);
 					}
 				};
 				msgr.registerIncomingPluginChannel(this, channel.getModernName(), ls);
-				if(!post_v1_13) {
+				if (!post_v1_13) {
 					msgr.registerIncomingPluginChannel(this, channel.getLegacyName(), ls);
 				}
 			}
@@ -282,27 +283,27 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			if (!channel.isActive()) {
 				return;
 			}
-			
+
 			List<IPipelineComponent> pipelineList = new ArrayList<>();
-			
+
 			ChannelPipeline pipeline = channel.pipeline();
-			
+
 			Object networkManager = pipeline.get("packet_handler");
-			if(networkManager != null) {
+			if (networkManager != null) {
 				pipeline.replace("packet_handler", "packet_handler",
 						(ChannelHandler) postLoginInjector.wrapNetworkManager(networkManager, channel));
 			}
-			
-			for(String str : pipeline.names()) {
+
+			for (String str : pipeline.names()) {
 				ChannelHandler handler = pipeline.get(str);
-				if(handler != null) {
+				if (handler != null) {
 					pipelineList.add(new IPipelineComponent() {
 
 						private EnumPipelineComponent type = null;
 
 						@Override
 						public EnumPipelineComponent getIdentifiedType() {
-							if(type == null) {
+							if (type == null) {
 								type = PIPELINE_COMPONENTS_MAP.getOrDefault(str, EnumPipelineComponent.UNIDENTIFIED);
 							}
 							return type;
@@ -321,43 +322,47 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 					});
 				}
 			}
-			
+
 			pipelineInitializer.initialize(new IPlatformNettyPipelineInitializer<IPipelineData>() {
 				@Override
 				public void setAttachment(IPipelineData object) {
 					channel.attr(PipelineAttributes.<IPipelineData>pipelineData()).set(object);
 				}
+
 				@Override
 				public List<IPipelineComponent> getPipeline() {
 					return pipelineList;
 				}
+
 				@Override
 				public IEaglerXServerListener getListener() {
 					return listenerConf;
 				}
+
 				@Override
 				public Consumer<SocketAddress> realAddressHandle() {
 					return (addr) -> {
 						LoginEventContext ctx = channel.attr(PlayerPostLoginInjector.attr).get();
-						if(ctx != null) {
+						if (ctx != null) {
 							BukkitUnsafe.updateRealAddress(ctx.originalNetworkManager(), addr);
-						}else {
+						} else {
 							Object o = channel.pipeline().get("packet_handler");
-							if(o != null) {
+							if (o != null) {
 								BukkitUnsafe.updateRealAddress(o, addr);
 							}
 						}
 					};
 				}
+
 				@Override
 				public Channel getChannel() {
 					return channel;
 				}
 			});
-			
+
 		}, listenerConf);
 
-		if(onServerEnable != null) {
+		if (onServerEnable != null) {
 			onServerEnable.run();
 		}
 
@@ -366,31 +371,31 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	@Override
 	public void onDisable() {
-		if(aborted) {
+		if (aborted) {
 			return;
 		}
-		if(cleanupListeners != null) {
+		if (cleanupListeners != null) {
 			cleanupListeners.run();
 			cleanupListeners = null;
 		}
-		if(onServerDisable != null) {
+		if (onServerDisable != null) {
 			onServerDisable.run();
 		}
 		Server server = getServer();
 		Messenger msgr = server.getMessenger();
-		if(!post_v1_13) {
+		if (!post_v1_13) {
 			msgr.unregisterIncomingPluginChannel(this, "MC|Brand");
 		}
 		msgr.unregisterIncomingPluginChannel(this, "minecraft:brand");
-		for(IEaglerXServerMessageChannel<Player> channel : playerChannelsList) {
+		for (IEaglerXServerMessageChannel<Player> channel : playerChannelsList) {
 			IEaglerXServerMessageHandler<Player> handler = channel.getHandler();
 			msgr.unregisterOutgoingPluginChannel(this, channel.getModernName());
-			if(!post_v1_13) {
+			if (!post_v1_13) {
 				msgr.unregisterOutgoingPluginChannel(this, channel.getLegacyName());
 			}
-			if(handler != null) {
+			if (handler != null) {
 				msgr.unregisterIncomingPluginChannel(this, channel.getModernName());
-				if(!post_v1_13) {
+				if (!post_v1_13) {
 					msgr.unregisterIncomingPluginChannel(this, channel.getLegacyName());
 				}
 			}
@@ -423,13 +428,13 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	}
 
 	IPlatformCommandSender<Player> getCommandSender(CommandSender obj) {
-		if(obj == null) {
+		if (obj == null) {
 			return null;
-		}else if(obj instanceof Player player) {
+		} else if (obj instanceof Player player) {
 			return getPlayer(player);
-		}else if(obj == cacheConsoleCommandSenderInstance) {
+		} else if (obj == cacheConsoleCommandSenderInstance) {
 			return cacheConsoleCommandSenderHandle;
-		}else {
+		} else {
 			return new BukkitConsole(obj);
 		}
 	}
@@ -452,9 +457,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public IPlatformPlayer<Player> getPlayer(String username) {
 		Player player = getServer().getPlayer(username);
-		if(player != null) {
+		if (player != null) {
 			return playerInstanceMap.get(player);
-		}else {
+		} else {
 			return null;
 		}
 	}
@@ -462,9 +467,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	@Override
 	public IPlatformPlayer<Player> getPlayer(UUID uuid) {
 		Player player = getServer().getPlayer(uuid);
-		if(player != null) {
+		if (player != null) {
 			return playerInstanceMap.get(player);
-		}else {
+		} else {
 			return null;
 		}
 	}
@@ -534,7 +539,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		LoginConnectionHolder holder = BukkitUnsafe.getLoginConnection(ctx.originalNetworkManager());
 		IPipelineData pipelineData = channel.attr(PipelineAttributes.<IPipelineData>pipelineData()).getAndSet(null);
 		boolean eag = pipelineData != null && pipelineData.isEaglerPlayer();
-		if(eag) {
+		if (eag) {
 			ctx.markCompressionDisable(true);
 		}
 		Attribute<BukkitConnection> attr = channel.attr(PipelineAttributes.<BukkitConnection>connectionData());
@@ -543,24 +548,24 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	@Override
 	public Bootstrap setChannelFactory(Bootstrap bootstrap, SocketAddress address) {
-		if(address instanceof DomainSocketAddress) {
+		if (address instanceof DomainSocketAddress) {
 			throw new UnsupportedOperationException("Unix sockets not supported by this platform!");
 		}
-		if(enableNativeTransport) {
+		if (enableNativeTransport) {
 			return bootstrap.channel(channelClassEpoll);
-		}else {
+		} else {
 			return bootstrap.channel(channelClassNIO);
 		}
 	}
 
 	@Override
 	public ServerBootstrap setServerChannelFactory(ServerBootstrap bootstrap, SocketAddress address) {
-		if(address instanceof DomainSocketAddress) {
+		if (address instanceof DomainSocketAddress) {
 			throw new UnsupportedOperationException("Unix sockets not supported by this platform!");
 		}
-		if(enableNativeTransport) {
+		if (enableNativeTransport) {
 			return bootstrap.channel(serverChannelClassEpoll);
-		}else {
+		} else {
 			return bootstrap.channel(serverChannelClassNIO);
 		}
 	}
@@ -578,8 +583,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	public void initializeConnection(LoginConnectionHolder loginConnection, IPipelineData pipelineData,
 			Consumer<BukkitConnection> setAttr) {
 		boolean eag = pipelineData != null && pipelineData.isEaglerPlayer();
-		BukkitConnection c = new BukkitConnection(this, loginConnection,
-				eag ? pipelineData::awaitPlayState : null);
+		BukkitConnection c = new BukkitConnection(this, loginConnection, eag ? pipelineData::awaitPlayState : null);
 		c.closeRedirector = new CloseRedirector();
 		setAttr.accept(c);
 		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<IPipelineData, Object>() {
@@ -587,22 +591,27 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			public void setConnectionAttachment(Object attachment) {
 				c.attachment = attachment;
 			}
+
 			@Override
 			public IPipelineData getPipelineAttachment() {
 				return pipelineData;
 			}
+
 			@Override
 			public IPlatformConnection getConnection() {
 				return c;
 			}
+
 			@Override
 			public void setUniqueId(UUID uuid) {
 			}
+
 			@Override
 			public void setTexturesProperty(String propertyValue, String propertySignature) {
 				c.texturesPropertyValue = propertyValue;
 				c.texturesPropertySignature = propertySignature;
 			}
+
 			@Override
 			public void setEaglerPlayerProperty(boolean enable) {
 				c.eaglerPlayerProperty = enable ? (byte) 2 : (byte) 1;
@@ -621,11 +630,11 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	}
 
-	public void initializePlayer(Player player, BukkitConnection connection,
-			Consumer<BukkitConnection> setAttr, Consumer<Object> onComplete) {
+	public void initializePlayer(Player player, BukkitConnection connection, Consumer<BukkitConnection> setAttr,
+			Consumer<Object> onComplete) {
 		BukkitPlayer p;
 		final BukkitConnection c;
-		if(connection == null) {
+		if (connection == null) {
 			// vanilla players won't have an initialized connection
 			c = new BukkitConnection(this, null, null);
 			c.closeRedirector = new CloseRedirector();
@@ -636,39 +645,44 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 				public void setConnectionAttachment(Object attachment) {
 					c.attachment = attachment;
 				}
+
 				@Override
 				public IPipelineData getPipelineAttachment() {
 					return null;
 				}
+
 				@Override
 				public IPlatformConnection getConnection() {
 					return c;
 				}
+
 				@Override
 				public void setUniqueId(UUID uuid) {
 				}
+
 				@Override
 				public void setTexturesProperty(String propertyValue, String propertySignature) {
 					c.texturesPropertyValue = propertyValue;
 					c.texturesPropertySignature = propertySignature;
 				}
+
 				@Override
 				public void setEaglerPlayerProperty(boolean enable) {
 					c.eaglerPlayerProperty = enable ? (byte) 2 : (byte) 1;
 				}
 			});
-		}else {
+		} else {
 			c = connection;
 			p = new BukkitPlayer(player, c);
 		}
-		if(c.eaglerPlayerProperty != (byte) 0 || c.texturesPropertyValue != null) {
+		if (c.eaglerPlayerProperty != (byte) 0 || c.texturesPropertyValue != null) {
 			BukkitUnsafe.PropertyInjector injector = BukkitUnsafe.propertyInjector(player);
-			if(c.texturesPropertyValue != null) {
+			if (c.texturesPropertyValue != null) {
 				injector.injectTexturesProperty(c.texturesPropertyValue, c.texturesPropertySignature);
 				c.texturesPropertyValue = null;
 				c.texturesPropertySignature = null;
 			}
-			if(c.eaglerPlayerProperty != (byte) 0) {
+			if (c.eaglerPlayerProperty != (byte) 0) {
 				injector.injectIsEaglerPlayerProperty(c.eaglerPlayerProperty == (byte) 2);
 			}
 			injector.complete();
@@ -678,49 +692,54 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			public void setPlayerAttachment(Object attachment) {
 				p.attachment = attachment;
 			}
+
 			@Override
 			public Object getConnectionAttachment() {
 				return c.attachment;
 			}
+
 			@Override
 			public IPlatformPlayer<Player> getPlayer() {
 				return p;
 			}
+
 			@Override
 			public void complete() {
 				Object obj = null;
-				synchronized(c) {
-					if(c.closeRedirector != null) {
+				synchronized (c) {
+					if (c.closeRedirector != null) {
 						obj = ((CloseRedirector) c.closeRedirector).val;
 						c.closeRedirector = null;
 					}
 				}
-				if(obj != null) {
+				if (obj != null) {
 					onComplete.accept(obj);
 					return;
 				}
 				playerInstanceMap.put(player, p);
 				p.confirmTask = getServer().getScheduler().runTaskLaterAsynchronously(PlatformPluginBukkit.this, () -> {
 					p.confirmTask = null;
-					getLogger().warning("Player " + p.getUsername() + " was initialized, but never fired PlayerJoinEvent, dropping...");
+					getLogger().warning("Player " + p.getUsername()
+							+ " was initialized, but never fired PlayerJoinEvent, dropping...");
 					dropPlayer(player);
 				}, 100l);
 				IEaglerXServerJoinListener<Player> listener = serverJoinListener;
-				if(listener != null) {
+				if (listener != null) {
 					listener.handlePreConnect(p);
 				}
 				onComplete.accept(true);
 			}
+
 			@Override
 			public void cancel() {
 				Object obj = null;
-				synchronized(c) {
-					if(c.closeRedirector != null) {
+				synchronized (c) {
+					if (c.closeRedirector != null) {
 						obj = ((CloseRedirector) c.closeRedirector).val;
 						c.closeRedirector = null;
 					}
 				}
-				if(obj != null) {
+				if (obj != null) {
 					onComplete.accept(obj);
 					return;
 				}
@@ -731,13 +750,13 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	public void confirmPlayer(Player player) {
 		BukkitPlayer p = playerInstanceMap.get(player);
-		if(p != null) {
+		if (p != null) {
 			BukkitTask conf = p.xchgConfirmTask();
-			if(conf != null) {
+			if (conf != null) {
 				conf.cancel();
 			}
 			IEaglerXServerJoinListener<Player> listener = serverJoinListener;
-			if(listener != null) {
+			if (listener != null) {
 				listener.handlePostConnect(p, p.getServer());
 			}
 		}
@@ -745,9 +764,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	public void dropPlayer(Player player) {
 		BukkitPlayer p = playerInstanceMap.remove(player);
-		if(p != null) {
+		if (p != null) {
 			BukkitTask conf = p.xchgConfirmTask();
-			if(conf != null) {
+			if (conf != null) {
 				conf.cancel();
 			}
 			playerInitializer.destroyPlayer(p);
@@ -756,9 +775,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	public void worldChange(Player player) {
 		BukkitPlayer p = playerInstanceMap.get(player);
-		if(p != null) {
+		if (p != null) {
 			IEaglerXServerJoinListener<Player> listener = serverJoinListener;
-			if(listener != null) {
+			if (listener != null) {
 				listener.handlePreConnect(p);
 				listener.handlePostConnect(p, p.getServer());
 			}
@@ -766,9 +785,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	}
 
 	public void forEachChannel(Consumer<String> cb) {
-		for(IEaglerXServerMessageChannel<Player> ch : playerChannelsList) {
+		for (IEaglerXServerMessageChannel<Player> ch : playerChannelsList) {
 			cb.accept(ch.getModernName());
-			if(!post_v1_13) {
+			if (!post_v1_13) {
 				cb.accept(ch.getLegacyName());
 			}
 		}
@@ -776,12 +795,12 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	private boolean isPost_v1_13() {
 		String[] ver = getServer().getBukkitVersion().split("[\\.\\-]");
-		if(ver.length >= 2) {
+		if (ver.length >= 2) {
 			try {
 				int i = Integer.parseInt(ver[0]);
 				int j = Integer.parseInt(ver[1]);
 				return i > 1 || (i == 1 && j >= 13);
-			}catch(NumberFormatException ex) {
+			} catch (NumberFormatException ex) {
 			}
 		}
 		return false;

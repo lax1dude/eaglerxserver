@@ -134,24 +134,24 @@ public class SupervisorClientInstance {
 	}
 
 	public long getProxySystemTime() {
-		return (long)SYS_TIME_VALUE_HANDLE.getOpaque(this);
+		return (long) SYS_TIME_VALUE_HANDLE.getOpaque(this);
 	}
 
 	public int getPlayerCount() {
 		playersLock.readLock().lock();
 		try {
 			return players.size();
-		}finally {
+		} finally {
 			playersLock.readLock().unlock();
 		}
 	}
 
 	public int getProxyPing() {
-		return (int)PING_VALUE_HANDLE.getOpaque(this);
+		return (int) PING_VALUE_HANDLE.getOpaque(this);
 	}
 
 	public int getPlayerMax() {
-		return (int)PLAYER_MAX_VALUE_HANDLE.getOpaque(this);
+		return (int) PLAYER_MAX_VALUE_HANDLE.getOpaque(this);
 	}
 
 	public void handleDisconnected() {
@@ -160,20 +160,20 @@ public class SupervisorClientInstance {
 			pendingRPC.forEach((uuid, proc) -> {
 				expired.add(uuid);
 			});
-			for(int i = 0, l = expired.size(); i < l; ++i) {
+			for (int i = 0, l = expired.size(); i < l; ++i) {
 				RPCPending cb = pendingRPC.remove(expired.get(i));
-				if(cb != null) {
+				if (cb != null) {
 					cb.onFailure(RPCPending.FAILURE_HANGUP);
 				}
 			}
-		}finally {
+		} finally {
 			try {
-				if(multiResultAggregators != null) {
-					for(RPCMultiResultAggregator aggregator : multiResultAggregators) {
+				if (multiResultAggregators != null) {
+					for (RPCMultiResultAggregator aggregator : multiResultAggregators) {
 						aggregator.destroy();
 					}
 				}
-			}finally {
+			} finally {
 				server.unregisterClient(this);
 			}
 		}
@@ -181,15 +181,15 @@ public class SupervisorClientInstance {
 
 	public void update() {
 		long millis = SteadyTime.millis();
-		if(PING_SENT_TIME_HANDLE.compareAndSet(this, 0l, millis)) {
+		if (PING_SENT_TIME_HANDLE.compareAndSet(this, 0l, millis)) {
 			handler.channelWrite(new SPacketSvPing());
 		}
 	}
 
 	public void onPongPacket() {
-		long result = (long)PING_SENT_TIME_HANDLE.getAndSet(this, 0l);
-		if(result != 0l) {
-			PING_VALUE_HANDLE.setOpaque(this, (int)(SteadyTime.millis() - result));
+		long result = (long) PING_SENT_TIME_HANDLE.getAndSet(this, 0l);
+		if (result != 0l) {
+			PING_VALUE_HANDLE.setOpaque(this, (int) (SteadyTime.millis() - result));
 		}
 	}
 
@@ -204,17 +204,19 @@ public class SupervisorClientInstance {
 
 	public void onProxyStatusPacket(long proxySystemTime, int playerMax) {
 		SYS_TIME_VALUE_HANDLE.setOpaque(this, proxySystemTime);
-		if((int)PLAYER_MAX_VALUE_HANDLE.getAndSet(this, playerMax) != playerMax) {
+		if ((int) PLAYER_MAX_VALUE_HANDLE.getAndSet(this, playerMax) != playerMax) {
 			this.server.recalcMaxPlayers();
 		}
 	}
 
-	public void registerProxyPlayer(UUID playerUUID, UUID brandUUID, int gameProtocol, int eaglerProtocol, String username) throws AlreadyRegisteredException {
-		SupervisorPlayerInstance instance = server.registerPlayer(this, playerUUID, brandUUID, gameProtocol, eaglerProtocol, username);
+	public void registerProxyPlayer(UUID playerUUID, UUID brandUUID, int gameProtocol, int eaglerProtocol,
+			String username) throws AlreadyRegisteredException {
+		SupervisorPlayerInstance instance = server.registerPlayer(this, playerUUID, brandUUID, gameProtocol,
+				eaglerProtocol, username);
 		playersLock.writeLock().lock();
 		try {
 			players.put(playerUUID, instance);
-		}finally {
+		} finally {
 			playersLock.writeLock().unlock();
 		}
 	}
@@ -223,7 +225,7 @@ public class SupervisorClientInstance {
 		playersLock.writeLock().lock();
 		try {
 			players.remove(playerUUID);
-		}finally {
+		} finally {
 			playersLock.writeLock().unlock();
 		}
 		server.unregisterPlayer(playerUUID);
@@ -233,7 +235,7 @@ public class SupervisorClientInstance {
 		playersLock.readLock().lock();
 		try {
 			return players.get(uuid);
-		}finally {
+		} finally {
 			playersLock.readLock().unlock();
 		}
 	}
@@ -244,11 +246,11 @@ public class SupervisorClientInstance {
 			try {
 				callback.map = pendingRPC;
 				pendingRPC.put(callback.key, callback);
-				if(timeout.addFuture(callback)) {
+				if (timeout.addFuture(callback)) {
 					handler.channelWrite(
 							new SPacketSvRPCExecute(callback.key, sourceNodeId, procNameLen, dataBuffer.retain()));
 				}
-			}finally {
+			} finally {
 				dataBuffer.release();
 			}
 		});
@@ -259,12 +261,12 @@ public class SupervisorClientInstance {
 	}
 
 	public boolean addPendingResultAggregator(RPCMultiResultAggregator aggregator) {
-		if(multiResultAggregators != null) {
+		if (multiResultAggregators != null) {
 			aggregator.set = multiResultAggregators;
 			aggregator.eventLoop = handler.getChannel().eventLoop();
 			multiResultAggregators.add(aggregator);
 			return true;
-		}else {
+		} else {
 			logger.error("Refusing to add result aggregator to client, connection is already disposed");
 			return false;
 		}
@@ -272,18 +274,18 @@ public class SupervisorClientInstance {
 
 	void onRPCResultSuccess(UUID requestUUID, ByteBuf dataBuffer) {
 		RPCPending pending = pendingRPC.remove(requestUUID);
-		if(pending != null) {
+		if (pending != null) {
 			pending.onSuccess(dataBuffer);
-		}else {
+		} else {
 			logger.warn("Received RPC success for unknown/expired request {}", requestUUID);
 		}
 	}
 
 	void onRPCResultFail(UUID requestUUID) {
 		RPCPending pending = pendingRPC.remove(requestUUID);
-		if(pending != null) {
+		if (pending != null) {
 			pending.onFailure(RPCPending.FAILURE_PROCEDURE);
-		}else {
+		} else {
 			logger.warn("Received RPC failure for unknown/expired request {}", requestUUID);
 		}
 	}

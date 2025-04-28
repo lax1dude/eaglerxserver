@@ -37,15 +37,15 @@ class ForeignCape extends KeyedConcurrentLazyLoader<UUID, IEaglerPlayerCape> {
 	@Override
 	protected void loadImpl(Consumer<IEaglerPlayerCape> callback) {
 		SupervisorConnection handler = owner.getConnection();
-		if(handler != null) {
+		if (handler != null) {
 			UUID lookupUUID = UUID.randomUUID();
 			owner.addWaitingForeignURLCapeLookup(lookupUUID, callback);
 			handler.sendSupervisorPacket(new CPacketSvGetCapeByURL(lookupUUID, url));
-		}else {
+		} else {
 			owner.addDeferred((fail) -> {
-				if(fail) {
+				if (fail) {
 					callback.accept(MissingCape.UNAVAILABLE_CAPE);
-				}else {
+				} else {
 					loadImpl(callback);
 				}
 			});

@@ -38,13 +38,13 @@ public class CPacketSvHandshake implements EaglerSupervisorPacket {
 	@Override
 	public void readPacket(ByteBuf buffer) {
 		supportedProtocols = new int[buffer.readUnsignedShort()];
-		for(int i = 0; i < supportedProtocols.length; ++i) {
+		for (int i = 0; i < supportedProtocols.length; ++i) {
 			supportedProtocols[i] = buffer.readUnsignedShort();
 		}
 		int keyLen = buffer.readUnsignedShort();
-		if(keyLen > 0) {
+		if (keyLen > 0) {
 			secretKey = buffer.readCharSequence(keyLen, StandardCharsets.UTF_8).toString();
-		}else {
+		} else {
 			secretKey = null;
 		}
 	}
@@ -52,20 +52,20 @@ public class CPacketSvHandshake implements EaglerSupervisorPacket {
 	@Override
 	public void writePacket(ByteBuf buffer) {
 		buffer.writeShort(supportedProtocols.length);
-		for(int i = 0; i < supportedProtocols.length; ++i) {
+		for (int i = 0; i < supportedProtocols.length; ++i) {
 			buffer.writeShort(supportedProtocols[i]);
 		}
-		if(secretKey != null) {
+		if (secretKey != null) {
 			byte[] bytes = secretKey.getBytes(StandardCharsets.UTF_8);
 			int keyLen = bytes.length;
-			if(keyLen > 0xFFFF) {
+			if (keyLen > 0xFFFF) {
 				throw new UnsupportedOperationException("Secret key is longer than 65535 bytes");
 			}
 			buffer.writeShort(keyLen);
-			if(keyLen > 0) {
+			if (keyLen > 0) {
 				buffer.writeBytes(bytes);
 			}
-		}else {
+		} else {
 			buffer.writeShort(0);
 		}
 	}

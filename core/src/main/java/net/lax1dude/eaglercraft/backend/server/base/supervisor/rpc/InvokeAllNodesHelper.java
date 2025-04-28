@@ -43,15 +43,15 @@ class InvokeAllNodesHelper<Out extends ISupervisorData> extends ArrayList<NodeRe
 
 	@Override
 	public void accept(Collection<NodeResult<Out>> t) {
-		synchronized(this) {
-			if(cntDown > 0) {
-				if(t != null) {
+		synchronized (this) {
+			if (cntDown > 0) {
+				if (t != null) {
 					addAll(t);
 				}
-				if(--cntDown > 0) {
+				if (--cntDown > 0) {
 					return;
 				}
-			}else {
+			} else {
 				return;
 			}
 		}
@@ -59,13 +59,13 @@ class InvokeAllNodesHelper<Out extends ISupervisorData> extends ArrayList<NodeRe
 	}
 
 	public void acceptLocal(NodeResult<Out> loc) {
-		synchronized(this) {
-			if(cntDown > 0) {
+		synchronized (this) {
+			if (cntDown > 0) {
 				add(loc);
-				if(--cntDown > 0) {
+				if (--cntDown > 0) {
 					return;
 				}
-			}else {
+			} else {
 				return;
 			}
 		}
@@ -76,7 +76,7 @@ class InvokeAllNodesHelper<Out extends ISupervisorData> extends ArrayList<NodeRe
 		sched.executeAsync(() -> {
 			try {
 				res.accept(this);
-			}catch(Exception ex) {
+			} catch (Exception ex) {
 				logger.error("Caught exception from RPC result callback", ex);
 			}
 		});

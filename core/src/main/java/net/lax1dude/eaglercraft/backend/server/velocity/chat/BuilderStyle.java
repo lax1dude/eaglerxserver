@@ -79,8 +79,8 @@ class BuilderStyle<ParentType> implements IBuilderStyle<ParentType> {
 	}
 
 	Component applyTo(Component ret) {
-		if(color != null) {
-			switch(color) {
+		if (color != null) {
+			switch (color) {
 			case BLACK:
 				ret = ret.color(NamedTextColor.BLACK);
 				break;
@@ -131,19 +131,19 @@ class BuilderStyle<ParentType> implements IBuilderStyle<ParentType> {
 				break;
 			}
 		}
-		if(bold) {
+		if (bold) {
 			ret = ret.decorate(TextDecoration.BOLD);
 		}
-		if(italic) {
+		if (italic) {
 			ret = ret.decorate(TextDecoration.ITALIC);
 		}
-		if(strikethrough) {
+		if (strikethrough) {
 			ret = ret.decorate(TextDecoration.STRIKETHROUGH);
 		}
-		if(underline) {
+		if (underline) {
 			ret = ret.decorate(TextDecoration.UNDERLINED);
 		}
-		if(obfuscated) {
+		if (obfuscated) {
 			ret = ret.decorate(TextDecoration.OBFUSCATED);
 		}
 		return ret;

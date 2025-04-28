@@ -67,7 +67,7 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 
 	@Override
 	public boolean isVoiceEnabledOnServer(String serverName) {
-		if(serverName == null) {
+		if (serverName == null) {
 			throw new NullPointerException("serverName");
 		}
 		return true;
@@ -85,7 +85,7 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 
 	@Override
 	public void setICEServers(Collection<ICEServerEntry> newICEServers) {
-		if(newICEServers == null) {
+		if (newICEServers == null) {
 			throw new NullPointerException("newICEServers");
 		}
 		newICEServers = iceServers = ImmutableList.copyOf(newICEServers);
@@ -108,7 +108,7 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 
 	@Override
 	public IVoiceChannel getServerVoiceChannel(String serverName) {
-		if(serverName == null) {
+		if (serverName == null) {
 			throw new NullPointerException("serverName");
 		}
 		throw backendRelayMode();
@@ -121,7 +121,7 @@ public class VoiceServiceRemote<PlayerObject> implements IVoiceServiceImpl<Playe
 
 	@Override
 	public Collection<IEaglerPlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel) {
-		if(channel == null) {
+		if (channel == null) {
 			throw new NullPointerException("channel");
 		}
 		throw backendRelayMode();

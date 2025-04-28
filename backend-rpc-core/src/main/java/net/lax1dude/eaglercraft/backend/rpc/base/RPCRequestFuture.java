@@ -39,19 +39,19 @@ public class RPCRequestFuture<V> extends RPCActiveFuture<V> {
 	}
 
 	public boolean fireCompleteInternal(V value) {
-		if(super.fireCompleteInternal(value)) {
+		if (super.fireCompleteInternal(value)) {
 			eaglerCleanup();
 			return true;
-		}else {
+		} else {
 			return false;
 		}
 	}
 
 	public boolean fireExceptionInternal(Throwable value) {
-		if(super.fireExceptionInternal(value)) {
+		if (super.fireExceptionInternal(value)) {
 			eaglerCleanup();
 			return true;
-		}else {
+		} else {
 			return false;
 		}
 	}

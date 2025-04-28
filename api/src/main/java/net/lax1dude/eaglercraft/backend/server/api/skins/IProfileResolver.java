@@ -28,11 +28,12 @@ public interface IProfileResolver {
 
 	void resolveVanillaTexturesFromUUID(@Nonnull UUID uuid, @Nonnull Consumer<TexturesProperty> callback);
 
-	default void resolveVanillaTexturesFromUsername(@Nonnull String username, @Nonnull Consumer<TexturesProperty> callback) {
+	default void resolveVanillaTexturesFromUsername(@Nonnull String username,
+			@Nonnull Consumer<TexturesProperty> callback) {
 		resolveVanillaUUIDFromUsername(username, (uuid) -> {
-			if(uuid != null) {
+			if (uuid != null) {
 				resolveVanillaTexturesFromUUID(uuid, callback);
-			}else {
+			} else {
 				callback.accept(null);
 			}
 		});

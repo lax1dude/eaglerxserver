@@ -67,7 +67,7 @@ public class CPacketRPCSetPauseMenuCustom implements EaglerBackendRPCPacket {
 	public String discordButtonText;
 	public String discordInviteURL;
 
-	public Map<String,Integer> imageMappings;
+	public Map<String, Integer> imageMappings;
 	public List<PacketImageData> imageData;
 
 	public CPacketRPCSetPauseMenuCustom() {
@@ -97,7 +97,7 @@ public class CPacketRPCSetPauseMenuCustom implements EaglerBackendRPCPacket {
 		int flags = buffer.readUnsignedByte();
 		serverInfoMode = (flags & 15);
 		discordButtonMode = ((flags >> 4) & 15);
-		switch(serverInfoMode) {
+		switch (serverInfoMode) {
 		case SERVER_INFO_MODE_EXTERNAL_URL:
 			serverInfoButtonText = readString(buffer, 127, false, StandardCharsets.UTF_8);
 			serverInfoURL = readString(buffer, 65535, true, StandardCharsets.US_ASCII);
@@ -130,29 +130,30 @@ public class CPacketRPCSetPauseMenuCustom implements EaglerBackendRPCPacket {
 			serverInfoEmbedTitle = null;
 			break;
 		}
-		if(discordButtonMode == DISCORD_MODE_INVITE_URL) {
+		if (discordButtonMode == DISCORD_MODE_INVITE_URL) {
 			discordButtonText = readString(buffer, 127, false, StandardCharsets.UTF_8);
 			discordInviteURL = readString(buffer, 65535, true, StandardCharsets.US_ASCII);
-		}else {
+		} else {
 			discordButtonText = null;
 			discordInviteURL = null;
 		}
 		int mappingsCount = buffer.readUnsignedShort();
-		if(mappingsCount > 0) {
+		if (mappingsCount > 0) {
 			imageMappings = new HashMap<>();
-			for(int i = 0; i < mappingsCount; ++i) {
-				imageMappings.put(readString(buffer, 255, false, StandardCharsets.US_ASCII), buffer.readUnsignedShort());
+			for (int i = 0; i < mappingsCount; ++i) {
+				imageMappings.put(readString(buffer, 255, false, StandardCharsets.US_ASCII),
+						buffer.readUnsignedShort());
 			}
 			int imageDataCount = buffer.readUnsignedShort();
-			if(imageDataCount > 0) {
+			if (imageDataCount > 0) {
 				imageData = new ArrayList<>();
-				for(int i = 0; i < imageDataCount; ++i) {
+				for (int i = 0; i < imageDataCount; ++i) {
 					imageData.add(PacketImageData.readRGB16(buffer));
 				}
-			}else {
+			} else {
 				imageData = null;
 			}
-		}else {
+		} else {
 			imageMappings = null;
 			imageData = null;
 		}
@@ -161,7 +162,7 @@ public class CPacketRPCSetPauseMenuCustom implements EaglerBackendRPCPacket {
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
 		buffer.writeByte(serverInfoMode | (discordButtonMode << 4));
-		switch(serverInfoMode) {
+		switch (serverInfoMode) {
 		case SERVER_INFO_MODE_EXTERNAL_URL:
 			writeString(buffer, serverInfoButtonText, false, StandardCharsets.UTF_8);
 			writeString(buffer, serverInfoURL, true, StandardCharsets.US_ASCII);
@@ -177,7 +178,7 @@ public class CPacketRPCSetPauseMenuCustom implements EaglerBackendRPCPacket {
 			writeString(buffer, serverInfoButtonText, false, StandardCharsets.UTF_8);
 			buffer.writeByte(serverInfoEmbedPerms);
 			writeString(buffer, serverInfoEmbedTitle, false, StandardCharsets.UTF_8);
-			if(serverInfoHash.length != 20) {
+			if (serverInfoHash.length != 20) {
 				throw new IOException("Hash must be 20 bytes! (" + serverInfoHash.length + " given)");
 			}
 			buffer.write(serverInfoHash);
@@ -186,26 +187,27 @@ public class CPacketRPCSetPauseMenuCustom implements EaglerBackendRPCPacket {
 		default:
 			break;
 		}
-		if(discordButtonMode == DISCORD_MODE_INVITE_URL) {
+		if (discordButtonMode == DISCORD_MODE_INVITE_URL) {
 			writeString(buffer, discordButtonText, false, StandardCharsets.UTF_8);
 			writeString(buffer, discordInviteURL, true, StandardCharsets.US_ASCII);
 		}
-		if(imageMappings != null && !imageMappings.isEmpty()) {
+		if (imageMappings != null && !imageMappings.isEmpty()) {
 			buffer.writeShort(imageMappings.size());
-			for(Entry<String,Integer> etr : imageMappings.entrySet()) {
+			for (Entry<String, Integer> etr : imageMappings.entrySet()) {
 				writeString(buffer, etr.getKey(), false, StandardCharsets.US_ASCII);
 				buffer.writeShort(etr.getValue().intValue());
 			}
-			if(imageData != null && imageData.size() > 0) {
+			if (imageData != null && imageData.size() > 0) {
 				buffer.writeShort(imageData.size());
-				for(PacketImageData etr : imageData) {
-					if(etr.width < 1 || etr.width > 64 || etr.height < 1 || etr.height > 64) {
-						throw new IOException("Invalid image dimensions in packet, must be between 1x1 and 64x64, got " + etr.width + "x" + etr.height);
+				for (PacketImageData etr : imageData) {
+					if (etr.width < 1 || etr.width > 64 || etr.height < 1 || etr.height > 64) {
+						throw new IOException("Invalid image dimensions in packet, must be between 1x1 and 64x64, got "
+								+ etr.width + "x" + etr.height);
 					}
 					PacketImageData.writeRGB16(buffer, etr);
 				}
 			}
-		}else {
+		} else {
 			buffer.writeByte(0);
 		}
 	}

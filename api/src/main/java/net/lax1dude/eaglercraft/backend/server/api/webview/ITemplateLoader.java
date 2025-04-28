@@ -75,7 +75,7 @@ public interface ITemplateLoader {
 	@Nonnull
 	default String loadWebViewTemplate(@Nonnull File file, @Nonnull Charset charset)
 			throws IOException, InvalidMacroException {
-		try(InputStream is = new FileInputStream(file)) {
+		try (InputStream is = new FileInputStream(file)) {
 			return loadWebViewTemplate(is, charset);
 		}
 	}

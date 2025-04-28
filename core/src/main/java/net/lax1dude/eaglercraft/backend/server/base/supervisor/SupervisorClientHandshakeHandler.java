@@ -33,9 +33,9 @@ public class SupervisorClientHandshakeHandler implements EaglerSupervisorHandler
 
 	@Override
 	public void handleServer(SPacketSvHandshakeSuccess pkt) {
-		if(pkt.selectedProtocol == 1) {
+		if (pkt.selectedProtocol == 1) {
 			controller.handleHandshakeSuccess(handler, pkt.nodeId);
-		}else {
+		} else {
 			controller.handleHandshakeFailure(handler, "Wrong Protocol: " + pkt.selectedProtocol);
 		}
 	}

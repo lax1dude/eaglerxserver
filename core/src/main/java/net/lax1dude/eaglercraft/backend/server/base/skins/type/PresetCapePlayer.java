@@ -43,22 +43,22 @@ public class PresetCapePlayer extends BasePresetCape {
 	@Override
 	public GameMessagePacket getCapePacket(long rewriteUUIDMost, long rewriteUUIDLeast,
 			GamePluginMessageProtocol protocol) {
-		if(protocol.ver <= 4) {
-			if(rewriteUUIDMost == packet.uuidMost && rewriteUUIDLeast == packet.uuidLeast) {
+		if (protocol.ver <= 4) {
+			if (rewriteUUIDMost == packet.uuidMost && rewriteUUIDLeast == packet.uuidLeast) {
 				return packet;
-			}else {
+			} else {
 				return new SPacketOtherCapePresetEAG(rewriteUUIDMost, rewriteUUIDLeast, packet.presetCape);
 			}
-		}else {
+		} else {
 			throw UnsafeUtil.wrongProtocol(protocol);
 		}
 	}
 
 	@Override
 	public GameMessagePacket getCapePacket(int requestId, GamePluginMessageProtocol protocol) {
-		if(protocol.ver >= 5) {
+		if (protocol.ver >= 5) {
 			return new SPacketOtherCapePresetV5EAG(requestId, packet.presetCape);
-		}else {
+		} else {
 			throw UnsafeUtil.wrongProtocol(protocol);
 		}
 	}

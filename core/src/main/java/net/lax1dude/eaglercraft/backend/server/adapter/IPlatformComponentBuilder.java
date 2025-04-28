@@ -21,14 +21,12 @@ import java.util.List;
 public interface IPlatformComponentBuilder {
 
 	public static enum EnumChatColor {
-		BLACK, DARK_BLUE, DARK_GREEN, DARK_AQUA, DARK_RED,
-		DARK_PURPLE, GOLD, GRAY, DARK_GRAY, BLUE, GREEN,
-		AQUA, RED, LIGHT_PURPLE, YELLOW, WHITE
+		BLACK, DARK_BLUE, DARK_GREEN, DARK_AQUA, DARK_RED, DARK_PURPLE, GOLD, GRAY, DARK_GRAY, BLUE, GREEN, AQUA, RED,
+		LIGHT_PURPLE, YELLOW, WHITE
 	}
 
 	public static enum EnumClickAction {
-		OPEN_URL, OPEN_FILE, RUN_COMMAND, SUGGEST_COMMAND,
-		CHANGE_PAGE, COPY_TO_CLIPBOARD
+		OPEN_URL, OPEN_FILE, RUN_COMMAND, SUGGEST_COMMAND, CHANGE_PAGE, COPY_TO_CLIPBOARD
 	}
 
 	public static enum EnumHoverAction {
@@ -57,13 +55,15 @@ public interface IPlatformComponentBuilder {
 
 	}
 
-	public interface IBuilderComponentText<ParentType> extends IBuilderComponent<ParentType, IBuilderComponentText<ParentType>> {
+	public interface IBuilderComponentText<ParentType>
+			extends IBuilderComponent<ParentType, IBuilderComponentText<ParentType>> {
 
 		IBuilderComponentText<ParentType> text(String txt);
 
 	}
 
-	public interface IBuilderComponentTranslation<ParentType> extends IBuilderComponent<ParentType, IBuilderComponentTranslation<ParentType>> {
+	public interface IBuilderComponentTranslation<ParentType>
+			extends IBuilderComponent<ParentType, IBuilderComponentTranslation<ParentType>> {
 
 		IBuilderComponentTranslation<ParentType> translation(String key);
 

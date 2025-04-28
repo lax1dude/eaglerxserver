@@ -36,7 +36,8 @@ class BukkitConnection implements IPlatformConnection {
 	static {
 		try {
 			MethodHandles.Lookup l = MethodHandles.lookup();
-			LOGIN_CONNECTION_HANDLE = l.findVarHandle(BukkitConnection.class, "loginConnection", LoginConnectionHolder.class);
+			LOGIN_CONNECTION_HANDLE = l.findVarHandle(BukkitConnection.class, "loginConnection",
+					LoginConnectionHolder.class);
 		} catch (ReflectiveOperationException e) {
 			throw new ExceptionInInitializerError(e);
 		}
@@ -84,13 +85,13 @@ class BukkitConnection implements IPlatformConnection {
 	@Override
 	public String getUsername() {
 		Player player = playerInstance;
-		if(player != null) {
+		if (player != null) {
 			return player.getName();
-		}else {
-			LoginConnectionHolder loginConn = (LoginConnectionHolder)LOGIN_CONNECTION_HANDLE.getAcquire(this);
-			if(loginConn == null) {
+		} else {
+			LoginConnectionHolder loginConn = (LoginConnectionHolder) LOGIN_CONNECTION_HANDLE.getAcquire(this);
+			if (loginConn == null) {
 				return playerInstance.getName();
-			}else {
+			} else {
 				throw new IllegalStateException("Cannot access this on Bukkit before player initializes!");
 			}
 		}
@@ -99,13 +100,13 @@ class BukkitConnection implements IPlatformConnection {
 	@Override
 	public UUID getUniqueId() {
 		Player player = playerInstance;
-		if(player != null) {
+		if (player != null) {
 			return player.getUniqueId();
-		}else {
-			LoginConnectionHolder loginConn = (LoginConnectionHolder)LOGIN_CONNECTION_HANDLE.getAcquire(this);
-			if(loginConn == null) {
+		} else {
+			LoginConnectionHolder loginConn = (LoginConnectionHolder) LOGIN_CONNECTION_HANDLE.getAcquire(this);
+			if (loginConn == null) {
 				return playerInstance.getUniqueId();
-			}else {
+			} else {
 				throw new IllegalStateException("Cannot access this on Bukkit before player initializes!");
 			}
 		}
@@ -114,13 +115,13 @@ class BukkitConnection implements IPlatformConnection {
 	@Override
 	public SocketAddress getSocketAddress() {
 		Player player = playerInstance;
-		if(player != null) {
+		if (player != null) {
 			return player.getAddress();
-		}else {
-			LoginConnectionHolder loginConn = (LoginConnectionHolder)LOGIN_CONNECTION_HANDLE.getAcquire(this);
-			if(loginConn == null) {
+		} else {
+			LoginConnectionHolder loginConn = (LoginConnectionHolder) LOGIN_CONNECTION_HANDLE.getAcquire(this);
+			if (loginConn == null) {
 				return playerInstance.getAddress();
-			}else {
+			} else {
 				throw new IllegalStateException("Cannot access this on Bukkit before player initializes!");
 			}
 		}
@@ -138,20 +139,20 @@ class BukkitConnection implements IPlatformConnection {
 
 	@Override
 	public boolean isConnected() {
-		if(closePending) {
+		if (closePending) {
 			return false;
 		}
 		Player player = playerInstance;
-		if(player != null) {
+		if (player != null) {
 			Channel c = BukkitUnsafe.getPlayerChannel(player);
 			return c != null && c.isActive();
-		}else {
-			LoginConnectionHolder loginConn = (LoginConnectionHolder)LOGIN_CONNECTION_HANDLE.getAcquire(this);
-			if(loginConn == null) {
+		} else {
+			LoginConnectionHolder loginConn = (LoginConnectionHolder) LOGIN_CONNECTION_HANDLE.getAcquire(this);
+			if (loginConn == null) {
 				player = playerInstance;
 				Channel c = BukkitUnsafe.getPlayerChannel(player);
 				return c != null && c.isActive();
-			}else {
+			} else {
 				return loginConn.isConnected();
 			}
 		}
@@ -160,24 +161,24 @@ class BukkitConnection implements IPlatformConnection {
 	@Override
 	public void disconnect() {
 		closePending = true;
-		synchronized(this) {
-			if(closeRedirector != null) {
+		synchronized (this) {
+			if (closeRedirector != null) {
 				closeRedirector.accept(null);
 				return;
 			}
 		}
 		Player player = playerInstance;
-		if(player != null) {
+		if (player != null) {
 			plugin.getScheduler().execute(() -> {
 				player.kickPlayer("Connection Closed");
 			});
-		}else {
-			LoginConnectionHolder loginConn = (LoginConnectionHolder)LOGIN_CONNECTION_HANDLE.getAcquire(this);
-			if(loginConn == null) {
+		} else {
+			LoginConnectionHolder loginConn = (LoginConnectionHolder) LOGIN_CONNECTION_HANDLE.getAcquire(this);
+			if (loginConn == null) {
 				plugin.getScheduler().execute(() -> {
 					playerInstance.kickPlayer("Connection Closed");
 				});
-			}else {
+			} else {
 				loginConn.disconnect();
 			}
 		}
@@ -186,35 +187,35 @@ class BukkitConnection implements IPlatformConnection {
 	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
 		closePending = true;
-		synchronized(this) {
-			if(closeRedirector != null) {
+		synchronized (this) {
+			if (closeRedirector != null) {
 				closeRedirector.accept(kickMessage);
 				return;
 			}
 		}
-		String msg = ((BaseComponent)kickMessage).toLegacyText();
+		String msg = ((BaseComponent) kickMessage).toLegacyText();
 		Player player = playerInstance;
-		if(player != null) {
+		if (player != null) {
 			plugin.getScheduler().execute(() -> {
 				player.kickPlayer(msg);
 			});
-		}else {
-			LoginConnectionHolder loginConn = (LoginConnectionHolder)LOGIN_CONNECTION_HANDLE.getAcquire(this);
-			if(loginConn == null) {
+		} else {
+			LoginConnectionHolder loginConn = (LoginConnectionHolder) LOGIN_CONNECTION_HANDLE.getAcquire(this);
+			if (loginConn == null) {
 				plugin.getScheduler().execute(() -> {
 					playerInstance.kickPlayer(msg);
 				});
-			}else {
+			} else {
 				loginConn.disconnect(msg);
 			}
 		}
 	}
 
 	public void awaitPlayState(Runnable runnable) {
-		if(awaitPlayState != null) {
+		if (awaitPlayState != null) {
 			awaitPlayState.accept(runnable);
 			awaitPlayState = null;
-		}else {
+		} else {
 			runnable.run();
 		}
 	}

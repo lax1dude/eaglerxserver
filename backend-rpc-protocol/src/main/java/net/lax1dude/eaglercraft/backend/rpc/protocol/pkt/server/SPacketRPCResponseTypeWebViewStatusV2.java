@@ -53,13 +53,13 @@ public class SPacketRPCResponseTypeWebViewStatusV2 implements EaglerBackendRPCPa
 		webViewAllowed = (bits & 1) != 0;
 		channelAllowed = (bits & 2) != 0;
 		int channelCnt = buffer.readUnsignedByte();
-		if(channelCnt > 0) {
+		if (channelCnt > 0) {
 			String[] ch = new String[channelCnt];
-			for(int i = 0; i < channelCnt; ++i) {
+			for (int i = 0; i < channelCnt; ++i) {
 				ch[i] = EaglerBackendRPCPacket.readString(buffer, 255, false, StandardCharsets.US_ASCII);
 			}
 			openChannels = Arrays.asList(ch);
-		}else {
+		} else {
 			openChannels = null;
 		}
 	}
@@ -68,25 +68,25 @@ public class SPacketRPCResponseTypeWebViewStatusV2 implements EaglerBackendRPCPa
 	public void writePacket(DataOutput buffer) throws IOException {
 		buffer.writeInt(requestID);
 		buffer.writeByte((webViewAllowed ? 1 : 0) | (channelAllowed ? 2 : 0));
-		if(openChannels != null) {
+		if (openChannels != null) {
 			int cnt = openChannels.size();
-			if(cnt > 255) {
+			if (cnt > 255) {
 				throw new IOException("Too many open channels!");
 			}
 			buffer.writeByte(cnt);
-			if(cnt > 0) {
-				if(openChannels instanceof RandomAccess) {
+			if (cnt > 0) {
+				if (openChannels instanceof RandomAccess) {
 					List<String> lst = (List<String>) openChannels;
-					for(int i = 0; i < cnt; ++i) {
+					for (int i = 0; i < cnt; ++i) {
 						EaglerBackendRPCPacket.writeString(buffer, lst.get(i), false, StandardCharsets.US_ASCII);
 					}
-				}else {
-					for(String str : openChannels) {
+				} else {
+					for (String str : openChannels) {
 						EaglerBackendRPCPacket.writeString(buffer, str, false, StandardCharsets.US_ASCII);
 					}
 				}
 			}
-		}else {
+		} else {
 			buffer.writeByte(0);
 		}
 	}
@@ -99,17 +99,17 @@ public class SPacketRPCResponseTypeWebViewStatusV2 implements EaglerBackendRPCPa
 	@Override
 	public int length() {
 		int l = 6;
-		if(openChannels != null) {
+		if (openChannels != null) {
 			int cnt = openChannels.size();
-			if(cnt > 0) {
+			if (cnt > 0) {
 				l += cnt;
-				if(openChannels instanceof RandomAccess) {
+				if (openChannels instanceof RandomAccess) {
 					List<String> lst = (List<String>) openChannels;
-					for(int i = 0; i < cnt; ++i) {
+					for (int i = 0; i < cnt; ++i) {
 						l += lst.get(i).length();
 					}
-				}else {
-					for(String str : openChannels) {
+				} else {
+					for (String str : openChannels) {
 						l += str.length();
 					}
 				}

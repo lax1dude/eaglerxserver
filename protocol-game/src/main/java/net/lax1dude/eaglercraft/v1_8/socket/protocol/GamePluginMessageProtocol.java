@@ -166,29 +166,29 @@ public enum GamePluginMessageProtocol {
 
 	private GamePluginMessageProtocol(int versionInt, PacketDef... packets) {
 		ver = versionInt;
-		if(versionInt >= 5) {
+		if (versionInt >= 5) {
 			channelMap = null;
 			classMap = new Map[] { new HashMap<>(), new HashMap<>() };
 			this.channelMapV5 = new PacketDef[2][48];
-			for(int i = 0; i < packets.length; ++i) {
+			for (int i = 0; i < packets.length; ++i) {
 				PacketDef pkt = packets[i];
 				classMap[pkt.dir].put(pkt.clazz, pkt);
 				channelMapV5[pkt.dir][pkt.id] = pkt;
 			}
-		}else {
+		} else {
 			channelMap = new Map[] { new HashMap<>(), new HashMap<>() };
 			classMap = new Map[] { new HashMap<>(), new HashMap<>() };
 			channelMapV5 = null;
-			for(int i = 0; i < packets.length; ++i) {
+			for (int i = 0; i < packets.length; ++i) {
 				PacketDef pkt = packets[i];
 				classMap[pkt.dir].put(pkt.clazz, pkt);
-				if(pkt.id == -1) {
+				if (pkt.id == -1) {
 					channelMap[pkt.dir].put(pkt.channel, pkt);
-				}else {
-					PacketDef[] map = (PacketDef[])channelMap[pkt.dir].get(pkt.channel);
-					if(map == null || map.length <= pkt.id) {
+				} else {
+					PacketDef[] map = (PacketDef[]) channelMap[pkt.dir].get(pkt.channel);
+					if (map == null || map.length <= pkt.id) {
 						PacketDef[] newMap = new PacketDef[((pkt.id + 1) & 0xF0) + 0x0F];
-						if(map != null) {
+						if (map != null) {
 							System.arraycopy(map, 0, newMap, 0, map.length);
 						}
 						map = newMap;
@@ -200,44 +200,48 @@ public enum GamePluginMessageProtocol {
 		}
 	}
 
-	private static PacketDef define(String channel, int id, int dir, Class<? extends GameMessagePacket> clazz, Supplier<? extends GameMessagePacket> ctor) {
+	private static PacketDef define(String channel, int id, int dir, Class<? extends GameMessagePacket> clazz,
+			Supplier<? extends GameMessagePacket> ctor) {
 		return new PacketDef(channel, id, dir, clazz, ctor);
 	}
 
-	private static PacketDef define(int id, int dir, Class<? extends GameMessagePacket> clazz, Supplier<? extends GameMessagePacket> ctor) {
+	private static PacketDef define(int id, int dir, Class<? extends GameMessagePacket> clazz,
+			Supplier<? extends GameMessagePacket> ctor) {
 		return new PacketDef(null, id, dir, clazz, ctor);
 	}
 
 	private static class PacketDef {
-		
+
 		private final String channel;
 		private final int id;
 		private final int dir;
 		private final Class<? extends GameMessagePacket> clazz;
 		private final Supplier<? extends GameMessagePacket> ctor;
-		
-		private PacketDef(String channel, int id, int dir, Class<? extends GameMessagePacket> clazz, Supplier<? extends GameMessagePacket> ctor) {
+
+		private PacketDef(String channel, int id, int dir, Class<? extends GameMessagePacket> clazz,
+				Supplier<? extends GameMessagePacket> ctor) {
 			this.channel = channel;
 			this.id = id;
 			this.dir = dir;
 			this.clazz = clazz;
 			this.ctor = ctor;
 		}
-		
+
 	}
 
-	public GameMessagePacket readPacket(String channel, int direction, GamePacketInputBuffer buffer) throws IOException {
+	public GameMessagePacket readPacket(String channel, int direction, GamePacketInputBuffer buffer)
+			throws IOException {
 		Object obj = channelMap[direction].get(channel);
-		if(obj == null) {
+		if (obj == null) {
 			return null;
 		}
 		PacketDef toRead;
-		if(obj instanceof PacketDef) {
-			toRead = (PacketDef)obj;
-		}else {
+		if (obj instanceof PacketDef) {
+			toRead = (PacketDef) obj;
+		} else {
 			int pktId = buffer.readUnsignedByte();
-			PacketDef[] pkts = (PacketDef[])obj;
-			if(pktId < 0 || pktId >= pkts.length || (toRead = pkts[pktId]) == null) {
+			PacketDef[] pkts = (PacketDef[]) obj;
+			if (pktId < 0 || pktId >= pkts.length || (toRead = pkts[pktId]) == null) {
 				throw new IOException("[" + channel + "] Unknown packet ID: " + pktId);
 			}
 		}
@@ -250,7 +254,7 @@ public enum GamePluginMessageProtocol {
 		PacketDef[] lst = channelMapV5[direction];
 		int pktId = buffer.readUnsignedByte();
 		PacketDef def;
-		if(pktId >= lst.length || (def = lst[pktId]) == null) {
+		if (pktId >= lst.length || (def = lst[pktId]) == null) {
 			throw new IOException("Unknown packet ID: " + pktId);
 		}
 		GameMessagePacket ret = def.ctor.get();
@@ -258,26 +262,28 @@ public enum GamePluginMessageProtocol {
 		return ret;
 	}
 
-	public String writePacket(int direction, GamePacketOutputBuffer stream, GameMessagePacket packet) throws IOException {
+	public String writePacket(int direction, GamePacketOutputBuffer stream, GameMessagePacket packet)
+			throws IOException {
 		Class<? extends GameMessagePacket> clazz = packet.getClass();
 		PacketDef def = classMap[direction].get(clazz);
-		if(def == null) {
+		if (def == null) {
 			throw new IOException("Unknown packet type or wrong direction: " + clazz);
 		}
-		if(def.id != -1) {
+		if (def.id != -1) {
 			stream.writeByte(def.id);
 		}
 		packet.writePacket(stream);
 		return def.channel;
 	}
 
-	public void writePacketV5(int direction, GamePacketOutputBuffer stream, GameMessagePacket packet) throws IOException {
+	public void writePacketV5(int direction, GamePacketOutputBuffer stream, GameMessagePacket packet)
+			throws IOException {
 		Class<? extends GameMessagePacket> clazz = packet.getClass();
 		PacketDef def = classMap[direction].get(clazz);
-		if(def == null) {
+		if (def == null) {
 			throw new IOException("Unknown packet type or wrong direction: " + clazz);
 		}
-		if(def.id != -1) {
+		if (def.id != -1) {
 			stream.writeByte(def.id);
 		}
 		packet.writePacket(stream);
@@ -285,8 +291,8 @@ public enum GamePluginMessageProtocol {
 
 	public List<String> filterProtocols(Collection<String> data) {
 		List<String> ret = new ArrayList<>(data.size());
-		for(String str : data) {
-			if(!notChannelMap.contains(str)) {
+		for (String str : data) {
+			if (!notChannelMap.contains(str)) {
 				ret.add(str);
 			}
 		}
@@ -294,7 +300,7 @@ public enum GamePluginMessageProtocol {
 	}
 
 	public static GamePluginMessageProtocol getByVersion(int ver) {
-		if(ver < 0 || ver >= PROTOCOLS_MAP.length) {
+		if (ver < 0 || ver >= PROTOCOLS_MAP.length) {
 			return null;
 		}
 		return PROTOCOLS_MAP[ver];
@@ -307,17 +313,17 @@ public enum GamePluginMessageProtocol {
 	static {
 		GamePluginMessageProtocol[] _values = values();
 		PROTOCOLS_MAP[2] = V3;
-		for(int i = 0; i < _values.length; ++i) {
+		for (int i = 0; i < _values.length; ++i) {
 			GamePluginMessageProtocol protocol = _values[i];
 			PROTOCOLS_MAP[protocol.ver] = protocol;
-			if(protocol.ver < 5) {
+			if (protocol.ver < 5) {
 				allChannels.addAll(protocol.channelMap[CLIENT_TO_SERVER].keySet());
 				allChannels.addAll(protocol.channelMap[SERVER_TO_CLIENT].keySet());
 			}
 		}
-		for(int i = 0; i < _values.length; ++i) {
+		for (int i = 0; i < _values.length; ++i) {
 			GamePluginMessageProtocol protocol = _values[i];
-			if(protocol.ver < 5) {
+			if (protocol.ver < 5) {
 				protocol.notChannelMap.addAll(allChannels);
 				protocol.notChannelMap.removeAll(protocol.channelMap[CLIENT_TO_SERVER].keySet());
 				protocol.notChannelMap.removeAll(protocol.channelMap[SERVER_TO_CLIENT].keySet());

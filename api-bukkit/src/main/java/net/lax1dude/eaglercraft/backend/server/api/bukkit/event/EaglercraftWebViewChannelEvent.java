@@ -24,8 +24,7 @@ import org.bukkit.event.HandlerList;
 
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChannelEvent;
 
-public abstract class EaglercraftWebViewChannelEvent extends Event
-		implements IEaglercraftWebViewChannelEvent<Player> {
+public abstract class EaglercraftWebViewChannelEvent extends Event implements IEaglercraftWebViewChannelEvent<Player> {
 
 	private static final HandlerList handlers = new HandlerList();
 

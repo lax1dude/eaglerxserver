@@ -33,8 +33,8 @@ class BukkitWebViewMessageEventImpl extends EaglercraftWebViewMessageEvent {
 	private final byte[] data;
 	private String asString;
 
-	BukkitWebViewMessageEventImpl(IEaglerXServerAPI<Player> api, IEaglerPlayer<Player> player,
-			String channel, EnumMessageType type, byte[] data) {
+	BukkitWebViewMessageEventImpl(IEaglerXServerAPI<Player> api, IEaglerPlayer<Player> player, String channel,
+			EnumMessageType type, byte[] data) {
 		this.api = api;
 		this.player = player;
 		this.channel = channel;
@@ -64,7 +64,7 @@ class BukkitWebViewMessageEventImpl extends EaglercraftWebViewMessageEvent {
 
 	@Override
 	public String getAsString() {
-		if(asString == null) {
+		if (asString == null) {
 			asString = new String(data, StandardCharsets.UTF_8);
 		}
 		return asString;

@@ -34,8 +34,8 @@ public class HandshakerV3 extends HandshakerV2 {
 		super(server, pipelineData, inboundHandler);
 	}
 
-	public void init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString,
-			int minecraftVersion, boolean auth, byte[] authUsername) {
+	public void init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString, int minecraftVersion,
+			boolean auth, byte[] authUsername) {
 		handlePacketInit(ctx, eaglerBrand, eaglerVersionString, minecraftVersion, auth, authUsername);
 	}
 
@@ -69,7 +69,7 @@ public class HandshakerV3 extends HandshakerV2 {
 
 	@Override
 	protected ChannelFuture sendPacketDenyLogin(ChannelHandlerContext ctx, String message) {
-		if(message.length() > 65535) {
+		if (message.length() > 65535) {
 			message = message.substring(0, 65535);
 		}
 		ByteBuf buffer = ctx.alloc().buffer();
@@ -77,13 +77,13 @@ public class HandshakerV3 extends HandshakerV2 {
 			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_DENY_LOGIN);
 			byte[] msg = message.getBytes(StandardCharsets.UTF_8);
 			int len = msg.length;
-			if(len > 65535) {
+			if (len > 65535) {
 				len = 65535;
 			}
 			buffer.writeShort(len);
 			buffer.writeBytes(msg, 0, len);
 			return ctx.writeAndFlush(buffer.retain());
-		}finally {
+		} finally {
 			buffer.release();
 		}
 	}

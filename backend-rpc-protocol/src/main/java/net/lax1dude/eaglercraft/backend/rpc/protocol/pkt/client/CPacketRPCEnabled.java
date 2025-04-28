@@ -37,7 +37,7 @@ public class CPacketRPCEnabled implements EaglerBackendRPCPacket {
 	@Override
 	public void readPacket(DataInput buffer) throws IOException {
 		supportedProtocols = new int[buffer.readUnsignedShort()];
-		for(int i = 0; i < supportedProtocols.length; ++i) {
+		for (int i = 0; i < supportedProtocols.length; ++i) {
 			supportedProtocols[i] = buffer.readUnsignedShort();
 		}
 	}
@@ -45,7 +45,7 @@ public class CPacketRPCEnabled implements EaglerBackendRPCPacket {
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
 		buffer.writeShort(supportedProtocols.length);
-		for(int i = 0; i < supportedProtocols.length; ++i) {
+		for (int i = 0; i < supportedProtocols.length; ++i) {
 			buffer.writeShort(supportedProtocols[i]);
 		}
 	}

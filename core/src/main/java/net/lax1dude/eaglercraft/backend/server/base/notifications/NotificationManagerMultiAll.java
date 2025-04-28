@@ -38,7 +38,7 @@ public class NotificationManagerMultiAll<PlayerObject> extends NotificationManag
 	protected void forTargets(Consumer<NotificationManagerBase<PlayerObject>> mgr) {
 		service.server.forEachEaglerPlayerInternal((player) -> {
 			NotificationManagerPlayer<PlayerObject> ret = player.getNotificationManager();
-			if(ret != null) {
+			if (ret != null) {
 				mgr.accept(ret);
 			}
 		});

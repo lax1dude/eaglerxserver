@@ -96,10 +96,10 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 	}
 
 	public void clearResult() {
-		if(response != RESPONSE_NONE) {
-			switch(response) {
+		if (response != RESPONSE_NONE) {
+			switch (response) {
 			case RESPONSE_PREPARED:
-				if(responsePrepared != null) {
+				if (responsePrepared != null) {
 					responsePrepared.release();
 					responsePrepared = null;
 				}
@@ -112,13 +112,13 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 				responseCharsCharset = null;
 				break;
 			case RESPONSE_UNSAFE_BUF:
-				if(responseUnsafeByteBuf != null) {
+				if (responseUnsafeByteBuf != null) {
 					responseUnsafeByteBuf.release();
 					responseUnsafeByteBuf = null;
 				}
 				break;
 			case RESPONSE_UNSAFE_FULL:
-				if(responseUnsafeFull != null) {
+				if (responseUnsafeFull != null) {
 					responseUnsafeFull.release();
 					responseUnsafeFull = null;
 				}
@@ -169,7 +169,7 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	@Override
 	public String getHeader(String name) {
-		if(name == null) {
+		if (name == null) {
 			throw new NullPointerException("name");
 		}
 		return request.headers().get(name);
@@ -177,7 +177,7 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	@Override
 	public List<String> getHeaders(String name) {
-		if(name == null) {
+		if (name == null) {
 			throw new NullPointerException("name");
 		}
 		return request.headers().getAll(name);
@@ -202,7 +202,7 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 	public byte[] getRequestBodyByteArray() {
 		ByteBuf buf = request.content();
 		int len = buf.readableBytes();
-		if(len == 0) {
+		if (len == 0) {
 			throw new UnsupportedOperationException("Request does not have a body");
 		}
 		byte[] ret = new byte[len];
@@ -212,12 +212,12 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	@Override
 	public CharSequence getRequestBodyCharSequence(Charset charset) {
-		if(charset == null) {
+		if (charset == null) {
 			throw new NullPointerException("charset");
 		}
 		ByteBuf buf = request.content();
 		int len = buf.readableBytes();
-		if(len == 0) {
+		if (len == 0) {
 			throw new UnsupportedOperationException("Request does not have a body");
 		}
 		return buf.getCharSequence(buf.readerIndex(), len, charset);
@@ -226,7 +226,7 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 	@Override
 	public void getRequestBodyByteArray(int srcOffset, byte[] dest, int dstOffset, int length) {
 		ByteBuf buf = request.content();
-		if(buf.readableBytes() == 0) {
+		if (buf.readableBytes() == 0) {
 			throw new UnsupportedOperationException("Request does not have a body");
 		}
 		buf.getBytes(buf.readerIndex() + srcOffset, dest, dstOffset, length);
@@ -234,7 +234,7 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	@Override
 	public void setResponseBody(IPreparedResponse preparedResponse) {
-		if(preparedResponse == null) {
+		if (preparedResponse == null) {
 			throw new NullPointerException("response body is null");
 		}
 		clearResult();
@@ -244,7 +244,7 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	@Override
 	public void setResponseBody(byte[] response) {
-		if(response == null) {
+		if (response == null) {
 			throw new NullPointerException("response body is null");
 		}
 		clearResult();
@@ -254,10 +254,10 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	@Override
 	public void setResponseBody(CharSequence response, Charset binaryCharset) {
-		if(response == null) {
+		if (response == null) {
 			throw new NullPointerException("response body is null");
 		}
-		if(binaryCharset == null) {
+		if (binaryCharset == null) {
 			throw new NullPointerException("response charset is null");
 		}
 		clearResult();
@@ -274,13 +274,13 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	@Override
 	public void addResponseHeader(String name, Object value) {
-		if(name == null) {
+		if (name == null) {
 			throw new NullPointerException("header name is null");
 		}
-		if(value == null) {
+		if (value == null) {
 			throw new NullPointerException("header value is null");
 		}
-		if(responseHeaders == null) {
+		if (responseHeaders == null) {
 			responseHeaders = new ArrayList<>();
 		}
 		responseHeaders.add(name);
@@ -289,16 +289,16 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	@Override
 	public void addResponseHeaders(String name, Iterable<?> values) {
-		if(name == null) {
+		if (name == null) {
 			throw new NullPointerException("header name is null");
 		}
-		if(values == null) {
+		if (values == null) {
 			throw new NullPointerException("header values is null");
 		}
-		if(responseHeaders == null) {
+		if (responseHeaders == null) {
 			responseHeaders = new ArrayList<>();
 		}
-		for(Object val : values) {
+		for (Object val : values) {
 			responseHeaders.add(name);
 			responseHeaders.add(val);
 		}
@@ -311,13 +311,13 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	@Override
 	public IContextPromise suspendContext() {
-		if(!ctx.channel().eventLoop().inEventLoop()) {
+		if (!ctx.channel().eventLoop().inEventLoop()) {
 			throw new IllegalStateException("Cannot suspend context outside of the channel's event loop");
 		}
-		if(!suspendable) {
+		if (!suspendable) {
 			throw new IllegalStateException("Context was suspended after the request was already handled");
 		}
-		if(contextPromise != null) {
+		if (contextPromise != null) {
 			throw new IllegalStateException("Context has already been suspended");
 		}
 		request.retain();
@@ -341,7 +341,7 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	@Override
 	public void setResponseBodyByteBuf(ByteBuf byteBuf) {
-		if(byteBuf == null) {
+		if (byteBuf == null) {
 			throw new NullPointerException("response ByteBuf is null");
 		}
 		clearResult();
@@ -351,7 +351,7 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	@Override
 	public void setResponseBodyHttpResponse(FullHttpResponse response) {
-		if(response == null) {
+		if (response == null) {
 			throw new NullPointerException("response FullHttpResponse is null");
 		}
 		clearResult();
@@ -388,19 +388,19 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 		@Override
 		public void complete() {
 			IEventDispatchCallback<RequestContext> cb;
-			synchronized(this) {
-				if(complete) {
+			synchronized (this) {
+				if (complete) {
 					return;
 				}
 				complete = true;
 				error = null;
 				cb = consumer;
 			}
-			if(cb != null) {
+			if (cb != null) {
 				EventLoop el = ctx.channel().eventLoop();
-				if(el.inEventLoop()) {
+				if (el.inEventLoop()) {
 					cb.complete(RequestContext.this, null);
-				}else {
+				} else {
 					el.execute(() -> {
 						cb.complete(RequestContext.this, null);
 					});
@@ -411,19 +411,19 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 		@Override
 		public void complete(Throwable err) {
 			IEventDispatchCallback<RequestContext> cb;
-			synchronized(this) {
-				if(complete) {
+			synchronized (this) {
+				if (complete) {
 					return;
 				}
 				complete = true;
 				error = err;
 				cb = consumer;
 			}
-			if(cb != null) {
+			if (cb != null) {
 				EventLoop el = ctx.channel().eventLoop();
-				if(el.inEventLoop()) {
+				if (el.inEventLoop()) {
 					cb.complete(RequestContext.this, err);
-				}else {
+				} else {
 					el.execute(() -> {
 						cb.complete(RequestContext.this, err);
 					});
@@ -438,8 +438,8 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 		public void onResumeInternal(IEventDispatchCallback<RequestContext> cs) {
 			Throwable err;
-			synchronized(this) {
-				if(!complete) {
+			synchronized (this) {
+				if (!complete) {
 					consumer = cs;
 					return;
 				}

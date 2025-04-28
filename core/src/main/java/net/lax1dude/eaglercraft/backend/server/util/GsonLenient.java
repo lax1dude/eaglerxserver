@@ -52,9 +52,9 @@ public class GsonLenient {
 
 	public static GsonBuilder setLenient(GsonBuilder builder) {
 		try {
-			if(meth_setStrictness != null) {
+			if (meth_setStrictness != null) {
 				meth_setStrictness.invoke(builder, enum_LENIENT);
-			}else if(meth_setLenient != null) {
+			} else if (meth_setLenient != null) {
 				meth_setLenient.invoke(builder);
 			}
 			return builder;

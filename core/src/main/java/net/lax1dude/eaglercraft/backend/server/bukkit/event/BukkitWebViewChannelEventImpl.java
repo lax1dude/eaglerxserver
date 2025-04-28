@@ -29,8 +29,8 @@ class BukkitWebViewChannelEventImpl extends EaglercraftWebViewChannelEvent {
 	private final EnumEventType type;
 	private final String channel;
 
-	BukkitWebViewChannelEventImpl(IEaglerXServerAPI<Player> api, IEaglerPlayer<Player> player,
-			EnumEventType type, String channel) {
+	BukkitWebViewChannelEventImpl(IEaglerXServerAPI<Player> api, IEaglerPlayer<Player> player, EnumEventType type,
+			String channel) {
 		this.api = api;
 		this.player = player;
 		this.type = type;

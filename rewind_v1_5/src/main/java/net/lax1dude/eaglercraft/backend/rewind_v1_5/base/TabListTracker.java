@@ -70,7 +70,7 @@ public class TabListTracker {
 		ListItem newItem = new ListItem(playerName, playerUUID,
 				playerName.equals(displayName) ? playerName : displayName.intern(), pingValue);
 		ListItem oldItem = playerUUIDToItem.put(playerUUID, newItem);
-		if(oldItem != null) {
+		if (oldItem != null) {
 			playerNameToItem.remove(oldItem.playerName);
 		}
 		playerNameToItem.put(playerName, newItem);
@@ -79,7 +79,7 @@ public class TabListTracker {
 
 	public ListItem handleSpawnPlayer(UUID playerUUID, int entityId) {
 		ListItem itm = playerUUIDToItem.get(playerUUID);
-		if(itm != null) {
+		if (itm != null) {
 			itm.entityId = entityId;
 		}
 		return itm;
@@ -87,7 +87,7 @@ public class TabListTracker {
 
 	public ListItem handleUpdatePing(UUID playerUUID, int pingValue) {
 		ListItem itm = playerUUIDToItem.get(playerUUID);
-		if(itm != null) {
+		if (itm != null) {
 			itm.pingValue = pingValue;
 		}
 		return itm;
@@ -95,16 +95,16 @@ public class TabListTracker {
 
 	public ListItem handleUpdateDisplayName(UUID playerUUID, String displayName) {
 		ListItem itm = playerUUIDToItem.get(playerUUID);
-		if(itm != null) {
-			if(displayName != null) {
+		if (itm != null) {
+			if (displayName != null) {
 				displayName = displayName.intern();
-				if(!displayName.equals(itm.displayName)) {
+				if (!displayName.equals(itm.displayName)) {
 					itm.displayName = displayName;
 					itm.dirty = true;
 				}
-			}else {
+			} else {
 				displayName = itm.playerName;
-				if(!displayName.equals(itm.displayName)) {
+				if (!displayName.equals(itm.displayName)) {
 					itm.displayName = displayName;
 				}
 			}
@@ -114,7 +114,7 @@ public class TabListTracker {
 
 	public ListItem handleRemovePlayer(UUID pliUuid) {
 		ListItem itm = playerUUIDToItem.remove(pliUuid);
-		if(itm != null) {
+		if (itm != null) {
 			playerNameToItem.remove(itm.playerName);
 		}
 		return itm;

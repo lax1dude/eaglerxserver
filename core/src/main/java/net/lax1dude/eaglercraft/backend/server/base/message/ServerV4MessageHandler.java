@@ -33,18 +33,18 @@ public class ServerV4MessageHandler extends ServerV3MessageHandler {
 
 	public void handleClient(CPacketVoiceSignalDisconnectV4EAG packet) {
 		IVoiceManagerImpl<?> mgr = eaglerHandle.getVoiceManager();
-		if(mgr != null) {
+		if (mgr != null) {
 			mgr.handlePlayerSignalPacketTypeDisconnect();
-		}else {
+		} else {
 			throw notCapable();
 		}
 	}
 
 	public void handleClient(CPacketVoiceSignalDisconnectPeerV4EAG packet) {
 		IVoiceManagerImpl<?> mgr = eaglerHandle.getVoiceManager();
-		if(mgr != null) {
+		if (mgr != null) {
 			mgr.handlePlayerSignalPacketTypeDisconnectPeer(packet.uuidMost, packet.uuidLeast);
-		}else {
+		} else {
 			throw notCapable();
 		}
 	}
@@ -55,27 +55,27 @@ public class ServerV4MessageHandler extends ServerV3MessageHandler {
 
 	public void handleClient(CPacketRequestServerInfoV4EAG packet) {
 		WebViewManager<?> mgr = eaglerHandle.getWebViewManager();
-		if(mgr != null) {
+		if (mgr != null) {
 			mgr.handlePacketRequestData(packet.requestHash);
-		}else {
+		} else {
 			throw notCapable();
 		}
 	}
 
 	public void handleClient(CPacketWebViewMessageV4EAG packet) {
 		WebViewManager<?> mgr = eaglerHandle.getWebViewManager();
-		if(mgr != null) {
+		if (mgr != null) {
 			mgr.handlePacketMessage(packet.data, packet.type != CPacketWebViewMessageV4EAG.TYPE_STRING);
-		}else {
+		} else {
 			throw notCapable();
 		}
 	}
 
 	public void handleClient(CPacketWebViewMessageEnV4EAG packet) {
 		WebViewManager<?> mgr = eaglerHandle.getWebViewManager();
-		if(mgr != null) {
+		if (mgr != null) {
 			mgr.handlePacketChannel(packet.channelName, packet.messageChannelOpen);
-		}else {
+		} else {
 			throw notCapable();
 		}
 	}

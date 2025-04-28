@@ -31,32 +31,34 @@ class EaglerXServerConnectionInitializer<PlayerObject>
 	}
 
 	@Override
-	public void initializeConnection(IPlatformConnectionInitializer<NettyPipelineData, BaseConnectionInstance> initializer) {
+	public void initializeConnection(
+			IPlatformConnectionInitializer<NettyPipelineData, BaseConnectionInstance> initializer) {
 		NettyPipelineData nettyData = initializer.getPipelineAttachment();
-		if(nettyData != null) {
+		if (nettyData != null) {
 			if (nettyData.isEaglerPlayer()) {
-				initializer.setConnectionAttachment(new EaglerConnectionInstance(initializer.getConnection(), nettyData));
-				if(server.isEaglerPlayerPropertyEnabled()) {
+				initializer
+						.setConnectionAttachment(new EaglerConnectionInstance(initializer.getConnection(), nettyData));
+				if (server.isEaglerPlayerPropertyEnabled()) {
 					initializer.setEaglerPlayerProperty(true);
 				}
 				TexturesProperty eaglerPlayersSkin = server.getEaglerPlayersVanillaSkin();
-				if(eaglerPlayersSkin != null) {
+				if (eaglerPlayersSkin != null) {
 					initializer.setTexturesProperty(eaglerPlayersSkin.getValue(), eaglerPlayersSkin.getSignature());
 				}
-				if(server.getPlatformType() != EnumPlatformType.BUKKIT) {
+				if (server.getPlatformType() != EnumPlatformType.BUKKIT) {
 					initializer.setUniqueId(nettyData.uuid);
 				}
 			} else {
-				initializer.setConnectionAttachment(new BaseConnectionInstance(initializer.getConnection(),
-						nettyData.attributeHolder));
-				if(server.isEaglerPlayerPropertyEnabled()) {
+				initializer.setConnectionAttachment(
+						new BaseConnectionInstance(initializer.getConnection(), nettyData.attributeHolder));
+				if (server.isEaglerPlayerPropertyEnabled()) {
 					initializer.setEaglerPlayerProperty(false);
 				}
 			}
 		} else {
 			initializer.setConnectionAttachment(new BaseConnectionInstance(initializer.getConnection(),
 					server.getEaglerAttribManager().createEaglerHolder()));
-			if(server.isEaglerPlayerPropertyEnabled()) {
+			if (server.isEaglerPlayerPropertyEnabled()) {
 				initializer.setEaglerPlayerProperty(false);
 			}
 		}

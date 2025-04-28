@@ -100,7 +100,8 @@ public class SupervisorConnection implements ISupervisorConnection, INettyChanne
 			return new SupervisorPlayer(this, uuid);
 		};
 		this.pendingHandshakes = new HashMap<>(256);
-		this.acceptedPlayers = Collections.newSetFromMap((new MapMaker()).initialCapacity(1024).concurrencyLevel(8).makeMap());
+		this.acceptedPlayers = Collections
+				.newSetFromMap((new MapMaker()).initialCapacity(1024).concurrencyLevel(8).makeMap());
 		this.nodeIdAssociations = (new MapMaker()).initialCapacity(64).concurrencyLevel(16).makeMap();
 	}
 
@@ -160,9 +161,9 @@ public class SupervisorConnection implements ISupervisorConnection, INettyChanne
 	}
 
 	void onPongPacket() {
-		long result = (long)LAST_PING_HANDLE.getAndSet(this, 0l);
-		if(result != 0l) {
-			proxyPing = (int)(Util.steadyTime() - result);
+		long result = (long) LAST_PING_HANDLE.getAndSet(this, 0l);
+		if (result != 0l) {
+			proxyPing = (int) (Util.steadyTime() - result);
 		}
 	}
 
@@ -172,7 +173,7 @@ public class SupervisorConnection implements ISupervisorConnection, INettyChanne
 	}
 
 	void updatePing(long millis) {
-		if(LAST_PING_HANDLE.compareAndSet(this, 0l, millis)) {
+		if (LAST_PING_HANDLE.compareAndSet(this, 0l, millis)) {
 			handler.channelWrite(new CPacketSvPing());
 		}
 		handler.channelWrite(new CPacketSvProxyStatus(System.currentTimeMillis(),
@@ -181,24 +182,24 @@ public class SupervisorConnection implements ISupervisorConnection, INettyChanne
 
 	void expireHandshakes(long millis) {
 		List<PendingHandshake> lst = null;
-		synchronized(pendingHandshakes) {
-			if(pendingHandshakes.isEmpty()) {
+		synchronized (pendingHandshakes) {
+			if (pendingHandshakes.isEmpty()) {
 				return;
 			}
 			Iterator<PendingHandshake> itr = pendingHandshakes.values().iterator();
-			while(itr.hasNext()) {
+			while (itr.hasNext()) {
 				PendingHandshake h = itr.next();
-				if(millis - h.createdAt > 10000l) {
+				if (millis - h.createdAt > 10000l) {
 					itr.remove();
-					if(lst == null) {
+					if (lst == null) {
 						lst = new ArrayList<>(4);
 					}
 					lst.add(h);
 				}
 			}
 		}
-		if(lst != null) {
-			for(PendingHandshake c : lst) {
+		if (lst != null) {
+			for (PendingHandshake c : lst) {
 				safeAccept(c.consumer, EnumAcceptPlayer.SUPERVISOR_UNAVAILABLE);
 			}
 		}
@@ -206,19 +207,19 @@ public class SupervisorConnection implements ISupervisorConnection, INettyChanne
 
 	void acceptPlayer(UUID playerUUID, UUID brandUUID, int gameProtocol, int eaglerProtocol, String username,
 			Consumer<EnumAcceptPlayer> callback) {
-		if(!handler.getChannel().isActive()) {
+		if (!handler.getChannel().isActive()) {
 			safeAccept(callback, EnumAcceptPlayer.SUPERVISOR_UNAVAILABLE);
 			return;
 		}
-		if(acceptedPlayers.contains(playerUUID)) {
+		if (acceptedPlayers.contains(playerUUID)) {
 			safeAccept(callback, EnumAcceptPlayer.REJECT_DUPLICATE_UUID);
 			return;
 		}
 		eagler: {
-			synchronized(pendingHandshakes) {
-				if(!pendingHandshakes.containsKey(playerUUID)) {
+			synchronized (pendingHandshakes) {
+				if (!pendingHandshakes.containsKey(playerUUID)) {
 					pendingHandshakes.put(playerUUID, new PendingHandshake(callback, Util.steadyTime()));
-				}else {
+				} else {
 					break eagler;
 				}
 			}
@@ -231,22 +232,22 @@ public class SupervisorConnection implements ISupervisorConnection, INettyChanne
 
 	void onPlayerAccept(UUID playerUUID, EnumAcceptPlayer reason) {
 		PendingHandshake c;
-		synchronized(pendingHandshakes) {
+		synchronized (pendingHandshakes) {
 			c = pendingHandshakes.remove(playerUUID);
 		}
-		if(c != null) {
-			if(reason == EnumAcceptPlayer.ACCEPT) {
+		if (c != null) {
+			if (reason == EnumAcceptPlayer.ACCEPT) {
 				acceptedPlayers.add(playerUUID);
 			}
 			safeAccept(c.consumer, reason);
-		}else {
+		} else {
 			service.logger().warn("Received accept/reject signal for unknown player " + playerUUID);
 		}
 	}
 
 	void setRemotePlayerNode(UUID playerUUID, int nodeId) {
 		nodeIdAssociations.compute(nodeId, (k, v) -> {
-			if(v == null) {
+			if (v == null) {
 				v = new HashSet<>(1024);
 			}
 			v.add(playerUUID);
@@ -256,8 +257,8 @@ public class SupervisorConnection implements ISupervisorConnection, INettyChanne
 
 	void dropPlayerFromNode(UUID playerUUID, int nodeId) {
 		nodeIdAssociations.compute(nodeId, (k, v) -> {
-			if(v != null) {
-				if(v.remove(playerUUID) && v.isEmpty()) {
+			if (v != null) {
+				if (v.remove(playerUUID) && v.isEmpty()) {
 					v = null;
 				}
 			}
@@ -267,10 +268,10 @@ public class SupervisorConnection implements ISupervisorConnection, INettyChanne
 
 	void onDropAllPlayers(int nodeId) {
 		Set<UUID> set = nodeIdAssociations.remove(nodeId);
-		if(set != null) {
-			for(UUID uuid : set) {
+		if (set != null) {
+			for (UUID uuid : set) {
 				SupervisorPlayer player = remotePlayers.remove(uuid);
-				if(player != null) {
+				if (player != null) {
 					player.playerDropped();
 				}
 			}
@@ -279,9 +280,9 @@ public class SupervisorConnection implements ISupervisorConnection, INettyChanne
 
 	void onDropPlayer(UUID playerUUID) {
 		SupervisorPlayer player = remotePlayers.remove(playerUUID);
-		if(player != null) {
+		if (player != null) {
 			int node = player.getNodeId();
-			if(node != -1) {
+			if (node != -1) {
 				dropPlayerFromNode(playerUUID, node);
 			}
 			player.playerDropped();
@@ -290,27 +291,29 @@ public class SupervisorConnection implements ISupervisorConnection, INettyChanne
 
 	void dropOwnPlayer(UUID playerUUID) {
 		remotePlayers.remove(playerUUID);
-		if(acceptedPlayers.remove(playerUUID)) {
+		if (acceptedPlayers.remove(playerUUID)) {
 			sendSupervisorPacket(new CPacketSvDropPlayer(playerUUID));
 		}
 	}
 
 	void notifySkinChange(UUID uuid, String serverName, boolean skin, boolean cape) {
 		int mask = 0;
-		if(skin) mask |= CPacketSvDropPlayerPartial.DROP_PLAYER_SKIN;
-		if(cape) mask |= CPacketSvDropPlayerPartial.DROP_PLAYER_CAPE;
-		if(mask > 0) {
+		if (skin)
+			mask |= CPacketSvDropPlayerPartial.DROP_PLAYER_SKIN;
+		if (cape)
+			mask |= CPacketSvDropPlayerPartial.DROP_PLAYER_CAPE;
+		if (mask > 0) {
 			sendSupervisorPacket(new CPacketSvDropPlayerPartial(uuid, serverName, mask));
 		}
 	}
 
 	void onConnectionEnd() {
 		List<PendingHandshake> lst;
-		synchronized(pendingHandshakes) {
+		synchronized (pendingHandshakes) {
 			lst = new ArrayList<>(pendingHandshakes.values());
 			pendingHandshakes.clear();
 		}
-		for(PendingHandshake c : lst) {
+		for (PendingHandshake c : lst) {
 			safeAccept(c.consumer, EnumAcceptPlayer.SUPERVISOR_UNAVAILABLE);
 		}
 	}
@@ -318,7 +321,7 @@ public class SupervisorConnection implements ISupervisorConnection, INettyChanne
 	private void safeAccept(Consumer<EnumAcceptPlayer> consumer, EnumAcceptPlayer value) {
 		try {
 			consumer.accept(value);
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			service.logger().error("Caught exception from supervisor player accept callback", ex);
 		}
 	}

@@ -73,7 +73,8 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 
 	@Override
 	public IEaglerPlayerSkin getSkinNotFound(UUID playerUUID) {
-		return playerUUID != null && (playerUUID.hashCode() & 1) == 1 ? MissingSkin.MISSING_SKIN_ALEX : MissingSkin.MISSING_SKIN;
+		return playerUUID != null && (playerUUID.hashCode() & 1) == 1 ? MissingSkin.MISSING_SKIN_ALEX
+				: MissingSkin.MISSING_SKIN;
 	}
 
 	@Override
@@ -83,19 +84,19 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 
 	@Override
 	public void resolvePlayerSkin(UUID playerUUID, Consumer<IEaglerPlayerSkin> callback) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		BasePlayerInstance<PlayerObject> player = server.getPlayerByUUID(playerUUID);
-		if(player != null) {
+		if (player != null) {
 			player.getSkinManager().resolvePlayerSkin(callback);
-		}else {
-			if(supervisor != null) {
+		} else {
+			if (supervisor != null) {
 				supervisor.getRemoteOnlyResolver().resolvePlayerSkin(playerUUID, callback);
-			}else {
+			} else {
 				callback.accept(MissingSkin.forPlayerUUID(playerUUID));
 			}
 		}
@@ -103,19 +104,19 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 
 	@Override
 	public void resolvePlayerCape(UUID playerUUID, Consumer<IEaglerPlayerCape> callback) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		BasePlayerInstance<PlayerObject> player = server.getPlayerByUUID(playerUUID);
-		if(player != null) {
+		if (player != null) {
 			player.getSkinManager().resolvePlayerCape(callback);
-		}else {
-			if(supervisor != null) {
+		} else {
+			if (supervisor != null) {
 				supervisor.getRemoteOnlyResolver().resolvePlayerCape(playerUUID, callback);
-			}else {
+			} else {
 				callback.accept(MissingCape.MISSING_CAPE);
 			}
 		}
@@ -128,21 +129,21 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 
 	@Override
 	public void loadCacheSkinFromURL(String skinURL, int modelIdRaw, Consumer<IEaglerPlayerSkin> callback) {
-		if(skinURL == null) {
+		if (skinURL == null) {
 			throw new NullPointerException("skinURL");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
-		if(downloadEnabled) {
-			if(supervisor != null) {
+		if (downloadEnabled) {
+			if (supervisor != null) {
 				supervisor.getRemoteOnlyResolver().loadCacheSkinFromURL(skinURL, modelIdRaw, callback);
 				return;
-			}else if(skinCache != null) {
+			} else if (skinCache != null) {
 				skinCache.resolveSkinByURL(skinURL, (data) -> {
-					if(data != ISkinCacheService.ERROR) {
+					if (data != ISkinCacheService.ERROR) {
 						callback.accept(CustomSkinGeneric.createV4(modelIdRaw, data));
-					}else {
+					} else {
 						callback.accept(MissingSkin.MISSING_SKIN);
 					}
 				});
@@ -154,18 +155,18 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 
 	void loadCacheSkinFromURLKeyed(SkinManagerEagler<PlayerObject> requester, String skinURL, EnumSkinModel modelId,
 			Consumer<IEaglerPlayerSkin> callback) {
-		if(downloadEnabled) {
-			if(supervisor != null) {
+		if (downloadEnabled) {
+			if (supervisor != null) {
 				supervisor.getRemoteOnlyResolver().resolveForeignSkinKeyed(requester.player.getUniqueId(),
 						modelId.getId(), skinURL, callback);
 				return;
-			}else if(skinCache != null) {
+			} else if (skinCache != null) {
 				Consumer<IEaglerPlayerSkin> callback2 = requester.keyedSkinLookupHelper.add(skinURL, callback);
-				if(callback2 != null) {
+				if (callback2 != null) {
 					skinCache.resolveSkinByURL(skinURL, (data) -> {
-						if(data != ISkinCacheService.ERROR) {
+						if (data != ISkinCacheService.ERROR) {
 							callback2.accept(CustomSkinGeneric.createV4(modelId.getId(), data));
-						}else {
+						} else {
 							callback2.accept(MissingSkin.MISSING_SKIN);
 						}
 					});
@@ -176,14 +177,15 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 		callback.accept(MissingSkin.MISSING_SKIN);
 	}
 
-	void loadPlayerSkinFromURL(String skinURL, UUID playerUUID, EnumSkinModel modelId, Consumer<IEaglerPlayerSkin> callback) {
-		if(downloadEnabled) {
-			if(supervisor != null) {
+	void loadPlayerSkinFromURL(String skinURL, UUID playerUUID, EnumSkinModel modelId,
+			Consumer<IEaglerPlayerSkin> callback) {
+		if (downloadEnabled) {
+			if (supervisor != null) {
 				supervisor.getRemoteOnlyResolver().loadCacheSkinFromURL(skinURL, modelId, callback);
 				return;
-			}else if(skinCache != null) {
+			} else if (skinCache != null) {
 				skinCache.resolveSkinByURL(skinURL, (data) -> {
-					if(data != ISkinCacheService.ERROR) {
+					if (data != ISkinCacheService.ERROR) {
 						callback.accept(CustomSkinPlayer.createV4(playerUUID.getMostSignificantBits(),
 								playerUUID.getLeastSignificantBits(), modelId.getId(), data));
 					} else {
@@ -198,21 +200,21 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 
 	@Override
 	public void loadCacheCapeFromURL(String capeURL, Consumer<IEaglerPlayerCape> callback) {
-		if(capeURL == null) {
+		if (capeURL == null) {
 			throw new NullPointerException("capeURL");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
-		if(downloadEnabled) {
-			if(supervisor != null) {
+		if (downloadEnabled) {
+			if (supervisor != null) {
 				supervisor.getRemoteOnlyResolver().loadCacheCapeFromURL(capeURL, callback);
 				return;
-			}else if(skinCache != null) {
+			} else if (skinCache != null) {
 				skinCache.resolveCapeByURL(capeURL, (data) -> {
-					if(data != ISkinCacheService.ERROR) {
+					if (data != ISkinCacheService.ERROR) {
 						callback.accept(new CustomCapeGeneric(data));
-					}else {
+					} else {
 						callback.accept(MissingCape.MISSING_CAPE);
 					}
 				});
@@ -223,16 +225,16 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 	}
 
 	void loadPlayerCapeFromURL(String capeURL, UUID playerUUID, Consumer<IEaglerPlayerCape> callback) {
-		if(downloadEnabled) {
-			if(supervisor != null) {
+		if (downloadEnabled) {
+			if (supervisor != null) {
 				supervisor.getRemoteOnlyResolver().loadCacheCapeFromURL(capeURL, callback);
 				return;
-			}else if(skinCache != null) {
+			} else if (skinCache != null) {
 				skinCache.resolveCapeByURL(capeURL, (data) -> {
-					if(data != ISkinCacheService.ERROR) {
+					if (data != ISkinCacheService.ERROR) {
 						callback.accept(new CustomCapePlayer(playerUUID.getMostSignificantBits(),
 								playerUUID.getLeastSignificantBits(), data));
-					}else {
+					} else {
 						callback.accept(MissingCape.MISSING_CAPE);
 					}
 				});
@@ -257,11 +259,11 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 	}
 
 	public ISkinManagerBase<PlayerObject> createVanillaSkinManager(BasePlayerInstance<PlayerObject> playerInstance) {
-		if(supervisor != null || skinCache != null) {
+		if (supervisor != null || skinCache != null) {
 			String prop = playerInstance.getPlatformPlayer().getTexturesProperty();
-			if(prop != null) {
+			if (prop != null) {
 				TexturesResult props = GameProfileUtil.extractSkinAndCape(prop);
-				if(props != null) {
+				if (props != null) {
 					return new SkinManagerVanillaOnline<PlayerObject>(playerInstance, props.getSkinURL(),
 							props.getSkinModel(), props.getCapeURL());
 				}
@@ -273,9 +275,9 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 	public void createEaglerSkinManager(EaglerPlayerInstance<PlayerObject> playerInstance,
 			NettyPipelineData.ProfileDataHolder profileData, Consumer<ISkinManagerEagler<PlayerObject>> onComplete) {
 		IEaglerPlayerSkin skin;
-		if(profileData.skinDataV2Init != null) {
+		if (profileData.skinDataV2Init != null) {
 			skin = SkinHandshake.loadSkinDataV2(playerInstance.getUniqueId(), profileData.skinDataV2Init);
-		}else {
+		} else {
 			skin = SkinHandshake.loadSkinDataV1(playerInstance.getUniqueId(), profileData.skinDataV1Init);
 		}
 		IEaglerPlayerCape cape = SkinHandshake.loadCapeDataV1(playerInstance.getUniqueId(), profileData.capeDataInit);
@@ -293,11 +295,11 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 			}
 		};
 		server.eventDispatcher().dispatchRegisterSkinEvent(conn, handle, (evt, err) -> {
-			if(err != null) {
+			if (err != null) {
 				server.logger().error("Uncaught exception in register skin event", err);
 				onComplete.accept(handle.skinOriginal, handle.capeOriginal);
-			}else {
-				if(handle.skinURL == null && handle.capeURL == null) {
+			} else {
+				if (handle.skinURL == null && handle.capeURL == null) {
 					handle.handleComplete(conn, handle.skin, handle.cape, onComplete);
 				} else {
 					(new RegisterSkinDownloader(this, conn, handle, onComplete)).run();
@@ -307,34 +309,35 @@ public class SkinService<PlayerObject> implements ISkinService<PlayerObject>, IS
 	}
 
 	public void handleEnabled() {
-		if(server.getConfig().getSettings().getSkinService().isEnableSkinsRestorerApplyHook()) {
-			if(skinsRestorerHelper == null) {
+		if (server.getConfig().getSettings().getSkinService().isEnableSkinsRestorerApplyHook()) {
+			if (skinsRestorerHelper == null) {
 				skinsRestorerHelper = SkinsRestorerHelper.instance(server);
 			}
-			if(skinsRestorerHelper != null) {
+			if (skinsRestorerHelper != null) {
 				skinsRestorerHelper.setListener(this);
 				server.logger().info("Listening for SkinsRestorer skin apply event on vanilla players");
 			}
 		}
-		if(skinCache != null) {
-			skinCacheTick = server.getPlatform().getScheduler().executeAsyncRepeatingTask(skinCache::tick, 30000l, 30000l);
+		if (skinCache != null) {
+			skinCacheTick = server.getPlatform().getScheduler().executeAsyncRepeatingTask(skinCache::tick, 30000l,
+					30000l);
 		}
 	}
 
 	public void handleDisabled() {
-		if(skinsRestorerHelper != null) {
+		if (skinsRestorerHelper != null) {
 			skinsRestorerHelper.setListener(null);
 		}
-		if(skinCacheTick != null) {
+		if (skinCacheTick != null) {
 			skinCacheTick.cancel();
 		}
 	}
 
 	@Override
 	public void handleSRSkinApply(BasePlayerInstance<PlayerObject> player, String value, String signature) {
-		if(!player.isEaglerPlayer()) {
+		if (!player.isEaglerPlayer()) {
 			ISkinManagerBase<PlayerObject> skinMgr = player.getSkinManager();
-			if(skinMgr instanceof ISkinManagerImpl impl) {
+			if (skinMgr instanceof ISkinManagerImpl impl) {
 				impl.handleSRSkinApply(value, signature);
 			}
 		}

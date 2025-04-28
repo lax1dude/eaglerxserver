@@ -31,21 +31,21 @@ public class WebSocketEaglerFrameCodec extends ChannelDuplexHandler {
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-		if(msg instanceof BinaryWebSocketFrame msg1) {
+		if (msg instanceof BinaryWebSocketFrame msg1) {
 			ctx.fireChannelRead(msg1.content());
-		}else if(msg instanceof WebSocketFrame msg2) {
+		} else if (msg instanceof WebSocketFrame msg2) {
 			// Text or close frames
 			msg2.release();
 			ctx.close();
-		}else {
+		} else {
 			ctx.fireChannelRead(msg);
 		}
 	}
 
 	@Override
 	public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-		if(msg instanceof ByteBuf buf) {
-			if(buf.readableBytes() > 0) {
+		if (msg instanceof ByteBuf buf) {
+			if (buf.readableBytes() > 0) {
 				ctx.write(new BinaryWebSocketFrame(buf), promise);
 				return;
 			}

@@ -69,8 +69,8 @@ public interface IEaglerConfList {
 	default List<Integer> getAsIntegerList() {
 		int len = getLength();
 		List<Integer> ret = new ArrayList<>(len);
-		for(int i = 0; i < len; ++i) {
-			if(isInteger(i)) {
+		for (int i = 0; i < len; ++i) {
+			if (isInteger(i)) {
 				ret.add(getIfInteger(i));
 			}
 		}
@@ -78,14 +78,14 @@ public interface IEaglerConfList {
 	}
 
 	default List<Integer> getAsIntegerList(Supplier<List<Integer>> defaultContents) {
-		if(!initialized()) {
+		if (!initialized()) {
 			appendIntegers(defaultContents.get());
 		}
 		return getAsIntegerList();
 	}
 
 	default List<Integer> getAsIntegerList(Supplier<List<Integer>> defaultContents, String comment) {
-		if(!initialized()) {
+		if (!initialized()) {
 			setComment(comment);
 			appendIntegers(defaultContents.get());
 		}
@@ -95,9 +95,9 @@ public interface IEaglerConfList {
 	default List<String> getAsStringList() {
 		int len = getLength();
 		List<String> ret = new ArrayList<>(len);
-		for(int i = 0; i < len; ++i) {
+		for (int i = 0; i < len; ++i) {
 			String str = getIfString(i);
-			if(str != null) {
+			if (str != null) {
 				ret.add(str);
 			}
 		}
@@ -105,14 +105,14 @@ public interface IEaglerConfList {
 	}
 
 	default List<String> getAsStringList(Supplier<List<String>> defaultContents) {
-		if(!initialized()) {
+		if (!initialized()) {
 			appendStrings(defaultContents.get());
 		}
 		return getAsStringList();
 	}
 
 	default List<String> getAsStringList(Supplier<List<String>> defaultContents, String comment) {
-		if(!initialized()) {
+		if (!initialized()) {
 			setComment(comment);
 			appendStrings(defaultContents.get());
 		}

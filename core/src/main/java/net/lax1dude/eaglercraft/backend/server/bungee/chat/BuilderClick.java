@@ -51,8 +51,8 @@ class BuilderClick<ParentType> implements IBuilderClickEvent<ParentType> {
 	}
 
 	void applyTo(BaseComponent ret) {
-		if(action != null) {
-			switch(action) {
+		if (action != null) {
+			switch (action) {
 			case OPEN_URL:
 				ret.setClickEvent(new ClickEvent(Action.OPEN_URL, value));
 				break;
@@ -69,7 +69,7 @@ class BuilderClick<ParentType> implements IBuilderClickEvent<ParentType> {
 				ret.setClickEvent(new ClickEvent(Action.CHANGE_PAGE, value));
 				break;
 			case COPY_TO_CLIPBOARD:
-				if(BungeeComponentHelper.CLICK_ACTION_COPY_TO_CLIPBOARD != null) {
+				if (BungeeComponentHelper.CLICK_ACTION_COPY_TO_CLIPBOARD != null) {
 					ret.setClickEvent(new ClickEvent(BungeeComponentHelper.CLICK_ACTION_COPY_TO_CLIPBOARD, value));
 				}
 				break;

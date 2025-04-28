@@ -49,42 +49,44 @@ class LegacyHelper {
 		Class<?> scalarStyleClz = null;
 		try {
 			flowStyleClz = Class.forName("org.yaml.snakeyaml.DumperOptions$FlowStyle");
-		}catch(ClassNotFoundException ex) {
+		} catch (ClassNotFoundException ex) {
 		}
 		try {
 			scalarStyleClz = Class.forName("org.yaml.snakeyaml.DumperOptions$ScalarStyle");
-		}catch(ClassNotFoundException ex) {
+		} catch (ClassNotFoundException ex) {
 		}
 		try {
 			Constructor<MappingNode> _ctor_MappingNode = null;
 			Constructor<SequenceNode> _ctor_SequenceNode = null;
 			Object _flowStyle = null;
-			if(flowStyleClz != null) {
+			if (flowStyleClz != null) {
 				try {
 					_ctor_MappingNode = MappingNode.class.getConstructor(Tag.class, List.class, flowStyleClz);
 					_ctor_SequenceNode = SequenceNode.class.getConstructor(Tag.class, List.class, flowStyleClz);
 					_flowStyle = Enum.valueOf((Class) flowStyleClz, "BLOCK");
-				}catch(ReflectiveOperationException ex) {
+				} catch (ReflectiveOperationException ex) {
 					flowStyleClz = null;
 				}
 			}
-			if(flowStyleClz == null) {
+			if (flowStyleClz == null) {
 				_ctor_MappingNode = MappingNode.class.getConstructor(Tag.class, List.class, Boolean.class);
 				_ctor_SequenceNode = SequenceNode.class.getConstructor(Tag.class, List.class, Boolean.class);
 				_flowStyle = null;
 			}
 			Constructor<ScalarNode> _ctor_ScalarNode = null;
 			Method _meth_createStyle = null;
-			if(scalarStyleClz != null) {
+			if (scalarStyleClz != null) {
 				try {
-					_ctor_ScalarNode = ScalarNode.class.getConstructor(Tag.class, String.class, Mark.class, Mark.class, scalarStyleClz);
+					_ctor_ScalarNode = ScalarNode.class.getConstructor(Tag.class, String.class, Mark.class, Mark.class,
+							scalarStyleClz);
 					_meth_createStyle = scalarStyleClz.getMethod("createStyle", Character.class);
-				}catch(ReflectiveOperationException ex) {
+				} catch (ReflectiveOperationException ex) {
 					scalarStyleClz = null;
 				}
 			}
-			if(scalarStyleClz == null) {
-				_ctor_ScalarNode = ScalarNode.class.getConstructor(Tag.class, String.class, Mark.class, Mark.class, Character.class);
+			if (scalarStyleClz == null) {
+				_ctor_ScalarNode = ScalarNode.class.getConstructor(Tag.class, String.class, Mark.class, Mark.class,
+						Character.class);
 				_meth_createStyle = null;
 			}
 			ctor_MappingNode = _ctor_MappingNode;
@@ -92,7 +94,7 @@ class LegacyHelper {
 			flowStyle = _flowStyle;
 			ctor_ScalarNode = _ctor_ScalarNode;
 			meth_createStyle = _meth_createStyle;
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 			throw new ExceptionInInitializerError(ex);
 		}
 		HAS_FLOWSTYLE = flowStyleClz != null;
@@ -101,55 +103,55 @@ class LegacyHelper {
 
 	public static MappingNode mappingNode(Tag tag, List<NodeTuple> lst) {
 		try {
-			if(HAS_FLOWSTYLE) {
+			if (HAS_FLOWSTYLE) {
 				return ctor_MappingNode.newInstance(tag, lst, flowStyle);
-			}else {
+			} else {
 				return ctor_MappingNode.newInstance(tag, lst, Boolean.FALSE);
 			}
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 			throw Util.propagateReflectThrowable(ex);
 		}
 	}
 
 	public static SequenceNode sequenceNode(Tag tag, List<Node> lst) {
 		try {
-			if(HAS_FLOWSTYLE) {
+			if (HAS_FLOWSTYLE) {
 				return ctor_SequenceNode.newInstance(tag, lst, flowStyle);
-			}else {
+			} else {
 				return ctor_SequenceNode.newInstance(tag, lst, Boolean.FALSE);
 			}
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 			throw Util.propagateReflectThrowable(ex);
 		}
 	}
 
 	public static ScalarNode scalarNode(Tag tag, String value, Character style) {
 		try {
-			if(HAS_SCALARSTYLE) {
+			if (HAS_SCALARSTYLE) {
 				return ctor_ScalarNode.newInstance(tag, value, null, null, meth_createStyle.invoke(null, style));
-			}else {
+			} else {
 				return ctor_ScalarNode.newInstance(tag, value, null, null, style);
 			}
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 			throw Util.propagateReflectThrowable(ex);
 		}
 	}
 
 	public static void fixScalars(Node data, Field scalarStyle) {
-		if(data instanceof ScalarNode s) {
+		if (data instanceof ScalarNode s) {
 			try {
 				Character c = (Character) scalarStyle.get(s);
-				if(c != null && (char)c == 0) {
+				if (c != null && (char) c == 0) {
 					scalarStyle.set(s, null);
 				}
-			}catch(ReflectiveOperationException ex) {
+			} catch (ReflectiveOperationException ex) {
 			}
-		}else if(data instanceof SequenceNode s) {
-			for(Node n : s.getValue()) {
+		} else if (data instanceof SequenceNode s) {
+			for (Node n : s.getValue()) {
 				fixScalars(n, scalarStyle);
 			}
-		}else if(data instanceof MappingNode s) {
-			for(NodeTuple n : s.getValue()) {
+		} else if (data instanceof MappingNode s) {
+			for (NodeTuple n : s.getValue()) {
 				fixScalars(n.getKeyNode(), scalarStyle);
 				fixScalars(n.getValueNode(), scalarStyle);
 			}

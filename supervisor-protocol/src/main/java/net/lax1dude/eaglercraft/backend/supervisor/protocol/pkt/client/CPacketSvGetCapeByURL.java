@@ -49,7 +49,7 @@ public class CPacketSvGetCapeByURL implements EaglerSupervisorPacket {
 		buffer.writeLong(uuid.getLeastSignificantBits());
 		byte[] urlBytes = url.getBytes(StandardCharsets.US_ASCII);
 		int len = urlBytes.length;
-		if(len > 0xFFFF) {
+		if (len > 0xFFFF) {
 			throw new UnsupportedOperationException("Cape URL is longer than 65535 bytes");
 		}
 		buffer.writeShort(len);

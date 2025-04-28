@@ -41,6 +41,7 @@ class PauseMenuImplVanilla implements IPauseMenuImpl {
 		public boolean isPermitWebViewRequest() {
 			return true;
 		}
+
 		@Override
 		public boolean isPermitWebViewChannel() {
 			return true;
@@ -51,10 +52,11 @@ class PauseMenuImplVanilla implements IPauseMenuImpl {
 		boolean request = packet.serverInfoMode == SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_SHOW_EMBED_OVER_WS;
 		boolean channel = packet.serverInfoMode != SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_NONE
 				&& packet.serverInfoMode != SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_EXTERNAL_URL
-				&& (packet.serverInfoEmbedPerms & SPacketCustomizePauseMenuV4EAG.SERVER_INFO_EMBED_PERMS_MESSAGE_API) != 0;
-		if(request) {
+				&& (packet.serverInfoEmbedPerms
+						& SPacketCustomizePauseMenuV4EAG.SERVER_INFO_EMBED_PERMS_MESSAGE_API) != 0;
+		if (request) {
 			return channel ? INSTANCE_RPC_4 : INSTANCE_RPC_2;
-		}else {
+		} else {
 			return channel ? INSTANCE_RPC_3 : INSTANCE_RPC;
 		}
 	}

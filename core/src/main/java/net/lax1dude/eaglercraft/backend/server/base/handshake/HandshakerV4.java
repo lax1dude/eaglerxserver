@@ -35,8 +35,8 @@ public class HandshakerV4 extends HandshakerV3 {
 		super(server, pipelineData, inboundHandler);
 	}
 
-	public void init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString,
-			int minecraftVersion, boolean auth, byte[] authUsername) {
+	public void init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString, int minecraftVersion,
+			boolean auth, byte[] authUsername) {
 		handlePacketInit(ctx, eaglerBrand, eaglerVersionString, minecraftVersion, auth, authUsername);
 	}
 
@@ -79,15 +79,15 @@ public class HandshakerV4 extends HandshakerV3 {
 		boolean enableCookie = buffer.readBoolean();
 		int cookieLen = buffer.readUnsignedByte();
 		byte[] cookieData = Util.ZERO_BYTES;
-		if(enableCookie) {
+		if (enableCookie) {
 			cookieData = Util.newByteArray(cookieLen);
 			buffer.readBytes(cookieData);
-		}else {
-			if(cookieLen > 0) {
+		} else {
+			if (cookieLen > 0) {
 				throw new IndexOutOfBoundsException();
 			}
 		}
-		if(buffer.isReadable()) {
+		if (buffer.isReadable()) {
 			throw new IndexOutOfBoundsException();
 		}
 		handlePacketRequestLogin(ctx, username, requestedServer, authPassword, enableCookie, cookieData,
@@ -97,7 +97,7 @@ public class HandshakerV4 extends HandshakerV3 {
 	@Override
 	protected void handleInboundProfileData(ChannelHandlerContext ctx, ByteBuf buffer) {
 		int count = buffer.readUnsignedByte();
-		while(--count >= 0 && !inboundHandler.terminated) {
+		while (--count >= 0 && !inboundHandler.terminated) {
 			int strlen = buffer.readUnsignedByte();
 			String type = BufferUtils.readCharSequence(buffer, strlen, StandardCharsets.US_ASCII).toString();
 			strlen = buffer.readUnsignedShort();
@@ -105,7 +105,7 @@ public class HandshakerV4 extends HandshakerV3 {
 			buffer.readBytes(readData);
 			handlePacketProfileData(ctx, type, readData);
 		}
-		if(buffer.isReadable() && !inboundHandler.terminated) {
+		if (buffer.isReadable() && !inboundHandler.terminated) {
 			throw new IndexOutOfBoundsException();
 		}
 	}

@@ -26,7 +26,7 @@ public final class PacketImageDataWrapper implements IPacketImageData {
 	}
 
 	public static PacketImageData unwrap(IPacketImageData image) {
-		return ((PacketImageDataWrapper)image).image;
+		return ((PacketImageDataWrapper) image).image;
 	}
 
 	private final PacketImageData image;

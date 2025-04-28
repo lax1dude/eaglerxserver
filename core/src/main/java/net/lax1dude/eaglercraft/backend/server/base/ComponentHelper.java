@@ -30,7 +30,7 @@ public class ComponentHelper<ComponentType> implements IComponentSerializer<Comp
 
 	@Override
 	public String serializeLegacySection(ComponentType component) {
-		if(component == null) {
+		if (component == null) {
 			throw new NullPointerException("component is null");
 		}
 		return platformImpl.serializeLegacySection(component);
@@ -38,7 +38,7 @@ public class ComponentHelper<ComponentType> implements IComponentSerializer<Comp
 
 	@Override
 	public String serializePlainText(ComponentType component) {
-		if(component == null) {
+		if (component == null) {
 			throw new NullPointerException("component is null");
 		}
 		return platformImpl.serializePlainText(component);
@@ -46,7 +46,7 @@ public class ComponentHelper<ComponentType> implements IComponentSerializer<Comp
 
 	@Override
 	public String serializeGenericJSON(ComponentType component) {
-		if(component == null) {
+		if (component == null) {
 			throw new NullPointerException("component is null");
 		}
 		return platformImpl.serializeGenericJSON(component);
@@ -54,7 +54,7 @@ public class ComponentHelper<ComponentType> implements IComponentSerializer<Comp
 
 	@Override
 	public String serializeLegacyJSON(ComponentType component) {
-		if(component == null) {
+		if (component == null) {
 			throw new NullPointerException("component is null");
 		}
 		return platformImpl.serializeLegacyJSON(component);
@@ -62,7 +62,7 @@ public class ComponentHelper<ComponentType> implements IComponentSerializer<Comp
 
 	@Override
 	public String serializeModernJSON(ComponentType component) {
-		if(component == null) {
+		if (component == null) {
 			throw new NullPointerException("component is null");
 		}
 		return platformImpl.serializeModernJSON(component);
@@ -71,7 +71,7 @@ public class ComponentHelper<ComponentType> implements IComponentSerializer<Comp
 	@Override
 	@SuppressWarnings("unchecked")
 	public ComponentType parseGenericJSON(String json) throws IllegalArgumentException {
-		if(json == null) {
+		if (json == null) {
 			throw new NullPointerException("json is null");
 		}
 		return (ComponentType) platformImpl.parseGenericJSON(json);
@@ -80,7 +80,7 @@ public class ComponentHelper<ComponentType> implements IComponentSerializer<Comp
 	@Override
 	@SuppressWarnings("unchecked")
 	public ComponentType parseLegacyJSON(String json) throws IllegalArgumentException {
-		if(json == null) {
+		if (json == null) {
 			throw new NullPointerException("json is null");
 		}
 		return (ComponentType) platformImpl.parseLegacyJSON(json);
@@ -89,7 +89,7 @@ public class ComponentHelper<ComponentType> implements IComponentSerializer<Comp
 	@Override
 	@SuppressWarnings("unchecked")
 	public ComponentType parseModernJSON(String json) throws IllegalArgumentException {
-		if(json == null) {
+		if (json == null) {
 			throw new NullPointerException("json is null");
 		}
 		return (ComponentType) platformImpl.parseModernJSON(json);
@@ -97,7 +97,7 @@ public class ComponentHelper<ComponentType> implements IComponentSerializer<Comp
 
 	@Override
 	public String convertJSONToLegacySection(String json) throws IllegalArgumentException {
-		if(json == null) {
+		if (json == null) {
 			throw new NullPointerException("json is null");
 		}
 		return platformImpl.serializeLegacySection(platformImpl.parseGenericJSON(json));
@@ -105,7 +105,7 @@ public class ComponentHelper<ComponentType> implements IComponentSerializer<Comp
 
 	@Override
 	public String convertJSONToPlainText(String json) throws IllegalArgumentException {
-		if(json == null) {
+		if (json == null) {
 			throw new NullPointerException("json is null");
 		}
 		return platformImpl.serializePlainText(platformImpl.parseGenericJSON(json));
@@ -113,7 +113,7 @@ public class ComponentHelper<ComponentType> implements IComponentSerializer<Comp
 
 	@Override
 	public String translateAlternateColorCodes(char altColorChar, String textToTranslate) {
-		if(textToTranslate == null) {
+		if (textToTranslate == null) {
 			throw new NullPointerException("textToTranslate is null");
 		}
 		return ChatColor.translateAlternateColorCodes(altColorChar, textToTranslate);

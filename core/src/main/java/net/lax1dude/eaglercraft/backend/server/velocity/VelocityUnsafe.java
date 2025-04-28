@@ -85,14 +85,18 @@ public class VelocityUnsafe {
 	static {
 		try {
 			class_VelocityServer = Class.forName("com.velocitypowered.proxy.VelocityServer");
-			class_LoginInboundConnection = Class.forName("com.velocitypowered.proxy.connection.client.LoginInboundConnection");
-			method_LoginInboundConnection_delegatedConnection = class_LoginInboundConnection.getDeclaredMethod("delegatedConnection");
+			class_LoginInboundConnection = Class
+					.forName("com.velocitypowered.proxy.connection.client.LoginInboundConnection");
+			method_LoginInboundConnection_delegatedConnection = class_LoginInboundConnection
+					.getDeclaredMethod("delegatedConnection");
 			method_LoginInboundConnection_delegatedConnection.setAccessible(true);
 			class_MinecraftConnection = MinecraftConnection.class;
 			ctor_MinecraftConnection = class_MinecraftConnection.getConstructor(Channel.class, class_VelocityServer);
-			classProxy_MinecraftConnection = ClassProxy.bindProxy(VelocityUnsafe.class.getClassLoader(), class_MinecraftConnection);
+			classProxy_MinecraftConnection = ClassProxy.bindProxy(VelocityUnsafe.class.getClassLoader(),
+					class_MinecraftConnection);
 			method_MinecraftConnection_getState = class_MinecraftConnection.getMethod("getState");
-			field_MinecraftConnection_activeSessionHandler = class_MinecraftConnection.getDeclaredField("activeSessionHandler");
+			field_MinecraftConnection_activeSessionHandler = class_MinecraftConnection
+					.getDeclaredField("activeSessionHandler");
 			field_MinecraftConnection_activeSessionHandler.setAccessible(true);
 			field_MinecraftConnection_remoteAddress = class_MinecraftConnection.getDeclaredField("remoteAddress");
 			field_MinecraftConnection_remoteAddress.setAccessible(true);
@@ -101,11 +105,13 @@ public class VelocityUnsafe {
 			field_AuthSessionHandler_mcConnection.setAccessible(true);
 			class_DisconnectPacket = Class.forName("com.velocitypowered.proxy.protocol.packet.DisconnectPacket");
 			class_StateRegistry = Class.forName("com.velocitypowered.proxy.protocol.StateRegistry");
-			method_DisconnectPacket_create = class_DisconnectPacket.getMethod("create", Component.class, ProtocolVersion.class, class_StateRegistry);
+			method_DisconnectPacket_create = class_DisconnectPacket.getMethod("create", Component.class,
+					ProtocolVersion.class, class_StateRegistry);
 			field_VelocityServer_cm = class_VelocityServer.getDeclaredField("cm");
 			field_VelocityServer_cm.setAccessible(true);
 			class_ConnectionManager = Class.forName("com.velocitypowered.proxy.network.ConnectionManager");
-			method_ConnectionManager_getServerChannelInitializer = class_ConnectionManager.getMethod("getServerChannelInitializer");
+			method_ConnectionManager_getServerChannelInitializer = class_ConnectionManager
+					.getMethod("getServerChannelInitializer");
 			field_ConnectionManager_endpoints = class_ConnectionManager.getDeclaredField("endpoints");
 			field_ConnectionManager_endpoints.setAccessible(true);
 			field_ConnectionManager_bossGroup = class_ConnectionManager.getDeclaredField("bossGroup");
@@ -117,38 +123,42 @@ public class VelocityUnsafe {
 			class_TransportType = Class.forName("com.velocitypowered.proxy.network.TransportType");
 			field_TransportType_socketChannelFactory = class_TransportType.getDeclaredField("socketChannelFactory");
 			field_TransportType_socketChannelFactory.setAccessible(true);
-			field_TransportType_serverSocketChannelFactory = class_TransportType.getDeclaredField("serverSocketChannelFactory");
+			field_TransportType_serverSocketChannelFactory = class_TransportType
+					.getDeclaredField("serverSocketChannelFactory");
 			field_TransportType_serverSocketChannelFactory.setAccessible(true);
 			class_Endpoint = Class.forName("com.velocitypowered.proxy.network.Endpoint");
 			method_Endpoint_getChannel = class_Endpoint.getMethod("getChannel");
-			class_ServerChannelInitializerHolder = Class.forName("com.velocitypowered.proxy.network.ServerChannelInitializerHolder");
+			class_ServerChannelInitializerHolder = Class
+					.forName("com.velocitypowered.proxy.network.ServerChannelInitializerHolder");
 			method_ServerChannelInitializerHolder_get = class_ServerChannelInitializerHolder.getMethod("get");
-			method_ServerChannelInitializerHolder_set = class_ServerChannelInitializerHolder.getMethod("set", ChannelInitializer.class);
-			method_ChannelInitializer_initChannel = ChannelInitializer.class.getDeclaredMethod("initChannel", Channel.class);
+			method_ServerChannelInitializerHolder_set = class_ServerChannelInitializerHolder.getMethod("set",
+					ChannelInitializer.class);
+			method_ChannelInitializer_initChannel = ChannelInitializer.class.getDeclaredMethod("initChannel",
+					Channel.class);
 			method_ChannelInitializer_initChannel.setAccessible(true);
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 			throw new ExceptionInInitializerError(ex);
 		}
 	}
 
 	private static MinecraftConnection getMinecraftConnection(InboundConnection connection) {
-		if(connection instanceof VelocityInboundConnection conn) {
+		if (connection instanceof VelocityInboundConnection conn) {
 			return conn.getConnection();
-		}else if(class_LoginInboundConnection.isAssignableFrom(connection.getClass())) {
+		} else if (class_LoginInboundConnection.isAssignableFrom(connection.getClass())) {
 			try {
 				return (MinecraftConnection) method_LoginInboundConnection_delegatedConnection.invoke(connection);
 			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
-		}else {
+		} else {
 			throw new RuntimeException("Unknown InboundConnection type: " + connection.getClass().getName());
 		}
 	}
 
 	private static MinecraftConnection getBackendConnection(ServerConnection connection) {
-		if(connection instanceof VelocityServerConnection conn) {
+		if (connection instanceof VelocityServerConnection conn) {
 			return conn.getConnection();
-		}else {
+		} else {
 			throw new RuntimeException("Unknown ServerConnection type: " + connection.getClass().getName());
 		}
 	}
@@ -184,7 +194,7 @@ public class VelocityUnsafe {
 	}
 
 	public static void updateRealAddress(Object o, SocketAddress addr) {
-		if(o instanceof MinecraftConnection) {
+		if (o instanceof MinecraftConnection) {
 			try {
 				field_MinecraftConnection_remoteAddress.set(o, addr);
 			} catch (IllegalArgumentException | IllegalAccessException e) {
@@ -218,7 +228,8 @@ public class VelocityUnsafe {
 		try {
 			Object cm = field_VelocityServer_cm.get(server);
 			Object holder = method_ConnectionManager_getServerChannelInitializer.invoke(cm);
-			ChannelInitializer<Channel> parent = (ChannelInitializer<Channel>) method_ServerChannelInitializerHolder_get.invoke(holder);
+			ChannelInitializer<Channel> parent = (ChannelInitializer<Channel>) method_ServerChannelInitializerHolder_get
+					.invoke(holder);
 			VelocityEaglerChannelInitializer impl = new VelocityEaglerChannelInitializer((ch) -> {
 				try {
 					method_ChannelInitializer_initChannel.invoke(parent, ch);
@@ -226,9 +237,9 @@ public class VelocityUnsafe {
 					throw Util.propagateReflectThrowable(e);
 				}
 				Channel pc = ch.parent();
-				if(pc != null) {
+				if (pc != null) {
 					IEaglerXServerListener listener = pc.attr(EAGLER_LISTENER).get();
-					if(listener != null) {
+					if (listener != null) {
 						initHandler.init(listener, ch);
 					}
 				}
@@ -243,8 +254,9 @@ public class VelocityUnsafe {
 					}
 				};
 				try {
-					ChannelInitializer<Channel> self = (ChannelInitializer<Channel>) method_ServerChannelInitializerHolder_get.invoke(holder);
-					if(self == impl) {
+					ChannelInitializer<Channel> self = (ChannelInitializer<Channel>) method_ServerChannelInitializerHolder_get
+							.invoke(holder);
+					if (self == impl) {
 						method_ServerChannelInitializerHolder_set.invoke(holder, parent);
 					}
 				} catch (ReflectiveOperationException e) {
@@ -256,24 +268,25 @@ public class VelocityUnsafe {
 		}
 	}
 
-	public static void injectListenerAttr(ProxyServer server, InetSocketAddress address, ListenerInitList listenersToInit) {
+	public static void injectListenerAttr(ProxyServer server, InetSocketAddress address,
+			ListenerInitList listenersToInit) {
 		try {
 			Object cm = field_VelocityServer_cm.get(server);
 			Object obj = field_ConnectionManager_endpoints.get(cm);
 			Object endpoint;
-			if(obj instanceof Multimap) {
+			if (obj instanceof Multimap) {
 				Collection<Object> endpoints = ((Multimap<InetSocketAddress, Object>) obj).get(address);
-				if(!endpoints.isEmpty()) {
+				if (!endpoints.isEmpty()) {
 					endpoint = endpoints.iterator().next();
-				}else {
+				} else {
 					endpoint = null;
 				}
-			}else {
+			} else {
 				endpoint = ((Map<InetSocketAddress, Object>) obj).get(address);
 			}
-			if(endpoint != null) {
+			if (endpoint != null) {
 				IEaglerXServerListener listener = listenersToInit.offer(address);
-				if(listener != null) {
+				if (listener != null) {
 					Channel ch = (Channel) method_Endpoint_getChannel.invoke(endpoint);
 					ch.attr(EAGLER_LISTENER).set(listener);
 					listener.reportVelocityInjected(ch);
@@ -285,21 +298,22 @@ public class VelocityUnsafe {
 	}
 
 	public static void injectCompressionDisable(ProxyServer server, Player player) {
-		// Note: This does not affect the MinecraftConnection in the pipeline or player object
+		// Note: This does not affect the MinecraftConnection in the pipeline or player
+		// object
 		// therefore performance is not a concern
 		try {
 			Object o = field_MinecraftConnection_activeSessionHandler.get(getMinecraftConnection(player));
-			if(class_AuthSessionHandler.isAssignableFrom(o.getClass())) {
+			if (class_AuthSessionHandler.isAssignableFrom(o.getClass())) {
 				final MinecraftConnection parent = (MinecraftConnection) field_AuthSessionHandler_mcConnection.get(o);
 				field_AuthSessionHandler_mcConnection.set(o, classProxy_MinecraftConnection.createProxy(
 						ctor_MinecraftConnection, new Object[] { parent.getChannel(), server }, (obj, meth, args) -> {
-					if ("setCompressionThreshold".equals(meth.getName())) {
-						// FUCK YOU!
-						return null;
-					}
-					return meth.invoke(parent, args);
-				}));
-			}else {
+							if ("setCompressionThreshold".equals(meth.getName())) {
+								// FUCK YOU!
+								return null;
+							}
+							return meth.invoke(parent, args);
+						}));
+			} else {
 				throw new RuntimeException("Unexpected session handler type: " + o.getClass().getName());
 			}
 		} catch (ReflectiveOperationException e) {

@@ -32,26 +32,26 @@ public class CPacketRPCNotifBadgeShow implements EaglerBackendRPCPacket {
 
 	public static enum EnumBadgePriority {
 		LOW(0), NORMAL(1), HIGHER(2), HIGHEST(3);
-		
+
 		public final int priority;
-		
+
 		private EnumBadgePriority(int priority) {
 			this.priority = priority;
 		}
-		
+
 		private static final EnumBadgePriority[] lookup = new EnumBadgePriority[4];
-		
+
 		public static EnumBadgePriority getByID(int id) {
-			if(id >= 0 && id < lookup.length) {
+			if (id >= 0 && id < lookup.length) {
 				return lookup[id];
-			}else {
+			} else {
 				return NORMAL;
 			}
 		}
-		
+
 		static {
 			EnumBadgePriority[] _values = values();
-			for(int i = 0; i < _values.length; ++i) {
+			for (int i = 0; i < _values.length; ++i) {
 				lookup[_values[i].priority] = _values[i];
 			}
 		}
@@ -105,7 +105,7 @@ public class CPacketRPCNotifBadgeShow implements EaglerBackendRPCPacket {
 		bodyComponent = readString(buffer, 32767, true, StandardCharsets.UTF_8);
 		titleComponent = readString(buffer, 255, false, StandardCharsets.UTF_8);
 		sourceComponent = readString(buffer, 255, false, StandardCharsets.UTF_8);
-		originalTimestampSec = ((long)buffer.readUnsignedShort() << 32l) | ((long)buffer.readInt() & 0xFFFFFFFFl);
+		originalTimestampSec = ((long) buffer.readUnsignedShort() << 32l) | ((long) buffer.readInt() & 0xFFFFFFFFl);
 		int flags = buffer.readUnsignedByte();
 		silent = (flags & 1) != 0;
 		priority = EnumBadgePriority.getByID((flags >>> 1) & 3);
@@ -114,10 +114,13 @@ public class CPacketRPCNotifBadgeShow implements EaglerBackendRPCPacket {
 		mainIconUUID = (flags & 8) != 0 ? new UUID(buffer.readLong(), buffer.readLong()) : null;
 		titleIconUUID = (flags & 16) != 0 ? new UUID(buffer.readLong(), buffer.readLong()) : null;
 		managed = (flags & 32) != 0;
-		backgroundColor = (buffer.readUnsignedByte() << 16) | (buffer.readUnsignedByte() << 8) | buffer.readUnsignedByte();
+		backgroundColor = (buffer.readUnsignedByte() << 16) | (buffer.readUnsignedByte() << 8)
+				| buffer.readUnsignedByte();
 		bodyTxtColor = (buffer.readUnsignedByte() << 16) | (buffer.readUnsignedByte() << 8) | buffer.readUnsignedByte();
-		titleTxtColor = (buffer.readUnsignedByte() << 16) | (buffer.readUnsignedByte() << 8) | buffer.readUnsignedByte();
-		sourceTxtColor = (buffer.readUnsignedByte() << 16) | (buffer.readUnsignedByte() << 8) | buffer.readUnsignedByte();
+		titleTxtColor = (buffer.readUnsignedByte() << 16) | (buffer.readUnsignedByte() << 8)
+				| buffer.readUnsignedByte();
+		sourceTxtColor = (buffer.readUnsignedByte() << 16) | (buffer.readUnsignedByte() << 8)
+				| buffer.readUnsignedByte();
 	}
 
 	@Override
@@ -127,21 +130,25 @@ public class CPacketRPCNotifBadgeShow implements EaglerBackendRPCPacket {
 		writeString(buffer, bodyComponent, true, StandardCharsets.UTF_8);
 		writeString(buffer, titleComponent, false, StandardCharsets.UTF_8);
 		writeString(buffer, sourceComponent, false, StandardCharsets.UTF_8);
-		buffer.writeShort((int)(originalTimestampSec >> 32l));
-		buffer.writeInt((int)originalTimestampSec);
+		buffer.writeShort((int) (originalTimestampSec >> 32l));
+		buffer.writeInt((int) originalTimestampSec);
 		int flags = ((priority != null ? priority.priority : 1) << 1);
-		if(silent) flags |= 1;
-		if(mainIconUUID != null) flags |= 8;
-		if(titleIconUUID != null) flags |= 16;
-		if(managed) flags |= 32;
+		if (silent)
+			flags |= 1;
+		if (mainIconUUID != null)
+			flags |= 8;
+		if (titleIconUUID != null)
+			flags |= 16;
+		if (managed)
+			flags |= 32;
 		buffer.writeByte(flags);
 		buffer.writeByte(hideAfterSec);
 		buffer.writeShort(expireAfterSec);
-		if(mainIconUUID != null) {
+		if (mainIconUUID != null) {
 			buffer.writeLong(mainIconUUID.getMostSignificantBits());
 			buffer.writeLong(mainIconUUID.getLeastSignificantBits());
 		}
-		if(titleIconUUID != null) {
+		if (titleIconUUID != null) {
 			buffer.writeLong(titleIconUUID.getMostSignificantBits());
 			buffer.writeLong(titleIconUUID.getLeastSignificantBits());
 		}

@@ -57,13 +57,13 @@ public interface IWebViewService<PlayerObject> {
 
 	@Nonnull
 	default IWebViewBlob createWebViewBlob(@Nonnull CharSequence markupIn) {
-		if(markupIn == null) {
+		if (markupIn == null) {
 			throw new NullPointerException("markupIn");
 		}
 		IWebViewBlobBuilder<Writer> builder = createWebViewBlobBuilderWriter();
-		try(Writer os = builder.stream()) {
+		try (Writer os = builder.stream()) {
 			os.append(markupIn);
-		}catch(IOException ex) {
+		} catch (IOException ex) {
 			throw new RuntimeException("Unexpected IOException thrown", ex);
 		}
 		return builder.build();
@@ -71,13 +71,13 @@ public interface IWebViewService<PlayerObject> {
 
 	@Nonnull
 	default IWebViewBlob createWebViewBlob(@Nonnull byte[] bytesIn) {
-		if(bytesIn == null) {
+		if (bytesIn == null) {
 			throw new NullPointerException("bytesIn");
 		}
 		IWebViewBlobBuilder<OutputStream> builder = createWebViewBlobBuilderStream();
-		try(OutputStream os = builder.stream()) {
+		try (OutputStream os = builder.stream()) {
 			os.write(bytesIn);
-		}catch(IOException ex) {
+		} catch (IOException ex) {
 			throw new RuntimeException("Unexpected IOException thrown", ex);
 		}
 		return builder.build();
@@ -85,11 +85,11 @@ public interface IWebViewService<PlayerObject> {
 
 	@Nonnull
 	default IWebViewBlob createWebViewBlob(@Nonnull InputStream inputStream) throws IOException {
-		if(inputStream == null) {
+		if (inputStream == null) {
 			throw new NullPointerException("inputStream");
 		}
 		IWebViewBlobBuilder<OutputStream> builder = createWebViewBlobBuilderStream();
-		try(OutputStream os = builder.stream()) {
+		try (OutputStream os = builder.stream()) {
 			inputStream.transferTo(os);
 		}
 		return builder.build();
@@ -97,7 +97,7 @@ public interface IWebViewService<PlayerObject> {
 
 	@Nonnull
 	default IWebViewBlob createWebViewBlob(@Nonnull File file) throws IOException {
-		if(file == null) {
+		if (file == null) {
 			throw new NullPointerException("file");
 		}
 		try (InputStream is = new FileInputStream(file)) {
@@ -135,29 +135,35 @@ public interface IWebViewService<PlayerObject> {
 
 	@Nonnull
 	default ITemplateLoader createTemplateLoader(@Nonnull File baseDir) {
-		if(baseDir == null) throw new NullPointerException("baseDir");
+		if (baseDir == null)
+			throw new NullPointerException("baseDir");
 		return createTemplateLoader(baseDir, null, null, false);
 	}
 
 	@Nonnull
 	default ITemplateLoader createTemplateLoader(@Nonnull File baseDir, boolean allowEvalMacro) {
-		if(baseDir == null) throw new NullPointerException("baseDir");
+		if (baseDir == null)
+			throw new NullPointerException("baseDir");
 		return createTemplateLoader(baseDir, null, null, allowEvalMacro);
 	}
 
 	@Nonnull
 	default ITemplateLoader createTemplateLoader(@Nonnull File baseDir, @Nonnull Map<String, String> variables,
 			boolean allowEvalMacro) {
-		if(baseDir == null) throw new NullPointerException("baseDir");
-		if(variables == null) throw new NullPointerException("variables");
+		if (baseDir == null)
+			throw new NullPointerException("baseDir");
+		if (variables == null)
+			throw new NullPointerException("variables");
 		return createTemplateLoader(baseDir, variables, null, allowEvalMacro);
 	}
 
 	@Nonnull
 	default ITemplateLoader createTemplateLoader(@Nonnull File baseDir, @Nonnull ITranslationProvider translations,
 			boolean allowEvalMacro) {
-		if(baseDir == null) throw new NullPointerException("baseDir");
-		if(translations == null) throw new NullPointerException("translations");
+		if (baseDir == null)
+			throw new NullPointerException("baseDir");
+		if (translations == null)
+			throw new NullPointerException("translations");
 		return createTemplateLoader(baseDir, null, translations, allowEvalMacro);
 	}
 

@@ -31,8 +31,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.AsyncEvent;
 import net.md_5.bungee.api.plugin.Cancellable;
 
-public final class EaglercraftLoginEvent
-		extends AsyncEvent<IEaglercraftLoginEvent<ProxiedPlayer, BaseComponent>>
+public final class EaglercraftLoginEvent extends AsyncEvent<IEaglercraftLoginEvent<ProxiedPlayer, BaseComponent>>
 		implements IEaglercraftLoginEvent<ProxiedPlayer, BaseComponent>, Cancellable {
 
 	private final IEaglerXServerAPI<ProxiedPlayer> api;
@@ -130,7 +129,7 @@ public final class EaglercraftLoginEvent
 
 	@Override
 	public void setProfileUUID(@Nonnull UUID uuid) {
-		if(uuid == null) {
+		if (uuid == null) {
 			throw new NullPointerException("uuid");
 		}
 		this.uuid = uuid;
@@ -144,7 +143,7 @@ public final class EaglercraftLoginEvent
 
 	@Override
 	public void setRequestedServer(@Nonnull String server) {
-		if(server == null) {
+		if (server == null) {
 			throw new NullPointerException("server");
 		}
 		this.requestedServer = server;

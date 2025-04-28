@@ -52,7 +52,7 @@ public class EaglerXSupervisorConsole implements Runnable {
 			@Override
 			public void handleCommand(Logger logger, String command, String args) {
 				logger.info("Commands List:");
-				for(ConsoleCommand cmd : commandsList) {
+				for (ConsoleCommand cmd : commandsList) {
 					logger.info("- {}: {}", cmd.getName(), cmd.getDesc());
 				}
 			}
@@ -75,16 +75,11 @@ public class EaglerXSupervisorConsole implements Runnable {
 				List<SupervisorClientInstance> lst = svr.getClientList();
 				TableRenderer tbl = new TableRenderer();
 				tbl.pushRow("ID", "Remote Address", "Protocol", "Ping", "Proxy Type", "Plugin Type", "Player Count");
-				for(SupervisorClientInstance proxy : lst) {
-					tbl.pushRow(
-						proxy.getNodeId(),
-						proxy.getHandler().getChannel().remoteAddress(),
-						proxy.getHandler().getConnectionProtocol().name(),
-						proxy.getProxyPing(),
-						proxy.getProxyType().name(),
-						proxy.getPluginType().name(),
-						proxy.getPlayerCount() + " / " + proxy.getPlayerMax()
-					);
+				for (SupervisorClientInstance proxy : lst) {
+					tbl.pushRow(proxy.getNodeId(), proxy.getHandler().getChannel().remoteAddress(),
+							proxy.getHandler().getConnectionProtocol().name(), proxy.getProxyPing(),
+							proxy.getProxyType().name(), proxy.getPluginType().name(),
+							proxy.getPlayerCount() + " / " + proxy.getPlayerMax());
 				}
 				logger.info("{} {} total.", lst.size(), lst.size() == 1 ? "proxy" : "proxies");
 				tbl.print((str) -> {
@@ -97,17 +92,12 @@ public class EaglerXSupervisorConsole implements Runnable {
 			public void handleCommand(Logger logger, String command, String args) {
 				List<SupervisorClientInstance> lst = svr.getClientList();
 				TableRenderer tbl = new TableRenderer();
-				tbl.pushRow("ID", "Protocol", "Proxy Type", "Proxy Version", "Plugin Type", "Plugin Brand", "Plugin Version");
-				for(SupervisorClientInstance proxy : lst) {
-					tbl.pushRow(
-						proxy.getNodeId(),
-						proxy.getHandler().getConnectionProtocol().name(),
-						proxy.getProxyType().name(),
-						proxy.getProxyVersion(),
-						proxy.getPluginType().name(),
-						proxy.getPluginBrand(),
-						proxy.getPluginVersion()
-					);
+				tbl.pushRow("ID", "Protocol", "Proxy Type", "Proxy Version", "Plugin Type", "Plugin Brand",
+						"Plugin Version");
+				for (SupervisorClientInstance proxy : lst) {
+					tbl.pushRow(proxy.getNodeId(), proxy.getHandler().getConnectionProtocol().name(),
+							proxy.getProxyType().name(), proxy.getProxyVersion(), proxy.getPluginType().name(),
+							proxy.getPluginBrand(), proxy.getPluginVersion());
 				}
 				logger.info("Supervisor Brand: {}", svr.getServerBrand());
 				logger.info("Supervisor Version: {}", svr.getServerVersion());
@@ -122,41 +112,41 @@ public class EaglerXSupervisorConsole implements Runnable {
 				List<SupervisorPlayerInstance> lst = svr.getPlayerList();
 				TableRenderer tbl = new TableRenderer();
 				tbl.pushRow("Proxy", "Player Name", "Player UUID", "Protocol", "Brand UUID", "Skin", "Cape");
-				for(SupervisorPlayerInstance player : lst) {
+				for (SupervisorPlayerInstance player : lst) {
 					List<Object> row = new ArrayList<>();
 					row.add(player.getOwner().getNodeId());
 					row.add(player.getUsername());
 					row.add(player.getPlayerUUID());
 					int eagProto = player.getEaglerProtocol();
-					if(eagProto == 0) {
+					if (eagProto == 0) {
 						row.add("MC: " + player.getGameProtocol());
-					}else {
+					} else {
 						row.add("MC: " + player.getGameProtocol() + ", EAG: " + eagProto);
 					}
 					row.add(ClientBrandUUIDHelper.toString(player.getBrandUUID()));
 					PlayerSkinData sdata = player.getSkinDataIfLoaded();
-					if(sdata == null) {
+					if (sdata == null) {
 						row.add("Pending");
-					}else if(sdata == PlayerSkinData.ERROR) {
+					} else if (sdata == PlayerSkinData.ERROR) {
 						row.add("Error");
-					}else if(sdata instanceof PlayerSkinData.Preset) {
-						row.add("Preset (" + ((PlayerSkinData.Preset)sdata).presetId + ")");
-					}else {
+					} else if (sdata instanceof PlayerSkinData.Preset) {
+						row.add("Preset (" + ((PlayerSkinData.Preset) sdata).presetId + ")");
+					} else {
 						row.add("Custom");
 					}
 					PlayerCapeData cdata = player.getCapeDataIfLoaded();
-					if(cdata == null) {
+					if (cdata == null) {
 						row.add("Pending");
-					}else if(cdata == PlayerCapeData.ERROR) {
+					} else if (cdata == PlayerCapeData.ERROR) {
 						row.add("Error");
-					}else if(cdata instanceof PlayerCapeData.Preset) {
-						int id = ((PlayerCapeData.Preset)cdata).presetId;
-						if(id != 0) {
+					} else if (cdata instanceof PlayerCapeData.Preset) {
+						int id = ((PlayerCapeData.Preset) cdata).presetId;
+						if (id != 0) {
 							row.add("Preset (" + id + ")");
-						}else {
+						} else {
 							row.add("None");
 						}
-					}else {
+					} else {
 						row.add("Custom");
 					}
 					tbl.pushRow(row);
@@ -191,7 +181,7 @@ public class EaglerXSupervisorConsole implements Runnable {
 
 	public void registerCommand(ConsoleCommand cmd) {
 		commandsList.add(cmd);
-		for(String s : cmd.getAliases()) {
+		for (String s : cmd.getAliases()) {
 			commands.put(s, cmd);
 		}
 	}
@@ -199,15 +189,15 @@ public class EaglerXSupervisorConsole implements Runnable {
 	@Override
 	public void run() {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
-		while(svr.isRunning()) {
+		while (svr.isRunning()) {
 			try {
 				String str;
-				while((str = reader.readLine()) != null) {
+				while ((str = reader.readLine()) != null) {
 					str = str.trim();
-					if(str.length() > 0) {
+					if (str.length() > 0) {
 						try {
 							handleCommand(str);
-						}catch(Throwable t) {
+						} catch (Throwable t) {
 							logger.error("Failed to execute console command!", t);
 						}
 					}
@@ -220,12 +210,12 @@ public class EaglerXSupervisorConsole implements Runnable {
 
 	public void handleCommand(String str) {
 		String[] arr = str.split("\\s+", 2);
-		if(arr.length > 0) {
+		if (arr.length > 0) {
 			String cmd = arr[0].toLowerCase();
 			ConsoleCommand ccmd = commands.get(cmd);
-			if(ccmd != null) {
+			if (ccmd != null) {
 				ccmd.handleCommand(logger, cmd, arr.length > 1 ? arr[1] : "");
-			}else {
+			} else {
 				logger.error("Unknown command: '{}'", cmd);
 			}
 		}

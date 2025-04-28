@@ -64,7 +64,7 @@ public interface IPauseMenuBuilder {
 	}
 
 	@Nonnull
-	IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(@Nonnull String text, @Nonnull String title, 
+	IPauseMenuBuilder setServerInfoButtonModeWebViewBlob(@Nonnull String text, @Nonnull String title,
 			@Nullable Set<EnumWebViewPerms> permissions, @Nonnull SHA1Sum hash);
 
 	@Nonnull

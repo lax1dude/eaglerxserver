@@ -52,7 +52,7 @@ public class SPacketSvHandshakeFailure implements EaglerSupervisorPacket {
 	}
 
 	public static String failureCodeToString(int failureCode) {
-		switch(failureCode) {
+		switch (failureCode) {
 		case FAILURE_CODE_OUTDATED_SERVER:
 			return "FAILURE_CODE_OUTDATED_SERVER";
 		case FAILURE_CODE_OUTDATED_CLIENT:

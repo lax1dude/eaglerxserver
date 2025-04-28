@@ -92,15 +92,15 @@ public enum EaglerSupervisorProtocol {
 	private final PacketDef[] idMap = new PacketDef[64]; // May need to grow this in the future
 	private final Map<Class<? extends EaglerSupervisorPacket>, PacketDef> classMap = new HashMap<>();
 
-	private EaglerSupervisorProtocol(int vers, PacketDef...pkts) {
+	private EaglerSupervisorProtocol(int vers, PacketDef... pkts) {
 		this.vers = vers;
-		for(int i = 0; i < pkts.length; ++i) {
+		for (int i = 0; i < pkts.length; ++i) {
 			PacketDef def = pkts[i];
-			if(idMap[def.id] != null) {
+			if (idMap[def.id] != null) {
 				throw new IllegalArgumentException("Packet ID " + def.id + " registered twice!");
 			}
 			idMap[def.id] = def;
-			if(classMap.put(def.pkt, def) != null) {
+			if (classMap.put(def.pkt, def) != null) {
 				throw new IllegalArgumentException("Packet class " + def.pkt.getSimpleName() + " registered twice!");
 			}
 		}
@@ -136,23 +136,23 @@ public enum EaglerSupervisorProtocol {
 
 	public int getPacketID(Class<? extends EaglerSupervisorPacket> pkt, int dir) {
 		PacketDef def = classMap.get(pkt);
-		if(def != null && def.dir == dir) {
+		if (def != null && def.dir == dir) {
 			return def.id;
-		}else {
+		} else {
 			return -1;
 		}
 	}
 
 	public EaglerSupervisorPacket createPacket(int id, int dir) {
 		PacketDef def;
-		if(id >= 0 && id < idMap.length && (def = idMap[id]) != null && def.dir == dir) {
+		if (id >= 0 && id < idMap.length && (def = idMap[id]) != null && def.dir == dir) {
 			try {
 				return def.ctor.newInstance();
 			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e) {
 				throw new RuntimeException(e);
 			}
-		}else {
+		} else {
 			return null;
 		}
 	}

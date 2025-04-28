@@ -76,7 +76,7 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 		@Override
 		public void accept(IEaglerPlayer<Object> t) {
 			add(t.getUsername());
-			if(--maxLen == 0) {
+			if (--maxLen == 0) {
 				throw new EaglerPlayerListException();
 			}
 		}
@@ -88,32 +88,32 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 		motd = defaultMotd = listener.getServerMOTD();
 		playerTotal = defaultPlayerTotal = server.getSupervisorService().getPlayerTotal();
 		playerMax = defaultPlayerMax = server.getSupervisorService().getPlayerMax();
-		if(listener.isShowMOTDPlayerList()) {
+		if (listener.isShowMOTDPlayerList()) {
 			playerList = defaultPlayerList = new EaglerArrayList(10);
 			try {
-				((EaglerXServer<Object>)server).forEachEaglerPlayer((EaglerArrayList)playerList);
-			}catch(EaglerPlayerListException ex) {
+				((EaglerXServer<Object>) server).forEachEaglerPlayer((EaglerArrayList) playerList);
+			} catch (EaglerPlayerListException ex) {
 			}
 			int more = playerTotal - playerList.size();
-			if(more > 0) {
+			if (more > 0) {
 				playerList.add("\u00A77\u00A7o(" + more + " more)");
 			}
-		}else {
+		} else {
 			playerList = defaultPlayerList = Collections.emptyList();
 		}
 		String queryType = queryConnection.getAccept();
 		int i = queryType.indexOf('.');
-		if(i > 0) {
+		if (i > 0) {
 			subType = queryType.substring(i + 1);
-			if(subType.length() == 0) {
+			if (subType.length() == 0) {
 				subType = null;
 			}
-		}else {
+		} else {
 			subType = null;
 		}
-		if(subType == null || (!subType.startsWith("noicon") && !subType.startsWith("cache.noicon"))) {
+		if (subType == null || (!subType.startsWith("noicon") && !subType.startsWith("cache.noicon"))) {
 			icon = defaultIcon = listener.getServerIcon();
-		}else {
+		} else {
 			icon = defaultIcon = null;
 		}
 		iconCloned = defaultIconCloned = icon == null;
@@ -125,36 +125,37 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 
 	@Override
 	public void sendToUser() {
-		if(queryConnection.isConnected()) {
+		if (queryConnection.isConnected()) {
 			JsonObject obj = new JsonObject();
-			if(subType != null && subType.startsWith("cache.anim")) {
+			if (subType != null && subType.startsWith("cache.anim")) {
 				obj.addProperty("unsupported", true);
 				queryConnection.sendResponse(returnType, obj);
 				return;
-			}else if(subType != null && subType.startsWith("cache")) {
+			} else if (subType != null && subType.startsWith("cache")) {
 				JsonArray cacheControl = new JsonArray();
 				ConfigDataListener cc = queryConnection.getListenerInfo().getConfigData();
-				if(cc.isMotdCacheAnimation()) {
+				if (cc.isMotdCacheAnimation()) {
 					cacheControl.add(new JsonPrimitive("animation"));
 				}
-				if(cc.isMotdCacheResults()) {
+				if (cc.isMotdCacheResults()) {
 					cacheControl.add(new JsonPrimitive("results"));
 				}
-				if(cc.isMotdCacheTrending()) {
+				if (cc.isMotdCacheTrending()) {
 					cacheControl.add(new JsonPrimitive("trending"));
 				}
-				if(cc.isMotdCachePortfolios()) {
+				if (cc.isMotdCachePortfolios()) {
 					cacheControl.add(new JsonPrimitive("portfolio"));
 				}
 				obj.add("cache", cacheControl);
 				obj.addProperty("ttl", cc.getMotdCacheTTL());
-			}else {
+			} else {
 				obj.addProperty("cache", queryConnection.getListenerInfo().getConfigData().isMotdCacheAny());
 			}
 			boolean noIcon = subType != null && (subType.startsWith("noicon") || subType.startsWith("cache.noicon"));
 			JsonArray motd = new JsonArray();
-			for(int i = 0; i < 2; ++i) {
-				if(i >= this.motd.size()) break;
+			for (int i = 0; i < 2; ++i) {
+				if (i >= this.motd.size())
+					break;
 				motd.add(new JsonPrimitive(this.motd.get(i)));
 			}
 			obj.add("motd", motd);
@@ -163,17 +164,17 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 			obj.addProperty("max", playerMax);
 			int i = playerList.size();
 			JsonArray playerz;
-			if(i > 0) {
+			if (i > 0) {
 				playerz = new JsonArray();
-				for(String s : playerList) {
+				for (String s : playerList) {
 					playerz.add(new JsonPrimitive(s));
 				}
-			}else {
+			} else {
 				playerz = EMPTY_LIST;
 			}
 			obj.add("players", playerz);
 			queryConnection.sendResponse(returnType, obj);
-			if(hasIcon && !noIcon && iconDirty && icon != null) {
+			if (hasIcon && !noIcon && iconDirty && icon != null) {
 				queryConnection.send(icon);
 				iconDirty = false;
 			}
@@ -237,7 +238,7 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 
 	@Override
 	public void setResponseType(String type) {
-		if(type == null) {
+		if (type == null) {
 			throw new NullPointerException("type");
 		}
 		returnType = type;
@@ -275,39 +276,41 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 
 	@Override
 	public byte[] getDefaultServerIcon() {
-		if(defaultIcon == null) return null;
-		if(!defaultIconCloned) {
+		if (defaultIcon == null)
+			return null;
+		if (!defaultIconCloned) {
 			defaultIconCloned = true;
-			if(defaultIcon == icon) {
+			if (defaultIcon == icon) {
 				iconCloned = true;
 				return defaultIcon = icon = defaultIcon.clone();
-			}else {
+			} else {
 				return defaultIcon = defaultIcon.clone();
 			}
-		}else {
+		} else {
 			return defaultIcon;
 		}
 	}
 
 	@Override
 	public byte[] getServerIcon() {
-		if(icon == null) return null;
-		if(!iconCloned) {
+		if (icon == null)
+			return null;
+		if (!iconCloned) {
 			iconCloned = true;
-			if(defaultIcon == icon) {
+			if (defaultIcon == icon) {
 				defaultIconCloned = true;
 				return defaultIcon = icon = icon.clone();
-			}else {
+			} else {
 				return icon = icon.clone();
 			}
-		}else {
+		} else {
 			return icon;
 		}
 	}
 
 	@Override
 	public void setServerIcon(byte[] icon) {
-		if(icon != null && icon.length != 16384) {
+		if (icon != null && icon.length != 16384) {
 			throw new IllegalArgumentException("Server icon is the wrong length, should be 16384");
 		}
 		this.iconCloned = this.iconDirty = this.hasIcon = true;
@@ -326,7 +329,7 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 
 	@Override
 	public void setServerMOTD(List<String> motd) {
-		if(motd == null) {
+		if (motd == null) {
 			throw new NullPointerException("motd");
 		}
 		this.motd = motd;
@@ -374,7 +377,7 @@ public class MOTDConnectionWrapper extends IIdentifiedConnection.Base implements
 
 	@Override
 	public void setPlayerList(List<String> list) {
-		if(list == null) {
+		if (list == null) {
 			throw new NullPointerException("list");
 		}
 		playerList = list;

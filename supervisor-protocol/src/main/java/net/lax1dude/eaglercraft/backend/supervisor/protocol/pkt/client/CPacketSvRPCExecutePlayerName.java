@@ -38,7 +38,8 @@ public class CPacketSvRPCExecutePlayerName implements EaglerSupervisorPacket, IR
 	public CPacketSvRPCExecutePlayerName() {
 	}
 
-	public CPacketSvRPCExecutePlayerName(UUID requestUUID, int timeout, String playerName, int nameLength, ByteBuf payload) {
+	public CPacketSvRPCExecutePlayerName(UUID requestUUID, int timeout, String playerName, int nameLength,
+			ByteBuf payload) {
 		this.requestUUID = requestUUID;
 		this.timeout = timeout;
 		this.playerName = playerName;
@@ -56,9 +57,9 @@ public class CPacketSvRPCExecutePlayerName implements EaglerSupervisorPacket, IR
 	@Override
 	public void readPacket(ByteBuf buffer) {
 		timeout = EaglerSupervisorPacket.readVarInt(buffer);
-		if(timeout > 0) {
+		if (timeout > 0) {
 			requestUUID = new UUID(buffer.readLong(), buffer.readLong());
-		}else {
+		} else {
 			requestUUID = null;
 		}
 		int len = buffer.readUnsignedByte();
@@ -70,23 +71,23 @@ public class CPacketSvRPCExecutePlayerName implements EaglerSupervisorPacket, IR
 	@Override
 	public void writePacket(ByteBuf buffer) {
 		EaglerSupervisorPacket.writeVarInt(buffer, timeout);
-		if(timeout > 0) {
+		if (timeout > 0) {
 			buffer.writeLong(requestUUID.getMostSignificantBits());
 			buffer.writeLong(requestUUID.getLeastSignificantBits());
 		}
 		byte[] nameBytes = playerName.getBytes(StandardCharsets.US_ASCII);
 		int len = nameBytes.length;
-		if(len > 16) {
+		if (len > 16) {
 			throw new UnsupportedOperationException("Username is longer than 16 bytes");
 		}
 		buffer.writeByte(len);
 		buffer.writeBytes(nameBytes);
-		if(injected != null) {
+		if (injected != null) {
 			buffer.writeIntLE(0);
 			int pos = buffer.writerIndex();
 			buffer.setByte(pos - 4, injected.writePayload(buffer));
 			buffer.setMedium(pos - 3, buffer.writerIndex() - pos);
-		}else {
+		} else {
 			buffer.writeByte(nameLength);
 			int l = payload.readableBytes();
 			buffer.writeMedium(l);

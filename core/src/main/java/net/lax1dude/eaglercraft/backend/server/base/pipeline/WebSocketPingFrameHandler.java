@@ -29,20 +29,20 @@ public class WebSocketPingFrameHandler extends ChannelInboundHandlerAdapter {
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-		if(msg instanceof PingWebSocketFrame msg2) {
+		if (msg instanceof PingWebSocketFrame msg2) {
 			msg2.release();
 			long now = Util.steadyTime();
-			if(now > nextPing) {
+			if (now > nextPing) {
 				pingQuota = 3;
 				nextPing = now + 1000l;
 			}
-			if(pingQuota > 0) {
+			if (pingQuota > 0) {
 				--pingQuota;
 				ctx.write(new PongWebSocketFrame());
 			}
-		}else if(!(msg instanceof PongWebSocketFrame msg2)) {
+		} else if (!(msg instanceof PongWebSocketFrame msg2)) {
 			ctx.fireChannelRead(msg);
-		}else {
+		} else {
 			msg2.release();
 		}
 	}

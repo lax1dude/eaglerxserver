@@ -47,8 +47,9 @@ class VelocityAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 	private boolean forceVanillaSkin;
 
 	VelocityAuthCookieEventImpl(IEaglerXServerAPI<Player> api, IEaglerLoginConnection loginConnection,
-			byte[] authUsername, boolean nicknameSelectionEnabled, boolean cookiesEnabled, byte[] cookieData, String requestedUsername, String profileUsername, UUID profileUUID,
-			EnumAuthType authType, String authMessage, String authRequestedServer) {
+			byte[] authUsername, boolean nicknameSelectionEnabled, boolean cookiesEnabled, byte[] cookieData,
+			String requestedUsername, String profileUsername, UUID profileUUID, EnumAuthType authType,
+			String authMessage, String authRequestedServer) {
 		this.api = api;
 		this.loginConnection = loginConnection;
 		this.authUsername = authUsername;
@@ -105,7 +106,7 @@ class VelocityAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 
 	@Override
 	public void setProfileUsername(String username) {
-		if(username == null) {
+		if (username == null) {
 			throw new NullPointerException("username");
 		}
 		profileUsername = username;
@@ -118,7 +119,7 @@ class VelocityAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 
 	@Override
 	public void setProfileUUID(UUID uuid) {
-		if(uuid == null) {
+		if (uuid == null) {
 			throw new NullPointerException("uuid");
 		}
 		profileUUID = uuid;
@@ -141,7 +142,7 @@ class VelocityAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 
 	@Override
 	public void setAuthRequestedServer(String server) {
-		if(server == null) {
+		if (server == null) {
 			throw new NullPointerException("server");
 		}
 		authRequestedServer = server;

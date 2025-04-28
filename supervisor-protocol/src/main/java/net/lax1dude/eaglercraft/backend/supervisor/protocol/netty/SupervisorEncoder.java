@@ -35,10 +35,10 @@ public class SupervisorEncoder extends MessageToByteEncoder<EaglerSupervisorPack
 	protected void encode(ChannelHandlerContext ctx, EaglerSupervisorPacket pktIn, ByteBuf bytesOut) throws Exception {
 		Class<? extends EaglerSupervisorPacket> cls = pktIn.getClass();
 		int id = protocol.getPacketID(cls, dir);
-		if(id != -1) {
+		if (id != -1) {
 			bytesOut.writeByte(id);
 			pktIn.writePacket(bytesOut);
-		}else {
+		} else {
 			throw new IllegalStateException("Sent wrong packet type " + cls.getSimpleName() + " on "
 					+ EaglerSupervisorProtocol.dirStr(dir) + " type " + protocol.name() + " encoder");
 		}

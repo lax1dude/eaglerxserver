@@ -71,26 +71,27 @@ public class RewindProtocol<PlayerObject> implements IEaglerXRewindProtocol<Play
 	}
 
 	@Override
-	public void initializeConnection(int legacyProtocol, IEaglerXRewindInitializer<RewindPlayer<PlayerObject>> initializer) {
+	public void initializeConnection(int legacyProtocol,
+			IEaglerXRewindInitializer<RewindPlayer<PlayerObject>> initializer) {
 		IEaglerConnection eaglerConnection = initializer.getConnection();
 		IPacket2ClientProtocol legacyHandshake = initializer.getLegacyHandshake();
 		IMessageController messageController = initializer.requestMessageController();
 		IOutboundInjector outboundInjector = initializer.requestOutboundInjector();
-		
+
 		String realAddr = eaglerConnection.getRealAddress();
-		if(realAddr == null) {
+		if (realAddr == null) {
 			realAddr = eaglerConnection.getSocketAddress().toString();
 		}
-		
+
 		RewindPlayer<PlayerObject> attachment = new RewindPlayer<>(this, messageController, outboundInjector,
 				initializer.netty().getChannel(), realAddr + "|" + legacyHandshake.getUsername());
 		initializer.setAttachment(attachment);
-		
+
 		messageController.setOutboundHandler(new RewindMessageHandler(attachment));
-		
+
 		initializer.netty().injectNettyHandlers((new RewindChannelHandler<PlayerObject>(attachment))
 				.setCodec(new RewindHandshakeCodec<>(legacyHandshake)));
-		
+
 		initializer.rewriteInitialHandshakeV2(5, 47, "EaglerXRewind", "1.5.2", false,
 				legacyHandshake.getUsername().getBytes(StandardCharsets.US_ASCII));
 	}

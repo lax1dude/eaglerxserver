@@ -44,7 +44,7 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 
 	BasePlayerRPCContext(EaglerBackendRPCProtocol protocol, DataSerializationContext dataCtx) {
 		super(protocol, dataCtx);
-		packetHandler = switch(protocol) {
+		packetHandler = switch (protocol) {
 		case V1 -> new ServerV1RPCProtocolHandler(this);
 		case V2 -> new ServerV2RPCProtocolHandler(this);
 		default -> throw new IllegalStateException();
@@ -84,9 +84,9 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 	void handleRequestSkinData(int requestID) {
 		ISkinManagerBase<PlayerObject> skinMgr = manager().getPlayer().getSkinManager();
 		IEaglerPlayerSkin skin = skinMgr.getPlayerSkinIfLoaded();
-		if(skin != null) {
+		if (skin != null) {
 			completeRequestSkinData(requestID, skin);
-		}else {
+		} else {
 			skinMgr.resolvePlayerSkin((resolvedSkin) -> {
 				completeRequestSkinData(requestID, resolvedSkin);
 			});
@@ -95,13 +95,13 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 
 	private void completeRequestSkinData(int requestID, IEaglerPlayerSkin skin) {
 		boolean legacy = getProtocol() == EaglerBackendRPCProtocol.V1;
-		if(!legacy) {
-			if(!skin.isSuccess()) {
+		if (!legacy) {
+			if (!skin.isSuccess()) {
 				sendRPCPacket(new SPacketRPCResponseTypeIntegerSingleV2(requestID, -1));
 				return;
-			}else if(skin.isSkinPreset()) {
+			} else if (skin.isSkinPreset()) {
 				int id = skin.getPresetSkinId();
-				if(id == -1) {
+				if (id == -1) {
 					id = 0;
 				}
 				sendRPCPacket(new SPacketRPCResponseTypeIntegerSingleV2(requestID, id));
@@ -114,9 +114,9 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 	void handleRequestCapeData(int requestID) {
 		ISkinManagerBase<PlayerObject> skinMgr = manager().getPlayer().getSkinManager();
 		IEaglerPlayerCape cape = skinMgr.getPlayerCapeIfLoaded();
-		if(cape != null) {
+		if (cape != null) {
 			completeRequestCapeData(requestID, cape);
-		}else {
+		} else {
 			skinMgr.resolvePlayerCape((resolvedCape) -> {
 				completeRequestCapeData(requestID, resolvedCape);
 			});
@@ -124,13 +124,13 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 	}
 
 	private void completeRequestCapeData(int requestID, IEaglerPlayerCape cape) {
-		if(getProtocol() != EaglerBackendRPCProtocol.V1) {
-			if(!cape.isSuccess()) {
+		if (getProtocol() != EaglerBackendRPCProtocol.V1) {
+			if (!cape.isSuccess()) {
 				sendRPCPacket(new SPacketRPCResponseTypeIntegerSingleV2(requestID, -1));
 				return;
-			}else if(cape.isCapePreset()) {
+			} else if (cape.isCapePreset()) {
 				int id = cape.getPresetCapeId();
-				if(id == -1) {
+				if (id == -1) {
 					id = 0;
 				}
 				sendRPCPacket(new SPacketRPCResponseTypeIntegerSingleV2(requestID, id));
@@ -172,9 +172,9 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 		ISkinManagerBase<PlayerObject> skinMgr = manager().getPlayer().getSkinManager();
 		IEaglerPlayerSkin skin = skinMgr.getPlayerSkinIfLoaded();
 		IEaglerPlayerCape cape = skinMgr.getPlayerCapeIfLoaded();
-		if(skin != null && cape != null) {
+		if (skin != null && cape != null) {
 			completeRequestTextureData(requestID, skin, cape);
-		}else {
+		} else {
 			skinMgr.resolvePlayerTextures((resolvedSkin, resolvedCape) -> {
 				completeRequestTextureData(requestID, resolvedSkin, resolvedCape);
 			});
@@ -184,26 +184,26 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 	private void completeRequestTextureData(int requestID, IEaglerPlayerSkin skin, IEaglerPlayerCape cape) {
 		boolean a = !skin.isSuccess();
 		boolean b = !cape.isSuccess();
-		if((a || skin.isSkinPreset()) && (b || cape.isCapePreset())) {
+		if ((a || skin.isSkinPreset()) && (b || cape.isCapePreset())) {
 			int i1, i2;
-			if(a) {
+			if (a) {
 				i1 = -1;
-			}else {
+			} else {
 				i1 = skin.getPresetSkinId();
-				if(i1 == -1) {
+				if (i1 == -1) {
 					i1 = 0;
 				}
 			}
-			if(b) {
+			if (b) {
 				i2 = -1;
-			}else {
+			} else {
 				i2 = cape.getPresetCapeId();
-				if(i2 == -1) {
+				if (i2 == -1) {
 					i2 = 0;
 				}
 			}
 			sendRPCPacket(new SPacketRPCResponseTypeIntegerTupleV2(requestID, i1, i2));
-		}else {
+		} else {
 			sendRPCPacket(new SPacketRPCResponseTypeBytes(requestID, TextureDataHelper.encodeTexturesData(skin, cape)));
 		}
 	}
@@ -214,9 +214,9 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 
 	void handleRequestMinecraftBrand(int requestID) {
 		String brand = manager().getPlayer().getMinecraftBrand();
-		if(brand != null) {
+		if (brand != null) {
 			sendRPCPacket(new SPacketRPCResponseTypeString(requestID, brand));
-		}else {
+		} else {
 			sendRPCPacket(new SPacketRPCResponseTypeNull(requestID));
 		}
 	}
@@ -234,7 +234,7 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 	}
 
 	void fireWebViewOpenClose(boolean open, String channel) {
-		
+
 	}
 
 	void handleSetSubscribeWebViewMessage(boolean enable) {
@@ -242,7 +242,7 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 	}
 
 	void fireWebViewMessage(String channel, boolean binary, byte[] data) {
-		
+
 	}
 
 	void handleSetSubscribeToggleVoice(boolean enable) {
@@ -250,12 +250,13 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 	}
 
 	void fireToggleVoice(EnumVoiceState oldVoiceState, EnumVoiceState newVoiceState) {
-		
+
 	}
 
 	void handleSetPlayerSkin(byte[] skinPacket, boolean notifyOthers) {
-		IEaglerPlayerSkin skin = TextureDataHelper.decodeSkinData(skinPacket, getProtocol() == EaglerBackendRPCProtocol.V1);
-		if(skin == null) {
+		IEaglerPlayerSkin skin = TextureDataHelper.decodeSkinData(skinPacket,
+				getProtocol() == EaglerBackendRPCProtocol.V1);
+		if (skin == null) {
 			throw new WrongRPCPacketException("Invalid skin texture data recieved");
 		}
 		manager().getPlayer().getSkinManager().changePlayerSkin(skin, notifyOthers);
@@ -267,8 +268,9 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 	}
 
 	void handleSetPlayerCape(byte[] capePacket, boolean notifyOthers) {
-		IEaglerPlayerCape cape = TextureDataHelper.decodeCapeData(capePacket, getProtocol() == EaglerBackendRPCProtocol.V1);
-		if(cape == null) {
+		IEaglerPlayerCape cape = TextureDataHelper.decodeCapeData(capePacket,
+				getProtocol() == EaglerBackendRPCProtocol.V1);
+		if (cape == null) {
 			throw new WrongRPCPacketException("Invalid cape texture data recieved");
 		}
 		manager().getPlayer().getSkinManager().changePlayerCape(cape, notifyOthers);
@@ -281,11 +283,11 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 
 	void handleSetPlayerTextures(byte[] texturesPacket, boolean notifyOthers) {
 		IEaglerPlayerSkin skin = TextureDataHelper.decodeTexturesSkinData(texturesPacket);
-		if(skin == null) {
+		if (skin == null) {
 			throw new WrongRPCPacketException("Invalid skin texture data recieved");
 		}
 		IEaglerPlayerCape cape = TextureDataHelper.decodeTexturesCapeData(texturesPacket, skin);
-		if(cape == null) {
+		if (cape == null) {
 			throw new WrongRPCPacketException("Invalid cape texture data recieved");
 		}
 		manager().getPlayer().getSkinManager().changePlayerTextures(skin, cape, notifyOthers);
@@ -310,14 +312,14 @@ public abstract class BasePlayerRPCContext<PlayerObject> extends SerializationCo
 	}
 
 	void handleResetPlayerMulti(boolean resetSkin, boolean resetCape, boolean resetFNAWForce, boolean notifyOthers) {
-		if(resetSkin || resetCape) {
+		if (resetSkin || resetCape) {
 			ISkinManagerBase<PlayerObject> skinMgr = manager().getPlayer().getSkinManager();
-			if(resetSkin && resetCape) {
+			if (resetSkin && resetCape) {
 				skinMgr.resetPlayerTextures(notifyOthers);
-			}else {
-				if(resetSkin) {
+			} else {
+				if (resetSkin) {
 					skinMgr.resetPlayerSkin(notifyOthers);
-				}else {
+				} else {
 					skinMgr.resetPlayerCape(notifyOthers);
 				}
 			}

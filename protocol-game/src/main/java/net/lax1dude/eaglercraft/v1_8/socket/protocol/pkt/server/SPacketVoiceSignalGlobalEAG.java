@@ -55,13 +55,13 @@ public class SPacketVoiceSignalGlobalEAG implements GameMessagePacket {
 	@Override
 	public void readPacket(GamePacketInputBuffer buffer) throws IOException {
 		int cnt = buffer.readVarInt();
-		List<UserData> userList = (List<UserData>)(users = new ArrayList<>(cnt));
-		if(cnt > 0) {
-			for(int i = 0; i < cnt; ++i) {
+		List<UserData> userList = (List<UserData>) (users = new ArrayList<>(cnt));
+		if (cnt > 0) {
+			for (int i = 0; i < cnt; ++i) {
 				userList.add(new UserData(buffer.readLong(), buffer.readLong(), null));
 			}
-			if(buffer.available() > 0) {
-				for(int i = 0; i < cnt; ++i) {
+			if (buffer.available() > 0) {
+				for (int i = 0; i < cnt; ++i) {
 					userList.get(i).username = buffer.readStringMC(16);
 				}
 			}
@@ -70,28 +70,28 @@ public class SPacketVoiceSignalGlobalEAG implements GameMessagePacket {
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
-		if(users == null || users.size() == 0) {
+		if (users == null || users.size() == 0) {
 			buffer.write(0);
-		}else {
-			if(users instanceof RandomAccess) {
-				List<UserData> userList = (List<UserData>)users;
+		} else {
+			if (users instanceof RandomAccess) {
+				List<UserData> userList = (List<UserData>) users;
 				int cnt = userList.size();
 				buffer.writeVarInt(cnt);
-				for(int i = 0; i < cnt; ++i) {
+				for (int i = 0; i < cnt; ++i) {
 					UserData dt = userList.get(i);
 					buffer.writeLong(dt.uuidMost);
 					buffer.writeLong(dt.uuidLeast);
 				}
-				for(int i = 0; i < cnt; ++i) {
+				for (int i = 0; i < cnt; ++i) {
 					buffer.writeStringMC(userList.get(i).username);
 				}
-			}else {
+			} else {
 				buffer.writeVarInt(users.size());
-				for(UserData dt : users) {
+				for (UserData dt : users) {
 					buffer.writeLong(dt.uuidMost);
 					buffer.writeLong(dt.uuidLeast);
 				}
-				for(UserData dt : users) {
+				for (UserData dt : users) {
 					buffer.writeStringMC(dt.username);
 				}
 			}

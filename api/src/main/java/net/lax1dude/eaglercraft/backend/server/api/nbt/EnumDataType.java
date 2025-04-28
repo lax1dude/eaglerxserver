@@ -41,7 +41,7 @@ public enum EnumDataType {
 
 	static {
 		VALUES = new EnumDataType[13];
-		for(EnumDataType tag : values()) {
+		for (EnumDataType tag : values()) {
 			VALUES[tag.id] = tag;
 		}
 	}

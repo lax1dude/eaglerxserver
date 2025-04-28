@@ -27,10 +27,10 @@ public final class WebViewMessageEvent implements IRPCEvent {
 
 	@Nonnull
 	public static WebViewMessageEvent string(@Nonnull String channelName, @Nonnull byte[] messageContent) {
-		if(channelName == null) {
+		if (channelName == null) {
 			throw new NullPointerException("channelName");
 		}
-		if(messageContent == null) {
+		if (messageContent == null) {
 			throw new NullPointerException("messageContent");
 		}
 		return new WebViewMessageEvent(channelName, EnumMessageType.STRING, messageContent);
@@ -38,10 +38,10 @@ public final class WebViewMessageEvent implements IRPCEvent {
 
 	@Nonnull
 	public static WebViewMessageEvent binary(@Nonnull String channelName, @Nonnull byte[] messageContent) {
-		if(channelName == null) {
+		if (channelName == null) {
 			throw new NullPointerException("channelName");
 		}
-		if(messageContent == null) {
+		if (messageContent == null) {
 			throw new NullPointerException("messageContent");
 		}
 		return new WebViewMessageEvent(channelName, EnumMessageType.BINARY, messageContent);
@@ -75,7 +75,7 @@ public final class WebViewMessageEvent implements IRPCEvent {
 
 	@Nonnull
 	public String getContentStr() {
-		if(asString == null) {
+		if (asString == null) {
 			asString = new String(messageContent, StandardCharsets.UTF_8);
 		}
 		return asString;

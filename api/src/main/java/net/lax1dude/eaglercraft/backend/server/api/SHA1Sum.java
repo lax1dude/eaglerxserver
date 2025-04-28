@@ -47,8 +47,10 @@ public final class SHA1Sum {
 
 	@Nonnull
 	public static SHA1Sum create(@Nonnull byte[] checksum, int offset) {
-		if(offset < 0) throw new ArrayIndexOutOfBoundsException(offset);
-		if(offset + 20 > checksum.length) throw new ArrayIndexOutOfBoundsException(offset + 20);
+		if (offset < 0)
+			throw new ArrayIndexOutOfBoundsException(offset);
+		if (offset + 20 > checksum.length)
+			throw new ArrayIndexOutOfBoundsException(offset + 20);
 		return create(intHelper(checksum, offset), intHelper(checksum, offset + 4), intHelper(checksum, offset + 8),
 				intHelper(checksum, offset + 12), intHelper(checksum, offset + 16));
 	}
@@ -113,10 +115,10 @@ public final class SHA1Sum {
 	}
 
 	private static void byteHelper(byte[] dst, int a, int off) {
-		dst[off] = (byte)(a >>> 24);
-		dst[off + 1] = (byte)(a >>> 16);
-		dst[off + 2] = (byte)(a >>> 8);
-		dst[off + 3] = (byte)a;
+		dst[off] = (byte) (a >>> 24);
+		dst[off + 1] = (byte) (a >>> 16);
+		dst[off + 2] = (byte) (a >>> 8);
+		dst[off + 3] = (byte) a;
 	}
 
 	@Override
@@ -131,7 +133,8 @@ public final class SHA1Sum {
 		return new String(ret);
 	}
 
-	private static final char[] hex = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+	private static final char[] hex = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd',
+			'e', 'f' };
 
 	private static void hexHelper(char[] ret, int i, int j) {
 		ret[i] = hex[(j >>> 28) & 0xF];
@@ -151,8 +154,8 @@ public final class SHA1Sum {
 
 	@Override
 	public boolean equals(Object obj) {
-		return this == obj || ((obj instanceof SHA1Sum other) && other.a == a && other.b == b
-				&& other.c == c && other.d == d && other.e == e);
+		return this == obj || ((obj instanceof SHA1Sum other) && other.a == a && other.b == b && other.c == c
+				&& other.d == d && other.e == e);
 	}
 
 }

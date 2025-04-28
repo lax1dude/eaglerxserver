@@ -38,14 +38,14 @@ class BukkitComponentHelper implements IPlatformComponentHelper {
 		try {
 			BaseComponent.class.getMethod("setLegacy", boolean.class);
 			b = true;
-		}catch(NoSuchMethodException | SecurityException ex) {
+		} catch (NoSuchMethodException | SecurityException ex) {
 			b = false;
 		}
 		LEGACY_FLAG_SUPPORT = b;
 		ClickEvent.Action action;
 		try {
 			action = ClickEvent.Action.valueOf("COPY_TO_CLIPBOARD");
-		}catch(IllegalArgumentException ex) {
+		} catch (IllegalArgumentException ex) {
 			action = null;
 		}
 		CLICK_ACTION_COPY_TO_CLIPBOARD = action;
@@ -69,7 +69,7 @@ class BukkitComponentHelper implements IPlatformComponentHelper {
 	@Override
 	public String serializeLegacyJSON(Object component) {
 		BaseComponent bc = (BaseComponent) component;
-		if(LEGACY_FLAG_SUPPORT) {
+		if (LEGACY_FLAG_SUPPORT) {
 			setLegacyHover(bc, true);
 		}
 		return ComponentSerializer.toString(bc);
@@ -78,7 +78,7 @@ class BukkitComponentHelper implements IPlatformComponentHelper {
 	@Override
 	public String serializeModernJSON(Object component) {
 		BaseComponent bc = (BaseComponent) component;
-		if(LEGACY_FLAG_SUPPORT) {
+		if (LEGACY_FLAG_SUPPORT) {
 			setLegacyHover(bc, false);
 		}
 		return ComponentSerializer.toString(bc);
@@ -86,19 +86,19 @@ class BukkitComponentHelper implements IPlatformComponentHelper {
 
 	public static void setLegacyHover(BaseComponent component, boolean legacy) {
 		HoverEvent evt = component.getHoverEvent();
-		if(evt != null) {
+		if (evt != null) {
 			evt.setLegacy(legacy);
 		}
 		List<BaseComponent> extra = component.getExtra();
-		if(extra != null) {
-			for(int i = 0, l = extra.size(); i < l; ++i) {
+		if (extra != null) {
+			for (int i = 0, l = extra.size(); i < l; ++i) {
 				setLegacyHover(extra.get(0), legacy);
 			}
 		}
-		if(component instanceof TranslatableComponent c2) {
+		if (component instanceof TranslatableComponent c2) {
 			List<BaseComponent> with = c2.getWith();
-			if(with != null) {
-				for(int i = 0, l = with.size(); i < l; ++i) {
+			if (with != null) {
+				for (int i = 0, l = with.size(); i < l; ++i) {
 					setLegacyHover(with.get(0), legacy);
 				}
 			}
@@ -110,20 +110,20 @@ class BukkitComponentHelper implements IPlatformComponentHelper {
 		BaseComponent[] components;
 		try {
 			components = ComponentSerializer.parse(json);
-		}catch(IllegalArgumentException ex) {
+		} catch (IllegalArgumentException ex) {
 			throw ex;
-		}catch(JsonParseException ex) {
+		} catch (JsonParseException ex) {
 			throw new IllegalArgumentException(ex.getMessage(), ex.getCause());
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			throw new IllegalArgumentException("Could not parse JSON chat component", ex);
 		}
-		if(components.length == 1) {
+		if (components.length == 1) {
 			return components[0];
-		}else if(components.length == 0) {
+		} else if (components.length == 0) {
 			return new TextComponent();
-		}else {
+		} else {
 			BaseComponent ret = components[0];
-			for(int i = 1; i < components.length; ++i) {
+			for (int i = 1; i < components.length; ++i) {
 				ret.addExtra(components[i]);
 			}
 			return ret;

@@ -42,7 +42,7 @@ public class CPacketRequestServerInfoV4EAG implements GameMessagePacket {
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
-		if(requestHash.length != 20) {
+		if (requestHash.length != 20) {
 			throw new IOException("Hash must be 20 bytes! (" + requestHash.length + " given)");
 		}
 		buffer.write(requestHash);

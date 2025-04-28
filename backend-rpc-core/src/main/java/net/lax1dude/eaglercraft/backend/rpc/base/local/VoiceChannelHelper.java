@@ -31,7 +31,7 @@ class VoiceChannelHelper {
 	}
 
 	static EnumVoiceState wrap(net.lax1dude.eaglercraft.backend.server.api.voice.EnumVoiceState state) {
-		return switch(state) {
+		return switch (state) {
 		case SERVER_DISABLE -> EnumVoiceState.SERVER_DISABLE;
 		case DISABLED -> EnumVoiceState.DISABLED;
 		case ENABLED -> EnumVoiceState.ENABLED;

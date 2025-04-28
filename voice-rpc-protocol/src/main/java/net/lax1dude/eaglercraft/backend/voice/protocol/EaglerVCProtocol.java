@@ -62,15 +62,15 @@ public enum EaglerVCProtocol {
 	private final PacketDef[][] idMap = new PacketDef[2][32]; // May need to grow this in the future
 	private final Map<Class<? extends EaglerVCPacket>, PacketDef> classMap = new HashMap<>();
 
-	private EaglerVCProtocol(int vers, PacketDef...pkts) {
+	private EaglerVCProtocol(int vers, PacketDef... pkts) {
 		this.vers = vers;
-		for(int i = 0; i < pkts.length; ++i) {
+		for (int i = 0; i < pkts.length; ++i) {
 			PacketDef def = pkts[i];
-			if(idMap[def.dir][def.id] != null) {
+			if (idMap[def.dir][def.id] != null) {
 				throw new IllegalArgumentException("Packet ID " + def.id + " registered twice!");
 			}
 			idMap[def.dir][def.id] = def;
-			if(classMap.put(def.pkt, def) != null) {
+			if (classMap.put(def.pkt, def) != null) {
 				throw new IllegalArgumentException("Packet class " + def.pkt.getSimpleName() + " registered twice!");
 			}
 		}
@@ -107,11 +107,11 @@ public enum EaglerVCProtocol {
 	public EaglerVCPacket readPacket(DataInput buffer, int dir) throws IOException {
 		int pktId = buffer.readUnsignedByte();
 		PacketDef[] defs = idMap[dir];
-		if(pktId >= defs.length) {
+		if (pktId >= defs.length) {
 			throw new IOException("Packet ID is out of range: 0x" + Integer.toHexString(pktId));
 		}
 		PacketDef pp = defs[pktId];
-		if(pp == null) {
+		if (pp == null) {
 			throw new IOException("Unknown packet ID: 0x" + Integer.toHexString(pktId));
 		}
 		EaglerVCPacket newPkt;
@@ -128,7 +128,7 @@ public enum EaglerVCProtocol {
 	public void writePacket(DataOutput buffer, int dir, EaglerVCPacket packet) throws IOException {
 		Class<? extends EaglerVCPacket> clazz = packet.getClass();
 		PacketDef def = classMap.get(clazz);
-		if(def == null || def.dir != dir) {
+		if (def == null || def.dir != dir) {
 			throw new IOException("Unknown packet type or wrong direction: " + clazz);
 		}
 		buffer.writeByte(def.id);
@@ -136,7 +136,7 @@ public enum EaglerVCProtocol {
 	}
 
 	public static EaglerVCProtocol getByID(int id) {
-		return switch(id) {
+		return switch (id) {
 		case 0 -> INIT;
 		case 1 -> V1;
 		default -> null;

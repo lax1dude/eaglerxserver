@@ -52,7 +52,7 @@ public enum EnumCapabilityType {
 	private static final EnumCapabilityType[] LOOKUP = new EnumCapabilityType[8];
 
 	static {
-		for(EnumCapabilityType cap : values()) {
+		for (EnumCapabilityType cap : values()) {
 			LOOKUP[cap.id] = cap;
 		}
 	}

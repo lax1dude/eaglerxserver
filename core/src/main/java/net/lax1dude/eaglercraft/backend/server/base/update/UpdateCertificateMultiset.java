@@ -39,10 +39,10 @@ public class UpdateCertificateMultiset {
 
 		@Override
 		public AtomicInteger apply(IUpdateCertificateImpl certt, AtomicInteger refCnt) {
-			if(refCnt == null) {
+			if (refCnt == null) {
 				create = true;
 				return new AtomicInteger(1);
-			}else {
+			} else {
 				refCnt.getAndIncrement();
 				return refCnt;
 			}

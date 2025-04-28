@@ -50,7 +50,7 @@ public class CPacketVoiceSignalICEEAG implements GameMessagePacket {
 		uuidMost = buffer.readLong();
 		uuidLeast = buffer.readLong();
 		int iceLen = buffer.readVarInt();
-		if(iceLen > 32750) {
+		if (iceLen > 32750) {
 			throw new IOException("Voice signal packet ICE too long!");
 		}
 		ice = new byte[iceLen];
@@ -59,7 +59,7 @@ public class CPacketVoiceSignalICEEAG implements GameMessagePacket {
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
-		if(ice.length > 32750) {
+		if (ice.length > 32750) {
 			throw new IOException("Voice signal packet ICE too long!");
 		}
 		buffer.writeLong(uuidMost);

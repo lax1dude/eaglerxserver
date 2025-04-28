@@ -34,7 +34,8 @@ public class CPacketSvRegisterPlayer implements EaglerSupervisorPacket {
 	public CPacketSvRegisterPlayer() {
 	}
 
-	public CPacketSvRegisterPlayer(UUID playerUUID, UUID brandUUID, int gameProtocol, int eaglerProtocol, String username) {
+	public CPacketSvRegisterPlayer(UUID playerUUID, UUID brandUUID, int gameProtocol, int eaglerProtocol,
+			String username) {
 		this.playerUUID = playerUUID;
 		this.brandUUID = brandUUID;
 		this.gameProtocol = gameProtocol;
@@ -62,7 +63,7 @@ public class CPacketSvRegisterPlayer implements EaglerSupervisorPacket {
 		EaglerSupervisorPacket.writeVarInt(buffer, eaglerProtocol);
 		byte[] usernameBytes = username.getBytes(StandardCharsets.US_ASCII);
 		int len = usernameBytes.length;
-		if(len > 16) {
+		if (len > 16) {
 			throw new UnsupportedOperationException("Username is longer than 16 bytes");
 		}
 		buffer.writeByte(len);

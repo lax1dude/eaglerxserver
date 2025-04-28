@@ -30,7 +30,7 @@ public class TableRenderer {
 	public TableRenderer pushRow(List<Object> row) {
 		int len = row.size();
 		String[] strs = new String[len];
-		for(int i = 0; i < len; ++i) {
+		for (int i = 0; i < len; ++i) {
 			strs[i] = Objects.toString(row.get(i));
 		}
 		rows.add(strs);
@@ -39,7 +39,7 @@ public class TableRenderer {
 
 	public TableRenderer pushRow(Object... row) {
 		String[] strs = new String[row.length];
-		for(int i = 0; i < row.length; ++i) {
+		for (int i = 0; i < row.length; ++i) {
 			strs[i] = Objects.toString(row[i]);
 		}
 		rows.add(strs);
@@ -50,36 +50,36 @@ public class TableRenderer {
 		int rowCount = rows.size();
 		int colCount = 0;
 		int j;
-		for(int i = 0; i < rowCount; ++i) {
+		for (int i = 0; i < rowCount; ++i) {
 			String[] str = rows.get(i);
 			j = str.length;
-			if(j > colCount) {
+			if (j > colCount) {
 				colCount = j;
 			}
 		}
 		int[] maxes = new int[colCount];
-		for(int i = 0; i < rowCount; ++i) {
+		for (int i = 0; i < rowCount; ++i) {
 			String[] str = rows.get(i);
-			for(int k = 0; k < str.length; ++k) {
+			for (int k = 0; k < str.length; ++k) {
 				j = str[k].length();
-				if(j > maxes[k]) {
+				if (j > maxes[k]) {
 					maxes[k] = j;
 				}
 			}
 		}
 		StringBuilder builder = new StringBuilder();
 		builder.append('+');
-		for(int i = 0; i < colCount; ++i) {
+		for (int i = 0; i < colCount; ++i) {
 			builder.append(Strings.repeat("-", maxes[i]));
 			builder.append('+');
 		}
 		String seperator = builder.toString();
 		printer.accept(seperator);
-		for(int i = 0; i < rowCount; ++i) {
+		for (int i = 0; i < rowCount; ++i) {
 			String[] str = rows.get(i);
 			builder = new StringBuilder();
 			builder.append('|');
-			for(int k = 0; k < colCount; ++k) {
+			for (int k = 0; k < colCount; ++k) {
 				builder.append(str[k]);
 				builder.append(Strings.repeat(" ", maxes[k] - str[k].length()));
 				builder.append('|');

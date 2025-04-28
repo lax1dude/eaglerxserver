@@ -44,44 +44,44 @@ public abstract class ConcurrentLazyLoader<T> {
 
 	public void load(Consumer<T> callback) {
 		T val = (T) RESULT_HANDLE.getAcquire(this);
-		if(val != null) {
+		if (val != null) {
 			callback.accept(val);
-		}else {
-			eag: synchronized(this) {
+		} else {
+			eag: synchronized (this) {
 				val = result;
-				if(val != null) {
+				if (val != null) {
 					break eag;
 				}
-				if(waitingCallbacks == null) {
+				if (waitingCallbacks == null) {
 					waitingCallbacks = new ArrayList<>();
 					waitingCallbacks.add(callback);
-				}else {
+				} else {
 					waitingCallbacks.add(callback);
 					return;
 				}
 			}
-			if(val != null) {
+			if (val != null) {
 				callback.accept(val);
 				return;
 			}
 			loadImpl((res) -> {
-				if(res == null) {
+				if (res == null) {
 					throw new NullPointerException("result must not be null");
 				}
 				List<Consumer<T>> toCall;
-				synchronized(this) {
-					if(result != null) {
+				synchronized (this) {
+					if (result != null) {
 						return; // ignore multiple results
 					}
 					RESULT_HANDLE.setRelease(this, res);
 					toCall = waitingCallbacks;
 					waitingCallbacks = null;
 				}
-				if(toCall != null) {
-					for(int i = 0, l = toCall.size(); i < l; ++i) {
+				if (toCall != null) {
+					for (int i = 0, l = toCall.size(); i < l; ++i) {
 						try {
 							toCall.get(i).accept(res);
-						}catch(Exception ex) {
+						} catch (Exception ex) {
 							getLogger().error("Caught error from lazy load callback", ex);
 						}
 					}

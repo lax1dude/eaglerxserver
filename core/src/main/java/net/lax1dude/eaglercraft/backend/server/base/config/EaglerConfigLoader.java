@@ -135,7 +135,7 @@ public class EaglerConfigLoader {
 				+ "PNG file due to the profile signature requirements in vanilla Minecraft "
 				+ "clients."
 			);
-			if(eaglerPlayersVanillaSkin.length() == 0) {
+			if (eaglerPlayersVanillaSkin.length() == 0) {
 				eaglerPlayersVanillaSkin = null;
 			}
 			boolean enableAuthenticationEvents = config.getBoolean(
@@ -341,7 +341,7 @@ public class EaglerConfigLoader {
 			);
 			IEaglerConfList enableVoiceChatOnServersConf = voiceService
 					.getList(platform.proxy ? "enable_voice_on_servers" : "enable_voice_on_worlds");
-			if(!enableVoiceChatOnServersConf.exists()) {
+			if (!enableVoiceChatOnServersConf.exists()) {
 				enableVoiceChatOnServersConf
 						.setComment("If " + (platform.proxy ? "enable_voice_all_servers" : "enable_voice_all_worlds")
 								+ " is false, sets the list of " + (platform.proxy ? "servers" : "worlds")
@@ -406,14 +406,14 @@ public class EaglerConfigLoader {
 				+ "to the \"eagcert\" folder."
 			);
 			IEaglerConfList downloadCertsFromConf = updateService.getList("download_certs_from");
-			if(!downloadCertsFromConf.exists()) {
+			if (!downloadCertsFromConf.exists()) {
 				downloadCertsFromConf.setComment("List of strings, defines the URLs to download "
 						+ "the certificates from if download_latest_certs is enabled");
 				downloadCertsFromConf.appendString("https://eaglercraft.com/backup.cert");
 				downloadCertsFromConf.appendString("https://deev.is/eagler/backup.cert");
 			}
 			ImmutableList.Builder<URI> builder = ImmutableList.builder();
-			for(String str : downloadCertsFromConf.getAsStringList()) {
+			for (String str : downloadCertsFromConf.getAsStringList()) {
 				try {
 					builder.add(new URI(str));
 				} catch (URISyntaxException e) {
@@ -454,14 +454,14 @@ public class EaglerConfigLoader {
 				String line;
 				try (BufferedReader reader = new BufferedReader(
 						new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-					while((line = reader.readLine()) != null) {
+					while ((line = reader.readLine()) != null) {
 						line = line.trim();
-						if(line.isEmpty()) {
+						if (line.isEmpty()) {
 							line = null;
-						}else {
+						} else {
 							String l2;
-							while((l2 = reader.readLine()) != null) {
-								if(l2.trim().length() > 0) {
+							while ((l2 = reader.readLine()) != null) {
+								if (l2.trim().length() > 0) {
 									logger.warn("Forwarding secret file \"" + file.getAbsolutePath()
 										+ "\" contains multiple lines, using the first line and discarding the rest");
 									break;
@@ -470,7 +470,7 @@ public class EaglerConfigLoader {
 							break;
 						}
 					}
-					if(line == null) {
+					if (line == null) {
 						logger.error("Forwarding secret file was empty: " + file.getAbsolutePath());
 					}
 				}catch(IOException ex) {
@@ -481,28 +481,28 @@ public class EaglerConfigLoader {
 			});
 		};
 		Map<String, ConfigDataListener> listeners;
-		if(platform == EnumAdapterPlatformType.BUKKIT) {
+		if (platform == EnumAdapterPlatformType.BUKKIT) {
 			listeners = root.loadConfig("listener", (config) -> {
 				return ImmutableMap.of("default", loadListener(config, "default", platform, secretLoader));
 			});
-		}else {
+		} else {
 			listeners = root.loadConfig("listeners", (config) -> {
 				IEaglerConfList list = config.getList("listener_list");
-				if(!list.exists()) {
+				if (!list.exists()) {
 					list.setComment("Defines the list of listeners to enable Eaglercraft support on, "
 							+ "each listener's address must be the address of a listener you've also configured in the base "
 							+ "BungeeCord/Velocity server.");
 					list.appendSection().getString("listener_name", "listener0", "The unique name to use when identifying this listener");
 				}
 				Map<String, ConfigDataListener> map = new HashMap<>();
-				for(int i = 0; i < list.getLength(); ++i) {
+				for (int i = 0; i < list.getLength(); ++i) {
 					IEaglerConfSection section = list.getIfSection(i);
-					if(section == null) {
+					if (section == null) {
 						continue;
 					}
 					String key = section.getString("listener_name", "listener" + i, "The unique name to use when identifying this listener");
 					int j = 0;
-					while(map.containsKey(key)) {
+					while (map.containsKey(key)) {
 						key = "_" + ++j;
 					}
 					map.put(key, loadListener(section, key, platform, secretLoader));
@@ -560,7 +560,7 @@ public class EaglerConfigLoader {
 		List<ICEServerEntry> iceServers = root.loadConfig("ice_servers", (config) -> {
 			ImmutableList.Builder<ICEServerEntry> builder = ImmutableList.builder();
 			IEaglerConfList noPasswdList = config.getList("ice_servers_no_passwd");
-			if(!noPasswdList.exists()) {
+			if (!noPasswdList.exists()) {
 				noPasswdList.setComment("Defines a set of STUN/TURN server URIs to use that don't require a username and password.");
 				noPasswdList.appendString("stun:stun.l.google.com:19302");
 				noPasswdList.appendString("stun:stun1.l.google.com:19302");
@@ -568,11 +568,11 @@ public class EaglerConfigLoader {
 				noPasswdList.appendString("stun:stun3.l.google.com:19302");
 				noPasswdList.appendString("stun:stun4.l.google.com:19302");
 			}
-			for(String str : noPasswdList.getAsStringList()) {
+			for (String str : noPasswdList.getAsStringList()) {
 				builder.add(ICEServerEntry.create(str));
 			}
 			IEaglerConfList passwdList = config.getList("ice_servers_passwd");
-			if(!passwdList.exists()) {
+			if (!passwdList.exists()) {
 				passwdList.setComment("Defines a set of STUN/TURN server URIs to use that do require a "
 						+ "username and password, along with the username and password to use with each one. "
 						+ "Note that these 'openrelay' TURN servers are no longer working as of 2024, and are "
@@ -590,9 +590,9 @@ public class EaglerConfigLoader {
 				section.getString("username", "openrelayproject");
 				section.getString("password", "openrelayproject");
 			}
-			for(int i = 0; i < passwdList.getLength(); ++i) {
+			for (int i = 0; i < passwdList.getLength(); ++i) {
 				IEaglerConfSection section = passwdList.getIfSection(i);
-				if(section != null) {
+				if (section != null) {
 					String url = section.getIfString("url");
 					String username = section.getIfString("username");
 					String password = section.getIfString("password");
@@ -605,7 +605,7 @@ public class EaglerConfigLoader {
 			return builder.build();
 		});
 		ConfigDataPauseMenu pauseMenu = root.loadConfig("pause_menu", (config) -> {
-			if(!config.exists()) {
+			if (!config.exists()) {
 				extractDefaultPauseMenuAssets(root.getBaseDir());
 			}
 			boolean enableCustomPauseMenu = config.getBoolean(
@@ -613,7 +613,7 @@ public class EaglerConfigLoader {
 				"Default value is false, if pause menu customization should be enabled on supported clients or not"
 			);
 			IEaglerConfSection serverInfoButtonConf = config.getSection("server_info_button");
-			if(!serverInfoButtonConf.exists()) {
+			if (!serverInfoButtonConf.exists()) {
 				serverInfoButtonConf.setComment("Defines properties of the \"Server Info\" button, which is always "
 						+ "hidden unless pause menu customization is enabled");
 			}
@@ -666,13 +666,13 @@ public class EaglerConfigLoader {
 				+ "{% arg1 `arg2` ... %})"
 			);
 			IEaglerConfSection serverInfoButtonEmbedTemplateGlobalsConf = serverInfoButtonConf.getSection("server_info_embed_template_globals");
-			if(!serverInfoButtonEmbedTemplateGlobalsConf.exists()) {
+			if (!serverInfoButtonEmbedTemplateGlobalsConf.exists()) {
 				serverInfoButtonEmbedTemplateGlobalsConf.getString("example_global", "eagler");
 			}
 			ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
-			for(String str : serverInfoButtonEmbedTemplateGlobalsConf.getKeys()) {
+			for (String str : serverInfoButtonEmbedTemplateGlobalsConf.getKeys()) {
 				String s = serverInfoButtonEmbedTemplateGlobalsConf.getIfString(str);
-				if(s != null) {
+				if (s != null) {
 					builder.put(str, s);
 				}
 			}
@@ -702,7 +702,7 @@ public class EaglerConfigLoader {
 				+ "detects it as unsupported."
 			);
 			IEaglerConfSection discordButtonConf = config.getSection("discord_button");
-			if(!discordButtonConf.exists()) {
+			if (!discordButtonConf.exists()) {
 				discordButtonConf.setComment("Section, can be used to turn the \"Invite\" (formerly \"Open "
 						+ "to LAN\") button on the pause menu into a \"Discord\" button that players can "
 						+ "click to join your discord server");
@@ -720,7 +720,7 @@ public class EaglerConfigLoader {
 				"Defines the URL to open when the button is pressed"
 			);
 			IEaglerConfSection customImagesConf = config.getSection("custom_images");
-			if(!customImagesConf.exists()) {
+			if (!customImagesConf.exists()) {
 				customImagesConf.setComment("Section, map of custom images to display on the pause menu, "
 						+ "paths are relative to this config file.");
 				customImagesConf.getString("icon_title_L", "");
@@ -745,9 +745,9 @@ public class EaglerConfigLoader {
 				customImagesConf.getString("icon_watermark_all", "");
 			}
 			builder = ImmutableMap.builder();
-			for(String str : customImagesConf.getKeys()) {
+			for (String str : customImagesConf.getKeys()) {
 				String s = customImagesConf.getIfString(str);
-				if(s != null && s.length() > 0) {
+				if (s != null && s.length() > 0) {
 					builder.put(str, s);
 				}
 			}
@@ -767,7 +767,7 @@ public class EaglerConfigLoader {
 	private static ConfigDataListener loadListener(IEaglerConfSection listener, String name,
 			EnumAdapterPlatformType platform, Function<String, String> secretLoader) {
 		SocketAddress injectAddress = null;
-		if(platform != EnumAdapterPlatformType.BUKKIT) {
+		if (platform != EnumAdapterPlatformType.BUKKIT) {
 			injectAddress = getAddr(listener.getString(
 				"inject_address", mapDefaultListener(platform),
 				"The address of the listener to inject into, note that if no listeners with "
@@ -815,9 +815,9 @@ public class EaglerConfigLoader {
 			+ "the server's working directory."
 		);
 		String forwardSecretValue = null;
-		if(forwardSecret) {
+		if (forwardSecret) {
 			forwardSecretValue = secretLoader.apply(forwardSecretFile);
-			if(forwardSecretValue == null) {
+			if (forwardSecretValue == null) {
 				throw new IllegalStateException("Forwarding secret could not be loaded: " + forwardSecretFile);
 			}
 		}
@@ -838,7 +838,7 @@ public class EaglerConfigLoader {
 			+ "underlying BungeeCord/Velocity listener for this to work properly."
 		) : false;
 		IEaglerConfSection tlsConfigSection = listener.getSection("tls_config");
-		if(!tlsConfigSection.exists()) {
+		if (!tlsConfigSection.exists()) {
 			tlsConfigSection.setComment("Settings for HTTPS (WSS) connections, HTTPS is normally "
 					+ "handled by nginx or caddy, but if you are trying to run EaglerXServer "
 					+ "without any reverse HTTP proxies then this can be useful.");
@@ -868,7 +868,7 @@ public class EaglerConfigLoader {
 			"tls_private_key_password", "",
 			"The password to the private key (if applicable), leave blank for none"
 		);
-		if(tlsPrivateKeyPassword.trim().length() == 0|| "null".equals(tlsPrivateKeyPassword)) {
+		if (tlsPrivateKeyPassword.trim().length() == 0|| "null".equals(tlsPrivateKeyPassword)) {
 			tlsPrivateKeyPassword = null;
 		}
 		boolean tlsAutoRefreshCert = tlsConfigSection.getBoolean(
@@ -880,7 +880,7 @@ public class EaglerConfigLoader {
 			"Default value is '', sets the WebSocket address to redirect legacy Eaglercraft "
 			+ "1.5 clients to if they mistakenly try to join the server through this listener."
 		);
-		if(redirectLegacyClientsTo.trim().length() == 0 || "null".equals(redirectLegacyClientsTo)) {
+		if (redirectLegacyClientsTo.trim().length() == 0 || "null".equals(redirectLegacyClientsTo)) {
 			redirectLegacyClientsTo = null;
 		}
 		String serverIcon = listener.getString(
@@ -917,7 +917,7 @@ public class EaglerConfigLoader {
 			+ "event it fires in order for this feature to work correctly."
 		);
 		IEaglerConfSection requestMOTDCache = listener.getSection("request_motd_cache");
-		if(!requestMOTDCache.exists()) {
+		if (!requestMOTDCache.exists()) {
 			requestMOTDCache.setComment("Section that defines caching hints for server lists "
 					+ "that cache the MOTD via the 'MOTD.cache' query. As far as we know, not "
 					+ "even the official Eaglercraft Server List on eaglercraft.com currently "
@@ -988,7 +988,7 @@ public class EaglerConfigLoader {
 	private static ConfigDataListener.ConfigRateLimit loadRatelimiter(IEaglerConfSection parent, String name,
 			int period, int limit, int limitLockout, int lockoutDuration, String comment) {
 		IEaglerConfSection limitCfg = parent.getSection(name);
-		if(!limitCfg.exists()) {
+		if (!limitCfg.exists()) {
 			limitCfg.setComment(comment);
 		}
 		boolean enableConf = limitCfg.getBoolean(
@@ -1041,7 +1041,7 @@ public class EaglerConfigLoader {
 
 	private static void extractDefaultPauseMenuAssets(File baseDir, String name) throws IOException {
 		File f = new File(baseDir, name);
-		if(!f.isFile()) {
+		if (!f.isFile()) {
 			try (InputStream is = EaglerConfigLoader.class.getResourceAsStream(name);
 					OutputStream os = new FileOutputStream(f)) {
 				is.transferTo(os);
@@ -1066,7 +1066,7 @@ public class EaglerConfigLoader {
 		} catch (URISyntaxException ex) {
 		}
 
-		if(DOMAIN_SOCKET_ADDRESS_PRESENT) {
+		if (DOMAIN_SOCKET_ADDRESS_PRESENT) {
 			if (uri != null && "unix".equals(uri.getScheme())) {
 				return Shit.fuck(uri.getPath());
 			}

@@ -57,9 +57,9 @@ public class ClassProxy<T> {
 
 		@Override
 		protected Class<?> findClass(String name) throws ClassNotFoundException {
-			if(this.name.equals(name)) {
+			if (this.name.equals(name)) {
 				return super.defineClass(name, data, 0, data.length);
-			}else {
+			} else {
 				return super.findClass(name);
 			}
 		}
@@ -81,18 +81,18 @@ public class ClassProxy<T> {
 	private ClassProxy(ClassLoader loader, Class<?> parent) {
 		try {
 			Constructor<?>[] ctors = parent.getConstructors();
-			if(ctors.length == 0) {
+			if (ctors.length == 0) {
 				throw new IllegalArgumentException("Class defines no public constructors");
 			}
 			this.methods = getMethodsToOverride(parent.getMethods());
 			this.proxyClass = bindProxy(loader, parent, ctors, methods);
 			ImmutableMap.Builder<Constructor<?>, Constructor<?>> builder = ImmutableMap.builder();
-			for(int i = 0; i < ctors.length; ++i) {
+			for (int i = 0; i < ctors.length; ++i) {
 				Constructor<?> c = ctors[i];
 				Parameter[] params = c.getParameters();
 				int l = params.length;
 				Class<?>[] paramsClasses = new Class<?>[2 + l];
-				for(int j = 0; j < params.length; ++j) {
+				for (int j = 0; j < params.length; ++j) {
 					paramsClasses[j] = params[j].getType();
 				}
 				paramsClasses[l] = Method[].class;
@@ -107,9 +107,9 @@ public class ClassProxy<T> {
 
 	private static Method[] getMethodsToOverride(Method[] meths) {
 		List<Method> ret = new ArrayList<>();
-		for(int i = 0; i < meths.length; ++i) {
+		for (int i = 0; i < meths.length; ++i) {
 			Method m = meths[i];
-			if(m.getDeclaringClass() != Object.class && (m.getModifiers() & Modifier.FINAL) == 0) {
+			if (m.getDeclaringClass() != Object.class && (m.getModifiers() & Modifier.FINAL) == 0) {
 				ret.add(m);
 			}
 		}
@@ -118,7 +118,7 @@ public class ClassProxy<T> {
 
 	public T createProxy(Constructor<?> ctor, Object[] params, InvocationHandler invocationHandler) {
 		Constructor<?> ctorImpl = this.ctor.get(ctor);
-		if(ctorImpl == null) {
+		if (ctorImpl == null) {
 			throw new IllegalArgumentException("Unknown constructor: " + ctor.toString());
 		}
 		int j = params.length;
@@ -152,7 +152,8 @@ public class ClassProxy<T> {
 			ret = (ClassProxy<T>) loadingCache.get(new HashPair<>(loader, parent));
 		} catch (ExecutionException e) {
 			Throwable t = e.getCause();
-			if(t instanceof RuntimeException ee) throw ee;
+			if (t instanceof RuntimeException ee)
+				throw ee;
 			throw new RuntimeException(t);
 		}
 		return ret.createProxy(ctor, params, invocationHandler);
@@ -164,34 +165,39 @@ public class ClassProxy<T> {
 			return (ClassProxy<T>) loadingCache.get(new HashPair<>(loader, parent));
 		} catch (ExecutionException e) {
 			Throwable t = e.getCause();
-			if(t instanceof RuntimeException ee) throw ee;
+			if (t instanceof RuntimeException ee)
+				throw ee;
 			throw new RuntimeException(t);
 		}
 	}
 
-	private static Class<?> bindProxy(ClassLoader loader, Class<?> parent, Constructor<?>[] ctors, Method[] methods) throws Exception {
+	private static Class<?> bindProxy(ClassLoader loader, Class<?> parent, Constructor<?>[] ctors, Method[] methods)
+			throws Exception {
 		String parentName = Type.getInternalName(parent);
 		String randomName = "EaglerClassProxy" + System.nanoTime();
 		String proxyName = parentName + "/" + randomName;
 		ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-		classWriter.visit(V1_8, ACC_PUBLIC | ACC_SUPER, proxyName, null, parentName, new String[] { Type.getInternalName(IClassProxy.class) });
+		classWriter.visit(V1_8, ACC_PUBLIC | ACC_SUPER, proxyName, null, parentName,
+				new String[] { Type.getInternalName(IClassProxy.class) });
 		classWriter.visitField(ACC_PRIVATE | ACC_FINAL, "meth", "[Ljava/lang/reflect/Method;", null, null).visitEnd();
-		classWriter.visitField(ACC_PRIVATE | ACC_FINAL, "handler", "Ljava/lang/reflect/InvocationHandler;", null, null).visitEnd();
+		classWriter.visitField(ACC_PRIVATE | ACC_FINAL, "handler", "Ljava/lang/reflect/InvocationHandler;", null, null)
+				.visitEnd();
 		MethodVisitor methodVisitor;
-		for(int i = 0; i < ctors.length; ++i) {
+		for (int i = 0; i < ctors.length; ++i) {
 			Constructor<?> ctor = ctors[i];
 			String desc = Type.getConstructorDescriptor(ctor);
-			if(!desc.endsWith(")V")) {
+			if (!desc.endsWith(")V")) {
 				throw new IllegalStateException();
 			}
-			String desc2 = desc.substring(0, desc.length() - 2) + "[Ljava/lang/reflect/Method;Ljava/lang/reflect/InvocationHandler;)V";
+			String desc2 = desc.substring(0, desc.length() - 2)
+					+ "[Ljava/lang/reflect/Method;Ljava/lang/reflect/InvocationHandler;)V";
 			Parameter[] params = ctor.getParameters();
 			methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "<init>", desc2, null, null);
 			methodVisitor.visitCode();
 			Label label0 = new Label();
 			methodVisitor.visitLabel(label0);
 			methodVisitor.visitVarInsn(ALOAD, 0);
-			for(int j = 0; j < params.length; ++j) {
+			for (int j = 0; j < params.length; ++j) {
 				loadParam(methodVisitor, j + 1, params[j].getType());
 			}
 			methodVisitor.visitMethodInsn(INVOKESPECIAL, parentName, "<init>", desc, false);
@@ -205,7 +211,7 @@ public class ClassProxy<T> {
 			methodVisitor.visitMaxs(0, 0);
 			methodVisitor.visitEnd();
 		}
-		for(int i = 0; i < methods.length; ++i) {
+		for (int i = 0; i < methods.length; ++i) {
 			Method meth = methods[i];
 			String desc = Type.getMethodDescriptor(meth);
 			methodVisitor = classWriter.visitMethod(ACC_PUBLIC, meth.getName(), desc, null, null);
@@ -221,10 +227,10 @@ public class ClassProxy<T> {
 			methodVisitor.visitInsn(AALOAD);
 			Parameter[] params = meth.getParameters();
 			int k = params.length;
-			if(k > 0) {
+			if (k > 0) {
 				visitICONST(methodVisitor, k);
 				methodVisitor.visitTypeInsn(ANEWARRAY, "java/lang/Object");
-				for(int j = 0; j < k; ++j) {
+				for (int j = 0; j < k; ++j) {
 					methodVisitor.visitInsn(DUP);
 					Parameter p = params[j];
 					visitICONST(methodVisitor, j);
@@ -232,11 +238,12 @@ public class ClassProxy<T> {
 					visitWrap(methodVisitor, p.getType());
 					methodVisitor.visitInsn(AASTORE);
 				}
-			}else {
+			} else {
 				methodVisitor.visitInsn(ICONST_0);
 				methodVisitor.visitTypeInsn(ANEWARRAY, "java/lang/Object");
 			}
-			methodVisitor.visitMethodInsn(INVOKEINTERFACE, "java/lang/reflect/InvocationHandler", "invoke", "(Ljava/lang/Object;Ljava/lang/reflect/Method;[Ljava/lang/Object;)Ljava/lang/Object;", true);
+			methodVisitor.visitMethodInsn(INVOKEINTERFACE, "java/lang/reflect/InvocationHandler", "invoke",
+					"(Ljava/lang/Object;Ljava/lang/reflect/Method;[Ljava/lang/Object;)Ljava/lang/Object;", true);
 			Class<?> ret = meth.getReturnType();
 			visitUnwrap(methodVisitor, ret);
 			visitReturn(methodVisitor, ret);
@@ -249,23 +256,23 @@ public class ClassProxy<T> {
 	}
 
 	private static void loadParam(MethodVisitor methodVisitor, int j, Class<?> clz) {
-		if(clz == void.class) {
+		if (clz == void.class) {
 			throw new IllegalArgumentException();
-		}else if(clz == int.class || clz == short.class || clz == byte.class || clz == boolean.class) {
+		} else if (clz == int.class || clz == short.class || clz == byte.class || clz == boolean.class) {
 			methodVisitor.visitVarInsn(ILOAD, j);
-		}else if(clz == long.class) {
+		} else if (clz == long.class) {
 			methodVisitor.visitVarInsn(LLOAD, j);
-		}else if(clz == float.class) {
+		} else if (clz == float.class) {
 			methodVisitor.visitVarInsn(FLOAD, j);
-		}else if(clz == double.class) {
+		} else if (clz == double.class) {
 			methodVisitor.visitVarInsn(DLOAD, j);
-		}else {
+		} else {
 			methodVisitor.visitVarInsn(ALOAD, j);
 		}
 	}
 
 	private static void visitICONST(MethodVisitor methodVisitor, int i) {
-		switch(i) {
+		switch (i) {
 		case 0:
 			methodVisitor.visitInsn(ICONST_0);
 			break;
@@ -285,11 +292,11 @@ public class ClassProxy<T> {
 			methodVisitor.visitInsn(ICONST_5);
 			break;
 		default:
-			if(i < -128 || i > 127) {
+			if (i < -128 || i > 127) {
 				methodVisitor.visitIntInsn(SIPUSH, i);
-			}else if(i == -1) {
+			} else if (i == -1) {
 				methodVisitor.visitInsn(ICONST_M1);
-			}else {
+			} else {
 				methodVisitor.visitIntInsn(BIPUSH, i);
 			}
 			break;
@@ -297,66 +304,68 @@ public class ClassProxy<T> {
 	}
 
 	private static void visitWrap(MethodVisitor methodVisitor, Class<?> clz) {
-		if(clz == void.class) {
+		if (clz == void.class) {
 			throw new IllegalArgumentException();
-		}else if(clz == int.class) {
-			methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;", false);
-		}else if(clz == short.class) {
+		} else if (clz == int.class) {
+			methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;",
+					false);
+		} else if (clz == short.class) {
 			methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Short", "valueOf", "(S)Ljava/lang/Short;", false);
-		}else if(clz == byte.class) {
+		} else if (clz == byte.class) {
 			methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Byte", "valueOf", "(B)Ljava/lang/Byte;", false);
-		}else if(clz == boolean.class) {
-			methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;", false);
-		}else if(clz == long.class) {
+		} else if (clz == boolean.class) {
+			methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;",
+					false);
+		} else if (clz == long.class) {
 			methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Long", "valueOf", "(J)Ljava/lang/Long;", false);
-		}else if(clz == float.class) {
+		} else if (clz == float.class) {
 			methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Float", "valueOf", "(F)Ljava/lang/Float;", false);
-		}else if(clz == double.class) {
+		} else if (clz == double.class) {
 			methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;", false);
 		}
 	}
 
 	private static void visitUnwrap(MethodVisitor methodVisitor, Class<?> clz) {
-		if(clz == void.class) {
+		if (clz == void.class) {
 			methodVisitor.visitInsn(POP);
-		}else if(clz == int.class) {
+		} else if (clz == int.class) {
 			methodVisitor.visitTypeInsn(CHECKCAST, "java/lang/Integer");
 			methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Integer", "intValue", "()I", false);
-		}else if(clz == short.class) {
+		} else if (clz == short.class) {
 			methodVisitor.visitTypeInsn(CHECKCAST, "java/lang/Short");
 			methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Short", "shortValue", "()S", false);
-		}else if(clz == byte.class) {
+		} else if (clz == byte.class) {
 			methodVisitor.visitTypeInsn(CHECKCAST, "java/lang/Byte");
 			methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Byte", "byteValue", "()B", false);
-		}else if(clz == boolean.class) {
+		} else if (clz == boolean.class) {
 			methodVisitor.visitTypeInsn(CHECKCAST, "java/lang/Boolean");
 			methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Boolean", "booleanValue", "()Z", false);
-		}else if(clz == long.class) {
+		} else if (clz == long.class) {
 			methodVisitor.visitTypeInsn(CHECKCAST, "java/lang/Long");
 			methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Long", "longValue", "()J", false);
-		}else if(clz == float.class) {
+		} else if (clz == float.class) {
 			methodVisitor.visitTypeInsn(CHECKCAST, "java/lang/Float");
 			methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Float", "floatValue", "()F", false);
-		}else if(clz == double.class) {
+		} else if (clz == double.class) {
 			methodVisitor.visitTypeInsn(CHECKCAST, "java/lang/Double");
 			methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Double", "doubleValue", "()D", false);
-		}else if(clz != Object.class) {
+		} else if (clz != Object.class) {
 			methodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(clz));
 		}
 	}
 
 	private static void visitReturn(MethodVisitor methodVisitor, Class<?> clz) {
-		if(clz == void.class) {
+		if (clz == void.class) {
 			methodVisitor.visitInsn(RETURN);
-		}else if(clz == int.class || clz == short.class || clz == byte.class || clz == boolean.class) {
+		} else if (clz == int.class || clz == short.class || clz == byte.class || clz == boolean.class) {
 			methodVisitor.visitInsn(IRETURN);
-		}else if(clz == long.class) {
+		} else if (clz == long.class) {
 			methodVisitor.visitInsn(LRETURN);
-		}else if(clz == float.class) {
+		} else if (clz == float.class) {
 			methodVisitor.visitInsn(FRETURN);
-		}else if(clz == double.class) {
+		} else if (clz == double.class) {
 			methodVisitor.visitInsn(DRETURN);
-		}else {
+		} else {
 			methodVisitor.visitInsn(ARETURN);
 		}
 	}

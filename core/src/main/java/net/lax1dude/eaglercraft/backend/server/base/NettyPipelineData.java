@@ -89,8 +89,8 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 
 	}
 
-	private static final Set<String> profileDataStandard = ImmutableSet.of(
-			"skin_v1", "skin_v2", "cape_v1", "update_cert_v1", "brand_uuid_v1");
+	private static final Set<String> profileDataStandard = ImmutableSet.of("skin_v1", "skin_v2", "cape_v1",
+			"update_cert_v1", "brand_uuid_v1");
 
 	public final Channel channel;
 	public final EaglerXServer<?> server;
@@ -149,7 +149,8 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 
 	private IPlatformTask disconnectTask = null;
 
-	private static final Runnable REACHED = () -> {};
+	private static final Runnable REACHED = () -> {
+	};
 
 	private Runnable playStateReached = null;
 
@@ -221,10 +222,10 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 
 	@Override
 	public String getWebSocketHeader(EnumWebSocketHeader header) {
-		if(header == null) {
+		if (header == null) {
 			throw new NullPointerException("header");
 		}
-		return switch(header) {
+		return switch (header) {
 		case HEADER_HOST -> headerHost;
 		case HEADER_ORIGIN -> headerOrigin;
 		case HEADER_USER_AGENT -> headerUserAgent;
@@ -240,9 +241,9 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	}
 
 	public void scheduleLoginTimeoutHelper() {
-		if(disconnectTask == null) {
-			synchronized(this) {
-				if(disconnectTask != null) {
+		if (disconnectTask == null) {
+			synchronized (this) {
+				if (disconnectTask != null) {
 					return;
 				}
 				disconnectTask = server.getPlatform().getScheduler().executeAsyncDelayedTask(() -> {
@@ -253,11 +254,11 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	}
 
 	public void cancelLoginTimeoutHelper() {
-		if(disconnectTask != null) {
+		if (disconnectTask != null) {
 			IPlatformTask task;
-			synchronized(this) {
+			synchronized (this) {
 				task = disconnectTask;
-				if(task == null) {
+				if (task == null) {
 					return;
 				}
 				disconnectTask = null;
@@ -267,28 +268,28 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	}
 
 	public ProfileDataHolder profileDataHelper() {
-		if(profileDatas != null) {
+		if (profileDatas != null) {
 			byte[] skinV2 = profileDatas.get("skin_v2");
 			byte[] skinV1 = skinV2 == null ? profileDatas.get("skin_v1") : null;
 			byte[] cape = profileDatas.get("cape_v1");
 			byte[] updateCert = profileDatas.get("update_cert_v1");
 			byte[] uuid = profileDatas.get("brand_uuid_v1");
 			UUID brandUUID = null;
-			if(uuid != null && uuid.length == 16) {
+			if (uuid != null && uuid.length == 16) {
 				ByteBuf buf = Unpooled.wrappedBuffer(uuid);
 				UUID ret = new UUID(buf.readLong(), buf.readLong());
 				if (server.getBrandService().sanitizeUUID(ret)) {
 					brandUUID = ret;
 				}
 			}
-			if(brandUUID == null) {
+			if (brandUUID == null) {
 				brandUUID = server.getBrandService().getBrandUUIDClientLegacy(eaglerBrandString);
 			}
 			ImmutableMap.Builder<String, byte[]> ret = null;
-			if(profileDatas != null) {
-				for(Entry<String, byte[]> extra : profileDatas.entrySet()) {
-					if(!profileDataStandard.contains(extra.getKey())) {
-						if(ret == null) {
+			if (profileDatas != null) {
+				for (Entry<String, byte[]> extra : profileDatas.entrySet()) {
+					if (!profileDataStandard.contains(extra.getKey())) {
+						if (ret == null) {
 							ret = ImmutableMap.builder();
 						}
 						ret.put(extra.getKey(), extra.getValue());
@@ -296,7 +297,7 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 				}
 			}
 			return new ProfileDataHolder(skinV1, skinV2, cape, updateCert, brandUUID, ret != null ? ret.build() : null);
-		}else {
+		} else {
 			return new ProfileDataHolder(null, null, null, null,
 					server.getBrandService().getBrandUUIDClientLegacy(eaglerBrandString), Collections.emptyMap());
 		}
@@ -313,19 +314,19 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	}
 
 	public IEaglerPendingConnection asPendingConnection() {
-		if(loginConnection != null) {
+		if (loginConnection != null) {
 			return loginConnection;
-		}else if(pendingConnection != null) {
+		} else if (pendingConnection != null) {
 			return pendingConnection;
-		}else {
+		} else {
 			return pendingConnection = new EaglerPendingStateAdapter(this);
 		}
 	}
 
 	public IEaglerLoginConnection asLoginConnection() {
-		if(loginConnection != null) {
+		if (loginConnection != null) {
 			return loginConnection;
-		}else {
+		} else {
 			loginConnection = new EaglerLoginStateAdapter(this);
 			pendingConnection = null;
 			return loginConnection;
@@ -333,24 +334,25 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	}
 
 	public boolean processRealAddress() {
-		if(realAddress != null) {
+		if (realAddress != null) {
 			Consumer<SocketAddress> handle = realAddressHandle;
-			if(handle != null) {
+			if (handle != null) {
 				InetAddress addr;
-				if(realInetAddress != null) {
+				if (realInetAddress != null) {
 					addr = realInetAddress;
-				}else {
+				} else {
 					try {
 						addr = InetAddresses.forString(realAddress);
 					} catch (IllegalArgumentException ex) {
 						connectionLogger.error("Connected with an invalid \""
-								+ listenerInfo.getConfigData().getForwardIPHeader() + "\" header, disconnecting...", ex);
+								+ listenerInfo.getConfigData().getForwardIPHeader() + "\" header, disconnecting...",
+								ex);
 						return false;
 					}
 				}
 				int port = 65535;
 				SocketAddress addr2 = channel.remoteAddress();
-				if((addr2 instanceof InetSocketAddress inetAddr)) {
+				if ((addr2 instanceof InetSocketAddress inetAddr)) {
 					port = inetAddr.getPort();
 				}
 				handle.accept(realSocketAddressInstance = new InetSocketAddress(addr, port));
@@ -360,15 +362,17 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	}
 
 	public boolean processLoginRatelimit(ChannelHandlerContext ctx) {
-		if(rateLimits != null) {
+		if (rateLimits != null) {
 			EnumRateLimitState state = rateLimits.rateLimitLogin();
-			if(!state.isOk()) {
-				switch(state) {
+			if (!state.isOk()) {
+				switch (state) {
 				case BLOCKED:
-					ctx.writeAndFlush(RateLimitMessage.getBlockedLoginMessage()).addListener(ChannelFutureListener.CLOSE);
+					ctx.writeAndFlush(RateLimitMessage.getBlockedLoginMessage())
+							.addListener(ChannelFutureListener.CLOSE);
 					break;
 				case BLOCKED_LOCKED:
-					ctx.writeAndFlush(RateLimitMessage.getLockedLoginMessage()).addListener(ChannelFutureListener.CLOSE);
+					ctx.writeAndFlush(RateLimitMessage.getLockedLoginMessage())
+							.addListener(ChannelFutureListener.CLOSE);
 					break;
 				default:
 					ctx.close();
@@ -381,15 +385,17 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	}
 
 	public boolean processQueryRatelimit(ChannelHandlerContext ctx) {
-		if(rateLimits != null) {
+		if (rateLimits != null) {
 			EnumRateLimitState state = rateLimits.rateLimitQuery();
-			if(!state.isOk()) {
-				switch(state) {
+			if (!state.isOk()) {
+				switch (state) {
 				case BLOCKED:
-					ctx.writeAndFlush(RateLimitMessage.getBlockedQueryMessage()).addListener(ChannelFutureListener.CLOSE);
+					ctx.writeAndFlush(RateLimitMessage.getBlockedQueryMessage())
+							.addListener(ChannelFutureListener.CLOSE);
 					break;
 				case BLOCKED_LOCKED:
-					ctx.writeAndFlush(RateLimitMessage.getLockedQueryMessage()).addListener(ChannelFutureListener.CLOSE);
+					ctx.writeAndFlush(RateLimitMessage.getLockedQueryMessage())
+							.addListener(ChannelFutureListener.CLOSE);
 					break;
 				default:
 					ctx.close();
@@ -407,14 +413,14 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	}
 
 	public void signalPlayState() {
-		Runnable runnable = (Runnable)PLAY_STATE_REACHED_HANDLE.getAndSet(this, REACHED);
-		if(runnable != null) {
+		Runnable runnable = (Runnable) PLAY_STATE_REACHED_HANDLE.getAndSet(this, REACHED);
+		if (runnable != null) {
 			runnable.run();
 		}
 	}
 
 	public void awaitPlayState(Runnable continueHandler) {
-		if(!PLAY_STATE_REACHED_HANDLE.compareAndSet(this, null, continueHandler)) {
+		if (!PLAY_STATE_REACHED_HANDLE.compareAndSet(this, null, continueHandler)) {
 			continueHandler.run();
 		}
 	}

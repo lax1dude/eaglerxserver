@@ -33,8 +33,7 @@ public interface IWebViewProvider<PlayerObject> {
 			@Nonnull Consumer<IWebViewBlob> callback);
 
 	@Nullable
-	default SHA1Sum handleAlias(@Nonnull IWebViewManager<PlayerObject> manager,
-			@Nonnull String aliasName) {
+	default SHA1Sum handleAlias(@Nonnull IWebViewManager<PlayerObject> manager, @Nonnull String aliasName) {
 		return manager.getWebViewService().getBlobFromAlias(aliasName);
 	}
 

@@ -49,43 +49,46 @@ public class SSLContextHolderPlugin implements ISSLContextProvider, ITLSManager 
 	public void setCertificate(File fullChain, File privateKey, String privateKeyPassword) throws TLSManagerException {
 		try {
 			ctx = SslContextBuilder.forServer(fullChain, privateKey, privateKeyPassword).build();
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			throw propigateTLSManagerException(ex);
 		}
 	}
 
 	@Override
-	public void setCertificate(InputStream fullChain, InputStream privateKey, String privateKeyPassword) throws TLSManagerException {
+	public void setCertificate(InputStream fullChain, InputStream privateKey, String privateKeyPassword)
+			throws TLSManagerException {
 		try {
 			ctx = SslContextBuilder.forServer(fullChain, privateKey, privateKeyPassword).build();
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			throw propigateTLSManagerException(ex);
 		}
 	}
 
 	@Override
-	public void setCertificate(byte[] fullChain, byte[] privateKey, String privateKeyPassword) throws TLSManagerException {
+	public void setCertificate(byte[] fullChain, byte[] privateKey, String privateKeyPassword)
+			throws TLSManagerException {
 		try {
 			ctx = SslContextBuilder.forServer(new ByteArrayInputStream(fullChain), new ByteArrayInputStream(privateKey),
 					privateKeyPassword).build();
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			throw propigateTLSManagerException(ex);
 		}
 	}
 
 	@Override
-	public void setCertificate(X509Certificate[] fullChain, PrivateKey privateKey, String privateKeyPassword) throws TLSManagerException {
+	public void setCertificate(X509Certificate[] fullChain, PrivateKey privateKey, String privateKeyPassword)
+			throws TLSManagerException {
 		try {
 			ctx = SslContextBuilder.forServer(privateKey, privateKeyPassword, fullChain).build();
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			throw propigateTLSManagerException(ex);
 		}
 	}
 
 	private TLSManagerException propigateTLSManagerException(Exception ex) {
-		if((ex instanceof IllegalArgumentException) || (ex instanceof CertificateException)) {
+		if ((ex instanceof IllegalArgumentException) || (ex instanceof CertificateException)) {
 			return new TLSManagerException(ex.getMessage(), ex.getCause());
-		}else {
+		} else {
 			return new TLSManagerException("Uncaught exception creating TLS context!", ex.getCause());
 		}
 	}

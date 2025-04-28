@@ -44,10 +44,10 @@ public class SPacketVoiceSignalConnectV3EAG implements GameMessagePacket {
 	public void readPacket(GamePacketInputBuffer buffer) throws IOException {
 		uuidMost = buffer.readLong();
 		uuidLeast = buffer.readLong();
-		if(buffer.available() > 0) {
+		if (buffer.available() > 0) {
 			isAnnounceType = false;
 			offer = buffer.readBoolean();
-		}else {
+		} else {
 			isAnnounceType = true;
 		}
 	}
@@ -56,7 +56,7 @@ public class SPacketVoiceSignalConnectV3EAG implements GameMessagePacket {
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
 		buffer.writeLong(uuidMost);
 		buffer.writeLong(uuidLeast);
-		if(!isAnnounceType) {
+		if (!isAnnounceType) {
 			buffer.writeBoolean(offer);
 		}
 	}

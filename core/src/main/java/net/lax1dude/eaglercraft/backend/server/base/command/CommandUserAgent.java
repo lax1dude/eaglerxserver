@@ -32,19 +32,19 @@ public class CommandUserAgent<PlayerObject> extends EaglerCommand<PlayerObject> 
 	@Override
 	public void handle(IEaglerXServerCommandType<PlayerObject> command, IPlatformCommandSender<PlayerObject> sender,
 			String[] args) {
-		if(args.length == 0 && sender.isPlayer()) {
+		if (args.length == 0 && sender.isPlayer()) {
 			handle(sender, sender.asPlayer().getPlayerAttachment());
 			return;
-		}else if(args.length == 1) {
+		} else if (args.length == 1) {
 			BasePlayerInstance<PlayerObject> player = getServer().getPlayerByName(args[0]);
-			if(player != null) {
+			if (player != null) {
 				handle(sender, player);
 				return;
-			}else {
+			} else {
 				sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.RED).end()
 						.text("Player \"" + args[0] + "\" was not found").end());
 			}
-		}else {
+		} else {
 			sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.RED).end()
 					.text("Invalid number of arguments").end());
 		}
@@ -53,16 +53,18 @@ public class CommandUserAgent<PlayerObject> extends EaglerCommand<PlayerObject> 
 	}
 
 	private void handle(IPlatformCommandSender<PlayerObject> sender, BasePlayerInstance<PlayerObject> player) {
-		if(player.isEaglerPlayer()) {
+		if (player.isEaglerPlayer()) {
 			String userAgent = player.asEaglerPlayer().getWebSocketHeader(EnumWebSocketHeader.HEADER_USER_AGENT);
-			if(userAgent != null) {
+			if (userAgent != null) {
 				sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.BLUE).end()
 						.text("The player " + player.getUsername() + "'s user agent is \"" + userAgent + "\"").end());
-			}else {
-				sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.BLUE).end()
-						.text("The player " + player.getUsername() + " is using a browser that did not send a user-agent header").end());
+			} else {
+				sender.sendMessage(getChatBuilder()
+						.buildTextComponent().beginStyle().color(EnumChatColor.BLUE).end().text("The player "
+								+ player.getUsername() + " is using a browser that did not send a user-agent header")
+						.end());
 			}
-		}else {
+		} else {
 			sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.BLUE).end()
 					.text("The player " + player.getUsername() + " is not using Eaglercraft").end());
 		}

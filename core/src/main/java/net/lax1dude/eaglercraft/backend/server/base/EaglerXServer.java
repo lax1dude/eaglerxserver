@@ -178,7 +178,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public void load(IPlatform.Init<PlayerObject> init) {
-		if(hasStartedLoading) {
+		if (hasStartedLoading) {
 			throw new IllegalStateException();
 		}
 		hasStartedLoading = true;
@@ -186,44 +186,44 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		platform = init.getPlatform();
 		playerClazz = platform.getPlayerClass();
 		playerClassSet = Collections.singleton(playerClazz);
-		platformType = switch(platform.getType()) {
+		platformType = switch (platform.getType()) {
 		case BUNGEE -> EnumPlatformType.BUNGEECORD;
 		case BUKKIT -> EnumPlatformType.BUKKIT;
 		case VELOCITY -> EnumPlatformType.VELOCITY;
 		default -> EnumPlatformType.STANDALONE;
 		};
-		
-		if(platformType != EnumPlatformType.BUKKIT) {
+
+		if (platformType != EnumPlatformType.BUKKIT) {
 			logger().info("Loading " + getServerBrand() + " " + getServerVersion() + "...");
 		}
-		
+
 		logger().info("(Platform: " + platformType.getName() + ")");
 
-		if(platformType == EnumPlatformType.BUKKIT) {
+		if (platformType == EnumPlatformType.BUKKIT) {
 			logger().warn("Note: Its highly recommended to install EaglerXServer on BungeeCord or "
 					+ "Velocity instead, you will have a much better experience");
 			logger().warn("Note: If you are not using Spigot (or a derivative like Paper) or a version "
 					+ "above 1.12.2, things probably won't work right");
-			if(platform.isModernPluginChannelNamesOnly()) {
+			if (platform.isModernPluginChannelNamesOnly()) {
 				logger().error("Detected a modern server version, things probably won't work right, "
 						+ "downgrade to 1.12.2 or below");
 			}
 		}
-		
-		if(platformType != EnumPlatformType.BUNGEECORD && platform.isOnlineMode()) {
+
+		if (platformType != EnumPlatformType.BUNGEECORD && platform.isOnlineMode()) {
 			throw new AbortLoadException("Online mode is not supported yet!");
 		}
-		
+
 		eventDispatcher = platform.eventDispatcher();
-		
+
 		try {
 			config = EaglerConfigLoader.loadConfig(platform);
 		} catch (IOException e) {
 			throw new AbortLoadException("Could not read one or more config files!", e);
 		}
-		
+
 		logger().info("Server Name: \"" + config.getSettings().getServerName() + "\"");
-		
+
 		brandRegistry = new BrandService<>(this);
 		queryServer = new QueryServer(this);
 		webServer = new WebServer(this);
@@ -236,73 +236,72 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		componentHelper = new ComponentHelper<>(componentHelper());
 		if (Util.classExists("io.netty.handler.ssl.SslContextBuilder")
 				&& Util.classExists("io.netty.handler.codec.http.HttpHeaderNames")) {
-			httpClient = new HTTPClient(() -> bootstrapClient(null),
-					"Mozilla/5.0 " + getServerVersionString());
-		}else {
+			httpClient = new HTTPClient(() -> bootstrapClient(null), "Mozilla/5.0 " + getServerVersionString());
+		} else {
 			logger().warn("Using legacy JDK-based HTTP client because Netty is too outdated");
 			httpClient = new LegacyInternalHTTPClient(platform.getScheduler(),
 					"Mozilla/5.0 " + getServerVersionString());
 		}
 		httpClientAPI = new BinaryHTTPClient(httpClient);
 		profileResolver = new ProfileResolver(this, httpClient);
-		
+
 		ConfigDataSkinService skinSvcConf = config.getSettings().getSkinService();
 		ConfigDataSupervisor supervisorConf = config.getSupervisor();
-		if(supervisorConf != null && supervisorConf.isEnableSupervisor()) {
+		if (supervisorConf != null && supervisorConf.isEnableSupervisor()) {
 			supervisorService = new SupervisorService<>(this);
 			skinService = new SkinService<>(this, null, skinSvcConf.getFNAWSkinsPredicate(),
 					skinSvcConf.isDownloadVanillaSkinsToClients());
-		}else {
+		} else {
 			supervisorService = new SupervisorServiceDisabled<>(this);
-			if(skinSvcConf.isDownloadVanillaSkinsToClients()) {
+			if (skinSvcConf.isDownloadVanillaSkinsToClients()) {
 				skinCacheService = new DeferredStartSkinCache();
 				skinService = new SkinService<>(this, skinCacheService, skinSvcConf.getFNAWSkinsPredicate(), true);
-			}else {
+			} else {
 				skinService = new SkinService<>(this, null, skinSvcConf.getFNAWSkinsPredicate(), false);
 			}
 		}
-		
+
 		isEaglerPlayerProperyEnabled = config.getSettings().isEnableIsEaglerPlayerProperty();
-		
+
 		eaglerPlayersVanillaSkin = null;
 		File vanillaSkinCache = new File("eagler_vanilla_skin_cache.json");
 		String vanillaSkin = config.getSettings().getEaglerPlayersVanillaSkin();
 		if (vanillaSkin != null) {
 			SimpleProfileCache.loadProfile(this, vanillaSkinCache, vanillaSkin, 7l * 86400000l, (res) -> {
-				if(res != null) {
+				if (res != null) {
 					logger().info("Loaded vanilla profile: \"" + vanillaSkin + "\"");
 					eaglerPlayersVanillaSkin = res;
 				}
 			});
-		}else {
+		} else {
 			vanillaSkinCache.delete();
 		}
-		
+
 		ConfigDataVoiceService voiceConfig = config.getSettings().getVoiceService();
-		if(voiceConfig.isEnableVoiceService()) {
-			if(voiceConfig.isVoiceBackendRelayMode()) {
+		if (voiceConfig.isEnableVoiceService()) {
+			if (voiceConfig.isVoiceBackendRelayMode()) {
 				voiceService = new VoiceServiceRemote<>(this);
-			}else {
+			} else {
 				voiceService = new VoiceServiceLocal<>(this, voiceConfig);
 			}
 			voiceService.setICEServers(config.getICEServers());
-		}else {
+		} else {
 			voiceService = new VoiceServiceDisabled<>(this);
 		}
-		
+
 		notificationService = new NotificationService<>(this);
-		
+
 		webViewService = new WebViewService<>(this);
 		webViewService.setTemplateGlobal("server_name", getServerName());
 		webViewService.setTemplateGlobal("plugin_name", getServerBrand());
 		webViewService.setTemplateGlobal("plugin_version", getServerVersion());
 		webViewService.setTemplateGlobal("plugin_authors", EaglerXServerVersion.AUTHOR);
 		config.getPauseMenu().getServerInfoButtonEmbedTemplateGlobals().forEach(webViewService::setTemplateGlobal);
-		
+
 		pauseMenuService = new PauseMenuService<>(this);
-		
+
 		ConfigDataPauseMenu pauseMenuConf = config.getPauseMenu();
-		if(pauseMenuConf.isEnableCustomPauseMenu()) {
+		if (pauseMenuConf.isEnableCustomPauseMenu()) {
 			try {
 				pauseMenuService.reloadDefaultPauseMenu(platform.getDataFolder(), pauseMenuConf);
 			} catch (IOException e) {
@@ -310,15 +309,15 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 				pauseMenuService.setDefaultPauseMenu(pauseMenuService.getVanillaPauseMenu());
 			}
 		}
-		
-		if(config.getSettings().getUpdateService().isEnableUpdateSystem()) {
+
+		if (config.getSettings().getUpdateService().isEnableUpdateSystem()) {
 			updateService = new UpdateService(this);
 		}
-		
-		if(config.getSettings().isEnableBackendRPCAPI() && platform.getType().proxy) {
+
+		if (config.getSettings().isEnableBackendRPCAPI() && platform.getType().proxy) {
 			backendRPCService = new BackendRPCService<>(this);
 		}
-		
+
 		ratelimitParams = new PlayerRateLimits.RateLimitParams(skinSvcConf.getSkinLookupRatelimit(),
 				skinSvcConf.getCapeLookupRatelimit(), voiceConfig.getVoiceConnectRatelimit(),
 				voiceConfig.getVoiceRequestRatelimit(), voiceConfig.getVoiceICERatelimit(),
@@ -326,28 +325,23 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 				config.getSettings().getWebviewMessageRatelimit(), skinSvcConf.getSkinCacheAntagonistsRatelimit(),
 				supervisorConf != null ? supervisorConf.getSupervisorSkinAntagonistsRatelimit() : 0,
 				supervisorConf != null ? supervisorConf.getSupervisorBrandAntagonistsRatelimit() : 0);
-		
+
 		init.setOnServerEnable(this::enableHandler);
 		init.setOnServerDisable(this::disableHandler);
 		init.setPipelineInitializer(new EaglerXServerNettyPipelineInitializer<>(this));
 		init.setConnectionInitializer(new EaglerXServerConnectionInitializer<>(this));
 		init.setPlayerInitializer(new EaglerXServerPlayerInitializer<>(this));
 		init.setServerJoinListener(new EaglerXServerJoinListener<>(this));
-		init.setCommandRegistry(Arrays.asList(
-				new CommandVersion<>(this),
-				new CommandBrand<>(this),
-				new CommandProtocol<>(this),
-				new CommandDomain<>(this),
-				new CommandUserAgent<>(this),
-				new CommandConfirmCode<>(this)
-		));
-		
-		if(platform.getType().proxy) {
-			loadProxying((IPlatform.InitProxying<PlayerObject>)init);
-		}else {
-			loadNonProxying((IPlatform.InitNonProxying<PlayerObject>)init);
+		init.setCommandRegistry(
+				Arrays.asList(new CommandVersion<>(this), new CommandBrand<>(this), new CommandProtocol<>(this),
+						new CommandDomain<>(this), new CommandUserAgent<>(this), new CommandConfirmCode<>(this)));
+
+		if (platform.getType().proxy) {
+			loadProxying((IPlatform.InitProxying<PlayerObject>) init);
+		} else {
+			loadNonProxying((IPlatform.InitNonProxying<PlayerObject>) init);
 		}
-		
+
 		eventDispatcher.setAPI(this);
 		APIFactoryImpl.INSTANCE.initialize(playerClazz, this);
 	}
@@ -356,13 +350,13 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		ImmutableMap.Builder<String, EaglerListener> listenersBuilder = ImmutableMap.builder();
 		ImmutableMap.Builder<SocketAddress, EaglerListener> listenersByAddressBuilder = ImmutableMap.builder();
 		ImmutableList.Builder<IEaglerXServerListener> listenersImpl = ImmutableList.builder();
-		for(ConfigDataListener listener : config.getListeners().values()) {
+		for (ConfigDataListener listener : config.getListeners().values()) {
 			EaglerListener eagListener;
 			try {
 				eagListener = new EaglerListener(this, listener);
-			}catch(SSLException ex) {
+			} catch (SSLException ex) {
 				throw new AbortLoadException("TLS configuration is invalid!", ex);
-			}catch(IOException ex) {
+			} catch (IOException ex) {
 				throw new AbortLoadException("Could not load server icon!", ex);
 			}
 			listenersBuilder.put(listener.getListenerName(), eagListener);
@@ -381,9 +375,9 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		try {
 			eagListener = new EaglerListener(this, init.getListenerAddress(),
 					config.getListeners().values().iterator().next());
-		}catch(SSLException ex) {
+		} catch (SSLException ex) {
 			throw new AbortLoadException("TLS configuration is invalid!", ex);
-		}catch(IOException ex) {
+		} catch (IOException ex) {
 			throw new AbortLoadException("Could not load server icon!", ex);
 		}
 		listeners = ImmutableMap.of("default", eagListener);
@@ -409,27 +403,28 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	private void enableHandler() {
-		if(platformType != EnumPlatformType.BUKKIT) {
+		if (platformType != EnumPlatformType.BUKKIT) {
 			logger().info("Enabling " + getServerBrand() + " " + getServerVersion() + "...");
 		}
-		
-		if(platform.isOnlineMode()) {
+
+		if (platform.isOnlineMode()) {
 			throw new AbortLoadException("Online mode is not supported yet!");
 		}
 
 		webServer.refreshBuiltinPages();
 
-		if(certificateManager.hasRefreshableFiles()) {
+		if (certificateManager.hasRefreshableFiles()) {
 			long refreshRate = Math.max(config.getSettings().getTLSCertRefreshRate(), 1) * 1000l;
 			certificateRefreshTask = platform.getScheduler().executeAsyncRepeatingTask(certificateManager::update,
 					refreshRate, refreshRate);
 		}
 
-		if(skinCacheService != null) {
+		if (skinCacheService != null) {
 			ConfigDataSkinService skinConf = config.getSettings().getSkinService();
-			logger().info("Connecting to skin cache database \"" + Util.sanitizeJDBCURIForLogs(skinConf.getSkinCacheDBURI()) + "\"...");
+			logger().info("Connecting to skin cache database \""
+					+ Util.sanitizeJDBCURIForLogs(skinConf.getSkinCacheDBURI()) + "\"...");
 			int threadCount = skinConf.getSkinCacheThreadCount();
-			if(threadCount <= 0) {
+			if (threadCount <= 0) {
 				threadCount = Runtime.getRuntime().availableProcessors();
 			}
 			SkinCacheDatastore datastore;
@@ -439,11 +434,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 						platform.getDataFolder(), logger());
 				datastore = new SkinCacheDatastore(skinCacheJDBCHandle, threadCount,
 						skinConf.getSkinCacheDiskKeepObjectsDays(), skinConf.getSkinCacheDiskMaxObjects(),
-						Math.min(skinConf.getSkinCacheCompressionLevel(), 9), skinConf.isSkinCacheSQLiteCompatible(), logger());
+						Math.min(skinConf.getSkinCacheCompressionLevel(), 9), skinConf.isSkinCacheSQLiteCompatible(),
+						logger());
 				logger().info("Connected to skin cache database successfully!");
 			} catch (SQLException e) {
 				logger().error("Caught an exception while initializing the skin cache database", e);
-				if(skinCacheJDBCHandle != null) {
+				if (skinCacheJDBCHandle != null) {
 					try {
 						skinCacheJDBCHandle.close();
 					} catch (SQLException ee) {
@@ -456,34 +452,34 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 					new SkinCacheDownloader(httpClient, skinConf.getValidSkinDownloadURLs()), datastore,
 					skinConf.getSkinCacheMemoryKeepSeconds(), skinConf.getSkinCacheMemoryMaxObjects(), logger()));
 		}
-		
+
 		skinService.handleEnabled();
-		
-		if(updateService != null) {
+
+		if (updateService != null) {
 			updateService.start();
 		}
-		
+
 		supervisorService.handleEnable();
-		
+
 		platform.getScheduler().executeDelayed(pipelineTransformer::nagAgain, 10000);
 	}
 
 	private void disableHandler() {
-		if(platformType != EnumPlatformType.BUKKIT) {
+		if (platformType != EnumPlatformType.BUKKIT) {
 			logger().info("Disabling " + getServerBrand() + " " + getServerVersion() + "...");
 		}
 
 		webServer.releaseBuiltinPages();
 
-		if(certificateRefreshTask != null) {
+		if (certificateRefreshTask != null) {
 			certificateRefreshTask.cancel();
 			certificateRefreshTask = null;
 		}
 
 		skinService.handleDisabled();
 
-		if(skinCacheService != null) {
-			if(skinCacheJDBCHandle != null) {
+		if (skinCacheService != null) {
+			if (skinCacheJDBCHandle != null) {
 				logger().info("Disconnecting from skin cache database \""
 						+ Util.sanitizeJDBCURIForLogs(config.getSettings().getSkinService().getSkinCacheDBURI())
 						+ "\"...");
@@ -496,19 +492,19 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			}
 			skinCacheService.setDelegate(null);
 		}
-		
-		if(updateService != null) {
+
+		if (updateService != null) {
 			updateService.stop();
 		}
-		
+
 		supervisorService.handleDisable();
 	}
 
 	public void registerPlayer(BasePlayerInstance<PlayerObject> playerInstance) {
-		if(backendRPCService != null) {
+		if (backendRPCService != null) {
 			playerInstance.backendRPCManager = backendRPCService.createVanillaPlayerRPCManager(playerInstance);
 		}
-		
+
 		playerInstance.skinManager = skinService.createVanillaSkinManager(playerInstance);
 	}
 
@@ -517,102 +513,103 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	public void registerEaglerPlayer(EaglerPlayerInstance<PlayerObject> playerInstance,
 			NettyPipelineData.ProfileDataHolder profileData, Runnable onComplete) {
-		if(!eaglerPlayers.add(playerInstance)) {
+		if (!eaglerPlayers.add(playerInstance)) {
 			throw new RegistrationStateException();
 		}
 
 		EaglerConnectionInstance pendingConnection = playerInstance.connectionImpl();
 
 		playerInstance.messageController = MessageControllerFactory.initializePlayer(playerInstance);
-		
-		if(updateService != null) {
-			playerInstance.updateCertificate = updateService.createUpdateCertificate(playerInstance, profileData.updateCertInit);
+
+		if (updateService != null) {
+			playerInstance.updateCertificate = updateService.createUpdateCertificate(playerInstance,
+					profileData.updateCertInit);
 		}
-		
+
 		playerInstance.voiceManager = voiceService.createVoiceManager(playerInstance);
 		playerInstance.notifManager = notificationService.createPlayerManager(playerInstance);
 		playerInstance.webViewManager = webViewService.createWebViewManager(playerInstance);
 		playerInstance.pauseMenuManager = pauseMenuService.createPauseMenuManager(playerInstance);
-		
-		if(backendRPCService != null) {
+
+		if (backendRPCService != null) {
 			playerInstance.backendRPCManager = backendRPCService.createEaglerPlayerRPCManager(playerInstance);
 		}
-		
-		if(config.getSettings().isEnableIsEaglerPlayerProperty()) {
+
+		if (config.getSettings().isEnableIsEaglerPlayerProperty()) {
 			int ver = playerInstance.getEaglerProtocol().ver;
-			if(ver >= 5) {
+			if (ver >= 5) {
 				playerInstance.sendEaglerMessage(new SPacketClientStateFlagV5EAG(
 						ClientStateFlagUUIDs.EAGLER_PLAYER_FLAG_PRESENT.getMostSignificantBits(),
 						ClientStateFlagUUIDs.EAGLER_PLAYER_FLAG_PRESENT.getLeastSignificantBits(),
 						supervisorService.isSupervisorEnabled() ? 3 : 1));
-			}else if(ver >= 4) {
-				if(supervisorService.isSupervisorEnabled()) {
+			} else if (ver >= 4) {
+				if (supervisorService.isSupervisorEnabled()) {
 					playerInstance.sendEaglerMessage(new SPacketOtherPlayerClientUUIDV4EAG(-1,
 							ClientStateFlagUUIDs.LEGACY_EAGLER_PLAYER_FLAG_PRESENT.getMostSignificantBits(),
 							ClientStateFlagUUIDs.LEGACY_EAGLER_PLAYER_FLAG_PRESENT.getLeastSignificantBits()));
 				}
 			}
 		}
-		
+
 		skinService.createEaglerSkinManager(playerInstance, profileData, (mgr) -> {
 			playerInstance.skinManager = mgr;
-			
+
 			try {
-				if(pendingConnection.isEaglerXRewindPlayer()) {
+				if (pendingConnection.isEaglerXRewindPlayer()) {
 					((IEaglerXRewindProtocol<PlayerObject, Object>) pendingConnection.getRewindProtocol())
 							.handleCreatePlayer(pendingConnection.getRewindAttachment(), playerInstance);
 				}
-			}catch(Exception ex) {
+			} catch (Exception ex) {
 				logger().error("Uncaught exception initializing rewind player", ex);
 				onComplete.run();
 				return;
 			}
-			
+
 			IPlatformPlayer<PlayerObject> platformPlayer = playerInstance.getPlatformPlayer();
-			if(platformPlayer.isSetViewDistanceSupportedPaper()) {
+			if (platformPlayer.isSetViewDistanceSupportedPaper()) {
 				int distance = config.getSettings().getEaglerPlayersViewDistance();
-				if(distance > 0) {
+				if (distance > 0) {
 					platformPlayer.setViewDistancePaper(Math.max(distance, 3));
 				}
 			}
-			
+
 			onComplete.run();
 		});
 	}
 
 	public void unregisterPlayer(BasePlayerInstance<PlayerObject> playerInstance) {
-		
+
 	}
 
 	public void unregisterEaglerPlayer(EaglerPlayerInstance<PlayerObject> playerInstance) {
-		if(!eaglerPlayers.remove(playerInstance)) {
+		if (!eaglerPlayers.remove(playerInstance)) {
 			throw new RegistrationStateException();
 		}
 
-		if(updateService != null) {
+		if (updateService != null) {
 			updateService.removeUpdateCertificate(playerInstance);
 			playerInstance.updateCertificate = null;
 		}
 
-		if(playerInstance.voiceManager != null) {
+		if (playerInstance.voiceManager != null) {
 			playerInstance.voiceManager.destroyVoiceManager();
 		}
 
 		EaglerConnectionInstance pendingConnection = playerInstance.connectionImpl();
 
-		if(pendingConnection.isEaglerXRewindPlayer()) {
+		if (pendingConnection.isEaglerXRewindPlayer()) {
 			((IEaglerXRewindProtocol<PlayerObject, Object>) pendingConnection.getRewindProtocol())
 					.handleDestroyPlayer(pendingConnection.getRewindAttachment());
 		}
 	}
 
 	void handleServerPreConnect(BasePlayerInstance<PlayerObject> player) {
-		if(player.backendRPCManager != null) {
+		if (player.backendRPCManager != null) {
 			player.backendRPCManager.handleServerPreConnect();
 		}
-		if(player.isEaglerPlayer()) {
+		if (player.isEaglerPlayer()) {
 			EaglerPlayerInstance<PlayerObject> eaglerPlayer = player.asEaglerPlayer();
-			if(eaglerPlayer.voiceManager != null) {
+			if (eaglerPlayer.voiceManager != null) {
 				eaglerPlayer.voiceManager.handleServerPreConnect();
 			}
 		}
@@ -620,13 +617,13 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	void handleServerPostConnect(BasePlayerInstance<PlayerObject> player, IPlatformServer<PlayerObject> server) {
 		String serverName = server.getServerConfName();
-		if(player.backendRPCManager != null) {
+		if (player.backendRPCManager != null) {
 			player.backendRPCManager.handleServerPostConnect();
 		}
-		if(player.isEaglerPlayer()) {
+		if (player.isEaglerPlayer()) {
 			EaglerPlayerInstance<PlayerObject> eaglerPlayer = player.asEaglerPlayer();
 			eaglerPlayer.getSkinManager().handleServerPostConnect(serverName);
-			if(eaglerPlayer.voiceManager != null) {
+			if (eaglerPlayer.voiceManager != null) {
 				eaglerPlayer.voiceManager.handleServerPostConnect(serverName);
 			}
 		}
@@ -649,8 +646,9 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> IEaglerXServerAPI<T> getAPI(Class<T> playerClass) {
-		if(!playerClass.isAssignableFrom(playerClazz)) {
-			throw new ClassCastException("Class " + playerClazz.getName() + " cannot be cast to " + playerClass.getName());
+		if (!playerClass.isAssignableFrom(playerClazz)) {
+			throw new ClassCastException(
+					"Class " + playerClazz.getName() + " cannot be cast to " + playerClass.getName());
 		}
 		return (IEaglerXServerAPI<T>) this;
 	}
@@ -735,7 +733,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public BasePlayerInstance<PlayerObject> getPlayer(PlayerObject player) {
-		if(player == null) {
+		if (player == null) {
 			throw new NullPointerException("player");
 		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
@@ -744,7 +742,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public BasePlayerInstance<PlayerObject> getPlayerByName(String playerName) {
-		if(playerName == null) {
+		if (playerName == null) {
 			throw new NullPointerException("playerName");
 		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
@@ -753,7 +751,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public BasePlayerInstance<PlayerObject> getPlayerByUUID(UUID playerUUID) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
@@ -762,11 +760,11 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public EaglerPlayerInstance<PlayerObject> getEaglerPlayer(PlayerObject player) {
-		if(player == null) {
+		if (player == null) {
 			throw new NullPointerException("player");
 		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
-		if(platformPlayer != null) {
+		if (platformPlayer != null) {
 			return platformPlayer.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().asEaglerPlayer();
 		}
 		return null;
@@ -774,11 +772,11 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public EaglerPlayerInstance<PlayerObject> getEaglerPlayerByName(String playerName) {
-		if(playerName == null) {
+		if (playerName == null) {
 			throw new NullPointerException("playerName");
 		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
-		if(platformPlayer != null) {
+		if (platformPlayer != null) {
 			return platformPlayer.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().asEaglerPlayer();
 		}
 		return null;
@@ -786,11 +784,11 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public EaglerPlayerInstance<PlayerObject> getEaglerPlayerByUUID(UUID playerUUID) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
-		if(platformPlayer != null) {
+		if (platformPlayer != null) {
 			return platformPlayer.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().asEaglerPlayer();
 		}
 		return null;
@@ -798,7 +796,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public boolean isPlayer(PlayerObject player) {
-		if(player == null) {
+		if (player == null) {
 			throw new NullPointerException("player");
 		}
 		return platform.getPlayer(player) != null;
@@ -806,7 +804,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public boolean isPlayerByName(String playerName) {
-		if(playerName == null) {
+		if (playerName == null) {
 			throw new NullPointerException("playerName");
 		}
 		return platform.getPlayer(playerName) != null;
@@ -814,7 +812,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public boolean isPlayerByUUID(UUID playerUUID) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
 		return platform.getPlayer(playerUUID) != null;
@@ -822,34 +820,37 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public boolean isEaglerPlayer(PlayerObject player) {
-		if(player == null) {
+		if (player == null) {
 			throw new NullPointerException("player");
 		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
-		return platformPlayer != null && platformPlayer.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().isEaglerPlayer();
+		return platformPlayer != null
+				&& platformPlayer.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().isEaglerPlayer();
 	}
 
 	@Override
 	public boolean isEaglerPlayerByName(String playerName) {
-		if(playerName == null) {
+		if (playerName == null) {
 			throw new NullPointerException("playerName");
 		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
-		return platformPlayer != null && platformPlayer.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().isEaglerPlayer();
+		return platformPlayer != null
+				&& platformPlayer.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().isEaglerPlayer();
 	}
 
 	@Override
 	public boolean isEaglerPlayerByUUID(UUID playerUUID) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
-		return platformPlayer != null && platformPlayer.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().isEaglerPlayer();
+		return platformPlayer != null
+				&& platformPlayer.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().isEaglerPlayer();
 	}
 
 	@Override
 	public void forEachPlayer(Consumer<IBasePlayer<PlayerObject>> callback) {
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		platform.forEachPlayer((player) -> {
@@ -859,7 +860,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public void forEachEaglerPlayer(Consumer<IEaglerPlayer<PlayerObject>> callback) {
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		eaglerPlayers.forEach(callback);
@@ -896,16 +897,16 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public Collection<IUpdateCertificate> getUpdateCertificates() {
-		if(updateService != null) {
+		if (updateService != null) {
 			return updateService.dumpAllCerts();
-		}else {
+		} else {
 			return Collections.emptyList();
 		}
 	}
 
 	@Override
 	public IUpdateCertificate createUpdateCertificate(byte[] data, int offset, int length) {
-		if(data == null) {
+		if (data == null) {
 			throw new NullPointerException("data");
 		}
 		byte[] copy = new byte[length];
@@ -915,10 +916,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public void addUpdateCertificate(IUpdateCertificate cert) {
-		if(!(cert instanceof IUpdateCertificateImpl)) {
+		if (!(cert instanceof IUpdateCertificateImpl)) {
 			throw new UnsupportedOperationException("Unknown certificate: " + cert);
 		}
-		if(updateService != null) {
+		if (updateService != null) {
 			forEachEaglerPlayer((player) -> {
 				player.offerUpdateCertificate(cert);
 			});
@@ -940,7 +941,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public IEaglerListenerInfo getListenerByName(String name) {
-		if(name == null) {
+		if (name == null) {
 			throw new NullPointerException("name");
 		}
 		return listeners.get(name);
@@ -948,7 +949,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public IEaglerListenerInfo getListenerByAddress(SocketAddress address) {
-		if(address == null) {
+		if (address == null) {
 			throw new NullPointerException("name");
 		}
 		return listenersByAddress.get(address);
@@ -981,10 +982,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public void registerExtendedCapability(Object plugin, ExtendedCapabilitySpec capability) {
-		if(plugin == null) {
+		if (plugin == null) {
 			throw new NullPointerException("plugin");
 		}
-		if(capability == null) {
+		if (capability == null) {
 			throw new NullPointerException("capability");
 		}
 		extCapabilityMap.registerCapability(plugin, capability);
@@ -992,10 +993,10 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public void unregisterExtendedCapability(Object plugin, ExtendedCapabilitySpec capability) {
-		if(plugin == null) {
+		if (plugin == null) {
 			throw new NullPointerException("plugin");
 		}
-		if(capability == null) {
+		if (capability == null) {
 			throw new NullPointerException("capability");
 		}
 		extCapabilityMap.unregisterCapability(plugin, capability);
@@ -1003,7 +1004,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public boolean isExtendedCapabilityRegistered(UUID capabilityUUID, int version) {
-		if(capabilityUUID == null) {
+		if (capabilityUUID == null) {
 			throw new NullPointerException("capabilityUUID");
 		}
 		return extCapabilityMap.isCapabilityRegistered(capabilityUUID, version);
@@ -1085,9 +1086,11 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <ComponentObject> IComponentSerializer<ComponentObject> getComponentSerializer(Class<ComponentObject> componentType) {
-		if(componentType != this.componentType) {
-			throw new ClassCastException("Component class " + componentType.getName() + " is not supported on this platform!");
+	public <ComponentObject> IComponentSerializer<ComponentObject> getComponentSerializer(
+			Class<ComponentObject> componentType) {
+		if (componentType != this.componentType) {
+			throw new ClassCastException(
+					"Component class " + componentType.getName() + " is not supported on this platform!");
 		}
 		return (IComponentSerializer<ComponentObject>) componentHelper;
 	}
@@ -1113,7 +1116,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 
 	@Override
 	public UUID intern(UUID uuid) {
-		if(uuid == null) {
+		if (uuid == null) {
 			throw new NullPointerException("uuid");
 		}
 		return uuidInterner.intern(uuid);
@@ -1142,7 +1145,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	@Override
 	public Bootstrap bootstrapClient(SocketAddress remoteAddress) {
 		Bootstrap bootstrap = new Bootstrap().group(getWorkerEventLoopGroup());
-		if(remoteAddress != null) {
+		if (remoteAddress != null) {
 			bootstrap.remoteAddress(remoteAddress);
 		}
 		return setChannelFactory(bootstrap, remoteAddress);
@@ -1152,12 +1155,12 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	public ServerBootstrap bootstrapServer(SocketAddress localAddress) {
 		ServerBootstrap serverBootstrap = new ServerBootstrap();
 		EventLoopGroup bossGroup = getBossEventLoopGroup();
-		if(bossGroup != null) {
+		if (bossGroup != null) {
 			serverBootstrap.group(bossGroup, getWorkerEventLoopGroup());
-		}else {
+		} else {
 			serverBootstrap.group(getWorkerEventLoopGroup());
 		}
-		if(localAddress != null) {
+		if (localAddress != null) {
 			serverBootstrap.localAddress(localAddress);
 		}
 		return setServerChannelFactory(serverBootstrap, localAddress);
@@ -1208,8 +1211,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	public boolean testServerListConfirmCode(String code) {
-		if(serverListConfirmCode != null) {
-			if(code.equals(serverListConfirmCode)) {
+		if (serverListConfirmCode != null) {
+			if (code.equals(serverListConfirmCode)) {
 				serverListConfirmCode = null;
 				return true;
 			}

@@ -46,9 +46,9 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 	protected int baseRequestTimeout = 10;
 
 	public static <PlayerObject> EaglerXBackendRPCBase<PlayerObject> init() {
-		if(detectAPI()) {
+		if (detectAPI()) {
 			return new EaglerXBackendRPCLocal<>();
-		}else {
+		} else {
 			return new EaglerXBackendRPCRemote<>();
 		}
 	}
@@ -57,14 +57,14 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 		try {
 			Class.forName("net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI");
 			return true;
-		}catch(ClassNotFoundException ex) {
+		} catch (ClassNotFoundException ex) {
 			return false;
 		}
 	}
 
 	@Override
 	public final void load(Init<PlayerObject> platf) {
-		if(hasStartedLoading) {
+		if (hasStartedLoading) {
 			throw new IllegalStateException("EaglerXBackendRPC is already loading");
 		}
 		hasStartedLoading = true;
@@ -75,7 +75,7 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 
 		schedulerExecutors = new SchedulerExecutors(platform.getScheduler(), platform.logger());
 
-		platformType = switch(platform.getType()) {
+		platformType = switch (platform.getType()) {
 		case BUKKIT -> EnumPlatformType.BUKKIT;
 		default -> throw new IllegalStateException();
 		};
@@ -108,8 +108,9 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 
 	@Override
 	public <T> IEaglerXBackendRPC<T> getAPI(Class<T> playerClass) {
-		if(!playerClass.isAssignableFrom(this.playerClass)) {
-			throw new ClassCastException("Class " + this.playerClass.getName() + " cannot be cast to " + playerClass.getName());
+		if (!playerClass.isAssignableFrom(this.playerClass)) {
+			throw new ClassCastException(
+					"Class " + this.playerClass.getName() + " cannot be cast to " + playerClass.getName());
 		}
 		return (IEaglerXBackendRPC<T>) this;
 	}
@@ -130,7 +131,7 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 
 	@Override
 	public boolean isPlayer(PlayerObject player) {
-		if(player == null) {
+		if (player == null) {
 			throw new NullPointerException("player");
 		}
 		return platform.getPlayer(player) != null;
@@ -138,7 +139,7 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 
 	@Override
 	public boolean isPlayerByName(String playerName) {
-		if(playerName == null) {
+		if (playerName == null) {
 			throw new NullPointerException("playerName");
 		}
 		return platform.getPlayer(playerName) != null;
@@ -146,7 +147,7 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 
 	@Override
 	public boolean isPlayerByUUID(UUID playerUUID) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
 		return platform.getPlayer(playerUUID) != null;
@@ -154,11 +155,11 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 
 	@Override
 	public boolean isEaglerPlayer(PlayerObject player) {
-		if(player == null) {
+		if (player == null) {
 			throw new NullPointerException("player");
 		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
-		if(platformPlayer != null) {
+		if (platformPlayer != null) {
 			return platformPlayer.<IBasePlayer<PlayerObject>>getAttachment().isEaglerPlayer();
 		}
 		return false;
@@ -166,11 +167,11 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 
 	@Override
 	public boolean isEaglerPlayerByName(String playerName) {
-		if(playerName == null) {
+		if (playerName == null) {
 			throw new NullPointerException("playerName");
 		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
-		if(platformPlayer != null) {
+		if (platformPlayer != null) {
 			return platformPlayer.<IBasePlayer<PlayerObject>>getAttachment().isEaglerPlayer();
 		}
 		return false;
@@ -178,11 +179,11 @@ public abstract class EaglerXBackendRPCBase<PlayerObject> extends RPCAttributeHo
 
 	@Override
 	public boolean isEaglerPlayerByUUID(UUID playerUUID) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
-		if(platformPlayer != null) {
+		if (platformPlayer != null) {
 			return platformPlayer.<IBasePlayer<PlayerObject>>getAttachment().isEaglerPlayer();
 		}
 		return false;

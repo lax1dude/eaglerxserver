@@ -31,7 +31,7 @@ class WrappedIntArray implements INBTValue<int[]> {
 
 	@Override
 	public void mutate(int[] value) {
-		if(value == null) {
+		if (value == null) {
 			throw new NullPointerException("Cannot mutate to a null value");
 		}
 		this.value = value;

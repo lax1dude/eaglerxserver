@@ -129,13 +129,13 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 				now + expiresAfter * 1000000000l, reqId, requestMap) {
 			@Override
 			public boolean fireResponseInternal(Object value) {
-				if(value == null) {
+				if (value == null) {
 					return super.fireResponseInternal(null);
 				}
 				T res;
 				try {
 					res = ((Function<Object, T>) resultMapper).apply(value);
-				}catch(Exception ex) {
+				} catch (Exception ex) {
 					return super.fireExceptionInternal(new RPCException("Failed to process RPC response data", ex));
 				}
 				return super.fireResponseInternal(res);
@@ -216,10 +216,10 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 
 	@Override
 	public synchronized void addCloseListener(IRPCCloseHandler handler) {
-		if(handler == null) {
+		if (handler == null) {
 			throw new NullPointerException("handler");
 		}
-		if(closeListeners == null) {
+		if (closeListeners == null) {
 			closeListeners = Collections.newSetFromMap(new HashMap<>(4));
 		}
 		closeListeners.add(handler);
@@ -227,10 +227,10 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 
 	@Override
 	public synchronized void removeCloseListener(IRPCCloseHandler handler) {
-		if(handler == null) {
+		if (handler == null) {
 			throw new NullPointerException("handler");
 		}
-		if(closeListeners != null && closeListeners.remove(handler) && closeListeners.isEmpty()) {
+		if (closeListeners != null && closeListeners.remove(handler) && closeListeners.isEmpty()) {
 			closeListeners = null;
 		}
 	}
@@ -239,27 +239,27 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 		open = false;
 		Object[] handlers = requestMap.values().toArray();
 		requestMap.clear();
-		for(int i = 0; i < handlers.length; ++i) {
+		for (int i = 0; i < handlers.length; ++i) {
 			RPCRequestFuture<?> handler = (RPCRequestFuture<?>) handlers[i];
 			try {
 				handler.fireTimeoutExceptionInternal(
 						new RPCTimeoutException("Player left before the request was completed"));
-			}catch(Exception ex) {
+			} catch (Exception ex) {
 			}
 		}
 		Object[] handlers2;
-		synchronized(this) {
-			if(closeListeners == null) {
+		synchronized (this) {
+			if (closeListeners == null) {
 				return;
 			}
 			handlers2 = closeListeners.toArray();
 		}
 		player.getEaglerXBackendRPC().getScheduler().execute(() -> {
-			for(int i = 0; i < handlers.length; ++i) {
+			for (int i = 0; i < handlers.length; ++i) {
 				IRPCCloseHandler handler = (IRPCCloseHandler) handlers2[i];
 				try {
 					handler.handleClosed();
-				}catch(Exception ex) {
+				} catch (Exception ex) {
 					player.logger().error("Caught exception while calling RPC close listener", ex);
 				}
 			}
@@ -277,307 +277,310 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 	}
 
 	private static final Function<Object, IEaglerPlayerSkin> PLAYER_SKIN_HANDLER = (res) -> {
-		if(res == null) {
+		if (res == null) {
 			return null;
-		}else if(res instanceof IInteger i) {
+		} else if (res instanceof IInteger i) {
 			int ii = i.getIntValue();
-			if(ii != -1) {
+			if (ii != -1) {
 				return InternUtils.getPresetSkin(ii);
-			}else {
+			} else {
 				return MissingSkin.MISSING_SKIN;
 			}
-		}else if(res instanceof byte[] b) {
+		} else if (res instanceof byte[] b) {
 			return SkinRPCHelper.decodeSkinData(b, false);
-		}else {
+		} else {
 			throw new ClassCastException("Don't know how to handle: " + res);
 		}
 	};
 
 	@Override
 	public IRPCFuture<IEaglerPlayerSkin> getPlayerSkin(int timeoutSec) {
-		if(open) {
+		if (open) {
 			RPCRequestFuture<IEaglerPlayerSkin> ret = createRequest(timeoutSec, PLAYER_SKIN_HANDLER);
 			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_SKIN_DATA));
 			return ret;
-		}else {
+		} else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
 		}
 	}
 
 	@Override
 	public void changePlayerSkin(IEaglerPlayerSkin skin, boolean notifyOthers) {
-		if(skin == null) {
+		if (skin == null) {
 			throw new NullPointerException("skin");
 		}
-		if(open) {
-			if(!skin.isSuccess()) {
+		if (open) {
+			if (!skin.isSuccess()) {
 				writeOutboundPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, -1));
-			}else if(skin.isSkinPreset()) {
+			} else if (skin.isSkinPreset()) {
 				writeOutboundPacket(new CPacketRPCSetPlayerSkinPresetV2(notifyOthers, skin.getPresetSkinId()));
-			}else {
+			} else {
 				writeOutboundPacket(new CPacketRPCSetPlayerSkin(notifyOthers, SkinRPCHelper.encodeSkinData(skin)));
 			}
-		}else {
+		} else {
 			printClosedError();
 		}
 	}
 
 	@Override
 	public void changePlayerSkin(EnumPresetSkins skin, boolean notifyOthers) {
-		if(skin == null) {
+		if (skin == null) {
 			throw new NullPointerException("skin");
 		}
-		if(open) {
+		if (open) {
 			changePlayerSkin(InternUtils.getPresetSkin(skin.getId()), notifyOthers);
-		}else {
+		} else {
 			printClosedError();
 		}
 	}
 
 	private static final Function<Object, IEaglerPlayerCape> PLAYER_CAPE_HANDLER = (res) -> {
-		if(res == null) {
+		if (res == null) {
 			return null;
-		}else if(res instanceof IInteger i) {
+		} else if (res instanceof IInteger i) {
 			int ii = i.getIntValue();
-			if(ii != -1) {
+			if (ii != -1) {
 				return InternUtils.getPresetCape(i.getIntValue());
-			}else {
+			} else {
 				return MissingCape.MISSING_CAPE;
 			}
-		}else if(res instanceof byte[] b) {
+		} else if (res instanceof byte[] b) {
 			return SkinRPCHelper.decodeCapeData(b, false);
-		}else {
+		} else {
 			throw new ClassCastException("Don't know how to handle: " + res);
 		}
 	};
 
 	@Override
 	public IRPCFuture<IEaglerPlayerCape> getPlayerCape(int timeoutSec) {
-		if(open) {
+		if (open) {
 			RPCRequestFuture<IEaglerPlayerCape> ret = createRequest(timeoutSec, PLAYER_CAPE_HANDLER);
 			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CAPE_DATA));
 			return ret;
-		}else {
+		} else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
 		}
 	}
 
 	@Override
 	public void changePlayerCape(IEaglerPlayerCape cape, boolean notifyOthers) {
-		if(cape == null) {
+		if (cape == null) {
 			throw new NullPointerException("cape");
 		}
-		if(open) {
-			if(!cape.isSuccess()) {
+		if (open) {
+			if (!cape.isSuccess()) {
 				writeOutboundPacket(new CPacketRPCSetPlayerCapePresetV2(notifyOthers, -1));
-			}else if(cape.isCapePreset()) {
+			} else if (cape.isCapePreset()) {
 				writeOutboundPacket(new CPacketRPCSetPlayerCapePresetV2(notifyOthers, cape.getPresetCapeId()));
-			}else {
+			} else {
 				writeOutboundPacket(new CPacketRPCSetPlayerCape(notifyOthers, SkinRPCHelper.encodeCapeData(cape)));
 			}
-		}else {
+		} else {
 			printClosedError();
 		}
 	}
 
 	@Override
 	public void changePlayerCape(EnumPresetCapes cape, boolean notifyOthers) {
-		if(cape == null) {
+		if (cape == null) {
 			throw new NullPointerException("cape");
 		}
-		if(open) {
+		if (open) {
 			changePlayerCape(InternUtils.getPresetCape(cape.getId()), notifyOthers);
-		}else {
+		} else {
 			printClosedError();
 		}
 	}
 
 	private static final Function<Object, TexturesData> PLAYER_TEXTURES_HANDLER = (res) -> {
-		if(res instanceof IIntegerTuple tuple) {
+		if (res instanceof IIntegerTuple tuple) {
 			int i = tuple.getIntValueA();
 			IEaglerPlayerSkin skin = i != -1 ? InternUtils.getPresetSkin(i) : MissingSkin.MISSING_SKIN;
 			i = tuple.getIntValueB();
 			IEaglerPlayerCape cape = i != -1 ? InternUtils.getPresetCape(i) : MissingCape.MISSING_CAPE;
 			return TexturesData.create(skin, cape);
-		}else if(res instanceof byte[] bytes) {
+		} else if (res instanceof byte[] bytes) {
 			IEaglerPlayerSkin skin = SkinRPCHelper.decodeTexturesSkinData(bytes);
 			IEaglerPlayerCape cape = SkinRPCHelper.decodeTexturesCapeData(bytes, skin);
 			return TexturesData.create(skin, cape);
-		}else {
+		} else {
 			throw new ClassCastException("Don't know how to handle: " + res);
 		}
 	};
 
 	@Override
 	public IRPCFuture<TexturesData> getPlayerTextures(int timeoutSec) {
-		if(open) {
+		if (open) {
 			RPCRequestFuture<TexturesData> ret = createRequest(timeoutSec, PLAYER_TEXTURES_HANDLER);
 			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_TEXTURE_DATA));
 			return ret;
-		}else {
+		} else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
 		}
 	}
 
 	@Override
 	public void changePlayerTextures(IEaglerPlayerSkin skin, IEaglerPlayerCape cape, boolean notifyOthers) {
-		if(skin == null) {
+		if (skin == null) {
 			throw new NullPointerException("skin");
 		}
-		if(cape == null) {
+		if (cape == null) {
 			throw new NullPointerException("cape");
 		}
-		if(open) {
-			if(skin.isSkinPreset() && cape.isCapePreset()) {
+		if (open) {
+			if (skin.isSkinPreset() && cape.isCapePreset()) {
 				writeOutboundPacket(new CPacketRPCSetPlayerTexturesPresetV2(notifyOthers,
-						skin.isSuccess() ? skin.getPresetSkinId() : -1, cape.isSuccess() ? cape.getPresetCapeId() : -1));
-			}else {
-				writeOutboundPacket(new CPacketRPCSetPlayerTexturesV2(notifyOthers, SkinRPCHelper.encodeTexturesData(skin, cape)));
+						skin.isSuccess() ? skin.getPresetSkinId() : -1,
+						cape.isSuccess() ? cape.getPresetCapeId() : -1));
+			} else {
+				writeOutboundPacket(
+						new CPacketRPCSetPlayerTexturesV2(notifyOthers, SkinRPCHelper.encodeTexturesData(skin, cape)));
 			}
-		}else {
+		} else {
 			printClosedError();
 		}
 	}
 
 	@Override
 	public void changePlayerTextures(EnumPresetSkins skin, EnumPresetCapes cape, boolean notifyOthers) {
-		if(skin == null) {
+		if (skin == null) {
 			throw new NullPointerException("skin");
 		}
-		if(cape == null) {
+		if (cape == null) {
 			throw new NullPointerException("cape");
 		}
-		if(open) {
-			changePlayerTextures(InternUtils.getPresetSkin(skin.getId()), InternUtils.getPresetCape(cape.getId()), notifyOthers);
-		}else {
+		if (open) {
+			changePlayerTextures(InternUtils.getPresetSkin(skin.getId()), InternUtils.getPresetCape(cape.getId()),
+					notifyOthers);
+		} else {
 			printClosedError();
 		}
 	}
 
 	@Override
 	public void resetPlayerSkin(boolean notifyOthers) {
-		if(open) {
+		if (open) {
 			writeOutboundPacket(new CPacketRPCResetPlayerMulti(true, false, false, notifyOthers));
-		}else {
+		} else {
 			printClosedError();
 		}
 	}
 
 	@Override
 	public void resetPlayerCape(boolean notifyOthers) {
-		if(open) {
+		if (open) {
 			writeOutboundPacket(new CPacketRPCResetPlayerMulti(false, true, false, notifyOthers));
-		}else {
+		} else {
 			printClosedError();
 		}
 	}
 
 	@Override
 	public void resetPlayerTextures(boolean notifyOthers) {
-		if(open) {
+		if (open) {
 			writeOutboundPacket(new CPacketRPCResetPlayerMulti(true, true, false, notifyOthers));
-		}else {
+		} else {
 			printClosedError();
 		}
 	}
 
 	@Override
 	public IRPCFuture<UUID> getProfileUUID(int timeoutSec) {
-		if(open) {
+		if (open) {
 			RPCRequestFuture<UUID> ret = createRequest(timeoutSec);
 			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REAL_UUID));
 			return ret;
-		}else {
+		} else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
 		}
 	}
 
 	@Override
 	public IRPCFuture<String> getMinecraftBrand(int timeoutSec) {
-		if(open) {
+		if (open) {
 			RPCRequestFuture<String> ret = createRequest(timeoutSec);
 			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_MINECRAFT_BRAND));
 			return ret;
-		}else {
+		} else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
 		}
 	}
 
 	@Override
 	public IRPCFuture<UUID> getBrandUUID(int timeoutSec) {
-		if(open) {
+		if (open) {
 			RPCRequestFuture<UUID> ret = createRequest(timeoutSec);
 			writeOutboundPacket(new CPacketRPCRequestPlayerInfo(ret.getRequestId(),
 					CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_CLIENT_BRAND_UUID));
 			return ret;
-		}else {
+		} else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
 		}
 	}
 
 	@Override
 	public IRPCFuture<IEaglerPlayerSkin> getSkinByURL(String url, int timeoutSec) {
-		if(url == null) {
+		if (url == null) {
 			throw new NullPointerException("url");
 		}
-		if(open) {
+		if (open) {
 			RPCRequestFuture<IEaglerPlayerSkin> ret = createRequest(timeoutSec, PLAYER_SKIN_HANDLER);
 			writeOutboundPacket(new CPacketRPCGetSkinByURLV2(ret.getRequestId(), url));
 			return ret;
-		}else {
+		} else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
 		}
 	}
 
 	@Override
 	public IRPCFuture<IEaglerPlayerSkin> getSkinByURL(String url, int timeoutSec, EnumSkinModel modelId) {
-		if(url == null) {
+		if (url == null) {
 			throw new NullPointerException("url");
 		}
-		if(modelId == null) {
+		if (modelId == null) {
 			throw new NullPointerException("modelId");
 		}
-		if(open) {
+		if (open) {
 			RPCRequestFuture<IEaglerPlayerSkin> ret = createRequest(timeoutSec, (obj) -> {
 				IEaglerPlayerSkin skin = PLAYER_SKIN_HANDLER.apply(obj);
-				if(skin != null) {
-					if(skin.isSkinPreset()) {
+				if (skin != null) {
+					if (skin.isSkinPreset()) {
 						return skin;
-					}else {
+					} else {
 						return SkinImageLoaderImpl.rewriteCustomSkinModelId(skin, modelId.getId());
 					}
-				}else {
+				} else {
 					return null;
 				}
 			});
 			writeOutboundPacket(new CPacketRPCGetSkinByURLV2(ret.getRequestId(), url));
 			return ret;
-		}else {
+		} else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
 		}
 	}
 
 	@Override
 	public IRPCFuture<IEaglerPlayerCape> getCapeByURL(String url, int timeoutSec) {
-		if(open) {
+		if (open) {
 			RPCRequestFuture<IEaglerPlayerCape> ret = createRequest(timeoutSec, PLAYER_CAPE_HANDLER);
 			writeOutboundPacket(new CPacketRPCGetCapeByURLV2(ret.getRequestId(), url));
 			return ret;
-		}else {
+		} else {
 			return RPCFailedFuture.createClosed(getServerAPI().schedulerExecutors());
 		}
 	}
 
 	@Override
 	public void sendRawCustomPayloadPacket(String channel, byte[] data) {
-		if(open) {
+		if (open) {
 			writeOutboundPacket(new CPacketRPCSendRawMessage(channel, data));
-		}else {
+		} else {
 			printClosedError();
 		}
 	}
@@ -588,20 +591,20 @@ public class BasePlayerRPC<PlayerObject> extends BackendRPCMessageController imp
 
 	public void handleResponseComplete(int requestID, Object object) {
 		RPCRequestFuture<Object> future = (RPCRequestFuture<Object>) requestMap.get(requestID);
-		if(future != null) {
+		if (future != null) {
 			future.fireResponseInternal(object);
 		}
 	}
 
 	public void handleResponseError(int requestID, String errorMessage) {
 		RPCRequestFuture<?> future = requestMap.get(requestID);
-		if(future != null) {
+		if (future != null) {
 			future.fireExceptionInternal(new RPCResponseException(errorMessage));
 		}
 	}
 
 	public void fireRemoteEvent(IRPCEvent event) {
-		
+
 	}
 
 }

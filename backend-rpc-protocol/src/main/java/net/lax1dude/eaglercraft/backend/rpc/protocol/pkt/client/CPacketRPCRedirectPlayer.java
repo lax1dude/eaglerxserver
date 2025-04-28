@@ -44,7 +44,7 @@ public class CPacketRPCRedirectPlayer implements EaglerBackendRPCPacket {
 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
-		if(redirectURI.length() > 65535) {
+		if (redirectURI.length() > 65535) {
 			throw new IOException("Redirect URI is too long!");
 		}
 		byte[] redirectURIBytes = redirectURI.getBytes(StandardCharsets.US_ASCII);

@@ -29,7 +29,8 @@ public class RewindInjectedMessageHandler extends MessageToMessageEncoder<IOutbo
 	public static final RewindInjectedMessageHandler INSTANCE = new RewindInjectedMessageHandler();
 
 	@Override
-	protected void encode(ChannelHandlerContext ctx, IOutboundInjector.IMessage msg, List<Object> out) throws Exception {
+	protected void encode(ChannelHandlerContext ctx, IOutboundInjector.IMessage msg, List<Object> out)
+			throws Exception {
 		msg.write(out);
 	}
 

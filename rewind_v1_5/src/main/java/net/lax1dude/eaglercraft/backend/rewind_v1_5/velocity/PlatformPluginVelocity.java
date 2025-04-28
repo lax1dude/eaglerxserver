@@ -69,13 +69,13 @@ public class PlatformPluginVelocity implements IRewindPlatform<Player> {
 		protocol = new RewindProtocol<Player>(this);
 	}
 
-    @Subscribe
-    public void onProxyInit(ProxyInitializeEvent e) {
+	@Subscribe
+	public void onProxyInit(ProxyInitializeEvent e) {
 		EaglerXServerAPI.instance().getEaglerXRewindService().registerLegacyProtocol(protocol);
 	}
 
 	@Subscribe
-    public void onProxyShutdown(ProxyShutdownEvent e) {
+	public void onProxyShutdown(ProxyShutdownEvent e) {
 		EaglerXServerAPI.instance().getEaglerXRewindService().unregisterLegacyProtocol(protocol);
 	}
 

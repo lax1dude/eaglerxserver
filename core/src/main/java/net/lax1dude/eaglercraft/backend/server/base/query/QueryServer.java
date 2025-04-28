@@ -50,7 +50,7 @@ public class QueryServer implements IQueryServer {
 		try {
 			QueryEntry etr = registeredQueries.get(queryType);
 			return etr != null ? etr.handler : null;
-		}finally {
+		} finally {
 			registeredQueriesLock.readLock().unlock();
 		}
 	}
@@ -83,63 +83,64 @@ public class QueryServer implements IQueryServer {
 
 	@Override
 	public boolean isQueryType(String queryType) {
-		if(queryType == null) {
+		if (queryType == null) {
 			throw new NullPointerException("queryType");
 		}
 		registeredQueriesLock.readLock().lock();
 		try {
 			return registeredQueries.containsKey(queryType.toLowerCase(Locale.US));
-		}finally {
+		} finally {
 			registeredQueriesLock.readLock().unlock();
 		}
 	}
 
 	@Override
 	public void registerQueryType(Object plugin, String queryType, IQueryHandler handler) {
-		if(plugin == null) {
+		if (plugin == null) {
 			throw new NullPointerException("plugin");
 		}
-		if(queryType == null) {
+		if (queryType == null) {
 			throw new NullPointerException("queryType");
 		}
-		if(handler == null) {
+		if (handler == null) {
 			throw new NullPointerException("handler");
 		}
 		queryType = queryType.toLowerCase(Locale.US);
-		if("motd".equals(queryType) || queryType.startsWith("motd.")) {
+		if ("motd".equals(queryType) || queryType.startsWith("motd.")) {
 			throw new UnsupportedOperationException("Cannot replace the default MOTD handler");
 		}
 		registeredQueriesLock.writeLock().lock();
 		try {
 			QueryEntry etr = registeredQueries.get(queryType);
-			if(etr != null) {
-				throw new IllegalStateException("Query type \"" + queryType + "\" is already registered by: " + etr.plugin);
+			if (etr != null) {
+				throw new IllegalStateException(
+						"Query type \"" + queryType + "\" is already registered by: " + etr.plugin);
 			}
 			registeredQueries.put(queryType, new QueryEntry(plugin, handler));
-		}finally {
+		} finally {
 			registeredQueriesLock.writeLock().unlock();
 		}
 	}
 
 	@Override
 	public void unregisterQueryType(Object plugin, String queryType) {
-		if(plugin == null) {
+		if (plugin == null) {
 			throw new NullPointerException("plugin");
 		}
-		if(queryType == null) {
+		if (queryType == null) {
 			throw new NullPointerException("queryType");
 		}
 		registeredQueriesLock.writeLock().lock();
 		try {
 			queryType = queryType.toLowerCase(Locale.US);
 			QueryEntry etr = registeredQueries.get(queryType);
-			if(etr != null) {
-				if(etr.plugin != plugin) {
+			if (etr != null) {
+				if (etr.plugin != plugin) {
 					throw new IllegalStateException("Query type is registered by a different plugin: " + etr.plugin);
 				}
 				registeredQueries.remove(queryType);
 			}
-		}finally {
+		} finally {
 			registeredQueriesLock.writeLock().unlock();
 		}
 	}

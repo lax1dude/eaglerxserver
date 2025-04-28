@@ -179,22 +179,22 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		dataDirFile = dataDirIn.toFile();
 		loggerImpl = new SLF4JLogger(loggerIn);
 		eventDispatcherImpl = new VelocityEventDispatchAdapter(proxy.getEventManager());
-    	schedulerImpl = new VelocityScheduler(this, proxyIn.getScheduler());
-    	componentHelperImpl = new VelocityComponentHelper();
-    	cacheConsoleCommandSenderInstance = proxyIn.getConsoleCommandSource();
-    	cacheConsoleCommandSenderHandle = new VelocityConsole(cacheConsoleCommandSenderInstance);
-    	registeredCommandsList = new ArrayList<>();
-    	ImmutableMap.Builder<String, IPlatformServer<Player>> builder = ImmutableMap.builder();
-    	for(RegisteredServer server : proxyIn.getAllServers()) {
-    		builder.put(server.getServerInfo().getName(), new VelocityServer(this, server, true));
-    	}
-    	registeredServers = builder.build();
-    	channelFactory = VelocityUnsafe.getChannelFactory(proxyIn);
-    	unixChannelFactory = VelocityUnsafe.getUnixChannelFactory(proxyIn);
-    	serverChannelFactory = VelocityUnsafe.getServerChannelFactory(proxyIn);
-    	serverUnixChannelFactory = VelocityUnsafe.getServerUnixChannelFactory(proxyIn);
-    	bossEventLoopGroup = VelocityUnsafe.getBossEventLoopGroup(proxyIn);
-    	workerEventLoopGroup = VelocityUnsafe.getWorkerEventLoopGroup(proxyIn);
+		schedulerImpl = new VelocityScheduler(this, proxyIn.getScheduler());
+		componentHelperImpl = new VelocityComponentHelper();
+		cacheConsoleCommandSenderInstance = proxyIn.getConsoleCommandSource();
+		cacheConsoleCommandSenderHandle = new VelocityConsole(cacheConsoleCommandSenderInstance);
+		registeredCommandsList = new ArrayList<>();
+		ImmutableMap.Builder<String, IPlatformServer<Player>> builder = ImmutableMap.builder();
+		for (RegisteredServer server : proxyIn.getAllServers()) {
+			builder.put(server.getServerInfo().getName(), new VelocityServer(this, server, true));
+		}
+		registeredServers = builder.build();
+		channelFactory = VelocityUnsafe.getChannelFactory(proxyIn);
+		unixChannelFactory = VelocityUnsafe.getUnixChannelFactory(proxyIn);
+		serverChannelFactory = VelocityUnsafe.getServerChannelFactory(proxyIn);
+		serverUnixChannelFactory = VelocityUnsafe.getServerUnixChannelFactory(proxyIn);
+		bossEventLoopGroup = VelocityUnsafe.getBossEventLoopGroup(proxyIn);
+		workerEventLoopGroup = VelocityUnsafe.getWorkerEventLoopGroup(proxyIn);
 		Init<Player> init = new InitProxying<Player>() {
 
 			@Override
@@ -213,12 +213,14 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			}
 
 			@Override
-			public void setPipelineInitializer(IEaglerXServerNettyPipelineInitializer<? extends IPipelineData> initializer) {
+			public void setPipelineInitializer(
+					IEaglerXServerNettyPipelineInitializer<? extends IPipelineData> initializer) {
 				pipelineInitializer = (IEaglerXServerNettyPipelineInitializer<IPipelineData>) initializer;
 			}
 
 			@Override
-			public void setConnectionInitializer(IEaglerXServerConnectionInitializer<? extends IPipelineData, ?> initializer) {
+			public void setConnectionInitializer(
+					IEaglerXServerConnectionInitializer<? extends IPipelineData, ?> initializer) {
 				connectionInitializer = (IEaglerXServerConnectionInitializer<IPipelineData, Object>) initializer;
 			}
 
@@ -255,10 +257,10 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		};
 		try {
 			((IEaglerXServerImpl<Player>) new EaglerXServer<Player>()).load(init);
-		}catch(AbortLoadException ex) {
+		} catch (AbortLoadException ex) {
 			logger().error("Server startup aborted: " + ex.getMessage());
 			Throwable t = ex.getCause();
-			if(t != null) {
+			if (t != null) {
 				logger().error("Caused by: ", t);
 			}
 			aborted = true;
@@ -266,14 +268,12 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		}
 	}
 
-	private static final ImmutableMap<String, EnumPipelineComponent> PIPELINE_COMPONENTS_MAP = 
-			ImmutableMap.<String, EnumPipelineComponent>builder()
-			.put("frame-decoder", EnumPipelineComponent.FRAME_DECODER)
+	private static final ImmutableMap<String, EnumPipelineComponent> PIPELINE_COMPONENTS_MAP = ImmutableMap
+			.<String, EnumPipelineComponent>builder().put("frame-decoder", EnumPipelineComponent.FRAME_DECODER)
 			.put("frame-encoder", EnumPipelineComponent.FRAME_ENCODER)
 			.put("minecraft-encoder", EnumPipelineComponent.MINECRAFT_ENCODER)
 			.put("minecraft-decoder", EnumPipelineComponent.MINECRAFT_DECODER)
-			.put("via-encoder", EnumPipelineComponent.VIA_ENCODER)
-			.put("via-decoder", EnumPipelineComponent.VIA_DECODER)
+			.put("via-encoder", EnumPipelineComponent.VIA_ENCODER).put("via-decoder", EnumPipelineComponent.VIA_DECODER)
 			.put("handler", EnumPipelineComponent.INBOUND_PACKET_HANDLER)
 			.put("protocolize2-decoder", EnumPipelineComponent.PROTOCOLIZE_DECODER)
 			.put("protocolize2-encoder", EnumPipelineComponent.PROTOCOLIZE_ENCODER)
@@ -281,53 +281,53 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			.put("legacy-ping-encoder", EnumPipelineComponent.VELOCITY_LEGACY_PING_ENCODER)
 			.put("pe-decoder-packetevents", EnumPipelineComponent.PACKETEVENTS_DECODER)
 			.put("pe-encoder-packetevents", EnumPipelineComponent.PACKETEVENTS_ENCODER)
-			.put("pe-timeout-handler-packetevents", EnumPipelineComponent.PACKETEVENTS_TIMEOUT_HANDLER)
-			.build();
+			.put("pe-timeout-handler-packetevents", EnumPipelineComponent.PACKETEVENTS_TIMEOUT_HANDLER).build();
 
-    @Subscribe
-    public void onProxyInit(ProxyInitializeEvent e) {
-		if(aborted) {
+	@Subscribe
+	public void onProxyInit(ProxyInitializeEvent e) {
+		if (aborted) {
 			return;
 		}
 		aborted = true; // Will set to false if onProxyInit completes normally
-    	proxy.getEventManager().register(this, new VelocityListener(this));
-    	listenersToInit = new ListenerInitList(listenersList);
-    	registeredCommandsList.clear();
-    	for(IEaglerXServerCommandType<Player> cmd : commandsList) {
-    		registeredCommandsList.add((new VelocityCommand(this, cmd)).register());
-    	}
-    	ImmutableMap.Builder<ChannelIdentifier, PluginMessageHandler> channelMapBuilder = ImmutableMap.builder();
-    	for(IEaglerXServerMessageChannel<Player> ch : playerChannelsList) {
-    		PluginMessageHandler handler = new PluginMessageHandler(false, ch, ch.getHandler());
-    		channelMapBuilder.put(new LegacyChannelIdentifier(ch.getLegacyName()), handler);
-    		channelMapBuilder.put(MinecraftChannelIdentifier.from(ch.getModernName()), handler);
-    	}
-    	for(IEaglerXServerMessageChannel<Player> ch : backendChannelsList) {
-    		PluginMessageHandler handler = new PluginMessageHandler(true, ch, ch.getHandler());
-    		channelMapBuilder.put(new LegacyChannelIdentifier(ch.getLegacyName()), handler);
-    		channelMapBuilder.put(MinecraftChannelIdentifier.from(ch.getModernName()), handler);
-    	}
-    	registeredChannelsMap = channelMapBuilder.build();
-    	registeredChannels = registeredChannelsMap.keySet().toArray(new ChannelIdentifier[registeredChannelsMap.size()]);
-    	proxy.getChannelRegistrar().register(registeredChannels);
-    	VelocityUnsafe.injectChannelInitializer(proxy, (listenerConf, channel) -> {
-    		if (!channel.isActive()) {
+		proxy.getEventManager().register(this, new VelocityListener(this));
+		listenersToInit = new ListenerInitList(listenersList);
+		registeredCommandsList.clear();
+		for (IEaglerXServerCommandType<Player> cmd : commandsList) {
+			registeredCommandsList.add((new VelocityCommand(this, cmd)).register());
+		}
+		ImmutableMap.Builder<ChannelIdentifier, PluginMessageHandler> channelMapBuilder = ImmutableMap.builder();
+		for (IEaglerXServerMessageChannel<Player> ch : playerChannelsList) {
+			PluginMessageHandler handler = new PluginMessageHandler(false, ch, ch.getHandler());
+			channelMapBuilder.put(new LegacyChannelIdentifier(ch.getLegacyName()), handler);
+			channelMapBuilder.put(MinecraftChannelIdentifier.from(ch.getModernName()), handler);
+		}
+		for (IEaglerXServerMessageChannel<Player> ch : backendChannelsList) {
+			PluginMessageHandler handler = new PluginMessageHandler(true, ch, ch.getHandler());
+			channelMapBuilder.put(new LegacyChannelIdentifier(ch.getLegacyName()), handler);
+			channelMapBuilder.put(MinecraftChannelIdentifier.from(ch.getModernName()), handler);
+		}
+		registeredChannelsMap = channelMapBuilder.build();
+		registeredChannels = registeredChannelsMap.keySet()
+				.toArray(new ChannelIdentifier[registeredChannelsMap.size()]);
+		proxy.getChannelRegistrar().register(registeredChannels);
+		VelocityUnsafe.injectChannelInitializer(proxy, (listenerConf, channel) -> {
+			if (!channel.isActive()) {
 				return;
 			}
 
 			List<IPipelineComponent> pipelineList = new ArrayList<>();
 
 			ChannelPipeline pipeline = channel.pipeline();
-			for(String str : pipeline.names()) {
+			for (String str : pipeline.names()) {
 				ChannelHandler handler = pipeline.get(str);
-				if(handler != null) {
+				if (handler != null) {
 					pipelineList.add(new IPipelineComponent() {
 
 						private EnumPipelineComponent type = null;
 
 						@Override
 						public EnumPipelineComponent getIdentifiedType() {
-							if(type == null) {
+							if (type == null) {
 								type = PIPELINE_COMPONENTS_MAP.getOrDefault(str, EnumPipelineComponent.UNIDENTIFIED);
 								if (type == EnumPipelineComponent.UNIDENTIFIED
 										&& "io.netty.handler.codec.haproxy.HAProxyMessageDecoder"
@@ -356,37 +356,41 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 				public void setAttachment(IPipelineData object) {
 					channel.attr(PipelineAttributes.<IPipelineData>pipelineData()).set(object);
 				}
+
 				@Override
 				public List<IPipelineComponent> getPipeline() {
 					return pipelineList;
 				}
+
 				@Override
 				public IEaglerXServerListener getListener() {
 					return listenerConf;
 				}
+
 				@Override
 				public Consumer<SocketAddress> realAddressHandle() {
 					return (addr) -> {
 						Object o = channel.pipeline().get("handler");
-						if(o != null) {
+						if (o != null) {
 							VelocityUnsafe.updateRealAddress(o, addr);
 						}
 					};
 				}
+
 				@Override
 				public Channel getChannel() {
 					return channel;
 				}
 			});
 
-    	});
-		if(onServerEnable != null) {
+		});
+		if (onServerEnable != null) {
 			try {
 				onServerEnable.run();
-			}catch(AbortLoadException ex) {
+			} catch (AbortLoadException ex) {
 				logger().error("Server startup aborted: " + ex.getMessage());
 				Throwable t = ex.getCause();
-				if(t != null) {
+				if (t != null) {
 					logger().error("Caused by: ", t);
 				}
 				onProxyShutdown(null);
@@ -397,19 +401,19 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	}
 
 	@Subscribe
-    public void onProxyShutdown(ProxyShutdownEvent e) {
-		if(aborted) {
+	public void onProxyShutdown(ProxyShutdownEvent e) {
+		if (aborted) {
 			return;
 		}
-		if(onServerDisable != null) {
+		if (onServerDisable != null) {
 			onServerDisable.run();
 		}
 		proxy.getEventManager().unregisterListeners(this);
-		for(CommandMeta cmd : registeredCommandsList) {
+		for (CommandMeta cmd : registeredCommandsList) {
 			proxy.getCommandManager().unregister(cmd);
 		}
 		registeredCommandsList.clear();
-		if(registeredChannels != null) {
+		if (registeredChannels != null) {
 			proxy.getChannelRegistrar().unregister(registeredChannels);
 			registeredChannels = null;
 		}
@@ -446,13 +450,13 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	}
 
 	IPlatformCommandSender<Player> getCommandSender(CommandSource obj) {
-		if(obj == null) {
+		if (obj == null) {
 			return null;
-		}else if(obj instanceof Player player) {
+		} else if (obj instanceof Player player) {
 			return getPlayer(player);
-		}else if(obj == cacheConsoleCommandSenderInstance) {
+		} else if (obj == cacheConsoleCommandSenderInstance) {
 			return cacheConsoleCommandSenderHandle;
-		}else {
+		} else {
 			return new VelocityConsole(obj);
 		}
 	}
@@ -475,9 +479,9 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	@Override
 	public IPlatformPlayer<Player> getPlayer(String username) {
 		Optional<Player> player = proxy.getPlayer(username);
-		if(player.isPresent()) {
+		if (player.isPresent()) {
 			return playerInstanceMap.get(player.get());
-		}else {
+		} else {
 			return null;
 		}
 	}
@@ -485,9 +489,9 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	@Override
 	public IPlatformPlayer<Player> getPlayer(UUID uuid) {
 		Optional<Player> player = proxy.getPlayer(uuid);
-		if(player.isPresent()) {
+		if (player.isPresent()) {
 			return playerInstanceMap.get(player.get());
-		}else {
+		} else {
 			return null;
 		}
 	}
@@ -500,11 +504,11 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	@Override
 	public IPlatformServer<Player> getServer(String serverName) {
 		IPlatformServer<Player> ret = registeredServers.get(serverName);
-		if(ret != null) {
+		if (ret != null) {
 			return ret;
-		}else {
+		} else {
 			Optional<RegisteredServer> svr = proxy.getServer(serverName);
-			if(svr.isPresent()) {
+			if (svr.isPresent()) {
 				return new VelocityServer(this, svr.get(), false);
 			}
 			return null;
@@ -563,26 +567,26 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 
 	@Override
 	public Bootstrap setChannelFactory(Bootstrap bootstrap, SocketAddress address) {
-		if(address instanceof DomainSocketAddress) {
-			if(unixChannelFactory != null) {
+		if (address instanceof DomainSocketAddress) {
+			if (unixChannelFactory != null) {
 				return bootstrap.channelFactory(unixChannelFactory);
-			}else {
+			} else {
 				throw new UnsupportedOperationException("Unix sockets unsupported on this platform");
 			}
-		}else {
+		} else {
 			return bootstrap.channelFactory(channelFactory);
 		}
 	}
 
 	@Override
 	public ServerBootstrap setServerChannelFactory(ServerBootstrap bootstrap, SocketAddress address) {
-		if(address instanceof DomainSocketAddress) {
-			if(serverUnixChannelFactory != null) {
+		if (address instanceof DomainSocketAddress) {
+			if (serverUnixChannelFactory != null) {
 				return bootstrap.channelFactory(serverUnixChannelFactory);
-			}else {
+			} else {
 				throw new UnsupportedOperationException("Unix sockets unsupported on this platform");
 			}
-		}else {
+		} else {
 			return bootstrap.channelFactory(serverChannelFactory);
 		}
 	}
@@ -602,7 +606,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		boolean eag = pipelineData != null && pipelineData.isEaglerPlayer();
 		VelocityConnection c = new VelocityConnection(this, conn, username, uuid,
 				eag ? pipelineData::awaitPlayState : null);
-		if(eag) {
+		if (eag) {
 			c.compressionDisable = true;
 		}
 		setAttr.accept(c);
@@ -611,23 +615,28 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			public void setConnectionAttachment(Object attachment) {
 				c.attachment = attachment;
 			}
+
 			@Override
 			public IPipelineData getPipelineAttachment() {
 				return pipelineData;
 			}
+
 			@Override
 			public IPlatformConnection getConnection() {
 				return c;
 			}
+
 			@Override
 			public void setUniqueId(UUID uuid) {
 				c.uuid = uuid;
 			}
+
 			@Override
 			public void setTexturesProperty(String propertyValue, String propertySignature) {
 				c.texturesPropertyValue = propertyValue;
 				c.texturesPropertySignature = propertySignature;
 			}
+
 			@Override
 			public void setEaglerPlayerProperty(boolean enable) {
 				c.eaglerPlayerProperty = enable ? (byte) 2 : (byte) 1;
@@ -642,19 +651,23 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			public void setPlayerAttachment(Object attachment) {
 				p.attachment = attachment;
 			}
+
 			@Override
 			public Object getConnectionAttachment() {
 				return connection.attachment;
 			}
+
 			@Override
 			public IPlatformPlayer<Player> getPlayer() {
 				return p;
 			}
+
 			@Override
 			public void complete() {
 				playerInstanceMap.put(player, p);
 				onComplete.accept(true);
 			}
+
 			@Override
 			public void cancel() {
 				onComplete.accept(false);
@@ -664,21 +677,21 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 
 	public void handleServerPreConnect(IPlatformPlayer<Player> player) {
 		IEaglerXServerJoinListener<Player> listener = serverJoinListener;
-		if(listener != null) {
+		if (listener != null) {
 			listener.handlePreConnect(player);
 		}
 	}
 
 	public void handleServerPostConnect(IPlatformPlayer<Player> player, IPlatformServer<Player> server) {
 		IEaglerXServerJoinListener<Player> listener = serverJoinListener;
-		if(listener != null) {
+		if (listener != null) {
 			listener.handlePostConnect(player, server);
 		}
 	}
 
 	public void dropPlayer(Player player) {
 		VelocityPlayer p = playerInstanceMap.remove(player);
-		if(p != null) {
+		if (p != null) {
 			playerInitializer.destroyPlayer(p);
 		}
 	}

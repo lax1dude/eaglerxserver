@@ -29,7 +29,7 @@ public interface IRefCountedHolder extends ReferenceCounted {
 
 	default ReferenceCounted retain() {
 		ReferenceCounted d = delegate();
-		if(d != null) {
+		if (d != null) {
 			d.retain();
 		}
 		return this;
@@ -37,7 +37,7 @@ public interface IRefCountedHolder extends ReferenceCounted {
 
 	default ReferenceCounted retain(int increment) {
 		ReferenceCounted d = delegate();
-		if(d != null) {
+		if (d != null) {
 			d.retain(increment);
 		}
 		return this;
@@ -45,7 +45,7 @@ public interface IRefCountedHolder extends ReferenceCounted {
 
 	default ReferenceCounted touch() {
 		ReferenceCounted d = delegate();
-		if(d != null) {
+		if (d != null) {
 			d.touch();
 		}
 		return this;
@@ -53,7 +53,7 @@ public interface IRefCountedHolder extends ReferenceCounted {
 
 	default ReferenceCounted touch(Object hint) {
 		ReferenceCounted d = delegate();
-		if(d != null) {
+		if (d != null) {
 			d.touch(hint);
 		}
 		return this;

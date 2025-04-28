@@ -59,49 +59,51 @@ public class EaglerXSupervisorConfig {
 	private String sqlDriverPath = "internal";
 
 	public void load(File conf) throws IOException {
-		if(!conf.isFile()) {
-			try(BufferedReader br = new BufferedReader(new InputStreamReader(
+		if (!conf.isFile()) {
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(
 					EaglerXSupervisorConfig.class.getResourceAsStream("default_supervisor_config.properties"),
 					StandardCharsets.UTF_8))) {
 				try (PrintWriter w = new PrintWriter(
 						new OutputStreamWriter(new FileOutputStream(conf), StandardCharsets.UTF_8))) {
 					String str;
-					while((str = br.readLine()) != null) {
+					while ((str = br.readLine()) != null) {
 						w.println(str);
 					}
 				}
 			}
 		}
-		
+
 		Properties props = new Properties();
-		try(Reader is = new InputStreamReader(new FileInputStream(conf), StandardCharsets.UTF_8)) {
+		try (Reader is = new InputStreamReader(new FileInputStream(conf), StandardCharsets.UTF_8)) {
 			props.load(is);
 		}
-		
+
 		listenAddress = PipelineFactory.getAddr(getRequiredString(props, "listen-addr"));
 		secretKey = getStringOrNull(props, "secret-key");
 		readTimeout = getRequiredInt(props, "read-timeout");
 		enableStatus = "true".equalsIgnoreCase(getStringOrNull(props, "status-http-enable"));
-		if(enableStatus) {
+		if (enableStatus) {
 			listenStatusAddress = PipelineFactory.getAddr(getRequiredString(props, "status-http-listen-addr"));
 			statusUsername = getStringOrNull(props, "status-http-username");
 			statusPassword = getStringOrNull(props, "status-http-password");
-			if(statusUsername != null && statusPassword != null) {
+			if (statusUsername != null && statusPassword != null) {
 				authString = AuthUtil.createBasic(statusUsername, statusPassword);
-			}else {
+			} else {
 				authString = null;
 			}
-		}else {
+		} else {
 			listenStatusAddress = null;
 			statusUsername = null;
 			statusPassword = null;
 			authString = null;
 		}
 		downloadVanillaSkins = "true".equalsIgnoreCase(getStringOrNull(props, "download-vanilla-skins"));
-		if(downloadVanillaSkins) {
-			allowedSkinDownloadOrigins = new HashSet<>(Arrays.asList(getRequiredString(props, "valid-skin-download-origins").split("\\s*[;,]\\s*")));
+		if (downloadVanillaSkins) {
+			allowedSkinDownloadOrigins = new HashSet<>(
+					Arrays.asList(getRequiredString(props, "valid-skin-download-origins").split("\\s*[;,]\\s*")));
 			skinCacheDBURI = getRequiredString(props, "skin-cache-db-uri");
-			skinCacheDBSQLiteCompatible = Boolean.parseBoolean(getRequiredString(props, "skin-cache-db-sqlite-compatible"));
+			skinCacheDBSQLiteCompatible = Boolean
+					.parseBoolean(getRequiredString(props, "skin-cache-db-sqlite-compatible"));
 			skinCacheThreadPoolSize = getRequiredInt(props, "skin-cache-thread-pool-size");
 			databaseKeepObjectsDays = getRequiredInt(props, "database-keep-objects-days");
 			databaseMaxObjects = getRequiredInt(props, "database-max-objects");
@@ -110,7 +112,7 @@ public class EaglerXSupervisorConfig {
 			memoryCacheMaxObjects = getRequiredInt(props, "memory-cache-max-objects");
 			sqlDriverClass = getRequiredString(props, "sql-driver-class");
 			sqlDriverPath = getRequiredString(props, "sql-driver-path");
-		}else {
+		} else {
 			allowedSkinDownloadOrigins = null;
 			skinCacheDBURI = null;
 			skinCacheDBSQLiteCompatible = false;
@@ -129,30 +131,30 @@ public class EaglerXSupervisorConfig {
 		String ret = getRequiredString(props, name);
 		try {
 			return Integer.parseInt(ret);
-		}catch(NumberFormatException ex) {
+		} catch (NumberFormatException ex) {
 			throw new IOException("Config variable " + name + " is not an integer: \"" + ret + "\"");
 		}
 	}
 
 	private static String getRequiredString(Properties props, String name) throws IOException {
 		String ret = getStringOrNull(props, name);
-		if(ret != null) {
+		if (ret != null) {
 			return ret;
-		}else {
+		} else {
 			throw new IOException("Required config variable is missing: " + name);
 		}
 	}
 
 	private static String getStringOrNull(Properties props, String name) {
 		Object ret = props.get(name);
-		if(ret != null) {
+		if (ret != null) {
 			String s = ret.toString();
-			if(s.length() > 0) {
+			if (s.length() > 0) {
 				return s;
-			}else {
+			} else {
 				return null;
 			}
-		}else {
+		} else {
 			return null;
 		}
 	}

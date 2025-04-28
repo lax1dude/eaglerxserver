@@ -48,26 +48,26 @@ public class ConfigDataSettings {
 			this.protocolV3Allowed = protocolV3Allowed;
 			this.protocolV4Allowed = protocolV4Allowed;
 			this.protocolV5Allowed = protocolV5Allowed;
-			if(protocolLegacyAllowed) {
+			if (protocolLegacyAllowed) {
 				minEaglerProtocol = 1;
-			}else if(protocolV3Allowed) {
+			} else if (protocolV3Allowed) {
 				minEaglerProtocol = 3;
-			}else if(protocolV4Allowed) {
+			} else if (protocolV4Allowed) {
 				minEaglerProtocol = 4;
-			}else if(protocolV5Allowed) {
+			} else if (protocolV5Allowed) {
 				minEaglerProtocol = 5;
-			}else {
+			} else {
 				minEaglerProtocol = Integer.MAX_VALUE;
 			}
-			if(protocolV5Allowed) {
+			if (protocolV5Allowed) {
 				maxEaglerProtocol = 5;
-			}else if(protocolV4Allowed) {
+			} else if (protocolV4Allowed) {
 				maxEaglerProtocol = 4;
-			}else if(protocolV3Allowed) {
+			} else if (protocolV3Allowed) {
 				maxEaglerProtocol = 3;
-			}else if(protocolLegacyAllowed) {
+			} else if (protocolLegacyAllowed) {
 				maxEaglerProtocol = 1;
-			}else {
+			} else {
 				maxEaglerProtocol = Integer.MIN_VALUE;
 			}
 		}
@@ -113,7 +113,7 @@ public class ConfigDataSettings {
 		}
 
 		public boolean isEaglerHandshakeSupported(int vers) {
-			return switch(vers) {
+			return switch (vers) {
 			case 1, 2 -> protocolLegacyAllowed;
 			case 3 -> protocolV3Allowed;
 			case 4 -> protocolV4Allowed;
@@ -123,7 +123,7 @@ public class ConfigDataSettings {
 		}
 
 		public boolean isEaglerProtocolSupported(int vers) {
-			return switch(vers) {
+			return switch (vers) {
 			case 3 -> protocolLegacyAllowed || protocolV3Allowed;
 			case 4 -> protocolV4Allowed;
 			case 5 -> protocolV5Allowed;
@@ -254,11 +254,11 @@ public class ConfigDataSettings {
 		}
 
 		public Predicate<String> getFNAWSkinsPredicate() {
-			if(enableFNAWSkinModelsGlobal) {
+			if (enableFNAWSkinModelsGlobal) {
 				return (str) -> true;
-			}else if(!enableFNAWSkinModelsOnServers.isEmpty()) {
+			} else if (!enableFNAWSkinModelsOnServers.isEmpty()) {
 				return enableFNAWSkinModelsOnServers::contains;
-			}else {
+			} else {
 				return (str) -> false;
 			}
 		}

@@ -40,18 +40,18 @@ public class CPacketVoiceSignalDisconnectV3EAG implements GameMessagePacket {
 
 	@Override
 	public void readPacket(GamePacketInputBuffer buffer) throws IOException {
-		if(buffer.available() > 0) {
+		if (buffer.available() > 0) {
 			isPeerType = true;
 			uuidMost = buffer.readLong();
 			uuidLeast = buffer.readLong();
-		}else {
+		} else {
 			isPeerType = false;
 		}
 	}
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
-		if(isPeerType) {
+		if (isPeerType) {
 			buffer.writeLong(uuidMost);
 			buffer.writeLong(uuidLeast);
 		}

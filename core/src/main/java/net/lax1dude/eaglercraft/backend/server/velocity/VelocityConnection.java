@@ -43,8 +43,8 @@ class VelocityConnection implements IPlatformConnection {
 	byte eaglerPlayerProperty;
 	boolean compressionDisable;
 
-	VelocityConnection(PlatformPluginVelocity plugin, InboundConnection connection,
-			String username, UUID uuid, Consumer<Runnable> awaitPlayState) {
+	VelocityConnection(PlatformPluginVelocity plugin, InboundConnection connection, String username, UUID uuid,
+			Consumer<Runnable> awaitPlayState) {
 		this.plugin = plugin;
 		this.connection = connection;
 		this.username = username;
@@ -66,9 +66,9 @@ class VelocityConnection implements IPlatformConnection {
 	@Override
 	public String getUsername() {
 		Player player = playerInstance;
-		if(player != null) {
+		if (player != null) {
 			return player.getUsername();
-		}else {
+		} else {
 			return username;
 		}
 	}
@@ -76,9 +76,9 @@ class VelocityConnection implements IPlatformConnection {
 	@Override
 	public UUID getUniqueId() {
 		Player player = playerInstance;
-		if(player != null) {
+		if (player != null) {
 			return player.getUniqueId();
-		}else {
+		} else {
 			return uuid;
 		}
 	}
@@ -96,10 +96,10 @@ class VelocityConnection implements IPlatformConnection {
 	@Override
 	public boolean isOnlineMode() {
 		Player player = playerInstance;
-		if(player != null) {
+		if (player != null) {
 			return player.isOnlineMode();
-		}else {
-			//TODO: online mode?
+		} else {
+			// TODO: online mode?
 			return false;
 		}
 	}
@@ -107,9 +107,9 @@ class VelocityConnection implements IPlatformConnection {
 	@Override
 	public boolean isConnected() {
 		Player player = playerInstance;
-		if(player != null) {
+		if (player != null) {
 			return player.isActive();
-		}else {
+		} else {
 			return connection.isActive();
 		}
 	}
@@ -117,9 +117,9 @@ class VelocityConnection implements IPlatformConnection {
 	@Override
 	public void disconnect() {
 		Player player = playerInstance;
-		if(player != null) {
+		if (player != null) {
 			player.disconnect(DEFAULT_KICK_MESSAGE);
-		}else {
+		} else {
 			VelocityUnsafe.disconnectInbound(connection);
 		}
 	}
@@ -127,18 +127,18 @@ class VelocityConnection implements IPlatformConnection {
 	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
 		Player player = playerInstance;
-		if(player != null) {
-			player.disconnect((Component)kickMessage);
-		}else {
-			VelocityUnsafe.disconnectInbound(connection, (Component)kickMessage);
+		if (player != null) {
+			player.disconnect((Component) kickMessage);
+		} else {
+			VelocityUnsafe.disconnectInbound(connection, (Component) kickMessage);
 		}
 	}
 
 	public void awaitPlayState(Runnable runnable) {
-		if(awaitPlayState != null) {
+		if (awaitPlayState != null) {
 			awaitPlayState.accept(runnable);
 			awaitPlayState = null;
-		}else {
+		} else {
 			runnable.run();
 		}
 	}

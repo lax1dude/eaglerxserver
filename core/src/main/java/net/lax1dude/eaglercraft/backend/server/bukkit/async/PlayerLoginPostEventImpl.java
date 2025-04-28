@@ -69,11 +69,11 @@ class PlayerLoginPostEventImpl extends PlayerLoginPostEvent implements PlayerLog
 
 	@Override
 	public void registerIntent(Object token) {
-		synchronized(this) {
-			if(completed) {
+		synchronized (this) {
+			if (completed) {
 				throw new IllegalStateException("Event is already completed!");
 			}
-			if(intents == null) {
+			if (intents == null) {
 				intents = new ObjectIdentityHashSet<>();
 			}
 			intents.add(token);
@@ -83,9 +83,9 @@ class PlayerLoginPostEventImpl extends PlayerLoginPostEvent implements PlayerLog
 	@Override
 	public void completeIntent(Object token) {
 		eagler: {
-			synchronized(this) {
-				if(intents != null && intents.removeAll(token) > 0) {
-					if(completed && intents.isEmpty()) {
+			synchronized (this) {
+				if (intents != null && intents.removeAll(token) > 0) {
+					if (completed && intents.isEmpty()) {
 						break eagler;
 					}
 					return;
@@ -97,9 +97,9 @@ class PlayerLoginPostEventImpl extends PlayerLoginPostEvent implements PlayerLog
 	}
 
 	public void complete() {
-		synchronized(this) {
+		synchronized (this) {
 			completed = true;
-			if(intents != null && !intents.isEmpty()) {
+			if (intents != null && !intents.isEmpty()) {
 				return;
 			}
 		}

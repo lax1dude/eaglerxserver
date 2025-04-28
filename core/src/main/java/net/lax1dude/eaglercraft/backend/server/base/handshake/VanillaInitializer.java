@@ -56,18 +56,18 @@ public class VanillaInitializer {
 			BufferUtils.writeVarInt(buffer, pipelineData.minecraftProtocol);
 			String ip = pipelineData.headerHost;
 			int port = 65535;
-			if(ip == null) {
+			if (ip == null) {
 				ip = "127.0.0.1";
-			}else {
+			} else {
 				int i = ip.lastIndexOf(':');
-				if(i != -1 && i < ip.length() - 1) {
+				if (i != -1 && i < ip.length() - 1) {
 					try {
 						port = Integer.parseInt(ip.substring(i + 1));
 						ip = ip.substring(0, i);
-					}catch(NumberFormatException ex) {
+					} catch (NumberFormatException ex) {
 					}
 				}
-				if(ip.length() > 255) {
+				if (ip.length() > 255) {
 					ip = ip.substring(0, 255);
 				}
 			}
@@ -75,11 +75,11 @@ public class VanillaInitializer {
 			buffer.writeShort(port);
 			BufferUtils.writeVarInt(buffer, 2);
 			ctx.fireChannelRead(buffer.retain());
-		}finally {
+		} finally {
 			buffer.release();
 		}
 
-		if(inboundHandler.terminated || !ctx.channel().isActive()) {
+		if (inboundHandler.terminated || !ctx.channel().isActive()) {
 			return;
 		}
 
@@ -89,11 +89,11 @@ public class VanillaInitializer {
 			BufferUtils.writeVarInt(buffer, 0x00);
 			BufferUtils.writeMCString(buffer, pipelineData.username, 16);
 			ctx.fireChannelRead(buffer.retain());
-		}finally {
+		} finally {
 			buffer.release();
 		}
 
-		if(inboundHandler.terminated || !ctx.channel().isActive()) {
+		if (inboundHandler.terminated || !ctx.channel().isActive()) {
 			return;
 		}
 
@@ -104,15 +104,15 @@ public class VanillaInitializer {
 		try {
 			msg.markReaderIndex();
 			int pktId = BufferUtils.readVarInt(msg, 3);
-			if(connectionState == STATE_PRE) {
-				if(pktId == 0x00) {
+			if (connectionState == STATE_PRE) {
+				if (pktId == 0x00) {
 					handleKickPacket(ctx, msg);
-				}else {
+				} else {
 					pipelineData.connectionLogger.error("Disconnecting, server sent unexpected packet " + pktId);
 					inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
 				}
-			}else if(connectionState == STATE_SENT_LOGIN) {
-				switch(pktId) {
+			} else if (connectionState == STATE_SENT_LOGIN) {
+				switch (pktId) {
 				case 0x00:
 					// S00PacketDisconnect
 					handleKickPacket(ctx, msg);
@@ -120,7 +120,8 @@ public class VanillaInitializer {
 				case 0x01:
 					// S01PacketEncryptionRequest
 					inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
-					pipelineData.connectionLogger.error("Disconnecting, server tried to enable online mode encryption, please make sure the server is not in online mode");
+					pipelineData.connectionLogger.error(
+							"Disconnecting, server tried to enable online mode encryption, please make sure the server is not in online mode");
 					break;
 				case 0x02:
 					connectionState = STATE_STALLING;
@@ -129,7 +130,7 @@ public class VanillaInitializer {
 					String uuidStr = BufferUtils.readMCString(msg, 36);
 					try {
 						playerUUID = UUID.fromString(uuidStr);
-					}catch(IllegalArgumentException ex) {
+					} catch (IllegalArgumentException ex) {
 						inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
 						return;
 					}
@@ -146,22 +147,23 @@ public class VanillaInitializer {
 					break;
 				default:
 					inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
-					pipelineData.connectionLogger.error("Disconnecting, server sent unknown packet " + pktId + " while handshaking");
+					pipelineData.connectionLogger
+							.error("Disconnecting, server sent unknown packet " + pktId + " while handshaking");
 					break;
 				}
-			}else if(connectionState == STATE_STALLING) {
-				if(pktId == 0x40) {
+			} else if (connectionState == STATE_STALLING) {
+				if (pktId == 0x40) {
 					// S40PacketDisconnect
 					handleKickPacket(ctx, msg);
-				}else {
+				} else {
 					msg.resetReaderIndex();
 					bufferedPackets.add(msg.retain());
 				}
-			}else {
+			} else {
 				pipelineData.connectionLogger.error("Disconnecting, server sent unexpected packet " + pktId);
 				inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
 			}
-		}catch(IndexOutOfBoundsException ex) {
+		} catch (IndexOutOfBoundsException ex) {
 			ex.printStackTrace();
 			inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
 		}
@@ -175,21 +177,21 @@ public class VanillaInitializer {
 	}
 
 	public void flushBufferedPackets(ChannelHandlerContext ctx) {
-		if(!bufferedPackets.isEmpty()) {
+		if (!bufferedPackets.isEmpty()) {
 			try {
-				for(ByteBuf buf : bufferedPackets) {
+				for (ByteBuf buf : bufferedPackets) {
 					ctx.write(buf.retain());
 				}
 				ctx.flush();
-			}finally {
+			} finally {
 				release();
 			}
 		}
 	}
 
 	public void release() {
-		if(!bufferedPackets.isEmpty()) {
-			for(ByteBuf buf : bufferedPackets) {
+		if (!bufferedPackets.isEmpty()) {
+			for (ByteBuf buf : bufferedPackets) {
 				buf.release();
 			}
 			bufferedPackets.clear();

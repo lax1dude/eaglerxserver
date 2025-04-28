@@ -53,15 +53,15 @@ public class RPCActiveFuture<V> extends AbstractFuture<V> implements IRPCFutureE
 
 	@Override
 	public boolean fireTimeoutExceptionInternal(Throwable value) {
-		if(!isDone()) {
+		if (!isDone()) {
 			timedOut = true;
-			if(fireExceptionInternal(value)) {
+			if (fireExceptionInternal(value)) {
 				return true;
-			}else {
-				timedOut = false; //oops
+			} else {
+				timedOut = false; // oops
 				return false;
 			}
-		}else {
+		} else {
 			return false;
 		}
 	}

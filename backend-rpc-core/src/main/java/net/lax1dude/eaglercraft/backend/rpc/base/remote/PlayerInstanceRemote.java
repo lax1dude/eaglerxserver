@@ -105,7 +105,7 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 
 	@Override
 	public boolean isRPCReady() {
-		return (int)READY_HANDLE.getOpaque(this) != 0;
+		return (int) READY_HANDLE.getOpaque(this) != 0;
 	}
 
 	@Override
@@ -151,25 +151,27 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 
 	@Override
 	public IRPCFuture<IBasePlayerRPC<PlayerObject>> openFuture() {
-		RPCActiveFuture<IBasePlayerRPC<PlayerObject>> ret = (RPCActiveFuture<IBasePlayerRPC<PlayerObject>>) FUTURE_HANDLE.getAcquire(this);
-		if(ret != null) {
+		RPCActiveFuture<IBasePlayerRPC<PlayerObject>> ret = (RPCActiveFuture<IBasePlayerRPC<PlayerObject>>) FUTURE_HANDLE
+				.getAcquire(this);
+		if (ret != null) {
 			return ret;
-		}else {
+		} else {
 			long now;
 			boolean isReady;
-			synchronized(this) {
+			synchronized (this) {
 				ret = future;
-				if(ret != null) {
+				if (ret != null) {
 					return ret;
 				}
 				now = System.nanoTime();
-				isReady = (int)READY_HANDLE.getOpaque(this) != 0;
-				FUTURE_HANDLE.setRelease(this, ret = RPCActiveFuture.create(server.schedulerExecutors(), now, server.getBaseRequestTimeout()));
+				isReady = (int) READY_HANDLE.getOpaque(this) != 0;
+				FUTURE_HANDLE.setRelease(this,
+						ret = RPCActiveFuture.create(server.schedulerExecutors(), now, server.getBaseRequestTimeout()));
 			}
-			if(isReady) {
+			if (isReady) {
 				beginHandshake(ret);
 			}
-			if(!ret.isDone()) {
+			if (!ret.isDone()) {
 				server.timeoutLoop().addFuture(now, ret);
 			}
 			return ret;
@@ -178,11 +180,12 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 
 	void handleRPCMessage(byte[] contents) {
 		BasePlayerRPC<PlayerObject> ctx = (BasePlayerRPC<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
-		if(ctx != null) {
+		if (ctx != null) {
 			ctx.handleRPCMessage(contents);
-		}else {
-			RPCActiveFuture<IBasePlayerRPC<PlayerObject>> res = (RPCActiveFuture<IBasePlayerRPC<PlayerObject>>) FUTURE_HANDLE.getAcquire(this);
-			if(res != null) {
+		} else {
+			RPCActiveFuture<IBasePlayerRPC<PlayerObject>> res = (RPCActiveFuture<IBasePlayerRPC<PlayerObject>>) FUTURE_HANDLE
+					.getAcquire(this);
+			if (res != null) {
 				handleRPCHandshake(contents, res);
 			}
 		}
@@ -192,7 +195,7 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 		EaglerBackendRPCPacket pkt;
 		try {
 			pkt = BackendRPCMessageController.deserializeINIT(contents, serializationContext);
-			if(pkt instanceof SPacketRPCEnabledSuccess) {
+			if (pkt instanceof SPacketRPCEnabledSuccess) {
 				throw new IOException("Received unexpected legacy SPacketRPCEnabledSuccess response");
 			}
 		} catch (IOException e) {
@@ -200,26 +203,26 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 			res.fireExceptionInternal(new RPCException("Failed to handle RPC init message!", e));
 			return;
 		}
-		if(pkt instanceof SPacketRPCEnabledSuccessEaglerV2 pktt) {
-			if(pktt.selectedRPCProtocol == 2) {
+		if (pkt instanceof SPacketRPCEnabledSuccessEaglerV2 pktt) {
+			if (pktt.selectedRPCProtocol == 2) {
 				handleContextCreate(res, new EaglerPlayerRPC<PlayerObject>(this, EaglerBackendRPCProtocol.V2,
 						serializationContext, pktt));
-			}else {
+			} else {
 				logger().error("Unexpected RPC protocol version in enable response!");
 				res.fireExceptionInternal(new RPCException("Unexpected RPC protocol version in enable response!"));
 			}
-		}else if(pkt instanceof SPacketRPCEnabledSuccessVanillaV2 pktt) {
-			if(pktt.selectedRPCProtocol == 2) {
+		} else if (pkt instanceof SPacketRPCEnabledSuccessVanillaV2 pktt) {
+			if (pktt.selectedRPCProtocol == 2) {
 				handleContextCreate(res, new BasePlayerRPC<PlayerObject>(this, EaglerBackendRPCProtocol.V2,
 						serializationContext, pktt.minecraftProtocol, pktt.supervisorNode));
-			}else {
+			} else {
 				logger().error("Unexpected RPC protocol version in enable response!");
 				res.fireExceptionInternal(new RPCException("Unexpected RPC protocol version in enable response!"));
 			}
-		}else if(pkt instanceof SPacketRPCEnabledFailure pktt) {
+		} else if (pkt instanceof SPacketRPCEnabledFailure pktt) {
 			String str;
 			int code = pktt.failureCode;
-			switch(code) {
+			switch (code) {
 			case SPacketRPCEnabledFailure.FAILURE_CODE_NOT_ENABLED:
 				str = "FAILURE_CODE_NOT_ENABLED";
 				break;
@@ -240,15 +243,16 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 				break;
 			}
 			res.fireExceptionInternal(new RPCException("Received failure code: " + str));
-		}else {
+		} else {
 			logger().error("Unknown RPC init message: " + pkt.getClass().getSimpleName());
 			res.fireExceptionInternal(new RPCException("Failed to handle RPC init message!"));
 		}
 	}
 
-	private void handleContextCreate(RPCActiveFuture<IBasePlayerRPC<PlayerObject>> res, BasePlayerRPC<PlayerObject> context) {
+	private void handleContextCreate(RPCActiveFuture<IBasePlayerRPC<PlayerObject>> res,
+			BasePlayerRPC<PlayerObject> context) {
 		boolean eag = eaglerPlayer;
-		if(eag != context.isEaglerPlayer()) {
+		if (eag != context.isEaglerPlayer()) {
 			RPCException ret = new RPCException("Context type mismatch for player type: " + (eag ? "eagler" : "base"));
 			res.fireExceptionInternal(ret);
 			throw ret;
@@ -259,31 +263,31 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 
 	void handleReadyMessage(boolean eagler, int viewDistance) {
 		eaglerPlayer = eagler;
-		if(eagler) {
+		if (eagler) {
 			server.registerPlayerEagler(this);
-			if(viewDistance > 0) {
-				if(player.isSetViewDistanceSupportedPaper()) {
+			if (viewDistance > 0) {
+				if (player.isSetViewDistanceSupportedPaper()) {
 					player.setViewDistancePaper(Math.max(viewDistance, 3));
 				}
 			}
 		}
 		RPCActiveFuture<IBasePlayerRPC<PlayerObject>> f;
-		synchronized(this) {
-			if((int)READY_HANDLE.compareAndExchange(this, 0, 1) != 0) {
+		synchronized (this) {
+			if ((int) READY_HANDLE.compareAndExchange(this, 0, 1) != 0) {
 				return;
 			}
 			f = future;
 		}
-		if(f != null) {
+		if (f != null) {
 			beginHandshake(f);
 		}
-		if(eagler) {
+		if (eagler) {
 			server.getPlatform().eventDispatcher().dispatchPlayerReadyEvent(this);
 		}
 	}
 
 	void handleVoiceMessage(byte[] contents) {
-		if(voiceManager != null) {
+		if (voiceManager != null) {
 			voiceManager.handleInboundVoiceMessage(contents);
 		}
 	}
@@ -303,14 +307,16 @@ public class PlayerInstanceRemote<PlayerObject> extends RPCAttributeHolder
 
 	void handleDestroyed() {
 		BasePlayerRPC<PlayerObject> ctx = (BasePlayerRPC<PlayerObject>) CONTEXT_HANDLE.getAcquire(this);
-		if(ctx != null) {
+		if (ctx != null) {
 			ctx.fireCloseListeners();
 		}
-		RPCActiveFuture<IBasePlayerRPC<PlayerObject>> ret = (RPCActiveFuture<IBasePlayerRPC<PlayerObject>>) FUTURE_HANDLE.getAcquire(this);
-		if(ret != null && !ret.isDone()) {
-			ret.fireTimeoutExceptionInternal(new RPCTimeoutException("Player left before the connection was established"));
+		RPCActiveFuture<IBasePlayerRPC<PlayerObject>> ret = (RPCActiveFuture<IBasePlayerRPC<PlayerObject>>) FUTURE_HANDLE
+				.getAcquire(this);
+		if (ret != null && !ret.isDone()) {
+			ret.fireTimeoutExceptionInternal(
+					new RPCTimeoutException("Player left before the connection was established"));
 		}
-		if(voiceManager != null) {
+		if (voiceManager != null) {
 			voiceManager.destroyVoiceManager();
 		}
 	}

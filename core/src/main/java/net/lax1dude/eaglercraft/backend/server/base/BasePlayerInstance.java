@@ -39,8 +39,7 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 	BasePlayerRPCManager<PlayerObject> backendRPCManager;
 	DataSerializationContext serializationContext;
 
-	public BasePlayerInstance(IPlatformPlayer<PlayerObject> player,
-			EaglerXServer<PlayerObject> server) {
+	public BasePlayerInstance(IPlatformPlayer<PlayerObject> player, EaglerXServer<PlayerObject> server) {
 		this.player = player;
 		this.attributeHolder = player.<BaseConnectionInstance>getConnectionAttachment().attributeHolder;
 		this.server = server;
@@ -137,7 +136,7 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 
 	@Override
 	public void sendChatMessage(String message) {
-		if(message == null) {
+		if (message == null) {
 			throw new NullPointerException("message");
 		}
 		player.sendMessage(message);
@@ -145,7 +144,7 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 
 	@Override
 	public <ComponentObject> void sendChatMessage(ComponentObject message) {
-		if(message == null) {
+		if (message == null) {
 			throw new NullPointerException("message");
 		}
 		player.sendMessage(message);
@@ -158,7 +157,7 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 
 	@Override
 	public void disconnect(String kickMessage) {
-		if(kickMessage == null) {
+		if (kickMessage == null) {
 			throw new NullPointerException("kickMessage");
 		}
 		player.disconnect(kickMessage);
@@ -166,7 +165,7 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 
 	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
-		if(kickMessage == null) {
+		if (kickMessage == null) {
 			throw new NullPointerException("kickMessage");
 		}
 		player.disconnect(kickMessage);
@@ -191,7 +190,7 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 	}
 
 	public DataSerializationContext getSerializationContext() {
-		if(serializationContext == null) {
+		if (serializationContext == null) {
 			serializationContext = new DataSerializationContext();
 		}
 		return serializationContext;

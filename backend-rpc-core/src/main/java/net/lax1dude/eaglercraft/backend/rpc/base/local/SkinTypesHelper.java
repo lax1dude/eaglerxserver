@@ -73,7 +73,7 @@ class SkinTypesHelper implements ISkinImageLoader {
 	}
 
 	static EnumEnableFNAW wrap(net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW en) {
-		return switch(en) {
+		return switch (en) {
 		default -> EnumEnableFNAW.DISABLED;
 		case ENABLED -> EnumEnableFNAW.ENABLED;
 		case FORCED -> EnumEnableFNAW.FORCED;
@@ -81,7 +81,7 @@ class SkinTypesHelper implements ISkinImageLoader {
 	}
 
 	static net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW unwrap(EnumEnableFNAW en) {
-		return switch(en) {
+		return switch (en) {
 		default -> net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW.DISABLED;
 		case ENABLED -> net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW.ENABLED;
 		case FORCED -> net.lax1dude.eaglercraft.backend.server.api.skins.EnumEnableFNAW.FORCED;

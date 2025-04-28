@@ -65,14 +65,14 @@ public class SimpleOutputBufferImpl extends DataOutputStream implements GamePack
 	@Override
 	public void writeStringEaglerASCII8(String str) throws IOException {
 		int len = str.length();
-		if(len > 255) {
+		if (len > 255) {
 			throw new IOException("String is longer than 255 chars! (" + len + ")");
 		}
 		out.write(len);
-		for(int i = 0, j; i < len; ++i) {
-			j = (int)str.charAt(i);
-			if(j > 255) {
-				j = (int)'?';
+		for (int i = 0, j; i < len; ++i) {
+			j = (int) str.charAt(i);
+			if (j > 255) {
+				j = (int) '?';
 			}
 			out.write(j);
 		}
@@ -81,14 +81,14 @@ public class SimpleOutputBufferImpl extends DataOutputStream implements GamePack
 	@Override
 	public void writeStringEaglerASCII16(String str) throws IOException {
 		int len = str.length();
-		if(len > 65535) {
+		if (len > 65535) {
 			throw new IOException("String is longer than 65535 chars! (" + len + ")");
 		}
 		writeShort(len);
-		for(int i = 0, j; i < len; ++i) {
-			j = (int)str.charAt(i);
-			if(j > 255) {
-				j = (int)'?';
+		for (int i = 0, j; i < len; ++i) {
+			j = (int) str.charAt(i);
+			if (j > 255) {
+				j = (int) '?';
 			}
 			out.write(j);
 		}

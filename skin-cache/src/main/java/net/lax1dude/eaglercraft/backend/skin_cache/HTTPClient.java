@@ -61,6 +61,7 @@ public class HTTPClient implements IHTTPClient {
 	private static class RedirectTracker {
 		private int redirects = 0;
 		private String method;
+
 		private RedirectTracker(String method) {
 			this.method = method;
 		}
@@ -83,8 +84,7 @@ public class HTTPClient implements IHTTPClient {
 			if (future.isSuccess()) {
 				String path = requestURI.getRawPath()
 						+ ((requestURI.getRawQuery() == null) ? "" : ("?" + requestURI.getRawQuery()));
-				HttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1,
-						HttpMethod.valueOf(method), path);
+				HttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(method), path);
 				request.headers().set(HttpHeaderNames.HOST, requestURI.getHost());
 				request.headers().set(HttpHeaderNames.USER_AGENT, userAgent);
 				future.channel().writeAndFlush(request);
@@ -126,7 +126,7 @@ public class HTTPClient implements IHTTPClient {
 		}
 
 	}
-	
+
 	private class NettyHttpResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
 		protected final Consumer<Response> responseCallback;
@@ -147,18 +147,18 @@ public class HTTPClient implements IHTTPClient {
 						|| responseCode == 308) {
 					ctx.channel().pipeline().remove(this);
 					ctx.channel().close();
-					if(responseCode == 303) {
+					if (responseCode == 303) {
 						redirectTracker.method = "GET";
 					}
 					redirect(response);
 					return;
-				}else if (responseCode == 204) {
+				} else if (responseCode == 204) {
 					this.done(ctx);
 					return;
 				}
 			}
 			if (msg instanceof HttpContent content) {
-				if(buffer == null) {
+				if (buffer == null) {
 					buffer = ctx.alloc().buffer();
 				}
 				this.buffer.writeBytes(content.content());
@@ -169,21 +169,23 @@ public class HTTPClient implements IHTTPClient {
 		}
 
 		private void redirect(HttpResponse response) {
-			if(++redirectTracker.redirects >= MAX_REDIRECTS) {
+			if (++redirectTracker.redirects >= MAX_REDIRECTS) {
 				responseCallback.accept(new Response(new IllegalStateException("Too many redirects!")));
-			}else {
+			} else {
 				CharSequence target = response.headers().get(HttpHeaderNames.LOCATION);
-				if(target != null) {
+				if (target != null) {
 					URI uri;
 					try {
 						uri = new URI(target.toString());
-					}catch(URISyntaxException ex) {
-						responseCallback.accept(new Response(new IllegalStateException("Invalid redirect address in 3xx response!", ex)));
+					} catch (URISyntaxException ex) {
+						responseCallback.accept(new Response(
+								new IllegalStateException("Invalid redirect address in 3xx response!", ex)));
 						return;
 					}
 					asyncRequest(uri, responseCallback, redirectTracker);
-				}else {
-					responseCallback.accept(new Response(new IllegalStateException("Missing redirect address in 3xx response!")));
+				} else {
+					responseCallback.accept(
+							new Response(new IllegalStateException("Missing redirect address in 3xx response!")));
 				}
 			}
 		}
@@ -196,7 +198,7 @@ public class HTTPClient implements IHTTPClient {
 		private void done(ChannelHandlerContext ctx) {
 			try {
 				responseCallback.accept(new Response(responseCode, redirectTracker.redirects > 0, buffer));
-			}finally {
+			} finally {
 				ctx.channel().pipeline().remove(this);
 				ctx.channel().close();
 			}
@@ -222,14 +224,14 @@ public class HTTPClient implements IHTTPClient {
 		int port = uri.getPort();
 		boolean ssl = false;
 		String scheme = uri.getScheme();
-		switch(scheme) {
+		switch (scheme) {
 		case "http":
-			if(port == -1) {
+			if (port == -1) {
 				port = 80;
 			}
 			break;
 		case "https":
-			if(port == -1) {
+			if (port == -1) {
 				port = 443;
 			}
 			ssl = true;
@@ -238,7 +240,7 @@ public class HTTPClient implements IHTTPClient {
 			responseCallback.accept(new Response(new UnsupportedOperationException("Unsupported scheme: " + scheme)));
 			return;
 		}
-		
+
 		String host = uri.getHost();
 		InetAddress inetHost = addressCache.getIfPresent(host);
 		if (inetHost == null) {

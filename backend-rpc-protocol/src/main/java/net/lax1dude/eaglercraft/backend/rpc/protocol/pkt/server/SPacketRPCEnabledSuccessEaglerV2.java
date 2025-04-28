@@ -77,7 +77,7 @@ public class SPacketRPCEnabledSuccessEaglerV2 implements EaglerBackendRPCPacket 
 		eaglerHandshake = buffer.readUnsignedShort();
 		eaglerProtocol = buffer.readUnsignedShort();
 		int rw = buffer.readUnsignedByte();
-		if(rw == 255) {
+		if (rw == 255) {
 			rw = -1;
 		}
 		eaglerRewindProtocol = rw;
@@ -85,13 +85,13 @@ public class SPacketRPCEnabledSuccessEaglerV2 implements EaglerBackendRPCPacket 
 		eaglerStandardCapsVersions = new byte[Integer.bitCount(eaglerStandardCaps)];
 		buffer.readFully(eaglerStandardCapsVersions);
 		int extCapCount = buffer.readUnsignedByte();
-		if(extCapCount > 0) {
+		if (extCapCount > 0) {
 			ExtCapability[] res = new ExtCapability[extCapCount];
-			for(int i = 0; i < extCapCount; ++i) {
+			for (int i = 0; i < extCapCount; ++i) {
 				res[i] = new ExtCapability(new UUID(buffer.readLong(), buffer.readLong()), buffer.readUnsignedByte());
 			}
 			eaglerExtendedCaps = Arrays.asList(res);
-		}else {
+		} else {
 			eaglerExtendedCaps = null;
 		}
 	}
@@ -99,7 +99,7 @@ public class SPacketRPCEnabledSuccessEaglerV2 implements EaglerBackendRPCPacket 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
 		int cnt = Integer.bitCount(eaglerStandardCaps);
-		if(!(cnt == 0 && eaglerStandardCapsVersions == null) && cnt != eaglerStandardCapsVersions.length) {
+		if (!(cnt == 0 && eaglerStandardCapsVersions == null) && cnt != eaglerStandardCapsVersions.length) {
 			throw new IOException("Refusing to write an invalid number of standard capabilities");
 		}
 		buffer.writeShort(selectedRPCProtocol);
@@ -110,27 +110,27 @@ public class SPacketRPCEnabledSuccessEaglerV2 implements EaglerBackendRPCPacket 
 		buffer.writeByte(eaglerRewindProtocol);
 		buffer.writeInt(eaglerStandardCaps);
 		buffer.write(eaglerStandardCapsVersions);
-		if(eaglerExtendedCaps != null) {
+		if (eaglerExtendedCaps != null) {
 			int cnt2 = eaglerExtendedCaps.size();
 			buffer.writeByte(cnt2);
-			if(cnt2 > 0) {
-				if(eaglerExtendedCaps instanceof RandomAccess) {
+			if (cnt2 > 0) {
+				if (eaglerExtendedCaps instanceof RandomAccess) {
 					List<ExtCapability> lst = (List<ExtCapability>) eaglerExtendedCaps;
-					for(int i = 0; i < cnt2; ++i) {
+					for (int i = 0; i < cnt2; ++i) {
 						ExtCapability extCap = lst.get(i);
 						buffer.writeLong(extCap.uuid.getMostSignificantBits());
 						buffer.writeLong(extCap.uuid.getLeastSignificantBits());
 						buffer.writeByte(extCap.version);
 					}
-				}else {
-					for(ExtCapability extCap : eaglerExtendedCaps) {
+				} else {
+					for (ExtCapability extCap : eaglerExtendedCaps) {
 						buffer.writeLong(extCap.uuid.getMostSignificantBits());
 						buffer.writeLong(extCap.uuid.getLeastSignificantBits());
 						buffer.writeByte(extCap.version);
 					}
 				}
 			}
-		}else {
+		} else {
 			buffer.writeByte(0);
 		}
 	}
@@ -143,7 +143,7 @@ public class SPacketRPCEnabledSuccessEaglerV2 implements EaglerBackendRPCPacket 
 	@Override
 	public int length() {
 		int l = 20 + Integer.bitCount(eaglerStandardCaps);
-		if(eaglerExtendedCaps != null) {
+		if (eaglerExtendedCaps != null) {
 			l += eaglerExtendedCaps.size() * 17;
 		}
 		return l;

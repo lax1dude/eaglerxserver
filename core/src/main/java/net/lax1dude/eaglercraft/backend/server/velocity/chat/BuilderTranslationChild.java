@@ -26,7 +26,7 @@ class BuilderTranslationChild<ParentType> extends BuilderTranslationBase<ParentT
 
 	@Override
 	public ParentType end() {
-		((IAppendCallback)parent).append(build());
+		((IAppendCallback) parent).append(build());
 		return parent;
 	}
 

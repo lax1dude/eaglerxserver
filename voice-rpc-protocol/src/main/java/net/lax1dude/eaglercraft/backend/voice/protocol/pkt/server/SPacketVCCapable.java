@@ -49,7 +49,7 @@ public class SPacketVCCapable implements EaglerVCPacket {
 		overrideICE = (numIce & 64) != 0;
 		numIce &= 63;
 		iceServers = new String[numIce];
-		for(int i = 0; i < iceServers.length; ++i) {
+		for (int i = 0; i < iceServers.length; ++i) {
 			iceServers[i] = EaglerVCPacket.readString(buffer, 1024, true, StandardCharsets.UTF_8);
 		}
 	}
@@ -57,19 +57,21 @@ public class SPacketVCCapable implements EaglerVCPacket {
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
 		int j = 0;
-		if(allowed) j |= 128;
-		if(overrideICE) j |= 64;
+		if (allowed)
+			j |= 128;
+		if (overrideICE)
+			j |= 64;
 		buffer.writeByte(version);
 		int cnt;
-		if(iceServers != null && (cnt = iceServers.length) > 0) {
-			if(cnt > 63) {
+		if (iceServers != null && (cnt = iceServers.length) > 0) {
+			if (cnt > 63) {
 				throw new IOException("Too many STUN/TURN servers sent! (" + cnt + ", max is 63!)");
 			}
 			buffer.writeByte(cnt | j);
-			for(int i = 0; i < cnt; ++i) {
+			for (int i = 0; i < cnt; ++i) {
 				EaglerVCPacket.writeString(buffer, iceServers[i], true, StandardCharsets.UTF_8);
 			}
-		}else {
+		} else {
 			buffer.writeByte(j);
 		}
 	}

@@ -54,17 +54,19 @@ public class CPacketRPCSendWebViewMessage implements EaglerBackendRPCPacket {
 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
-		if(channelName == null || channelName.length() == 0) {
+		if (channelName == null || channelName.length() == 0) {
 			throw new IOException("Channel name cannot be empty!");
 		}
-		if(channelName.length() > 255) {
-			throw new IOException("Channel name cannot be more than 255 chars! (got " + channelName.length() + " chars)");
+		if (channelName.length() > 255) {
+			throw new IOException(
+					"Channel name cannot be more than 255 chars! (got " + channelName.length() + " chars)");
 		}
-		if(messageContent == null) {
+		if (messageContent == null) {
 			throw new IOException("Message contents cannot be null!");
 		}
-		if(messageContent.length > 32720) {
-			throw new IOException("Message contents cannot be more then 32720 bytes! (got " + messageContent.length + " bytes)");
+		if (messageContent.length > 32720) {
+			throw new IOException(
+					"Message contents cannot be more then 32720 bytes! (got " + messageContent.length + " bytes)");
 		}
 		byte[] nameBytes = channelName.getBytes(StandardCharsets.US_ASCII);
 		buffer.writeByte(nameBytes.length);

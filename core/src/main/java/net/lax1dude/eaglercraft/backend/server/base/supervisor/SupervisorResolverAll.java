@@ -41,7 +41,7 @@ public class SupervisorResolverAll implements ISupervisorResolver {
 
 	@Override
 	public boolean isPlayerKnown(UUID playerUUID) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
 		return server.getPlayerByUUID(playerUUID) != null || resolver.isPlayerKnown(playerUUID);
@@ -49,59 +49,59 @@ public class SupervisorResolverAll implements ISupervisorResolver {
 
 	@Override
 	public int getCachedNodeId(UUID playerUUID) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
-		if(server.getPlayerByUUID(playerUUID) != null) {
+		if (server.getPlayerByUUID(playerUUID) != null) {
 			return server.getSupervisorService().getNodeId();
-		}else {
+		} else {
 			return resolver.getCachedNodeId(playerUUID);
 		}
 	}
 
 	@Override
 	public void resolvePlayerNodeId(UUID playerUUID, IntProcedure callback) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
-		if(server.getPlayerByUUID(playerUUID) != null) {
+		if (server.getPlayerByUUID(playerUUID) != null) {
 			callback.apply(server.getSupervisorService().getNodeId());
-		}else {
+		} else {
 			resolver.resolvePlayerNodeId(playerUUID, callback);
 		}
 	}
 
 	@Override
 	public void resolvePlayerBrand(UUID playerUUID, Consumer<UUID> callback) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		BasePlayerInstance<?> player = server.getPlayerByUUID(playerUUID);
-		if(player != null) {
+		if (player != null) {
 			callback.accept(player.getEaglerBrandUUID());
-		}else {
+		} else {
 			resolver.resolvePlayerBrand(playerUUID, callback);
 		}
 	}
 
 	@Override
 	public void resolvePlayerRegisteredBrand(UUID playerUUID, BiConsumer<UUID, IBrandRegistration> callback) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		BasePlayerInstance<?> player = server.getPlayerByUUID(playerUUID);
-		if(player != null) {
+		if (player != null) {
 			callback.accept(player.getEaglerBrandUUID(), player.getEaglerBrandDesc());
-		}else {
+		} else {
 			resolver.resolvePlayerRegisteredBrand(playerUUID, callback);
 		}
 	}
@@ -123,32 +123,32 @@ public class SupervisorResolverAll implements ISupervisorResolver {
 
 	@Override
 	public void resolvePlayerSkin(UUID playerUUID, Consumer<IEaglerPlayerSkin> callback) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		BasePlayerInstance<?> player = server.getPlayerByUUID(playerUUID);
-		if(player != null) {
+		if (player != null) {
 			player.getSkinManager().resolvePlayerSkin(callback);
-		}else {
+		} else {
 			resolver.resolvePlayerSkin(playerUUID, callback);
 		}
 	}
 
 	@Override
 	public void resolvePlayerCape(UUID playerUUID, Consumer<IEaglerPlayerCape> callback) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		BasePlayerInstance<?> player = server.getPlayerByUUID(playerUUID);
-		if(player != null) {
+		if (player != null) {
 			player.getSkinManager().resolvePlayerCape(callback);
-		}else {
+		} else {
 			resolver.resolvePlayerCape(playerUUID, callback);
 		}
 	}

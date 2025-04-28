@@ -41,11 +41,13 @@ public class BackendRPCService<PlayerObject> {
 		};
 	}
 
-	public VanillaPlayerRPCManager<PlayerObject> createVanillaPlayerRPCManager(BasePlayerInstance<PlayerObject> player) {
+	public VanillaPlayerRPCManager<PlayerObject> createVanillaPlayerRPCManager(
+			BasePlayerInstance<PlayerObject> player) {
 		return new VanillaPlayerRPCManager<>(this, player);
 	}
 
-	public EaglerPlayerRPCManager<PlayerObject> createEaglerPlayerRPCManager(EaglerPlayerInstance<PlayerObject> player) {
+	public EaglerPlayerRPCManager<PlayerObject> createEaglerPlayerRPCManager(
+			EaglerPlayerInstance<PlayerObject> player) {
 		return new EaglerPlayerRPCManager<>(this, player);
 	}
 

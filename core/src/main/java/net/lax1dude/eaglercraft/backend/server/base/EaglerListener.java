@@ -58,16 +58,17 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 		this(server, listenerConf.getInjectAddress(), listenerConf);
 	}
 
-	EaglerListener(EaglerXServer<?> server, SocketAddress address, ConfigDataListener listenerConf) throws SSLException, IOException {
+	EaglerListener(EaglerXServer<?> server, SocketAddress address, ConfigDataListener listenerConf)
+			throws SSLException, IOException {
 		this.server = server;
 		this.address = address;
 		this.listenerConf = listenerConf;
 		this.attrHolder = server.getEaglerAttribManager().createEaglerHolder();
 		if (listenerConf.isEnableTLS()) {
 			this.sslPluginManaged = listenerConf.isTLSManagedByExternalPlugin();
-			if(this.sslPluginManaged) {
+			if (this.sslPluginManaged) {
 				this.sslContext = new SSLContextHolderPlugin(this);
-			}else {
+			} else {
 				this.sslContext = server.getCertificateManager().createHolder(
 						new File(listenerConf.getTLSPublicChainFile()), new File(listenerConf.getTLSPrivateKeyFile()),
 						listenerConf.getTLSPrivateKeyPassword(), listenerConf.isTLSAutoRefreshCert());
@@ -77,23 +78,24 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 			this.sslContext = null;
 		}
 		if (listenerConf.getRedirectLegacyClientsTo() != null) {
-			this.legacyRedirectAddressBuf = WebSocketEaglerInitialHandler.prepareRedirectAddr(listenerConf.getRedirectLegacyClientsTo());
-		}else {
+			this.legacyRedirectAddressBuf = WebSocketEaglerInitialHandler
+					.prepareRedirectAddr(listenerConf.getRedirectLegacyClientsTo());
+		} else {
 			this.legacyRedirectAddressBuf = null;
 		}
 		cachedServerMOTD = listenerConf.getServerMOTD();
 		String iconName = listenerConf.getServerIcon();
-		if(iconName != null && !iconName.isEmpty()) {
+		if (iconName != null && !iconName.isEmpty()) {
 			try {
 				cachedServerIcon = server.getServerIconLoader().loadServerIcon(new File(iconName));
-			}catch(FileNotFoundException ex) {
+			} catch (FileNotFoundException ex) {
 				server.logger().error("Could not load server icon: " + iconName + " (not found)");
 				cachedServerIcon = null;
-			}catch(IOException ex) {
+			} catch (IOException ex) {
 				server.logger().error("Could not load server icon: " + iconName, ex);
 				cachedServerIcon = null;
 			}
-		}else {
+		} else {
 			cachedServerIcon = null;
 		}
 		rateLimiter = CompoundRateLimiterMap.create(listenerConf.getLimitIP(), listenerConf.getLimitLogin(),
@@ -147,11 +149,12 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 
 	@Override
 	public ITLSManager getTLSManager() throws IllegalStateException {
-		if(!listenerConf.isEnableTLS()) {
+		if (!listenerConf.isEnableTLS()) {
 			throw new IllegalStateException("TLS is not enabled on this listener!");
 		}
-		if(!sslPluginManaged) {
-			throw new IllegalStateException("TLS manager is disabled for this listener! (Set 'tls_managed_by_external_plugin' to true)");
+		if (!sslPluginManaged) {
+			throw new IllegalStateException(
+					"TLS manager is disabled for this listener! (Set 'tls_managed_by_external_plugin' to true)");
 		}
 		return (ITLSManager) sslContext;
 	}
@@ -163,7 +166,7 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 
 	@Override
 	public void setServerIcon(byte[] pixels) {
-		if(pixels != null && pixels.length != 16384) {
+		if (pixels != null && pixels.length != 16384) {
 			throw new IllegalArgumentException("Server icon is the wrong length, should be 16384");
 		}
 		cachedServerIcon = pixels;
@@ -176,11 +179,11 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 
 	@Override
 	public void setServerMOTD(List<String> motd) {
-		if(motd == null || motd.size() == 0) {
+		if (motd == null || motd.size() == 0) {
 			cachedServerMOTD = Collections.emptyList();
-		}else if(motd.size() == 1) {
+		} else if (motd.size() == 1) {
 			cachedServerMOTD = ImmutableList.of(motd.get(0));
-		}else {
+		} else {
 			cachedServerMOTD = ImmutableList.of(motd.get(0), motd.get(1));
 		}
 	}
@@ -192,11 +195,11 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 
 	@Override
 	public boolean matchListenerAddress(SocketAddress addr) {
-		if(addr.equals(listenerConf.getInjectAddress())) {
+		if (addr.equals(listenerConf.getInjectAddress())) {
 			return true;
 		} else if ((addr instanceof InetSocketAddress addr2)
-				&& (listenerConf.getInjectAddress() instanceof InetSocketAddress addr3)
-				&& isAllZeros(addr2) && isAllZeros(addr3)) {
+				&& (listenerConf.getInjectAddress() instanceof InetSocketAddress addr3) && isAllZeros(addr2)
+				&& isAllZeros(addr3)) {
 			return addr2.getPort() == addr3.getPort();
 		} else {
 			return false;
@@ -220,7 +223,8 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 
 	@Override
 	public void reportVelocityInjected(Channel channel) {
-		server.logger().info("Listener \"" + listenerConf.getListenerName() + "\" injected into channel " + channel + " successfully (Velocity method)");
+		server.logger().info("Listener \"" + listenerConf.getListenerName() + "\" injected into channel " + channel
+				+ " successfully (Velocity method)");
 	}
 
 	@Override
@@ -230,7 +234,8 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 
 	@Override
 	public void reportNettyInjected(Channel channel) {
-		server.logger().info("Listener \"" + listenerConf.getListenerName() + "\" injected into channel " + channel + " successfully (Generic Netty method)");
+		server.logger().info("Listener \"" + listenerConf.getListenerName() + "\" injected into channel " + channel
+				+ " successfully (Generic Netty method)");
 	}
 
 	public byte[] getLegacyRedirectAddressBuf() {

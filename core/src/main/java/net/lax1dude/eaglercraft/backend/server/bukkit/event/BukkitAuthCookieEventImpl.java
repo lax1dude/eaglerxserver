@@ -107,7 +107,7 @@ class BukkitAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 
 	@Override
 	public void setProfileUsername(String username) {
-		if(username == null) {
+		if (username == null) {
 			throw new NullPointerException("username");
 		}
 		profileUsername = username;
@@ -120,7 +120,7 @@ class BukkitAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 
 	@Override
 	public void setProfileUUID(UUID uuid) {
-		//profileUUID = uuid;
+		// profileUUID = uuid;
 		throw new UnsupportedOperationException("Cannot change player UUID on Bukkit platform!");
 	}
 
@@ -141,7 +141,7 @@ class BukkitAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 
 	@Override
 	public void setAuthRequestedServer(String server) {
-		if(server == null) {
+		if (server == null) {
 			throw new NullPointerException("server");
 		}
 		authRequestedServer = server;

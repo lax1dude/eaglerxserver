@@ -45,7 +45,7 @@ public class CPacketRPCSetPlayerSkin implements EaglerBackendRPCPacket {
 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
-		if(skinPacket.length > 32720) {
+		if (skinPacket.length > 32720) {
 			throw new IOException("Skin data cannot be longer than 32720 bytes!");
 		}
 		buffer.writeBoolean(notifyOthers);

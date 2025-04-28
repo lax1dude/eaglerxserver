@@ -35,7 +35,7 @@ public class BungeeListener implements Listener {
 	@EventHandler
 	public void onEaglercraftMOTDEvent(EaglercraftMOTDEvent event) {
 		Consumer<IEaglercraftMOTDEvent<ProxiedPlayer>> consumer = plugin.onMOTDHandler;
-		if(consumer != null) {
+		if (consumer != null) {
 			consumer.accept(event);
 		}
 	}

@@ -62,7 +62,7 @@ public abstract class NotificationManagerBase<PlayerObject> implements INotifica
 
 	@Override
 	public void registerNotificationIcon(UUID iconUUID) {
-		if(iconUUID == null) {
+		if (iconUUID == null) {
 			throw new NullPointerException("iconUUID");
 		}
 		touchIcon(iconUUID);
@@ -70,14 +70,14 @@ public abstract class NotificationManagerBase<PlayerObject> implements INotifica
 
 	@Override
 	public void registerNotificationIcons(Collection<UUID> iconUUIDs) {
-		if(iconUUIDs == null) {
+		if (iconUUIDs == null) {
 			throw new NullPointerException("iconUUIDs");
 		}
 		int s = iconUUIDs.size();
-		if(s == 0) {
+		if (s == 0) {
 			return;
 		}
-		if(s == 1) {
+		if (s == 1) {
 			touchIcon(iconUUIDs.iterator().next());
 			return;
 		}
@@ -86,10 +86,10 @@ public abstract class NotificationManagerBase<PlayerObject> implements INotifica
 
 	@Override
 	public void registerUnmanagedNotificationIcon(UUID iconUUID, PacketImageData icon) {
-		if(iconUUID == null) {
+		if (iconUUID == null) {
 			throw new NullPointerException("iconUUID");
 		}
-		if(icon == null) {
+		if (icon == null) {
 			throw new NullPointerException("icon");
 		}
 		sendPacket(new SPacketNotifIconsRegisterV4EAG(
@@ -99,19 +99,19 @@ public abstract class NotificationManagerBase<PlayerObject> implements INotifica
 
 	@Override
 	public void registerUnmanagedNotificationIcons(Collection<IconDef> icons) {
-		if(icons == null) {
+		if (icons == null) {
 			throw new NullPointerException("icons");
 		}
 		int l = icons.size();
 		SPacketNotifIconsRegisterV4EAG.CreateIcon[] arr = new SPacketNotifIconsRegisterV4EAG.CreateIcon[l];
 		int i = 0;
-		for(IconDef etr : icons) {
-			if(i >= l) {
+		for (IconDef etr : icons) {
+			if (i >= l) {
 				break;
 			}
 			arr[i] = etr.toPacket();
 		}
-		if(i != l) {
+		if (i != l) {
 			throw new IllegalStateException();
 		}
 		registerUnmanagedNotificationIconsRaw(Arrays.asList(arr));
@@ -119,7 +119,7 @@ public abstract class NotificationManagerBase<PlayerObject> implements INotifica
 
 	@Override
 	public void registerUnmanagedNotificationIconsRaw(Collection<SPacketNotifIconsRegisterV4EAG.CreateIcon> icons) {
-		if(icons == null) {
+		if (icons == null) {
 			throw new NullPointerException("icons");
 		}
 		sendPacket(new SPacketNotifIconsRegisterV4EAG(icons));
@@ -127,7 +127,7 @@ public abstract class NotificationManagerBase<PlayerObject> implements INotifica
 
 	@Override
 	public void releaseUnmanagedNotificationIcon(UUID iconUUID) {
-		if(iconUUID == null) {
+		if (iconUUID == null) {
 			throw new NullPointerException("iconUUID");
 		}
 		sendPacket(new SPacketNotifIconsReleaseV4EAG(
@@ -140,14 +140,14 @@ public abstract class NotificationManagerBase<PlayerObject> implements INotifica
 		int l = iconUUIDs.size();
 		SPacketNotifIconsReleaseV4EAG.DestroyIcon[] arr = new SPacketNotifIconsReleaseV4EAG.DestroyIcon[l];
 		int i = 0;
-		for(UUID etr : iconUUIDs) {
-			if(i >= l) {
+		for (UUID etr : iconUUIDs) {
+			if (i >= l) {
 				break;
 			}
 			arr[i] = new SPacketNotifIconsReleaseV4EAG.DestroyIcon(etr.getMostSignificantBits(),
 					etr.getLeastSignificantBits());
 		}
-		if(i != l) {
+		if (i != l) {
 			throw new IllegalStateException();
 		}
 		releaseUnmanagedNotificationIconsRaw(Arrays.asList(arr));
@@ -155,7 +155,7 @@ public abstract class NotificationManagerBase<PlayerObject> implements INotifica
 
 	@Override
 	public void releaseUnmanagedNotificationIconsRaw(Collection<SPacketNotifIconsReleaseV4EAG.DestroyIcon> iconUUIDs) {
-		if(iconUUIDs == null) {
+		if (iconUUIDs == null) {
 			throw new NullPointerException("iconUUIDs");
 		}
 		sendPacket(new SPacketNotifIconsReleaseV4EAG(iconUUIDs));
@@ -163,7 +163,7 @@ public abstract class NotificationManagerBase<PlayerObject> implements INotifica
 
 	@Override
 	public void releaseNotificationIcon(UUID iconUUID) {
-		if(iconUUID == null) {
+		if (iconUUID == null) {
 			throw new NullPointerException("iconUUID");
 		}
 		releaseIcon(iconUUID);
@@ -172,10 +172,10 @@ public abstract class NotificationManagerBase<PlayerObject> implements INotifica
 	@Override
 	public void releaseNotificationIcons(Collection<UUID> iconUUIDs) {
 		int s = iconUUIDs.size();
-		if(s == 0) {
+		if (s == 0) {
 			return;
 		}
-		if(s == 1) {
+		if (s == 1) {
 			releaseIcon(iconUUIDs.iterator().next());
 			return;
 		}
@@ -189,21 +189,21 @@ public abstract class NotificationManagerBase<PlayerObject> implements INotifica
 
 	@Override
 	public void showNotificationBadge(INotificationBuilder<?> builder) {
-		if(builder == null) {
+		if (builder == null) {
 			throw new NullPointerException("builder");
 		}
 		UUID iconA = builder.getMainIconUUID();
 		UUID iconB = builder.getTitleIconUUID();
-		if(iconA != null || iconB != null) {
+		if (iconA != null || iconB != null) {
 			touchIcons(builder.buildPacket(), iconA, iconB);
-		}else {
+		} else {
 			sendPacket(builder.buildPacket());
 		}
 	}
 
 	@Override
 	public void showUnmanagedNotificationBadge(INotificationBuilder<?> builder) {
-		if(builder == null) {
+		if (builder == null) {
 			throw new NullPointerException("builder");
 		}
 		showUnmanagedNotificationBadge(builder.buildPacket());
@@ -211,7 +211,7 @@ public abstract class NotificationManagerBase<PlayerObject> implements INotifica
 
 	@Override
 	public void showNotificationBadge(SPacketNotifBadgeShowV4EAG packet) {
-		if(packet == null) {
+		if (packet == null) {
 			throw new NullPointerException("packet");
 		}
 		long iconAH = packet.mainIconUUIDMost;
@@ -220,33 +220,33 @@ public abstract class NotificationManagerBase<PlayerObject> implements INotifica
 		long iconBL = packet.titleIconUUIDLeast;
 		UUID iconA = null;
 		UUID iconB = null;
-		if(iconAH != 0l || iconAL != 0l) {
+		if (iconAH != 0l || iconAL != 0l) {
 			iconA = new UUID(iconAH, iconAL);
 		}
-		if(iconBH != 0l || iconBL != 0l) {
+		if (iconBH != 0l || iconBL != 0l) {
 			iconB = new UUID(iconBH, iconBL);
 		}
-		if(iconA != null || iconB != null) {
+		if (iconA != null || iconB != null) {
 			touchIcons(packet, iconA, iconB);
-		}else {
+		} else {
 			sendPacket(packet);
 		}
 	}
 
 	public void showNotificationBadge(SPacketNotifBadgeShowV4EAG packet, UUID iconA, UUID iconB) {
-		if(packet == null) {
+		if (packet == null) {
 			throw new NullPointerException("packet");
 		}
-		if(iconA != null || iconB != null) {
+		if (iconA != null || iconB != null) {
 			touchIcons(packet, iconA, iconB);
-		}else {
+		} else {
 			sendPacket(packet);
 		}
 	}
 
 	@Override
 	public void showUnmanagedNotificationBadge(SPacketNotifBadgeShowV4EAG packet) {
-		if(packet == null) {
+		if (packet == null) {
 			throw new NullPointerException("packet");
 		}
 		sendPacket(packet);
@@ -254,7 +254,7 @@ public abstract class NotificationManagerBase<PlayerObject> implements INotifica
 
 	@Override
 	public void hideNotificationBadge(UUID badgeUUID) {
-		if(badgeUUID == null) {
+		if (badgeUUID == null) {
 			throw new NullPointerException("badgeUUID");
 		}
 		sendPacket(new SPacketNotifBadgeHideV4EAG(badgeUUID.getMostSignificantBits(),

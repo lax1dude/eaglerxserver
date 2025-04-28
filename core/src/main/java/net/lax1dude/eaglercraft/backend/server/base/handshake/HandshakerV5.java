@@ -38,11 +38,11 @@ public class HandshakerV5 extends HandshakerV4 {
 		super(server, pipelineData, inboundHandler);
 	}
 
-	public void init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString,
-			int minecraftVersion, boolean auth, byte[] authUsername) {
-		if(authUsername != null) {
+	public void init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString, int minecraftVersion,
+			boolean auth, byte[] authUsername) {
+		if (authUsername != null) {
 			handlePacketInit(ctx, eaglerBrand, eaglerVersionString, minecraftVersion, auth, authUsername);
-		}else {
+		} else {
 			handleInvalidData(ctx);
 		}
 	}
@@ -65,17 +65,17 @@ public class HandshakerV5 extends HandshakerV4 {
 			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
 			buffer.writeShort(selectedEaglerProtocol);
 			buffer.writeShort(selectedMinecraftProtocol);
-			
+
 			int len = serverBrand.length();
-			if(len > 255) {
+			if (len > 255) {
 				serverBrand = serverBrand.substring(0, 255);
 				len = 255;
 			}
 			buffer.writeByte(len);
 			BufferUtils.writeCharSequence(buffer, serverBrand, StandardCharsets.US_ASCII);
-			
+
 			len = serverVersion.length();
-			if(len > 255) {
+			if (len > 255) {
 				serverVersion = serverVersion.substring(0, 255);
 				len = 255;
 			}
@@ -87,7 +87,7 @@ public class HandshakerV5 extends HandshakerV4 {
 			buffer.writeBoolean(false);
 
 			return ctx.writeAndFlush(buffer.retain());
-		}finally {
+		} finally {
 			buffer.release();
 		}
 	}
@@ -95,31 +95,32 @@ public class HandshakerV5 extends HandshakerV4 {
 	@Override
 	protected ChannelFuture sendPacketVersionAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
 			int selectedMinecraftProtocol, String serverBrand, String serverVersion,
-			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData, boolean nicknameSelection) {
+			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData,
+			boolean nicknameSelection) {
 		int authMethId = getAuthTypeId(authMethod);
-		
-		if(authMethId == -1) {
+
+		if (authMethId == -1) {
 			inboundHandler.terminateInternalError(ctx, getVersion());
 			pipelineData.connectionLogger.error("Unsupported authentication method resolved: " + authMethod);
 			return null;
 		}
-		
+
 		ByteBuf buffer = ctx.alloc().buffer();
 		try {
 			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
 			buffer.writeShort(selectedEaglerProtocol);
 			buffer.writeShort(selectedMinecraftProtocol);
-			
+
 			int len = serverBrand.length();
-			if(len > 255) {
+			if (len > 255) {
 				serverBrand = serverBrand.substring(0, 255);
 				len = 255;
 			}
 			buffer.writeByte(len);
 			BufferUtils.writeCharSequence(buffer, serverBrand, StandardCharsets.US_ASCII);
-			
+
 			len = serverVersion.length();
-			if(len > 255) {
+			if (len > 255) {
 				serverVersion = serverVersion.substring(0, 255);
 				len = 255;
 			}
@@ -127,17 +128,17 @@ public class HandshakerV5 extends HandshakerV4 {
 			BufferUtils.writeCharSequence(buffer, serverVersion, StandardCharsets.US_ASCII);
 
 			buffer.writeByte(authMethId);
-			if(authSaltingData != null) {
+			if (authSaltingData != null) {
 				buffer.writeShort(authSaltingData.length);
 				buffer.writeBytes(authSaltingData);
-			}else {
+			} else {
 				buffer.writeShort(0);
 			}
-			
+
 			buffer.writeBoolean(nicknameSelection);
-			
+
 			return ctx.writeAndFlush(buffer.retain());
-		}finally {
+		} finally {
 			buffer.release();
 		}
 	}
@@ -154,42 +155,42 @@ public class HandshakerV5 extends HandshakerV4 {
 		boolean enableCookie = buffer.readBoolean();
 		int cookieLen = buffer.readUnsignedByte();
 		byte[] cookieData = Util.ZERO_BYTES;
-		if(enableCookie) {
+		if (enableCookie) {
 			cookieData = Util.newByteArray(cookieLen);
 			buffer.readBytes(cookieData);
-		}else {
-			if(cookieLen > 0) {
+		} else {
+			if (cookieLen > 0) {
 				throw new IndexOutOfBoundsException();
 			}
 		}
 		int standardCaps = BufferUtils.readVarInt(buffer, 5);
 		int capCount = Integer.bitCount(standardCaps);
 		int[] capSupport = new int[capCount];
-		for(int i = 0; i < capCount; ++i) {
+		for (int i = 0; i < capCount; ++i) {
 			capSupport[i] = BufferUtils.readVarInt(buffer, 5);
 		}
 		UUID[] extendedCapUUIDs;
 		int[] extendedCapVers;
 		int extCapabilityCount = buffer.readUnsignedByte();
-		if(extCapabilityCount > 0) {
-			if(extCapabilityCount > 32) {
+		if (extCapabilityCount > 0) {
+			if (extCapabilityCount > 32) {
 				throw new IndexOutOfBoundsException();
 			}
 			extendedCapUUIDs = new UUID[extCapabilityCount];
 			extendedCapVers = new int[extCapabilityCount];
-			for(int i = 0; i < extCapabilityCount; ++i) {
+			for (int i = 0; i < extCapabilityCount; ++i) {
 				extendedCapUUIDs[i] = new UUID(buffer.readLong(), buffer.readLong());
 				extendedCapVers[i] = BufferUtils.readVarInt(buffer, 5);
 			}
-		}else {
+		} else {
 			extendedCapUUIDs = NO_UUID;
 			extendedCapVers = NO_VER;
 		}
-		if(buffer.isReadable()) {
+		if (buffer.isReadable()) {
 			throw new IndexOutOfBoundsException();
 		}
-		handlePacketRequestLogin(ctx, username, requestedServer, authPassword, enableCookie, cookieData,
-				standardCaps, capSupport, extendedCapUUIDs, extendedCapVers);
+		handlePacketRequestLogin(ctx, username, requestedServer, authPassword, enableCookie, cookieData, standardCaps,
+				capSupport, extendedCapUUIDs, extendedCapVers);
 	}
 
 	@Override
@@ -205,8 +206,8 @@ public class HandshakerV5 extends HandshakerV4 {
 			BufferUtils.writeVarInt(buffer, standardCapabilities);
 			buffer.writeBytes(standardCapabilityVersions);
 			buffer.writeByte(extendedCapabilities.size());
-			if(extendedCapabilities.size() > 0) {
-				for(Map.Entry<UUID, Byte> etr : extendedCapabilities.entrySet()) {
+			if (extendedCapabilities.size() > 0) {
+				for (Map.Entry<UUID, Byte> etr : extendedCapabilities.entrySet()) {
 					UUID uuid = etr.getKey();
 					buffer.writeLong(uuid.getMostSignificantBits());
 					buffer.writeLong(uuid.getLeastSignificantBits());
@@ -214,7 +215,7 @@ public class HandshakerV5 extends HandshakerV4 {
 				}
 			}
 			return ctx.writeAndFlush(buffer.retain());
-		}finally {
+		} finally {
 			buffer.release();
 		}
 	}
@@ -226,13 +227,13 @@ public class HandshakerV5 extends HandshakerV4 {
 			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_REDIRECT_TO);
 			byte[] addr = address.getBytes(StandardCharsets.UTF_8);
 			int len = addr.length;
-			if(len > 65535) {
+			if (len > 65535) {
 				len = 65535;
 			}
 			buffer.writeShort(len);
 			buffer.writeBytes(addr, 0, len);
 			return ctx.writeAndFlush(buffer.retain());
-		}finally {
+		} finally {
 			buffer.release();
 		}
 	}

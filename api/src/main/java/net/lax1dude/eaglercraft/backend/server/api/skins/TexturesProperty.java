@@ -21,10 +21,10 @@ import javax.annotation.Nonnull;
 public final class TexturesProperty {
 
 	public static TexturesProperty create(@Nonnull String value, @Nonnull String signature) {
-		if(value == null) {
+		if (value == null) {
 			throw new IllegalArgumentException("value cannot be null");
 		}
-		if(signature == null) {
+		if (signature == null) {
 			throw new IllegalArgumentException("signature cannot be null");
 		}
 		return new TexturesProperty(value, signature);

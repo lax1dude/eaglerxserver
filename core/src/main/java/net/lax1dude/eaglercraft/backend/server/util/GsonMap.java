@@ -30,11 +30,11 @@ public class GsonMap {
 		Field _mapField = null;
 		try {
 			JsonObject.class.getMethod("asMap");
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 			try {
 				_mapField = JsonObject.class.getDeclaredField("members");
 				_mapField.setAccessible(true);
-			}catch(ReflectiveOperationException exx) {
+			} catch (ReflectiveOperationException exx) {
 				throw new ExceptionInInitializerError(exx);
 			}
 		}
@@ -42,9 +42,9 @@ public class GsonMap {
 	}
 
 	public static Map<String, JsonElement> asMap(JsonObject object) {
-		if(mapField == null) {
+		if (mapField == null) {
 			return object.asMap();
-		}else {
+		} else {
 			try {
 				return (Map<String, JsonElement>) mapField.get(object);
 			} catch (ReflectiveOperationException e) {

@@ -42,7 +42,7 @@ class SkinImageLoaderCacheOn extends SkinImageLoaderCacheOff {
 
 	@Override
 	public IEaglerPlayerSkin loadSkinImageData(File imageFile, int modelId) throws IOException {
-		if(modelId < 0 || modelId >= 0xFF) {
+		if (modelId < 0 || modelId >= 0xFF) {
 			throw new IllegalArgumentException("Invalid model id: " + modelId);
 		}
 		try {
@@ -51,11 +51,11 @@ class SkinImageLoaderCacheOn extends SkinImageLoaderCacheOff {
 			}), modelId);
 		} catch (ExecutionException e) {
 			Throwable cause = e.getCause();
-			if(cause instanceof IOException c2) {
+			if (cause instanceof IOException c2) {
 				throw c2;
-			}else if(cause instanceof RuntimeException c3) {
+			} else if (cause instanceof RuntimeException c3) {
 				throw c3;
-			}else {
+			} else {
 				throw new RuntimeException("Uncaught exception in lambda", cause);
 			}
 		}
@@ -69,11 +69,11 @@ class SkinImageLoaderCacheOn extends SkinImageLoaderCacheOff {
 			});
 		} catch (ExecutionException e) {
 			Throwable cause = e.getCause();
-			if(cause instanceof IOException c2) {
+			if (cause instanceof IOException c2) {
 				throw c2;
-			}else if(cause instanceof RuntimeException c3) {
+			} else if (cause instanceof RuntimeException c3) {
 				throw c3;
-			}else {
+			} else {
 				throw new RuntimeException("Uncaught exception in lambda", cause);
 			}
 		}

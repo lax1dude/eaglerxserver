@@ -26,25 +26,25 @@ class NotificationRPCHelper {
 		long badgeUUIDMost = packet.badgeUUID.getMostSignificantBits();
 		long badgeUUIDLeast = packet.badgeUUID.getLeastSignificantBits();
 		long mainIconUUIDMost, mainIconUUIDLeast;
-		if(packet.mainIconUUID != null) {
+		if (packet.mainIconUUID != null) {
 			mainIconUUIDMost = packet.mainIconUUID.getMostSignificantBits();
 			mainIconUUIDLeast = packet.mainIconUUID.getLeastSignificantBits();
-		}else {
+		} else {
 			mainIconUUIDMost = 0l;
 			mainIconUUIDLeast = 0l;
 		}
 		long titleIconUUIDMost, titleIconUUIDLeast;
-		if(packet.titleIconUUID != null) {
+		if (packet.titleIconUUID != null) {
 			titleIconUUIDMost = packet.titleIconUUID.getMostSignificantBits();
 			titleIconUUIDLeast = packet.titleIconUUID.getLeastSignificantBits();
-		}else {
+		} else {
 			titleIconUUIDMost = 0l;
 			titleIconUUIDLeast = 0l;
 		}
 		EnumBadgePriority priority;
-		priority = switch(packet.priority) {
+		priority = switch (packet.priority) {
 		case HIGHEST -> EnumBadgePriority.HIGHEST;
-		case HIGHER ->  EnumBadgePriority.HIGHER;
+		case HIGHER -> EnumBadgePriority.HIGHER;
 		default -> EnumBadgePriority.NORMAL;
 		case LOW -> EnumBadgePriority.LOW;
 		};

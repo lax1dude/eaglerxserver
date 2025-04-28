@@ -28,7 +28,7 @@ public class ServerV1RPCProtocolHandler extends ServerRPCProtocolHandler {
 
 	public void handleClient(CPacketRPCRequestPlayerInfo packet) {
 		try {
-			switch(packet.requestType) {
+			switch (packet.requestType) {
 			case CPacketRPCRequestPlayerInfo.REQUEST_PLAYER_REAL_UUID:
 				rpcContext.handleRequestRealUUID(packet.requestID);
 				break;
@@ -72,16 +72,19 @@ public class ServerV1RPCProtocolHandler extends ServerRPCProtocolHandler {
 				rpcContext.sendRPCPacket(new SPacketRPCResponseTypeError(packet.requestID, "Unknown request type"));
 				break;
 			}
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			rpcContext.sendRPCPacket(new SPacketRPCResponseTypeError(packet.requestID, ex.toString()));
 			rpcContext.manager().handleException(ex);
 		}
 	}
 
 	public void handleClient(CPacketRPCSubscribeEvents packet) {
-		rpcContext.handleSetSubscribeWebViewOpenClose((packet.eventsToEnable & CPacketRPCSubscribeEvents.SUBSCRIBE_EVENT_WEBVIEW_OPEN_CLOSE) != 0);
-		rpcContext.handleSetSubscribeWebViewMessage((packet.eventsToEnable & CPacketRPCSubscribeEvents.SUBSCRIBE_EVENT_WEBVIEW_MESSAGE) != 0);
-		rpcContext.handleSetSubscribeToggleVoice((packet.eventsToEnable & CPacketRPCSubscribeEvents.SUBSCRIBE_EVENT_TOGGLE_VOICE) != 0);
+		rpcContext.handleSetSubscribeWebViewOpenClose(
+				(packet.eventsToEnable & CPacketRPCSubscribeEvents.SUBSCRIBE_EVENT_WEBVIEW_OPEN_CLOSE) != 0);
+		rpcContext.handleSetSubscribeWebViewMessage(
+				(packet.eventsToEnable & CPacketRPCSubscribeEvents.SUBSCRIBE_EVENT_WEBVIEW_MESSAGE) != 0);
+		rpcContext.handleSetSubscribeToggleVoice(
+				(packet.eventsToEnable & CPacketRPCSubscribeEvents.SUBSCRIBE_EVENT_TOGGLE_VOICE) != 0);
 	}
 
 	public void handleClient(CPacketRPCSetPlayerSkin packet) {
@@ -106,7 +109,8 @@ public class ServerV1RPCProtocolHandler extends ServerRPCProtocolHandler {
 	}
 
 	public void handleClient(CPacketRPCResetPlayerMulti packet) {
-		rpcContext.handleResetPlayerMulti(packet.resetSkin, packet.resetCape, packet.resetFNAWForce, packet.notifyOtherPlayers);
+		rpcContext.handleResetPlayerMulti(packet.resetSkin, packet.resetCape, packet.resetFNAWForce,
+				packet.notifyOtherPlayers);
 	}
 
 	public void handleClient(CPacketRPCSendWebViewMessage packet) {

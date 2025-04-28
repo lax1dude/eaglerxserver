@@ -36,15 +36,15 @@ public class GameProfileUtil {
 			String jsonStr = new String(Base64.getDecoder().decode(texturesProperty), StandardCharsets.UTF_8);
 			JsonObject json = EaglerXServer.GSON_PRETTY.fromJson(jsonStr, JsonObject.class).getAsJsonObject("textures");
 			JsonObject skin = json.getAsJsonObject("SKIN");
-			if(skin != null) {
+			if (skin != null) {
 				JsonElement url = skin.get("url");
-				if(url != null) {
+				if (url != null) {
 					skinURL = url.getAsString();
-					if(skinURL != null) {
+					if (skinURL != null) {
 						JsonElement el = skin.get("metadata");
-						if(el != null && el.isJsonObject()) {
+						if (el != null && el.isJsonObject()) {
 							el = el.getAsJsonObject().get("model");
-							if(el != null) {
+							if (el != null) {
 								skinModel = el.getAsString();
 							}
 						}
@@ -52,17 +52,18 @@ public class GameProfileUtil {
 				}
 			}
 			JsonObject cape = json.getAsJsonObject("CAPE");
-			if(cape != null) {
+			if (cape != null) {
 				JsonElement url = cape.get("url");
-				if(url != null) {
+				if (url != null) {
 					capeURL = url.getAsString();
 				}
 			}
-			if(skinModel == null) {
+			if (skinModel == null) {
 				skinModel = "default";
 			}
-			return TexturesResult.create(skinURL, "slim".equals(skinModel) ? EnumSkinModel.ALEX : EnumSkinModel.STEVE, capeURL);
-		}catch(Exception ex) {
+			return TexturesResult.create(skinURL, "slim".equals(skinModel) ? EnumSkinModel.ALEX : EnumSkinModel.STEVE,
+					capeURL);
+		} catch (Exception ex) {
 			return null;
 		}
 	}

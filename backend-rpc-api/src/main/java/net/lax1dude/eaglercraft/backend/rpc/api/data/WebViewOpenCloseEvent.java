@@ -25,7 +25,7 @@ public final class WebViewOpenCloseEvent implements IRPCEvent {
 
 	@Nonnull
 	public static WebViewOpenCloseEvent create(@Nonnull String channelName, boolean opened) {
-		if(channelName == null) {
+		if (channelName == null) {
 			throw new NullPointerException("channelName");
 		}
 		return new WebViewOpenCloseEvent(channelName, opened);

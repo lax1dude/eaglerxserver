@@ -50,45 +50,45 @@ public class RouteMap<L, T> {
 		protected IRouteEndpoint<L, T> endpointDir;
 
 		protected RouteTreeNode<L, T> find(Iterator<CharSequence> tokens, boolean dir) {
-			if(tokens.hasNext()) {
+			if (tokens.hasNext()) {
 				CharSequence n = tokens.next();
-				if(children != null) {
+				if (children != null) {
 					RouteTreeNode<L, T> r = children.get(n);
-					if(r != null) {
+					if (r != null) {
 						return r.find(tokens, dir);
 					}
 				}
-				if(defaultChild != null) {
+				if (defaultChild != null) {
 					RouteTreeNode<L, T> r = defaultChild.find(tokens, dir);
-					if(r != null) {
+					if (r != null) {
 						return r;
 					}
 				}
-				if(isDefaultChild) {
+				if (isDefaultChild) {
 					return this;
 				}
 				return null;
-			}else {
+			} else {
 				return this;
 			}
 		}
 
 		protected RouteTreeNode<L, T> getOrCreateChild(String name) {
 			RouteTreeNode<L, T> r;
-			if("*".equals(name)) {
+			if ("*".equals(name)) {
 				r = defaultChild;
-				if(r == null) {
+				if (r == null) {
 					defaultChild = r = new RouteTreeNode<>(this);
 					r.isDefaultChild = true;
 				}
-			}else {
-				if(children == null) {
+			} else {
+				if (children == null) {
 					r = null;
 					children = new HashMap<>();
-				}else {
+				} else {
 					r = children.get(name);
 				}
-				if(r == null) {
+				if (r == null) {
 					children.put(name, r = new RouteTreeNode<>(this));
 				}
 			}
@@ -100,9 +100,9 @@ public class RouteMap<L, T> {
 		}
 
 		protected final void setEndpoint(boolean dir, IRouteEndpoint<L, T> val) {
-			if(dir) {
+			if (dir) {
 				endpointDir = val;
-			}else {
+			} else {
 				endpoint = val;
 			}
 		}
@@ -209,157 +209,157 @@ public class RouteMap<L, T> {
 
 	public boolean register(Iterator<CharSequence> tokens, boolean dir, L listener, int methId, T value) {
 		RouteTreeNode<L, T> path = rootNode;
-		while(tokens.hasNext()) {
+		while (tokens.hasNext()) {
 			path = path.getOrCreateChild(tokens.next().toString());
 		}
 		IRouteEndpoint<L, T> endpoint = path.getEndpoint(dir);
-		if(listener == null) {
-			if(endpoint == null) {
+		if (listener == null) {
+			if (endpoint == null) {
 				path.setEndpoint(dir, new RouteEndpointAllListener<>(boostrapMethods(methId, value)));
 				return true;
-			}else if(endpoint.allListener()) {
-				if(methId != -1) {
+			} else if (endpoint.allListener()) {
+				if (methId != -1) {
 					IRouteMethods<T> method = endpoint.getForListener(null);
-					if(method instanceof RouteMethodPerMethod<T> meth) {
+					if (method instanceof RouteMethodPerMethod<T> meth) {
 						return addMethod(meth, methId, value);
-					}else {
+					} else {
 						return false;
 					}
-				}else {
+				} else {
 					return false;
 				}
-			}else {
+			} else {
 				return false;
 			}
-		}else {
-			if(endpoint == null) {
+		} else {
+			if (endpoint == null) {
 				RouteEndpointPerListener<L, T> tmp1 = new RouteEndpointPerListener<>();
 				tmp1.entries.put(listener, boostrapMethods(methId, value));
 				path.setEndpoint(dir, tmp1);
 				return true;
-			}else if(endpoint instanceof RouteEndpointPerListener<L, T> tmp1) {
+			} else if (endpoint instanceof RouteEndpointPerListener<L, T> tmp1) {
 				IRouteMethods<T> method = tmp1.entries.get(listener);
-				if(method != null) {
-					if(methId != -1) {
-						if(method instanceof RouteMethodPerMethod<T> meth) {
+				if (method != null) {
+					if (methId != -1) {
+						if (method instanceof RouteMethodPerMethod<T> meth) {
 							return addMethod(meth, methId, value);
-						}else {
+						} else {
 							return false;
 						}
-					}else {
+					} else {
 						return false;
 					}
-				}else {
+				} else {
 					tmp1.entries.put(listener, boostrapMethods(methId, value));
 					return true;
 				}
-			}else {
+			} else {
 				return false;
 			}
 		}
 	}
 
 	private IRouteMethods<T> boostrapMethods(int methId, T value) {
-		if(methId != -1) {
+		if (methId != -1) {
 			RouteMethodPerMethod<T> tmp = new RouteMethodPerMethod<>();
 			tmp.obj[methId] = value;
 			++tmp.count;
 			return tmp;
-		}else {
+		} else {
 			return new RouteMethodAllMethods<>(value);
 		}
 	}
 
 	private boolean addMethod(RouteMethodPerMethod<T> meth, int methId, T value) {
-		if(meth.obj[methId] == null) {
+		if (meth.obj[methId] == null) {
 			meth.obj[methId] = value;
 			++meth.count;
 			return true;
-		}else {
+		} else {
 			return false;
 		}
 	}
 
 	public boolean remove(Iterator<CharSequence> tokens, boolean dir, L listener, int methId, T value) {
 		RouteTreeNode<L, T> endpointNode = rootNode.find(tokens, dir);
-		if(endpointNode == null) {
+		if (endpointNode == null) {
 			return false;
 		}
 		IRouteEndpoint<L, T> endpoint = endpointNode.getEndpoint(dir);
-		if(endpoint == null) {
+		if (endpoint == null) {
 			return false;
-		}else {
-			if(listener == null) {
-				if(endpoint instanceof RouteEndpointAllListener<L, T> tmp) {
-					if(methId != -1) {
-						if(tmp.method instanceof RouteMethodPerMethod<T> tmp2) {
-							if(tmp2.obj[methId] == value) {
+		} else {
+			if (listener == null) {
+				if (endpoint instanceof RouteEndpointAllListener<L, T> tmp) {
+					if (methId != -1) {
+						if (tmp.method instanceof RouteMethodPerMethod<T> tmp2) {
+							if (tmp2.obj[methId] == value) {
 								tmp2.obj[methId] = null;
-								if(--tmp2.count == 0) {
+								if (--tmp2.count == 0) {
 									deleteEndpoint(endpointNode, dir);
 								}
 								return true;
-							}else {
+							} else {
 								return false;
 							}
-						}else {
+						} else {
 							return false;
 						}
-					}else {
-						if(tmp.method instanceof RouteMethodAllMethods<T> tmp2) {
-							if(tmp2.obj == value) {
+					} else {
+						if (tmp.method instanceof RouteMethodAllMethods<T> tmp2) {
+							if (tmp2.obj == value) {
 								deleteEndpoint(endpointNode, dir);
 								return true;
-							}else {
+							} else {
 								return false;
 							}
-						}else {
+						} else {
 							return false;
 						}
 					}
-				}else {
+				} else {
 					return false;
 				}
-			}else {
-				if(endpoint instanceof RouteEndpointPerListener<L, T> tmp) {
+			} else {
+				if (endpoint instanceof RouteEndpointPerListener<L, T> tmp) {
 					IRouteMethods<T> method = tmp.entries.get(listener);
-					if(method != null) {
-						if(methId != -1) {
-							if(method instanceof RouteMethodPerMethod<T> tmp2) {
-								if(tmp2.obj[methId] == value) {
+					if (method != null) {
+						if (methId != -1) {
+							if (method instanceof RouteMethodPerMethod<T> tmp2) {
+								if (tmp2.obj[methId] == value) {
 									tmp2.obj[methId] = null;
-									if(--tmp2.count == 0) {
+									if (--tmp2.count == 0) {
 										tmp.entries.remove(listener);
-										if(tmp.entries.isEmpty()) {
+										if (tmp.entries.isEmpty()) {
 											deleteEndpoint(endpointNode, dir);
 										}
 									}
 									return true;
-								}else {
+								} else {
 									return false;
 								}
-							}else {
+							} else {
 								return false;
 							}
-						}else {
-							if(method instanceof RouteMethodAllMethods<T> tmp2) {
-								if(tmp2.obj == value) {
+						} else {
+							if (method instanceof RouteMethodAllMethods<T> tmp2) {
+								if (tmp2.obj == value) {
 									tmp.entries.remove(listener);
-									if(tmp.entries.isEmpty()) {
+									if (tmp.entries.isEmpty()) {
 										deleteEndpoint(endpointNode, dir);
 									}
 									return true;
-								}else {
+								} else {
 									return false;
 								}
-							}else {
+							} else {
 								return false;
 							}
 						}
-					}else {
+					} else {
 						return false;
 					}
-				}else {
+				} else {
 					return false;
 				}
 			}
@@ -375,18 +375,18 @@ public class RouteMap<L, T> {
 		RouteTreeNode<L, T> parent = endpointNode.parent;
 		if (parent != null && endpointNode.endpoint == null && endpointNode.endpointDir == null
 				&& endpointNode.children == null && endpointNode.defaultChild == null) {
-			if(parent.defaultChild == endpointNode) {
+			if (parent.defaultChild == endpointNode) {
 				parent.defaultChild = null;
-			}else {
-				if(parent.children != null) {
+			} else {
+				if (parent.children != null) {
 					Iterator<RouteTreeNode<L, T>> itr = parent.children.values().iterator();
-					while(itr.hasNext()) {
-						if(itr.next() == endpointNode) {
+					while (itr.hasNext()) {
+						if (itr.next() == endpointNode) {
 							itr.remove();
 							break;
 						}
 					}
-					if(parent.children.isEmpty()) {
+					if (parent.children.isEmpty()) {
 						parent.children = null;
 					}
 				}
@@ -397,43 +397,43 @@ public class RouteMap<L, T> {
 
 	public void get(Iterator<CharSequence> tokens, boolean dir, L listener, int methId, Result<T> result) {
 		RouteTreeNode<L, T> endpointNode = rootNode.find(tokens, dir);
-		if(endpointNode == null) {
+		if (endpointNode == null) {
 			result.result = null;
 			return;
 		}
 		IRouteEndpoint<L, T> endpoint;
 		boolean isDir;
-		if(dir) {
+		if (dir) {
 			endpoint = endpointNode.endpointDir;
-			if(endpoint == null) {
+			if (endpoint == null) {
 				endpoint = endpointNode.endpoint;
 				isDir = false;
-			}else {
+			} else {
 				isDir = true;
 			}
-		}else {
+		} else {
 			endpoint = endpointNode.endpoint;
-			if(endpoint == null) {
+			if (endpoint == null) {
 				endpoint = endpointNode.endpointDir;
 				isDir = true;
-			}else {
+			} else {
 				isDir = false;
 			}
 		}
-		if(endpoint == null) {
+		if (endpoint == null) {
 			result.result = null;
 			return;
 		}
 		IRouteMethods<T> methods = endpoint.getForListener(listener);
-		if(methods == null) {
+		if (methods == null) {
 			result.result = null;
 			return;
 		}
 		T ret = methods.getForMethod(methId);
-		if(ret != null) {
+		if (ret != null) {
 			result.result = ret;
 			result.directory = isDir;
-		}else {
+		} else {
 			result.result = null;
 		}
 	}
@@ -442,57 +442,58 @@ public class RouteMap<L, T> {
 			EnumRequestMethod.HEAD, EnumRequestMethod.PUT, EnumRequestMethod.DELETE, EnumRequestMethod.POST,
 			EnumRequestMethod.PATCH);
 
-	public void getOptions(Iterator<CharSequence> tokens, boolean dir, L listener, Result<List<EnumRequestMethod>> result) {
+	public void getOptions(Iterator<CharSequence> tokens, boolean dir, L listener,
+			Result<List<EnumRequestMethod>> result) {
 		RouteTreeNode<L, T> endpointNode = rootNode.find(tokens, dir);
-		if(endpointNode == null) {
+		if (endpointNode == null) {
 			result.result = null;
 			return;
 		}
 		IRouteEndpoint<L, T> endpoint;
 		boolean isDir;
-		if(dir) {
+		if (dir) {
 			endpoint = endpointNode.endpointDir;
-			if(endpoint == null) {
+			if (endpoint == null) {
 				endpoint = endpointNode.endpoint;
 				isDir = false;
-			}else {
+			} else {
 				isDir = true;
 			}
-		}else {
+		} else {
 			endpoint = endpointNode.endpoint;
-			if(endpoint == null) {
+			if (endpoint == null) {
 				endpoint = endpointNode.endpointDir;
 				isDir = true;
-			}else {
+			} else {
 				isDir = false;
 			}
 		}
-		if(endpoint == null) {
+		if (endpoint == null) {
 			result.result = null;
 			return;
 		}
 		IRouteMethods<T> methods = endpoint.getForListener(listener);
-		if(methods == null) {
+		if (methods == null) {
 			result.result = null;
 			return;
 		}
 		result.directory = isDir;
-		if(methods instanceof RouteMethodPerMethod) {
-			if(dir == isDir) {
+		if (methods instanceof RouteMethodPerMethod) {
+			if (dir == isDir) {
 				RouteMethodPerMethod<T> perMethod = (RouteMethodPerMethod<T>) methods;
 				List<EnumRequestMethod> meths = new ArrayList<>(numMeths);
 				Object[] objArr = perMethod.obj;
-				for(int i = 0, j = perMethod.count; i < numMeths && j > 0; ++i) {
-					if(objArr[i] != null) {
+				for (int i = 0, j = perMethod.count; i < numMeths && j > 0; ++i) {
+					if (objArr[i] != null) {
 						meths.add(EnumRequestMethod.fromId(i));
 						--j;
 					}
 				}
 				result.result = meths;
-			}else {
+			} else {
 				result.result = Collections.emptyList();
 			}
-		}else {
+		} else {
 			result.result = allMethods;
 		}
 	}
@@ -507,18 +508,18 @@ public class RouteMap<L, T> {
 		printer.accept(indent + "parent: " + node.parent);
 		printer.accept(indent + "isDefaultChild: " + node.isDefaultChild);
 		printer.accept(indent + "defaultChild:");
-		if(node.defaultChild != null) {
+		if (node.defaultChild != null) {
 			dumpNode(node.defaultChild, indent + "  ", printer);
-		}else {
+		} else {
 			printer.accept(indent + "  (none)");
 		}
 		printer.accept(indent + "children:");
-		if(node.children != null) {
-			for(Map.Entry<String, RouteTreeNode<L, T>> etr : node.children.entrySet()) {
+		if (node.children != null) {
+			for (Map.Entry<String, RouteTreeNode<L, T>> etr : node.children.entrySet()) {
 				printer.accept(indent + "  \"" + etr.getKey() + "\":");
 				dumpNode(etr.getValue(), indent + "    ", printer);
 			}
-		}else {
+		} else {
 			printer.accept(indent + "  (none)");
 		}
 	}

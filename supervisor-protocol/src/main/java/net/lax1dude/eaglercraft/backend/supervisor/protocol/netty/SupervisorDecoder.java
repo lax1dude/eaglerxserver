@@ -37,10 +37,10 @@ public class SupervisorDecoder extends MessageToMessageDecoder<ByteBuf> {
 	protected void decode(ChannelHandlerContext arg0, ByteBuf arg1, List<Object> arg2) throws Exception {
 		int id = arg1.readUnsignedByte();
 		EaglerSupervisorPacket pkt = protocol.createPacket(id, dir);
-		if(pkt != null) {
+		if (pkt != null) {
 			pkt.readPacket(arg1);
 			arg2.add(pkt);
-		}else {
+		} else {
 			throw new IllegalStateException("Recieved wrong packet type " + id + " on "
 					+ EaglerSupervisorProtocol.dirStr(id) + " type " + protocol.name() + " decoder");
 		}

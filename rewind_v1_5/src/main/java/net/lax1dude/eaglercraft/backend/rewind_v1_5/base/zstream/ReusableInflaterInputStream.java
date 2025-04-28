@@ -45,15 +45,15 @@ public class ReusableInflaterInputStream extends InputStream {
 		closed = false;
 		reachEOF = false;
 		inf.reset();
-		if(dataIn.hasArray()) {
+		if (dataIn.hasArray()) {
 			byte[] arr = dataIn.array();
 			int arrIndex = dataIn.arrayOffset();
 			inf.setInput(arr, arrIndex + dataIn.readerIndex(), dataIn.readableBytes());
 			buf = dataIn;
-		}else if(dataIn.nioBufferCount() == 1) {
+		} else if (dataIn.nioBufferCount() == 1) {
 			inf.setInput(dataIn.internalNioBuffer(dataIn.readerIndex(), dataIn.readableBytes()));
 			buf = dataIn;
-		}else {
+		} else {
 			throw new IllegalStateException("Composite buffers not supported! (Input)");
 		}
 	}

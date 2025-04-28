@@ -32,49 +32,49 @@ public class RateLimiterBasic extends AtomicInteger {
 	}
 
 	public boolean rateLimit(long periodNanos, int limitVal) {
-		if(incrementAndGet() >= limitVal) {
-			synchronized(this) {
+		if (incrementAndGet() >= limitVal) {
+			synchronized (this) {
 				int v = getPlain();
-				if(v < limitVal) {
+				if (v < limitVal) {
 					return true;
 				}
-				long period = (long)(60000000000l / limitVal);
+				long period = (long) (60000000000l / limitVal);
 				long delta = (System.nanoTime() - timer) / period;
-				if(delta > 0l) {
+				if (delta > 0l) {
 					timer += delta * period;
 					int correction = v - (limitVal << 1);
-					if(correction > 0) {
+					if (correction > 0) {
 						delta += correction;
 					}
-					return addAndGet(-Math.min((int)delta, v)) < limitVal;
+					return addAndGet(-Math.min((int) delta, v)) < limitVal;
 				}
 				return false;
 			}
-		}else {
+		} else {
 			return true;
 		}
 	}
 
 	public boolean checkState(int limitVal) {
-		if(getAcquire() >= limitVal) {
-			synchronized(this) {
+		if (getAcquire() >= limitVal) {
+			synchronized (this) {
 				int v = getPlain();
-				if(v < limitVal) {
+				if (v < limitVal) {
 					return true;
 				}
-				long period = (long)(60000000000l / limitVal);
+				long period = (long) (60000000000l / limitVal);
 				long delta = (System.nanoTime() - timer) / period;
-				if(delta > 0l) {
+				if (delta > 0l) {
 					timer += delta * period;
 					int correction = v - (limitVal << 1);
-					if(correction > 0) {
+					if (correction > 0) {
 						delta += correction;
 					}
-					return addAndGet(-Math.min((int)delta, v)) < limitVal;
+					return addAndGet(-Math.min((int) delta, v)) < limitVal;
 				}
 				return false;
 			}
-		}else {
+		} else {
 			return true;
 		}
 	}

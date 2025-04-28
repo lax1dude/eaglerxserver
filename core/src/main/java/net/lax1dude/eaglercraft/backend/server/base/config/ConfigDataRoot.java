@@ -30,8 +30,7 @@ public class ConfigDataRoot {
 	private final ConfigDataPauseMenu pauseMenu;
 
 	public ConfigDataRoot(ConfigDataSettings settings, Map<String, ConfigDataListener> listeners,
-			ConfigDataSupervisor supervisor, List<ICEServerEntry> iceServers,
-			ConfigDataPauseMenu pauseMenu) {
+			ConfigDataSupervisor supervisor, List<ICEServerEntry> iceServers, ConfigDataPauseMenu pauseMenu) {
 		this.settings = settings;
 		this.listeners = listeners;
 		this.supervisor = supervisor;

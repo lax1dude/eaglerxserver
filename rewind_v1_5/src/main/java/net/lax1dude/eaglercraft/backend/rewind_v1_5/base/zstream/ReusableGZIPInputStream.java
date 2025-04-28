@@ -51,9 +51,9 @@ public class ReusableGZIPInputStream extends ReusableInflaterInputStream {
 	public void setInput(ByteBuf dataIn, int limit) throws IOException {
 		closed = false;
 		eos = false;
-		if(BufferUtils.LITTLE_ENDIAN_SUPPORT) {
+		if (BufferUtils.LITTLE_ENDIAN_SUPPORT) {
 			readHeaderLE(dataIn);
-		}else {
+		} else {
 			readHeader(dataIn);
 		}
 		start = dataIn.readerIndex();
@@ -67,17 +67,17 @@ public class ReusableGZIPInputStream extends ReusableInflaterInputStream {
 		}
 		int n = super.read(buf, off, len);
 		if (n == -1) {
-			if(BufferUtils.LITTLE_ENDIAN_SUPPORT) {
+			if (BufferUtils.LITTLE_ENDIAN_SUPPORT) {
 				readTrailerLE();
-			}else {
+			} else {
 				readTrailer();
 			}
 			eos = true;
 		} else {
-			if(remaining >= 0) {
-				if(n > remaining) {
+			if (remaining >= 0) {
+				if (n > remaining) {
 					throw new IOException("Too many bytes decompressed!");
-				}else {
+				} else {
 					remaining -= n;
 				}
 			}
@@ -88,10 +88,10 @@ public class ReusableGZIPInputStream extends ReusableInflaterInputStream {
 
 	public void close() throws IOException {
 		if (!closed) {
-			if(inf.finished()) {
-				if(BufferUtils.LITTLE_ENDIAN_SUPPORT) {
+			if (inf.finished()) {
+				if (BufferUtils.LITTLE_ENDIAN_SUPPORT) {
 					readTrailerLE();
-				}else {
+				} else {
 					readTrailer();
 				}
 				eos = true;
@@ -206,16 +206,16 @@ public class ReusableGZIPInputStream extends ReusableInflaterInputStream {
 
 	private int getByteBufCRC(ByteBuf dataIn, int offset, int len) {
 		crc.reset();
-		if(dataIn.hasArray()) {
+		if (dataIn.hasArray()) {
 			byte[] arr = dataIn.array();
 			int arrIndex = dataIn.arrayOffset();
 			crc.update(arr, arrIndex + offset, len);
-		}else if(dataIn.nioBufferCount() == 1) {
+		} else if (dataIn.nioBufferCount() == 1) {
 			crc.update(dataIn.internalNioBuffer(offset, len));
-		}else {
+		} else {
 			throw new IllegalStateException("Composite buffers not supported! (Input)");
 		}
-		return (int)crc.getValue();
+		return (int) crc.getValue();
 	}
 
 	/*

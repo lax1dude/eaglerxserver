@@ -54,25 +54,25 @@ public class SPacketNotifIconsReleaseV4EAG implements GameMessagePacket {
 	public void readPacket(GamePacketInputBuffer buffer) throws IOException {
 		int len = buffer.readVarInt();
 		iconsToDestroy = new ArrayList<>(len);
-		for(int i = 0; i < len; ++i) {
+		for (int i = 0; i < len; ++i) {
 			iconsToDestroy.add(new DestroyIcon(buffer.readLong(), buffer.readLong()));
 		}
 	}
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
-		if(iconsToDestroy instanceof RandomAccess) {
+		if (iconsToDestroy instanceof RandomAccess) {
 			int len = iconsToDestroy.size();
 			buffer.writeVarInt(len);
-			List<DestroyIcon> vigg = (List<DestroyIcon>)iconsToDestroy;
-			for(int i = 0; i < len; ++i) {
+			List<DestroyIcon> vigg = (List<DestroyIcon>) iconsToDestroy;
+			for (int i = 0; i < len; ++i) {
 				DestroyIcon icn = vigg.get(i);
 				buffer.writeLong(icn.uuidMost);
 				buffer.writeLong(icn.uuidLeast);
 			}
-		}else {
+		} else {
 			buffer.writeVarInt(iconsToDestroy.size());
-			for(DestroyIcon icn : iconsToDestroy) {
+			for (DestroyIcon icn : iconsToDestroy) {
 				buffer.writeLong(icn.uuidMost);
 				buffer.writeLong(icn.uuidLeast);
 			}

@@ -34,13 +34,13 @@ public class Collectors3 {
 		Collector<Object, ?, List<Object>> c1;
 		try {
 			c1 = (Collector<Object, ?, List<Object>>) ImmutableList.class.getMethod("toImmutableList").invoke(null);
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 			c1 = Collectors.toUnmodifiableList();
 		}
 		Collector<Object, ?, Set<Object>> c2;
 		try {
 			c2 = (Collector<Object, ?, Set<Object>>) ImmutableSet.class.getMethod("toImmutableSet").invoke(null);
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 			c2 = Collectors.toUnmodifiableSet();
 		}
 		IMMUTABLE_LIST = c1;

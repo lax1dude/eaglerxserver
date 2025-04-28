@@ -38,7 +38,7 @@ class BukkitConsole implements IPlatformCommandSender<Player> {
 
 	@Override
 	public <ComponentObject> void sendMessage(ComponentObject component) {
-		console.sendMessage(((BaseComponent)component).toLegacyText());
+		console.sendMessage(((BaseComponent) component).toLegacyText());
 	}
 
 	@Override

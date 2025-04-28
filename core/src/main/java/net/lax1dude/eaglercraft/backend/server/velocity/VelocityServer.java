@@ -57,7 +57,7 @@ class VelocityServer implements IPlatformServer<Player> {
 	public void forEachPlayer(Consumer<IPlatformPlayer<Player>> callback) {
 		server.getPlayersConnected().forEach((player) -> {
 			IPlatformPlayer<Player> platformPlayer = plugin.getPlayer(player);
-			if(platformPlayer != null) {
+			if (platformPlayer != null) {
 				callback.accept(platformPlayer);
 			}
 		});

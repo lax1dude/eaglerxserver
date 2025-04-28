@@ -48,26 +48,27 @@ public class ProfileResolver implements IProfileResolver {
 
 	@Override
 	public void resolveVanillaUUIDFromUsername(String username, Consumer<UUID> callback) {
-		if(username == null) {
+		if (username == null) {
 			throw new NullPointerException("username");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		httpClient.asyncRequest("GET", URI.create("https://api.mojang.com/users/profiles/minecraft/"
 				+ URLEncoder.encode(username, StandardCharsets.UTF_8)), (response) -> {
-			if(response == null) {
+			if (response == null) {
 				callback.accept(null);
-			}else if(response.exception != null) {
-				server.logger().error("Exception loading vanilla profile UUID of \"" + username + "\"!", response.exception);
+			} else if (response.exception != null) {
+				server.logger().error("Exception loading vanilla profile UUID of \"" + username + "\"!",
+						response.exception);
 				callback.accept(null);
-			}else {
+			} else {
 				try {
-					if(response.code != 200) {
+					if (response.code != 200) {
 						callback.accept(null);
-					}else if (response.data == null) {
+					} else if (response.data == null) {
 						callback.accept(null);
-					}else {
+					} else {
 						UUID uuid;
 						try {
 							JsonObject json = EaglerXServer.GSON_PRETTY.fromJson(
@@ -75,13 +76,13 @@ public class ProfileResolver implements IProfileResolver {
 											response.data.readableBytes(), StandardCharsets.UTF_8)),
 									JsonObject.class);
 							uuid = Util.createUUIDFromUndashed(json.get("id").getAsString());
-						}catch(Exception t) {
+						} catch (Exception t) {
 							callback.accept(null);
 							return;
 						}
 						callback.accept(uuid);
 					}
-				}finally {
+				} finally {
 					ReferenceCountUtil.release(response.data);
 				}
 			}
@@ -90,47 +91,47 @@ public class ProfileResolver implements IProfileResolver {
 
 	@Override
 	public void resolveVanillaTexturesFromUUID(UUID uuid, Consumer<TexturesProperty> callback) {
-		if(uuid == null) {
+		if (uuid == null) {
 			throw new NullPointerException("uuid");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		httpClient.asyncRequest("GET", URI.create("https://sessionserver.mojang.com/session/minecraft/profile/"
 				+ Util.toUUIDStringUndashed(uuid) + "?unsigned=false"), (response) -> {
-			if(response == null) {
+			if (response == null) {
 				callback.accept(null);
-			}else if(response.exception != null) {
+			} else if (response.exception != null) {
 				server.logger().error("Exception loading profile " + uuid + "!", response.exception);
 				callback.accept(null);
-			}else {
+			} else {
 				try {
-					if(response.code != 200) {
+					if (response.code != 200) {
 						callback.accept(null);
-					}else if (response.data == null) {
+					} else if (response.data == null) {
 						callback.accept(null);
-					}else {
+					} else {
 						TexturesProperty result = null;
 						try {
 							JsonObject json = EaglerXServer.GSON_PRETTY.fromJson(
 									new CharSequenceReader(BufferUtils.readCharSequence(response.data,
-											response.data.readableBytes(), StandardCharsets.UTF_8)), 
+											response.data.readableBytes(), StandardCharsets.UTF_8)),
 									JsonObject.class);
 							JsonElement propsElement = json.get("properties");
-							if(propsElement != null) {
+							if (propsElement != null) {
 								JsonArray properties = propsElement.getAsJsonArray();
-								if(properties.size() > 0) {
-									for(int i = 0, l = properties.size(); i < l; ++i) {
+								if (properties.size() > 0) {
+									for (int i = 0, l = properties.size(); i < l; ++i) {
 										JsonElement prop = properties.get(i);
-										if(prop.isJsonObject()) {
+										if (prop.isJsonObject()) {
 											JsonObject propObj = prop.getAsJsonObject();
-											if(propObj.get("name").getAsString().equals("textures")) {
+											if (propObj.get("name").getAsString().equals("textures")) {
 												JsonElement value = propObj.get("value");
 												JsonElement signature = propObj.get("signature");
-												if(value != null && signature != null) {
+												if (value != null && signature != null) {
 													String v = value.getAsString();
 													String s = signature.getAsString();
-													if(v != null && s != null) {
+													if (v != null && s != null) {
 														result = TexturesProperty.create(v, s);
 														break;
 													}
@@ -140,13 +141,13 @@ public class ProfileResolver implements IProfileResolver {
 									}
 								}
 							}
-						}catch(Exception t) {
+						} catch (Exception t) {
 							callback.accept(null);
 							return;
 						}
 						callback.accept(result);
 					}
-				}finally {
+				} finally {
 					ReferenceCountUtil.release(response.data);
 				}
 			}
@@ -155,7 +156,7 @@ public class ProfileResolver implements IProfileResolver {
 
 	@Override
 	public TexturesResult decodeVanillaTextures(String propertyValue) {
-		if(propertyValue == null) {
+		if (propertyValue == null) {
 			throw new NullPointerException("propertyValue");
 		}
 		return GameProfileUtil.extractSkinAndCape(propertyValue);

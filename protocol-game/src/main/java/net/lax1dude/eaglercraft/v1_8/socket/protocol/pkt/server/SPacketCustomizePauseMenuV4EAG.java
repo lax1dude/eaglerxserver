@@ -53,7 +53,7 @@ public class SPacketCustomizePauseMenuV4EAG implements GameMessagePacket {
 	public String discordButtonText;
 	public String discordInviteURL;
 
-	public Map<String,Integer> imageMappings;
+	public Map<String, Integer> imageMappings;
 	public List<PacketImageData> imageData;
 
 	public SPacketCustomizePauseMenuV4EAG() {
@@ -83,7 +83,7 @@ public class SPacketCustomizePauseMenuV4EAG implements GameMessagePacket {
 		int flags = buffer.readUnsignedByte();
 		serverInfoMode = (flags & 15);
 		discordButtonMode = ((flags >> 4) & 15);
-		switch(serverInfoMode) {
+		switch (serverInfoMode) {
 		case SERVER_INFO_MODE_EXTERNAL_URL:
 			serverInfoButtonText = buffer.readStringMC(127);
 			serverInfoURL = buffer.readStringEaglerASCII16();
@@ -112,22 +112,22 @@ public class SPacketCustomizePauseMenuV4EAG implements GameMessagePacket {
 			serverInfoHash = null;
 			break;
 		}
-		if(discordButtonMode == DISCORD_MODE_INVITE_URL) {
+		if (discordButtonMode == DISCORD_MODE_INVITE_URL) {
 			discordButtonText = buffer.readStringMC(127);
 			discordInviteURL = buffer.readStringEaglerASCII16();
-		}else {
+		} else {
 			discordButtonText = null;
 			discordInviteURL = null;
 		}
 		int mappingsCount = buffer.readVarInt();
-		if(mappingsCount > 0) {
+		if (mappingsCount > 0) {
 			imageMappings = new HashMap<>();
 			imageData = new ArrayList<>();
-			for(int i = 0; i < mappingsCount; ++i) {
+			for (int i = 0; i < mappingsCount; ++i) {
 				imageMappings.put(buffer.readStringEaglerASCII8(), buffer.readVarInt());
 			}
 			int imageDataCount = buffer.readVarInt();
-			for(int i = 0; i < imageDataCount; ++i) {
+			for (int i = 0; i < imageDataCount; ++i) {
 				imageData.add(PacketImageData.readRGB16(buffer));
 			}
 		}
@@ -136,7 +136,7 @@ public class SPacketCustomizePauseMenuV4EAG implements GameMessagePacket {
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
 		buffer.writeByte(serverInfoMode | (discordButtonMode << 4));
-		switch(serverInfoMode) {
+		switch (serverInfoMode) {
 		case SERVER_INFO_MODE_EXTERNAL_URL:
 			buffer.writeStringMC(serverInfoButtonText);
 			buffer.writeStringEaglerASCII16(serverInfoURL);
@@ -151,7 +151,7 @@ public class SPacketCustomizePauseMenuV4EAG implements GameMessagePacket {
 			buffer.writeStringMC(serverInfoButtonText);
 			buffer.writeByte(serverInfoEmbedPerms);
 			buffer.writeStringMC(serverInfoEmbedTitle);
-			if(serverInfoHash.length != 20) {
+			if (serverInfoHash.length != 20) {
 				throw new IOException("Hash must be 20 bytes! (" + serverInfoHash.length + " given)");
 			}
 			buffer.write(serverInfoHash);
@@ -159,24 +159,25 @@ public class SPacketCustomizePauseMenuV4EAG implements GameMessagePacket {
 		default:
 			break;
 		}
-		if(discordButtonMode == DISCORD_MODE_INVITE_URL) {
+		if (discordButtonMode == DISCORD_MODE_INVITE_URL) {
 			buffer.writeStringMC(discordButtonText);
 			buffer.writeStringEaglerASCII16(discordInviteURL);
 		}
-		if(imageMappings != null && !imageMappings.isEmpty()) {
+		if (imageMappings != null && !imageMappings.isEmpty()) {
 			buffer.writeVarInt(imageMappings.size());
-			for(Entry<String,Integer> etr : imageMappings.entrySet()) {
+			for (Entry<String, Integer> etr : imageMappings.entrySet()) {
 				buffer.writeStringEaglerASCII8(etr.getKey());
 				buffer.writeVarInt(etr.getValue().intValue());
 			}
 			buffer.writeVarInt(imageData.size());
-			for(PacketImageData etr : imageData) {
-				if(etr.width < 1 || etr.width > 64 || etr.height < 1 || etr.height > 64) {
-					throw new IOException("Invalid image dimensions in packet, must be between 1x1 and 64x64, got " + etr.width + "x" + etr.height);
+			for (PacketImageData etr : imageData) {
+				if (etr.width < 1 || etr.width > 64 || etr.height < 1 || etr.height > 64) {
+					throw new IOException("Invalid image dimensions in packet, must be between 1x1 and 64x64, got "
+							+ etr.width + "x" + etr.height);
 				}
 				PacketImageData.writeRGB16(buffer, etr);
 			}
-		}else {
+		} else {
 			buffer.writeByte(0);
 		}
 	}

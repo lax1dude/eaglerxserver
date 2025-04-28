@@ -30,15 +30,15 @@ public class YAMLConfigLoader {
 		try {
 			Class.forName("org.yaml.snakeyaml.LoaderOptions").getMethod("setProcessComments", boolean.class);
 			b = true;
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 		}
 		MODERN = b;
 	}
 
 	public static IEaglerConfig getConfigFile(File file) throws IOException {
-		if(MODERN) {
+		if (MODERN) {
 			return net.lax1dude.eaglercraft.backend.server.config.snakeyaml.modern.YAMLConfigLoader.getConfigFile(file);
-		}else {
+		} else {
 			return net.lax1dude.eaglercraft.backend.server.config.snakeyaml.legacy.YAMLConfigLoader.getConfigFile(file);
 		}
 	}

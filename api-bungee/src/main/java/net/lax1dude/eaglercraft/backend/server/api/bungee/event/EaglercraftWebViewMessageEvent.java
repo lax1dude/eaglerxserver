@@ -73,7 +73,7 @@ public final class EaglercraftWebViewMessageEvent extends Event
 	@Nonnull
 	@Override
 	public String getAsString() {
-		if(asString == null) {
+		if (asString == null) {
 			asString = new String(data, StandardCharsets.UTF_8);
 		}
 		return asString;

@@ -23,7 +23,8 @@ import java.util.function.Consumer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerNettyPipelineInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformNettyPipelineInitializer;
 
-class EaglerXServerNettyPipelineInitializer<PlayerObject> implements IEaglerXServerNettyPipelineInitializer<NettyPipelineData> {
+class EaglerXServerNettyPipelineInitializer<PlayerObject>
+		implements IEaglerXServerNettyPipelineInitializer<NettyPipelineData> {
 
 	private final EaglerXServer<PlayerObject> server;
 
@@ -36,21 +37,21 @@ class EaglerXServerNettyPipelineInitializer<PlayerObject> implements IEaglerXSer
 		EaglerListener eagListener = (EaglerListener) initializer.getListener();
 		Consumer<SocketAddress> realAddressHandle = null;
 		CompoundRateLimiterMap.ICompoundRatelimits rateLimits = null;
-		if(eagListener.isForwardIP()) {
-			if(eagListener.getConfigData().isSpoofPlayerAddressForwarded()) {
+		if (eagListener.isForwardIP()) {
+			if (eagListener.getConfigData().isSpoofPlayerAddressForwarded()) {
 				realAddressHandle = initializer.realAddressHandle();
 			}
-		}else {
+		} else {
 			CompoundRateLimiterMap map = eagListener.getRateLimiter();
-			if(map != null) {
+			if (map != null) {
 				SocketAddress addr = initializer.getChannel().remoteAddress();
-				if(addr instanceof InetSocketAddress inetAddr) {
+				if (addr instanceof InetSocketAddress inetAddr) {
 					rateLimits = map.rateLimit(inetAddr.getAddress());
-					if(rateLimits == null) {
+					if (rateLimits == null) {
 						initializer.getChannel().close();
 						return;
 					}
-				}else {
+				} else {
 					server.logger().warn("Unable to ratelimit unknown address type: " + addr.getClass().getName()
 							+ " - \"" + addr + "\"");
 				}

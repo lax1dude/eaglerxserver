@@ -53,7 +53,7 @@ public class EaglerWeb<PlayerObject> {
 		int cnt;
 		try {
 			cnt = handleRefreshIndex();
-		}catch(IOException ex) {
+		} catch (IOException ex) {
 			platform.logger().error("Failed to index pages!", ex);
 			return;
 		}
@@ -63,9 +63,9 @@ public class EaglerWeb<PlayerObject> {
 			@Override
 			public void handleRequest(IRequestContext requestContext) {
 				EaglerWebHandler handler = EaglerWeb.this.handler;
-				if(handler != null) {
+				if (handler != null) {
 					handler.handleRequest(requestContext);
-				}else {
+				} else {
 					requestContext.getServer().getDefault404Handler().handleRequest(requestContext);
 				}
 			}
@@ -74,9 +74,9 @@ public class EaglerWeb<PlayerObject> {
 			@Override
 			public void handleRequest(IRequestContext requestContext) {
 				EaglerWebHandler handler = EaglerWeb.this.handler;
-				if(handler != null) {
+				if (handler != null) {
 					handler.handle429(requestContext);
-				}else {
+				} else {
 					requestContext.getServer().getDefault429Handler().handleRequest(requestContext);
 				}
 			}
@@ -85,9 +85,9 @@ public class EaglerWeb<PlayerObject> {
 			@Override
 			public void handleRequest(IRequestContext requestContext) {
 				EaglerWebHandler handler = EaglerWeb.this.handler;
-				if(handler != null) {
+				if (handler != null) {
 					handler.handle500(requestContext);
-				}else {
+				} else {
 					requestContext.getServer().getDefault500Handler().handleRequest(requestContext);
 				}
 			}
@@ -98,7 +98,7 @@ public class EaglerWeb<PlayerObject> {
 	public void onDisable(IEaglerXServerAPI<PlayerObject> server) {
 		platform.logger().info("Shutting down, please wait...");
 		platform.setHandleRefresh(null);
-		if(registered) {
+		if (registered) {
 			registered = false;
 			server.getWebServer().unregisterRoute(this, RouteDesc.DEFAULT_404);
 			server.getWebServer().unregisterRoute(this, RouteDesc.DEFAULT_429);
@@ -131,11 +131,11 @@ public class EaglerWeb<PlayerObject> {
 
 	private void setIndex(EaglerWebHandler handler) {
 		EaglerWebHandler oldHandler;
-		synchronized(this) {
+		synchronized (this) {
 			oldHandler = this.handler;
 			this.handler = handler;
 		}
-		if(oldHandler != null) {
+		if (oldHandler != null) {
 			oldHandler.release();
 		}
 	}
@@ -151,9 +151,9 @@ public class EaglerWeb<PlayerObject> {
 		@Override
 		public void handlePreflight(IPreflightContext context) {
 			EaglerWebHandler handler = EaglerWeb.this.handler;
-			if(handler != null && handler.enablePreflight()) {
+			if (handler != null && handler.enablePreflight()) {
 				handler.handlePreflight(context);
-			}else {
+			} else {
 				context.setResponseCode(403);
 				context.setResponseBodyEmpty();
 			}

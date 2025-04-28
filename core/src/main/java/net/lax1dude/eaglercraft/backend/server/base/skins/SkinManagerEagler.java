@@ -136,22 +136,22 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	@Override
 	public void changePlayerSkin(IEaglerPlayerSkin newSkin, boolean notifyOthers) {
-		if(newSkin == null) {
+		if (newSkin == null) {
 			throw new NullPointerException("newSkin");
 		}
-		if(!newSkin.equals(skin)) {
+		if (!newSkin.equals(skin)) {
 			skin = newSkin;
 			int pv = player.getEaglerProtocol().ver;
-			if(pv >= 4) {
-				if(pv >= 5 && newSkin.equals(oldSkin)) {
+			if (pv >= 4) {
+				if (pv >= 5 && newSkin.equals(oldSkin)) {
 					// This was added in protocol V4, but doesn't always work correctly pre-u51
 					// So we're only gonna send it to protocol V5 clients and up
 					player.sendEaglerMessage(new SPacketUnforceClientV4EAG(true, false, false));
-				}else {
+				} else {
 					player.sendEaglerMessage(newSkin.getForceSkinPacketV4());
 				}
 			}
-			if(notifyOthers) {
+			if (notifyOthers) {
 				SkinManagerHelper.notifyOthers(player, true, false);
 			}
 		}
@@ -164,22 +164,22 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	@Override
 	public void changePlayerCape(IEaglerPlayerCape newCape, boolean notifyOthers) {
-		if(newCape == null) {
+		if (newCape == null) {
 			throw new NullPointerException("newCape");
 		}
-		if(!newCape.equals(cape)) {
+		if (!newCape.equals(cape)) {
 			cape = newCape;
 			int pv = player.getEaglerProtocol().ver;
-			if(pv >= 4) {
-				if(pv >= 5 && newCape.equals(oldCape)) {
+			if (pv >= 4) {
+				if (pv >= 5 && newCape.equals(oldCape)) {
 					// This was added in protocol V4, but doesn't always work correctly pre-u51
 					// So we're only gonna send it to protocol V5 clients and up
 					player.sendEaglerMessage(new SPacketUnforceClientV4EAG(false, true, false));
-				}else {
+				} else {
 					player.sendEaglerMessage(newCape.getForceCapePacketV4());
 				}
 			}
-			if(notifyOthers) {
+			if (notifyOthers) {
 				SkinManagerHelper.notifyOthers(player, false, true);
 			}
 		}
@@ -192,42 +192,42 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	@Override
 	public void changePlayerTextures(IEaglerPlayerSkin newSkin, IEaglerPlayerCape newCape, boolean notifyOthers) {
-		if(newSkin == null) {
+		if (newSkin == null) {
 			throw new NullPointerException("newSkin");
 		}
-		if(newCape == null) {
+		if (newCape == null) {
 			throw new NullPointerException("newCape");
 		}
 		boolean s = !newSkin.equals(skin), c = !newCape.equals(cape);
-		if(s || c) {
-			if(s) {
+		if (s || c) {
+			if (s) {
 				skin = newSkin;
 			}
-			if(c) {
+			if (c) {
 				cape = newCape;
 			}
 			int pv = player.getEaglerProtocol().ver;
-			if(pv >= 4) {
+			if (pv >= 4) {
 				boolean ufs = false, ufc = false;
-				if(s) {
-					if(pv >= 5 && newSkin.equals(oldSkin)) {
+				if (s) {
+					if (pv >= 5 && newSkin.equals(oldSkin)) {
 						ufs = true;
-					}else {
+					} else {
 						player.sendEaglerMessage(newSkin.getForceSkinPacketV4());
 					}
 				}
-				if(c) {
-					if(pv >= 5 && newCape.equals(oldCape)) {
+				if (c) {
+					if (pv >= 5 && newCape.equals(oldCape)) {
 						ufc = true;
-					}else {
+					} else {
 						player.sendEaglerMessage(newCape.getForceCapePacketV4());
 					}
 				}
-				if(ufs || ufc) {
+				if (ufs || ufc) {
 					player.sendEaglerMessage(new SPacketUnforceClientV4EAG(ufs, ufc, false));
 				}
 			}
-			if(notifyOthers) {
+			if (notifyOthers) {
 				SkinManagerHelper.notifyOthers(player, s, c);
 			}
 		}
@@ -235,7 +235,8 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	@Override
 	public void changePlayerTextures(EnumPresetSkins newSkin, EnumPresetCapes newCape, boolean notifyOthers) {
-		changePlayerTextures(InternUtils.getPresetSkin(newSkin.getId()), InternUtils.getPresetCape(newCape.getId()), notifyOthers);
+		changePlayerTextures(InternUtils.getPresetSkin(newSkin.getId()), InternUtils.getPresetCape(newCape.getId()),
+				notifyOthers);
 	}
 
 	@Override
@@ -260,11 +261,11 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	@Override
 	public void setEnableFNAWSkins(EnumEnableFNAW enabled) {
-		if(enabled == null) {
+		if (enabled == null) {
 			throw new NullPointerException("enabled");
 		}
 		EnumEnableFNAW oldState = fnawSkinsEnabled;
-		if(oldState != enabled) {
+		if (oldState != enabled) {
 			fnawSkinsEnabled = enabled;
 			player.sendEaglerMessage(new SPacketEnableFNAWSkinsEAG(enabled != EnumEnableFNAW.DISABLED,
 					enabled == EnumEnableFNAW.FORCED));
@@ -287,7 +288,7 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 	}
 
 	public void handleServerPostConnect(String serverName) {
-		if(fnawSkinsManaged) {
+		if (fnawSkinsManaged) {
 			setEnableFNAWSkins(skinService.isFNAWSkinsEnabledOnServer(serverName) ? EnumEnableFNAW.ENABLED
 					: EnumEnableFNAW.DISABLED);
 		}
@@ -295,36 +296,37 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	public void handlePacketGetOtherSkin(long uuidMost, long uuidLeast) {
 		PlayerRateLimits rateLimits = player.getRateLimits();
-		if(!rateLimits.ratelimitSkin()) {
+		if (!rateLimits.ratelimitSkin()) {
 			return;
 		}
 		UUID targetUUID = new UUID(uuidMost, uuidLeast);
 		BasePlayerInstance<PlayerObject> target = player.getEaglerXServer().getPlayerByUUID(targetUUID);
-		if(target != null) {
+		if (target != null) {
 			ISkinManagerImpl skinMgr = (ISkinManagerImpl) target.getSkinManager();
 			IEaglerPlayerSkin skin = skinMgr.getPlayerSkinIfLoaded();
-			if(skin != null) {
+			if (skin != null) {
 				player.sendEaglerMessage(skin.getSkinPacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
-			}else {
+			} else {
 				skinMgr.resolvePlayerSkinKeyed(player.getUniqueId(), (res) -> {
 					player.sendEaglerMessage(res.getSkinPacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
 				});
 			}
-		}else {
+		} else {
 			ISupervisorServiceImpl<PlayerObject> supervisorService = player.getEaglerXServer().getSupervisorService();
-			if(supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(targetUUID)) {
-				if(!rateLimits.checkSvSkinAntagonist()) {
+			if (supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(targetUUID)) {
+				if (!rateLimits.checkSvSkinAntagonist()) {
 					return;
 				}
 				supervisorService.getRemoteOnlyResolver().resolvePlayerSkinKeyed(player.getUniqueId(), targetUUID, (res) -> {
-					if(res != MissingSkin.UNAVAILABLE_SKIN) {
-						if(!res.isSuccess()) {
+					if (res != MissingSkin.UNAVAILABLE_SKIN) {
+						if (!res.isSuccess()) {
 							player.getRateLimits().ratelimitSvSkinAntagonist();
 						}
-						player.sendEaglerMessage(res.getSkinPacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
+						player.sendEaglerMessage(
+								res.getSkinPacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
 					}
 				});
-			}else {
+			} else {
 				player.sendEaglerMessage(MissingSkin.forPlayerUUID(targetUUID).getSkinPacket(uuidMost, uuidLeast,
 						player.getEaglerProtocol()));
 			}
@@ -333,53 +335,54 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	public void handlePacketGetOtherCape(long uuidMost, long uuidLeast) {
 		PlayerRateLimits rateLimits = player.getRateLimits();
-		if(!rateLimits.ratelimitCape()) {
+		if (!rateLimits.ratelimitCape()) {
 			return;
 		}
 		UUID targetUUID = new UUID(uuidMost, uuidLeast);
 		BasePlayerInstance<PlayerObject> target = player.getEaglerXServer().getPlayerByUUID(targetUUID);
-		if(target != null) {
+		if (target != null) {
 			ISkinManagerImpl skinMgr = (ISkinManagerImpl) target.getSkinManager();
 			IEaglerPlayerCape skin = skinMgr.getPlayerCapeIfLoaded();
-			if(skin != null) {
+			if (skin != null) {
 				player.sendEaglerMessage(skin.getCapePacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
-			}else {
+			} else {
 				skinMgr.resolvePlayerCapeKeyed(player.getUniqueId(), (res) -> {
 					player.sendEaglerMessage(res.getCapePacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
 				});
 			}
-		}else {
+		} else {
 			ISupervisorServiceImpl<PlayerObject> supervisorService = player.getEaglerXServer().getSupervisorService();
-			if(supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(targetUUID)) {
-				if(!rateLimits.checkSvSkinAntagonist()) {
+			if (supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(targetUUID)) {
+				if (!rateLimits.checkSvSkinAntagonist()) {
 					return;
 				}
 				supervisorService.getRemoteOnlyResolver().resolvePlayerCapeKeyed(player.getUniqueId(), targetUUID, (res) -> {
-					if(res != MissingCape.UNAVAILABLE_CAPE) {
-						if(!res.isSuccess()) {
+					if (res != MissingCape.UNAVAILABLE_CAPE) {
+						if (!res.isSuccess()) {
 							player.getRateLimits().ratelimitSvSkinAntagonist();
 						}
-						player.sendEaglerMessage(res.getCapePacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
+						player.sendEaglerMessage(
+								res.getCapePacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
 					}
 				});
-			}else {
-				player.sendEaglerMessage(MissingCape.MISSING_CAPE.getCapePacket(uuidMost, uuidLeast,
-						player.getEaglerProtocol()));
+			} else {
+				player.sendEaglerMessage(
+						MissingCape.MISSING_CAPE.getCapePacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
 			}
 		}
 	}
 
 	public void handlePacketGetSkinByURL(long uuidMost, long uuidLeast, String url) {
 		PlayerRateLimits rateLimits = player.getRateLimits();
-		if(!rateLimits.ratelimitSkin()) {
+		if (!rateLimits.ratelimitSkin()) {
 			return;
 		}
-		if(!rateLimits.checkSkinAntagonist()) {
+		if (!rateLimits.checkSkinAntagonist()) {
 			return;
 		}
 		skinService.loadCacheSkinFromURLKeyed(this, url, EnumSkinModel.STEVE, (res) -> {
-			if(res != MissingSkin.UNAVAILABLE_SKIN) {
-				if(!res.isSuccess()) {
+			if (res != MissingSkin.UNAVAILABLE_SKIN) {
+				if (!res.isSuccess()) {
 					player.getRateLimits().ratelimitSkinAntagonist();
 				}
 				player.sendEaglerMessage(res.getSkinPacket(uuidMost, uuidLeast, 0xFF, player.getEaglerProtocol()));
@@ -389,91 +392,90 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	public void handlePacketGetOtherSkinV5(int requestId, long uuidMost, long uuidLeast) {
 		PlayerRateLimits rateLimits = player.getRateLimits();
-		if(!rateLimits.ratelimitSkin()) {
+		if (!rateLimits.ratelimitSkin()) {
 			return;
 		}
 		UUID targetUUID = new UUID(uuidMost, uuidLeast);
 		BasePlayerInstance<PlayerObject> target = player.getEaglerXServer().getPlayerByUUID(targetUUID);
-		if(target != null) {
+		if (target != null) {
 			ISkinManagerImpl skinMgr = (ISkinManagerImpl) target.getSkinManager();
 			IEaglerPlayerSkin skin = skinMgr.getPlayerSkinIfLoaded();
-			if(skin != null) {
+			if (skin != null) {
 				player.sendEaglerMessage(skin.getSkinPacket(requestId, player.getEaglerProtocol()));
-			}else {
+			} else {
 				skinMgr.resolvePlayerSkinKeyed(player.getUniqueId(), (res) -> {
 					player.sendEaglerMessage(res.getSkinPacket(requestId, player.getEaglerProtocol()));
 				});
 			}
-		}else {
+		} else {
 			ISupervisorServiceImpl<PlayerObject> supervisorService = player.getEaglerXServer().getSupervisorService();
-			if(supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(targetUUID)) {
-				if(!rateLimits.checkSvSkinAntagonist()) {
+			if (supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(targetUUID)) {
+				if (!rateLimits.checkSvSkinAntagonist()) {
 					return;
 				}
 				supervisorService.getRemoteOnlyResolver().resolvePlayerSkinKeyed(player.getUniqueId(), targetUUID, (res) -> {
-					if(res != MissingSkin.UNAVAILABLE_SKIN) {
-						if(!res.isSuccess()) {
+					if (res != MissingSkin.UNAVAILABLE_SKIN) {
+						if (!res.isSuccess()) {
 							player.getRateLimits().ratelimitSvSkinAntagonist();
 						}
 						player.sendEaglerMessage(res.getSkinPacket(requestId, player.getEaglerProtocol()));
 					}
 				});
-			}else {
-				player.sendEaglerMessage(MissingSkin.forPlayerUUID(targetUUID).getSkinPacket(requestId,
-						player.getEaglerProtocol()));
+			} else {
+				player.sendEaglerMessage(
+						MissingSkin.forPlayerUUID(targetUUID).getSkinPacket(requestId, player.getEaglerProtocol()));
 			}
 		}
 	}
 
 	public void handlePacketGetOtherCapeV5(int requestId, long uuidMost, long uuidLeast) {
 		PlayerRateLimits rateLimits = player.getRateLimits();
-		if(!rateLimits.ratelimitCape()) {
+		if (!rateLimits.ratelimitCape()) {
 			return;
 		}
 		UUID targetUUID = new UUID(uuidMost, uuidLeast);
 		BasePlayerInstance<PlayerObject> target = player.getEaglerXServer().getPlayerByUUID(targetUUID);
-		if(target != null) {
+		if (target != null) {
 			ISkinManagerImpl skinMgr = (ISkinManagerImpl) target.getSkinManager();
 			IEaglerPlayerCape skin = skinMgr.getPlayerCapeIfLoaded();
-			if(skin != null) {
+			if (skin != null) {
 				player.sendEaglerMessage(skin.getCapePacket(requestId, player.getEaglerProtocol()));
-			}else {
+			} else {
 				skinMgr.resolvePlayerCapeKeyed(player.getUniqueId(), (res) -> {
 					player.sendEaglerMessage(res.getCapePacket(requestId, player.getEaglerProtocol()));
 				});
 			}
-		}else {
+		} else {
 			ISupervisorServiceImpl<PlayerObject> supervisorService = player.getEaglerXServer().getSupervisorService();
-			if(supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(targetUUID)) {
-				if(!rateLimits.checkSvSkinAntagonist()) {
+			if (supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(targetUUID)) {
+				if (!rateLimits.checkSvSkinAntagonist()) {
 					return;
 				}
 				supervisorService.getRemoteOnlyResolver().resolvePlayerCapeKeyed(player.getUniqueId(), targetUUID, (res) -> {
-					if(res != MissingCape.UNAVAILABLE_CAPE) {
-						if(!res.isSuccess()) {
+					if (res != MissingCape.UNAVAILABLE_CAPE) {
+						if (!res.isSuccess()) {
 							player.getRateLimits().ratelimitSvSkinAntagonist();
 						}
 						player.sendEaglerMessage(res.getCapePacket(requestId, player.getEaglerProtocol()));
 					}
 				});
-			}else {
-				player.sendEaglerMessage(MissingCape.MISSING_CAPE.getCapePacket(requestId,
-						player.getEaglerProtocol()));
+			} else {
+				player.sendEaglerMessage(MissingCape.MISSING_CAPE.getCapePacket(requestId, player.getEaglerProtocol()));
 			}
 		}
 	}
 
 	public void handlePacketGetSkinByURLV5(int requestId, String url) {
 		PlayerRateLimits rateLimits = player.getRateLimits();
-		if(!rateLimits.ratelimitSkin()) {
+		if (!rateLimits.ratelimitSkin()) {
 			return;
 		}
-		if(!rateLimits.checkSkinAntagonist()) {
+		if (!rateLimits.checkSkinAntagonist()) {
 			return;
 		}
 		skinService.loadCacheSkinFromURLKeyed(this, url, EnumSkinModel.STEVE, (res) -> {
-			if(res != MissingSkin.UNAVAILABLE_SKIN) {
-				if(!res.isSuccess()) {
+			if (res != MissingSkin.UNAVAILABLE_SKIN) {
+				if (!res.isSuccess()) {
 					player.getRateLimits().ratelimitSkinAntagonist();
 				}
 				player.sendEaglerMessage(res.getSkinPacket(requestId, 0xFF, player.getEaglerProtocol()));
@@ -483,18 +485,18 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	public void handlePacketGetTexturesV5(int requestId, long uuidMost, long uuidLeast) {
 		PlayerRateLimits rateLimits = player.getRateLimits();
-		if(!rateLimits.ratelimitSkin()) {
+		if (!rateLimits.ratelimitSkin()) {
 			return;
 		}
 		UUID targetUUID = new UUID(uuidMost, uuidLeast);
 		BasePlayerInstance<PlayerObject> target = player.getEaglerXServer().getPlayerByUUID(targetUUID);
-		if(target != null) {
+		if (target != null) {
 			ISkinManagerImpl skinMgr = (ISkinManagerImpl) target.getSkinManager();
 			IEaglerPlayerSkin skin = skinMgr.getPlayerSkinIfLoaded();
 			IEaglerPlayerCape cape = skinMgr.getPlayerCapeIfLoaded();
-			if(skin != null && cape != null) {
+			if (skin != null && cape != null) {
 				player.sendEaglerMessage(createV5Textures(requestId, skin, cape));
-			}else {
+			} else {
 				new MultiSkinResolver<SkinManagerEagler<PlayerObject>, PlayerObject>(this, skinMgr, skin, cape,
 						player.getUniqueId()) {
 					@Override
@@ -504,10 +506,10 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 					}
 				};
 			}
-		}else {
+		} else {
 			ISupervisorServiceImpl<PlayerObject> supervisorService = player.getEaglerXServer().getSupervisorService();
-			if(supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(targetUUID)) {
-				if(!rateLimits.checkSvSkinAntagonist()) {
+			if (supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(targetUUID)) {
+				if (!rateLimits.checkSvSkinAntagonist()) {
 					return;
 				}
 				new MultiSvSkinResolver<SkinManagerEagler<PlayerObject>, PlayerObject>(this,
@@ -515,8 +517,8 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 					@Override
 					protected void onComplete(SkinManagerEagler<PlayerObject> mgr, IEaglerPlayerSkin skin,
 							IEaglerPlayerCape cape) {
-						if(skin != MissingSkin.UNAVAILABLE_SKIN && cape != MissingCape.UNAVAILABLE_CAPE) {
-							if(!skin.isSuccess() && !cape.isSuccess()) {
+						if (skin != MissingSkin.UNAVAILABLE_SKIN && cape != MissingCape.UNAVAILABLE_CAPE) {
+							if (!skin.isSuccess() && !cape.isSuccess()) {
 								mgr.player.getRateLimits().ratelimitSvSkinAntagonist();
 							}
 							mgr.player.sendEaglerMessage(mgr.createV5Textures(requestId, skin, cape));
@@ -529,15 +531,15 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 
 	public void handlePacketGetSignedSkinV5(int requestId, SHA1Sum checksum) {
 		PlayerRateLimits rateLimits = player.getRateLimits();
-		if(!rateLimits.ratelimitSkin()) {
+		if (!rateLimits.ratelimitSkin()) {
 			return;
 		}
-		
+
 	}
 
 	public void callbackSignedSkin(int requestId, String skinURL) {
 		skinService.loadCacheSkinFromURLKeyed(this, skinURL, EnumSkinModel.STEVE, (res) -> {
-			if(res != MissingSkin.UNAVAILABLE_SKIN) {
+			if (res != MissingSkin.UNAVAILABLE_SKIN) {
 				player.sendEaglerMessage(res.getSkinPacket(requestId, player.getEaglerProtocol()));
 			}
 		});
@@ -553,15 +555,15 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 		byte[] customSkin = null;
 		int capeID = 0;
 		byte[] customCape = null;
-		if(skin.isSkinPreset()) {
+		if (skin.isSkinPreset()) {
 			skinID = skin.getPresetSkinId() & 0x7FFFFFFF;
-		}else {
+		} else {
 			skinID = -skin.getCustomSkinRawModelId() - 1;
 			customSkin = UnsafeUtil.unsafeGetPixelsDirect(skin);
 		}
-		if(cape.isCapePreset()) {
+		if (cape.isCapePreset()) {
 			capeID = cape.getPresetCapeId() & 0x7FFFFFFF;
-		}else {
+		} else {
 			capeID = -1;
 			customCape = UnsafeUtil.unsafeGetPixelsDirect(cape);
 		}

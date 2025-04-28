@@ -61,17 +61,16 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	PauseMenuManager<PlayerObject> pauseMenuManager;
 	IUpdateCertificateImpl updateCertificate;
 
-	public EaglerPlayerInstance(IPlatformPlayer<PlayerObject> player,
-			EaglerXServer<PlayerObject> server) {
+	public EaglerPlayerInstance(IPlatformPlayer<PlayerObject> player, EaglerXServer<PlayerObject> server) {
 		super(player, server);
 		connectionInstance = player.getConnectionAttachment();
 		playerLogger = connectionInstance.logger();
 		redirectSupport = connectionInstance.hasCapability(EnumCapabilitySpec.REDIRECT_V0);
 		updateSupport = connectionInstance.hasCapability(EnumCapabilitySpec.UPDATE_V0);
 		rateLimits = new PlayerRateLimits(server.rateLimitParams());
-		if(updateSupport && server.getUpdateService() != null) {
+		if (updateSupport && server.getUpdateService() != null) {
 			updateSent = new ObjectHashSet<>(16);
-		}else {
+		} else {
 			updateSent = null;
 		}
 	}
@@ -178,7 +177,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public void sendEaglerMessage(GameMessagePacket packet) {
-		if(packet == null) {
+		if (packet == null) {
 			throw new NullPointerException("packet");
 		}
 		messageController.sendPacket(packet);
@@ -196,12 +195,12 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public void redirectPlayerToWebSocket(String webSocketURI) {
-		if(webSocketURI == null) {
+		if (webSocketURI == null) {
 			throw new NullPointerException("webSocketURI");
 		}
-		if(redirectSupport) {
+		if (redirectSupport) {
 			sendEaglerMessage(new SPacketRedirectClientV4EAG(webSocketURI));
-		}else {
+		} else {
 			playerLogger.warn("Attempted to redirect player on an unsupported client");
 		}
 	}
@@ -239,10 +238,11 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	@Override
 	public void setCookieData(byte[] data, long expiresAfterSec, boolean revokeQuerySupported,
 			boolean clientSaveCookieToDisk) {
-		if(connectionInstance.isCookieEnabled()) {
+		if (connectionInstance.isCookieEnabled()) {
 			connectionInstance.setCookieData(data);
-			sendEaglerMessage(new SPacketSetServerCookieV4EAG(data, expiresAfterSec, revokeQuerySupported, clientSaveCookieToDisk));
-		}else {
+			sendEaglerMessage(new SPacketSetServerCookieV4EAG(data, expiresAfterSec, revokeQuerySupported,
+					clientSaveCookieToDisk));
+		} else {
 			playerLogger.warn("Attempted to set cookie while cookies are disabled");
 		}
 	}
@@ -289,27 +289,27 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public void offerUpdateCertificate(IUpdateCertificate cert) {
-		if(!(cert instanceof IUpdateCertificateImpl impl)) {
+		if (!(cert instanceof IUpdateCertificateImpl impl)) {
 			throw new UnsupportedOperationException("Unknown certificate: " + cert);
 		}
-		if(updateSent == null) {
+		if (updateSent == null) {
 			return;
 		}
-		if(impl == updateCertificate) {
+		if (impl == updateCertificate) {
 			return;
 		}
 		SHA1Sum csum = impl.checkSum();
 		boolean send;
-		synchronized(updateSent) {
+		synchronized (updateSent) {
 			send = updateSent.add(csum);
-			if(send) {
+			if (send) {
 				int s = updateSent.size();
-				if(s > 256) {
+				if (s > 256) {
 					removeRandomCertToken();
 				}
 			}
 		}
-		if(send) {
+		if (send) {
 			SPacketUpdateCertEAG pkt = impl.packet();
 			server.getUpdateService().getLoop().pushRunnable(() -> {
 				sendEaglerMessage(pkt);
@@ -320,10 +320,10 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public void sendUpdateCertificate(IUpdateCertificate cert) {
-		if(!(cert instanceof IUpdateCertificateImpl c2)) {
+		if (!(cert instanceof IUpdateCertificateImpl c2)) {
 			throw new UnsupportedOperationException("Unknown certificate: " + cert);
 		}
-		if(updateSupport) {
+		if (updateSupport) {
 			sendEaglerMessage(c2.packet());
 		}
 	}
@@ -350,27 +350,27 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	public void handlePacketGetOtherClientUUID(long playerUUIDMost, long playerUUIDLeast, int requestId) {
-		if(!rateLimits.ratelimitBrand()) {
+		if (!rateLimits.ratelimitBrand()) {
 			return;
 		}
 		UUID uuid = new UUID(playerUUIDMost, playerUUIDLeast);
 		BasePlayerInstance<PlayerObject> player = server.getPlayerByUUID(uuid);
-		if(player != null) {
+		if (player != null) {
 			UUID brandUUID = player.getEaglerBrandUUID();
 			sendEaglerMessage(new SPacketOtherPlayerClientUUIDV4EAG(requestId, brandUUID.getMostSignificantBits(),
 					brandUUID.getLeastSignificantBits()));
 		} else {
 			ISupervisorServiceImpl<PlayerObject> supervisorService = server.getSupervisorService();
-			if(supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(uuid)) {
-				if(!rateLimits.checkSvBrandAntagonist()) {
+			if (supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(uuid)) {
+				if (!rateLimits.checkSvBrandAntagonist()) {
 					return;
 				}
 				supervisorService.getRemoteOnlyResolver().resolvePlayerBrandKeyed(getUniqueId(), uuid, (res) -> {
-					if(res != ISupervisorResolverImpl.UNAVAILABLE) {
-						if(res != null) {
-							sendEaglerMessage(new SPacketOtherPlayerClientUUIDV4EAG(requestId, res.getMostSignificantBits(),
-									res.getLeastSignificantBits()));
-						}else {
+					if (res != ISupervisorResolverImpl.UNAVAILABLE) {
+						if (res != null) {
+							sendEaglerMessage(new SPacketOtherPlayerClientUUIDV4EAG(requestId,
+									res.getMostSignificantBits(), res.getLeastSignificantBits()));
+						} else {
 							rateLimits.ratelimitSvBrandAntagonist();
 							sendEaglerMessage(new SPacketOtherPlayerClientUUIDV4EAG(requestId, 0l, 0l));
 						}

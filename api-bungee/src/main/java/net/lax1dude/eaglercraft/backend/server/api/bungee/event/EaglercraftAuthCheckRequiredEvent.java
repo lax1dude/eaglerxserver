@@ -45,7 +45,8 @@ public final class EaglercraftAuthCheckRequiredEvent
 	private boolean cookieAuth;
 
 	public EaglercraftAuthCheckRequiredEvent(@Nonnull IEaglerXServerAPI<ProxiedPlayer> api,
-			@Nonnull IEaglerPendingConnection pendingConnection, boolean clientSolicitingPassword, @Nonnull byte[] authUsername,
+			@Nonnull IEaglerPendingConnection pendingConnection, boolean clientSolicitingPassword,
+			@Nonnull byte[] authUsername,
 			@Nonnull Callback<IEaglercraftAuthCheckRequiredEvent<ProxiedPlayer, BaseComponent>> cb) {
 		super(cb);
 		this.api = api;
@@ -128,7 +129,7 @@ public final class EaglercraftAuthCheckRequiredEvent
 
 	@Override
 	public void setAuthMessage(@Nullable String authMessage) {
-		if(authMessage == null) {
+		if (authMessage == null) {
 			throw new NullPointerException("authMessage");
 		}
 		this.authMessage = authMessage;

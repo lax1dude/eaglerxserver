@@ -42,30 +42,31 @@ abstract class MultiSkinResolver<SkinManager extends ISkinManagerImpl, PlayerObj
 	private IEaglerPlayerSkin skin;
 	private IEaglerPlayerCape cape;
 
-	protected MultiSkinResolver(SkinManager skinManager, ISkinManagerImpl lookup, IEaglerPlayerSkin skin, IEaglerPlayerCape cape, UUID uuid) {
+	protected MultiSkinResolver(SkinManager skinManager, ISkinManagerImpl lookup, IEaglerPlayerSkin skin,
+			IEaglerPlayerCape cape, UUID uuid) {
 		this.skinManager = skinManager;
-		if(skin == null) {
+		if (skin == null) {
 			lookup.resolvePlayerSkinKeyed(uuid, (res) -> {
 				this.skin = res;
 				countDown();
 			});
-		}else {
+		} else {
 			this.skin = skin;
 			countDown();
 		}
-		if(cape == null) {
+		if (cape == null) {
 			lookup.resolvePlayerCapeKeyed(uuid, (res) -> {
 				this.cape = res;
 				countDown();
 			});
-		}else {
+		} else {
 			this.cape = cape;
 			countDown();
 		}
 	}
 
 	private void countDown() {
-		if((int)COUNT_DOWN_HANDLE.getAndAdd(this, -1) == 1) {
+		if ((int) COUNT_DOWN_HANDLE.getAndAdd(this, -1) == 1) {
 			onComplete(skinManager, skin, cape);
 		}
 	}

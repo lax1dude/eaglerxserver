@@ -63,7 +63,7 @@ class VelocityWebSocketOpenEventImpl extends EaglercraftWebSocketOpenEvent
 
 	@Override
 	public String getRawHeader(String name) {
-		if(name == null) {
+		if (name == null) {
 			throw new NullPointerException("name");
 		}
 		return request.headers().get(name);
@@ -71,7 +71,7 @@ class VelocityWebSocketOpenEventImpl extends EaglercraftWebSocketOpenEvent
 
 	@Override
 	public List<String> getRawHeaders(String name) {
-		if(name == null) {
+		if (name == null) {
 			throw new NullPointerException("name");
 		}
 		return request.headers().getAll(name);

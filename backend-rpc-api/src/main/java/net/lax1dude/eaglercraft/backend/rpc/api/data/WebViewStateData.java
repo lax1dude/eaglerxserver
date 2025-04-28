@@ -29,7 +29,7 @@ public final class WebViewStateData {
 	@Nonnull
 	public static WebViewStateData create(boolean webViewAllowed, boolean channelAllowed,
 			@Nonnull Collection<String> openChannels) {
-		if(openChannels == null) {
+		if (openChannels == null) {
 			throw new NullPointerException("openChannels");
 		}
 		return new WebViewStateData(webViewAllowed, channelAllowed, ImmutableSet.copyOf(openChannels));
@@ -46,8 +46,7 @@ public final class WebViewStateData {
 	private final boolean channelAllowed;
 	private final Set<String> openChannels;
 
-	private WebViewStateData(boolean webViewAllowed, boolean channelAllowed,
-			Set<String> openChannels) {
+	private WebViewStateData(boolean webViewAllowed, boolean channelAllowed, Set<String> openChannels) {
 		this.webViewAllowed = webViewAllowed;
 		this.channelAllowed = channelAllowed;
 		this.openChannels = openChannels;

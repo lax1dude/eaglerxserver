@@ -30,8 +30,8 @@ class BukkitVoiceChangeEventImpl extends EaglercraftVoiceChangeEvent {
 	private final EnumVoiceState stateOld;
 	private final EnumVoiceState stateNew;
 
-	BukkitVoiceChangeEventImpl(IEaglerXBackendRPC<Player> api, IEaglerPlayer<Player> player,
-			EnumVoiceState stateOld, EnumVoiceState stateNew) {
+	BukkitVoiceChangeEventImpl(IEaglerXBackendRPC<Player> api, IEaglerPlayer<Player> player, EnumVoiceState stateOld,
+			EnumVoiceState stateNew) {
 		this.api = api;
 		this.player = player;
 		this.stateOld = stateOld;

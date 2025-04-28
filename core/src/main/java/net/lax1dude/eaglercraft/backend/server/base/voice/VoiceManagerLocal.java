@@ -40,8 +40,10 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 			MethodHandles.Lookup l = MethodHandles.lookup();
 			SERVER_ENABLE_HANDLE = l.findVarHandle(VoiceManagerLocal.class, "isServerEnable", int.class);
 			LAST_STATE_HANDLE = l.findVarHandle(VoiceManagerLocal.class, "lastVoiceState", EnumVoiceState.class);
-			ACTIVE_CHANNEL_HANDLE = l.findVarHandle(VoiceManagerLocal.class, "activeChannel", VoiceChannel.Context.class);
-			CURRENT_VOICE_CHANNEL_HANDLE = l.findVarHandle(VoiceManagerLocal.class, "currentVoiceChannel", IVoiceChannel.class);
+			ACTIVE_CHANNEL_HANDLE = l.findVarHandle(VoiceManagerLocal.class, "activeChannel",
+					VoiceChannel.Context.class);
+			CURRENT_VOICE_CHANNEL_HANDLE = l.findVarHandle(VoiceManagerLocal.class, "currentVoiceChannel",
+					IVoiceChannel.class);
 		} catch (ReflectiveOperationException e) {
 			throw new ExceptionInInitializerError(e);
 		}
@@ -89,9 +91,9 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 
 	@Override
 	public EnumVoiceState getVoiceState() {
-		if((IVoiceChannel)CURRENT_VOICE_CHANNEL_HANDLE.getOpaque(this) != DisabledChannel.INSTANCE) {
+		if ((IVoiceChannel) CURRENT_VOICE_CHANNEL_HANDLE.getOpaque(this) != DisabledChannel.INSTANCE) {
 			VoiceChannel<PlayerObject>.Context ch = aquireActiveChannel();
-			if(ch != null) {
+			if (ch != null) {
 				return ch.isConnected() ? EnumVoiceState.ENABLED : EnumVoiceState.DISABLED;
 			}
 		}
@@ -100,7 +102,7 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 
 	@Override
 	public IVoiceChannel getVoiceChannel() {
-		return (IVoiceChannel)CURRENT_VOICE_CHANNEL_HANDLE.getAcquire(this);
+		return (IVoiceChannel) CURRENT_VOICE_CHANNEL_HANDLE.getAcquire(this);
 	}
 
 	@Override
@@ -110,19 +112,19 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 	}
 
 	private void setVoiceChannel0(IVoiceChannel channel) {
-		if(channel == null) {
+		if (channel == null) {
 			throw new NullPointerException("Voice channel cannot be null!");
 		}
 		if (channel != DisabledChannel.INSTANCE && (!(channel instanceof VoiceChannel ch) || ch.owner != voice)) {
 			throw new IllegalArgumentException("Unknown voice channel");
 		}
 		IVoiceChannel oldChannel;
-		synchronized(this) {
-			if(!isAlive) {
+		synchronized (this) {
+			if (!isAlive) {
 				return;
 			}
 			oldChannel = currentVoiceChannel;
-			if(channel == oldChannel) {
+			if (channel == oldChannel) {
 				return;
 			}
 			CURRENT_VOICE_CHANNEL_HANDLE.setRelease(this, channel);
@@ -142,14 +144,14 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 
 	@Override
 	public void handleServerPreConnect() {
-		if(isManaged) {
+		if (isManaged) {
 			setVoiceChannel0(DisabledChannel.INSTANCE);
 		}
 	}
 
 	@Override
 	public void handleServerPostConnect(String serverName) {
-		if(isManaged) {
+		if (isManaged) {
 			setVoiceChannel0(voice.getServerVoiceChannel(serverName));
 			onStateChanged();
 		}
@@ -158,13 +160,13 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 	@Override
 	public void destroyVoiceManager() {
 		IVoiceChannel oldChannel;
-		synchronized(this) {
-			if(!isAlive) {
+		synchronized (this) {
+			if (!isAlive) {
 				return;
 			}
 			isAlive = false;
 			oldChannel = currentVoiceChannel;
-			if(DisabledChannel.INSTANCE == oldChannel) {
+			if (DisabledChannel.INSTANCE == oldChannel) {
 				return;
 			}
 			CURRENT_VOICE_CHANNEL_HANDLE.setRelease(this, DisabledChannel.INSTANCE);
@@ -173,13 +175,13 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 	}
 
 	private void switchChannels(IVoiceChannel oldChannel, IVoiceChannel newChannel) {
-		if(newChannel != DisabledChannel.INSTANCE) {
-			if(oldChannel == DisabledChannel.INSTANCE) {
+		if (newChannel != DisabledChannel.INSTANCE) {
+			if (oldChannel == DisabledChannel.INSTANCE) {
 				enableVoice();
 			}
 			((VoiceChannel<PlayerObject>) newChannel).addToChannel(this);
-		}else {
-			if(oldChannel != DisabledChannel.INSTANCE) {
+		} else {
+			if (oldChannel != DisabledChannel.INSTANCE) {
 				((VoiceChannel<PlayerObject>) oldChannel).removeFromChannel(this, true);
 			}
 			disableVoice();
@@ -187,13 +189,13 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 	}
 
 	private void enableVoice() {
-		if((int)SERVER_ENABLE_HANDLE.compareAndExchange(this, 0, 1) == 0) {
+		if ((int) SERVER_ENABLE_HANDLE.compareAndExchange(this, 0, 1) == 0) {
 			player.sendEaglerMessage(new SPacketVoiceSignalAllowedEAG(true, voice.getICEServersStr()));
 		}
 	}
 
 	private void disableVoice() {
-		if((int)SERVER_ENABLE_HANDLE.compareAndExchange(this, 1, 0) != 0) {
+		if ((int) SERVER_ENABLE_HANDLE.compareAndExchange(this, 1, 0) != 0) {
 			player.sendEaglerMessage(new SPacketVoiceSignalAllowedEAG(false, null));
 		}
 	}
@@ -204,10 +206,10 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 
 	void onStateChanged(EnumVoiceState newState) {
 		EnumVoiceState oldState = (EnumVoiceState) LAST_STATE_HANDLE.getAndSet(this, newState);
-		if(newState != oldState) {
+		if (newState != oldState) {
 			player.getEaglerXServer().eventDispatcher().dispatchVoiceChangeEvent(player, oldState, newState, null);
 			EaglerPlayerRPCManager<PlayerObject> rpcMgr = player.getPlayerRPCManager();
-			if(rpcMgr != null) {
+			if (rpcMgr != null) {
 				rpcMgr.fireToggleVoice(oldState, newState);
 			}
 		}
@@ -228,7 +230,7 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 	@Override
 	public void handlePlayerSignalPacketTypeConnect() {
 		VoiceChannel<PlayerObject>.Context ch = aquireActiveChannel();
-		if(ch != null) {
+		if (ch != null) {
 			ch.handleVoiceSignalPacketTypeConnect();
 		}
 	}
@@ -236,7 +238,7 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 	@Override
 	public void handlePlayerSignalPacketTypeRequest(long playerUUIDMost, long playerUUIDLeast) {
 		VoiceChannel<PlayerObject>.Context ch = aquireActiveChannel();
-		if(ch != null) {
+		if (ch != null) {
 			ch.handleVoiceSignalPacketTypeRequest(new UUID(playerUUIDMost, playerUUIDLeast));
 		}
 	}
@@ -244,7 +246,7 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 	@Override
 	public void handlePlayerSignalPacketTypeICE(long playerUUIDMost, long playerUUIDLeast, byte[] str) {
 		VoiceChannel<PlayerObject>.Context ch = aquireActiveChannel();
-		if(ch != null) {
+		if (ch != null) {
 			ch.handleVoiceSignalPacketTypeICE(new UUID(playerUUIDMost, playerUUIDLeast), str);
 		}
 	}
@@ -252,7 +254,7 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 	@Override
 	public void handlePlayerSignalPacketTypeDesc(long playerUUIDMost, long playerUUIDLeast, byte[] str) {
 		VoiceChannel<PlayerObject>.Context ch = aquireActiveChannel();
-		if(ch != null) {
+		if (ch != null) {
 			ch.handleVoiceSignalPacketTypeDesc(new UUID(playerUUIDMost, playerUUIDLeast), str);
 		}
 	}
@@ -260,7 +262,7 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 	@Override
 	public void handlePlayerSignalPacketTypeDisconnectPeer(long playerUUIDMost, long playerUUIDLeast) {
 		VoiceChannel<PlayerObject>.Context ch = aquireActiveChannel();
-		if(ch != null) {
+		if (ch != null) {
 			ch.handleVoiceSignalPacketTypeDisconnectPeer(new UUID(playerUUIDMost, playerUUIDLeast));
 		}
 	}
@@ -268,14 +270,15 @@ public class VoiceManagerLocal<PlayerObject> implements IVoiceManagerImpl<Player
 	@Override
 	public void handlePlayerSignalPacketTypeDisconnect() {
 		VoiceChannel<PlayerObject>.Context ch = aquireActiveChannel();
-		if(ch != null) {
+		if (ch != null) {
 			ch.handleVoiceSignalPacketTypeDisconnect();
 		}
 	}
 
 	@Override
 	public void handleBackendMessage(byte[] data) {
-		player.logger().warn("Ignoring plugin message from backend on voice RPC channel, server is not in backend-relayed mode");
+		player.logger().warn(
+				"Ignoring plugin message from backend on voice RPC channel, server is not in backend-relayed mode");
 	}
 
 }

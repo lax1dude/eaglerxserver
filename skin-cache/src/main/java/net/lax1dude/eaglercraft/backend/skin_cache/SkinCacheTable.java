@@ -34,25 +34,21 @@ class SkinCacheTable {
 		protected final PreparedStatement statementStoreIndex;
 
 		protected SkinCacheTableThreadEnv(Connection conn) throws SQLException {
-			statementLoad = conn.prepareStatement(
-					"SELECT " + name + "_objects.TextureData "
-					+ "FROM " + name + "_objects "
-					+ "INNER JOIN " + name + "_indices ON " + name + "_objects.TextureID = " + name + "_indices.TextureData "
-					+ "WHERE " + name + "_indices.TextureURL = ?");
-			if(sqlite) {
-				statementStore = conn.prepareStatement(
-						"INSERT OR IGNORE INTO " + name + "_objects (TextureTime, TextureHash, TextureData) "
-						+ "VALUES(?, ?, ?)");
-				statementStoreIndex = conn.prepareStatement(
-						"INSERT OR REPLACE INTO " + name + "_indices (TextureURL, TextureData) "
-						+ "SELECT ?, TextureID FROM " + name + "_objects WHERE TextureHash = ?");
-			}else {
-				statementStore = conn.prepareStatement(
-						"INSERT IGNORE INTO " + name + "_objects (TextureTime, TextureHash, TextureData) "
-						+ "VALUES(?, ?, ?)");
-				statementStoreIndex = conn.prepareStatement(
-						"REPLACE INTO " + name + "_indices (TextureURL, TextureData) "
-						+ "SELECT ?, TextureID FROM " + name + "_objects WHERE TextureHash = ?");
+			statementLoad = conn.prepareStatement("SELECT " + name + "_objects.TextureData " + "FROM " + name
+					+ "_objects " + "INNER JOIN " + name + "_indices ON " + name + "_objects.TextureID = " + name
+					+ "_indices.TextureData " + "WHERE " + name + "_indices.TextureURL = ?");
+			if (sqlite) {
+				statementStore = conn.prepareStatement("INSERT OR IGNORE INTO " + name
+						+ "_objects (TextureTime, TextureHash, TextureData) " + "VALUES(?, ?, ?)");
+				statementStoreIndex = conn
+						.prepareStatement("INSERT OR REPLACE INTO " + name + "_indices (TextureURL, TextureData) "
+								+ "SELECT ?, TextureID FROM " + name + "_objects WHERE TextureHash = ?");
+			} else {
+				statementStore = conn.prepareStatement("INSERT IGNORE INTO " + name
+						+ "_objects (TextureTime, TextureHash, TextureData) " + "VALUES(?, ?, ?)");
+				statementStoreIndex = conn
+						.prepareStatement("REPLACE INTO " + name + "_indices (TextureURL, TextureData) "
+								+ "SELECT ?, TextureID FROM " + name + "_objects WHERE TextureHash = ?");
 			}
 		}
 
@@ -84,70 +80,51 @@ class SkinCacheTable {
 		this.name = name;
 		this.sqlite = sqlite;
 		this.logger = logger;
-		try(Statement stmt = conn.createStatement()) {
-			if(sqlite) {
+		try (Statement stmt = conn.createStatement()) {
+			if (sqlite) {
 				// TextureID will be used by SQLite as rowid
-				stmt.execute("CREATE TABLE IF NOT EXISTS "
-						+ name + "_objects ("
-						+ "TextureID INTEGER NOT NULL,"
-						+ "TextureTime DATETIME NOT NULL,"
-						+ "TextureHash BLOB NOT NULL,"
-						+ "TextureData BLOB NOT NULL,"
+				stmt.execute("CREATE TABLE IF NOT EXISTS " + name + "_objects (" + "TextureID INTEGER NOT NULL,"
+						+ "TextureTime DATETIME NOT NULL," + "TextureHash BLOB NOT NULL," + "TextureData BLOB NOT NULL,"
 						+ "PRIMARY KEY(TextureID ASC))");
-			}else {
-				stmt.execute("CREATE TABLE IF NOT EXISTS "
-						+ name + "_objects ("
-						+ "TextureID BIGINT NOT NULL AUTO_INCREMENT,"
-						+ "TextureTime DATETIME NOT NULL,"
-						+ "TextureHash BLOB NOT NULL,"
-						+ "TextureData BLOB NOT NULL,"
-						+ "PRIMARY KEY(TextureID))");
+			} else {
+				stmt.execute("CREATE TABLE IF NOT EXISTS " + name + "_objects ("
+						+ "TextureID BIGINT NOT NULL AUTO_INCREMENT," + "TextureTime DATETIME NOT NULL,"
+						+ "TextureHash BLOB NOT NULL," + "TextureData BLOB NOT NULL," + "PRIMARY KEY(TextureID))");
 			}
-			stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS "
-					+ name + "_hash_index "
-					+ "ON " + name + "_objects (TextureHash)");
-			if(sqlite) {
-				stmt.execute("CREATE TABLE IF NOT EXISTS "
-						+ name + "_indices ("
-						+ "TextureURL VARCHAR(256) NOT NULL,"
-						+ "TextureData INTEGER NOT NULL,"
-						+ "PRIMARY KEY(TextureURL))");
-			}else {
-				stmt.execute("CREATE TABLE IF NOT EXISTS "
-						+ name + "_indices ("
-						+ "TextureURL VARCHAR(256) NOT NULL,"
-						+ "TextureData BIGINT NOT NULL,"
-						+ "PRIMARY KEY(TextureURL))");
+			stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS " + name + "_hash_index " + "ON " + name
+					+ "_objects (TextureHash)");
+			if (sqlite) {
+				stmt.execute("CREATE TABLE IF NOT EXISTS " + name + "_indices (" + "TextureURL VARCHAR(256) NOT NULL,"
+						+ "TextureData INTEGER NOT NULL," + "PRIMARY KEY(TextureURL))");
+			} else {
+				stmt.execute("CREATE TABLE IF NOT EXISTS " + name + "_indices (" + "TextureURL VARCHAR(256) NOT NULL,"
+						+ "TextureData BIGINT NOT NULL," + "PRIMARY KEY(TextureURL))");
 			}
-			stmt.execute("CREATE INDEX IF NOT EXISTS "
-					+ name + "_indices_index "
-					+ "ON " + name + "_indices (TextureData)");
+			stmt.execute(
+					"CREATE INDEX IF NOT EXISTS " + name + "_indices_index " + "ON " + name + "_indices (TextureData)");
 		}
 		this.statementCount = conn.prepareStatement("SELECT COUNT(*) AS total_skins FROM " + name + "_objects");
-		if(sqlite) {
-			statementSQLiteListExpired = conn.prepareStatement("SELECT TextureID FROM " + name + "_objects WHERE textureTime < ?");
-			statementSQLiteListOld = conn.prepareStatement("SELECT TextureID FROM " + name + "_objects ORDER BY TextureTime ASC LIMIT ?");
+		if (sqlite) {
+			statementSQLiteListExpired = conn
+					.prepareStatement("SELECT TextureID FROM " + name + "_objects WHERE textureTime < ?");
+			statementSQLiteListOld = conn
+					.prepareStatement("SELECT TextureID FROM " + name + "_objects ORDER BY TextureTime ASC LIMIT ?");
 			statementSQLiteDeleteObject = conn.prepareStatement("DELETE FROM " + name + "_objects WHERE TextureID = ?");
-			statementSQLiteDeleteIndex = conn.prepareStatement("DELETE FROM " + name + "_indices WHERE TextureData = ?");
+			statementSQLiteDeleteIndex = conn
+					.prepareStatement("DELETE FROM " + name + "_indices WHERE TextureData = ?");
 			statementDeleteExpired = null;
 			statementDeleteOld = null;
-		}else {
+		} else {
 			statementSQLiteListExpired = null;
 			statementSQLiteListOld = null;
 			statementSQLiteDeleteObject = null;
 			statementSQLiteDeleteIndex = null;
-			statementDeleteExpired = conn.prepareStatement(
-					"DELETE o, i FROM " + name + "_objects o "
-					+ "JOIN " + name + "_indices i ON o.TextureID = i.TextureData "
-					+ "WHERE o.textureTime < ?");
-			statementDeleteOld = conn.prepareStatement(
-					"DELETE o, i FROM " + name + "_objects o "
-					+ "JOIN " + name + "_indices i ON o.TextureID = i.TextureData "
-					+ "WHERE o.TextureID IN"
-						+ "(SELECT TextureID FROM "
-							+ "(SELECT TextureID FROM " + name + "_objects "
-							+ "ORDER BY TextureTime ASC LIMIT ?)"
-						+ " AS eagler)");
+			statementDeleteExpired = conn.prepareStatement("DELETE o, i FROM " + name + "_objects o " + "JOIN " + name
+					+ "_indices i ON o.TextureID = i.TextureData " + "WHERE o.textureTime < ?");
+			statementDeleteOld = conn.prepareStatement("DELETE o, i FROM " + name + "_objects o " + "JOIN " + name
+					+ "_indices i ON o.TextureID = i.TextureData " + "WHERE o.TextureID IN" + "(SELECT TextureID FROM "
+					+ "(SELECT TextureID FROM " + name + "_objects " + "ORDER BY TextureTime ASC LIMIT ?)"
+					+ " AS eagler)");
 		}
 	}
 
@@ -159,8 +136,8 @@ class SkinCacheTable {
 		PreparedStatement stmt = env.statementLoad;
 		stmt.setString(1, skinURL);
 		byte[] result = null;
-		try(ResultSet set = stmt.executeQuery()) {
-			if(set.next()) {
+		try (ResultSet set = stmt.executeQuery()) {
+			if (set.next()) {
 				result = set.getBytes(1);
 			}
 		}
@@ -181,10 +158,10 @@ class SkinCacheTable {
 
 	void runCleanup(int maxObjects, long expiryObjectsMillis) throws SQLException {
 		Date expiryObjects = new Date(expiryObjectsMillis);
-		if(sqlite) {
+		if (sqlite) {
 			statementSQLiteListExpired.setDate(1, expiryObjects);
-			try(ResultSet resultSet = statementSQLiteListExpired.executeQuery()) {
-				while(resultSet.next()) {
+			try (ResultSet resultSet = statementSQLiteListExpired.executeQuery()) {
+				while (resultSet.next()) {
 					int id = resultSet.getInt(1);
 					statementSQLiteDeleteObject.setInt(1, id);
 					statementSQLiteDeleteObject.executeUpdate();
@@ -192,26 +169,26 @@ class SkinCacheTable {
 					statementSQLiteDeleteIndex.executeUpdate();
 				}
 			}
-		}else {
+		} else {
 			statementDeleteExpired.setDate(1, expiryObjects);
 			statementDeleteExpired.executeUpdate();
 		}
 		int totalSkins;
-		try(ResultSet set = statementCount.executeQuery()) {
-			if(set.next()) {
+		try (ResultSet set = statementCount.executeQuery()) {
+			if (set.next()) {
 				totalSkins = set.getInt(1);
-			}else {
+			} else {
 				throw new SQLException("Empty ResultSet recieved when checking \"" + name + "_objects\" row count");
 			}
 		}
-		if(totalSkins > maxObjects) {
+		if (totalSkins > maxObjects) {
 			int deleteCount = totalSkins - maxObjects + (maxObjects >> 3);
 			logger.warn(name + " object cache has passed " + maxObjects + " skins in size (" + totalSkins
 					+ "), deleting " + deleteCount + " skins from the cache to free space");
-			if(sqlite) {
+			if (sqlite) {
 				statementSQLiteListOld.setInt(1, deleteCount);
-				try(ResultSet resultSet = statementSQLiteListOld.executeQuery()) {
-					while(resultSet.next()) {
+				try (ResultSet resultSet = statementSQLiteListOld.executeQuery()) {
+					while (resultSet.next()) {
 						int id = resultSet.getInt(1);
 						statementSQLiteDeleteObject.setInt(1, id);
 						statementSQLiteDeleteObject.executeUpdate();
@@ -219,7 +196,7 @@ class SkinCacheTable {
 						statementSQLiteDeleteIndex.executeUpdate();
 					}
 				}
-			}else {
+			} else {
 				statementDeleteOld.setInt(1, deleteCount);
 				statementDeleteOld.executeUpdate();
 			}
@@ -227,13 +204,13 @@ class SkinCacheTable {
 	}
 
 	int countSkins() {
-		try(ResultSet set = statementCount.executeQuery()) {
-			if(set.next()) {
+		try (ResultSet set = statementCount.executeQuery()) {
+			if (set.next()) {
 				return set.getInt(1);
-			}else {
+			} else {
 				return -1;
 			}
-		}catch(SQLException ex) {
+		} catch (SQLException ex) {
 			logger.error("Could not count stored " + name + "!", ex);
 			return -1;
 		}

@@ -53,11 +53,11 @@ public class SPacketSvDropPlayerPartial implements EaglerSupervisorPacket {
 	public void writePacket(ByteBuf buffer) {
 		buffer.writeLong(uuid.getMostSignificantBits());
 		buffer.writeLong(uuid.getLeastSignificantBits());
-		if(serverNotify != null && serverNotify.length() > 0) {
+		if (serverNotify != null && serverNotify.length() > 0) {
 			byte[] asciiBytes = serverNotify.getBytes(StandardCharsets.US_ASCII);
 			EaglerSupervisorPacket.writeVarInt(buffer, asciiBytes.length);
 			buffer.writeBytes(asciiBytes);
-		}else {
+		} else {
 			buffer.writeByte(0);
 		}
 		buffer.writeByte(bitmask);

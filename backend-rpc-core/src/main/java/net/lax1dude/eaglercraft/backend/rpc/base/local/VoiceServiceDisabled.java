@@ -50,7 +50,7 @@ public class VoiceServiceDisabled<PlayerObject> implements IVoiceService<PlayerO
 
 	@Override
 	public boolean isVoiceEnabledOnWorld(String worldName) {
-		if(worldName == null) {
+		if (worldName == null) {
 			throw new NullPointerException("worldName");
 		}
 		return false;
@@ -91,7 +91,7 @@ public class VoiceServiceDisabled<PlayerObject> implements IVoiceService<PlayerO
 
 	@Override
 	public IVoiceChannel getWorldVoiceChannel(String worldName) {
-		if(worldName == null) {
+		if (worldName == null) {
 			throw new NullPointerException("worldName");
 		}
 		throw disabledError();
@@ -104,7 +104,7 @@ public class VoiceServiceDisabled<PlayerObject> implements IVoiceService<PlayerO
 
 	@Override
 	public Collection<IEaglerPlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel) {
-		if(channel == null) {
+		if (channel == null) {
 			throw new NullPointerException("channel");
 		}
 		throw disabledError();

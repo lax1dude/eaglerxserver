@@ -44,7 +44,8 @@ public class SSLContextHolderBuiltin implements ISSLContextProvider {
 	}
 
 	protected void refresh() throws SSLException {
-		ctx = SslContextBuilder.forServer(new ByteArrayInputStream(pubKey), new ByteArrayInputStream(privKey), password).build();
+		ctx = SslContextBuilder.forServer(new ByteArrayInputStream(pubKey), new ByteArrayInputStream(privKey), password)
+				.build();
 	}
 
 }

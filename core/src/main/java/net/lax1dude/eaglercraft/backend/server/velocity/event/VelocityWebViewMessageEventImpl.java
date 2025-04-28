@@ -33,8 +33,8 @@ class VelocityWebViewMessageEventImpl extends EaglercraftWebViewMessageEvent {
 	private final byte[] data;
 	private String asString;
 
-	VelocityWebViewMessageEventImpl(IEaglerXServerAPI<Player> api, IEaglerPlayer<Player> player,
-			String channel, EnumMessageType type, byte[] data) {
+	VelocityWebViewMessageEventImpl(IEaglerXServerAPI<Player> api, IEaglerPlayer<Player> player, String channel,
+			EnumMessageType type, byte[] data) {
 		this.api = api;
 		this.player = player;
 		this.channel = channel;
@@ -64,7 +64,7 @@ class VelocityWebViewMessageEventImpl extends EaglercraftWebViewMessageEvent {
 
 	@Override
 	public String getAsString() {
-		if(asString == null) {
+		if (asString == null) {
 			asString = new String(data, StandardCharsets.UTF_8);
 		}
 		return asString;

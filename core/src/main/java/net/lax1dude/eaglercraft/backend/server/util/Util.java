@@ -36,15 +36,16 @@ public class Util {
 	}
 
 	public static RuntimeException propagateReflectThrowable(Exception ex) {
-		if(ex instanceof InvocationTargetException exx) {
+		if (ex instanceof InvocationTargetException exx) {
 			Throwable cause = exx.getCause();
-			if(cause != null) {
-				if(cause instanceof RuntimeException cause2) {
+			if (cause != null) {
+				if (cause instanceof RuntimeException cause2) {
 					return cause2;
 				}
-				return new RuntimeException("Encountered an InvocationTargetException while performing reflection", cause);
+				return new RuntimeException("Encountered an InvocationTargetException while performing reflection",
+						cause);
 			}
-		}else if(ex instanceof RuntimeException exx) {
+		} else if (ex instanceof RuntimeException exx) {
 			return exx;
 		}
 		return new RuntimeException("Could not perform reflection!", ex);
@@ -79,15 +80,16 @@ public class Util {
 	}
 
 	public static String sanitizeJDBCURIForLogs(String uri) {
-		//TODO
+		// TODO
 		return uri;
 	}
 
 	public static UUID createUUIDFromUndashed(String str) {
-		if(str.length() != 32) {
+		if (str.length() != 32) {
 			throw new IllegalArgumentException("Invalid UUID string length: " + str.length() + " != 32");
 		}
-		return new UUID(Long.parseUnsignedLong(str.substring(0, 16), 16), Long.parseUnsignedLong(str.substring(16), 16));
+		return new UUID(Long.parseUnsignedLong(str.substring(0, 16), 16),
+				Long.parseUnsignedLong(str.substring(16), 16));
 	}
 
 	public static CharSequence toUUIDStringUndashed(UUID uuid) {
@@ -107,33 +109,33 @@ public class Util {
 			StringBuilder builderA = new StringBuilder();
 			StringBuilder builderB = new StringBuilder();
 			int i = 0;
-			while(i < maxLen && buf.isReadable()) {
+			while (i < maxLen && buf.isReadable()) {
 				int val = buf.readUnsignedByte();
 				builderA.append(hex.charAt(val >>> 4));
 				builderA.append(hex.charAt(val & 0xF));
 				builderA.append(' ');
-				if(val == 0) {
+				if (val == 0) {
 					builderB.append("\\0 ");
-				}else if(val == '\n') {
+				} else if (val == '\n') {
 					builderB.append("\\n ");
-				}else if(val == '\r') {
+				} else if (val == '\r') {
 					builderB.append("\\r ");
-				}else if(val == '\t') {
+				} else if (val == '\t') {
 					builderB.append("\\t ");
-				}else {
-					builderB.append((char)val);
+				} else {
+					builderB.append((char) val);
 					builderB.append(' ');
 				}
-				if(++i % 8 == 0) {
+				if (++i % 8 == 0) {
 					System.out.println(builderA + "  " + builderB);
 					builderA = new StringBuilder();
 					builderB = new StringBuilder();
 				}
 			}
-			if(builderA.length() > 0) {
+			if (builderA.length() > 0) {
 				System.out.println(builderA + "  " + builderB);
 			}
-		}finally {
+		} finally {
 			buf.resetReaderIndex();
 		}
 	}
@@ -142,7 +144,7 @@ public class Util {
 		try {
 			Class.forName(string);
 			return true;
-		}catch(ClassNotFoundException ex) {
+		} catch (ClassNotFoundException ex) {
 			return false;
 		}
 	}

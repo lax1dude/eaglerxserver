@@ -65,7 +65,7 @@ public enum EnumPauseMenuIcon {
 
 	static {
 		ImmutableMap.Builder<String, EnumPauseMenuIcon> builder = ImmutableMap.builder();
-		for(EnumPauseMenuIcon e : values()) {
+		for (EnumPauseMenuIcon e : values()) {
 			builder.put(e.icon, e);
 		}
 		NAMES_MAP = builder.build();

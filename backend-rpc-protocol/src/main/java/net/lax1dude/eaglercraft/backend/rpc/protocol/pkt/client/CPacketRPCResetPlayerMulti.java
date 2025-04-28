@@ -53,10 +53,14 @@ public class CPacketRPCResetPlayerMulti implements EaglerBackendRPCPacket {
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
 		int flags = 0;
-		if(resetSkin) flags |= 1;
-		if(resetCape) flags |= 2;
-		if(resetFNAWForce) flags |= 4;
-		if(notifyOtherPlayers) flags |= 8;
+		if (resetSkin)
+			flags |= 1;
+		if (resetCape)
+			flags |= 2;
+		if (resetFNAWForce)
+			flags |= 4;
+		if (notifyOtherPlayers)
+			flags |= 8;
 		buffer.writeByte(flags);
 	}
 

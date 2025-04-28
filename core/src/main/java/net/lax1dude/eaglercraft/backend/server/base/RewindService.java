@@ -54,50 +54,50 @@ public class RewindService<PlayerObject> implements IEaglerXRewindService<Player
 
 	@Override
 	public boolean isActive() {
-		if(!enabled) {
+		if (!enabled) {
 			return false;
 		}
 		registerLock.readLock().lock();
 		try {
 			return !registeredProtocols.isEmpty();
-		}finally {
+		} finally {
 			registerLock.readLock().unlock();
 		}
 	}
 
 	@Override
 	public void registerLegacyProtocol(IEaglerXRewindProtocol<PlayerObject, ?> protocolHandler) {
-		if(!enabled) {
+		if (!enabled) {
 			throw new UnsupportedOperationException("EaglerXRewind is not enabled on this server");
 		}
-		if(protocolHandler == null) {
+		if (protocolHandler == null) {
 			throw new NullPointerException("protocolHandler");
 		}
 		int handshakeProtocol = protocolHandler.getEmulatedEaglerHandshake();
-		if(!server.isEaglerHandshakeSupported(handshakeProtocol)) {
+		if (!server.isEaglerHandshakeSupported(handshakeProtocol)) {
 			throw new UnsupportedOperationException("Unsupported handshake protocol version: " + handshakeProtocol);
 		}
 		int[] protocols = protocolHandler.getLegacyProtocols();
-		if(protocols == null || protocols.length == 0) {
+		if (protocols == null || protocols.length == 0) {
 			return;
 		}
 		protocols = protocols.clone();
-		for(int i = 0; i < protocols.length; ++i) {
+		for (int i = 0; i < protocols.length; ++i) {
 			int j = protocols[i];
-			if(j < 0 && j > 255) {
+			if (j < 0 && j > 255) {
 				throw new UnsupportedOperationException("Invalid legacy protocol version: " + j);
 			}
 		}
 		registerLock.writeLock().lock();
 		try {
-			if(registeredProtocols.putIfAbsent(protocolHandler, protocols) == null) {
-				for(int i = 0; i < protocols.length; ++i) {
+			if (registeredProtocols.putIfAbsent(protocolHandler, protocols) == null) {
+				for (int i = 0; i < protocols.length; ++i) {
 					protocolIds[protocols[i]] = protocolHandler;
 				}
-			}else {
+			} else {
 				return;
 			}
-		}finally {
+		} finally {
 			registerLock.writeLock().unlock();
 		}
 		protocolHandler.handleRegistered(server);
@@ -105,23 +105,23 @@ public class RewindService<PlayerObject> implements IEaglerXRewindService<Player
 
 	@Override
 	public void unregisterLegacyProtocol(IEaglerXRewindProtocol<PlayerObject, ?> protocolHandler) {
-		if(!enabled) {
+		if (!enabled) {
 			return;
 		}
-		if(protocolHandler == null) {
+		if (protocolHandler == null) {
 			throw new NullPointerException("protocolHandler");
 		}
 		registerLock.writeLock().lock();
 		try {
 			int[] protocols = registeredProtocols.remove(protocolHandler);
-			if(protocols != null) {
-				for(int i = 0; i < protocols.length; ++i) {
+			if (protocols != null) {
+				for (int i = 0; i < protocols.length; ++i) {
 					protocolIds[protocols[i]] = null;
 				}
-			}else {
+			} else {
 				return;
 			}
-		}finally {
+		} finally {
 			registerLock.writeLock().unlock();
 		}
 		protocolHandler.handleUnregistered(server);
@@ -129,25 +129,25 @@ public class RewindService<PlayerObject> implements IEaglerXRewindService<Player
 
 	@Override
 	public boolean hasLegacyProtocol(int protocolVersion) {
-		if(!enabled || protocolVersion < 0 || protocolVersion > 255) {
+		if (!enabled || protocolVersion < 0 || protocolVersion > 255) {
 			return false;
 		}
 		registerLock.readLock().lock();
 		try {
 			return protocolIds[protocolVersion] != null;
-		}finally {
+		} finally {
 			registerLock.readLock().unlock();
 		}
 	}
 
 	public IEaglerXRewindProtocol<PlayerObject, ?> getProtocol(int protocolVersion) {
-		if(!enabled || protocolVersion < 0 || protocolVersion > 255) {
+		if (!enabled || protocolVersion < 0 || protocolVersion > 255) {
 			return null;
 		}
 		registerLock.readLock().lock();
 		try {
 			return protocolIds[protocolVersion];
-		}finally {
+		} finally {
 			registerLock.readLock().unlock();
 		}
 	}

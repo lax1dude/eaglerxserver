@@ -51,7 +51,7 @@ class BuilderTranslationArgs<ParentType> implements IBuilderComponentTranslation
 
 	@Override
 	public void append(BaseComponent comp) {
-		if(args == null) {
+		if (args == null) {
 			args = new ArrayList<>(4);
 		}
 		args.add(comp);
@@ -59,8 +59,8 @@ class BuilderTranslationArgs<ParentType> implements IBuilderComponentTranslation
 
 	@Override
 	public ParentType end() {
-		if(args != null) {
-			((BuilderTranslationBase<?>)parent).componentArgs(args);
+		if (args != null) {
+			((BuilderTranslationBase<?>) parent).componentArgs(args);
 		}
 		return parent;
 	}

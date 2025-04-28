@@ -77,7 +77,8 @@ public interface ISkinManagerBase<PlayerObject> {
 		changePlayerTextures(newSkin, newCape, true);
 	}
 
-	void changePlayerTextures(@Nonnull IEaglerPlayerSkin newSkin, @Nonnull IEaglerPlayerCape newCape, boolean notifyOthers);
+	void changePlayerTextures(@Nonnull IEaglerPlayerSkin newSkin, @Nonnull IEaglerPlayerCape newCape,
+			boolean notifyOthers);
 
 	default void changePlayerTextures(@Nonnull EnumPresetSkins newSkin, @Nonnull EnumPresetCapes newCape) {
 		changePlayerTextures(newSkin, newCape, true);

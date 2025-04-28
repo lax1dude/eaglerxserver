@@ -37,8 +37,7 @@ public class CompoundRateLimiterMap {
 			ConfigDataListener.ConfigRateLimit ratelimitLoginConfIn,
 			ConfigDataListener.ConfigRateLimit ratelimitMOTDConfIn,
 			ConfigDataListener.ConfigRateLimit ratelimitQueryConfIn,
-			ConfigDataListener.ConfigRateLimit ratelimitHTTPConfIn,
-			RateLimiterExclusions ratelimitExclusions) {
+			ConfigDataListener.ConfigRateLimit ratelimitHTTPConfIn, RateLimiterExclusions ratelimitExclusions) {
 		if (!ratelimitIPConfIn.isEnabled() && !ratelimitLoginConfIn.isEnabled() && !ratelimitMOTDConfIn.isEnabled()
 				&& !ratelimitQueryConfIn.isEnabled() && !ratelimitHTTPConfIn.isEnabled()) {
 			return null;
@@ -48,12 +47,12 @@ public class CompoundRateLimiterMap {
 		RateLimiterLocking.Config ratelimitMOTDConf = createConf(ratelimitMOTDConfIn);
 		RateLimiterLocking.Config ratelimitQueryConf = createConf(ratelimitQueryConfIn);
 		RateLimiterLocking.Config ratelimitHTTPConf = createConf(ratelimitHTTPConfIn);
-		return new CompoundRateLimiterMap(ratelimitIPConf, ratelimitLoginConf, ratelimitMOTDConf,
-				ratelimitQueryConf, ratelimitHTTPConf, ratelimitExclusions);
+		return new CompoundRateLimiterMap(ratelimitIPConf, ratelimitLoginConf, ratelimitMOTDConf, ratelimitQueryConf,
+				ratelimitHTTPConf, ratelimitExclusions);
 	}
 
 	private static RateLimiterLocking.Config createConf(ConfigRateLimit ratelimitIPConfIn) {
-		if(!ratelimitIPConfIn.isEnabled()) {
+		if (!ratelimitIPConfIn.isEnabled()) {
 			return null;
 		}
 		return new RateLimiterLocking.Config(ratelimitIPConfIn.getPeriod(), ratelimitIPConfIn.getLimit(),
@@ -62,8 +61,11 @@ public class CompoundRateLimiterMap {
 
 	public static interface ICompoundRatelimits {
 		EnumRateLimitState rateLimitLogin();
+
 		EnumRateLimitState rateLimitMOTD();
+
 		EnumRateLimitState rateLimitQuery();
+
 		EnumRateLimitState rateLimitHTTP();
 	}
 
@@ -72,14 +74,17 @@ public class CompoundRateLimiterMap {
 		public EnumRateLimitState rateLimitLogin() {
 			return EnumRateLimitState.OK;
 		}
+
 		@Override
 		public EnumRateLimitState rateLimitMOTD() {
 			return EnumRateLimitState.OK;
 		}
+
 		@Override
 		public EnumRateLimitState rateLimitQuery() {
 			return EnumRateLimitState.OK;
 		}
+
 		@Override
 		public EnumRateLimitState rateLimitHTTP() {
 			return EnumRateLimitState.OK;
@@ -95,11 +100,11 @@ public class CompoundRateLimiterMap {
 
 		@Override
 		public EnumRateLimitState rateLimitLogin() {
-			if(ratelimitLoginConf == null) {
+			if (ratelimitLoginConf == null) {
 				return EnumRateLimitState.OK;
 			}
 			RateLimiterLocking limiter = ratelimitLogin;
-			if(limiter == null) {
+			if (limiter == null) {
 				limiter = ratelimitLogin = new RateLimiterLocking();
 			}
 			return limiter.rateLimit(ratelimitLoginConf);
@@ -107,11 +112,11 @@ public class CompoundRateLimiterMap {
 
 		@Override
 		public EnumRateLimitState rateLimitMOTD() {
-			if(ratelimitMOTDConf == null) {
+			if (ratelimitMOTDConf == null) {
 				return EnumRateLimitState.OK;
 			}
 			RateLimiterLocking limiter = ratelimitMOTD;
-			if(limiter == null) {
+			if (limiter == null) {
 				limiter = ratelimitMOTD = new RateLimiterLocking();
 			}
 			return limiter.rateLimit(ratelimitMOTDConf);
@@ -119,11 +124,11 @@ public class CompoundRateLimiterMap {
 
 		@Override
 		public EnumRateLimitState rateLimitQuery() {
-			if(ratelimitQueryConf == null) {
+			if (ratelimitQueryConf == null) {
 				return EnumRateLimitState.OK;
 			}
 			RateLimiterLocking limiter = ratelimitQuery;
-			if(limiter == null) {
+			if (limiter == null) {
 				limiter = ratelimitQuery = new RateLimiterLocking();
 			}
 			return limiter.rateLimit(ratelimitQueryConf);
@@ -131,11 +136,11 @@ public class CompoundRateLimiterMap {
 
 		@Override
 		public EnumRateLimitState rateLimitHTTP() {
-			if(ratelimitHTTPConf == null) {
+			if (ratelimitHTTPConf == null) {
 				return EnumRateLimitState.OK;
 			}
 			RateLimiterLocking limiter = ratelimitHTTP;
-			if(limiter == null) {
+			if (limiter == null) {
 				limiter = ratelimitHTTP = new RateLimiterLocking();
 			}
 			return limiter.rateLimit(ratelimitHTTPConf);
@@ -154,8 +159,8 @@ public class CompoundRateLimiterMap {
 
 	private CompoundRateLimiterMap(Config ratelimitIPConf, Config ratelimitLoginConf, Config ratelimitMOTDConf,
 			Config ratelimitQueryConf, Config ratelimitHTTPConf, RateLimiterExclusions ratelimitExclusions) {
-		this.cache = CacheBuilder.newBuilder().expireAfterAccess(5l, TimeUnit.MINUTES)
-				.maximumSize(8192).build(new CacheLoader<InetAddress, RateLimits>() {
+		this.cache = CacheBuilder.newBuilder().expireAfterAccess(5l, TimeUnit.MINUTES).maximumSize(8192)
+				.build(new CacheLoader<InetAddress, RateLimits>() {
 					@Override
 					public RateLimits load(InetAddress arg0) throws Exception {
 						return new RateLimits();
@@ -173,24 +178,25 @@ public class CompoundRateLimiterMap {
 		try {
 			return cache.get(address);
 		} catch (ExecutionException e) {
-			if(e.getCause() instanceof RuntimeException ee) throw ee;
+			if (e.getCause() instanceof RuntimeException ee)
+				throw ee;
 			throw new RuntimeException(e);
 		}
 	}
 
 	public ICompoundRatelimits rateLimit(InetAddress address) {
-		if(ratelimitExclusions != null && ratelimitExclusions.testExclusion(address)) {
+		if (ratelimitExclusions != null && ratelimitExclusions.testExclusion(address)) {
 			return ALWAYS_OK;
-		}else {
+		} else {
 			RateLimits limits = load(address);
 			return (ratelimitIPConf == null || limits.rateLimit(ratelimitIPConf).isOk()) ? limits : null;
 		}
 	}
 
 	public ICompoundRatelimits getRateLimit(InetAddress address) {
-		if(ratelimitExclusions != null && ratelimitExclusions.testExclusion(address)) {
+		if (ratelimitExclusions != null && ratelimitExclusions.testExclusion(address)) {
 			return ALWAYS_OK;
-		}else {
+		} else {
 			return load(address);
 		}
 	}

@@ -33,11 +33,11 @@ public class CommandConfirmCode<PlayerObject> extends EaglerCommand<PlayerObject
 	@Override
 	public void handle(IEaglerXServerCommandType<PlayerObject> command, IPlatformCommandSender<PlayerObject> sender,
 			String[] args) {
-		if(args.length != 1) {
+		if (args.length != 1) {
 			sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.RED).end()
 					.text("How to use: ").appendTextComponent().beginStyle().color(EnumChatColor.WHITE).end()
 					.text("/confirm-code <code>").end().end());
-		}else {
+		} else {
 			getServer().setServerListConfirmCode(Util.hash2string(Util.sha1(args[0].getBytes(StandardCharsets.US_ASCII))));
 			sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.AQUA).end()
 					.text("Server list 2FA code has been set to: ").appendTextComponent().beginStyle()

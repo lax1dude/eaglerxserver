@@ -74,6 +74,7 @@ public class SupervisorPlayerInstance {
 				SupervisorPlayerInstance.this.owner.getHandler().channelWrite(new SPacketSvGetOtherSkin(playerUUID));
 				skinDataWaiting = cb;
 			}
+
 			@Override
 			protected ILoggerAdapter getLogger() {
 				return loggerAdapter;
@@ -85,6 +86,7 @@ public class SupervisorPlayerInstance {
 				SupervisorPlayerInstance.this.owner.getHandler().channelWrite(new SPacketSvGetOtherCape(playerUUID));
 				capeDataWaiting = cb;
 			}
+
 			@Override
 			protected ILoggerAdapter getLogger() {
 				return loggerAdapter;
@@ -93,25 +95,25 @@ public class SupervisorPlayerInstance {
 	}
 
 	public boolean clientKnown(SupervisorClientInstance client) {
-		if(client == owner) {
+		if (client == owner) {
 			return true;
 		}
 		clientsKnownLock.readLock().lock();
 		try {
 			return clientsKnown.contains(client.getNodeId());
-		}finally {
+		} finally {
 			clientsKnownLock.readLock().unlock();
 		}
 	}
 
 	public boolean setClientKnown(SupervisorClientInstance client) {
-		if(client == owner) {
+		if (client == owner) {
 			return false;
 		}
 		clientsKnownLock.writeLock().lock();
 		try {
 			return clientsKnown.add(client.getNodeId());
-		}finally {
+		} finally {
 			clientsKnownLock.writeLock().unlock();
 		}
 	}
@@ -123,7 +125,7 @@ public class SupervisorPlayerInstance {
 			lst.add(owner.getNodeId());
 			lst.addAll(clientsKnown);
 			return lst;
-		}finally {
+		} finally {
 			clientsKnownLock.readLock().unlock();
 		}
 	}
@@ -132,7 +134,7 @@ public class SupervisorPlayerInstance {
 		clientsKnownLock.readLock().lock();
 		try {
 			output.addAll(clientsKnown);
-		}finally {
+		} finally {
 			clientsKnownLock.readLock().unlock();
 		}
 	}
@@ -141,7 +143,7 @@ public class SupervisorPlayerInstance {
 		clientsKnownLock.writeLock().lock();
 		try {
 			clientsKnown.removeAll(nodeId);
-		}finally {
+		} finally {
 			clientsKnownLock.writeLock().unlock();
 		}
 	}
@@ -176,109 +178,111 @@ public class SupervisorPlayerInstance {
 
 	public void onSkinDataReceivedPreset(int presetId) {
 		Consumer<PlayerSkinData> consumer = skinDataWaiting;
-		if(consumer != null) {
+		if (consumer != null) {
 			skinDataWaiting = null;
 			consumer.accept(PlayerSkinData.create(presetId));
-		}else {
+		} else {
 			logger.warn("Received unsolicited skin data for player {}", playerUUID);
 		}
 	}
 
 	public void onSkinDataReceivedCustom(int modelId, byte[] customSkin) {
 		Consumer<PlayerSkinData> consumer = skinDataWaiting;
-		if(consumer != null) {
+		if (consumer != null) {
 			skinDataWaiting = null;
 			consumer.accept(PlayerSkinData.create(modelId, customSkin));
-		}else {
+		} else {
 			logger.warn("Received unsolicited skin data for player {}", playerUUID);
 		}
 	}
 
 	public void onSkinDataReceivedCached(int modelId, byte[] textureData) {
 		Consumer<PlayerSkinData> consumer = skinDataWaiting;
-		if(consumer != null) {
+		if (consumer != null) {
 			skinDataWaiting = null;
 			consumer.accept(CachedTextureData.toSkinData(textureData, modelId));
-		}else {
+		} else {
 			logger.warn("Received unsolicited skin data for player {}", playerUUID);
 		}
 	}
 
 	public void onSkinDataReceivedError() {
 		Consumer<PlayerSkinData> consumer = skinDataWaiting;
-		if(consumer != null) {
+		if (consumer != null) {
 			skinDataWaiting = null;
 			logger.warn("Received error response for eagler skin lookup of player {}");
 			consumer.accept(PlayerSkinData.ERROR);
-		}else {
+		} else {
 			logger.warn("Received unsolicited skin data for player {}", playerUUID);
 		}
 	}
 
 	public void onCapeDataReceivedPreset(int presetId) {
 		Consumer<PlayerCapeData> consumer = capeDataWaiting;
-		if(consumer != null) {
+		if (consumer != null) {
 			capeDataWaiting = null;
 			consumer.accept(PlayerCapeData.create(presetId));
-		}else {
+		} else {
 			logger.warn("Received unsolicited cape data for player {}", playerUUID);
 		}
 	}
 
 	public void onCapeDataReceivedCustom(byte[] customCape) {
 		Consumer<PlayerCapeData> consumer = capeDataWaiting;
-		if(consumer != null) {
+		if (consumer != null) {
 			capeDataWaiting = null;
 			consumer.accept(PlayerCapeData.create(customCape));
-		}else {
+		} else {
 			logger.warn("Received unsolicited cape data for player {}", playerUUID);
 		}
 	}
 
 	public void onCapeDataReceivedCached(byte[] textureData) {
 		Consumer<PlayerCapeData> consumer = capeDataWaiting;
-		if(consumer != null) {
+		if (consumer != null) {
 			capeDataWaiting = null;
 			consumer.accept(CachedTextureData.toCapeData(textureData));
-		}else {
+		} else {
 			logger.warn("Received unsolicited cape data for player {}", playerUUID);
 		}
 	}
 
 	public void onCapeDataReceivedError() {
 		Consumer<PlayerCapeData> consumer = capeDataWaiting;
-		if(consumer != null) {
+		if (consumer != null) {
 			capeDataWaiting = null;
 			logger.warn("Received error response for eagler cape lookup of player {}");
 			consumer.accept(PlayerCapeData.ERROR);
-		}else {
+		} else {
 			logger.warn("Received unsolicited cape data for player {}", playerUUID);
 		}
 	}
 
 	public void onDropProxyPlayerData(String serverToNotify, boolean skin, boolean cape) {
-		if(skin) {
+		if (skin) {
 			skinData.clear();
 		}
-		if(cape) {
+		if (cape) {
 			capeData.clear();
 		}
 		EaglerXSupervisorServer server = owner.getServer();
 		IntContainer clientsKnownCopy = null;
 		clientsKnownLock.readLock().lock();
 		try {
-			if(clientsKnown.size() > 0) {
+			if (clientsKnown.size() > 0) {
 				clientsKnownCopy = new IntArrayList(clientsKnown);
 			}
-		}finally {
+		} finally {
 			clientsKnownLock.readLock().unlock();
 		}
-		if(clientsKnownCopy != null) {
+		if (clientsKnownCopy != null) {
 			int mask = 0;
-			if(skin) mask |= SPacketSvDropPlayerPartial.DROP_PLAYER_SKIN;
-			if(cape) mask |= SPacketSvDropPlayerPartial.DROP_PLAYER_CAPE;
+			if (skin)
+				mask |= SPacketSvDropPlayerPartial.DROP_PLAYER_SKIN;
+			if (cape)
+				mask |= SPacketSvDropPlayerPartial.DROP_PLAYER_CAPE;
 			SPacketSvDropPlayerPartial pkt = new SPacketSvDropPlayerPartial(playerUUID, serverToNotify, mask);
-			for(SupervisorClientInstance client : server.getClients(clientsKnownCopy)) {
+			for (SupervisorClientInstance client : server.getClients(clientsKnownCopy)) {
 				client.getHandler().channelWrite(pkt);
 			}
 		}

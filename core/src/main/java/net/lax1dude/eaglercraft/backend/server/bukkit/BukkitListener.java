@@ -63,28 +63,29 @@ class BukkitListener implements Listener {
 		Runnable cont = () -> {
 			try {
 				plugin.initializePlayer(player, conn, attr::set, (b) -> {
-					if(b != Boolean.TRUE) {
-						if(b != null) {
+					if (b != Boolean.TRUE) {
+						if (b != null) {
 							evt.setKickMessage((BaseComponent) b);
 						}
 						evt.setCancelled(true);
 					}
 					evt.completeIntent(plugin);
 				});
-			}catch(Exception ex) {
+			} catch (Exception ex) {
 				try {
 					evt.setCancelled(true);
 					evt.completeIntent(plugin);
-				}catch(IllegalStateException exx) {
+				} catch (IllegalStateException exx) {
 					return;
 				}
-				if(ex instanceof RuntimeException exx) throw exx;
+				if (ex instanceof RuntimeException exx)
+					throw exx;
 				throw new RuntimeException("Uncaught exception", ex);
 			}
 		};
-		if(conn != null) {
+		if (conn != null) {
 			conn.awaitPlayState(cont);
-		}else {
+		} else {
 			cont.run();
 		}
 	}
@@ -96,7 +97,7 @@ class BukkitListener implements Listener {
 
 	@EventHandler(priority = EventPriority.LOW)
 	public void onPlayerChangedWorldEvent(PlayerChangedWorldEvent evt) {
-		if(evt.getFrom() != null) {
+		if (evt.getFrom() != null) {
 			plugin.worldChange(evt.getPlayer());
 		}
 	}

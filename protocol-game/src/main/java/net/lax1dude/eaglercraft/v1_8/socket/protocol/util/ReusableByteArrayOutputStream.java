@@ -25,7 +25,7 @@ public class ReusableByteArrayOutputStream extends OutputStream {
 	private byte[] currentBuffer = null;
 	private int idx = 0;
 	private int originalSize = 0;
-	
+
 	public void feedBuffer(byte[] buf) {
 		currentBuffer = buf;
 		idx = 0;
@@ -48,9 +48,9 @@ public class ReusableByteArrayOutputStream extends OutputStream {
 	private void growBuffer(int i) {
 		int ii = currentBuffer.length;
 		int iii = i - ii;
-		if(iii > 0) {
+		if (iii > 0) {
 			int j = ii + (ii >> 1);
-			while(j < i) {
+			while (j < i) {
 				j += (j >> 1);
 			}
 			byte[] n = new byte[j];
@@ -69,7 +69,7 @@ public class ReusableByteArrayOutputStream extends OutputStream {
 
 	@Override
 	public void write(int b) throws IOException {
-		if(idx >= currentBuffer.length) {
+		if (idx >= currentBuffer.length) {
 			growBuffer(idx + 1);
 		}
 		currentBuffer[idx++] = (byte) b;
@@ -77,7 +77,7 @@ public class ReusableByteArrayOutputStream extends OutputStream {
 
 	@Override
 	public void write(byte b[], int off, int len) throws IOException {
-		if(idx + len > currentBuffer.length) {
+		if (idx + len > currentBuffer.length) {
 			growBuffer(idx + len);
 		}
 		System.arraycopy(b, off, currentBuffer, idx, len);

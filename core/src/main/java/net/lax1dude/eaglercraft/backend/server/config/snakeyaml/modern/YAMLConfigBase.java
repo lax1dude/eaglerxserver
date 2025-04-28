@@ -50,10 +50,10 @@ public class YAMLConfigBase implements IEaglerConfig {
 
 	@Override
 	public boolean saveIfModified() throws IOException {
-		if(modified) {
+		if (modified) {
 			YAMLConfigLoader.writeConfigFile(root.yaml, file);
 			return true;
-		}else {
+		} else {
 			return false;
 		}
 	}

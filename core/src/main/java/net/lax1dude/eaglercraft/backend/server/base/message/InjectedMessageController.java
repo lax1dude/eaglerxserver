@@ -47,9 +47,10 @@ public class InjectedMessageController extends MessageController {
 		this.marks = new int[32];
 	}
 
-	public static InjectedMessageController injectEagler(GamePluginMessageProtocol protocol, ServerMessageHandler handler,
-			Channel channel, int defragSendDelay) {
-		InjectedMessageController controller = new InjectedMessageController(protocol, handler, channel, defragSendDelay);
+	public static InjectedMessageController injectEagler(GamePluginMessageProtocol protocol,
+			ServerMessageHandler handler, Channel channel, int defragSendDelay) {
+		InjectedMessageController controller = new InjectedMessageController(protocol, handler, channel,
+				defragSendDelay);
 		channel.pipeline().addAfter(PipelineTransformer.HANDLER_FRAME_CODEC, PipelineTransformer.HANDLER_INJECTED,
 				new EaglerInjectedMessageHandler(controller));
 		channel.pipeline().fireUserEventTriggered(EnumPipelineEvent.EAGLER_INJECTED_MESSAGE_CONTROLLER);
@@ -62,50 +63,53 @@ public class InjectedMessageController extends MessageController {
 	public void readPacket(ByteBuf buffer) {
 		try {
 			GameMessagePacket pkt;
-			if(buffer.readableBytes() > 0) {
+			if (buffer.readableBytes() > 0) {
 				ByteBufInputWrapper is = inputWrapper;
 				is.buffer = buffer.skipBytes(1);
 				int ii = buffer.readerIndex();
-				if(buffer.getUnsignedByte(ii) == (short)0xFF) {
+				if (buffer.getUnsignedByte(ii) == (short) 0xFF) {
 					try {
 						int start = buffer.readerIndex();
 						is.readUnsignedByte();
 						int count = is.readVarInt();
-						for(int i = 0, j, k; i < count; ++i) {
+						for (int i = 0, j, k; i < count; ++i) {
 							j = is.readVarInt();
 							k = (buffer.readerIndex() - start) + j;
-							if(j > is.available()) {
+							if (j > is.available()) {
 								throw new IOException("Packet fragment is too long: " + j + " > " + is.available());
 							}
 							pkt = protocol.readPacketV5(GamePluginMessageConstants.CLIENT_TO_SERVER, is);
-							if(buffer.readerIndex() - start != k) {
-								throw new IOException("Packet fragment was the wrong length: " + (j + (buffer.readerIndex() - start) - k) + " != " + j);
+							if (buffer.readerIndex() - start != k) {
+								throw new IOException("Packet fragment was the wrong length: "
+										+ (j + (buffer.readerIndex() - start) - k) + " != " + j);
 							}
 							handlePacket(pkt);
 						}
-						if(is.available() > 0) {
-							throw new IOException("Leftover data after reading multi-packet! (" + is.available() + " bytes)");
+						if (is.available() > 0) {
+							throw new IOException(
+									"Leftover data after reading multi-packet! (" + is.available() + " bytes)");
 						}
-					}catch(IndexOutOfBoundsException ex) {
+					} catch (IndexOutOfBoundsException ex) {
 						throw new IOException("Packet buffer underflow! (In multi-packet)", ex);
 					}
-				}else {
+				} else {
 					try {
 						pkt = protocol.readPacketV5(GamePluginMessageConstants.CLIENT_TO_SERVER, is);
-					}catch(IndexOutOfBoundsException ex) {
-						throw new IOException("Packet buffer underflow! (Packet ID 0x" + Integer.toHexString(buffer.getUnsignedByte(ii)) + ")", ex);
+					} catch (IndexOutOfBoundsException ex) {
+						throw new IOException("Packet buffer underflow! (Packet ID 0x"
+								+ Integer.toHexString(buffer.getUnsignedByte(ii)) + ")", ex);
 					}
 					handlePacket(pkt);
 				}
 			}
-		}catch(IOException ex) {
+		} catch (IOException ex) {
 			onException(ex);
 		}
 	}
 
 	@Override
 	protected void writePacket(GameMessagePacket packet) throws IOException {
-		if(channel.isActive()) {
+		if (channel.isActive()) {
 			channel.writeAndFlush(new InjectedMessage() {
 				@Override
 				public void writePacket(List<Object> output) {
@@ -131,7 +135,7 @@ public class InjectedMessageController extends MessageController {
 
 	@Override
 	protected void writeMultiPacket(GameMessagePacket[] packets) throws IOException {
-		if(channel.isActive()) {
+		if (channel.isActive()) {
 			channel.writeAndFlush(new InjectedMessage() {
 				@Override
 				public void writePacket(List<Object> output) {
@@ -141,14 +145,14 @@ public class InjectedMessageController extends MessageController {
 					try {
 						int total = packets.length;
 						int[] marks;
-						if(total > 16) {
+						if (total > 16) {
 							marks = new int[total << 1];
-						}else {
+						} else {
 							marks = InjectedMessageController.this.marks;
 						}
 						os.buffer = buf;
 						int j, k;
-						for(int i = 0; i < total; ++i) {
+						for (int i = 0; i < total; ++i) {
 							j = i << 1;
 							buf.writeByte(0xEE);
 							k = buf.writerIndex();
@@ -158,7 +162,7 @@ public class InjectedMessageController extends MessageController {
 						}
 						int start = 0;
 						int i, sendCount, totalLen, lastLen;
-						while(total - start > 0) {
+						while (total - start > 0) {
 							sendCount = 0;
 							totalLen = 0;
 							do {
@@ -166,12 +170,12 @@ public class InjectedMessageController extends MessageController {
 								lastLen = GamePacketOutputBuffer.getVarIntSize(i) + i;
 								totalLen += lastLen;
 								++sendCount;
-							}while(totalLen < 32760 && total - start - sendCount > 0);
-							if(totalLen >= 32760) {
+							} while (totalLen < 32760 && total - start - sendCount > 0);
+							if (totalLen >= 32760) {
 								--sendCount;
 								totalLen -= lastLen;
 							}
-							if(sendCount <= 1) {
+							if (sendCount <= 1) {
 								i = start << 1;
 								output.add(buf.retainedSlice(marks[i] - 1, marks[i + 1] + 1));
 								shit = false;
@@ -183,7 +187,7 @@ public class InjectedMessageController extends MessageController {
 							try {
 								sendBuffer.writeShort(0xEEFF);
 								BufferUtils.writeVarInt(sendBuffer, sendCount);
-								for(j = 0; j < sendCount; ++j) {
+								for (j = 0; j < sendCount; ++j) {
 									i = start << 1;
 									lastLen = marks[i + 1];
 									BufferUtils.writeVarInt(sendBuffer, lastLen);
@@ -192,13 +196,13 @@ public class InjectedMessageController extends MessageController {
 								}
 								output.add(sendBuffer.retain());
 								shit = false;
-							}finally {
+							} finally {
 								sendBuffer.release();
 							}
 						}
 					} catch (IOException e) {
 						onException(e);
-						if(shit) {
+						if (shit) {
 							output.add(Unpooled.EMPTY_BUFFER);
 						}
 						return;

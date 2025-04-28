@@ -29,10 +29,10 @@ public final class RPCAttributeKey<T> {
 
 	@Nonnull
 	public static <T> RPCAttributeKey<T> createGlobal(@Nonnull String name, @Nonnull Class<T> type) {
-		if(name == null) {
+		if (name == null) {
 			throw new NullPointerException("name");
 		}
-		if(type == null) {
+		if (type == null) {
 			throw new NullPointerException("type");
 		}
 		RPCAttributeKey<?> ret;
@@ -41,10 +41,11 @@ public final class RPCAttributeKey<T> {
 				return new RPCAttributeKey<>(type);
 			});
 		} catch (ExecutionException e) {
-			if(e.getCause() instanceof RuntimeException ee) throw ee;
+			if (e.getCause() instanceof RuntimeException ee)
+				throw ee;
 			throw new RuntimeException(e.getCause());
 		}
-		if(ret.type != type) {
+		if (ret.type != type) {
 			throw new ClassCastException("Existing global attribute \"" + name + "\" registered type "
 					+ ret.type.getName() + " does not match requested type " + type.getName());
 		}
@@ -53,7 +54,7 @@ public final class RPCAttributeKey<T> {
 
 	@Nonnull
 	public static <T> RPCAttributeKey<T> createLocal(@Nonnull Class<T> type) {
-		if(type == null) {
+		if (type == null) {
 			throw new NullPointerException("type");
 		}
 		return new RPCAttributeKey<>(type);

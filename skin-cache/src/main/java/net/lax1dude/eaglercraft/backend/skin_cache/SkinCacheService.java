@@ -58,19 +58,19 @@ public class SkinCacheService implements ISkinCacheService {
 		@Override
 		protected void loadImpl(Consumer<byte[]> callback) {
 			datastore.loadSkin(key, (data) -> {
-				if(data != null) {
+				if (data != null) {
 					callback.accept(data);
-				}else {
+				} else {
 					downloader.downloadSkin(key, (ddata) -> {
-						if(ddata != null) {
+						if (ddata != null) {
 							datastore.storeSkin(key, ddata);
 							callback.accept(ddata);
-						}else {
+						} else {
 							long millis = System.nanoTime() / 1000000l;
 							failedSkinLookupsLock.writeLock().lock();
 							try {
 								failedSkinLookups.put(key, millis);
-							}finally {
+							} finally {
 								failedSkinLookupsLock.writeLock().unlock();
 							}
 							callback.accept(ISkinCacheService.ERROR);
@@ -98,19 +98,19 @@ public class SkinCacheService implements ISkinCacheService {
 		@Override
 		protected void loadImpl(Consumer<byte[]> callback) {
 			datastore.loadCape(key, (data) -> {
-				if(data != null) {
+				if (data != null) {
 					callback.accept(data);
-				}else {
+				} else {
 					downloader.downloadCape(key, (ddata) -> {
-						if(ddata != null) {
+						if (ddata != null) {
 							datastore.storeCape(key, ddata);
 							callback.accept(ddata);
-						}else {
+						} else {
 							long millis = System.nanoTime() / 1000000l;
 							failedCapeLookupsLock.writeLock().lock();
 							try {
 								failedCapeLookups.put(key, millis);
-							}finally {
+							} finally {
 								failedCapeLookupsLock.writeLock().unlock();
 							}
 							callback.accept(ISkinCacheService.ERROR);
@@ -161,12 +161,12 @@ public class SkinCacheService implements ISkinCacheService {
 		boolean b;
 		try {
 			b = failedSkinLookups.containsKey(skinURL);
-		}finally {
+		} finally {
 			failedSkinLookupsLock.readLock().unlock();
 		}
-		if(b) {
+		if (b) {
 			callback.accept(ISkinCacheService.ERROR);
-		}else {
+		} else {
 			try {
 				skinCache.get(skinURL).load(callback);
 			} catch (ExecutionException e) {
@@ -181,12 +181,12 @@ public class SkinCacheService implements ISkinCacheService {
 		boolean b;
 		try {
 			b = failedCapeLookups.containsKey(capeURL);
-		}finally {
+		} finally {
 			failedCapeLookupsLock.readLock().unlock();
 		}
-		if(b) {
+		if (b) {
 			callback.accept(ISkinCacheService.ERROR);
-		}else {
+		} else {
 			try {
 				capeCache.get(capeURL).load(callback);
 			} catch (ExecutionException e) {
@@ -199,28 +199,28 @@ public class SkinCacheService implements ISkinCacheService {
 	public void tick() {
 		datastore.tick();
 		long millis = System.nanoTime() / 1000000l;
-		if(millis - lastFlush > 60000l) {
+		if (millis - lastFlush > 60000l) {
 			lastFlush = millis;
 			failedSkinLookupsLock.writeLock().lock();
 			try {
 				Iterator<Long> itr = failedSkinLookups.values().iterator();
-				while(itr.hasNext()) {
-					if(millis - itr.next().longValue() > (60000l * 10l)) {
+				while (itr.hasNext()) {
+					if (millis - itr.next().longValue() > (60000l * 10l)) {
 						itr.remove();
 					}
 				}
-			}finally {
+			} finally {
 				failedSkinLookupsLock.writeLock().unlock();
 			}
 			failedCapeLookupsLock.writeLock().lock();
 			try {
 				Iterator<Long> itr = failedCapeLookups.values().iterator();
-				while(itr.hasNext()) {
-					if(millis - itr.next().longValue() > (60000l * 10l)) {
+				while (itr.hasNext()) {
+					if (millis - itr.next().longValue() > (60000l * 10l)) {
 						itr.remove();
 					}
 				}
-			}finally {
+			} finally {
 				failedCapeLookupsLock.writeLock().unlock();
 			}
 		}
@@ -228,12 +228,12 @@ public class SkinCacheService implements ISkinCacheService {
 
 	@Override
 	public int getTotalMemorySkins() {
-		return (int)skinCache.size();
+		return (int) skinCache.size();
 	}
 
 	@Override
 	public int getTotalMemoryCapes() {
-		return (int)capeCache.size();
+		return (int) capeCache.size();
 	}
 
 	@Override

@@ -40,8 +40,8 @@ public class SupervisorTimeoutLoop {
 
 		@Override
 		public void run() {
-			if(timeoutEvents.remove(key) != null) {
-				for(int i = 0, l = queue.size(); i < l; ++i) {
+			if (timeoutEvents.remove(key) != null) {
+				for (int i = 0, l = queue.size(); i < l; ++i) {
 					queue.get(i).expire();
 				}
 			}
@@ -71,10 +71,10 @@ public class SupervisorTimeoutLoop {
 
 		@Override
 		public TimeoutEvent apply(Long k, TimeoutEvent v) {
-			if(v != null) {
+			if (v != null) {
 				v.queue.add(future);
 				return v;
-			}else {
+			} else {
 				TimeoutEvent te = new TimeoutEvent(k);
 				te.queue.add(future);
 				schedule = true;
@@ -90,14 +90,14 @@ public class SupervisorTimeoutLoop {
 
 	public void addFuture(long now, ISupervisorExpiring future) {
 		long expires = future.expiresAt();
-		if(now >= expires) {
+		if (now >= expires) {
 			future.expire();
 			return;
 		}
 		long bucket = (expires + (resolution - 1)) / resolution;
 		Witness witness = new Witness(future);
 		TimeoutEvent te = timeoutEvents.compute(bucket, witness);
-		if(witness.schedule) {
+		if (witness.schedule) {
 			long l = (bucket * resolution - now) / 1000000l;
 			scheduler.executeAsyncDelayed(te, l > 0l ? l : 0l);
 		}

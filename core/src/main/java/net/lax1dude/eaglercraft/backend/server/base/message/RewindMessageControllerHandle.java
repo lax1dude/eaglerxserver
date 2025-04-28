@@ -38,18 +38,18 @@ public class RewindMessageControllerHandle implements IMessageController {
 
 	@Override
 	public void recieveInboundMessage(GameMessagePacket packet) {
-		if(impl != null) {
+		if (impl != null) {
 			impl.handlePacket(packet);
-		}else {
+		} else {
 			logger.error("Dropping inbound packet " + packet.getClass().getSimpleName()
 					+ " on rewind connection because the connection is not ready!");
 		}
 	}
 
 	void recieveOutboundMessage(GameMessagePacket packet) {
-		if(handler != null) {
+		if (handler != null) {
 			packet.handlePacket(handler);
-		}else {
+		} else {
 			logger.error("Dropping outbound packet " + packet.getClass().getSimpleName()
 					+ " on rewind connection because no handler is registered!");
 		}

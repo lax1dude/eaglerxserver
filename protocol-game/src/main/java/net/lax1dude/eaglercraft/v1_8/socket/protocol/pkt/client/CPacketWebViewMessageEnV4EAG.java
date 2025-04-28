@@ -39,7 +39,7 @@ public class CPacketWebViewMessageEnV4EAG implements GameMessagePacket {
 	@Override
 	public void readPacket(GamePacketInputBuffer buffer) throws IOException {
 		messageChannelOpen = buffer.readBoolean();
-		if(messageChannelOpen) {
+		if (messageChannelOpen) {
 			channelName = buffer.readStringEaglerASCII8();
 		}
 	}
@@ -47,13 +47,13 @@ public class CPacketWebViewMessageEnV4EAG implements GameMessagePacket {
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
 		buffer.writeBoolean(messageChannelOpen);
-		if(messageChannelOpen) {
-			if(channelName != null) {
-				if(channelName.length() > 255) {
+		if (messageChannelOpen) {
+			if (channelName != null) {
+				if (channelName.length() > 255) {
 					throw new IOException("Channel name too long! (255 max, " + channelName.length() + " given)");
 				}
 				buffer.writeStringEaglerASCII8(channelName);
-			}else {
+			} else {
 				buffer.writeByte(0);
 			}
 		}

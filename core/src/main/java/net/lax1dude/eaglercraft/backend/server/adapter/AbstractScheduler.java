@@ -27,21 +27,22 @@ public abstract class AbstractScheduler implements IPlatformScheduler {
 		protected RepeatingTaskBase(Runnable runnable, long interval) {
 			this.runnable = runnable;
 			this.reschedule = () -> {
-				if(task == null) {
+				if (task == null) {
 					return;
 				}
 				long start = System.nanoTime();
 				try {
 					runnable.run();
-				}finally {
-					if(task == null) {
+				} finally {
+					if (task == null) {
 						return;
 					}
-					synchronized(this) {
-						if(task == null) {
+					synchronized (this) {
+						if (task == null) {
 							return;
 						}
-						task = reschedule(getReschedule(), Math.max(interval - ((System.nanoTime() - start) / 1000000l), 5l));
+						task = reschedule(getReschedule(),
+								Math.max(interval - ((System.nanoTime() - start) / 1000000l), 5l));
 					}
 				}
 			};
@@ -54,13 +55,13 @@ public abstract class AbstractScheduler implements IPlatformScheduler {
 
 		@Override
 		public void cancel() {
-			if(task == null) {
+			if (task == null) {
 				return;
 			}
 			IPlatformTask t;
-			synchronized(this) {
+			synchronized (this) {
 				t = task;
-				if(t == null) {
+				if (t == null) {
 					return;
 				}
 				task = null;
@@ -109,7 +110,7 @@ public abstract class AbstractScheduler implements IPlatformScheduler {
 
 	@Override
 	public IPlatformTask executeRepeatingTask(Runnable runnable, long delay, long interval) {
-		if(runnable == null) {
+		if (runnable == null) {
 			throw new NullPointerException("runnable");
 		}
 		return (new RepeatingTask(runnable, interval)).bootstrap(delay);
@@ -117,7 +118,7 @@ public abstract class AbstractScheduler implements IPlatformScheduler {
 
 	@Override
 	public IPlatformTask executeAsyncRepeatingTask(Runnable runnable, long delay, long interval) {
-		if(runnable == null) {
+		if (runnable == null) {
 			throw new NullPointerException("runnable");
 		}
 		return (new RepeatingTaskAsync(runnable, interval)).bootstrap(delay);

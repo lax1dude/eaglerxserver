@@ -48,7 +48,7 @@ public class SPacketRPCResponseTypeWebViewStatus implements EaglerBackendRPCPack
 	public void readPacket(DataInput buffer) throws IOException {
 		requestID = buffer.readInt();
 		webviewState = buffer.readUnsignedByte();
-		if(webviewState == WEBVIEW_STATE_CHANNEL_OPEN) {
+		if (webviewState == WEBVIEW_STATE_CHANNEL_OPEN) {
 			byte[] nameBytes = new byte[buffer.readUnsignedByte()];
 			buffer.readFully(nameBytes);
 			channelName = new String(nameBytes, StandardCharsets.US_ASCII);
@@ -59,9 +59,10 @@ public class SPacketRPCResponseTypeWebViewStatus implements EaglerBackendRPCPack
 	public void writePacket(DataOutput buffer) throws IOException {
 		buffer.writeInt(requestID);
 		buffer.writeByte(webviewState);
-		if(webviewState == WEBVIEW_STATE_CHANNEL_OPEN) {
-			if(channelName.length() > 255) {
-				throw new IOException("Channel name cannot be more than 255 chars! (got " + channelName.length() + " chars)");
+		if (webviewState == WEBVIEW_STATE_CHANNEL_OPEN) {
+			if (channelName.length() > 255) {
+				throw new IOException(
+						"Channel name cannot be more than 255 chars! (got " + channelName.length() + " chars)");
 			}
 			byte[] nameBytes = channelName.getBytes(StandardCharsets.US_ASCII);
 			buffer.writeByte(nameBytes.length);

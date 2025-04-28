@@ -33,33 +33,35 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 	}
 
 	@Override
-	public void initializePlayer(IPlatformPlayerInitializer<BaseConnectionInstance, BasePlayerInstance<PlayerObject>, PlayerObject> initializer) {
+	public void initializePlayer(
+			IPlatformPlayerInitializer<BaseConnectionInstance, BasePlayerInstance<PlayerObject>, PlayerObject> initializer) {
 		BaseConnectionInstance conn = initializer.getConnectionAttachment();
-		if(conn == null) {
+		if (conn == null) {
 			return;
 		}
-		if(conn.isEaglerPlayer()) {
+		if (conn.isEaglerPlayer()) {
 			conn.asEaglerPlayer().processProfileData();
 		}
 		ISupervisorServiceImpl<PlayerObject> supervisor = server.getSupervisorService();
-		if(supervisor.isSupervisorEnabled()) {
+		if (supervisor.isSupervisorEnabled()) {
 			supervisor.acceptPlayer(conn.getUniqueId(),
 					conn.isEaglerPlayer() ? conn.asEaglerPlayer().getEaglerBrandUUID() : IBrandRegistry.BRAND_VANILLA,
 					conn.getMinecraftProtocol(),
 					conn.isEaglerPlayer() ? conn.asEaglerPlayer().getHandshakeEaglerProtocol() : 0, conn.getUsername(),
 					(res) -> {
-				if(res == EnumAcceptPlayer.ACCEPT) {
+				if (res == EnumAcceptPlayer.ACCEPT) {
 					server.getPlatform().getScheduler().executeAsync(() -> {
 						acceptPlayer(initializer);
 					});
-				}else {
-					switch(res) {
+				} else {
+					switch (res) {
 					case REJECT_ALREADY_WAITING:
 					case REJECT_DUPLICATE_USERNAME:
 					case REJECT_DUPLICATE_UUID:
 						try {
-							initializer.getPlayer().disconnect(server.componentHelper().getStandardKickAlreadyPlaying());
-						}finally {
+							initializer.getPlayer()
+									.disconnect(server.componentHelper().getStandardKickAlreadyPlaying());
+						} finally {
 							initializer.cancel();
 						}
 						break;
@@ -68,69 +70,73 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 						try {
 							initializer.getPlayer().disconnect(server.componentBuilder().buildTextComponent()
 									.text("Internal Supervisor Error").end());
-						}finally {
+						} finally {
 							initializer.cancel();
 						}
 						break;
 					case SUPERVISOR_UNAVAILABLE:
 						try {
 							initializer.getPlayer().disconnect(server.componentBuilder().buildTextComponent()
-									.text(server.getConfig().getSupervisor().getSupervisorUnavailableMessage()).end());
-						}finally {
+									.text(server.getConfig().getSupervisor().getSupervisorUnavailableMessage())
+									.end());
+						} finally {
 							initializer.cancel();
 						}
 						break;
 					}
 				}
 			});
-		}else {
+		} else {
 			acceptPlayer(initializer);
 		}
 	}
 
-	private void acceptPlayer(IPlatformPlayerInitializer<BaseConnectionInstance, BasePlayerInstance<PlayerObject>, PlayerObject> initializer) {
+	private void acceptPlayer(
+			IPlatformPlayerInitializer<BaseConnectionInstance, BasePlayerInstance<PlayerObject>, PlayerObject> initializer) {
 		BaseConnectionInstance conn = initializer.getConnectionAttachment();
-		if(conn.isEaglerPlayer()) {
+		if (conn.isEaglerPlayer()) {
 			NettyPipelineData.ProfileDataHolder profileData = conn.asEaglerPlayer().transferProfileData();
 			EaglerPlayerInstance<PlayerObject> instance = new EaglerPlayerInstance<>(initializer.getPlayer(), server);
 			initializer.setPlayerAttachment(instance);
 			try {
 				server.registerEaglerPlayer(instance, profileData, () -> {
-					server.eventDispatcher().dispatchInitializePlayerEvent(instance, profileData.extraData, (evt, err) -> {
-						if(err == null) {
+					server.eventDispatcher().dispatchInitializePlayerEvent(instance, profileData.extraData,
+							(evt, err) -> {
+						if (err == null) {
 							initializer.complete();
-						}else {
+						} else {
 							try {
-								instance.logger().error("Uncaught exception handling initialize player event", err);
-								initializer.getPlayer().disconnect(
-										server.componentBuilder().buildTextComponent().text("Internal Error").end());
-							}finally {
+								instance.logger().error("Uncaught exception handling initialize player event",
+										err);
+								initializer.getPlayer().disconnect(server.componentBuilder()
+										.buildTextComponent().text("Internal Error").end());
+							} finally {
 								try {
 									server.getSupervisorService().dropOwnPlayer(instance.getUniqueId());
-								}finally {
+								} finally {
 									initializer.cancel();
 								}
 							}
 						}
 					});
 				});
-			}catch(EaglerXServer.RegistrationStateException ex) {
+			} catch (EaglerXServer.RegistrationStateException ex) {
 				try {
 					server.getSupervisorService().dropOwnPlayer(initializer.getPlayer().getUniqueId());
-				}finally {
+				} finally {
 					initializer.cancel();
 				}
 				return;
 			}
-		}else {
+		} else {
 			BasePlayerInstance<PlayerObject> instance = new BasePlayerInstance<>(initializer.getPlayer(), server);
 			initializer.setPlayerAttachment(instance);
 			try {
 				server.registerPlayer(instance);
-			}catch(EaglerXServer.RegistrationStateException ex) {
+			} catch (EaglerXServer.RegistrationStateException ex) {
 				try {
 					server.getSupervisorService().dropOwnPlayer(instance.getUniqueId());
-				}finally {
+				} finally {
 					initializer.cancel();
 				}
 				return;
@@ -142,23 +148,23 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 	@Override
 	public void destroyPlayer(IPlatformPlayer<PlayerObject> player) {
 		BasePlayerInstance<PlayerObject> instance = player.getPlayerAttachment();
-		if(instance != null) {
+		if (instance != null) {
 			try {
-				if(instance.isEaglerPlayer()) {
+				if (instance.isEaglerPlayer()) {
 					EaglerPlayerInstance<PlayerObject> eaglerInstance = (EaglerPlayerInstance<PlayerObject>) instance;
 					try {
 						server.unregisterEaglerPlayer(eaglerInstance);
-					}catch(EaglerXServer.RegistrationStateException ex) {
+					} catch (EaglerXServer.RegistrationStateException ex) {
 						return;
 					}
 					server.eventDispatcher().dispatchDestroyPlayerEvent(eaglerInstance, null);
-				}else {
+				} else {
 					try {
 						server.unregisterPlayer(instance);
-					}catch(EaglerXServer.RegistrationStateException ex) {
+					} catch (EaglerXServer.RegistrationStateException ex) {
 					}
 				}
-			}finally {
+			} finally {
 				server.getSupervisorService().dropOwnPlayer(player.getUniqueId());
 			}
 		}

@@ -44,10 +44,11 @@ public final class ExtendedCapabilitySpec {
 		private final int[] minorVersions;
 
 		private Version(UUID majorVersion, int... minorVersions) {
-			for(int i = 0; i < minorVersions.length; ++i) {
+			for (int i = 0; i < minorVersions.length; ++i) {
 				int j = minorVersions[i];
-				if(j < 0 || j > 31) {
-					throw new IllegalArgumentException("Illegal subversion " + minorVersions[i] + ", must be between 0 to 31");
+				if (j < 0 || j > 31) {
+					throw new IllegalArgumentException(
+							"Illegal subversion " + minorVersions[i] + ", must be between 0 to 31");
 				}
 			}
 			this.majorVersion = majorVersion;

@@ -56,7 +56,7 @@ abstract class MultiSvSkinResolver<SkinManager extends ISkinManagerImpl, PlayerO
 	}
 
 	private void countDown() {
-		if((int)COUNT_DOWN_HANDLE.getAndAdd(this, -1) == 1) {
+		if ((int) COUNT_DOWN_HANDLE.getAndAdd(this, -1) == 1) {
 			onComplete(skinManager, skin, cape);
 		}
 	}

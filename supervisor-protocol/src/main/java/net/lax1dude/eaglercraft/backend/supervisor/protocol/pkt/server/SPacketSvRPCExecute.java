@@ -62,12 +62,12 @@ public class SPacketSvRPCExecute implements EaglerSupervisorPacket, IRefCountedH
 		buffer.writeLong(requestUUID.getMostSignificantBits());
 		buffer.writeLong(requestUUID.getLeastSignificantBits());
 		EaglerSupervisorPacket.writeVarInt(buffer, sourceNodeId);
-		if(injected != null) {
+		if (injected != null) {
 			buffer.writeIntLE(0);
 			int pos = buffer.writerIndex();
 			buffer.setByte(pos - 4, injected.writePayload(buffer));
 			buffer.setMedium(pos - 3, buffer.writerIndex() - pos);
-		}else {
+		} else {
 			buffer.writeByte(nameLength);
 			int l = payload.readableBytes();
 			buffer.writeMedium(l);

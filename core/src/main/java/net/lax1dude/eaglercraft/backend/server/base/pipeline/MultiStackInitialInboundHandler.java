@@ -46,28 +46,29 @@ public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
 		if (!ctx.channel().isActive()) {
 			in.skipBytes(in.readableBytes());
-		}else {
+		} else {
 			EaglerListener listener = pipelineData.listenerInfo;
-			if(listener.isDualStack() && isVanillaHandshake(in)) {
+			if (listener.isDualStack() && isVanillaHandshake(in)) {
 				setVanillaHandler(ctx, BufferUtils.readRetainedSlice(in, in.readableBytes()));
-			}else {
+			} else {
 				int state = isValidHTTPRequestLine(in);
-				if(state == 1) {
-					if(!listener.isTLSEnabled() || !listener.isTLSRequired()) {
+				if (state == 1) {
+					if (!listener.isTLSEnabled() || !listener.isTLSRequired()) {
 						setHTTPHandler(ctx, null, BufferUtils.readRetainedSlice(in, in.readableBytes()));
-					}else {
+					} else {
 						ctx.close();
 					}
-				}else if(state == 2) {
-					if(listener.isTLSEnabled()) {
-						setHTTPHandler(ctx, listener.getSSLContext(), BufferUtils.readRetainedSlice(in, in.readableBytes()));
-					}else {
+				} else if (state == 2) {
+					if (listener.isTLSEnabled()) {
+						setHTTPHandler(ctx, listener.getSSLContext(),
+								BufferUtils.readRetainedSlice(in, in.readableBytes()));
+					} else {
 						ctx.close();
 					}
-				}else if(state == 3) {
-					if(listener.isDualStack()) {
+				} else if (state == 3) {
+					if (listener.isDualStack()) {
 						setVanillaHandler(ctx, BufferUtils.readRetainedSlice(in, in.readableBytes()));
-					}else {
+					} else {
 						ctx.close();
 					}
 				}
@@ -76,32 +77,32 @@ public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 	}
 
 	private boolean isVanillaHandshake(ByteBuf buffer) {
-		if(buffer.readableBytes() > 5) {
+		if (buffer.readableBytes() > 5) {
 			buffer.markReaderIndex();
 			try {
 				int frameLen = BufferUtils.readVarInt(buffer, 3);
-				if(frameLen == 2 && buffer.readableBytes() >= 9) {
+				if (frameLen == 2 && buffer.readableBytes() >= 9) {
 					// pre netty-rewrite handshake
 					buffer.readUnsignedByte(); // skip protocol version
 					int strLen = buffer.readUnsignedShort();
-					if(strLen > 16) {
+					if (strLen > 16) {
 						throw new IndexOutOfBoundsException();
 					}
 					buffer.skipBytes(strLen * 2); // skip username string
 					strLen = buffer.readUnsignedShort();
-					if(strLen > 255) {
+					if (strLen > 255) {
 						throw new IndexOutOfBoundsException();
 					}
 					buffer.skipBytes(strLen * 2); // skip host string
 					buffer.readInt(); // skip port
 					return true;
-				}else if(frameLen <= 267 && buffer.readableBytes() >= frameLen) {
+				} else if (frameLen <= 267 && buffer.readableBytes() >= frameLen) {
 					// post netty rewrite handshake
 					int packetId = BufferUtils.readVarInt(buffer, 5);
-					if(packetId == 0) {
+					if (packetId == 0) {
 						BufferUtils.readVarInt(buffer, 5); // validate protocol version
 						int strLen = BufferUtils.readVarInt(buffer, 5); // validate host string length
-						if(strLen > 255) {
+						if (strLen > 255) {
 							throw new IndexOutOfBoundsException();
 						}
 						buffer.skipBytes(strLen); // validate host string
@@ -110,8 +111,8 @@ public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 						return true;
 					}
 				}
-			}catch(IndexOutOfBoundsException ex) {
-			}finally {
+			} catch (IndexOutOfBoundsException ex) {
+			} finally {
 				buffer.resetReaderIndex();
 			}
 		}
@@ -120,14 +121,14 @@ public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 
 	private int isValidHTTPRequestLine(ByteBuf buffer) {
 		int len = buffer.readableBytes();
-		if(len > 4) {
+		if (len > 4) {
 			buffer.markReaderIndex();
 			try {
 				char firstChar = (char) buffer.readUnsignedByte();
-				switch(firstChar) {
+				switch (firstChar) {
 				case 0x16:
 					// TLS
-					if(buffer.readUnsignedByte() == 0x03) {
+					if (buffer.readUnsignedByte() == 0x03) {
 						return 2;
 					}
 					break;
@@ -169,23 +170,23 @@ public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 						short b2 = buffer.readUnsignedByte();
 						short b3 = buffer.readUnsignedByte();
 						short b4 = buffer.readUnsignedByte();
-						
+
 						// "PUT "
-						if(b2 == 'U' && b3 == 'T' && b4 == ' ') {
+						if (b2 == 'U' && b3 == 'T' && b4 == ' ') {
 							return isValidHTTPRequestLinePart2(buffer);
 						}
-						
+
 						if (len >= 5) {
 							short b5 = buffer.readUnsignedByte();
-							
+
 							// "POST "
-							if(b2 == 'O' && b3 == 'S' && b4 == 'T' && b5 == ' ') {
+							if (b2 == 'O' && b3 == 'S' && b4 == 'T' && b5 == ' ') {
 								return isValidHTTPRequestLinePart2(buffer);
 							}
-							
+
 							if (len < 6) {
 								return 0;
-							}else {
+							} else {
 								// "PATCH "
 								if (b2 == 'A' && b3 == 'T' && b4 == 'C' && b5 == 'H'
 										&& buffer.readUnsignedByte() == ' ') {
@@ -207,8 +208,8 @@ public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 				}
 				// Returns 3 if there's not a chance this is HTTP
 				return 3;
-			}catch(IndexOutOfBoundsException ex) {
-			}finally {
+			} catch (IndexOutOfBoundsException ex) {
+			} finally {
 				buffer.resetReaderIndex();
 			}
 		}
@@ -217,41 +218,37 @@ public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 
 	private int isValidHTTPRequestLinePart2(ByteBuf buffer) {
 		int maxLineLen = pipelineData.server.getConfig().getSettings().getHTTPMaxInitialLineLength();
-		
+
 		char[] requestLineEnd = new char[9];
-		
+
 		int i = 0;
-		for(;;) {
-			if(i > maxLineLen) {
+		for (;;) {
+			if (i > maxLineLen) {
 				return 3;
 			}
-			if(!buffer.isReadable()) {
+			if (!buffer.isReadable()) {
 				return 0;
 			}
 			char c = (char) buffer.readUnsignedByte();
-			if(c == '\r' || c == '\n') {
+			if (c == '\r' || c == '\n') {
 				break;
 			}
 			requestLineEnd[i++ % 9] = c;
 		}
-		
-		if(i < 9) {
+
+		if (i < 9) {
 			return 3;
 		}
-		
+
 		// Make sure the request line ended with " HTTP/1.0" or " HTTP/1.1"
-		if(requestLineEnd[(i - 8) % 9] == 'H' &&
-			requestLineEnd[(i - 7) % 9] == 'T' &&
-			requestLineEnd[(i - 6) % 9] == 'T' &&
-			requestLineEnd[(i - 5) % 9] == 'P' &&
-			requestLineEnd[(i - 4) % 9] == '/' &&
-			requestLineEnd[(i - 3) % 9] == '1' &&
-			requestLineEnd[(i - 2) % 9] == '.' &&
-			(requestLineEnd[(i - 1) % 9] == '1' ||
-			requestLineEnd[(i - 1) % 9] == '0')) {
+		if (requestLineEnd[(i - 8) % 9] == 'H' && requestLineEnd[(i - 7) % 9] == 'T'
+				&& requestLineEnd[(i - 6) % 9] == 'T' && requestLineEnd[(i - 5) % 9] == 'P'
+				&& requestLineEnd[(i - 4) % 9] == '/' && requestLineEnd[(i - 3) % 9] == '1'
+				&& requestLineEnd[(i - 2) % 9] == '.'
+				&& (requestLineEnd[(i - 1) % 9] == '1' || requestLineEnd[(i - 1) % 9] == '0')) {
 			return 1;
 		}
-		
+
 		return 3;
 	}
 
@@ -262,7 +259,7 @@ public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 			p.remove(PipelineTransformer.HANDLER_OUTBOUND_THROW);
 			ctx.fireChannelRead(buffer.retain());
 			p.remove(PipelineTransformer.HANDLER_MULTI_STACK_INITIAL);
-		}finally {
+		} finally {
 			buffer.release();
 		}
 	}
@@ -270,12 +267,12 @@ public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 	private void setHTTPHandler(ChannelHandlerContext ctx, ISSLContextProvider ssl, ByteBuf buffer) {
 		try {
 			ChannelPipeline p = ctx.pipeline();
-			if(componentsToRemove != null) {
-				for(ChannelHandler handler : componentsToRemove) {
+			if (componentsToRemove != null) {
+				for (ChannelHandler handler : componentsToRemove) {
 					p.remove(handler);
 				}
 			}
-			if(bungeeHack != null) {
+			if (bungeeHack != null) {
 				p.addLast(bungeeHack, NOPDummyHandler.INSTANCE);
 			}
 			transformer.initializeHTTPHandler(pipelineData, ssl, p, PipelineTransformer.HANDLER_MULTI_STACK_INITIAL);
@@ -283,7 +280,7 @@ public class MultiStackInitialInboundHandler extends ByteToMessageDecoder {
 				ctx.fireChannelRead(buffer.retain());
 			}
 			p.remove(PipelineTransformer.HANDLER_MULTI_STACK_INITIAL);
-		}finally {
+		} finally {
 			buffer.release();
 		}
 	}

@@ -81,7 +81,7 @@ abstract class BuilderTranslationBase<ParentType> implements IBuilderComponentTr
 	@Override
 	public IBuilderComponentTranslation<ParentType> stringArgs(Object... args) {
 		this.args = new ArrayList<>(args.length);
-		for(int i = 0; i < args.length; ++i) {
+		for (int i = 0; i < args.length; ++i) {
 			this.args.add(new TextComponent(Objects.toString(args[i])));
 		}
 		return this;
@@ -91,7 +91,7 @@ abstract class BuilderTranslationBase<ParentType> implements IBuilderComponentTr
 	public IBuilderComponentTranslation<ParentType> stringArgs(List<Object> args) {
 		int size = args.size();
 		this.args = new ArrayList<>(size);
-		for(int i = 0; i < size; ++i) {
+		for (int i = 0; i < size; ++i) {
 			this.args.add(new TextComponent(Objects.toString(args.get(i))));
 		}
 		return this;
@@ -118,33 +118,33 @@ abstract class BuilderTranslationBase<ParentType> implements IBuilderComponentTr
 
 	@Override
 	public void append(BaseComponent comp) {
-		if(buildChildren == null) {
+		if (buildChildren == null) {
 			buildChildren = new ArrayList<>(4);
 		}
 		buildChildren.add(comp);
 	}
 
 	protected BaseComponent build() {
-		if(translation == null) {
+		if (translation == null) {
 			throw new IllegalStateException("No translation key specified");
 		}
 		TranslatableComponent ret = new TranslatableComponent(translation);
-		if(insertion != null) {
+		if (insertion != null) {
 			ret.setInsertion(insertion);
 		}
-		if(style != null) {
+		if (style != null) {
 			style.applyTo(ret);
 		}
-		if(click != null) {
+		if (click != null) {
 			click.applyTo(ret);
 		}
-		if(hover != null) {
+		if (hover != null) {
 			hover.applyTo(ret);
 		}
-		if(buildChildren != null) {
+		if (buildChildren != null) {
 			ret.setExtra(buildChildren);
 		}
-		if(args != null) {
+		if (args != null) {
 			ret.setWith(args);
 		}
 		return ret;

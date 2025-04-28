@@ -44,10 +44,10 @@ class NBTContext implements INBTContext, IWrapperFactory {
 
 	@Override
 	public void accept(DataInput dataInput, INBTVisitor visitor) throws IOException {
-		if(dataInput == null) {
+		if (dataInput == null) {
 			throw new NullPointerException("dataInput");
 		}
-		if(visitor == null) {
+		if (visitor == null) {
 			throw new NullPointerException("visitor");
 		}
 		NBTVisitorReader.read(dataInput, visitor, this);
@@ -55,7 +55,7 @@ class NBTContext implements INBTContext, IWrapperFactory {
 
 	@Override
 	public INBTVisitor createWriter(DataOutput dataOutput) {
-		if(dataOutput == null) {
+		if (dataOutput == null) {
 			throw new NullPointerException("dataOutput");
 		}
 		return writer.bind(dataOutput);
@@ -63,7 +63,7 @@ class NBTContext implements INBTContext, IWrapperFactory {
 
 	@Override
 	public INBTValue<String> wrapValue(String value) {
-		if(value == null) {
+		if (value == null) {
 			throw new NullPointerException("value");
 		}
 		return new WrappedString(value);
@@ -71,7 +71,7 @@ class NBTContext implements INBTContext, IWrapperFactory {
 
 	@Override
 	public INBTValue<byte[]> wrapValue(byte[] value) {
-		if(value == null) {
+		if (value == null) {
 			throw new NullPointerException("value");
 		}
 		return new WrappedByteArray(value);
@@ -79,7 +79,7 @@ class NBTContext implements INBTContext, IWrapperFactory {
 
 	@Override
 	public INBTValue<int[]> wrapValue(int[] value) {
-		if(value == null) {
+		if (value == null) {
 			throw new NullPointerException("value");
 		}
 		return new WrappedIntArray(value);
@@ -87,7 +87,7 @@ class NBTContext implements INBTContext, IWrapperFactory {
 
 	@Override
 	public INBTValue<long[]> wrapValue(long[] value) {
-		if(value == null) {
+		if (value == null) {
 			throw new NullPointerException("value");
 		}
 		return new WrappedLongArray(value);

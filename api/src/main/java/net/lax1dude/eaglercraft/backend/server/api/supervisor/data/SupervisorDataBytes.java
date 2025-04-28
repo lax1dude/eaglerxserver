@@ -38,10 +38,10 @@ public class SupervisorDataBytes implements ISupervisorData {
 
 	@Override
 	public void write(@Nonnull GamePacketOutputBuffer buffer) throws IOException {
-		if(value != null) {
+		if (value != null) {
 			buffer.writeVarInt(value.length + 1);
 			buffer.write(value);
-		}else {
+		} else {
 			buffer.writeByte(0);
 		}
 	}
@@ -49,11 +49,11 @@ public class SupervisorDataBytes implements ISupervisorData {
 	@Override
 	public void read(@Nonnull GamePacketInputBuffer buffer) throws IOException {
 		int len = buffer.readVarInt();
-		if(len > 0) {
+		if (len > 0) {
 			byte[] arr = new byte[len - 1];
 			buffer.readFully(arr);
 			value = arr;
-		}else {
+		} else {
 			value = null;
 		}
 	}

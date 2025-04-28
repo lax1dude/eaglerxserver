@@ -32,8 +32,10 @@ class SkinImageLoaderCacheOn extends SkinImageLoaderCacheOff {
 
 	static final ISkinImageLoader INSTANCE = new SkinImageLoaderCacheOn();
 
-	private static final Cache<File, IEaglerPlayerSkin> cachedSkinFiles = CacheBuilder.newBuilder().weakValues().build();
-	private static final Cache<File, IEaglerPlayerCape> cachedCapeFiles = CacheBuilder.newBuilder().weakValues().build();
+	private static final Cache<File, IEaglerPlayerSkin> cachedSkinFiles = CacheBuilder.newBuilder().weakValues()
+			.build();
+	private static final Cache<File, IEaglerPlayerCape> cachedCapeFiles = CacheBuilder.newBuilder().weakValues()
+			.build();
 
 	@Override
 	public IEaglerPlayerSkin loadSkinImageData(File imageFile, EnumSkinModel modelId) throws IOException {
@@ -42,7 +44,7 @@ class SkinImageLoaderCacheOn extends SkinImageLoaderCacheOff {
 
 	@Override
 	public IEaglerPlayerSkin loadSkinImageData(File imageFile, int modelId) throws IOException {
-		if(modelId < 0 || modelId >= 0xFF) {
+		if (modelId < 0 || modelId >= 0xFF) {
 			throw new IllegalArgumentException("Invalid model id: " + modelId);
 		}
 		try {
@@ -51,11 +53,11 @@ class SkinImageLoaderCacheOn extends SkinImageLoaderCacheOff {
 			}), modelId);
 		} catch (ExecutionException e) {
 			Throwable cause = e.getCause();
-			if(cause instanceof IOException c1) {
+			if (cause instanceof IOException c1) {
 				throw c1;
-			}else if(cause instanceof RuntimeException c2) {
+			} else if (cause instanceof RuntimeException c2) {
 				throw c2;
-			}else {
+			} else {
 				throw new RuntimeException("Uncaught exception in lambda", cause);
 			}
 		}
@@ -69,11 +71,11 @@ class SkinImageLoaderCacheOn extends SkinImageLoaderCacheOff {
 			});
 		} catch (ExecutionException e) {
 			Throwable cause = e.getCause();
-			if(cause instanceof IOException c1) {
+			if (cause instanceof IOException c1) {
 				throw c1;
-			}else if(cause instanceof RuntimeException c2) {
+			} else if (cause instanceof RuntimeException c2) {
 				throw c2;
-			}else {
+			} else {
 				throw new RuntimeException("Uncaught exception in lambda", cause);
 			}
 		}

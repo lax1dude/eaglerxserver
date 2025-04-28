@@ -56,7 +56,7 @@ public class SSLCertificateManager {
 			this.file = file;
 			try {
 				this.data = readFileBytes(file);
-			}catch(IOException ex) {
+			} catch (IOException ex) {
 				throw new SSLException("Could not load certificate file: " + file.getAbsolutePath(), ex);
 			}
 			this.lastModified = file.lastModified();
@@ -72,12 +72,12 @@ public class SSLCertificateManager {
 			String privateKeyPassword, boolean autoRefresh) throws SSLException {
 		publicChain = publicChain.getAbsoluteFile();
 		privateKey = privateKey.getAbsoluteFile();
-		if(publicChain.equals(privateKey)) {
+		if (publicChain.equals(privateKey)) {
 			throw new IllegalArgumentException("Public and private key are the same file");
 		}
 		HashPair<File, File> pair = new HashPair<>(publicChain, privateKey);
 		SSLContextHolderBuiltin ret = pairs.get(pair);
-		if(ret != null) {
+		if (ret != null) {
 			return ret;
 		}
 		ret = new SSLContextHolderBuiltin(createName(publicChain, privateKey), privateKeyPassword);
@@ -86,7 +86,7 @@ public class SSLCertificateManager {
 		ret.pubKey = pub.data;
 		ret.privKey = priv.data;
 		ret.refresh();
-		if(autoRefresh) {
+		if (autoRefresh) {
 			pairs.put(pair, ret);
 			filesRefreshable.add(publicChain);
 			refreshableFiles.put(publicChain, pub);
@@ -100,22 +100,22 @@ public class SSLCertificateManager {
 
 	public synchronized void releaseHolder(SSLContextHolderBuiltin holder) {
 		HashPair<File, File> pair = pairs.inverse().remove(holder);
-		if(pair != null) {
+		if (pair != null) {
 			filesRefreshable.remove(pair.valueA);
 			filesRefreshable.remove(pair.valueB);
-			if(!filesRefreshable.contains(pair.valueA)) {
+			if (!filesRefreshable.contains(pair.valueA)) {
 				refreshableFiles.remove(pair.valueA);
-			}else {
+			} else {
 				RefreshWatcher w = refreshableFiles.get(pair.valueA);
-				if(w != null) {
+				if (w != null) {
 					w.childrenA.remove(holder);
 				}
 			}
-			if(!filesRefreshable.contains(pair.valueB)) {
+			if (!filesRefreshable.contains(pair.valueB)) {
 				refreshableFiles.remove(pair.valueB);
-			}else {
+			} else {
 				RefreshWatcher w = refreshableFiles.get(pair.valueB);
-				if(w != null) {
+				if (w != null) {
 					w.childrenB.remove(holder);
 				}
 			}
@@ -127,13 +127,13 @@ public class SSLCertificateManager {
 	}
 
 	public synchronized void update() {
-		if(refreshableFiles.isEmpty()) {
+		if (refreshableFiles.isEmpty()) {
 			return;
 		}
 		Set<SSLContextHolderBuiltin> holdersThatNeedRefresh = null;
-		for(RefreshWatcher w : refreshableFiles.values()) {
+		for (RefreshWatcher w : refreshableFiles.values()) {
 			long l = w.file.lastModified();
-			if(l != w.lastModified) {
+			if (l != w.lastModified) {
 				byte[] newData;
 				try {
 					newData = readFileBytes(w.file);
@@ -142,19 +142,19 @@ public class SSLCertificateManager {
 					continue;
 				}
 				w.lastModified = l;
-				if(!Arrays.equals(w.data, newData)) {
+				if (!Arrays.equals(w.data, newData)) {
 					logger.info("TLS certificate was modified: " + w.file.getAbsolutePath());
 					w.data = newData;
-					for(SSLContextHolderBuiltin a : w.childrenA) {
+					for (SSLContextHolderBuiltin a : w.childrenA) {
 						a.pubKey = newData;
-						if(holdersThatNeedRefresh == null) {
+						if (holdersThatNeedRefresh == null) {
 							holdersThatNeedRefresh = new HashSet<>();
 						}
 						holdersThatNeedRefresh.add(a);
 					}
-					for(SSLContextHolderBuiltin b : w.childrenB) {
+					for (SSLContextHolderBuiltin b : w.childrenB) {
 						b.privKey = newData;
-						if(holdersThatNeedRefresh == null) {
+						if (holdersThatNeedRefresh == null) {
 							holdersThatNeedRefresh = new HashSet<>();
 						}
 						holdersThatNeedRefresh.add(b);
@@ -162,19 +162,19 @@ public class SSLCertificateManager {
 				}
 			}
 		}
-		if(holdersThatNeedRefresh != null) {
+		if (holdersThatNeedRefresh != null) {
 			boolean err = false;
-			for(SSLContextHolderBuiltin ctx : holdersThatNeedRefresh) {
+			for (SSLContextHolderBuiltin ctx : holdersThatNeedRefresh) {
 				try {
 					ctx.refresh();
-				}catch(SSLException ex) {
+				} catch (SSLException ex) {
 					logger.error("Could not refresh TLS certificate pair " + ctx.name + "!", ex);
 					err = true;
 				}
 			}
-			if(!err) {
+			if (!err) {
 				logger.info("Refreshed TLS context caches");
-			}else {
+			} else {
 				logger.error("One or more TLS contexts could not be reloaded");
 			}
 		}
@@ -182,15 +182,15 @@ public class SSLCertificateManager {
 
 	private RefreshWatcher getOrCreateRefresher(File file) throws SSLException {
 		RefreshWatcher ret = refreshableFiles.get(file);
-		if(ret != null) {
+		if (ret != null) {
 			return ret;
-		}else {
+		} else {
 			return new RefreshWatcher(file);
 		}
 	}
 
 	private static byte[] readFileBytes(File file) throws IOException {
-		try(InputStream is = new FileInputStream(file)) {
+		try (InputStream is = new FileInputStream(file)) {
 			return ByteStreams.toByteArray(is);
 		}
 	}

@@ -33,8 +33,7 @@ public class CPacketRPCSetPlayerCookie implements EaglerBackendRPCPacket {
 	public CPacketRPCSetPlayerCookie() {
 	}
 
-	public CPacketRPCSetPlayerCookie(boolean revokeQuerySupported, boolean saveToDisk, int expires,
-			byte[] cookieData) {
+	public CPacketRPCSetPlayerCookie(boolean revokeQuerySupported, boolean saveToDisk, int expires, byte[] cookieData) {
 		this.revokeQuerySupported = revokeQuerySupported;
 		this.saveToDisk = saveToDisk;
 		this.expires = expires;
@@ -48,28 +47,30 @@ public class CPacketRPCSetPlayerCookie implements EaglerBackendRPCPacket {
 		saveToDisk = (flags & 2) == 2;
 		expires = buffer.readInt();
 		int cookieLen = buffer.readUnsignedByte();
-		if(cookieLen > 0) {
+		if (cookieLen > 0) {
 			cookieData = new byte[cookieLen];
 			buffer.readFully(cookieData);
-		}else {
+		} else {
 			cookieData = null;
 		}
 	}
 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
-		if(cookieData != null && cookieData.length > 255) {
+		if (cookieData != null && cookieData.length > 255) {
 			throw new IOException("Cookie cannot be longer than 255 bytes!");
 		}
 		int flags = 0;
-		if(revokeQuerySupported) flags |= 1;
-		if(saveToDisk) flags |= 2;
+		if (revokeQuerySupported)
+			flags |= 1;
+		if (saveToDisk)
+			flags |= 2;
 		buffer.writeByte(flags);
 		buffer.writeInt(expires);
-		if(cookieData != null) {
+		if (cookieData != null) {
 			buffer.writeByte(cookieData.length);
 			buffer.write(cookieData);
-		}else {
+		} else {
 			buffer.writeByte(0);
 		}
 	}

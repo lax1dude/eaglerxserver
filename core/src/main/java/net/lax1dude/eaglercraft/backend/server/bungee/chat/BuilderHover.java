@@ -63,17 +63,17 @@ class BuilderHover<ParentType> implements IBuilderHoverEvent<ParentType>, IAppen
 
 	@Override
 	public void append(BaseComponent comp) {
-		if(buildChildren == null) {
+		if (buildChildren == null) {
 			buildChildren = new ArrayList<>(4);
 		}
 		buildChildren.add(comp);
 	}
 
 	void applyTo(BaseComponent ret) {
-		if(action == EnumHoverAction.SHOW_TEXT && buildChildren != null) {
-			if(BungeeComponentHelper.LEGACY_FLAG_SUPPORT) {
+		if (action == EnumHoverAction.SHOW_TEXT && buildChildren != null) {
+			if (BungeeComponentHelper.LEGACY_FLAG_SUPPORT) {
 				applyModern(ret, buildChildren);
-			}else {
+			} else {
 				applyLegacy(ret, buildChildren);
 			}
 		}
@@ -87,7 +87,7 @@ class BuilderHover<ParentType> implements IBuilderHoverEvent<ParentType>, IAppen
 	private static void applyModern(BaseComponent ret, List<BaseComponent> lst) {
 		int l = lst.size();
 		Content[] clist = new Content[l];
-		for(int i = 0; i < l; ++i) {
+		for (int i = 0; i < l; ++i) {
 			clist[i] = new Text(lst.get(i));
 		}
 		ret.setHoverEvent(new HoverEvent(Action.SHOW_TEXT, clist));

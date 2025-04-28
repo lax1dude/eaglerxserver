@@ -34,8 +34,8 @@ public class SupervisorPacketHandler extends ChannelInboundHandlerAdapter {
 	private final SupervisorEncoder encoder;
 	private EaglerSupervisorHandler handler;
 
-	public SupervisorPacketHandler(ILoggerSv logger, Channel channel, SupervisorDecoder decoder, SupervisorEncoder encoder,
-			EaglerSupervisorHandler handler) {
+	public SupervisorPacketHandler(ILoggerSv logger, Channel channel, SupervisorDecoder decoder,
+			SupervisorEncoder encoder, EaglerSupervisorHandler handler) {
 		this.logger = logger;
 		this.channel = channel;
 		this.decoder = decoder;
@@ -71,21 +71,21 @@ public class SupervisorPacketHandler extends ChannelInboundHandlerAdapter {
 
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		try {
-			if(handler == null) {
+			if (handler == null) {
 				throw new IllegalStateException("Recieved packet with null handler!");
 			}
-			if(msg instanceof EaglerSupervisorPacket) {
-				((EaglerSupervisorPacket)msg).handlePacket(handler);
-			}else {
+			if (msg instanceof EaglerSupervisorPacket) {
+				((EaglerSupervisorPacket) msg).handlePacket(handler);
+			} else {
 				logger.warn("Ignoring unknown packet type: " + msg.getClass().getSimpleName());
 			}
-		}finally {
+		} finally {
 			ReferenceCountUtil.release(msg);
 		}
 	}
 
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		if(ctx.channel().isActive()) {
+		if (ctx.channel().isActive()) {
 			logger.error("[" + ctx.channel().remoteAddress() + "] Supervisor encountered an exception: ", cause);
 			ctx.close();
 		}
@@ -93,7 +93,7 @@ public class SupervisorPacketHandler extends ChannelInboundHandlerAdapter {
 
 	public void channelInactive(ChannelHandlerContext ctx) {
 		logger.warn("[" + ctx.channel().remoteAddress() + "]: Supervisor connection lost!");
-		if(handler != null) {
+		if (handler != null) {
 			handler.handleDisconnected();
 		}
 	}

@@ -40,35 +40,35 @@ public class SkinCacheDownloader implements ISkinCacheDownloader {
 		try {
 			URI uri = URI.create(url);
 			String host = uri.getHost();
-			if(host == null || !validSkinHosts.contains(host.toLowerCase())) {
+			if (host == null || !validSkinHosts.contains(host.toLowerCase())) {
 				return null;
 			}
 			return uri;
-		}catch(IllegalArgumentException t) {
+		} catch (IllegalArgumentException t) {
 			return null;
 		}
 	}
 
 	private void downloadTexture(String skinURL, Consumer<BufferedImage> callback) {
 		URI uri = validateSkinURL(skinURL);
-		if(uri != null) {
+		if (uri != null) {
 			httpClient.asyncRequest("GET", uri, (res) -> {
-				if(res.exception != null || res.data == null) {
+				if (res.exception != null || res.data == null) {
 					callback.accept(null);
-				}else {
+				} else {
 					BufferedImage img = null;
 					try {
-						if(res.code == 200) {
+						if (res.code == 200) {
 							img = ImageIO.read(new ByteBufInputStream(res.data));
 						}
-					}catch (IOException e) {
-					}finally {
+					} catch (IOException e) {
+					} finally {
 						res.data.release();
 					}
 					callback.accept(img);
 				}
 			});
-		}else {
+		} else {
 			callback.accept(null);
 		}
 	}
@@ -76,26 +76,26 @@ public class SkinCacheDownloader implements ISkinCacheDownloader {
 	@Override
 	public void downloadSkin(String skinURL, Consumer<byte[]> callback) {
 		downloadTexture(skinURL, (res) -> {
-			if(res != null) {
-				if(res.getWidth() == 64) {
+			if (res != null) {
+				if (res.getWidth() == 64) {
 					byte[] pixels;
-					if(res.getHeight() == 32) {
+					if (res.getHeight() == 32) {
 						int[] pixelsIn = res.getRGB(0, 0, 64, 32, null, 0, 64);
 						pixels = new byte[64 * 64 * 3];
 						SkinConverter.convert64x32To64x64(pixelsIn, pixels);
-					}else if(res.getHeight() == 64) {
+					} else if (res.getHeight() == 64) {
 						int[] pixelsIn = res.getRGB(0, 0, 64, 64, null, 0, 64);
 						pixels = new byte[64 * 64 * 3];
 						SkinConverter.convertToBytes(pixelsIn, pixels);
-					}else {
+					} else {
 						callback.accept(null);
 						return;
 					}
 					callback.accept(pixels);
-				}else {
+				} else {
 					callback.accept(null);
 				}
-			}else {
+			} else {
 				callback.accept(null);
 			}
 		});
@@ -104,16 +104,16 @@ public class SkinCacheDownloader implements ISkinCacheDownloader {
 	@Override
 	public void downloadCape(String skinURL, Consumer<byte[]> callback) {
 		downloadTexture(skinURL, (res) -> {
-			if(res != null) {
-				if(res.getWidth() == 64 && res.getHeight() == 32) {
+			if (res != null) {
+				if (res.getWidth() == 64 && res.getHeight() == 32) {
 					int[] pixelsIn = res.getRGB(0, 0, 64, 32, null, 0, 64);
 					byte[] pixels = new byte[1173];
 					SkinConverter.convertCape64x32RGBAto23x17RGB(pixelsIn, pixels);
 					callback.accept(pixels);
-				}else {
+				} else {
 					callback.accept(null);
 				}
-			}else {
+			} else {
 				callback.accept(null);
 			}
 		});

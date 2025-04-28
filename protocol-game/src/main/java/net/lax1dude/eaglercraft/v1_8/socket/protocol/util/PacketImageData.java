@@ -43,15 +43,15 @@ public final class PacketImageData {
 		int h = buffer.readUnsignedByte();
 		int pixelCount = w * h;
 		int[] pixels = new int[pixelCount];
-		for(int j = 0, p, pR, pG, pB; j < pixelCount; ++j) {
+		for (int j = 0, p, pR, pG, pB; j < pixelCount; ++j) {
 			p = buffer.readUnsignedShort();
 			pR = (p >>> 11) & 0x1F;
 			pG = (p >>> 5) & 0x3F;
 			pB = p & 0x1F;
-			if(pR + pG + pB > 0) {
+			if (pR + pG + pB > 0) {
 				pB = (pB - 1) * 255 / 30;
 				pixels[j] = 0xFF000000 | (pR << 19) | (pG << 10) | pB;
-			}else {
+			} else {
 				pixels[j] = 0;
 			}
 		}
@@ -59,20 +59,21 @@ public final class PacketImageData {
 	}
 
 	public static void writeRGB16(GamePacketOutputBuffer buffer, PacketImageData imageData) throws IOException {
-		if(imageData.width < 1 || imageData.width > 255 || imageData.height < 1 || imageData.height > 255) {
-			throw new IOException("Invalid image dimensions in packet, must be between 1x1 and 255x255, got " + imageData.width + "x" + imageData.height);
+		if (imageData.width < 1 || imageData.width > 255 || imageData.height < 1 || imageData.height > 255) {
+			throw new IOException("Invalid image dimensions in packet, must be between 1x1 and 255x255, got "
+					+ imageData.width + "x" + imageData.height);
 		}
 		buffer.writeByte(imageData.width);
 		buffer.writeByte(imageData.height);
 		int pixelCount = imageData.width * imageData.height;
-		for(int j = 0, p, pR, pG, pB; j < pixelCount; ++j) {
+		for (int j = 0, p, pR, pG, pB; j < pixelCount; ++j) {
 			p = imageData.rgba[j];
-			if((p >>> 24) > 0x7F) {
+			if ((p >>> 24) > 0x7F) {
 				pR = (p >>> 19) & 0x1F;
 				pG = (p >>> 10) & 0x3F;
 				pB = ((p & 0xFF) * 30 / 255) + 1;
 				buffer.writeShort((pR << 11) | (pG << 5) | pB);
-			}else {
+			} else {
 				buffer.writeShort(0);
 			}
 		}

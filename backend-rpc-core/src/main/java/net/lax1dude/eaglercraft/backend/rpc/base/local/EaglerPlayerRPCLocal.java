@@ -72,10 +72,12 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 			net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject> delegate) {
 		super(player, delegate);
 		this.delegate = delegate;
-		net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager<PlayerObject> voiceMgr = delegate.getVoiceManager();
+		net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager<PlayerObject> voiceMgr = delegate
+				.getVoiceManager();
 		IVoiceService<PlayerObject> voiceSvc = player.getEaglerXBackendRPC().getVoiceService();
 		this.voiceMgr = voiceMgr != null && voiceSvc.isVoiceEnabled()
-				? new VoiceManagerLocal<PlayerObject>((VoiceServiceLocal<PlayerObject>)voiceSvc, player, voiceMgr) : null;
+				? new VoiceManagerLocal<PlayerObject>((VoiceServiceLocal<PlayerObject>) voiceSvc, player, voiceMgr)
+				: null;
 	}
 
 	@Override
@@ -147,15 +149,20 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	@Override
 	public IRPCFuture<String> getWebSocketHeader(EnumWebSocketHeader header) {
-		if(header == null) {
+		if (header == null) {
 			throw new NullPointerException("header");
 		}
-		return RPCImmediateFuture.create(schedulerExecutors, switch(header) {
-		case HEADER_ORIGIN -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.HEADER_ORIGIN);
-		case HEADER_USER_AGENT -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.HEADER_USER_AGENT);
-		case HEADER_HOST -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.HEADER_HOST);
-		case HEADER_COOKIE -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.HEADER_COOKIE);
-		case HEADER_AUTHORIZATION -> delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.HEADER_AUTHORIZATION);
+		return RPCImmediateFuture.create(schedulerExecutors, switch (header) {
+		case HEADER_ORIGIN ->
+			delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.HEADER_ORIGIN);
+		case HEADER_USER_AGENT -> delegate
+				.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.HEADER_USER_AGENT);
+		case HEADER_HOST ->
+			delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.HEADER_HOST);
+		case HEADER_COOKIE ->
+			delegate.getWebSocketHeader(net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.HEADER_COOKIE);
+		case HEADER_AUTHORIZATION -> delegate.getWebSocketHeader(
+				net.lax1dude.eaglercraft.backend.server.api.EnumWebSocketHeader.HEADER_AUTHORIZATION);
 		default -> null;
 		});
 	}
@@ -178,9 +185,9 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	@Override
 	public IRPCFuture<CookieData> getCookieData() {
 		CookieData dat;
-		if(delegate.isCookieEnabled()) {
+		if (delegate.isCookieEnabled()) {
 			dat = CookieData.create(delegate.getCookieData());
-		}else {
+		} else {
 			dat = CookieData.disabled();
 		}
 		return RPCImmediateFuture.create(schedulerExecutors, dat);
@@ -214,10 +221,11 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	@Override
 	public IRPCFuture<EnumVoiceState> getVoiceState() {
-		net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager<PlayerObject> voiceMgr = delegate.getVoiceManager();
-		if(voiceMgr != null) {
+		net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager<PlayerObject> voiceMgr = delegate
+				.getVoiceManager();
+		if (voiceMgr != null) {
 			return RPCImmediateFuture.create(schedulerExecutors, VoiceChannelHelper.wrap(voiceMgr.getVoiceState()));
-		}else {
+		} else {
 			return RPCImmediateFuture.create(schedulerExecutors, EnumVoiceState.SERVER_DISABLE);
 		}
 	}
@@ -231,10 +239,10 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	public IRPCFuture<WebViewStateData> getWebViewState() {
 		WebViewStateData dat;
 		IWebViewManager<PlayerObject> webviewMgr = delegate.getWebViewManager();
-		if(webviewMgr != null) {
+		if (webviewMgr != null) {
 			dat = WebViewStateData.create(webviewMgr.isRequestAllowed(), webviewMgr.isChannelAllowed(),
 					webviewMgr.getOpenChannels());
-		}else {
+		} else {
 			dat = WebViewStateData.disabled();
 		}
 		return RPCImmediateFuture.create(schedulerExecutors, dat);
@@ -247,11 +255,11 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	@Override
 	public void injectRawBinaryFrame(byte[] data) {
-		if(data == null) {
+		if (data == null) {
 			throw new NullPointerException("data");
 		}
 		Channel channel = delegate.netty().getChannel();
-		if(channel.isActive()) {
+		if (channel.isActive()) {
 			channel.writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(data)), channel.voidPromise());
 		}
 	}
@@ -264,25 +272,25 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	@Override
 	public void addGenericEventListener(EnumSubscribeEvents eventType,
 			IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler) {
-		if(eventType == null) {
+		if (eventType == null) {
 			throw new NullPointerException("eventType");
 		}
-		if(handler == null) {
+		if (handler == null) {
 			throw new NullPointerException("handler");
 		}
-		synchronized(this) {
+		synchronized (this) {
 			RPCEventBus<PlayerObject> eventBus = this.eventBus;
 			if (eventBus == null) {
 				eventBus = new RPCEventBus<PlayerObject>(this,
 						((EaglerXBackendRPCLocal<PlayerObject>) getServerAPI()).getPlatform().getScheduler());
 				int i = eventBus.addEventListener(eventType, handler);
-				if(i > 0) {
+				if (i > 0) {
 					this.eventBus = eventBus;
 					subscribedEvents = i;
 				}
-			}else {
+			} else {
 				int i = eventBus.addEventListener(eventType, handler);
-				if(i != -1) {
+				if (i != -1) {
 					subscribedEvents = i;
 				}
 			}
@@ -292,17 +300,17 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	@Override
 	public void removeGenericEventListener(EnumSubscribeEvents eventType,
 			IRPCEventHandler<PlayerObject, ? extends IRPCEvent> handler) {
-		if(eventType == null) {
+		if (eventType == null) {
 			throw new NullPointerException("eventType");
 		}
-		if(handler == null) {
+		if (handler == null) {
 			throw new NullPointerException("handler");
 		}
-		synchronized(this) {
+		synchronized (this) {
 			RPCEventBus<PlayerObject> eventBus = this.eventBus;
-			if(eventBus != null) {
+			if (eventBus != null) {
 				int i = eventBus.removeEventListener(eventType, handler);
-				if(i != -1 && (subscribedEvents = i) == 0) {
+				if (i != -1 && (subscribedEvents = i) == 0) {
 					this.eventBus = null;
 				}
 			}
@@ -320,8 +328,9 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	public void fireLocalWebViewChannel(IEaglercraftWebViewChannelEvent<PlayerObject> evt) {
 		RPCEventBus<PlayerObject> eventBus = this.eventBus;
-		if(eventBus != null) {
-			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_WEBVIEW_OPEN_CLOSE, evt, WEBVIEW_OPEN_CLOSE_CONV, getPlayer().logger());
+		if (eventBus != null) {
+			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_WEBVIEW_OPEN_CLOSE, evt, WEBVIEW_OPEN_CLOSE_CONV,
+					getPlayer().logger());
 		}
 	}
 
@@ -336,8 +345,9 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	public void fireLocalWebViewMessage(IEaglercraftWebViewMessageEvent<PlayerObject> evt) {
 		RPCEventBus<PlayerObject> eventBus = this.eventBus;
-		if(eventBus != null) {
-			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_WEBVIEW_MESSAGE, evt, WEBVIEW_MESSAGE_CONV, getPlayer().logger());
+		if (eventBus != null) {
+			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_WEBVIEW_MESSAGE, evt, WEBVIEW_MESSAGE_CONV,
+					getPlayer().logger());
 		}
 	}
 
@@ -347,8 +357,9 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	public void fireLocalVoiceChange(IEaglercraftVoiceChangeEvent<PlayerObject> evt) {
 		RPCEventBus<PlayerObject> eventBus = this.eventBus;
-		if(eventBus != null) {
-			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_VOICE_CHANGE, evt, VOICE_CHANGE_CONV, getPlayer().logger());
+		if (eventBus != null) {
+			eventBus.dispatchLazyEvent(EnumSubscribeEvents.EVENT_VOICE_CHANGE, evt, VOICE_CHANGE_CONV,
+					getPlayer().logger());
 		}
 		owner.server.getPlatform().eventDispatcher().dispatchVoiceChangeEvent(getPlayer(),
 				VoiceChannelHelper.wrap(evt.getVoiceStateOld()), VoiceChannelHelper.wrap(evt.getVoiceStateNew()));
@@ -371,11 +382,11 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	@Override
 	public void setPauseMenuCustomizationState(ICustomPauseMenu pauseMenu) {
-		if(pauseMenu == null) {
+		if (pauseMenu == null) {
 			throw new NullPointerException("pauseMenu");
 		}
 		IPauseMenuManager<PlayerObject> pauseMenuMgr = delegate.getPauseMenuManager();
-		if(pauseMenuMgr != null) {
+		if (pauseMenuMgr != null) {
 			pauseMenuMgr.updatePauseMenu(PauseMenuHelper.unwrap(pauseMenu));
 		}
 	}
@@ -383,7 +394,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	@Override
 	public void sendWebViewMessageString(String channelName, String data) {
 		IWebViewManager<PlayerObject> webviewMgr = delegate.getWebViewManager();
-		if(webviewMgr != null) {
+		if (webviewMgr != null) {
 			webviewMgr.sendMessageString(channelName, data);
 		}
 	}
@@ -391,7 +402,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	@Override
 	public void sendWebViewMessageString(String channelName, byte[] data) {
 		IWebViewManager<PlayerObject> webviewMgr = delegate.getWebViewManager();
-		if(webviewMgr != null) {
+		if (webviewMgr != null) {
 			webviewMgr.sendMessageString(channelName, data);
 		}
 	}
@@ -399,7 +410,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	@Override
 	public void sendWebViewMessageBytes(String channelName, byte[] data) {
 		IWebViewManager<PlayerObject> webviewMgr = delegate.getWebViewManager();
-		if(webviewMgr != null) {
+		if (webviewMgr != null) {
 			webviewMgr.sendMessageBinary(channelName, data);
 		}
 	}
@@ -417,7 +428,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	@Override
 	public void setEnableFNAWSkins(EnumEnableFNAW state) {
-		if(state == null) {
+		if (state == null) {
 			throw new NullPointerException("state");
 		}
 		delegate.getSkinManager().setEnableFNAWSkins(SkinTypesHelper.unwrap(state));
@@ -435,14 +446,14 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	@Override
 	public void registerNotificationIcon(UUID iconUUID, IPacketImageData icon) {
-		if(iconUUID == null) {
+		if (iconUUID == null) {
 			throw new NullPointerException("iconUUID");
 		}
-		if(icon == null) {
+		if (icon == null) {
 			throw new NullPointerException("icon");
 		}
 		INotificationManager<PlayerObject> notifManager = delegate.getNotificationManager();
-		if(notifManager != null) {
+		if (notifManager != null) {
 			notifManager.registerUnmanagedNotificationIcon(iconUUID, PacketImageDataHelper.unwrap(icon));
 		}
 	}
@@ -450,7 +461,7 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	@Override
 	public void registerNotificationIcons(Collection<IconDef> icons) {
 		INotificationManager<PlayerObject> notifManager = delegate.getNotificationManager();
-		if(notifManager != null) {
+		if (notifManager != null) {
 			notifManager.registerUnmanagedNotificationIcons(icons.stream()
 					.map((def) -> net.lax1dude.eaglercraft.backend.server.api.notifications.IconDef
 							.create(def.getUUID(), PacketImageDataHelper.unwrap(def.getIcon())))
@@ -460,11 +471,11 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	@Override
 	public void releaseNotificationIcon(UUID iconUUID) {
-		if(iconUUID == null) {
+		if (iconUUID == null) {
 			throw new NullPointerException("iconUUID");
 		}
 		INotificationManager<PlayerObject> notifManager = delegate.getNotificationManager();
-		if(notifManager != null) {
+		if (notifManager != null) {
 			notifManager.releaseUnmanagedNotificationIcon(iconUUID);
 		}
 	}
@@ -472,22 +483,22 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 	@Override
 	public void releaseNotificationIcons(Collection<UUID> iconUUIDs) {
 		INotificationManager<PlayerObject> notifManager = delegate.getNotificationManager();
-		if(notifManager != null) {
+		if (notifManager != null) {
 			notifManager.releaseUnmanagedNotificationIcons(iconUUIDs);
 		}
 	}
 
 	@Override
 	public void showNotificationBadge(INotificationBadge badge) {
-		if(badge == null) {
+		if (badge == null) {
 			throw new NullPointerException("badge");
 		}
 		INotificationManager<PlayerObject> notifManager = delegate.getNotificationManager();
-		if(notifManager != null) {
+		if (notifManager != null) {
 			NotificationBadgeLocal badgeLocal = NotificationBadgeHelper.unwrap(badge);
-			if(badgeLocal.managed) {
+			if (badgeLocal.managed) {
 				notifManager.showNotificationBadge(badgeLocal.packet);
-			}else {
+			} else {
 				notifManager.showUnmanagedNotificationBadge(badgeLocal.packet);
 			}
 		}
@@ -495,11 +506,11 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	@Override
 	public void hideNotificationBadge(UUID badgeUUID) {
-		if(badgeUUID == null) {
+		if (badgeUUID == null) {
 			throw new NullPointerException("badgeUUID");
 		}
 		INotificationManager<PlayerObject> notifManager = delegate.getNotificationManager();
-		if(notifManager != null) {
+		if (notifManager != null) {
 			notifManager.hideNotificationBadge(badgeUUID);
 		}
 	}
@@ -512,46 +523,46 @@ public class EaglerPlayerRPCLocal<PlayerObject> extends BasePlayerRPCLocal<Playe
 
 	@Override
 	public void displayWebViewURL(String title, String url, Set<EnumWebViewPerms> permissions) {
-		if(title == null) {
+		if (title == null) {
 			throw new NullPointerException("title");
 		}
-		if(url == null) {
+		if (url == null) {
 			throw new NullPointerException("url");
 		}
 		IWebViewManager<PlayerObject> webviewMgr = delegate.getWebViewManager();
-		if(webviewMgr != null) {
+		if (webviewMgr != null) {
 			webviewMgr.displayWebViewURL(title, url, WebViewHelper.unwrap(permissions));
 		}
 	}
 
 	@Override
 	public void displayWebViewBlob(String title, SHA1Sum hash, Set<EnumWebViewPerms> permissions) {
-		if(title == null) {
+		if (title == null) {
 			throw new NullPointerException("title");
 		}
-		if(hash == null) {
+		if (hash == null) {
 			throw new NullPointerException("hash");
 		}
 		IWebViewManager<PlayerObject> webviewMgr = delegate.getWebViewManager();
-		if(webviewMgr != null) {
+		if (webviewMgr != null) {
 			webviewMgr.displayWebViewBlob(title, WebViewHelper.unwrap(hash), WebViewHelper.unwrap(permissions));
 		}
 	}
 
 	@Override
 	public void displayWebViewBlob(String title, String alias, Set<EnumWebViewPerms> permissions) {
-		if(title == null) {
+		if (title == null) {
 			throw new NullPointerException("title");
 		}
-		if(alias == null) {
+		if (alias == null) {
 			throw new NullPointerException("alias");
 		}
 		IWebViewManager<PlayerObject> webviewMgr = delegate.getWebViewManager();
-		if(webviewMgr != null) {
+		if (webviewMgr != null) {
 			IWebViewProvider<PlayerObject> provider = webviewMgr.getProvider();
-			if(provider != null) {
+			if (provider != null) {
 				net.lax1dude.eaglercraft.backend.server.api.SHA1Sum resolved = provider.handleAlias(webviewMgr, alias);
-				if(resolved != null) {
+				if (resolved != null) {
 					webviewMgr.displayWebViewBlob(title, resolved, WebViewHelper.unwrap(permissions));
 				}
 			}

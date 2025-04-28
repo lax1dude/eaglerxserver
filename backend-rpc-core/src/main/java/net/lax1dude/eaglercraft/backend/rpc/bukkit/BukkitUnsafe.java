@@ -36,7 +36,7 @@ public class BukkitUnsafe {
 	private static Method method_EntityPlayer_getProfile = null;
 
 	private static synchronized void bindCraftPlayer(Player playerObject) {
-		if(class_CraftPlayer != null) {
+		if (class_CraftPlayer != null) {
 			return;
 		}
 		Class<?> clz = playerObject.getClass();
@@ -47,7 +47,7 @@ public class BukkitUnsafe {
 			method_EntityPlayer_getProfile = clz2.getMethod("getProfile");
 			class_EntityPlayer = clz2;
 			class_CraftPlayer = clz;
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			throw new RuntimeException("Reflection failed!", ex);
 		}
 	}
@@ -66,17 +66,17 @@ public class BukkitUnsafe {
 	}
 
 	public static boolean isEaglerPlayerProperty(Player player) {
-		if(paperProfileAPISupport) {
+		if (paperProfileAPISupport) {
 			return isEaglerPlayerPropertyPaper(player);
-		}else {
-			if(class_CraftPlayer == null) {
+		} else {
+			if (class_CraftPlayer == null) {
 				bindCraftPlayer(player);
 			}
 			try {
 				Multimap<String, Property> props = ((GameProfile) method_EntityPlayer_getProfile
 						.invoke(method_CraftPlayer_getHandle.invoke(player))).getProperties();
 				Collection<Property> tex = props.get("isEaglerPlayer");
-				if(!tex.isEmpty()) {
+				if (!tex.isEmpty()) {
 					return Boolean.parseBoolean(tex.iterator().next().getValue());
 				}
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
@@ -88,9 +88,9 @@ public class BukkitUnsafe {
 
 	private static boolean isEaglerPlayerPropertyPaper(Player player) {
 		PlayerProfile profile = player.getPlayerProfile();
-		if(profile != null) {
-			for(ProfileProperty o : profile.getProperties()) {
-				if("isEaglerPlayer".equals(o.getName())) {
+		if (profile != null) {
+			for (ProfileProperty o : profile.getProperties()) {
+				if ("isEaglerPlayer".equals(o.getName())) {
 					return Boolean.parseBoolean(o.getValue());
 				}
 			}

@@ -86,7 +86,7 @@ public class PipelineTransformer {
 		try {
 			HttpObjectAggregator.class.getConstructor(int.class, boolean.class);
 			b = true;
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 		}
 		NEW_AGGREGATOR_CTOR = b;
 	}
@@ -101,8 +101,8 @@ public class PipelineTransformer {
 	public PipelineTransformer(EaglerXServer<?> server, RewindService<?> rewind) {
 		this.server = server;
 		this.rewind = rewind;
-		if(!SUPPORTS_COMPRESSION_FRAME && !SUPPORTS_COMPRESSION_MESSAGE) {
-			if(server.getPlatformType() == EnumPlatformType.BUKKIT) {
+		if (!SUPPORTS_COMPRESSION_FRAME && !SUPPORTS_COMPRESSION_MESSAGE) {
+			if (server.getPlatformType() == EnumPlatformType.BUKKIT) {
 				nag = () -> {
 					server.logger().error("WebSocket compression is not supported by the Netty bundled with this version of Bukkit");
 					server.logger().error("Excessive bandwidth will be used, and you will have a bad time trying to play on wireless devices");
@@ -111,88 +111,90 @@ public class PipelineTransformer {
 					server.logger().error("You have been warned, don't be a fool");
 				};
 				nag.run();
-			}else {
+			} else {
 				server.logger().error("WebSocket compression is not supported on this platform");
 			}
 			enabledExtensions = null;
-		}else {
+		} else {
 			int compressionLevel = Math.min(server.getConfig().getSettings().getHTTPWebSocketCompressionLevel(), 9);
-			if(compressionLevel > 0) {
+			if (compressionLevel > 0) {
 				List<WebSocketServerExtensionHandshaker> extensions = new ArrayList<>();
-				if(SUPPORTS_COMPRESSION_FRAME) {
+				if (SUPPORTS_COMPRESSION_FRAME) {
 					extensions.add(new DeflateFrameServerExtensionHandshaker(compressionLevel));
 				}
-				if(SUPPORTS_COMPRESSION_MESSAGE) {
-					extensions.add(new PerMessageDeflateServerExtensionHandshaker(
-							compressionLevel, ZlibCodecFactory.isSupportingWindowSizeAndMemLevel(),
+				if (SUPPORTS_COMPRESSION_MESSAGE) {
+					extensions.add(new PerMessageDeflateServerExtensionHandshaker(compressionLevel,
+							ZlibCodecFactory.isSupportingWindowSizeAndMemLevel(),
 							PerMessageDeflateServerExtensionHandshaker.MAX_WINDOW_SIZE, false, false));
 				}
 				enabledExtensions = extensions.toArray(new WebSocketServerExtensionHandshaker[extensions.size()]);
-			}else {
+			} else {
 				enabledExtensions = null;
 			}
 		}
 	}
 
 	public void nagAgain() {
-		if(nag != null) {
+		if (nag != null) {
 			nag.run();
 			server.logger().error("(Warning has been repeated in case you don't know how to scroll up)");
 			nag = null;
 		}
 	}
 
-	public void injectSingleStack(List<IPipelineComponent> components, Channel channel, NettyPipelineData pipelineData) {
+	public void injectSingleStack(List<IPipelineComponent> components, Channel channel,
+			NettyPipelineData pipelineData) {
 		ChannelPipeline pipeline = channel.pipeline();
 		String before = null;
 		String first = null;
 		boolean e = false;
 		boolean haproxy = false;
 		String bungeeHack = null;
-		for(IPipelineComponent comp : components) {
-			if(VANILLA_FRAME_DECODERS.contains(comp.getIdentifiedType())) {
+		for (IPipelineComponent comp : components) {
+			if (VANILLA_FRAME_DECODERS.contains(comp.getIdentifiedType())) {
 				pipeline.remove(comp.getHandle());
-				if(comp.getIdentifiedType() == EnumPipelineComponent.BUNGEE_LEGACY_KICK_ENCODER) {
+				if (comp.getIdentifiedType() == EnumPipelineComponent.BUNGEE_LEGACY_KICK_ENCODER) {
 					bungeeHack = comp.getName();
 				}
-			}else {
-				if(!e) {
-					if(comp.getIdentifiedType() != EnumPipelineComponent.HAPROXY_HANDLER) {
+			} else {
+				if (!e) {
+					if (comp.getIdentifiedType() != EnumPipelineComponent.HAPROXY_HANDLER) {
 						first = before;
 						e = true;
-					}else {
+					} else {
 						haproxy = true;
 					}
 					before = comp.getName();
 				}
 			}
 		}
-		if(bungeeHack != null) {
+		if (bungeeHack != null) {
 			pipeline.addLast(bungeeHack, NOPDummyHandler.INSTANCE);
 		}
-		if(!e) {
+		if (!e) {
 			return;
 		}
 		EaglerListener eagListener = pipelineData.listenerInfo;
-		if(eagListener.isTLSEnabled()) {
+		if (eagListener.isTLSEnabled()) {
 			ISSLContextProvider ssl = eagListener.getSSLContext();
-			if(ssl == null) {
+			if (ssl == null) {
 				throw new IllegalStateException();
 			}
-			if(!eagListener.isTLSRequired()) {
-				MultiStackInitialInboundHandler ms = new MultiStackInitialInboundHandler(this, pipelineData, null, null);
-				if(first == null) {
+			if (!eagListener.isTLSRequired()) {
+				MultiStackInitialInboundHandler ms = new MultiStackInitialInboundHandler(this, pipelineData, null,
+						null);
+				if (first == null) {
 					channel.pipeline().addFirst(HANDLER_MULTI_STACK_INITIAL, ms);
-				}else {
+				} else {
 					channel.pipeline().addAfter(first, HANDLER_MULTI_STACK_INITIAL, ms);
 				}
-			}else {
+			} else {
 				initializeHTTPHandler(pipelineData, ssl, pipeline, first);
 			}
-		}else {
+		} else {
 			initializeHTTPHandler(pipelineData, null, pipeline, first);
 		}
-		if(haproxy && eagListener.getConfigData().isDualStackHAProxyDetection()) {
+		if (haproxy && eagListener.getConfigData().isDualStackHAProxyDetection()) {
 			channel.pipeline().addFirst(HANDLER_HAPROXY_DETECTION, new HAProxyDetectionHandler());
 		}
 		channel.pipeline().addLast(HANDLER_OUTBOUND_THROW, OutboundPacketThrowHandler.INSTANCE);
@@ -203,67 +205,68 @@ public class PipelineTransformer {
 		String first = null;
 		String bungeeHack = null;
 		boolean haproxy = false;
-		for(IPipelineComponent comp : components) {
-			if(VANILLA_FRAME_DECODERS.contains(comp.getIdentifiedType())) {
+		for (IPipelineComponent comp : components) {
+			if (VANILLA_FRAME_DECODERS.contains(comp.getIdentifiedType())) {
 				toRemove.add(comp.getHandle());
-				if(comp.getIdentifiedType() == EnumPipelineComponent.BUNGEE_LEGACY_KICK_ENCODER) {
+				if (comp.getIdentifiedType() == EnumPipelineComponent.BUNGEE_LEGACY_KICK_ENCODER) {
 					bungeeHack = comp.getName();
 				}
-			}else {
-				if(first == null) {
-					if(comp.getIdentifiedType() != EnumPipelineComponent.HAPROXY_HANDLER) {
+			} else {
+				if (first == null) {
+					if (comp.getIdentifiedType() != EnumPipelineComponent.HAPROXY_HANDLER) {
 						first = comp.getName();
-					}else {
+					} else {
 						haproxy = true;
 					}
 				}
 			}
 		}
-		if(first == null) {
+		if (first == null) {
 			return;
 		}
-		channel.pipeline().addBefore(first, HANDLER_MULTI_STACK_INITIAL, new MultiStackInitialInboundHandler(this, pipelineData, toRemove, bungeeHack));
+		channel.pipeline().addBefore(first, HANDLER_MULTI_STACK_INITIAL,
+				new MultiStackInitialInboundHandler(this, pipelineData, toRemove, bungeeHack));
 		EaglerListener eagListener = pipelineData.listenerInfo;
-		if(haproxy && eagListener.getConfigData().isDualStackHAProxyDetection()) {
+		if (haproxy && eagListener.getConfigData().isDualStackHAProxyDetection()) {
 			channel.pipeline().addFirst(HANDLER_HAPROXY_DETECTION, new HAProxyDetectionHandler());
 		}
 		channel.pipeline().addLast(HANDLER_OUTBOUND_THROW, OutboundPacketThrowHandler.INSTANCE);
 	}
 
-	protected void initializeHTTPHandler(NettyPipelineData pipelineData, ISSLContextProvider context, ChannelPipeline pipeline,
-			String after) {
-		if(context != null) {
+	protected void initializeHTTPHandler(NettyPipelineData pipelineData, ISSLContextProvider context,
+			ChannelPipeline pipeline, String after) {
+		if (context != null) {
 			SslHandler sslHandler = context.newHandler(pipeline.channel().alloc());
-			if(sslHandler == null) {
+			if (sslHandler == null) {
 				pipeline.channel().close();
 				return;
 			}
-			if(after == null) {
+			if (after == null) {
 				pipeline.addFirst(HANDLER_HTTP_SSL, sslHandler);
-			}else {
+			} else {
 				pipeline.addAfter(after, HANDLER_HTTP_SSL, sslHandler);
 			}
 			after = HANDLER_HTTP_SSL;
 			pipelineData.wss = true;
 		}
 		ConfigDataSettings settings = server.getConfig().getSettings();
-		HttpServerCodec serverCodec = new HttpServerCodec(settings.getHTTPMaxInitialLineLength(), 
+		HttpServerCodec serverCodec = new HttpServerCodec(settings.getHTTPMaxInitialLineLength(),
 				settings.getHTTPMaxHeaderSize(), settings.getHTTPMaxChunkSize());
-		if(after == null) {
+		if (after == null) {
 			pipeline.addFirst(HANDLER_HTTP_SERVER_CODEC, serverCodec);
-		}else {
+		} else {
 			pipeline.addAfter(after, HANDLER_HTTP_SERVER_CODEC, serverCodec);
 		}
 		after = HANDLER_HTTP_SERVER_CODEC;
 		HttpObjectAggregator ag;
-		if(NEW_AGGREGATOR_CTOR) {
+		if (NEW_AGGREGATOR_CTOR) {
 			ag = new HttpObjectAggregator(settings.getHTTPMaxContentLength(), true);
-		}else {
+		} else {
 			ag = new HttpObjectAggregator(settings.getHTTPMaxContentLength());
 		}
 		pipeline.addAfter(after, HANDLER_HTTP_AGGREGATOR, ag);
 		after = HANDLER_HTTP_AGGREGATOR;
-		if(enabledExtensions != null) {
+		if (enabledExtensions != null) {
 			pipeline.addAfter(after, HANDLER_WS_COMPRESSION,
 					new WebSocketServerExtensionHandler((WebSocketServerExtensionHandshaker[]) enabledExtensions));
 			after = HANDLER_WS_COMPRESSION;
@@ -273,16 +276,17 @@ public class PipelineTransformer {
 
 	protected void removeVanillaHandlers(ChannelPipeline pipeline) {
 		Iterator<String> keyItr = pipeline.names().iterator();
-		while(keyItr.hasNext()) {
+		while (keyItr.hasNext()) {
 			String nm = keyItr.next();
-			if(PipelineTransformer.HANDLER_HTTP_INITIAL.equals(nm) || PipelineTransformer.HANDLER_WS_INITIAL.equals(nm)) {
-				while(keyItr.hasNext()) {
+			if (PipelineTransformer.HANDLER_HTTP_INITIAL.equals(nm)
+					|| PipelineTransformer.HANDLER_WS_INITIAL.equals(nm)) {
+				while (keyItr.hasNext()) {
 					nm = keyItr.next();
 					ChannelHandler handler = pipeline.get(nm);
 					if (!(handler instanceof ReadTimeoutHandler)) {
 						try {
 							pipeline.remove(nm);
-						}catch(NoSuchElementException ex) {
+						} catch (NoSuchElementException ex) {
 						}
 					}
 				}

@@ -60,18 +60,18 @@ public class RewindMessageHandler implements GameMessageHandler {
 				buf.writeShort(0);
 				buf.writeByte(0);
 				buf.writeBoolean(packet.allowed);
-				if(!packet.allowed) {
+				if (!packet.allowed) {
 					player.releaseVoiceGlobalMap();
 				}
 				buf.writeByte(packet.iceServers.length);
-				for(String str : packet.iceServers) {
+				for (String str : packet.iceServers) {
 					byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
 					buf.writeShort(bytes.length);
 					buf.writeBytes(bytes);
 				}
 				buf.setShort(lengthAt, buf.writerIndex() - lengthAt - 2);
 				out.add(buf.retain());
-			}finally {
+			} finally {
 				buf.release();
 			}
 		});
@@ -89,14 +89,14 @@ public class RewindMessageHandler implements GameMessageHandler {
 				buf.writeShort(0);
 				buf.writeByte(5);
 				buf.writeInt(packet.users.size());
-				for(SPacketVoiceSignalGlobalEAG.UserData user : packet.users) {
+				for (SPacketVoiceSignalGlobalEAG.UserData user : packet.users) {
 					byte[] bytes = user.username.getBytes(StandardCharsets.UTF_8);
 					buf.writeShort(bytes.length);
 					buf.writeBytes(bytes);
 				}
 				buf.setShort(lengthAt, buf.writerIndex() - lengthAt - 2);
 				out.add(buf.retain());
-			}finally {
+			} finally {
 				buf.release();
 			}
 		});
@@ -105,7 +105,7 @@ public class RewindMessageHandler implements GameMessageHandler {
 	public void handleServer(SPacketVoiceSignalConnectV4EAG packet) {
 		injector.injectOutbound((out) -> {
 			String str = player.getVoicePlayerByUUID(new UUID(packet.uuidMost, packet.uuidLeast));
-			if(str != null) {
+			if (str != null) {
 				ByteBuf buf = alloc().buffer();
 				try {
 					// VOICE_SIGNAL_CONNECT
@@ -120,10 +120,10 @@ public class RewindMessageHandler implements GameMessageHandler {
 					buf.writeBoolean(packet.offer);
 					buf.setShort(lengthAt, buf.writerIndex() - lengthAt - 2);
 					out.add(buf.retain());
-				}finally {
+				} finally {
 					buf.release();
 				}
-			}else {
+			} else {
 				out.add(Unpooled.EMPTY_BUFFER);
 			}
 		});
@@ -132,7 +132,7 @@ public class RewindMessageHandler implements GameMessageHandler {
 	public void handleServer(SPacketVoiceSignalConnectAnnounceV4EAG packet) {
 		injector.injectOutbound((out) -> {
 			String str = player.getVoicePlayerByUUID(new UUID(packet.uuidMost, packet.uuidLeast));
-			if(str != null) {
+			if (str != null) {
 				ByteBuf buf = alloc().buffer();
 				try {
 					// VOICE_SIGNAL_CONNECT
@@ -146,10 +146,10 @@ public class RewindMessageHandler implements GameMessageHandler {
 					buf.writeBytes(bytes);
 					buf.setShort(lengthAt, buf.writerIndex() - lengthAt - 2);
 					out.add(buf.retain());
-				}finally {
+				} finally {
 					buf.release();
 				}
-			}else {
+			} else {
 				out.add(Unpooled.EMPTY_BUFFER);
 			}
 		});
@@ -158,7 +158,7 @@ public class RewindMessageHandler implements GameMessageHandler {
 	public void handleServer(SPacketVoiceSignalDescEAG packet) {
 		injector.injectOutbound((out) -> {
 			String str = player.getVoicePlayerByUUID(new UUID(packet.uuidMost, packet.uuidLeast));
-			if(str != null) {
+			if (str != null) {
 				ByteBuf buf = alloc().buffer();
 				try {
 					// VOICE_SIGNAL_DESC
@@ -171,17 +171,17 @@ public class RewindMessageHandler implements GameMessageHandler {
 					buf.writeShort(bytes.length);
 					buf.writeBytes(bytes);
 					int descLen = packet.desc.length;
-					if(descLen > 32750) {
+					if (descLen > 32750) {
 						throw new IndexOutOfBoundsException("Voice signal packet DESC too long!");
 					}
 					buf.writeShort(descLen);
 					buf.writeBytes(packet.desc);
 					buf.setShort(lengthAt, buf.writerIndex() - lengthAt - 2);
 					out.add(buf.retain());
-				}finally {
+				} finally {
 					buf.release();
 				}
-			}else {
+			} else {
 				out.add(Unpooled.EMPTY_BUFFER);
 			}
 		});
@@ -190,7 +190,7 @@ public class RewindMessageHandler implements GameMessageHandler {
 	public void handleServer(SPacketVoiceSignalICEEAG packet) {
 		injector.injectOutbound((out) -> {
 			String str = player.getVoicePlayerByUUID(new UUID(packet.uuidMost, packet.uuidLeast));
-			if(str != null) {
+			if (str != null) {
 				ByteBuf buf = alloc().buffer();
 				try {
 					// VOICE_SIGNAL_ICE
@@ -203,17 +203,17 @@ public class RewindMessageHandler implements GameMessageHandler {
 					buf.writeShort(bytes.length);
 					buf.writeBytes(bytes);
 					int descLen = packet.ice.length;
-					if(descLen > 32750) {
+					if (descLen > 32750) {
 						throw new IndexOutOfBoundsException("Voice signal packet ICE too long!");
 					}
 					buf.writeShort(descLen);
 					buf.writeBytes(packet.ice);
 					buf.setShort(lengthAt, buf.writerIndex() - lengthAt - 2);
 					out.add(buf.retain());
-				}finally {
+				} finally {
 					buf.release();
 				}
-			}else {
+			} else {
 				out.add(Unpooled.EMPTY_BUFFER);
 			}
 		});
@@ -222,7 +222,7 @@ public class RewindMessageHandler implements GameMessageHandler {
 	public void handleServer(SPacketVoiceSignalDisconnectPeerEAG packet) {
 		injector.injectOutbound((out) -> {
 			String str = player.getVoicePlayerByUUID(new UUID(packet.uuidMost, packet.uuidLeast));
-			if(str != null) {
+			if (str != null) {
 				ByteBuf buf = alloc().buffer();
 				try {
 					// VOICE_SIGNAL_DISCONNECT
@@ -236,10 +236,10 @@ public class RewindMessageHandler implements GameMessageHandler {
 					buf.writeBytes(bytes);
 					buf.setShort(lengthAt, buf.writerIndex() - lengthAt - 2);
 					out.add(buf.retain());
-				}finally {
+				} finally {
 					buf.release();
 				}
-			}else {
+			} else {
 				out.add(Unpooled.EMPTY_BUFFER);
 			}
 		});
@@ -271,7 +271,7 @@ public class RewindMessageHandler implements GameMessageHandler {
 				buf.writeShort(bytes.length);
 				buf.writeBytes(bytes);
 				out.add(buf.retain());
-			}finally {
+			} finally {
 				buf.release();
 			}
 		});
@@ -294,45 +294,45 @@ public class RewindMessageHandler implements GameMessageHandler {
 				int lengthAt = buf.writerIndex();
 				buf.writeShort(0);
 				buf.writeShort(packet.requestId);
-				if(packet.skinID >= 0) {
+				if (packet.skinID >= 0) {
 					buf.writeByte(4); // preset skin
-					if(packet.skinID < 256) {
+					if (packet.skinID < 256) {
 						buf.writeByte(SkinPacketUtils.rewritePresetSkinIdToLegacy(packet.skinID));
-					}else {
+					} else {
 						buf.writeByte(0);
 					}
-				}else {
+				} else {
 					int modelId = -packet.skinID - 1;
-					if((modelId & 0x80) != 0) {
+					if ((modelId & 0x80) != 0) {
 						modelId = (modelId & 0x7F) == 1 ? 1 : 0;
 					}
-					if(modelId == 0) {
+					if (modelId == 0) {
 						buf.writeByte(1);
 						SkinPacketUtils.rewriteCustomSkinToLegacy(packet.customSkin, buf);
-					}else if(modelId == 1) {
+					} else if (modelId == 1) {
 						buf.writeByte(5);
 						SkinPacketUtils.rewriteCustomSkinToLegacy(packet.customSkin, buf);
-					}else {
+					} else {
 						buf.writeByte(4);
 						buf.writeByte(0); // steve
 					}
 				}
-				if(packet.capeID >= 0) {
+				if (packet.capeID >= 0) {
 					buf.writeByte(2); // preset cape
 					buf.writeByte(0xFF); // skin layer bits, TODO: map to 1.8 entity metadata value?
-					if(packet.capeID < 256) {
+					if (packet.capeID < 256) {
 						buf.writeByte(packet.capeID);
-					}else {
+					} else {
 						buf.writeByte(0);
 					}
-				}else {
+				} else {
 					buf.writeByte(0);
 					buf.writeByte(0xFF); // skin layer bits, TODO: map to 1.8 entity metadata value?
 					SkinPacketUtils.rewriteCustomCapeToLegacy(packet.customCape, buf);
 				}
 				buf.setShort(lengthAt, buf.writerIndex() - lengthAt - 2);
 				out.add(buf.retain());
-			}finally {
+			} finally {
 				buf.release();
 			}
 		});

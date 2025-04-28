@@ -27,15 +27,15 @@ public class ImmutableBuilders {
 		try {
 			ImmutableList.class.getMethod("builderWithExpectedSize", int.class);
 			b = true;
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 		}
 		BUILDER_WITH_EXPECTED_SUPPORT = b;
 	}
 
 	public static <T> ImmutableList.Builder<T> listBuilderWithExpected(int cnt) {
-		if(BUILDER_WITH_EXPECTED_SUPPORT) {
+		if (BUILDER_WITH_EXPECTED_SUPPORT) {
 			return ImmutableList.builderWithExpectedSize(cnt);
-		}else {
+		} else {
 			return ImmutableList.builder();
 		}
 	}

@@ -37,13 +37,13 @@ public interface INettyChannel {
 		Channel getChannel();
 
 		default void writePacket(@Nonnull Object packet) {
-			if(packet == null) {
+			if (packet == null) {
 				throw new NullPointerException("packet");
 			}
 			Channel channel = getChannel();
-			if(channel.isActive()) {
+			if (channel.isActive()) {
 				channel.writeAndFlush(packet, channel.voidPromise());
-			}else {
+			} else {
 				ReferenceCountUtil.release(packet);
 			}
 		}

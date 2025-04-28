@@ -54,14 +54,14 @@ public class YAMLConfigLoader {
 		LoaderOptions loadOpts = new LoaderOptions();
 		try {
 			LoaderOptions.class.getMethod("setProcessComments", boolean.class).invoke(loadOpts, true);
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 		}
 		DumperOptions dumpOpts = new DumperOptions();
 		dumpOpts.setPrettyFlow(true);
 		dumpOpts.setDefaultFlowStyle(FlowStyle.FLOW);
 		try {
 			DumperOptions.class.getMethod("setProcessComments", boolean.class).invoke(dumpOpts, true);
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 		}
 		YAML = new Yaml(new Constructor(loadOpts), new Representer(dumpOpts), dumpOpts);
 	}
@@ -70,19 +70,19 @@ public class YAMLConfigLoader {
 
 	public static IEaglerConfig getConfigFile(File file) throws IOException {
 		Node obj;
-		try(Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
-			synchronized(YAML) {
+		try (Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
+			synchronized (YAML) {
 				obj = YAML.compose(reader);
 			}
-		}catch(FileNotFoundException ex) {
+		} catch (FileNotFoundException ex) {
 			obj = null;
-		}catch(YAMLException ex) {
+		} catch (YAMLException ex) {
 			throw new IOException("YAML config file has a syntax error: " + file.getAbsolutePath(), ex);
 		}
-		if(obj == null) {
+		if (obj == null) {
 			obj = new MappingNode(Tag.MAP, new ArrayList<>(), FlowStyle.BLOCK);
 		}
-		if(!(obj instanceof MappingNode obj2)) {
+		if (!(obj instanceof MappingNode obj2)) {
 			throw new IOException("Root node " + obj.getClass().getSimpleName() + " is not a map!");
 		}
 		return getConfigFile(file, obj2);
@@ -96,20 +96,20 @@ public class YAMLConfigLoader {
 
 	public static void writeConfigFile(Node configIn, File file) throws IOException {
 		File p = file.getAbsoluteFile().getParentFile();
-		if(p != null && !p.isDirectory() && !p.mkdirs()) {
+		if (p != null && !p.isDirectory() && !p.mkdirs()) {
 			throw new IOException("Could not create directory: " + p.getAbsolutePath());
 		}
-		try(Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-			synchronized(YAML) {
+		try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
+			synchronized (YAML) {
 				YAML.serialize(configIn, writer);
 			}
 		}
 	}
 
 	public static void createComment(String text, List<CommentLine> ret) {
-		if(text != null) {
+		if (text != null) {
 			String[] lines = WrapUtil.wrap(text, YAML_COMMENT_WRAP, "\n", false, " ").split("\n");
-			for(int i = 0; i < lines.length; ++i) {
+			for (int i = 0; i < lines.length; ++i) {
 				ret.add(new CommentLine(null, null, " " + lines[i], CommentType.BLOCK));
 			}
 		}
@@ -117,10 +117,10 @@ public class YAMLConfigLoader {
 
 	public static void createCommentHelper(String text, ScalarNode ret) {
 		List<CommentLine> lst = ret.getBlockComments();
-		if(lst == null) {
+		if (lst == null) {
 			lst = new ArrayList<>();
 			ret.setBlockComments(lst);
-		}else {
+		} else {
 			lst.clear();
 		}
 		createComment(text, lst);

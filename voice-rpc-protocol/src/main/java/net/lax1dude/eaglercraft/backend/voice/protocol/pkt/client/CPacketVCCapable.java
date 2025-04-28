@@ -37,25 +37,25 @@ public class CPacketVCCapable implements EaglerVCPacket {
 	@Override
 	public void readPacket(DataInput buffer) throws IOException {
 		int cnt = buffer.readUnsignedByte();
-		if(cnt > 0) {
+		if (cnt > 0) {
 			versions = new int[cnt];
-			for(int i = 0; i < cnt; ++i) {
+			for (int i = 0; i < cnt; ++i) {
 				versions[i] = buffer.readUnsignedByte();
 			}
-		}else {
+		} else {
 			versions = null;
 		}
 	}
 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
-		if(versions != null) {
+		if (versions != null) {
 			int cnt = versions.length;
 			buffer.writeByte(cnt);
-			for(int i = 0; i < cnt; ++i) {
+			for (int i = 0; i < cnt; ++i) {
 				buffer.writeByte(versions[i]);
 			}
-		}else {
+		} else {
 			buffer.writeByte(0);
 		}
 	}
@@ -68,7 +68,8 @@ public class CPacketVCCapable implements EaglerVCPacket {
 	@Override
 	public int length() {
 		int i = 1;
-		if(versions != null) i += versions.length;
+		if (versions != null)
+			i += versions.length;
 		return i;
 	}
 

@@ -53,7 +53,7 @@ public class CPacketSvGetSkinByURL implements EaglerSupervisorPacket {
 		buffer.writeByte(modelId);
 		byte[] urlBytes = url.getBytes(StandardCharsets.US_ASCII);
 		int len = urlBytes.length;
-		if(len > 0xFFFF) {
+		if (len > 0xFFFF) {
 			throw new UnsupportedOperationException("Skin URL is longer than 65535 bytes");
 		}
 		buffer.writeShort(len);

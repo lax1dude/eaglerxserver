@@ -63,94 +63,102 @@ public class LegacyMessageController extends MessageController {
 		}
 	}
 
-	public LegacyMessageController(GamePluginMessageProtocol protocol, ServerMessageHandler handler, EventLoop eventLoop,
-			int defragSendDelay, boolean modernChannelNames) {
+	public LegacyMessageController(GamePluginMessageProtocol protocol, ServerMessageHandler handler,
+			EventLoop eventLoop, int defragSendDelay, boolean modernChannelNames) {
 		super(protocol, handler, eventLoop, defragSendDelay);
 		this.modernChannelNames = modernChannelNames;
 	}
 
 	public boolean readPacket(String channel, byte[] data) {
-		if(data.length == 0) {
+		if (data.length == 0) {
 			return false;
 		}
 		try {
 			GameMessagePacket pkt;
-			if((int) IS_LOCK_HANDLE.compareAndExchangeAcquire(this, 0, 1) == 0) {
+			if ((int) IS_LOCK_HANDLE.compareAndExchangeAcquire(this, 0, 1) == 0) {
 				try {
 					byteInputStreamSingleton.feedBuffer(data);
-					if(data[0] == (byte)0xFF && channel.equals(LEGACY_V4_CHANNEL)) {
+					if (data[0] == (byte) 0xFF && channel.equals(LEGACY_V4_CHANNEL)) {
 						inputStreamSingleton.readByte();
 						int count = inputStreamSingleton.readVarInt();
-						for(int i = 0, j, k; i < count; ++i) {
+						for (int i = 0, j, k; i < count; ++i) {
 							j = inputStreamSingleton.readVarInt();
 							inputStreamSingleton.setToByteArrayReturns(j - 1);
 							k = byteInputStreamSingleton.getReaderIndex() + j;
-							if(j < 0 || j > inputStreamSingleton.available()) {
-								throw new IOException("Packet fragment is too long: " + j + " > " + inputStreamSingleton.available());
+							if (j < 0 || j > inputStreamSingleton.available()) {
+								throw new IOException(
+										"Packet fragment is too long: " + j + " > " + inputStreamSingleton.available());
 							}
-							pkt = protocol.readPacket(channel, GamePluginMessageConstants.CLIENT_TO_SERVER, inputStreamSingleton);
-							if(pkt != null) {
+							pkt = protocol.readPacket(channel, GamePluginMessageConstants.CLIENT_TO_SERVER,
+									inputStreamSingleton);
+							if (pkt != null) {
 								handlePacket(pkt);
-							}else {
+							} else {
 								throw new IOException("Unknown packet type in fragment!");
 							}
-							if(byteInputStreamSingleton.getReaderIndex() != k) {
-								throw new IOException("Packet fragment was the wrong length: " + (j + byteInputStreamSingleton.getReaderIndex() - k) + " != " + j);
+							if (byteInputStreamSingleton.getReaderIndex() != k) {
+								throw new IOException("Packet fragment was the wrong length: "
+										+ (j + byteInputStreamSingleton.getReaderIndex() - k) + " != " + j);
 							}
 						}
-						if(inputStreamSingleton.available() > 0) {
-							throw new IOException("Leftover data after reading multi-packet! (" + inputStreamSingleton.available() + " bytes)");
+						if (inputStreamSingleton.available() > 0) {
+							throw new IOException("Leftover data after reading multi-packet! ("
+									+ inputStreamSingleton.available() + " bytes)");
 						}
 						return true;
 					}
 					inputStreamSingleton.setToByteArrayReturns(data);
-					pkt = protocol.readPacket(channel, GamePluginMessageConstants.CLIENT_TO_SERVER, inputStreamSingleton);
-					if(pkt != null && byteInputStreamSingleton.available() != 0) {
+					pkt = protocol.readPacket(channel, GamePluginMessageConstants.CLIENT_TO_SERVER,
+							inputStreamSingleton);
+					if (pkt != null && byteInputStreamSingleton.available() != 0) {
 						throw new IOException("Packet was the wrong length: " + pkt.getClass().getSimpleName());
 					}
-				}finally {
+				} finally {
 					byteInputStreamSingleton.feedBuffer(null);
 					inputStreamSingleton.setToByteArrayReturns(null);
 					IS_LOCK_HANDLE.setRelease(this, 0);
 				}
-			}else {
+			} else {
 				// slow version that makes multiple new objects
 				ReusableByteArrayInputStream inputStream = new ReusableByteArrayInputStream();
 				inputStream.feedBuffer(data);
 				SimpleInputBufferImpl inputBuffer = new SimpleInputBufferImpl(inputStream, data);
-				if(data[0] == (byte)0xFF && channel.equals(LEGACY_V4_CHANNEL)) {
+				if (data[0] == (byte) 0xFF && channel.equals(LEGACY_V4_CHANNEL)) {
 					inputBuffer.readByte();
 					int count = inputBuffer.readVarInt();
-					for(int i = 0, j, k; i < count; ++i) {
+					for (int i = 0, j, k; i < count; ++i) {
 						j = inputBuffer.readVarInt();
 						inputBuffer.setToByteArrayReturns(j - 1);
 						k = inputStream.getReaderIndex() + j;
-						if(j < 0 || j > inputBuffer.available()) {
-							throw new IOException("Packet fragment is too long: " + j + " > " + inputBuffer.available());
+						if (j < 0 || j > inputBuffer.available()) {
+							throw new IOException(
+									"Packet fragment is too long: " + j + " > " + inputBuffer.available());
 						}
 						pkt = protocol.readPacket(channel, GamePluginMessageConstants.CLIENT_TO_SERVER, inputBuffer);
-						if(inputStream.getReaderIndex() != k) {
-							throw new IOException("Packet fragment was the wrong length: " + (j + inputStream.getReaderIndex() - k) + " != " + j);
+						if (inputStream.getReaderIndex() != k) {
+							throw new IOException("Packet fragment was the wrong length: "
+									+ (j + inputStream.getReaderIndex() - k) + " != " + j);
 						}
 						handlePacket(pkt);
 					}
-					if(inputBuffer.available() > 0) {
-						throw new IOException("Leftover data after reading multi-packet! (" + inputBuffer.available() + " bytes)");
+					if (inputBuffer.available() > 0) {
+						throw new IOException(
+								"Leftover data after reading multi-packet! (" + inputBuffer.available() + " bytes)");
 					}
 					return true;
 				}
 				pkt = protocol.readPacket(channel, GamePluginMessageConstants.CLIENT_TO_SERVER, inputBuffer);
-				if(pkt != null && inputStream.available() != 0) {
+				if (pkt != null && inputStream.available() != 0) {
 					throw new IOException("Packet was the wrong length: " + pkt.getClass().getSimpleName());
 				}
 			}
-			if(pkt != null) {
+			if (pkt != null) {
 				handlePacket(pkt);
 				return true;
-			}else {
+			} else {
 				return false;
 			}
-		}catch(IOException ex) {
+		} catch (IOException ex) {
 			onException(ex);
 			return true;
 		}
@@ -161,17 +169,17 @@ public class LegacyMessageController extends MessageController {
 		int len = packet.length() + 1;
 		String chan;
 		byte[] data;
-		if((int) OS_LOCK_HANDLE.compareAndExchangeAcquire(this, 0, 1) == 0) {
+		if ((int) OS_LOCK_HANDLE.compareAndExchangeAcquire(this, 0, 1) == 0) {
 			try {
 				byteOutputStreamSingleton.feedBuffer(len == 0 ? outputTempBuffer : new byte[len]);
 				chan = protocol.writePacket(GamePluginMessageConstants.SERVER_TO_CLIENT, outputStreamSingleton, packet);
 				data = len == 0 ? byteOutputStreamSingleton.returnBufferCopied()
 						: byteOutputStreamSingleton.returnBuffer();
-			}finally {
+			} finally {
 				byteOutputStreamSingleton.feedBuffer(null);
 				OS_LOCK_HANDLE.setRelease(this, 0);
 			}
-		}else {
+		} else {
 			// slow version that makes multiple new objects
 			ReusableByteArrayOutputStream bao = new ReusableByteArrayOutputStream();
 			bao.feedBuffer(new byte[len == 0 ? 64 : len]);
@@ -179,12 +187,12 @@ public class LegacyMessageController extends MessageController {
 			chan = protocol.writePacket(GamePluginMessageConstants.SERVER_TO_CLIENT, outputStream, packet);
 			data = bao.returnBuffer();
 		}
-		EaglerPlayerInstance<?> player = ((ServerMessageHandler)handler).eaglerHandle;
-		if(len != 0 && data.length != len && (protocol.ver > 3 || data.length + 1 != len)) {
+		EaglerPlayerInstance<?> player = ((ServerMessageHandler) handler).eaglerHandle;
+		if (len != 0 && data.length != len && (protocol.ver > 3 || data.length + 1 != len)) {
 			player.getEaglerXServer().logger().warn("Packet " + packet.getClass().getSimpleName()
 					+ " was the wrong length after serialization, " + data.length + " != " + len);
 		}
-		if(modernChannelNames) {
+		if (modernChannelNames) {
 			chan = PlayerChannelHelper.mapModernName(chan);
 		}
 		player.getPlatformPlayer().sendDataClient(chan, data);
@@ -193,38 +201,38 @@ public class LegacyMessageController extends MessageController {
 	@Override
 	protected void writeMultiPacket(GameMessagePacket[] packets) throws IOException {
 		int total = packets.length;
-		EaglerPlayerInstance<?> player = ((ServerMessageHandler)handler).eaglerHandle;
+		EaglerPlayerInstance<?> player = ((ServerMessageHandler) handler).eaglerHandle;
 		byte[][] buffer = new byte[total][];
 		byte[] dat;
-		if((int) OS_LOCK_HANDLE.compareAndExchangeAcquire(this, 0, 1) == 0) {
+		if ((int) OS_LOCK_HANDLE.compareAndExchangeAcquire(this, 0, 1) == 0) {
 			try {
-				for(int i = 0; i < total; ++i) {
+				for (int i = 0; i < total; ++i) {
 					GameMessagePacket packet = packets[i];
 					int len = packet.length() + 1;
 					byteOutputStreamSingleton.feedBuffer(len == 0 ? outputTempBuffer : new byte[len]);
 					protocol.writePacket(GamePluginMessageConstants.SERVER_TO_CLIENT, outputStreamSingleton, packet);
 					dat = len == 0 ? byteOutputStreamSingleton.returnBufferCopied()
 							: byteOutputStreamSingleton.returnBuffer();
-					if(len != 0 && dat.length != len) {
+					if (len != 0 && dat.length != len) {
 						player.getEaglerXServer().logger().warn("Packet " + packet.getClass().getSimpleName()
 								+ " was the wrong length after serialization, " + dat.length + " != " + len);
 					}
 					buffer[i] = dat;
 				}
-			}finally {
+			} finally {
 				byteOutputStreamSingleton.feedBuffer(null);
 				OS_LOCK_HANDLE.setRelease(this, 0);
 			}
-		}else {
+		} else {
 			ReusableByteArrayOutputStream bao = new ReusableByteArrayOutputStream();
 			SimpleOutputBufferImpl outputStream = new SimpleOutputBufferImpl(bao);
-			for(int i = 0; i < total; ++i) {
+			for (int i = 0; i < total; ++i) {
 				GameMessagePacket packet = packets[i];
 				int len = packet.length() + 1;
 				bao.feedBuffer(new byte[len == 0 ? 64 : len]);
 				protocol.writePacket(GamePluginMessageConstants.SERVER_TO_CLIENT, outputStream, packet);
 				dat = bao.returnBuffer();
-				if(len != 0 && dat.length != len) {
+				if (len != 0 && dat.length != len) {
 					player.getEaglerXServer().logger().warn("Packet " + packet.getClass().getSimpleName()
 							+ " was the wrong length after serialization, " + dat.length + " != " + len);
 				}
@@ -233,7 +241,7 @@ public class LegacyMessageController extends MessageController {
 		}
 		int start = 0;
 		int i, j, sendCount, totalLen, lastLen;
-		while(total > start) {
+		while (total > start) {
 			sendCount = 0;
 			totalLen = 0;
 			do {
@@ -241,13 +249,14 @@ public class LegacyMessageController extends MessageController {
 				lastLen = GamePacketOutputBuffer.getVarIntSize(i) + i;
 				totalLen += lastLen;
 				++sendCount;
-			}while(totalLen < 32760 && sendCount < total - start);
-			if(totalLen >= 32760) {
+			} while (totalLen < 32760 && sendCount < total - start);
+			if (totalLen >= 32760) {
 				--sendCount;
 				totalLen -= lastLen;
 			}
-			if(sendCount <= 1) {
-				player.getPlatformPlayer().sendDataClient(modernChannelNames ? MODERN_V4_CHANNEL : LEGACY_V4_CHANNEL, buffer[start++]);
+			if (sendCount <= 1) {
+				player.getPlatformPlayer().sendDataClient(modernChannelNames ? MODERN_V4_CHANNEL : LEGACY_V4_CHANNEL,
+						buffer[start++]);
 				continue;
 			}
 			byte[] toSend = new byte[1 + totalLen + GamePacketOutputBuffer.getVarIntSize(sendCount)];
@@ -255,12 +264,13 @@ public class LegacyMessageController extends MessageController {
 			sendBuffer.writerIndex(0);
 			sendBuffer.writeByte(0xFF);
 			BufferUtils.writeVarInt(sendBuffer, sendCount);
-			for(j = 0; j < sendCount; ++j) {
+			for (j = 0; j < sendCount; ++j) {
 				dat = buffer[start++];
 				BufferUtils.writeVarInt(sendBuffer, dat.length);
 				sendBuffer.writeBytes(dat);
 			}
-			player.getPlatformPlayer().sendDataClient(modernChannelNames ? MODERN_V4_CHANNEL : LEGACY_V4_CHANNEL, toSend);
+			player.getPlatformPlayer().sendDataClient(modernChannelNames ? MODERN_V4_CHANNEL : LEGACY_V4_CHANNEL,
+					toSend);
 		}
 	}
 

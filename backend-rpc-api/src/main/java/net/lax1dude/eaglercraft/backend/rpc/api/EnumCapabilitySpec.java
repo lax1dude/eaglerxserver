@@ -56,10 +56,10 @@ public enum EnumCapabilitySpec {
 
 	@Nullable
 	public static EnumCapabilitySpec fromId(int id, int ver) {
-		if(id >= 0 && id < capsMap.length) {
+		if (id >= 0 && id < capsMap.length) {
 			EnumCapabilitySpec[] cap = capsMap[id];
-			if(cap != null) {
-				if(ver >= 0 && ver < cap.length) {
+			if (cap != null) {
+				if (ver >= 0 && ver < cap.length) {
 					return cap[ver];
 				}
 			}
@@ -70,13 +70,13 @@ public enum EnumCapabilitySpec {
 	private static final EnumCapabilitySpec[][] capsMap = new EnumCapabilitySpec[16][];
 
 	static {
-		for(EnumCapabilitySpec cap : values()) {
+		for (EnumCapabilitySpec cap : values()) {
 			int id = cap.type.getId();
 			EnumCapabilitySpec[] lst = capsMap[id];
-			if(lst == null) {
+			if (lst == null) {
 				capsMap[id] = lst = new EnumCapabilitySpec[16];
 			}
-			if(lst.length <= cap.ver) {
+			if (lst.length <= cap.ver) {
 				EnumCapabilitySpec[] newList = new EnumCapabilitySpec[lst.length << 1];
 				System.arraycopy(lst, 0, newList, 0, lst.length);
 				capsMap[id] = lst = newList;

@@ -25,7 +25,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 @Retention(SOURCE)
-@Target({CONSTRUCTOR, METHOD, TYPE})
+@Target({ CONSTRUCTOR, METHOD, TYPE })
 public @interface UnsupportedOn {
 
 	EnumPlatformType[] value();

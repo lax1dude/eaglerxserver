@@ -34,40 +34,40 @@ abstract class RPCMultiResultAggregator extends ArrayList<SPacketSvRPCResultMult
 	}
 
 	public void push(SPacketSvRPCResultMulti.ResultEntry etr) {
-		synchronized(this) {
-			if(cntDown > 0) {
+		synchronized (this) {
+			if (cntDown > 0) {
 				etr.retain();
 				add(etr);
-				if(--cntDown > 0) {
+				if (--cntDown > 0) {
 					return;
 				}
-			}else {
+			} else {
 				return;
 			}
 		}
 		eventLoop.execute(() -> {
 			try {
-				if(set.remove(this)) {
+				if (set.remove(this)) {
 					onComplete();
 				}
-			}finally {
+			} finally {
 				destroy0();
 			}
 		});
 	}
 
 	public void pushEmpty() {
-		synchronized(this) {
-			if(cntDown <= 0 || --cntDown > 0) {
+		synchronized (this) {
+			if (cntDown <= 0 || --cntDown > 0) {
 				return;
 			}
 		}
 		eventLoop.execute(() -> {
 			try {
-				if(set.remove(this)) {
+				if (set.remove(this)) {
 					onComplete();
 				}
-			}finally {
+			} finally {
 				destroy0();
 			}
 		});
@@ -76,22 +76,22 @@ abstract class RPCMultiResultAggregator extends ArrayList<SPacketSvRPCResultMult
 	protected abstract void onComplete();
 
 	public void destroy() {
-		synchronized(this) {
-			if(cntDown > 0) {
+		synchronized (this) {
+			if (cntDown > 0) {
 				cntDown = 0;
-			}else {
+			} else {
 				return;
 			}
 		}
 		try {
 			set.remove(this);
-		}finally {
+		} finally {
 			destroy0();
 		}
 	}
 
 	private void destroy0() {
-		for(int i = 0, l = size(); i < l; ++i) {
+		for (int i = 0, l = size(); i < l; ++i) {
 			get(i).release();
 		}
 	}

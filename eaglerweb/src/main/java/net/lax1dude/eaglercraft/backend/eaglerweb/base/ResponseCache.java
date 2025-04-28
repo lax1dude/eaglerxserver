@@ -67,36 +67,36 @@ class ResponseCache {
 
 		void loadResponse(Consumer<byte[]> consumer) {
 			byte[] data = (byte[]) RESULT_HANDLE.getAcquire(this);
-			if(data == null) {
+			if (data == null) {
 				eagler: {
-					synchronized(this) {
+					synchronized (this) {
 						data = (byte[]) RESULT_HANDLE.getAcquire(this);
-						if(data != null) {
+						if (data != null) {
 							break eagler;
 						}
-						if(waitingCallbacks == null) {
+						if (waitingCallbacks == null) {
 							waitingCallbacks = new ArrayList<>(4);
 							waitingCallbacks.add(consumer);
-						}else {
+						} else {
 							waitingCallbacks.add(consumer);
 							return;
 						}
 					}
 					ResponseCache.this.loadFileAsync(key.getFile(), (data0) -> {
-						if(data0 == null) {
+						if (data0 == null) {
 							data0 = ERROR;
 						}
 						List<Consumer<byte[]>> cb;
-						synchronized(this) {
-							if((byte[]) RESULT_HANDLE.getAcquire(this) != null) {
+						synchronized (this) {
+							if ((byte[]) RESULT_HANDLE.getAcquire(this) != null) {
 								return;
 							}
 							RESULT_HANDLE.setRelease(this, data0);
 							cb = waitingCallbacks;
 							waitingCallbacks = null;
 						}
-						if(cb != null) {
-							for(int i = 0, l = cb.size(); i < l; ++i) {
+						if (cb != null) {
+							for (int i = 0, l = cb.size(); i < l; ++i) {
 								cb.get(i).accept(data0);
 							}
 						}
@@ -119,14 +119,14 @@ class ResponseCache {
 		protected ResponseLoaderContext(int i) {
 			loaderBuffer = new byte[1024 * 1024];
 			thread = new Thread(() -> {
-				while(!disposed) {
+				while (!disposed) {
 					try {
 						semaphore.acquire();
 						ResponseLoaderRunnable runnable = queue.poll();
-						if(runnable != null) {
+						if (runnable != null) {
 							runnable.run(this);
 						}
-					}catch(Throwable ex) {
+					} catch (Throwable ex) {
 						logger.error("Caught exception in worker thread #" + (i + 1), ex);
 					}
 				}
@@ -140,11 +140,11 @@ class ResponseCache {
 			byte[] buf = loaderBuffer;
 			int len = buf.length;
 			int i, j = 0;
-			try(InputStream is = new FileInputStream(file)) {
-				while((i = is.read(buf, j, len - j)) != -1) {
+			try (InputStream is = new FileInputStream(file)) {
+				while ((i = is.read(buf, j, len - j)) != -1) {
 					j += i;
-					if(j >= len) {
-						if(len >= (Integer.MAX_VALUE >> 1)) {
+					if (j >= len) {
+						if (len >= (Integer.MAX_VALUE >> 1)) {
 							throw new IOException("File is too large: " + file.getAbsolutePath());
 						}
 						int newLen = (len << 1);
@@ -152,12 +152,12 @@ class ResponseCache {
 						System.arraycopy(buf, 0, newBuf, 0, len);
 						buf = newBuf;
 						len = newLen;
-						if(newLen <= MAX_BUFFER_SIZE) {
+						if (newLen <= MAX_BUFFER_SIZE) {
 							loaderBuffer = buf;
 						}
 					}
 				}
-			}catch(IOException ex) {
+			} catch (IOException ex) {
 				logger.error("Could not load file: " + file.getAbsolutePath(), ex);
 				return null;
 			}
@@ -183,11 +183,11 @@ class ResponseCache {
 		cache = CacheBuilder.newBuilder().concurrencyLevel(8).expireAfterWrite(expiresAfter, TimeUnit.MILLISECONDS)
 				.initialCapacity(Math.min(256, maxCacheFiles)).maximumSize(maxCacheFiles)
 				.build(new CacheLoader<ResponseCacheKey, ResponseLoader>() {
-			@Override
-			public ResponseLoader load(ResponseCacheKey key) throws Exception {
-				return new ResponseLoader(key);
-			}
-		});
+					@Override
+					public ResponseLoader load(ResponseCacheKey key) throws Exception {
+						return new ResponseLoader(key);
+					}
+				});
 		disposeLatch = new CountDownLatch(threadCount);
 		threads = new ResponseLoaderContext[threadCount];
 	}
@@ -197,13 +197,14 @@ class ResponseCache {
 			return cache.get(key);
 		} catch (ExecutionException e) {
 			Throwable t = e.getCause();
-			if(t instanceof RuntimeException ee) throw ee;
+			if (t instanceof RuntimeException ee)
+				throw ee;
 			throw new RuntimeException(e);
 		}
 	}
 
 	ResponseCache start() {
-		for(int i = 0; i < threads.length; ++i) {
+		for (int i = 0; i < threads.length; ++i) {
 			threads[i] = new ResponseLoaderContext(i);
 		}
 		return this;

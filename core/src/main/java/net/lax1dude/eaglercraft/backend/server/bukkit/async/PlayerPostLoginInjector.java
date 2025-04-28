@@ -89,7 +89,7 @@ public class PlayerPostLoginInjector {
 	}
 
 	private synchronized void bind(Object netManager) {
-		if(this.netManagerClass != null) {
+		if (this.netManagerClass != null) {
 			return;
 		}
 		try {
@@ -97,27 +97,27 @@ public class PlayerPostLoginInjector {
 			Class<Object> protocolDirType = null;
 			Field protocolDirField = null;
 			Field channelField = null;
-			for(Field f : netManagerClass.getDeclaredFields()) {
+			for (Field f : netManagerClass.getDeclaredFields()) {
 				Class<?> clz = f.getType();
-				if(clz.getSimpleName().equals("EnumProtocolDirection")) {
+				if (clz.getSimpleName().equals("EnumProtocolDirection")) {
 					f.setAccessible(true);
 					protocolDirType = (Class<Object>) f.getType();
 					protocolDirField = f;
 					break;
 				}
 			}
-			for(Field f : netManagerClass.getFields()) {
+			for (Field f : netManagerClass.getFields()) {
 				Class<?> clz = f.getType();
-				if(Channel.class.isAssignableFrom(clz)) {
+				if (Channel.class.isAssignableFrom(clz)) {
 					f.setAccessible(true);
 					channelField = f;
 					break;
 				}
 			}
-			if(protocolDirField == null) {
+			if (protocolDirField == null) {
 				throw new IllegalStateException("Could not locate direction field of " + netManagerClass.getName());
 			}
-			if(channelField == null) {
+			if (channelField == null) {
 				throw new IllegalStateException("Could not locate channel field of " + netManagerClass.getName());
 			}
 			Method setHandlerMethod = null;
@@ -126,11 +126,13 @@ public class PlayerPostLoginInjector {
 			Method sendPacketMethod3 = null;
 			Method getHandlerMethod = null;
 			Class<?> futureListenerArr = Array.newInstance(GenericFutureListener.class, 0).getClass();
-			for(Method m : netManagerClass.getMethods()) {
+			for (Method m : netManagerClass.getMethods()) {
 				Class<?>[] params = m.getParameterTypes();
-				if(setHandlerMethod == null && params.length == 1 && params[0].getSimpleName().equals("PacketListener")) {
+				if (setHandlerMethod == null && params.length == 1
+						&& params[0].getSimpleName().equals("PacketListener")) {
 					setHandlerMethod = m;
-				} else if (sendPacketMethod1 == null && params.length == 1 && params[0].getSimpleName().equals("Packet")) {
+				} else if (sendPacketMethod1 == null && params.length == 1
+						&& params[0].getSimpleName().equals("Packet")) {
 					sendPacketMethod1 = m;
 				} else if (sendPacketMethod3 == null && params.length == 3 && params[0].getSimpleName().equals("Packet")
 						&& params[1].equals(GenericFutureListener.class) && params[2].equals(futureListenerArr)) {
@@ -140,41 +142,49 @@ public class PlayerPostLoginInjector {
 						&& params[0].getSimpleName().equals("Packet")
 						&& params[1].equals(GenericFutureListener.class)) {
 					sendPacketMethod2 = m;
-				} else if (getHandlerMethod == null && params.length == 0 && m.getReturnType().getSimpleName().equals("PacketListener")) {
+				} else if (getHandlerMethod == null && params.length == 0
+						&& m.getReturnType().getSimpleName().equals("PacketListener")) {
 					getHandlerMethod = m;
 				}
-				if(setHandlerMethod != null && sendPacketMethod1 != null && sendPacketMethod3 != null && getHandlerMethod != null) {
+				if (setHandlerMethod != null && sendPacketMethod1 != null && sendPacketMethod3 != null
+						&& getHandlerMethod != null) {
 					break;
 				}
 			}
-			if(setHandlerMethod == null) {
-				throw new IllegalStateException("Could not locate set handler function of " + netManagerClass.getName());
+			if (setHandlerMethod == null) {
+				throw new IllegalStateException(
+						"Could not locate set handler function of " + netManagerClass.getName());
 			}
-			if(sendPacketMethod1 == null) {
-				throw new IllegalStateException("Could not locate send packet (1 param) function of " + netManagerClass.getName());
+			if (sendPacketMethod1 == null) {
+				throw new IllegalStateException(
+						"Could not locate send packet (1 param) function of " + netManagerClass.getName());
 			}
-			if(sendPacketMethod2 == null && sendPacketMethod3 == null) {
-				throw new IllegalStateException("Could not locate send packet (2 or 3 param) function of " + netManagerClass.getName());
+			if (sendPacketMethod2 == null && sendPacketMethod3 == null) {
+				throw new IllegalStateException(
+						"Could not locate send packet (2 or 3 param) function of " + netManagerClass.getName());
 			}
-			if(getHandlerMethod == null) {
-				throw new IllegalStateException("Could not locate get handler function of " + netManagerClass.getName());
+			if (getHandlerMethod == null) {
+				throw new IllegalStateException(
+						"Could not locate get handler function of " + netManagerClass.getName());
 			}
 			Object handshakeListener = getHandlerMethod.invoke(netManager);
 			Class<Object> handshakeListenerClass = (Class<Object>) handshakeListener.getClass();
 			Field handshakeListenerNetManager = null;
-			for(Field f : handshakeListenerClass.getDeclaredFields()) {
-				if(f.getType() == netManagerClass) {
+			for (Field f : handshakeListenerClass.getDeclaredFields()) {
+				if (f.getType() == netManagerClass) {
 					f.setAccessible(true);
 					handshakeListenerNetManager = f;
 				}
 			}
-			if(handshakeListenerNetManager == null) {
-				throw new IllegalStateException("Could not locate network manager field of " + handshakeListenerClass.getName());
+			if (handshakeListenerNetManager == null) {
+				throw new IllegalStateException(
+						"Could not locate network manager field of " + handshakeListenerClass.getName());
 			}
 			this.netManagerCtor = netManagerClass.getDeclaredConstructor(protocolDirType);
 			this.netManagerCtor.setAccessible(true);
 			this.netManagerClass = netManagerClass;
-			this.netManagerProxy = ClassProxy.bindProxy(PlayerPostLoginInjector.class.getClassLoader(), netManagerClass);
+			this.netManagerProxy = ClassProxy.bindProxy(PlayerPostLoginInjector.class.getClassLoader(),
+					netManagerClass);
 			this.netManagerDir = protocolDirField;
 			this.netManagerChannel = channelField;
 			this.setHandlerMethod = setHandlerMethod;
@@ -220,7 +230,7 @@ public class PlayerPostLoginInjector {
 
 	public static void markCompressionDisable(Channel ch, boolean en) {
 		LoginEventContext ctx = ch.attr(attr).get();
-		if(ctx != null) {
+		if (ctx != null) {
 			ctx.markCompressionDisable(en);
 		}
 	}
@@ -236,38 +246,38 @@ public class PlayerPostLoginInjector {
 	}
 
 	public Object wrapNetworkManager(Object netManager, Channel channel) {
-		if(netManagerClass == null) {
+		if (netManagerClass == null) {
 			bind(netManager);
 		}
-		if(!netManagerClass.isAssignableFrom(netManager.getClass())) {
+		if (!netManagerClass.isAssignableFrom(netManager.getClass())) {
 			throw new IllegalStateException("Unknown NetworkManager type: " + netManager.getClass().getName());
 		}
 		try {
 			final LoginEventContext ctx = new LoginEventContext(netManager, channel);
 			Object ret = netManagerProxy.createProxy(netManagerCtor, new Object[] { netManagerDir.get(netManager) },
 					(obj, meth, args) -> {
-				if(setHandlerMethod.equals(meth)) {
-					if(args[0].getClass().getSimpleName().equals("LoginListener")) {
-						meth.invoke(netManager, args);
-						fireEventLoginInit(channel);
-						args[0] = wrapLoginListener(getHandlerMethod.invoke(netManager), ctx);
-						meth.invoke(netManager, args);
-						return null;
-					}
-				}else if(ctx.throwOnLoginSuccess && sendPacketMethod1.equals(meth)) {
-					meth.invoke(netManager, args);
-					if(args[0].getClass().getSimpleName().equals("PacketLoginOutSuccess")) {
-						throw new EaglerError(getPacketProfile(args[0]));
-					}
-					return null;
-				} else if (ctx.compressionDisable && (sendPacketMethod3 != null ? sendPacketMethod3.equals(meth)
-						: sendPacketMethod2.equals(meth))) {
-					if(args[0].getClass().getSimpleName().equals("PacketLoginOutSetCompression")) {
-						return null;
-					}
-				}
-				return meth.invoke(netManager, args);
-			});
+						if (setHandlerMethod.equals(meth)) {
+							if (args[0].getClass().getSimpleName().equals("LoginListener")) {
+								meth.invoke(netManager, args);
+								fireEventLoginInit(channel);
+								args[0] = wrapLoginListener(getHandlerMethod.invoke(netManager), ctx);
+								meth.invoke(netManager, args);
+								return null;
+							}
+						} else if (ctx.throwOnLoginSuccess && sendPacketMethod1.equals(meth)) {
+							meth.invoke(netManager, args);
+							if (args[0].getClass().getSimpleName().equals("PacketLoginOutSuccess")) {
+								throw new EaglerError(getPacketProfile(args[0]));
+							}
+							return null;
+						} else if (ctx.compressionDisable && (sendPacketMethod3 != null ? sendPacketMethod3.equals(meth)
+								: sendPacketMethod2.equals(meth))) {
+							if (args[0].getClass().getSimpleName().equals("PacketLoginOutSetCompression")) {
+								return null;
+							}
+						}
+						return meth.invoke(netManager, args);
+					});
 			ctx.proxiedNetworkManager = ret;
 			channel.attr(attr).set(ctx);
 			handshakeListenerNetManager.set(getHandlerMethod.invoke(netManager), ret);
@@ -279,19 +289,19 @@ public class PlayerPostLoginInjector {
 	}
 
 	private synchronized void bindPacketProfile(Object packet) {
-		if(packetLoginSuccessClass != null) {
+		if (packetLoginSuccessClass != null) {
 			return;
 		}
 		Field gameProfile = null;
 		Class<Object> clz = (Class<Object>) packet.getClass();
-		for(Field f : clz.getDeclaredFields()) {
-			if(f.getType().equals(GameProfile.class)) {
+		for (Field f : clz.getDeclaredFields()) {
+			if (f.getType().equals(GameProfile.class)) {
 				f.setAccessible(true);
 				gameProfile = f;
 				break;
 			}
 		}
-		if(gameProfile == null) {
+		if (gameProfile == null) {
 			throw new IllegalStateException("Could not locate game profile field of " + clz.getName());
 		}
 		packetLoginSuccessClass = clz;
@@ -299,10 +309,10 @@ public class PlayerPostLoginInjector {
 	}
 
 	private GameProfile getPacketProfile(Object packet) {
-		if(packetLoginSuccessClass == null) {
+		if (packetLoginSuccessClass == null) {
 			bindPacketProfile(packet);
 		}
-		if(!packetLoginSuccessClass.isAssignableFrom(packet.getClass())) {
+		if (!packetLoginSuccessClass.isAssignableFrom(packet.getClass())) {
 			throw new IllegalStateException("Unknown PacketLoginOutSuccess type: " + packet.getClass().getName());
 		}
 		try {
@@ -313,25 +323,25 @@ public class PlayerPostLoginInjector {
 	}
 
 	private synchronized void bindLogin(Object loginListener) {
-		if(this.loginListenerClass != null) {
+		if (this.loginListenerClass != null) {
 			return;
 		}
-		if(netManagerClass == null) {
+		if (netManagerClass == null) {
 			throw new IllegalStateException();
 		}
 		try {
 			Class<Object> loginListenerClass = (Class<Object>) loginListener.getClass();
 			Class<Object> mcServerClass = null;
 			Constructor<Object> loginListenerCtor = null;
-			for(Constructor<? extends Object> ctor : loginListenerClass.getConstructors()) {
+			for (Constructor<? extends Object> ctor : loginListenerClass.getConstructors()) {
 				Class<?>[] params = ctor.getParameterTypes();
-				if(params.length == 2 && params[1] == netManagerClass) {
+				if (params.length == 2 && params[1] == netManagerClass) {
 					loginListenerCtor = (Constructor<Object>) ctor;
 					mcServerClass = (Class<Object>) params[0];
 					break;
 				}
 			}
-			if(loginListenerCtor == null) {
+			if (loginListenerCtor == null) {
 				throw new IllegalStateException("Could not locate constructor of " + loginListenerClass.getName());
 			}
 			Field loginListenerServer = null;
@@ -339,66 +349,70 @@ public class PlayerPostLoginInjector {
 			Class<Object> enumProtocolState = null;
 			Field loginListenerState = null;
 			Field loginListenerPlayer = null;
-			for(Field f : loginListenerClass.getDeclaredFields()) {
-				if(f.getType() == mcServerClass) {
+			for (Field f : loginListenerClass.getDeclaredFields()) {
+				if (f.getType() == mcServerClass) {
 					f.setAccessible(true);
 					loginListenerServer = f;
-				}else if(f.getType() == netManagerClass) {
+				} else if (f.getType() == netManagerClass) {
 					f.setAccessible(true);
 					loginListenerNetManager = f;
-				}else if(f.getType().getName().equals(loginListenerClass.getName() + "$EnumProtocolState")) {
+				} else if (f.getType().getName().equals(loginListenerClass.getName() + "$EnumProtocolState")) {
 					f.setAccessible(true);
 					loginListenerState = f;
 					enumProtocolState = (Class<Object>) f.getType();
-				}else if(f.getType().getSimpleName().equals("EntityPlayer")) {
+				} else if (f.getType().getSimpleName().equals("EntityPlayer")) {
 					f.setAccessible(true);
 					loginListenerPlayer = f;
 				}
-				if(loginListenerServer != null && loginListenerNetManager != null && loginListenerState != null && loginListenerPlayer != null) {
+				if (loginListenerServer != null && loginListenerNetManager != null && loginListenerState != null
+						&& loginListenerPlayer != null) {
 					break;
 				}
 			}
-			if(loginListenerServer == null) {
+			if (loginListenerServer == null) {
 				throw new IllegalStateException("Could not locate server field of " + loginListenerClass.getName());
 			}
-			if(loginListenerNetManager == null) {
-				throw new IllegalStateException("Could not locate network manager field of " + loginListenerClass.getName());
+			if (loginListenerNetManager == null) {
+				throw new IllegalStateException(
+						"Could not locate network manager field of " + loginListenerClass.getName());
 			}
-			if(loginListenerState == null) {
+			if (loginListenerState == null) {
 				throw new IllegalStateException("Could not locate state field of " + loginListenerClass.getName());
 			}
-			if(loginListenerPlayer == null) {
+			if (loginListenerPlayer == null) {
 				throw new IllegalStateException("Could not locate player field of " + loginListenerClass.getName());
 			}
 			Method loginListenerTick = null;
 			Method loginListenerDisconnect = loginListenerClass.getMethod("disconnect", String.class);
-			for(Class<?> clz : loginListenerClass.getInterfaces()) {
+			for (Class<?> clz : loginListenerClass.getInterfaces()) {
 				String s = clz.getSimpleName();
-				if(s.equals("IUpdatePlayerListBox") || s.equals("ITickable")) {
+				if (s.equals("IUpdatePlayerListBox") || s.equals("ITickable")) {
 					loginListenerTick = loginListenerClass.getMethod(clz.getMethods()[0].getName());
 					break;
 				}
 			}
-			if(loginListenerTick == null) {
+			if (loginListenerTick == null) {
 				try {
 					loginListenerTick = loginListenerClass.getMethod("tick");
-				}catch(ReflectiveOperationException ex) {
+				} catch (ReflectiveOperationException ex) {
 				}
 			}
-			if(loginListenerTick == null) {
+			if (loginListenerTick == null) {
 				throw new IllegalStateException("Could not locate tick function of " + loginListenerClass.getName());
 			}
 			Object protocolStateOnResume = null;
 			Object[] obj = enumProtocolState.getEnumConstants();
-			if(obj != null && obj.length > 4) {
+			if (obj != null && obj.length > 4) {
 				protocolStateOnResume = obj[obj.length - 2];
 			}
-			if(protocolStateOnResume == null) {
-				throw new IllegalStateException("Could not locate stalling state enum of " + enumProtocolState.getName());
+			if (protocolStateOnResume == null) {
+				throw new IllegalStateException(
+						"Could not locate stalling state enum of " + enumProtocolState.getName());
 			}
 			this.loginListenerClass = loginListenerClass;
 			this.loginListenerCtor = loginListenerCtor;
-			this.loginListenerProxy = ClassProxy.bindProxy(PlayerPostLoginInjector.class.getClassLoader(), loginListenerClass);
+			this.loginListenerProxy = ClassProxy.bindProxy(PlayerPostLoginInjector.class.getClassLoader(),
+					loginListenerClass);
 			this.loginListenerServer = loginListenerServer;
 			this.loginListenerNetManager = loginListenerNetManager;
 			this.enumProtocolState = enumProtocolState;
@@ -413,74 +427,76 @@ public class PlayerPostLoginInjector {
 	}
 
 	private Object wrapLoginListener(Object loginListener, LoginEventContext ctx) {
-		if(loginListenerClass == null) {
+		if (loginListenerClass == null) {
 			bindLogin(loginListener);
 		}
-		if(!loginListenerClass.isAssignableFrom(loginListener.getClass())) {
+		if (!loginListenerClass.isAssignableFrom(loginListener.getClass())) {
 			throw new IllegalStateException("Unknown LoginListener type: " + loginListener.getClass().getName());
 		}
 		try {
 			return loginListenerProxy.createProxy(loginListenerCtor,
 					new Object[] { loginListenerServer.get(loginListener), ctx.proxiedNetworkManager },
 					(obj, meth, args) -> {
-				if(loginListenerTick.equals(meth)) {
-					try {
-						ctx.markThrowOnLoginSuccess(true);
-						try {
-							return meth.invoke(loginListener, args);
-						}finally {
-							ctx.markThrowOnLoginSuccess(false);
-						}
-					}catch(InvocationTargetException ex) {
-						Throwable er = ex.getCause();
-						if(er instanceof EaglerError err) {
-							Player player = null;
-							Iterator<Property> itr = err.gameProfile.getProperties().values().iterator();
-							while(itr.hasNext()) {
-								Property prop = itr.next();
-								if(prop.getName().startsWith("$eaglerMarker_")) {
-									Player e = entityPlayers.remove(prop);
-									if(e != null) {
-										player = e;
+						if (loginListenerTick.equals(meth)) {
+							try {
+								ctx.markThrowOnLoginSuccess(true);
+								try {
+									return meth.invoke(loginListener, args);
+								} finally {
+									ctx.markThrowOnLoginSuccess(false);
+								}
+							} catch (InvocationTargetException ex) {
+								Throwable er = ex.getCause();
+								if (er instanceof EaglerError err) {
+									Player player = null;
+									Iterator<Property> itr = err.gameProfile.getProperties().values().iterator();
+									while (itr.hasNext()) {
+										Property prop = itr.next();
+										if (prop.getName().startsWith("$eaglerMarker_")) {
+											Player e = entityPlayers.remove(prop);
+											if (e != null) {
+												player = e;
+											}
+											itr.remove();
+										}
 									}
-									itr.remove();
+									if (player != null) {
+										final Player playerFinal = player;
+										fireEventLoginPostAsync(playerFinal, ctx.channel, (res) -> {
+											try {
+												if (!res.isCancelled()) {
+													handlerAdded.set(ctx.originalNetworkManager, false);
+													ctx.channel.pipeline().replace("packet_handler", "packet_handler",
+															(ChannelHandler) ctx.originalNetworkManager);
+													Object entityPlayer = BukkitUnsafe.getHandle(playerFinal);
+													loginListenerNetManager.set(loginListener,
+															ctx.originalNetworkManager);
+													loginListenerPlayer.set(loginListener, entityPlayer);
+													loginListenerState.set(loginListener, protocolStateOnResume);
+												} else {
+													BaseComponent comp = res.getMessage();
+													if (comp == null) {
+														comp = new TextComponent("Connection Closed");
+													}
+													loginListenerDisconnect.invoke(loginListener, comp.toLegacyText());
+												}
+											} catch (ReflectiveOperationException e) {
+												throw Util.propagateReflectThrowable(e);
+											}
+										});
+										return null;
+									} else {
+										throw new IllegalStateException();
+									}
+								} else {
+									if (er instanceof RuntimeException ee)
+										throw ee;
+									throw new RuntimeException(er);
 								}
 							}
-							if(player != null) {
-								final Player playerFinal = player;
-								fireEventLoginPostAsync(playerFinal, ctx.channel, (res) -> {
-									try {
-										if(!res.isCancelled()) {
-											handlerAdded.set(ctx.originalNetworkManager, false);
-											ctx.channel.pipeline().replace("packet_handler", "packet_handler",
-													(ChannelHandler) ctx.originalNetworkManager);
-											Object entityPlayer = BukkitUnsafe.getHandle(playerFinal);
-											loginListenerNetManager.set(loginListener, ctx.originalNetworkManager);
-											loginListenerPlayer.set(loginListener, entityPlayer);
-											loginListenerState.set(loginListener, protocolStateOnResume);
-										}else {
-											BaseComponent comp = res.getMessage();
-											if(comp == null) {
-												comp = new TextComponent("Connection Closed");
-											}
-											loginListenerDisconnect.invoke(loginListener, comp.toLegacyText());
-										}
-									} catch (ReflectiveOperationException e) {
-										throw Util.propagateReflectThrowable(e);
-									}
-								});
-								return null;
-							}else {
-								throw new IllegalStateException();
-							}
-						}else {
-							if(er instanceof RuntimeException ee) throw ee;
-							throw new RuntimeException(er);
 						}
-					}
-				}
-				return meth.invoke(loginListener, args);
-			});
+						return meth.invoke(loginListener, args);
+					});
 		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}

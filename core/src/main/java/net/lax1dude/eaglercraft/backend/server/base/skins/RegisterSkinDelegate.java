@@ -55,15 +55,15 @@ abstract class RegisterSkinDelegate implements IRegisterSkinDelegate {
 	@Override
 	public void forceFromVanillaTexturesProperty(String value) {
 		TexturesResult profile = GameProfileUtil.extractSkinAndCape(value);
-		if(profile == null) {
+		if (profile == null) {
 			throw new IllegalArgumentException("Textures property data is invalid!");
 		}
-		if(profile.getSkinURL() != null) {
+		if (profile.getSkinURL() != null) {
 			skin = null;
 			skinModel = profile.getSkinModel();
 			skinURL = profile.getSkinURL();
 		}
-		if(profile.getCapeURL() != null) {
+		if (profile.getCapeURL() != null) {
 			cape = null;
 			capeURL = profile.getCapeURL();
 		}
@@ -72,17 +72,17 @@ abstract class RegisterSkinDelegate implements IRegisterSkinDelegate {
 	@Override
 	public void forceFromVanillaLoginProfile() {
 		String prop = resolveTexturesProperty();
-		if(prop != null) {
+		if (prop != null) {
 			try {
 				forceFromVanillaTexturesProperty(prop);
-			}catch(IllegalArgumentException ex) {
+			} catch (IllegalArgumentException ex) {
 			}
 		}
 	}
 
 	@Override
 	public void forceSkinFromURL(String value, EnumSkinModel model) {
-		if(value != null) {
+		if (value != null) {
 			skin = null;
 			skinModel = model;
 			skinURL = value;
@@ -92,10 +92,10 @@ abstract class RegisterSkinDelegate implements IRegisterSkinDelegate {
 	@Override
 	public void forceSkinFromVanillaTexturesProperty(String value) {
 		TexturesResult profile = GameProfileUtil.extractSkinAndCape(value);
-		if(profile == null) {
+		if (profile == null) {
 			throw new IllegalArgumentException("Textures property data is invalid!");
 		}
-		if(profile.getSkinURL() != null) {
+		if (profile.getSkinURL() != null) {
 			skin = null;
 			skinModel = profile.getSkinModel();
 			skinURL = profile.getSkinURL();
@@ -105,17 +105,17 @@ abstract class RegisterSkinDelegate implements IRegisterSkinDelegate {
 	@Override
 	public void forceSkinFromVanillaLoginProfile() {
 		String prop = resolveTexturesProperty();
-		if(prop != null) {
+		if (prop != null) {
 			try {
 				forceSkinFromVanillaTexturesProperty(prop);
-			}catch(IllegalArgumentException ex) {
+			} catch (IllegalArgumentException ex) {
 			}
 		}
 	}
 
 	@Override
 	public void forceCapeFromURL(String value) {
-		if(value != null) {
+		if (value != null) {
 			cape = null;
 			capeURL = value;
 		}
@@ -124,10 +124,10 @@ abstract class RegisterSkinDelegate implements IRegisterSkinDelegate {
 	@Override
 	public void forceCapeFromVanillaTexturesProperty(String value) {
 		TexturesResult profile = GameProfileUtil.extractSkinAndCape(value);
-		if(profile == null) {
+		if (profile == null) {
 			throw new IllegalArgumentException("Textures property data is invalid!");
 		}
-		if(profile.getCapeURL() != null) {
+		if (profile.getCapeURL() != null) {
 			cape = null;
 			capeURL = profile.getCapeURL();
 		}
@@ -136,17 +136,17 @@ abstract class RegisterSkinDelegate implements IRegisterSkinDelegate {
 	@Override
 	public void forceCapeFromVanillaLoginProfile() {
 		String prop = resolveTexturesProperty();
-		if(prop != null) {
+		if (prop != null) {
 			try {
 				forceCapeFromVanillaTexturesProperty(prop);
-			}catch(IllegalArgumentException ex) {
+			} catch (IllegalArgumentException ex) {
 			}
 		}
 	}
 
 	@Override
 	public void forceSkinEagler(IEaglerPlayerSkin skin) {
-		if(skin != null) {
+		if (skin != null) {
 			skinURL = null;
 			this.skin = skin;
 		}
@@ -154,25 +154,25 @@ abstract class RegisterSkinDelegate implements IRegisterSkinDelegate {
 
 	@Override
 	public void forceCapeEagler(IEaglerPlayerCape cape) {
-		if(cape != null) {
+		if (cape != null) {
 			capeURL = null;
 			this.cape = cape;
 		}
 	}
 
-	void handleComplete(EaglerPlayerInstance<?> player, IEaglerPlayerSkin skinResult,
-			IEaglerPlayerCape capeResult, BiConsumer<IEaglerPlayerSkin, IEaglerPlayerCape> onComplete) {
-		if(skinResult == null) {
+	void handleComplete(EaglerPlayerInstance<?> player, IEaglerPlayerSkin skinResult, IEaglerPlayerCape capeResult,
+			BiConsumer<IEaglerPlayerSkin, IEaglerPlayerCape> onComplete) {
+		if (skinResult == null) {
 			skinResult = skinOriginal;
-		}else if(!skinResult.equals(skinOriginal)) {
-			if(player.getEaglerProtocol().ver >= 4) {
+		} else if (!skinResult.equals(skinOriginal)) {
+			if (player.getEaglerProtocol().ver >= 4) {
 				player.sendEaglerMessage(skinResult.getForceSkinPacketV4());
 			}
 		}
-		if(capeResult == null) {
+		if (capeResult == null) {
 			capeResult = capeOriginal;
-		}else if(!capeResult.equals(capeOriginal)) {
-			if(player.getEaglerProtocol().ver >= 4) {
+		} else if (!capeResult.equals(capeOriginal)) {
+			if (player.getEaglerProtocol().ver >= 4) {
 				player.sendEaglerMessage(capeResult.getForceCapePacketV4());
 			}
 		}

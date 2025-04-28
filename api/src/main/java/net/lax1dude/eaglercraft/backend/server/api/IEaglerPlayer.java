@@ -35,7 +35,7 @@ public interface IEaglerPlayer<PlayerObject> extends IBasePlayer<PlayerObject>, 
 	void sendEaglerMessage(@Nonnull GameMessagePacket packet);
 
 	@Nonnull
-	@Override 
+	@Override
 	ISkinManagerEagler<PlayerObject> getSkinManager();
 
 	@Nonnull

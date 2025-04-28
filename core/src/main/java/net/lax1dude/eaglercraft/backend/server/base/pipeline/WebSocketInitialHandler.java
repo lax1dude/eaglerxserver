@@ -35,20 +35,21 @@ public class WebSocketInitialHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		try {
-			if(!ctx.channel().isActive()) {
+			if (!ctx.channel().isActive()) {
 				return;
 			}
-			if(msg instanceof BinaryWebSocketFrame msg2) {
-				NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
-				if(pipelineData.initStall) {
+			if (msg instanceof BinaryWebSocketFrame msg2) {
+				NettyPipelineData pipelineData = ctx.channel()
+						.attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
+				if (pipelineData.initStall) {
 					return;
 				}
-				if(!pipelineData.processRealAddress()) {
+				if (!pipelineData.processRealAddress()) {
 					pipelineData.initStall = true;
 					ctx.close();
 					return;
 				}
-				if(!pipelineData.processLoginRatelimit(ctx)) {
+				if (!pipelineData.processLoginRatelimit(ctx)) {
 					pipelineData.initStall = true;
 					return;
 				}
@@ -60,12 +61,13 @@ public class WebSocketInitialHandler extends ChannelInboundHandlerAdapter {
 						WebSocketEaglerFrameCodec.INSTANCE);
 				pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_INJECTED_FRAME_HANDLERS);
 				ctx.fireChannelRead(msg2.content().retain());
-			}else if(msg instanceof TextWebSocketFrame msg2) {
-				NettyPipelineData pipelineData = ctx.channel().attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
-				if(pipelineData.initStall) {
+			} else if (msg instanceof TextWebSocketFrame msg2) {
+				NettyPipelineData pipelineData = ctx.channel()
+						.attr(PipelineAttributes.<NettyPipelineData>pipelineData()).get();
+				if (pipelineData.initStall) {
 					return;
 				}
-				if(!pipelineData.processQueryRatelimit(ctx)) {
+				if (!pipelineData.processQueryRatelimit(ctx)) {
 					pipelineData.initStall = true;
 					return;
 				}
@@ -75,10 +77,10 @@ public class WebSocketInitialHandler extends ChannelInboundHandlerAdapter {
 						new WebSocketQueryHandler(pipelineData.server, pipelineData));
 				pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_STATE_WEBSOCKET_QUERY);
 				ctx.fireChannelRead(msg2.retain());
-			}else {
+			} else {
 				ctx.close();
 			}
-		}finally {
+		} finally {
 			ReferenceCountUtil.release(msg);
 		}
 	}

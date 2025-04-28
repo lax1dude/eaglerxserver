@@ -72,16 +72,16 @@ public class SPacketSvRPCResultMulti extends AbstractReferenceCounted implements
 		requestUUID = new UUID(buffer.readLong(), buffer.readLong());
 		int cnt = EaglerSupervisorPacket.readVarInt(buffer);
 		results = new ArrayList<>(cnt);
-		for(int i = 0; i < cnt; ++i) {
+		for (int i = 0; i < cnt; ++i) {
 			int nodeId = EaglerSupervisorPacket.readVarInt(buffer);
 			int var2 = EaglerSupervisorPacket.readVarInt(buffer);
-			if(var2 > 0) {
+			if (var2 > 0) {
 				ByteBuf data = null;
-				if(var2 > 1) {
+				if (var2 > 1) {
 					data = buffer.readRetainedSlice(var2 - 1);
 				}
 				results.add(ResultEntry.success(nodeId, data));
-			}else {
+			} else {
 				results.add(ResultEntry.failure(nodeId, buffer.readUnsignedByte()));
 			}
 		}
@@ -92,17 +92,17 @@ public class SPacketSvRPCResultMulti extends AbstractReferenceCounted implements
 		buffer.writeLong(requestUUID.getMostSignificantBits());
 		buffer.writeLong(requestUUID.getLeastSignificantBits());
 		EaglerSupervisorPacket.writeVarInt(buffer, results.size());
-		for(ResultEntry etr : results) {
+		for (ResultEntry etr : results) {
 			EaglerSupervisorPacket.writeVarInt(buffer, etr.nodeId);
-			if(etr.status == 0) {
+			if (etr.status == 0) {
 				int l;
-				if(etr.dataBuffer != null && (l = etr.dataBuffer.readableBytes()) > 0) {
+				if (etr.dataBuffer != null && (l = etr.dataBuffer.readableBytes()) > 0) {
 					EaglerSupervisorPacket.writeVarInt(buffer, l + 1);
 					buffer.writeBytes(etr.dataBuffer, etr.dataBuffer.readerIndex(), l);
-				}else {
+				} else {
 					buffer.writeByte(1);
 				}
-			}else {
+			} else {
 				buffer.writeByte(0);
 				buffer.writeByte(etr.status - 1);
 			}
@@ -121,7 +121,7 @@ public class SPacketSvRPCResultMulti extends AbstractReferenceCounted implements
 
 	@Override
 	protected void deallocate() {
-		for(ResultEntry etr : results) {
+		for (ResultEntry etr : results) {
 			etr.release();
 		}
 	}

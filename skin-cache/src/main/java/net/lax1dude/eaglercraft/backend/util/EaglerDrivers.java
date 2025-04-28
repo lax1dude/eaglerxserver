@@ -36,33 +36,35 @@ public class EaglerDrivers {
 
 	private static Driver initializeDriver(String address, String driverClass, File baseFolder, ILoggerAdapter logger) {
 		ClassLoader classLoader;
-		if(address.equalsIgnoreCase("classpath")) {
+		if (address.equalsIgnoreCase("classpath")) {
 			classLoader = EaglerDrivers.class.getClassLoader();
-		}else {
+		} else {
 			classLoader = driversJARs.get(address);
-			if(classLoader == null) {
+			if (classLoader == null) {
 				File driver;
-				if(address.equalsIgnoreCase("internal")) {
+				if (address.equalsIgnoreCase("internal")) {
 					driver = new File(baseFolder, "drivers/sqlite-jdbc.jar");
 					driver.getParentFile().mkdirs();
-					if(!driver.exists()) {
+					if (!driver.exists()) {
 						try {
-							URL u = new URL("https://repo1.maven.org/maven2/org/xerial/sqlite-jdbc/3.48.0.0/sqlite-jdbc-3.48.0.0.jar");
+							URL u = new URL(
+									"https://repo1.maven.org/maven2/org/xerial/sqlite-jdbc/3.48.0.0/sqlite-jdbc-3.48.0.0.jar");
 							logger.info("Downloading from maven: " + u);
 							copyURLToFile(u, driver);
 						} catch (Throwable ex) {
 							logger.error("Could not download sqlite-jdbc.jar from repo1.maven.org!");
-							logger.error("Please download \"org.xerial:sqlite-jdbc:3.48.0.0\" jar to file: " + driver.getAbsolutePath());
+							logger.error("Please download \"org.xerial:sqlite-jdbc:3.48.0.0\" jar to file: "
+									+ driver.getAbsolutePath());
 							throw new ExceptionInInitializerError(ex);
 						}
 					}
-				}else {
+				} else {
 					driver = new File(address);
 				}
 				URL driverURL;
 				try {
 					driverURL = driver.toURI().toURL();
-				}catch(MalformedURLException ex) {
+				} catch (MalformedURLException ex) {
 					logger.error("Invalid JDBC driver path: " + address);
 					throw new ExceptionInInitializerError(ex);
 				}
@@ -70,22 +72,22 @@ public class EaglerDrivers {
 				driversJARs.put(address, classLoader);
 			}
 		}
-		
+
 		Class<?> loadedDriver;
 		try {
 			loadedDriver = classLoader.loadClass(driverClass);
-		}catch(ClassNotFoundException ex) {
+		} catch (ClassNotFoundException ex) {
 			logger.error("Could not find JDBC driver class: " + driverClass);
 			throw new ExceptionInInitializerError(ex);
 		}
 		Driver sqlDriver = null;
 		try {
 			sqlDriver = (Driver) loadedDriver.getConstructor().newInstance();
-		}catch(Throwable ex) {
+		} catch (Throwable ex) {
 			logger.error("Could not initialize JDBC driver class: " + driverClass);
 			throw new ExceptionInInitializerError(ex);
 		}
-		
+
 		return sqlDriver;
 	}
 
@@ -94,20 +96,20 @@ public class EaglerDrivers {
 
 	public static Connection connectToDatabase(String address, String driverClass, String driverPath, Properties props,
 			File baseFolder, ILoggerAdapter logger) throws SQLException {
-		if(driverClass.equalsIgnoreCase("internal")) {
+		if (driverClass.equalsIgnoreCase("internal")) {
 			driverClass = "org.sqlite.JDBC";
 		}
-		if(driverPath == null) {
+		if (driverPath == null) {
 			try {
 				Class.forName(driverClass);
 			} catch (ClassNotFoundException e) {
 				throw new SQLException("Driver class not found in JRE: " + driverClass, e);
 			}
 			return DriverManager.getConnection(address, props);
-		}else {
+		} else {
 			String driverMapPath = "" + driverPath + "?" + driverClass;
 			Driver dv = driversDrivers.get(driverMapPath);
-			if(dv == null) {
+			if (dv == null) {
 				dv = initializeDriver(driverPath, driverClass, baseFolder, logger);
 				driversDrivers.put(driverMapPath, dv);
 			}
@@ -116,11 +118,11 @@ public class EaglerDrivers {
 	}
 
 	private static void copyURLToFile(URL url, File file) throws IOException {
-		try(InputStream is = url.openStream()) {
-			try(OutputStream os = new FileOutputStream(file)) {
+		try (InputStream is = url.openStream()) {
+			try (OutputStream os = new FileOutputStream(file)) {
 				byte[] buf = new byte[32768];
 				int i;
-				while((i = is.read(buf)) != -1) {
+				while ((i = is.read(buf)) != -1) {
 					os.write(buf, 0, i);
 				}
 			}

@@ -33,21 +33,21 @@ public interface EaglerBackendRPCPacket {
 	int length();
 
 	public static void writeString(DataOutput buffer, String str, boolean len16, Charset charset) throws IOException {
-		if(str == null || str.length() == 0) {
-			if(len16) {
+		if (str == null || str.length() == 0) {
+			if (len16) {
 				buffer.writeShort(0);
-			}else {
+			} else {
 				buffer.writeByte(0);
 			}
 			return;
 		}
 		byte[] bytes = str.getBytes(charset);
-		if(bytes.length > (len16 ? 65535 : 255)) {
+		if (bytes.length > (len16 ? 65535 : 255)) {
 			throw new IOException("String is too long!");
 		}
-		if(len16) {
+		if (len16) {
 			buffer.writeShort(bytes.length);
-		}else {
+		} else {
 			buffer.writeByte(bytes.length);
 		}
 		buffer.write(bytes);
@@ -55,16 +55,16 @@ public interface EaglerBackendRPCPacket {
 
 	public static String readString(DataInput buffer, int maxLen, boolean len16, Charset charset) throws IOException {
 		int len = len16 ? buffer.readUnsignedShort() : buffer.readUnsignedByte();
-		if(len > maxLen) {
+		if (len > maxLen) {
 			throw new IOException("String is too long!");
 		}
-		if(len == 0) {
+		if (len == 0) {
 			return "";
 		}
 		byte[] toRead = new byte[len];
 		buffer.readFully(toRead);
 		String ret = new String(toRead, charset);
-		if(charset != StandardCharsets.US_ASCII && ret.length() > maxLen) {
+		if (charset != StandardCharsets.US_ASCII && ret.length() > maxLen) {
 			throw new IOException("String is too long!");
 		}
 		return ret;

@@ -98,10 +98,10 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public synchronized void addCloseListener(IRPCCloseHandler handler) {
-		if(handler == null) {
+		if (handler == null) {
 			throw new NullPointerException("handler");
 		}
-		if(closeListeners == null) {
+		if (closeListeners == null) {
 			closeListeners = Collections.newSetFromMap(new HashMap<>(4));
 		}
 		closeListeners.add(handler);
@@ -109,27 +109,27 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public synchronized void removeCloseListener(IRPCCloseHandler handler) {
-		if(handler == null) {
+		if (handler == null) {
 			throw new NullPointerException("handler");
 		}
-		if(closeListeners != null && closeListeners.remove(handler) && closeListeners.isEmpty()) {
+		if (closeListeners != null && closeListeners.remove(handler) && closeListeners.isEmpty()) {
 			closeListeners = null;
 		}
 	}
 
 	void fireCloseListeners() {
 		Object[] handlers;
-		synchronized(this) {
-			if(closeListeners == null) {
+		synchronized (this) {
+			if (closeListeners == null) {
 				return;
 			}
 			handlers = closeListeners.toArray();
 		}
-		for(int i = 0; i < handlers.length; ++i) {
+		for (int i = 0; i < handlers.length; ++i) {
 			IRPCCloseHandler handler = (IRPCCloseHandler) handlers[i];
 			try {
 				handler.handleClosed();
-			}catch(Exception ex) {
+			} catch (Exception ex) {
 				owner.logger().error("Caught exception while calling RPC close listener", ex);
 			}
 		}
@@ -150,11 +150,11 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 		ISkinManagerBase<PlayerObject> skinMgr = delegate.getSkinManager();
 		net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin skin;
 		skin = skinMgr.getPlayerSkinIfLoaded();
-		if(skin != null) {
+		if (skin != null) {
 			return RPCImmediateFuture.create(schedulerExecutors, SkinTypesHelper.wrap(skin));
-		}else {
-			RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin> consumerFuture
-					= new RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin>(schedulerExecutors) {
+		} else {
+			RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin> consumerFuture = new RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin>(
+					schedulerExecutors) {
 				@Override
 				public void accept(net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin t) {
 					set(SkinTypesHelper.wrap(skin));
@@ -172,7 +172,7 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public void changePlayerSkin(IEaglerPlayerSkin skin, boolean notifyOthers) {
-		if(skin == null) {
+		if (skin == null) {
 			throw new NullPointerException("skin");
 		}
 		delegate.getSkinManager().changePlayerSkin(SkinTypesHelper.unwrap(skin), notifyOthers);
@@ -180,7 +180,7 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public void changePlayerSkin(EnumPresetSkins skin, boolean notifyOthers) {
-		if(skin == null) {
+		if (skin == null) {
 			throw new NullPointerException("skin");
 		}
 		delegate.getSkinManager().changePlayerSkin(SkinTypesHelper.unwrap(skin), notifyOthers);
@@ -191,11 +191,11 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 		ISkinManagerBase<PlayerObject> skinMgr = delegate.getSkinManager();
 		net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape cape;
 		cape = skinMgr.getPlayerCapeIfLoaded();
-		if(cape != null) {
+		if (cape != null) {
 			return RPCImmediateFuture.create(schedulerExecutors, SkinTypesHelper.wrap(cape));
-		}else {
-			RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape, IEaglerPlayerCape> consumerFuture
-					= new RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape, IEaglerPlayerCape>(schedulerExecutors) {
+		} else {
+			RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape, IEaglerPlayerCape> consumerFuture = new RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape, IEaglerPlayerCape>(
+					schedulerExecutors) {
 				@Override
 				public void accept(net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape cape) {
 					set(SkinTypesHelper.wrap(cape));
@@ -213,7 +213,7 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public void changePlayerCape(IEaglerPlayerCape cape, boolean notifyOthers) {
-		if(cape == null) {
+		if (cape == null) {
 			throw new NullPointerException("cape");
 		}
 		delegate.getSkinManager().changePlayerCape(SkinTypesHelper.unwrap(cape), notifyOthers);
@@ -221,7 +221,7 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public void changePlayerCape(EnumPresetCapes cape, boolean notifyOthers) {
-		if(cape == null) {
+		if (cape == null) {
 			throw new NullPointerException("cape");
 		}
 		delegate.getSkinManager().changePlayerCape(SkinTypesHelper.unwrap(cape), notifyOthers);
@@ -234,13 +234,15 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 		net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape cape;
 		skin = skinMgr.getPlayerSkinIfLoaded();
 		cape = skinMgr.getPlayerCapeIfLoaded();
-		if(skin != null && cape != null) {
-			return RPCImmediateFuture.create(schedulerExecutors, TexturesData.create(SkinTypesHelper.wrap(skin), SkinTypesHelper.wrap(cape)));
-		}else {
-			RPCBiConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape, TexturesData> consumerFuture
-					= new RPCBiConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape, TexturesData>(schedulerExecutors) {
+		if (skin != null && cape != null) {
+			return RPCImmediateFuture.create(schedulerExecutors,
+					TexturesData.create(SkinTypesHelper.wrap(skin), SkinTypesHelper.wrap(cape)));
+		} else {
+			RPCBiConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape, TexturesData> consumerFuture = new RPCBiConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape, TexturesData>(
+					schedulerExecutors) {
 				@Override
-				public void accept(net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin skin, net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape cape) {
+				public void accept(net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin skin,
+						net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape cape) {
 					set(TexturesData.create(SkinTypesHelper.wrap(skin), SkinTypesHelper.wrap(cape)));
 				}
 			};
@@ -256,24 +258,26 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public void changePlayerTextures(IEaglerPlayerSkin skin, IEaglerPlayerCape cape, boolean notifyOthers) {
-		if(skin == null) {
+		if (skin == null) {
 			throw new NullPointerException("skin");
 		}
-		if(cape == null) {
+		if (cape == null) {
 			throw new NullPointerException("cape");
 		}
-		delegate.getSkinManager().changePlayerTextures(SkinTypesHelper.unwrap(skin), SkinTypesHelper.unwrap(cape), notifyOthers);
+		delegate.getSkinManager().changePlayerTextures(SkinTypesHelper.unwrap(skin), SkinTypesHelper.unwrap(cape),
+				notifyOthers);
 	}
 
 	@Override
 	public void changePlayerTextures(EnumPresetSkins skin, EnumPresetCapes cape, boolean notifyOthers) {
-		if(skin == null) {
+		if (skin == null) {
 			throw new NullPointerException("skin");
 		}
-		if(cape == null) {
+		if (cape == null) {
 			throw new NullPointerException("cape");
 		}
-		delegate.getSkinManager().changePlayerTextures(SkinTypesHelper.unwrap(skin), SkinTypesHelper.unwrap(cape), notifyOthers);
+		delegate.getSkinManager().changePlayerTextures(SkinTypesHelper.unwrap(skin), SkinTypesHelper.unwrap(cape),
+				notifyOthers);
 	}
 
 	@Override
@@ -323,11 +327,11 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public IRPCFuture<IEaglerPlayerSkin> getSkinByURL(String url) {
-		if(url == null) {
+		if (url == null) {
 			throw new NullPointerException("url");
 		}
-		RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin> consumerFuture
-				= new RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin>(schedulerExecutors) {
+		RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin> consumerFuture = new RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin>(
+				schedulerExecutors) {
 			@Override
 			public void accept(net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin skin) {
 				set(SkinTypesHelper.wrap(skin));
@@ -344,20 +348,21 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public IRPCFuture<IEaglerPlayerSkin> getSkinByURL(String url, EnumSkinModel modelId) {
-		if(url == null) {
+		if (url == null) {
 			throw new NullPointerException("url");
 		}
-		if(modelId == null) {
+		if (modelId == null) {
 			throw new NullPointerException("modelId");
 		}
-		RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin> consumerFuture
-				= new RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin>(schedulerExecutors) {
+		RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin> consumerFuture = new RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin, IEaglerPlayerSkin>(
+				schedulerExecutors) {
 			@Override
 			public void accept(net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin skin) {
 				set(SkinTypesHelper.wrap(skin));
 			}
 		};
-		delegate.getServerAPI().getSkinService().loadCacheSkinFromURL(url, SkinTypesHelper.unwrap(modelId), consumerFuture);
+		delegate.getServerAPI().getSkinService().loadCacheSkinFromURL(url, SkinTypesHelper.unwrap(modelId),
+				consumerFuture);
 		return consumerFuture;
 	}
 
@@ -368,11 +373,11 @@ public class BasePlayerRPCLocal<PlayerObject> implements IBasePlayerRPC<PlayerOb
 
 	@Override
 	public IRPCFuture<IEaglerPlayerCape> getCapeByURL(String url) {
-		if(url == null) {
+		if (url == null) {
 			throw new NullPointerException("url");
 		}
-		RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape, IEaglerPlayerCape> consumerFuture
-				= new RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape, IEaglerPlayerCape>(schedulerExecutors) {
+		RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape, IEaglerPlayerCape> consumerFuture = new RPCConsumerFuture<net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape, IEaglerPlayerCape>(
+				schedulerExecutors) {
 			@Override
 			public void accept(net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape skin) {
 				set(SkinTypesHelper.wrap(skin));

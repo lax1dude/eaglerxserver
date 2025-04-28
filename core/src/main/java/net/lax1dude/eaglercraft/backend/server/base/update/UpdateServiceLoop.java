@@ -43,7 +43,7 @@ public class UpdateServiceLoop {
 	}
 
 	public void stop() {
-		if(task != null) {
+		if (task != null) {
 			task.cancel();
 			task = null;
 		}
@@ -55,9 +55,9 @@ public class UpdateServiceLoop {
 
 	public void pushRunnable(IUpdateServiceLoopRunnable runnable) {
 		queue.add(runnable);
-		if(queue.size() > MAX_QUEUE_LENGTH) {
+		if (queue.size() > MAX_QUEUE_LENGTH) {
 			IUpdateServiceLoopRunnable itm = queue.poll();
-			if(itm != null) {
+			if (itm != null) {
 				itm.run();
 			}
 		}
@@ -65,11 +65,11 @@ public class UpdateServiceLoop {
 
 	private void loop() {
 		int total = 0;
-		while(total < tickDataRateLimit) {
+		while (total < tickDataRateLimit) {
 			IUpdateServiceLoopRunnable itm = queue.poll();
-			if(itm != null) {
+			if (itm != null) {
 				total += itm.run();
-			}else {
+			} else {
 				break;
 			}
 		}

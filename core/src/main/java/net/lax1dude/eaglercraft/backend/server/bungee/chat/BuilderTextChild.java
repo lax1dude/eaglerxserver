@@ -26,7 +26,7 @@ class BuilderTextChild<ParentType> extends BuilderTextBase<ParentType> {
 
 	@Override
 	public ParentType end() {
-		((IAppendCallback)parent).append(build());
+		((IAppendCallback) parent).append(build());
 		return parent;
 	}
 

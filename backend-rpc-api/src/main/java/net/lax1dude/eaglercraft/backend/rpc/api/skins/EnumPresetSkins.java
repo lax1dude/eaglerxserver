@@ -83,7 +83,7 @@ public enum EnumPresetSkins {
 	static {
 		EnumPresetSkins[] skins = values();
 		EnumPresetSkins[] arr = new EnumPresetSkins[32];
-		for(int i = 0; i < skins.length; ++i) {
+		for (int i = 0; i < skins.length; ++i) {
 			arr[skins[i].presetId] = skins[i];
 		}
 		VALUES = arr;

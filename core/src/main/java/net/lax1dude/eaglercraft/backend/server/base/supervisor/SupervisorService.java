@@ -48,7 +48,8 @@ public class SupervisorService<PlayerObject>
 		try {
 			MethodHandles.Lookup l = MethodHandles.lookup();
 			SERVICE_STATE_TRACKER_HANDLE = l.findVarHandle(SupervisorService.class, "serviceStateTracker", int.class);
-			CURRENT_CONNECTION_HANDLE = l.findVarHandle(SupervisorService.class, "currentConnection", SupervisorConnection.class);
+			CURRENT_CONNECTION_HANDLE = l.findVarHandle(SupervisorService.class, "currentConnection",
+					SupervisorConnection.class);
 		} catch (ReflectiveOperationException e) {
 			throw new ExceptionInInitializerError(e);
 		}
@@ -101,29 +102,29 @@ public class SupervisorService<PlayerObject>
 
 	@Override
 	public boolean isSupervisorConnected() {
-		return (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this) != null;
+		return (SupervisorConnection) CURRENT_CONNECTION_HANDLE.getAcquire(this) != null;
 	}
 
 	@Override
 	public SupervisorConnection getConnection() {
-		return (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
+		return (SupervisorConnection) CURRENT_CONNECTION_HANDLE.getAcquire(this);
 	}
 
 	@Override
 	public int getNodeId() {
-		SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
+		SupervisorConnection conn = (SupervisorConnection) CURRENT_CONNECTION_HANDLE.getAcquire(this);
 		return conn != null ? conn.getNodeId() : -1;
 	}
 
 	@Override
 	public int getPlayerTotal() {
-		SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
+		SupervisorConnection conn = (SupervisorConnection) CURRENT_CONNECTION_HANDLE.getAcquire(this);
 		return conn != null ? conn.getPlayerTotal() : server.getPlatform().getPlayerTotal();
 	}
 
 	@Override
 	public int getPlayerMax() {
-		SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
+		SupervisorConnection conn = (SupervisorConnection) CURRENT_CONNECTION_HANDLE.getAcquire(this);
 		return conn != null ? conn.getPlayerMax() : server.getPlatform().getPlayerMax();
 	}
 
@@ -145,21 +146,21 @@ public class SupervisorService<PlayerObject>
 	@Override
 	public void handleEnable() {
 		initiateConnection();
-		if(pingTask != null) {
+		if (pingTask != null) {
 			pingTask.cancel();
 		}
 		pingTask = server.getPlatform().getScheduler().executeAsyncRepeatingTask(() -> {
-			SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
-			if(conn != null) {
+			SupervisorConnection conn = (SupervisorConnection) CURRENT_CONNECTION_HANDLE.getAcquire(this);
+			if (conn != null) {
 				conn.updatePing(Util.steadyTime());
 			}
 		}, 500l, 1000l);
-		if(timeoutHandshakeTask != null) {
+		if (timeoutHandshakeTask != null) {
 			timeoutHandshakeTask.cancel();
 		}
 		timeoutHandshakeTask = server.getPlatform().getScheduler().executeAsyncRepeatingTask(() -> {
-			SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
-			if(conn != null) {
+			SupervisorConnection conn = (SupervisorConnection) CURRENT_CONNECTION_HANDLE.getAcquire(this);
+			if (conn != null) {
 				conn.expireHandshakes(Util.steadyTime());
 			}
 		}, 5000l, 5000l);
@@ -171,18 +172,18 @@ public class SupervisorService<PlayerObject>
 		server.logger().info("Attempting to terminate supervisor client");
 		SERVICE_STATE_TRACKER_HANDLE.setVolatile(this, -1);
 		SupervisorConnection handler = (SupervisorConnection) CURRENT_CONNECTION_HANDLE.getAndSet(this, null);
-		if(handler != null) {
+		if (handler != null) {
 			try {
 				handler.getChannel().close().await();
 			} catch (InterruptedException e) {
 			}
 		}
 		onConnectionEnd();
-		if(pingTask != null) {
+		if (pingTask != null) {
 			pingTask.cancel();
 			pingTask = null;
 		}
-		if(timeoutHandshakeTask != null) {
+		if (timeoutHandshakeTask != null) {
 			timeoutHandshakeTask.cancel();
 			timeoutHandshakeTask = null;
 		}
@@ -196,18 +197,18 @@ public class SupervisorService<PlayerObject>
 	}
 
 	public void initiateConnection() {
-		if(SERVICE_STATE_TRACKER_HANDLE.compareAndSet(this, 0, 1)) {
+		if (SERVICE_STATE_TRACKER_HANDLE.compareAndSet(this, 0, 1)) {
 			PipelineFactory.initiateConnection(server, config.getSupervisorAddress(), this,
 					config.getSupervisorConnectTimeout(), config.getSupervisorReadTimeout());
 		}
 	}
 
 	void handleChannelOpen(SupervisorPacketHandler h) {
-		if(SERVICE_STATE_TRACKER_HANDLE.compareAndSet(this, 1, 2)) {
+		if (SERVICE_STATE_TRACKER_HANDLE.compareAndSet(this, 1, 2)) {
 			logger().info("Channel to supervisor opened");
 			h.channelWrite(new CPacketSvHandshake(new int[] { EaglerSupervisorProtocol.V1.vers },
 					config.getSupervisorSecret()));
-		}else {
+		} else {
 			logger().error("Unexpected supervisor channel open");
 			h.getChannel().close();
 		}
@@ -216,21 +217,21 @@ public class SupervisorService<PlayerObject>
 	void handleChannelFailure() {
 		int state;
 		do {
-			state = (int)SERVICE_STATE_TRACKER_HANDLE.getOpaque(this);
-			if(state <= 0) {
+			state = (int) SERVICE_STATE_TRACKER_HANDLE.getOpaque(this);
+			if (state <= 0) {
 				return;
 			}
-		}while(!SERVICE_STATE_TRACKER_HANDLE.compareAndSet(this, state, 0));
+		} while (!SERVICE_STATE_TRACKER_HANDLE.compareAndSet(this, state, 0));
 		logger().error("Failed to open supervisor channel! Retrying...");
 		server.getPlatform().getScheduler().executeAsyncDelayed(this::initiateConnection, 1000l);
 	}
 
 	void handleHandshakeSuccess(SupervisorPacketHandler h, int nodeId) {
-		if(SERVICE_STATE_TRACKER_HANDLE.compareAndSet(this, 2, 3)) {
+		if (SERVICE_STATE_TRACKER_HANDLE.compareAndSet(this, 2, 3)) {
 			logger().info("Supervisor handshake successful");
 			logger().info("Assigned node ID " + nodeId);
 			onNewConnection(h, nodeId);
-		}else {
+		} else {
 			logger().error("Unexpected supervisor handshake success");
 			h.getChannel().close();
 		}
@@ -244,11 +245,11 @@ public class SupervisorService<PlayerObject>
 	void handleDisconnected() {
 		int state;
 		do {
-			state = (int)SERVICE_STATE_TRACKER_HANDLE.getOpaque(this);
-			if(state <= 0) {
+			state = (int) SERVICE_STATE_TRACKER_HANDLE.getOpaque(this);
+			if (state <= 0) {
 				return;
 			}
-		}while(!SERVICE_STATE_TRACKER_HANDLE.compareAndSet(this, state, 0));
+		} while (!SERVICE_STATE_TRACKER_HANDLE.compareAndSet(this, state, 0));
 		onConnectionEnd();
 		server.logger().error("Connection to supervisor was lost! Attempting to reconnect...");
 		server.getPlatform().getScheduler().executeAsyncDelayed(this::initiateConnection, 1000l);
@@ -264,13 +265,13 @@ public class SupervisorService<PlayerObject>
 		default -> CPacketSvProxyBrand.PROXY_TYPE_EAGLER_STANDALONE;
 		}, server.getPlatform().getVersion(), CPacketSvProxyBrand.PLUGIN_TYPE_EAGLERXSERVER, server.getServerBrand(),
 				server.getServerVersion()));
-		for(BasePlayerInstance<PlayerObject> player : server.getAllPlayersInternal()) {
+		for (BasePlayerInstance<PlayerObject> player : server.getAllPlayersInternal()) {
 			EaglerPlayerInstance<PlayerObject> dat = player.asEaglerPlayer();
 			newConnection.acceptPlayer(player.getUniqueId(),
 					dat != null ? dat.getEaglerBrandUUID() : IBrandRegistry.BRAND_VANILLA,
-					player.getMinecraftProtocol(), dat != null ? dat.getEaglerProtocol().ver : 0,
-					player.getUsername(), (res) -> {
-						if(res != EnumAcceptPlayer.ACCEPT) {
+					player.getMinecraftProtocol(), dat != null ? dat.getEaglerProtocol().ver : 0, player.getUsername(),
+					(res) -> {
+						if (res != EnumAcceptPlayer.ACCEPT) {
 							logger().error("Could not reregister player '" + player.getUsername()
 									+ "' with supervisor! Result: " + res.name());
 							player.disconnect(server.componentBuilder().buildTextComponent()
@@ -284,7 +285,7 @@ public class SupervisorService<PlayerObject>
 
 	private void onConnectionEnd() {
 		SupervisorConnection handler = (SupervisorConnection) CURRENT_CONNECTION_HANDLE.getAndSet(this, null);
-		if(handler != null) {
+		if (handler != null) {
 			handler.onConnectionEnd();
 		}
 		resolver.onConnectionEnd();
@@ -293,13 +294,13 @@ public class SupervisorService<PlayerObject>
 	@Override
 	public void acceptPlayer(UUID playerUUID, UUID brandUUID, int gameProtocol, int eaglerProtocol, String username,
 			Consumer<EnumAcceptPlayer> callback) {
-		SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
-		if(conn != null) {
+		SupervisorConnection conn = (SupervisorConnection) CURRENT_CONNECTION_HANDLE.getAcquire(this);
+		if (conn != null) {
 			conn.acceptPlayer(playerUUID, brandUUID, gameProtocol, eaglerProtocol, username, callback);
-		}else {
+		} else {
 			try {
 				callback.accept(EnumAcceptPlayer.SUPERVISOR_UNAVAILABLE);
-			}catch(Exception ex) {
+			} catch (Exception ex) {
 				logger().error("Caught exception from supervisor player accept callback", ex);
 			}
 		}
@@ -307,16 +308,16 @@ public class SupervisorService<PlayerObject>
 
 	@Override
 	public void dropOwnPlayer(UUID clientUUID) {
-		SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
-		if(conn != null) {
+		SupervisorConnection conn = (SupervisorConnection) CURRENT_CONNECTION_HANDLE.getAcquire(this);
+		if (conn != null) {
 			conn.dropOwnPlayer(clientUUID);
 		}
 	}
 
 	@Override
 	public void notifySkinChange(UUID playerUUID, String serverName, boolean skin, boolean cape) {
-		SupervisorConnection conn = (SupervisorConnection)CURRENT_CONNECTION_HANDLE.getAcquire(this);
-		if(conn != null) {
+		SupervisorConnection conn = (SupervisorConnection) CURRENT_CONNECTION_HANDLE.getAcquire(this);
+		if (conn != null) {
 			conn.notifySkinChange(playerUUID, serverName, skin, cape);
 		}
 	}

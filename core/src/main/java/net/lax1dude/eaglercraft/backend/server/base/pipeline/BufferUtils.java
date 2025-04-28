@@ -31,13 +31,13 @@ public class BufferUtils {
 		try {
 			ByteBuf.class.getMethod("readCharSequence", int.class, Charset.class);
 			b = true;
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 		}
 		CHARSEQ_SUPPORT = b;
 		try {
 			ByteBuf.class.getMethod("readRetainedSlice", int.class);
 			b = true;
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 		}
 		RETAINEDSLICE_SUPPORT = b;
 	}
@@ -113,9 +113,9 @@ public class BufferUtils {
 	}
 
 	public static CharSequence readCharSequence(ByteBuf buffer, int len, Charset charset) {
-		if(CHARSEQ_SUPPORT) {
+		if (CHARSEQ_SUPPORT) {
 			return buffer.readCharSequence(len, charset);
-		}else {
+		} else {
 			byte[] buf = new byte[len];
 			buffer.readBytes(buf);
 			return new String(buf, charset);
@@ -123,9 +123,9 @@ public class BufferUtils {
 	}
 
 	public static int writeCharSequence(ByteBuf buffer, CharSequence seq, Charset charset) {
-		if(CHARSEQ_SUPPORT) {
+		if (CHARSEQ_SUPPORT) {
 			return buffer.writeCharSequence(seq, charset);
-		}else {
+		} else {
 			byte[] bytes = seq.toString().getBytes(charset);
 			buffer.writeBytes(bytes);
 			return bytes.length;
@@ -134,11 +134,11 @@ public class BufferUtils {
 
 	public static String readLegacyMCString(ByteBuf buffer, int maxLen) {
 		int len = buffer.readUnsignedShort();
-		if(len > maxLen) {
+		if (len > maxLen) {
 			throw new IndexOutOfBoundsException("String too long");
 		}
 		char[] chars = new char[len];
-		for(int i = 0; i < len; ++i) {
+		for (int i = 0; i < len; ++i) {
 			chars[i] = buffer.readChar();
 		}
 		return new String(chars);
@@ -146,22 +146,22 @@ public class BufferUtils {
 
 	public static void writeLegacyMCString(ByteBuf buffer, String value, int maxLen) {
 		int len = value.length();
-		if(len > maxLen) {
+		if (len > maxLen) {
 			throw new IndexOutOfBoundsException();
 		}
 		buffer.writeShort(len);
-		for(int i = 0; i < len; ++i) {
+		for (int i = 0; i < len; ++i) {
 			buffer.writeChar(value.charAt(i));
 		}
 	}
 
 	public static String readMCString(ByteBuf buffer, int maxLen) {
 		int len = BufferUtils.readVarInt(buffer, 5);
-		if(len > maxLen * 4) {
+		if (len > maxLen * 4) {
 			throw new IndexOutOfBoundsException();
 		}
 		CharSequence ret = readCharSequence(buffer, len, StandardCharsets.UTF_8);
-		if(ret.length() > maxLen) {
+		if (ret.length() > maxLen) {
 			throw new IndexOutOfBoundsException();
 		}
 		return ret.toString();
@@ -169,18 +169,18 @@ public class BufferUtils {
 
 	public static CharSequence readMCCharSequence(ByteBuf buffer, int maxLen) {
 		int len = BufferUtils.readVarInt(buffer, 5);
-		if(len > maxLen * 4) {
+		if (len > maxLen * 4) {
 			throw new IndexOutOfBoundsException();
 		}
 		CharSequence ret = readCharSequence(buffer, len, StandardCharsets.UTF_8);
-		if(ret.length() > maxLen) {
+		if (ret.length() > maxLen) {
 			throw new IndexOutOfBoundsException();
 		}
 		return ret;
 	}
 
 	public static void writeMCString(ByteBuf buffer, String value, int maxLen) {
-		if(value.length() > maxLen) {
+		if (value.length() > maxLen) {
 			throw new IndexOutOfBoundsException();
 		}
 		byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
@@ -190,11 +190,11 @@ public class BufferUtils {
 
 	public static boolean charSeqEqual(CharSequence seq1, CharSequence seq2) {
 		int l = seq1.length();
-		if(l != seq2.length()) {
+		if (l != seq2.length()) {
 			return false;
 		}
-		for(int i = 0; i < l; ++i) {
-			if(seq1.charAt(i) != seq2.charAt(i)) {
+		for (int i = 0; i < l; ++i) {
+			if (seq1.charAt(i) != seq2.charAt(i)) {
 				return false;
 			}
 		}
@@ -202,9 +202,9 @@ public class BufferUtils {
 	}
 
 	public static ByteBuf readRetainedSlice(ByteBuf buffer, int length) {
-		if(RETAINEDSLICE_SUPPORT) {
+		if (RETAINEDSLICE_SUPPORT) {
 			return buffer.readRetainedSlice(length);
-		}else {
+		} else {
 			return buffer.readSlice(length).retain();
 		}
 	}

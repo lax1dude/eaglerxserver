@@ -78,15 +78,15 @@ class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
 	@Override
 	public String getMinecraftBrand() {
 		byte[] ret = BungeeUnsafe.getBrandMessage(player.getPendingConnection());
-		if(ret != null && ret.length > 0) {
-			int len = (int)ret[0] & 0xFF;
-			if(len < 128 && len == ret.length - 1) {
+		if (ret != null && ret.length > 0) {
+			int len = (int) ret[0] & 0xFF;
+			if (len < 128 && len == ret.length - 1) {
 				return new String(ret, 1, len, StandardCharsets.UTF_8);
-			}else {
+			} else {
 				// Brand over 127 chars is probably garbage anyway...
 				return null;
 			}
-		}else {
+		} else {
 			return null;
 		}
 	}
@@ -99,7 +99,7 @@ class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
 	@Override
 	public void sendDataBackend(String channel, byte[] message) {
 		Server server = player.getServer();
-		if(server != null) {
+		if (server != null) {
 			server.sendData(channel, message);
 		}
 	}
@@ -140,7 +140,7 @@ class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
 
 	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
-		player.disconnect((BaseComponent)kickMessage);
+		player.disconnect((BaseComponent) kickMessage);
 	}
 
 	@Override

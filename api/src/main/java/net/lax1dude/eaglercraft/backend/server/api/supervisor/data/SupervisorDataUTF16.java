@@ -38,13 +38,13 @@ public class SupervisorDataUTF16 implements ISupervisorData {
 
 	@Override
 	public void write(@Nonnull GamePacketOutputBuffer buffer) throws IOException {
-		if(value != null) {
+		if (value != null) {
 			int len = value.length();
 			buffer.writeVarInt(len + 1);
-			for(int i = 0; i < len; ++i) {
+			for (int i = 0; i < len; ++i) {
 				buffer.writeChar(value.charAt(i));
 			}
-		}else {
+		} else {
 			buffer.writeByte(0);
 		}
 	}
@@ -52,13 +52,13 @@ public class SupervisorDataUTF16 implements ISupervisorData {
 	@Override
 	public void read(@Nonnull GamePacketInputBuffer buffer) throws IOException {
 		int len = buffer.readVarInt();
-		if(len > 0) {
+		if (len > 0) {
 			char[] tmp = new char[--len];
-			for(int i = 0; i < len; ++i) {
+			for (int i = 0; i < len; ++i) {
 				tmp[i] = buffer.readChar();
 			}
 			value = new String(tmp);
-		}else {
+		} else {
 			value = null;
 		}
 	}

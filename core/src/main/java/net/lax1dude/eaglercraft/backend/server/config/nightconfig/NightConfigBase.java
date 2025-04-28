@@ -46,11 +46,11 @@ public class NightConfigBase implements IEaglerConfig {
 
 	@Override
 	public boolean saveIfModified() throws IOException {
-		if(modified) {
-			NightConfigLoader.writeConfigFile((CommentedFileConfig)root.config);
+		if (modified) {
+			NightConfigLoader.writeConfigFile((CommentedFileConfig) root.config);
 			modified = false;
 			return true;
-		}else {
+		} else {
 			return false;
 		}
 	}

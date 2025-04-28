@@ -68,94 +68,94 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 		skinLoaderCache = new SkinTypesHelper(serverAPI.getSkinService().getSkinLoader(true));
 		skinLoaderNoCache = new SkinTypesHelper(serverAPI.getSkinService().getSkinLoader(false));
 		packetImageLoader = new PacketImageDataHelper(serverAPI.getPacketImageLoader());
-		if(serverAPI.getVoiceService().isVoiceEnabled()) {
+		if (serverAPI.getVoiceService().isVoiceEnabled()) {
 			voiceService = new VoiceServiceLocal<>(this, serverAPI.getVoiceService());
-		}else {
+		} else {
 			voiceService = new VoiceServiceDisabled<>(this);
 		}
 	}
 
 	private void enableHandler() {
-		
+
 	}
 
 	private void disableHandler() {
-		
+
 	}
 
 	private void fireInitializePlayer(IEaglercraftInitializePlayerEvent<PlayerObject> event) {
 		PlayerInstanceLocal<PlayerObject> player = playerMap.get(event.getPlayer().getPlayerObject());
-		if(player != null) {
+		if (player != null) {
 			player.offerPlayer(event.getPlayer());
 		}
 	}
 
 	private void fireWebViewChannel(IEaglercraftWebViewChannelEvent<PlayerObject> event) {
 		PlayerInstanceLocal<PlayerObject> player = playerMap.get(event.getPlayer().getPlayerObject());
-		if(player != null) {
+		if (player != null) {
 			BasePlayerRPCLocal<PlayerObject> handle = player.handle();
-			if(handle != null && handle.isEaglerPlayer()) {
-				((EaglerPlayerRPCLocal<PlayerObject>)handle).fireLocalWebViewChannel(event);
+			if (handle != null && handle.isEaglerPlayer()) {
+				((EaglerPlayerRPCLocal<PlayerObject>) handle).fireLocalWebViewChannel(event);
 			}
 		}
 	}
 
 	private void fireWebViewMessage(IEaglercraftWebViewMessageEvent<PlayerObject> event) {
 		PlayerInstanceLocal<PlayerObject> player = playerMap.get(event.getPlayer().getPlayerObject());
-		if(player != null) {
+		if (player != null) {
 			BasePlayerRPCLocal<PlayerObject> handle = player.handle();
-			if(handle != null && handle.isEaglerPlayer()) {
-				((EaglerPlayerRPCLocal<PlayerObject>)handle).fireLocalWebViewMessage(event);
+			if (handle != null && handle.isEaglerPlayer()) {
+				((EaglerPlayerRPCLocal<PlayerObject>) handle).fireLocalWebViewMessage(event);
 			}
 		}
 	}
 
 	private void fireVoiceChange(IEaglercraftVoiceChangeEvent<PlayerObject> event) {
 		PlayerInstanceLocal<PlayerObject> player = playerMap.get(event.getPlayer().getPlayerObject());
-		if(player != null) {
+		if (player != null) {
 			BasePlayerRPCLocal<PlayerObject> handle = player.handle();
-			if(handle != null && handle.isEaglerPlayer()) {
-				((EaglerPlayerRPCLocal<PlayerObject>)handle).fireLocalVoiceChange(event);
+			if (handle != null && handle.isEaglerPlayer()) {
+				((EaglerPlayerRPCLocal<PlayerObject>) handle).fireLocalVoiceChange(event);
 			}
 		}
 	}
 
 	void registerPlayer(PlayerInstanceLocal<PlayerObject> player) {
 		PlayerObject playerObj = player.getPlayerObject();
-		if(playerMap.putIfAbsent(playerObj, player) != null) {
+		if (playerMap.putIfAbsent(playerObj, player) != null) {
 			throw new IllegalStateException("Player is already registered!");
 		}
 	}
 
 	void confirmPlayer(PlayerInstanceLocal<PlayerObject> player) {
-		if(playerMap.get(player.getPlayerObject()) == player) {
-			net.lax1dude.eaglercraft.backend.server.api.IBasePlayer<PlayerObject> playerImpl
-					= serverAPI.getPlayer(player.getPlayerObject());
+		if (playerMap.get(player.getPlayerObject()) == player) {
+			net.lax1dude.eaglercraft.backend.server.api.IBasePlayer<PlayerObject> playerImpl = serverAPI
+					.getPlayer(player.getPlayerObject());
 			player.offerPlayer(playerImpl);
 			BasePlayerRPCLocal<PlayerObject> handle = player.handle();
-			if(handle != null && handle.isVoiceCapable()) {
+			if (handle != null && handle.isVoiceCapable()) {
 				net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceManager<PlayerObject> voiceManager = handle.delegate
 						.asEaglerPlayer().getVoiceManager();
-				net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel channel =
-						voiceManager.getVoiceChannel();
+				net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel channel = voiceManager
+						.getVoiceChannel();
 				platform.eventDispatcher().dispatchVoiceCapableEvent(player, VoiceChannelHelper.wrap(channel),
 						(evt) -> {
-					net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel channel2 =
-							VoiceChannelHelper.unwrap(evt.getTargetChannel());
-					if(channel != channel2) {
-						voiceManager.setVoiceChannel(channel2);
-					}
-				});
+							net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel channel2 = VoiceChannelHelper
+									.unwrap(evt.getTargetChannel());
+							if (channel != channel2) {
+								voiceManager.setVoiceChannel(channel2);
+							}
+						});
 			}
 		}
 	}
 
 	void unregisterPlayer(PlayerInstanceLocal<PlayerObject> player) {
 		PlayerObject playerObj = player.getPlayerObject();
-		if(playerMap.remove(playerObj) != null) {
+		if (playerMap.remove(playerObj) != null) {
 			player.handleDestroyed();
 		}
-		
+
 	}
 
 	IEaglerXServerAPI<PlayerObject> serverAPI() {
@@ -196,7 +196,7 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 
 	@Override
 	public IBasePlayer<PlayerObject> getPlayer(PlayerObject player) {
-		if(player == null) {
+		if (player == null) {
 			throw new NullPointerException("player");
 		}
 		return playerMap.get(player);
@@ -204,11 +204,11 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 
 	@Override
 	public IBasePlayer<PlayerObject> getPlayerByName(String playerName) {
-		if(playerName == null) {
+		if (playerName == null) {
 			throw new NullPointerException("playerName");
 		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
-		if(platformPlayer != null) {
+		if (platformPlayer != null) {
 			return platformPlayer.getAttachment();
 		}
 		return null;
@@ -216,11 +216,11 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 
 	@Override
 	public IBasePlayer<PlayerObject> getPlayerByUUID(UUID playerUUID) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
-		if(platformPlayer != null) {
+		if (platformPlayer != null) {
 			return platformPlayer.getAttachment();
 		}
 		return null;
@@ -228,11 +228,11 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 
 	@Override
 	public IEaglerPlayer<PlayerObject> getEaglerPlayer(PlayerObject player) {
-		if(player == null) {
+		if (player == null) {
 			throw new NullPointerException("player");
 		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(player);
-		if(platformPlayer != null) {
+		if (platformPlayer != null) {
 			return platformPlayer.<PlayerInstanceLocal<PlayerObject>>getAttachment().asEaglerPlayer();
 		}
 		return null;
@@ -240,11 +240,11 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 
 	@Override
 	public IEaglerPlayer<PlayerObject> getEaglerPlayerByName(String playerName) {
-		if(playerName == null) {
+		if (playerName == null) {
 			throw new NullPointerException("playerName");
 		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerName);
-		if(platformPlayer != null) {
+		if (platformPlayer != null) {
 			return platformPlayer.<PlayerInstanceLocal<PlayerObject>>getAttachment().asEaglerPlayer();
 		}
 		return null;
@@ -252,11 +252,11 @@ public class EaglerXBackendRPCLocal<PlayerObject> extends EaglerXBackendRPCBase<
 
 	@Override
 	public IEaglerPlayer<PlayerObject> getEaglerPlayerByUUID(UUID playerUUID) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
 		IPlatformPlayer<PlayerObject> platformPlayer = platform.getPlayer(playerUUID);
-		if(platformPlayer != null) {
+		if (platformPlayer != null) {
 			return platformPlayer.<PlayerInstanceLocal<PlayerObject>>getAttachment().asEaglerPlayer();
 		}
 		return null;

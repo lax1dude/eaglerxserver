@@ -41,7 +41,7 @@ public class EaglerAttributeManager implements IAttributeManager {
 		}
 
 		protected final void validate(EaglerAttributeManager mgr) {
-			if(mgr != EaglerAttributeManager.this) {
+			if (mgr != EaglerAttributeManager.this) {
 				throw new IllegalStateException();
 			}
 		}
@@ -102,34 +102,34 @@ public class EaglerAttributeManager implements IAttributeManager {
 
 	@Override
 	public <T> IAttributeKey<T> initGlobalAttribute(String name, Class<T> type) {
-		if(name == null) {
+		if (name == null) {
 			throw new NullPointerException("name");
 		}
-		if(type == null) {
+		if (type == null) {
 			throw new NullPointerException("type");
 		}
 		IAttributeKey<?> ret;
-		synchronized(globals) {
+		synchronized (globals) {
 			ret = globals.get(name);
-			if(ret == null) {
+			if (ret == null) {
 				IAttributeKey<T> tmp;
 				globals.put(name, tmp = new AttributeKeyGlobal<>(type, name));
 				return tmp;
 			}
 		}
 		if (ret.getType() != type) {
-			throw new IllegalStateException("Attribute type conflict for \"" + name + "\": " + type.getName()
-					+ " != " + ret.getType().getName());
+			throw new IllegalStateException("Attribute type conflict for \"" + name + "\": " + type.getName() + " != "
+					+ ret.getType().getName());
 		}
 		return (IAttributeKey<T>) ret;
 	}
 
 	@Override
 	public <T> IAttributeKey<T> initPrivateAttribute(String name, Class<T> type) {
-		if(name == null) {
+		if (name == null) {
 			throw new NullPointerException("name");
 		}
-		if(type == null) {
+		if (type == null) {
 			throw new NullPointerException("type");
 		}
 		return new AttributeKeyPrivate<>(type, name);
@@ -137,7 +137,7 @@ public class EaglerAttributeManager implements IAttributeManager {
 
 	@Override
 	public <T> IAttributeKey<T> initPrivateAttribute(Class<T> type) {
-		if(type == null) {
+		if (type == null) {
 			throw new NullPointerException("type");
 		}
 		return new AttributeKeyPrivate<>(type, "unnamed");
@@ -149,7 +149,7 @@ public class EaglerAttributeManager implements IAttributeManager {
 
 		@Override
 		public final <T> T get(IAttributeKey<T> key) {
-			if(key == null) {
+			if (key == null) {
 				throw new NullPointerException("key");
 			}
 			AttributeKeyBase<?> checkCast = (AttributeKeyBase<?>) key;
@@ -159,14 +159,14 @@ public class EaglerAttributeManager implements IAttributeManager {
 
 		@Override
 		public final <T> void set(IAttributeKey<T> key, T value) {
-			if(key == null) {
+			if (key == null) {
 				throw new NullPointerException("key");
 			}
 			AttributeKeyBase<?> checkCast = (AttributeKeyBase<?>) key;
 			checkCast.validate(EaglerAttributeManager.this);
-			if(value != null) {
+			if (value != null) {
 				attribMap.put(checkCast, value);
-			}else {
+			} else {
 				attribMap.remove(checkCast);
 			}
 		}

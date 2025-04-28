@@ -75,10 +75,11 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 	@Override
 	public <ComponentObject> INotificationBuilder<ComponentObject> createNotificationBuilder(
 			Class<ComponentObject> componentType) {
-		if(componentType == this.componentType) {
+		if (componentType == this.componentType) {
 			return new NotificationBuilder<ComponentObject>(componentHelper);
-		}else {
-			throw new ClassCastException("Component class " + componentType.getName() + " is not supported on this platform!");
+		} else {
+			throw new ClassCastException(
+					"Component class " + componentType.getName() + " is not supported on this platform!");
 		}
 	}
 
@@ -89,17 +90,15 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 
 	@Override
 	public INotificationManager<PlayerObject> getNotificationManagerMulti(Collection<PlayerObject> players) {
-		if(players.size() == 0) {
+		if (players.size() == 0) {
 			return nopPlayersManager;
 		}
 		Collection<NotificationManagerPlayer<PlayerObject>> lst = players.stream().map(server::getEaglerPlayer)
-				.filter((e) -> e != null)
-				.map(EaglerPlayerInstance<PlayerObject>::getNotificationManager)
-				.filter((e) -> e != null)
-				.collect(Collectors3.toImmutableList());
-		if(lst.size() > 0) {
+				.filter((e) -> e != null).map(EaglerPlayerInstance<PlayerObject>::getNotificationManager)
+				.filter((e) -> e != null).collect(Collectors3.toImmutableList());
+		if (lst.size() > 0) {
 			return new NotificationManagerMultiPlayers<PlayerObject>(this, lst);
-		}else {
+		} else {
 			return nopPlayersManager;
 		}
 	}
@@ -107,32 +106,31 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 	@Override
 	public INotificationManager<PlayerObject> getNotificationManagerMultiEagler(
 			Collection<IEaglerPlayer<PlayerObject>> players) {
-		if(players.size() == 0) {
+		if (players.size() == 0) {
 			return nopPlayersManager;
 		}
 		Collection<NotificationManagerPlayer<PlayerObject>> lst = players.stream()
-				.map((p) -> ((EaglerPlayerInstance<PlayerObject>)p).getNotificationManager())
-				.filter((e) -> e != null)
+				.map((p) -> ((EaglerPlayerInstance<PlayerObject>) p).getNotificationManager()).filter((e) -> e != null)
 				.collect(Collectors3.toImmutableList());
-		if(lst.size() > 0) {
+		if (lst.size() > 0) {
 			return new NotificationManagerMultiPlayers<PlayerObject>(this, lst);
-		}else {
+		} else {
 			return nopPlayersManager;
 		}
 	}
 
 	@Override
 	public void registerNotificationIcon(UUID iconUUID, PacketImageData icon) {
-		if(iconUUID == null) {
+		if (iconUUID == null) {
 			throw new NullPointerException("iconUUID");
 		}
-		if(icon == null) {
+		if (icon == null) {
 			throw new NullPointerException("icon");
 		}
 		registeredIconLock.writeLock().lock();
 		try {
 			registeredIcons.put(iconUUID, icon);
-		}finally {
+		} finally {
 			registeredIconLock.writeLock().unlock();
 		}
 	}
@@ -141,23 +139,23 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 	public void registerNotificationIcons(Collection<IconDef> icons) {
 		registeredIconLock.writeLock().lock();
 		try {
-			for(IconDef def : icons) {
+			for (IconDef def : icons) {
 				registeredIcons.put(def.getUUID(), def.getIcon());
 			}
-		}finally {
+		} finally {
 			registeredIconLock.writeLock().unlock();
 		}
 	}
 
 	@Override
 	public void unregisterNotificationIcon(UUID iconUUID) {
-		if(iconUUID == null) {
+		if (iconUUID == null) {
 			throw new NullPointerException("iconUUID");
 		}
 		registeredIconLock.writeLock().lock();
 		try {
 			registeredIcons.remove(iconUUID);
-		}finally {
+		} finally {
 			registeredIconLock.writeLock().unlock();
 		}
 	}
@@ -167,26 +165,26 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 		registeredIconLock.writeLock().lock();
 		try {
 			registeredIcons.keySet().removeAll(iconUUIDs);
-		}finally {
+		} finally {
 			registeredIconLock.writeLock().unlock();
 		}
 	}
 
 	final Collection<SPacketNotifIconsRegisterV4EAG.CreateIcon> getRegisteredIcon(UUID iconUUID) {
-		if(iconUUID == null) {
+		if (iconUUID == null) {
 			throw new NullPointerException("iconUUID");
 		}
 		PacketImageData data;
 		registeredIconLock.readLock().lock();
 		try {
 			data = registeredIcons.get(iconUUID);
-		}finally {
+		} finally {
 			registeredIconLock.readLock().unlock();
 		}
-		if(data != null) {
-			return Collections.singleton(new SPacketNotifIconsRegisterV4EAG.CreateIcon(iconUUID.getMostSignificantBits(),
-					iconUUID.getLeastSignificantBits(), data));
-		}else {
+		if (data != null) {
+			return Collections.singleton(new SPacketNotifIconsRegisterV4EAG.CreateIcon(
+					iconUUID.getMostSignificantBits(), iconUUID.getLeastSignificantBits(), data));
+		} else {
 			return Collections.emptyList();
 		}
 	}
@@ -198,24 +196,24 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 		try {
 			data1 = iconUUID1 != null ? registeredIcons.get(iconUUID1) : null;
 			data2 = iconUUID2 != null ? registeredIcons.get(iconUUID2) : null;
-		}finally {
+		} finally {
 			registeredIconLock.readLock().unlock();
 		}
-		if(data1 != null) {
-			if(data2 != null) {
+		if (data1 != null) {
+			if (data2 != null) {
 				return Arrays.asList(
 						new SPacketNotifIconsRegisterV4EAG.CreateIcon(iconUUID1.getMostSignificantBits(),
 								iconUUID1.getLeastSignificantBits(), data1),
 						new SPacketNotifIconsRegisterV4EAG.CreateIcon(iconUUID2.getMostSignificantBits(),
 								iconUUID2.getLeastSignificantBits(), data2));
-			}else {
+			} else {
 				return Collections.singleton(new SPacketNotifIconsRegisterV4EAG.CreateIcon(
 						iconUUID1.getMostSignificantBits(), iconUUID1.getLeastSignificantBits(), data1));
 			}
-		}else if(data2 != null) {
+		} else if (data2 != null) {
 			return Collections.singleton(new SPacketNotifIconsRegisterV4EAG.CreateIcon(
 					iconUUID2.getMostSignificantBits(), iconUUID2.getLeastSignificantBits(), data2));
-		}else {
+		} else {
 			return Collections.emptyList();
 		}
 	}
@@ -224,14 +222,14 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 		Collection<SPacketNotifIconsRegisterV4EAG.CreateIcon> ret = new ArrayList<>(iconUUID.size());
 		registeredIconLock.readLock().lock();
 		try {
-			for(UUID uuid : iconUUID) {
+			for (UUID uuid : iconUUID) {
 				PacketImageData data = registeredIcons.get(uuid);
-				if(data != null) {
+				if (data != null) {
 					ret.add(new SPacketNotifIconsRegisterV4EAG.CreateIcon(uuid.getMostSignificantBits(),
 							uuid.getLeastSignificantBits(), data));
 				}
 			}
-		}finally {
+		} finally {
 			registeredIconLock.readLock().unlock();
 		}
 		return ret;
@@ -269,9 +267,9 @@ public class NotificationService<PlayerObject> implements INotificationService<P
 	}
 
 	public NotificationManagerPlayer<PlayerObject> createPlayerManager(EaglerPlayerInstance<PlayerObject> player) {
-		if(player.hasCapability(EnumCapabilitySpec.NOTIFICATION_V0)) {
+		if (player.hasCapability(EnumCapabilitySpec.NOTIFICATION_V0)) {
 			return new NotificationManagerPlayer<PlayerObject>(this, player);
-		}else {
+		} else {
 			return null;
 		}
 	}

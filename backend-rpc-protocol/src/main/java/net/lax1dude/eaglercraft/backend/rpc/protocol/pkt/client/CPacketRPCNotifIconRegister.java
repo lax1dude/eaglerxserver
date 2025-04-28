@@ -56,45 +56,45 @@ public class CPacketRPCNotifIconRegister implements EaglerBackendRPCPacket {
 	@Override
 	public void readPacket(DataInput buffer) throws IOException {
 		int cnt = buffer.readUnsignedByte();
-		if(cnt > 0) {
+		if (cnt > 0) {
 			RegisterIcon[] icns = new RegisterIcon[cnt];
-			for(int i = 0; i < cnt; ++i) {
+			for (int i = 0; i < cnt; ++i) {
 				UUID uuid = new UUID(buffer.readLong(), buffer.readLong());
 				PacketImageData img = PacketImageData.readRGB16(buffer);
 				icns[i] = new RegisterIcon(uuid, img);
 			}
 			notifIcons = Arrays.asList(icns);
-		}else {
+		} else {
 			notifIcons = null;
 		}
 	}
 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
-		if(notifIcons != null) {
+		if (notifIcons != null) {
 			int l = notifIcons.size();
-			if(l > 255) {
+			if (l > 255) {
 				throw new IOException("Too many notification icons in packet! (Max is 255, got " + l + " total)");
 			}
 			buffer.writeByte(l);
-			if(l > 0) {
-				if(notifIcons instanceof RandomAccess) {
+			if (l > 0) {
+				if (notifIcons instanceof RandomAccess) {
 					List<RegisterIcon> lst = (List<RegisterIcon>) notifIcons;
-					for(int i = 0; i < l; ++i) {
+					for (int i = 0; i < l; ++i) {
 						RegisterIcon icn = lst.get(i);
 						buffer.writeLong(icn.uuid.getMostSignificantBits());
 						buffer.writeLong(icn.uuid.getLeastSignificantBits());
 						PacketImageData.writeRGB16(buffer, icn.image);
 					}
-				}else {
-					for(RegisterIcon icn : notifIcons) {
+				} else {
+					for (RegisterIcon icn : notifIcons) {
 						buffer.writeLong(icn.uuid.getMostSignificantBits());
 						buffer.writeLong(icn.uuid.getLeastSignificantBits());
 						PacketImageData.writeRGB16(buffer, icn.image);
 					}
 				}
 			}
-		}else {
+		} else {
 			buffer.writeByte(0);
 		}
 	}
@@ -106,19 +106,19 @@ public class CPacketRPCNotifIconRegister implements EaglerBackendRPCPacket {
 
 	@Override
 	public int length() {
-		if(notifIcons == null) {
+		if (notifIcons == null) {
 			return 1;
 		}
 		int l = notifIcons.size();
 		int i = 1 + (l << 4);
-		if(l > 0) {
-			if(notifIcons instanceof RandomAccess) {
+		if (l > 0) {
+			if (notifIcons instanceof RandomAccess) {
 				List<RegisterIcon> lst = (List<RegisterIcon>) notifIcons;
-				for(int j = 0; j < l; ++j) {
+				for (int j = 0; j < l; ++j) {
 					i += lst.get(j).image.getByteLengthRGB16();
 				}
-			}else {
-				for(RegisterIcon icn : notifIcons) {
+			} else {
+				for (RegisterIcon icn : notifIcons) {
 					i += icn.image.getByteLengthRGB16();
 				}
 			}

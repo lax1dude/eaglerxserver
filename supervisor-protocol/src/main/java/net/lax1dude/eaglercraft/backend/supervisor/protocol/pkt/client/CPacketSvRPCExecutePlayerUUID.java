@@ -37,7 +37,8 @@ public class CPacketSvRPCExecutePlayerUUID implements EaglerSupervisorPacket, IR
 	public CPacketSvRPCExecutePlayerUUID() {
 	}
 
-	public CPacketSvRPCExecutePlayerUUID(UUID requestUUID, int timeout, UUID playerUUID, int nameLength, ByteBuf payload) {
+	public CPacketSvRPCExecutePlayerUUID(UUID requestUUID, int timeout, UUID playerUUID, int nameLength,
+			ByteBuf payload) {
 		this.requestUUID = requestUUID;
 		this.timeout = timeout;
 		this.playerUUID = playerUUID;
@@ -55,9 +56,9 @@ public class CPacketSvRPCExecutePlayerUUID implements EaglerSupervisorPacket, IR
 	@Override
 	public void readPacket(ByteBuf buffer) {
 		timeout = EaglerSupervisorPacket.readVarInt(buffer);
-		if(timeout > 0) {
+		if (timeout > 0) {
 			requestUUID = new UUID(buffer.readLong(), buffer.readLong());
-		}else {
+		} else {
 			requestUUID = null;
 		}
 		playerUUID = new UUID(buffer.readLong(), buffer.readLong());
@@ -68,18 +69,18 @@ public class CPacketSvRPCExecutePlayerUUID implements EaglerSupervisorPacket, IR
 	@Override
 	public void writePacket(ByteBuf buffer) {
 		EaglerSupervisorPacket.writeVarInt(buffer, timeout);
-		if(timeout > 0) {
+		if (timeout > 0) {
 			buffer.writeLong(requestUUID.getMostSignificantBits());
 			buffer.writeLong(requestUUID.getLeastSignificantBits());
 		}
 		buffer.writeLong(playerUUID.getMostSignificantBits());
 		buffer.writeLong(playerUUID.getLeastSignificantBits());
-		if(injected != null) {
+		if (injected != null) {
 			buffer.writeIntLE(0);
 			int pos = buffer.writerIndex();
 			buffer.setByte(pos - 4, injected.writePayload(buffer));
 			buffer.setMedium(pos - 3, buffer.writerIndex() - pos);
-		}else {
+		} else {
 			buffer.writeByte(nameLength);
 			int l = payload.readableBytes();
 			buffer.writeMedium(l);

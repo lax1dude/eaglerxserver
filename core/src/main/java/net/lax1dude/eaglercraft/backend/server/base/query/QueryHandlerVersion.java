@@ -37,17 +37,17 @@ public class QueryHandlerVersion implements IQueryHandler {
 		JsonObject responseObj = new JsonObject();
 		JsonArray handshakeVersions = new JsonArray();
 		ConfigDataProtocols protocols = server.getConfig().getSettings().getProtocols();
-		if(protocols.isProtocolLegacyAllowed()) {
+		if (protocols.isProtocolLegacyAllowed()) {
 			handshakeVersions.add(1);
 			handshakeVersions.add(2);
 		}
-		if(protocols.isProtocolV3Allowed()) {
+		if (protocols.isProtocolV3Allowed()) {
 			handshakeVersions.add(3);
 		}
-		if(protocols.isProtocolV4Allowed()) {
+		if (protocols.isProtocolV4Allowed()) {
 			handshakeVersions.add(4);
 		}
-		if(protocols.isProtocolV5Allowed()) {
+		if (protocols.isProtocolV5Allowed()) {
 			handshakeVersions.add(5);
 		}
 		responseObj.add("handshakeVersions", handshakeVersions);

@@ -35,7 +35,7 @@ class BukkitCommand extends Command {
 		super(cmd.getCommandName(), "EaglerXServer /" + cmd.getCommandName() + " command",
 				"/" + cmd.getCommandName() + " [...]", nullFix(cmd.getCommandAliases()));
 		String perm = cmd.getPermission();
-		if(perm != null) {
+		if (perm != null) {
 			this.setPermission(perm);
 		}
 		this.plugin = plugin;

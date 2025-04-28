@@ -96,23 +96,23 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		try {
-			if(msg instanceof CloseWebSocketFrame) {
+			if (msg instanceof CloseWebSocketFrame) {
 				WAITING_PROMISE_HANDLE.setRelease(this, 0);
 				ctx.close();
-			}else {
-				if(!handled) {
+			} else {
+				if (!handled) {
 					handled = true;
-					if(msg instanceof TextWebSocketFrame msg2) {
+					if (msg instanceof TextWebSocketFrame msg2) {
 						String accept = msg2.text();
-						if(accept.length() < 128) {
+						if (accept.length() < 128) {
 							accept = accept.toLowerCase(Locale.US);
-							if(accept.startsWith("accept:")) {
+							if (accept.startsWith("accept:")) {
 								accept = accept.substring(7).trim();
-								if(accept.length() > 0) {
-									if("motd".equals(accept) || accept.startsWith("motd.")) {
+								if (accept.length() > 0) {
+									if ("motd".equals(accept) || accept.startsWith("motd.")) {
 										acceptMOTD(ctx, accept);
 										return;
-									}else {
+									} else {
 										acceptQuery(ctx, accept);
 										return;
 									}
@@ -122,40 +122,40 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 					}
 					WAITING_PROMISE_HANDLE.setRelease(this, 0);
 					ctx.close();
-				}else {
-					if(msg instanceof TextWebSocketFrame msg2) {
+				} else {
+					if (msg instanceof TextWebSocketFrame msg2) {
 						String txt = msg2.text();
-						if(jsonHandler != null) {
+						if (jsonHandler != null) {
 							JsonObject el = null;
 							try {
 								el = EaglerXServer.GSON_PRETTY.fromJson(txt, JsonObject.class);
-							}catch(JsonSyntaxException ex) {
+							} catch (JsonSyntaxException ex) {
 							}
-							if(el != null) {
+							if (el != null) {
 								jsonHandler.handleJSONObject(this, el.getAsJsonObject());
 								return;
 							}
 						}
-						if(stringHandler != null) {
+						if (stringHandler != null) {
 							stringHandler.handleString(this, txt);
-						}else {
+						} else {
 							WAITING_PROMISE_HANDLE.setRelease(this, 0);
 							ctx.close();
 						}
-					}else if(msg instanceof BinaryWebSocketFrame msg2) {
-						if(binaryHandler != null) {
+					} else if (msg instanceof BinaryWebSocketFrame msg2) {
+						if (binaryHandler != null) {
 							ByteBuf buf = msg2.content();
 							byte[] data = new byte[buf.readableBytes()];
 							buf.readBytes(data);
 							binaryHandler.handleBinary(this, data);
-						}else {
+						} else {
 							WAITING_PROMISE_HANDLE.setRelease(this, 0);
 							ctx.close();
 						}
 					}
 				}
 			}
-		}finally {
+		} finally {
 			ReferenceCountUtil.release(msg);
 		}
 	}
@@ -174,46 +174,46 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 	}
 
 	private void acceptMOTD(ChannelHandlerContext ctx, String type) {
-		if(pipelineData.listenerInfo.isAllowMOTD()) {
+		if (pipelineData.listenerInfo.isAllowMOTD()) {
 			accepted = type;
 			MOTDConnectionWrapper motdConnection = new MOTDConnectionWrapper(this);
 			motdConnection.setDefaults(server);
 			server.eventDispatcher().dispatchMOTDEvent(motdConnection, (motdEvent, err) -> {
 				try {
-					if(err != null) {
+					if (err != null) {
 						maxAge = -1l;
 						pipelineData.connectionLogger.error("MOTD event handler raised an exception", err);
-					}else {
+					} else {
 						motdEvent.getMOTDConnection().sendToUser();
 					}
-				}finally {
-					if(maxAge <= 0l) {
+				} finally {
+					if (maxAge <= 0l) {
 						disconnect();
 					}
 					initial = false;
 				}
 			});
-		}else {
+		} else {
 			WAITING_PROMISE_HANDLE.setRelease(this, 0);
 			ctx.close();
 		}
 	}
 
 	private void acceptQuery(ChannelHandlerContext ctx, String type) {
-		if(server.testServerListConfirmCode(type)) {
+		if (server.testServerListConfirmCode(type)) {
 			WAITING_PROMISE_HANDLE.setRelease(this, 0);
 			ctx.writeAndFlush(new TextWebSocketFrame("OK")).addListener(ChannelFutureListener.CLOSE);
 			return;
 		}
-		if(pipelineData.listenerInfo.isAllowQuery()) {
+		if (pipelineData.listenerInfo.isAllowQuery()) {
 			IQueryHandler handler = server.getQueryServer().getHandlerFor(type);
-			if(handler != null) {
+			if (handler != null) {
 				try {
 					accepted = type;
 					handler.handleQuery(this);
 					return;
-				}finally {
-					if(maxAge <= 0l) {
+				} finally {
+					if (maxAge <= 0l) {
 						disconnect();
 					}
 					initial = false;
@@ -235,7 +235,8 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 	}
 
 	public boolean equals(Object o) {
-		return this == o || ((o instanceof IIdentifiedConnection oo) && oo.getIdentityToken() == pipelineData.attributeHolder);
+		return this == o
+				|| ((o instanceof IIdentifiedConnection oo) && oo.getIdentityToken() == pipelineData.attributeHolder);
 	}
 
 	@Override
@@ -250,12 +251,12 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 
 	@Override
 	public boolean isConnected() {
-		return (int)WAITING_PROMISE_HANDLE.getAcquire(this) > 0 && pipelineData.channel.isActive();
+		return (int) WAITING_PROMISE_HANDLE.getAcquire(this) > 0 && pipelineData.channel.isActive();
 	}
 
 	@Override
 	public void disconnect() {
-		if((int)DISCONNECT_CALLED_HANDLE.getAndSetAcquire(this, 1) == 0) {
+		if ((int) DISCONNECT_CALLED_HANDLE.getAndSetAcquire(this, 1) == 0) {
 			checkClose();
 		}
 	}
@@ -297,20 +298,20 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 
 	@Override
 	public void setHandlers(IDuplexBaseHandler compositeHandler) {
-		if(compositeHandler instanceof IDuplexStringHandler) {
+		if (compositeHandler instanceof IDuplexStringHandler) {
 			stringHandler = (IDuplexStringHandler) compositeHandler;
 		}
-		if(compositeHandler instanceof IDuplexJSONHandler) {
+		if (compositeHandler instanceof IDuplexJSONHandler) {
 			jsonHandler = (IDuplexJSONHandler) compositeHandler;
 		}
-		if(compositeHandler instanceof IDuplexBinaryHandler) {
+		if (compositeHandler instanceof IDuplexBinaryHandler) {
 			binaryHandler = (IDuplexBinaryHandler) compositeHandler;
 		}
 	}
 
 	@Override
 	public void setHandlers(IDuplexBaseHandler... compositeHandlers) {
-		for(int i = 0; i < compositeHandlers.length; ++i) {
+		for (int i = 0; i < compositeHandlers.length; ++i) {
 			setHandlers(compositeHandlers[i]);
 		}
 	}
@@ -337,21 +338,22 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 
 	@Override
 	public void setMaxAge(long millis) {
-		if((int)WAITING_PROMISE_HANDLE.getAcquire(this) > 0) {
-			if(maxAge != millis) {
+		if ((int) WAITING_PROMISE_HANDLE.getAcquire(this) > 0) {
+			if (maxAge != millis) {
 				maxAge = millis;
-				if(closeTask != null) {
+				if (closeTask != null) {
 					closeTask.cancel();
 				}
-				if(millis > 0l) {
+				if (millis > 0l) {
 					long closeAfter = maxAge - getAge();
-					if(closeAfter > 0l) {
-						closeTask = server.getPlatform().getScheduler().executeAsyncDelayedTask(this::disconnect, closeAfter);
-					}else {
+					if (closeAfter > 0l) {
+						closeTask = server.getPlatform().getScheduler().executeAsyncDelayedTask(this::disconnect,
+								closeAfter);
+					} else {
 						disconnect();
 					}
-				}else {
-					if(!initial) {
+				} else {
+					if (!initial) {
 						disconnect();
 					}
 				}
@@ -366,13 +368,13 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 
 	private boolean aquireSend() {
 		int i;
-		for(;;) {
-			i = (int)WAITING_PROMISE_HANDLE.getAcquire(this);
-			if(i > 0) {
-				if((int)WAITING_PROMISE_HANDLE.compareAndExchangeAcquire(this, i, i + 1) == i) {
+		for (;;) {
+			i = (int) WAITING_PROMISE_HANDLE.getAcquire(this);
+			if (i > 0) {
+				if ((int) WAITING_PROMISE_HANDLE.compareAndExchangeAcquire(this, i, i + 1) == i) {
 					return true;
 				}
-			}else {
+			} else {
 				return false;
 			}
 		}
@@ -380,10 +382,10 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 
 	@Override
 	public void send(String string) {
-		if(string == null) {
+		if (string == null) {
 			throw new NullPointerException("string");
 		}
-		if(aquireSend()) {
+		if (aquireSend()) {
 			pipelineData.channel.eventLoop().execute(() -> pipelineData.channel
 					.writeAndFlush(new TextWebSocketFrame(string)).addListener(writeListener));
 		}
@@ -391,10 +393,10 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 
 	@Override
 	public void send(byte[] bytes) {
-		if(bytes == null) {
+		if (bytes == null) {
 			throw new NullPointerException("bytes");
 		}
-		if(aquireSend()) {
+		if (aquireSend()) {
 			pipelineData.channel.eventLoop().execute(() -> pipelineData.channel
 					.writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(bytes))).addListener(writeListener));
 		}
@@ -402,31 +404,34 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 
 	@Override
 	public void sendResponse(String type, String str) {
-		if(type == null) {
+		if (type == null) {
 			throw new NullPointerException("type");
 		}
-		if(str == null) {
+		if (str == null) {
 			throw new NullPointerException("str");
 		}
-		if(aquireSend()) {
+		if (aquireSend()) {
 			pipelineData.channel.eventLoop().execute(() -> pipelineData.channel
-					.writeAndFlush(new TextWebSocketFrame(server.getQueryServer().createStringResponse(type, str).toString()))
+					.writeAndFlush(
+							new TextWebSocketFrame(server.getQueryServer().createStringResponse(type, str).toString()))
 					.addListener(writeListener));
 		}
 	}
 
 	@Override
 	public void sendResponse(String type, JsonObject jsonObject) {
-		if(type == null) {
+		if (type == null) {
 			throw new NullPointerException("type");
 		}
-		if(jsonObject == null) {
+		if (jsonObject == null) {
 			throw new NullPointerException("jsonObject");
 		}
-		if(aquireSend()) {
-			pipelineData.channel.eventLoop().execute(() -> pipelineData.channel
-					.writeAndFlush(new TextWebSocketFrame(server.getQueryServer().createJsonObjectResponse(type, jsonObject).toString()))
-					.addListener(writeListener));
+		if (aquireSend()) {
+			pipelineData.channel.eventLoop()
+					.execute(() -> pipelineData.channel
+							.writeAndFlush(new TextWebSocketFrame(
+									server.getQueryServer().createJsonObjectResponse(type, jsonObject).toString()))
+							.addListener(writeListener));
 		}
 	}
 
@@ -441,7 +446,7 @@ public class WebSocketQueryHandler extends ChannelInboundHandlerAdapter
 	}
 
 	private void checkClose() {
-		if((int)WAITING_PROMISE_HANDLE.getAndAddRelease(this, -1) == 1) {
+		if ((int) WAITING_PROMISE_HANDLE.getAndAddRelease(this, -1) == 1) {
 			pipelineData.channel.close();
 		}
 	}

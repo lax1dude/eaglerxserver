@@ -52,10 +52,10 @@ class InjectedRPCPayload implements IInjectedPayload {
 	}
 
 	static ISupervisorData deserialize(ByteBuf buf, SupervisorDataType dataType) throws Exception {
-		if(dataType == SupervisorDataType.VOID_TYPE) {
+		if (dataType == SupervisorDataType.VOID_TYPE) {
 			return ISupervisorData.VOID;
-		}else {
-			if(buf == null) {
+		} else {
+			if (buf == null) {
 				buf = Unpooled.EMPTY_BUFFER;
 			}
 			ISupervisorData ret;

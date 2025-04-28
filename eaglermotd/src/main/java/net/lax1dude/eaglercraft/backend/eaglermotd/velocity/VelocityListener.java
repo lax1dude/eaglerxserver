@@ -35,7 +35,7 @@ public class VelocityListener {
 	@Subscribe
 	public void onEaglercraftMOTDEvent(EaglercraftMOTDEvent event) {
 		Consumer<IEaglercraftMOTDEvent<Player>> consumer = plugin.onMOTDHandler;
-		if(consumer != null) {
+		if (consumer != null) {
 			consumer.accept(event);
 		}
 	}

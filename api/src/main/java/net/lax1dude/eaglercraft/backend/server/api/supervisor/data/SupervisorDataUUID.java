@@ -39,20 +39,20 @@ public class SupervisorDataUUID implements ISupervisorData {
 
 	@Override
 	public void write(@Nonnull GamePacketOutputBuffer buffer) throws IOException {
-		if(value != null) {
+		if (value != null) {
 			buffer.writeBoolean(true);
 			buffer.writeLong(value.getMostSignificantBits());
 			buffer.writeLong(value.getLeastSignificantBits());
-		}else {
+		} else {
 			buffer.writeBoolean(false);
 		}
 	}
 
 	@Override
 	public void read(@Nonnull GamePacketInputBuffer buffer) throws IOException {
-		if(buffer.readBoolean()) {
+		if (buffer.readBoolean()) {
 			value = new UUID(buffer.readLong(), buffer.readLong());
-		}else {
+		} else {
 			value = null;
 		}
 	}

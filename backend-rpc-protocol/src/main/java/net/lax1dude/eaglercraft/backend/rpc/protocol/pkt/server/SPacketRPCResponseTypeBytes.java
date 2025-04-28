@@ -45,7 +45,7 @@ public class SPacketRPCResponseTypeBytes implements EaglerBackendRPCPacket {
 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
-		if(response.length > 32720) {
+		if (response.length > 32720) {
 			throw new IOException("Response is too long, max is 32720 bytes! (got " + response.length + " bytes)");
 		}
 		buffer.writeInt(requestID);

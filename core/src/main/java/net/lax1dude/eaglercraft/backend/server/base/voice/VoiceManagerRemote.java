@@ -97,16 +97,16 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	}
 
 	private int stateXchg(int newValue) {
-		return (int)STATE_HANDLE.getAndSet(this, newValue);
+		return (int) STATE_HANDLE.getAndSet(this, newValue);
 	}
 
 	private int stateCmpXchg(int oldValue, int newValue) {
-		return (int)STATE_HANDLE.compareAndExchange(this, oldValue, newValue);
+		return (int) STATE_HANDLE.compareAndExchange(this, oldValue, newValue);
 	}
 
 	@Override
 	public EnumVoiceState getVoiceState() {
-		return switch((int)STATE_HANDLE.getAcquire(this)) {
+		return switch ((int) STATE_HANDLE.getAcquire(this)) {
 		default -> EnumVoiceState.SERVER_DISABLE;
 		case 1 -> EnumVoiceState.DISABLED;
 		case 2 -> EnumVoiceState.ENABLED;
@@ -114,7 +114,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	}
 
 	private boolean isVoiceEnabled() {
-		return (int)STATE_HANDLE.getAcquire(this) == 2;
+		return (int) STATE_HANDLE.getAcquire(this) == 2;
 	}
 
 	@Override
@@ -140,9 +140,9 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	@Override
 	public void handleBackendMessage(byte[] data) {
 		EaglerVCPacket pkt;
-		eagler: if((int)STATE_HANDLE.getAcquire(this) == -1) {
-			synchronized(this) {
-				if((int)STATE_HANDLE.getAcquire(this) != -1) {
+		eagler: if ((int) STATE_HANDLE.getAcquire(this) == -1) {
+			synchronized (this) {
+				if ((int) STATE_HANDLE.getAcquire(this) != -1) {
 					break eagler;
 				}
 				try {
@@ -170,18 +170,18 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	}
 
 	private void handleBackendHandshake(EaglerVCPacket packet) {
-		if(packet instanceof SPacketVCCapable pkt) {
-			if(pkt.version != 1) {
+		if (packet instanceof SPacketVCCapable pkt) {
+			if (pkt.version != 1) {
 				throw new IllegalStateException("Wrong protocol version selected: " + pkt.version);
 			}
 			handler = new ServerV1VCProtocolHandler(this, internStrings(pkt.iceServers), pkt.overrideICE);
-			if(pkt.allowed) {
+			if (pkt.allowed) {
 				STATE_HANDLE.setRelease(this, 1);
 				voiceEnabled();
-			}else {
+			} else {
 				STATE_HANDLE.setRelease(this, 0);
 			}
-		}else {
+		} else {
 			throw new WrongVCPacketException();
 		}
 	}
@@ -189,10 +189,10 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	private static final String[] EMPTY_STRING_ARRAY = new String[0];
 
 	private static String[] internStrings(String[] strs) {
-		if(strs.length == 0) {
+		if (strs.length == 0) {
 			return EMPTY_STRING_ARRAY;
 		}
-		for(int i = 0; i < strs.length; ++i) {
+		for (int i = 0; i < strs.length; ++i) {
 			strs[i] = strs[i].intern();
 		}
 		return strs;
@@ -221,7 +221,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	public void handleServerPreConnect() {
 		int lastState = stateXchg(-1);
 		handler = null;
-		if(lastState != 0 && lastState != -1) {
+		if (lastState != 0 && lastState != -1) {
 			voiceDisabled(lastState == 2);
 		}
 	}
@@ -233,23 +233,23 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 
 	private String[] concatICEServers() {
 		ServerVCProtocolHandler h = handler;
-		if(h != null) {
+		if (h != null) {
 			String[] iceServers = h.iceServerStash;
-			if(h.iceServerOverride) {
+			if (h.iceServerOverride) {
 				return iceServers;
-			}else {
+			} else {
 				Set<String> joined = new HashSet<>();
 				addAll(joined, voice.iceServersStr());
 				addAll(joined, iceServers);
 				return joined.toArray(new String[joined.size()]);
 			}
-		}else {
+		} else {
 			return voice.iceServersStr();
 		}
 	}
 
 	private static void addAll(Set<String> set, String[] strs) {
-		for(int i = 0; i < strs.length; ++i) {
+		for (int i = 0; i < strs.length; ++i) {
 			set.add(strs[i]);
 		}
 	}
@@ -294,7 +294,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 
 	@Override
 	public void handlePlayerSignalPacketTypeConnect() {
-		if(ratelimitCon() && stateCmpXchg(1, 2) == 1) {
+		if (ratelimitCon() && stateCmpXchg(1, 2) == 1) {
 			sendBackendMessage(new CPacketVCConnect());
 			voiceConnected();
 		}
@@ -302,49 +302,49 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 
 	@Override
 	public void handlePlayerSignalPacketTypeRequest(long playerUUIDMost, long playerUUIDLeast) {
-		if(isVoiceEnabled() && ratelimitReqV5()) {
+		if (isVoiceEnabled() && ratelimitReqV5()) {
 			sendBackendMessage(new CPacketVCConnectPeer(playerUUIDMost, playerUUIDLeast));
 		}
 	}
 
 	@Override
 	public void handlePlayerSignalPacketTypeICE(long playerUUIDMost, long playerUUIDLeast, byte[] str) {
-		if(isVoiceEnabled() && ratelimitICE()) {
+		if (isVoiceEnabled() && ratelimitICE()) {
 			sendBackendMessage(new CPacketVCICECandidate(playerUUIDMost, playerUUIDLeast, str));
 		}
 	}
 
 	@Override
 	public void handlePlayerSignalPacketTypeDesc(long playerUUIDMost, long playerUUIDLeast, byte[] str) {
-		if(isVoiceEnabled() && ratelimitICE()) {
+		if (isVoiceEnabled() && ratelimitICE()) {
 			sendBackendMessage(new CPacketVCDescription(playerUUIDMost, playerUUIDLeast, str));
 		}
 	}
 
 	@Override
 	public void handlePlayerSignalPacketTypeDisconnectPeer(long playerUUIDMost, long playerUUIDLeast) {
-		if(isVoiceEnabled()) {
+		if (isVoiceEnabled()) {
 			sendBackendMessage(new CPacketVCDisconnectPeer(playerUUIDMost, playerUUIDLeast));
 		}
 	}
 
 	@Override
 	public void handlePlayerSignalPacketTypeDisconnect() {
-		if(stateCmpXchg(2, 1) == 2) {
+		if (stateCmpXchg(2, 1) == 2) {
 			sendBackendMessage(new CPacketVCDisconnect());
 			voiceDisconnected();
 		}
 	}
 
 	public void handleBackendSignalPacketAllowed(boolean allowed) {
-		if(allowed) {
-			if(stateCmpXchg(0, 1) == 0) {
+		if (allowed) {
+			if (stateCmpXchg(0, 1) == 0) {
 				voiceEnabled();
 			}
-		}else {
+		} else {
 			int lastState = stateXchg(0);
-			if(lastState != 0) {
-				if(lastState == -1) {
+			if (lastState != 0) {
+				if (lastState == -1) {
 					STATE_HANDLE.setOpaque(this, -1);
 					throw new IllegalStateException("shit");
 				}
@@ -354,7 +354,7 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	}
 
 	public void handleBackendSignalPacketPlayerList(Collection<UserData> users) {
-		if(isVoiceEnabled()) {
+		if (isVoiceEnabled()) {
 			player.sendEaglerMessage(new SPacketVoiceSignalGlobalEAG(users.stream().map(
 					(data) -> new SPacketVoiceSignalGlobalEAG.UserData(data.uuidMost, data.uuidLeast, data.username))
 					.collect(Collectors.toList())));
@@ -362,31 +362,31 @@ public class VoiceManagerRemote<PlayerObject> extends SerializationContext imple
 	}
 
 	public void handleBackendSignalPacketAnnounce(long uuidMost, long uuidLeast) {
-		if(isVoiceEnabled()) {
+		if (isVoiceEnabled()) {
 			player.sendEaglerMessage(new SPacketVoiceSignalConnectAnnounceV4EAG(uuidMost, uuidLeast));
 		}
 	}
 
 	public void handleBackendSignalPacketConnectPeer(long uuidMost, long uuidLeast, boolean offer) {
-		if(isVoiceEnabled()) {
+		if (isVoiceEnabled()) {
 			player.sendEaglerMessage(new SPacketVoiceSignalConnectV4EAG(uuidMost, uuidLeast, offer));
 		}
 	}
 
 	public void handleBackendSignalPacketDisconnectPeer(long uuidMost, long uuidLeast) {
-		if(isVoiceEnabled()) {
+		if (isVoiceEnabled()) {
 			player.sendEaglerMessage(new SPacketVoiceSignalDisconnectPeerEAG(uuidMost, uuidLeast));
 		}
 	}
 
 	public void handleBackendSignalPacketDescription(long uuidMost, long uuidLeast, byte[] desc) {
-		if(isVoiceEnabled()) {
+		if (isVoiceEnabled()) {
 			player.sendEaglerMessage(new SPacketVoiceSignalDescEAG(uuidMost, uuidLeast, desc));
 		}
 	}
 
 	public void handleBackendSignalPacketICECandidate(long uuidMost, long uuidLeast, byte[] ice) {
-		if(isVoiceEnabled()) {
+		if (isVoiceEnabled()) {
 			player.sendEaglerMessage(new SPacketVoiceSignalICEEAG(uuidMost, uuidLeast, ice));
 		}
 	}

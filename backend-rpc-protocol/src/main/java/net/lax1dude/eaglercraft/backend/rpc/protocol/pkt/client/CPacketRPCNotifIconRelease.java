@@ -43,33 +43,33 @@ public class CPacketRPCNotifIconRelease implements EaglerBackendRPCPacket {
 	public void readPacket(DataInput buffer) throws IOException {
 		int cnt = buffer.readUnsignedByte();
 		iconsToRelease = new ArrayList<>(cnt);
-		for(int i = 0; i < cnt; ++i) {
+		for (int i = 0; i < cnt; ++i) {
 			iconsToRelease.add(new UUID(buffer.readLong(), buffer.readLong()));
 		}
 	}
 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
-		if(iconsToRelease != null && !iconsToRelease.isEmpty()) {
+		if (iconsToRelease != null && !iconsToRelease.isEmpty()) {
 			int cnt = iconsToRelease.size();
-			if(cnt > 255) {
+			if (cnt > 255) {
 				throw new IOException("Too many notification icons in packet! (Max is 255, got " + cnt + " total)");
 			}
 			buffer.writeByte(cnt);
-			if(iconsToRelease instanceof RandomAccess) {
-				List<UUID> vigg = (List<UUID>)iconsToRelease;
-				for(int i = 0; i < cnt; ++i) {
+			if (iconsToRelease instanceof RandomAccess) {
+				List<UUID> vigg = (List<UUID>) iconsToRelease;
+				for (int i = 0; i < cnt; ++i) {
 					UUID uuid = vigg.get(i);
 					buffer.writeLong(uuid.getMostSignificantBits());
 					buffer.writeLong(uuid.getLeastSignificantBits());
 				}
-			}else {
-				for(UUID uuid : iconsToRelease) {
+			} else {
+				for (UUID uuid : iconsToRelease) {
 					buffer.writeLong(uuid.getMostSignificantBits());
 					buffer.writeLong(uuid.getLeastSignificantBits());
 				}
 			}
-		}else {
+		} else {
 			buffer.writeByte(0);
 		}
 	}

@@ -26,7 +26,7 @@ public abstract class ResponseOrdering {
 		protected Slot next;
 
 		protected Slot() {
-			if(tail != null) {
+			if (tail != null) {
 				prev = tail;
 				tail.next = this;
 			}
@@ -36,7 +36,7 @@ public abstract class ResponseOrdering {
 		protected boolean complete;
 
 		public void complete(FullHttpResponse response) {
-			if(complete) {
+			if (complete) {
 				response.release();
 				return;
 			}
@@ -46,17 +46,17 @@ public abstract class ResponseOrdering {
 		}
 
 		private void _notify() {
-			if(complete) {
-				if(prev == null || prev.complete) {
+			if (complete) {
+				if (prev == null || prev.complete) {
 					try {
-						if(data != null) {
+						if (data != null) {
 							ResponseOrdering.this.send(data);
 						}
-					}finally {
+					} finally {
 						data = null;
 						prev = null;
 					}
-					if(next != null) {
+					if (next != null) {
 						next._notify();
 					}
 				}
@@ -75,8 +75,8 @@ public abstract class ResponseOrdering {
 
 	public void release() {
 		Slot s = tail;
-		while(s != null) {
-			if(s.data != null) {
+		while (s != null) {
+			if (s.data != null) {
 				s.data.release();
 				s.data = null;
 			}

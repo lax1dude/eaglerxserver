@@ -32,19 +32,19 @@ public class CommandProtocol<PlayerObject> extends EaglerCommand<PlayerObject> {
 	@Override
 	public void handle(IEaglerXServerCommandType<PlayerObject> command, IPlatformCommandSender<PlayerObject> sender,
 			String[] args) {
-		if(args.length == 0 && sender.isPlayer()) {
+		if (args.length == 0 && sender.isPlayer()) {
 			handle(sender, sender.asPlayer().getPlayerAttachment());
 			return;
-		}else if(args.length == 1) {
+		} else if (args.length == 1) {
 			BasePlayerInstance<PlayerObject> player = getServer().getPlayerByName(args[0]);
-			if(player != null) {
+			if (player != null) {
 				handle(sender, player);
 				return;
-			}else {
+			} else {
 				sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.RED).end()
 						.text("Player \"" + args[0] + "\" was not found").end());
 			}
-		}else {
+		} else {
 			sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.RED).end()
 					.text("Invalid number of arguments").end());
 		}
@@ -53,7 +53,7 @@ public class CommandProtocol<PlayerObject> extends EaglerCommand<PlayerObject> {
 	}
 
 	private void handle(IPlatformCommandSender<PlayerObject> sender, BasePlayerInstance<PlayerObject> player) {
-		if(player.isEaglerPlayer()) {
+		if (player.isEaglerPlayer()) {
 			EaglerPlayerInstance<PlayerObject> eagPlayer = player.asEaglerPlayer();
 			sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.AQUA).end()
 					.text("Connection Type: ").appendTextComponent().beginStyle().color(EnumChatColor.GOLD).end()
@@ -67,7 +67,7 @@ public class CommandProtocol<PlayerObject> extends EaglerCommand<PlayerObject> {
 			sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.AQUA).end()
 					.text("Minecraft Protocol: ").appendTextComponent().beginStyle().color(EnumChatColor.GOLD).end()
 					.text(Integer.toString(player.getMinecraftProtocol())).end().end());
-		}else {
+		} else {
 			sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.AQUA).end()
 					.text("Connection Type: ").appendTextComponent().beginStyle().color(EnumChatColor.GOLD).end()
 					.text("Minecraft").end().end());

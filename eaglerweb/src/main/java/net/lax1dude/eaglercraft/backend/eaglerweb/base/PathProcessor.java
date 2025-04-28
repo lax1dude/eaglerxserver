@@ -37,6 +37,7 @@ class PathProcessor implements Iterator<CharSequence> {
 		public boolean hasNext() {
 			return false;
 		}
+
 		@Override
 		public CharSequence next() {
 			throw new NoSuchElementException();
@@ -44,11 +45,11 @@ class PathProcessor implements Iterator<CharSequence> {
 	};
 
 	private boolean adjustBounds() {
-		while(index < end && url.charAt(index) == SEPARATOR) {
+		while (index < end && url.charAt(index) == SEPARATOR) {
 			++index;
 		}
 		boolean dir = false;
-		while(end > 0 && url.charAt(end - 1) == SEPARATOR) {
+		while (end > 0 && url.charAt(end - 1) == SEPARATOR) {
 			dir = true;
 			--end;
 		}
@@ -57,28 +58,31 @@ class PathProcessor implements Iterator<CharSequence> {
 
 	static class RedirectDirException extends Exception {
 		final IndexNodeFolder autoIndex;
+
 		RedirectDirException() {
 			this.autoIndex = null;
 		}
+
 		RedirectDirException(IndexNodeFolder autoIndex) {
 			this.autoIndex = autoIndex;
 		}
 	}
 
-	ResponseCacheKey find(CharSequence url, List<String> index, boolean autoIndex, IndexNode base) throws RedirectDirException {
+	ResponseCacheKey find(CharSequence url, List<String> index, boolean autoIndex, IndexNode base)
+			throws RedirectDirException {
 		int len = url.length();
-		if(len == 0) {
+		if (len == 0) {
 			return get(NOP_ITERATOR, false, index, autoIndex, base);
-		}else if(len == 1 && url.charAt(0) == SEPARATOR) {
+		} else if (len == 1 && url.charAt(0) == SEPARATOR) {
 			return get(NOP_ITERATOR, true, index, autoIndex, base);
-		}else {
+		} else {
 			try {
 				this.url = url;
 				this.index = 0;
 				this.nextIndex = -2;
 				this.end = len;
 				return get(this, adjustBounds(), index, autoIndex, base);
-			}finally {
+			} finally {
 				this.url = null;
 			}
 		}
@@ -87,45 +91,45 @@ class PathProcessor implements Iterator<CharSequence> {
 	private static ResponseCacheKey get(Iterator<CharSequence> itr, boolean dir, List<String> index, boolean autoIndex,
 			IndexNode base) throws RedirectDirException {
 		IndexNode ret = base;
-		while(itr.hasNext()) {
+		while (itr.hasNext()) {
 			ret = ret.find(itr.next());
-			if(ret == null) {
+			if (ret == null) {
 				break;
 			}
 		}
-		if(ret == null) {
+		if (ret == null) {
 			return null;
 		}
-		if(ret.isDirectory() != dir) {
+		if (ret.isDirectory() != dir) {
 			throw new RedirectDirException();
 		}
 		ResponseCacheKey r = ret.getResponse(index);
-		if(r == null && autoIndex && dir) {
-			throw new RedirectDirException((IndexNodeFolder)ret);
+		if (r == null && autoIndex && dir) {
+			throw new RedirectDirException((IndexNodeFolder) ret);
 		}
 		return r;
 	}
 
 	private void findNext() {
 		int i = indexOf(url, SEPARATOR, index, end);
-		if(i == -1 && index < end) {
+		if (i == -1 && index < end) {
 			i = end;
 		}
 		nextIndex = nextIndexEnd = i;
-		if(nextIndex < 0) {
+		if (nextIndex < 0) {
 			return;
 		}
-		while((i = nextIndexEnd + 1) < end && url.charAt(i) == SEPARATOR) {
+		while ((i = nextIndexEnd + 1) < end && url.charAt(i) == SEPARATOR) {
 			nextIndexEnd = i;
 		}
 	}
 
 	@Override
 	public boolean hasNext() {
-		if(url == null) {
+		if (url == null) {
 			throw new UnsupportedOperationException();
 		}
-		if(nextIndex == -2) {
+		if (nextIndex == -2) {
 			findNext();
 		}
 		return nextIndex >= 0;
@@ -133,13 +137,13 @@ class PathProcessor implements Iterator<CharSequence> {
 
 	@Override
 	public CharSequence next() {
-		if(url == null) {
+		if (url == null) {
 			throw new UnsupportedOperationException();
 		}
-		if(nextIndex == -2) {
+		if (nextIndex == -2) {
 			findNext();
 		}
-		if(nextIndex < 0) {
+		if (nextIndex < 0) {
 			throw new NoSuchElementException();
 		}
 		CharSequence ret = subsequence.set(url, index, nextIndex - index);

@@ -55,22 +55,22 @@ public class YAMLConfigLoader {
 		Representer representer;
 		try {
 			representer = Representer.class.getConstructor(DumperOptions.class).newInstance(dumpOpts);
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 			try {
 				representer = Representer.class.getConstructor().newInstance();
-			}catch(ReflectiveOperationException exx) {
+			} catch (ReflectiveOperationException exx) {
 				throw new ExceptionInInitializerError(exx);
 			}
 		}
 		Field scalarStyleField = null;
 		try {
 			scalarStyleField = ScalarNode.class.getDeclaredField("style");
-			if(scalarStyleField.getType() == Character.class) {
+			if (scalarStyleField.getType() == Character.class) {
 				scalarStyleField.setAccessible(true);
-			}else {
+			} else {
 				scalarStyleField = null;
 			}
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 		}
 		final Field scalarStyleFieldF = scalarStyleField;
 		try {
@@ -79,13 +79,13 @@ public class YAMLConfigLoader {
 			((Map<Class<?>, Represent>) f.get(representer)).put(Node.class, new Represent() {
 				@Override
 				public Node representData(Object data) {
-					if(scalarStyleFieldF != null) {
+					if (scalarStyleFieldF != null) {
 						LegacyHelper.fixScalars((Node) data, scalarStyleFieldF);
 					}
 					return (Node) data;
 				}
 			});
-		}catch(ReflectiveOperationException exx) {
+		} catch (ReflectiveOperationException exx) {
 			throw new ExceptionInInitializerError(exx);
 		}
 		YAML = new Yaml(representer, dumpOpts);
@@ -93,19 +93,19 @@ public class YAMLConfigLoader {
 
 	public static IEaglerConfig getConfigFile(File file) throws IOException {
 		Node obj;
-		try(Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
-			synchronized(YAML) {
+		try (Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
+			synchronized (YAML) {
 				obj = YAML.compose(reader);
 			}
-		}catch(FileNotFoundException ex) {
+		} catch (FileNotFoundException ex) {
 			obj = null;
-		}catch(YAMLException ex) {
+		} catch (YAMLException ex) {
 			throw new IOException("YAML config file has a syntax error: " + file.getAbsolutePath(), ex);
 		}
-		if(obj == null) {
+		if (obj == null) {
 			obj = LegacyHelper.mappingNode(Tag.MAP, new ArrayList<>());
 		}
-		if(!(obj instanceof MappingNode obj2)) {
+		if (!(obj instanceof MappingNode obj2)) {
 			throw new IOException("Root node " + obj.getClass().getSimpleName() + " is not a map!");
 		}
 		return getConfigFile(file, obj2);
@@ -119,11 +119,11 @@ public class YAMLConfigLoader {
 
 	public static void writeConfigFile(Node configIn, File file) throws IOException {
 		File p = file.getAbsoluteFile().getParentFile();
-		if(p != null && !p.isDirectory() && !p.mkdirs()) {
+		if (p != null && !p.isDirectory() && !p.mkdirs()) {
 			throw new IOException("Could not create directory: " + p.getAbsolutePath());
 		}
-		try(Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-			synchronized(YAML) {
+		try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
+			synchronized (YAML) {
 				YAML.dump(configIn, writer);
 			}
 		}

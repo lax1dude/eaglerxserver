@@ -30,7 +30,8 @@ class ResponseCacheBuilder {
 	private final Function<File, ConfigDataMIMEType> typeMapper;
 	private final Function<File, ResponseCacheKey> factory;
 
-	ResponseCacheBuilder(long expiresAfter, int maxCacheFiles, int threadCount, IEaglerWebLogger loggerIn, Function<File, ConfigDataMIMEType> mimes) {
+	ResponseCacheBuilder(long expiresAfter, int maxCacheFiles, int threadCount, IEaglerWebLogger loggerIn,
+			Function<File, ConfigDataMIMEType> mimes) {
 		cache = new ResponseCache(expiresAfter, maxCacheFiles, threadCount, loggerIn);
 		typeMapper = mimes;
 		factory = (f) -> {

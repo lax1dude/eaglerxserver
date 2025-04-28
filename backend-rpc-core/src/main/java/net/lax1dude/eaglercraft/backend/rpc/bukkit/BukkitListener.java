@@ -53,10 +53,10 @@ class BukkitListener implements Listener {
 
 	@EventHandler
 	public void onPlayerChangedWorldEvent(PlayerChangedWorldEvent evt) {
-		if(evt.getFrom() != null && plugin.worldChangeHandler != null) {
+		if (evt.getFrom() != null && plugin.worldChangeHandler != null) {
 			Player p = evt.getPlayer();
 			IPlatformPlayer<Player> platfPlayer = plugin.getPlayer(p);
-			if(platfPlayer != null) {
+			if (platfPlayer != null) {
 				plugin.worldChangeHandler.handleWorldChanged(platfPlayer, p.getWorld().getName());
 			}
 		}

@@ -48,7 +48,7 @@ public class SPacketOtherSkinCustomV5EAG implements GameMessagePacket {
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
-		if(customSkin.length != 12288) {
+		if (customSkin.length != 12288) {
 			throw new IOException("Custom skin data length is not 12288 bytes! (" + customSkin.length + ")");
 		}
 		buffer.writeVarInt(requestId);

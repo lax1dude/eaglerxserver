@@ -37,8 +37,8 @@ class BukkitLoginEventImpl extends EaglercraftLoginEvent {
 	private String username;
 	private String requestedServer;
 
-	BukkitLoginEventImpl(IEaglerXServerAPI<Player> api, IEaglerLoginConnection loginConnection,
-			boolean redirectSupport, String requestedServer) {
+	BukkitLoginEventImpl(IEaglerXServerAPI<Player> api, IEaglerLoginConnection loginConnection, boolean redirectSupport,
+			String requestedServer) {
 		this.api = api;
 		this.loginConnection = loginConnection;
 		this.redirectSupport = redirectSupport;
@@ -123,7 +123,7 @@ class BukkitLoginEventImpl extends EaglercraftLoginEvent {
 
 	@Override
 	public void setRequestedServer(String server) {
-		if(server == null) {
+		if (server == null) {
 			throw new NullPointerException("server");
 		}
 		this.requestedServer = server;

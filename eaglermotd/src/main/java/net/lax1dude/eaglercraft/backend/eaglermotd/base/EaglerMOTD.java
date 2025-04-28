@@ -54,38 +54,39 @@ public class EaglerMOTD<PlayerObject> {
 	public void onEnable(IEaglerXServerAPI<PlayerObject> server) {
 		this.server = server;
 		try {
-			this.config = EaglerMOTDConfiguration.load(platform.getDataFolder(), server, logger(),
-					server.getAllEaglerListeners().stream().map(IEaglerListenerInfo::getName).collect(Collectors.toSet()));
+			this.config = EaglerMOTDConfiguration.load(platform.getDataFolder(), server, logger(), server
+					.getAllEaglerListeners().stream().map(IEaglerListenerInfo::getName).collect(Collectors.toSet()));
 		} catch (JsonParseException | IOException e) {
-			if(e instanceof RuntimeException ee) throw ee;
+			if (e instanceof RuntimeException ee)
+				throw ee;
 			throw new RuntimeException("Could not load EaglerMOTD config files!", e);
 		}
 		this.motdUpdateTask = server.getScheduler().executeAsyncRepeatingTask(this::updateMOTDs, 50l, 50l);
 		platform.setOnMOTD(this::onMOTD);
-		for(Entry<String, QueryType> etr : config.queryTypes.entrySet()) {
+		for (Entry<String, QueryType> etr : config.queryTypes.entrySet()) {
 			server.getQueryServer().registerQueryType(this, etr.getKey(), etr.getValue()::doQuery);
 		}
 	}
 
 	public void onDisable(IEaglerXServerAPI<PlayerObject> server) {
-		if(motdUpdateTask != null) {
+		if (motdUpdateTask != null) {
 			motdUpdateTask.cancel();
 			motdUpdateTask = null;
 		}
 		platform.setOnMOTD(null);
-		for(String etr : config.queryTypes.keySet()) {
+		for (String etr : config.queryTypes.keySet()) {
 			server.getQueryServer().unregisterQueryType(this, etr);
 		}
 	}
 
 	public void onMOTD(IEaglercraftMOTDEvent<PlayerObject> event) {
 		EaglerMOTDConnectionUpdater updater = new EaglerMOTDConnectionUpdater(config, event.getMOTDConnection());
-		if(updater.execute()) {
-			synchronized(activeConnections) {
-				if(config.max_total_sockets > 0) {
-					while(activeConnections.size() >= config.max_total_sockets) {
+		if (updater.execute()) {
+			synchronized (activeConnections) {
+				if (config.max_total_sockets > 0) {
+					while (activeConnections.size() >= config.max_total_sockets) {
 						Iterator<EaglerMOTDConnectionUpdater> itr = activeConnections.iterator();
-						if(itr.hasNext()) {
+						if (itr.hasNext()) {
 							EaglerMOTDConnectionUpdater c = itr.next();
 							itr.remove();
 							c.close();
@@ -99,13 +100,13 @@ public class EaglerMOTD<PlayerObject> {
 
 	public void updateMOTDs() {
 		EaglerMOTDConnectionUpdater[] conns;
-		synchronized(activeConnections) {
+		synchronized (activeConnections) {
 			conns = activeConnections.toArray(new EaglerMOTDConnectionUpdater[activeConnections.size()]);
 		}
-		for(int i = 0; i < conns.length; ++i) {
+		for (int i = 0; i < conns.length; ++i) {
 			EaglerMOTDConnectionUpdater up = conns[i];
-			if(!up.tick()) {
-				synchronized(activeConnections) {
+			if (!up.tick()) {
+				synchronized (activeConnections) {
 					activeConnections.remove(up);
 				}
 			}

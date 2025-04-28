@@ -57,7 +57,7 @@ public class BackendV2RPCProtocolHandler extends BackendRPCProtocolHandler {
 	}
 
 	public void handleServer(SPacketRPCResponseTypeVoiceStatus packet) {
-		rpcContext.handleResponseComplete(packet.requestID, switch(packet.voiceState) {
+		rpcContext.handleResponseComplete(packet.requestID, switch (packet.voiceState) {
 		case SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_SERVER_DISABLE -> EnumVoiceState.SERVER_DISABLE;
 		case SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_DISABLED -> EnumVoiceState.DISABLED;
 		case SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_ENABLED -> EnumVoiceState.ENABLED;
@@ -74,7 +74,7 @@ public class BackendV2RPCProtocolHandler extends BackendRPCProtocolHandler {
 	}
 
 	public void handleServer(SPacketRPCEventWebViewMessage packet) {
-		switch(packet.messageType) {
+		switch (packet.messageType) {
 		case SPacketRPCEventWebViewMessage.MESSAGE_TYPE_STRING:
 			rpcContext.fireRemoteEvent(WebViewMessageEvent.string(packet.channelName, packet.messageContent));
 			break;
@@ -87,11 +87,12 @@ public class BackendV2RPCProtocolHandler extends BackendRPCProtocolHandler {
 	}
 
 	public void handleServer(SPacketRPCEventToggledVoice packet) {
-		rpcContext.fireRemoteEvent(VoiceChangeEvent.create(mapVoiceState(packet.oldVoiceState), mapVoiceState(packet.newVoiceState)));
+		rpcContext.fireRemoteEvent(
+				VoiceChangeEvent.create(mapVoiceState(packet.oldVoiceState), mapVoiceState(packet.newVoiceState)));
 	}
 
 	private EnumVoiceState mapVoiceState(int i) {
-		return switch(i) {
+		return switch (i) {
 		default -> EnumVoiceState.SERVER_DISABLE;
 		case SPacketRPCEventToggledVoice.VOICE_STATE_DISABLED -> EnumVoiceState.DISABLED;
 		case SPacketRPCEventToggledVoice.VOICE_STATE_ENABLED -> EnumVoiceState.ENABLED;

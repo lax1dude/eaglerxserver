@@ -48,63 +48,64 @@ public class EaglerWebConfig {
 		try {
 			GSON = (Gson) Class.forName("net.lax1dude.eaglercraft.backend.server.base.EaglerXServer")
 					.getField("GSON_PRETTY").get(null);
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 			throw new ExceptionInInitializerError(ex);
 		}
 	}
 
-	public static EaglerWebConfig loadConfig(IEaglerWebLogger logger, File pluginDir) throws IOException, JsonParseException {
-		if(!pluginDir.isDirectory() && !(new File(pluginDir, "web")).mkdirs()) {
+	public static EaglerWebConfig loadConfig(IEaglerWebLogger logger, File pluginDir)
+			throws IOException, JsonParseException {
+		if (!pluginDir.isDirectory() && !(new File(pluginDir, "web")).mkdirs()) {
 			throw new IOException("Could not create config directory!");
 		}
-		
+
 		File settings = new File(pluginDir, "settings.json");
-		if(!settings.isFile()) {
+		if (!settings.isFile()) {
 			logger.info("Writing default config: " + settings.getAbsolutePath());
-			try(InputStream is = EaglerWebConfig.class.getResourceAsStream("default_settings.json");
+			try (InputStream is = EaglerWebConfig.class.getResourceAsStream("default_settings.json");
 					OutputStream os = new FileOutputStream(settings)) {
 				ByteStreams.copy(is, os);
 			}
 		}
-		
+
 		File mimetypes = new File(pluginDir, "mimetypes.json");
-		if(!mimetypes.isFile()) {
+		if (!mimetypes.isFile()) {
 			logger.info("Writing default config: " + mimetypes.getAbsolutePath());
-			try(InputStream is = EaglerWebConfig.class.getResourceAsStream("default_mimetypes.json");
+			try (InputStream is = EaglerWebConfig.class.getResourceAsStream("default_mimetypes.json");
 					OutputStream os = new FileOutputStream(mimetypes)) {
 				ByteStreams.copy(is, os);
 			}
 		}
-		
+
 		JsonObject obj;
-		try(Reader reader = new InputStreamReader(new FileInputStream(settings), StandardCharsets.UTF_8)) {
+		try (Reader reader = new InputStreamReader(new FileInputStream(settings), StandardCharsets.UTF_8)) {
 			obj = GSON.fromJson(reader, JsonObject.class);
 		}
-		
+
 		ImmutableMap.Builder<String, ConfigDataSettings> settingsBuilder = ImmutableMap.builder();
 		ConfigDataSettings defaultSettings = null;
-		
+
 		long memoryCacheExpiresAfter = obj.getAsJsonPrimitive("memory_cache_expires_after").getAsLong() * 1000l;
 		int memoryCacheMaxFiles = obj.getAsJsonPrimitive("memory_cache_max_files").getAsInt();
 		int fileIOThreadCount = obj.getAsJsonPrimitive("file_io_thread_count").getAsInt();
 		boolean enableCORS = obj.getAsJsonPrimitive("enable_cors_support").getAsBoolean();
-		
-		for(Entry<String, JsonElement> etr : obj.getAsJsonObject("listeners").entrySet()) {
+
+		for (Entry<String, JsonElement> etr : obj.getAsJsonObject("listeners").entrySet()) {
 			ConfigDataSettings setting = parseSettings(pluginDir, etr.getValue().getAsJsonObject());
-			if("*".equals(etr.getKey())) {
+			if ("*".equals(etr.getKey())) {
 				defaultSettings = setting;
-			}else {
+			} else {
 				settingsBuilder.put(etr.getKey(), setting);
 			}
 		}
-		
-		try(Reader reader = new InputStreamReader(new FileInputStream(mimetypes), StandardCharsets.UTF_8)) {
+
+		try (Reader reader = new InputStreamReader(new FileInputStream(mimetypes), StandardCharsets.UTF_8)) {
 			obj = GSON.fromJson(reader, JsonObject.class);
 		}
 
 		ImmutableMap.Builder<String, ConfigDataMIMEType> mimeBuilder = ImmutableMap.builder();
 
-		for(Entry<String, JsonElement> etr : obj.entrySet()) {
+		for (Entry<String, JsonElement> etr : obj.entrySet()) {
 			parseMIMEType(etr.getKey(), etr.getValue().getAsJsonObject(), mimeBuilder);
 		}
 
@@ -113,33 +114,38 @@ public class EaglerWebConfig {
 	}
 
 	private static ConfigDataSettings parseSettings(File pluginDir, JsonObject object) {
-		File rootFolder = new File(pluginDir, object.getAsJsonPrimitive("document_root").getAsString()).getAbsoluteFile();
+		File rootFolder = new File(pluginDir, object.getAsJsonPrimitive("document_root").getAsString())
+				.getAbsoluteFile();
 		List<String> pageIndexNames;
-		if(object.has("page_index") && object.get("page_index").isJsonArray()) {
+		if (object.has("page_index") && object.get("page_index").isJsonArray()) {
 			JsonArray arr = object.getAsJsonArray("page_index");
 			ImmutableList.Builder<String> builder = ImmutableList.builder();
-			for(int i = 0, l = arr.size(); i < l; ++i) {
+			for (int i = 0, l = arr.size(); i < l; ++i) {
 				builder.add(arr.get(i).getAsString());
 			}
 			pageIndexNames = builder.build();
-		}else {
+		} else {
 			pageIndexNames = Collections.emptyList();
 		}
 		File page404NotFound = object.has("page_404") && object.get("page_404").isJsonPrimitive()
-				? new File(rootFolder, object.getAsJsonPrimitive("page_404").getAsString()).getAbsoluteFile() : null;
+				? new File(rootFolder, object.getAsJsonPrimitive("page_404").getAsString()).getAbsoluteFile()
+				: null;
 		File page429RateLimit = object.has("page_429") && object.get("page_429").isJsonPrimitive()
-				? new File(rootFolder, object.getAsJsonPrimitive("page_429").getAsString()).getAbsoluteFile() : null;
+				? new File(rootFolder, object.getAsJsonPrimitive("page_429").getAsString()).getAbsoluteFile()
+				: null;
 		File page500InternalError = object.has("page_500") && object.get("page_500").isJsonPrimitive()
-				? new File(rootFolder, object.getAsJsonPrimitive("page_500").getAsString()).getAbsoluteFile() : null;
+				? new File(rootFolder, object.getAsJsonPrimitive("page_500").getAsString()).getAbsoluteFile()
+				: null;
 		boolean enableAutoIndex;
 		String dateFormat;
-		if(object.has("autoindex")) {
+		if (object.has("autoindex")) {
 			JsonObject autoindex = object.getAsJsonObject("autoindex");
 			enableAutoIndex = autoindex.has("enable") && autoindex.get("enable").isJsonPrimitive()
 					&& autoindex.get("enable").getAsBoolean();
 			dateFormat = autoindex.has("date_format") && autoindex.get("date_format").isJsonPrimitive()
-					? autoindex.getAsJsonPrimitive("date_format").getAsString() : null;
-		}else {
+					? autoindex.getAsJsonPrimitive("date_format").getAsString()
+					: null;
+		} else {
 			enableAutoIndex = false;
 			dateFormat = null;
 		}
@@ -147,28 +153,29 @@ public class EaglerWebConfig {
 				page500InternalError, enableAutoIndex, dateFormat);
 	}
 
-	private static void parseMIMEType(String key, JsonObject object, ImmutableMap.Builder<String, ConfigDataMIMEType> mimeBuilder) {
+	private static void parseMIMEType(String key, JsonObject object,
+			ImmutableMap.Builder<String, ConfigDataMIMEType> mimeBuilder) {
 		JsonArray jsonArray = object.getAsJsonArray("files");
 		long expires = 0l;
 		JsonElement el = object.get("expires");
-		if(el != null) {
+		if (el != null) {
 			expires = el.getAsInt() * 1000l;
 		}
 		el = object.get("charset");
 		String charset = null;
-		if(el != null) {
+		if (el != null) {
 			charset = el.getAsString();
 		}
 		String header = key;
-		if(charset != null) {
+		if (charset != null) {
 			header = header + "; charset=" + charset;
 		}
 		String cacheHeader = "no-cache";
-		if(expires > 0l) {
+		if (expires > 0l) {
 			cacheHeader = "max-age=" + (expires / 1000l);
 		}
 		ConfigDataMIMEType mimeType = new ConfigDataMIMEType(key, charset, header, cacheHeader, expires);
-		for(int i = 0, l = jsonArray.size(); i < l; ++i) {
+		for (int i = 0, l = jsonArray.size(); i < l; ++i) {
 			mimeBuilder.put(jsonArray.get(i).getAsString().toLowerCase(Locale.US), mimeType);
 		}
 	}

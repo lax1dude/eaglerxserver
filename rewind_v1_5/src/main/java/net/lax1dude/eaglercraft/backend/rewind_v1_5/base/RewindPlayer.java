@@ -109,28 +109,28 @@ public class RewindPlayer<PlayerObject> {
 	}
 
 	public INBTContext getNBTContext() {
-		if(this.nbtContext == null) {
+		if (this.nbtContext == null) {
 			this.nbtContext = rewind.getServerAPI().getNBTHelper().createThreadContext(512);
 		}
 		return this.nbtContext;
 	}
 
 	public IComponentHelper getComponentHelper() {
-		if(this.componentHelper == null) {
+		if (this.componentHelper == null) {
 			this.componentHelper = rewind.getServerAPI().getComponentHelper();
 		}
 		return this.componentHelper;
 	}
 
 	public TabListTracker getTabList() {
-		if(this.tabList == null) {
+		if (this.tabList == null) {
 			this.tabList = new TabListTracker(rewind.getServerAPI().getHPPC());
 		}
 		return this.tabList;
 	}
 
 	public Deflater getNotDeflater() {
-		if(this.notDeflater == null) {
+		if (this.notDeflater == null) {
 			// Note: Always use compression level 0, websocket is already compressed!
 			this.notDeflater = new Deflater(0);
 		}
@@ -138,21 +138,21 @@ public class RewindPlayer<PlayerObject> {
 	}
 
 	public Deflater getNotGZipper() {
-		if(this.notGZipper == null) {
+		if (this.notGZipper == null) {
 			this.notGZipper = new Deflater(0, true);
 		}
 		return this.notGZipper;
 	}
 
 	public Inflater getUnGZipper() {
-		if(this.ungzipper == null) {
+		if (this.ungzipper == null) {
 			this.ungzipper = new Inflater(true);
 		}
 		return this.ungzipper;
 	}
 
 	public DataInputStream createGZIPInputStream(ByteBuf buf, int limit) throws IOException {
-		if(this.ungzipperStream == null) {
+		if (this.ungzipperStream == null) {
 			this.ungzipperStream = new ReusableGZIPInputStream(getUnGZipper(), getTempBuffer1());
 			this.ungzipperStreamOuter = new DataInputStream(new HackedBufferedInputStream(ungzipperStream, 2048));
 		}
@@ -161,7 +161,7 @@ public class RewindPlayer<PlayerObject> {
 	}
 
 	public DataOutputStream createGZIPOutputStream(ByteBuf buf) {
-		if(this.gzipperStream == null) {
+		if (this.gzipperStream == null) {
 			this.gzipperStream = new ReusableGZIPOutputStream(getNotGZipper(), getTempBuffer1());
 			this.gzipperStreamOuter = new HackedDataOutputStream(new HackedBufferedOutputStream(gzipperStream, 2048));
 		}
@@ -213,7 +213,7 @@ public class RewindPlayer<PlayerObject> {
 	}
 
 	public byte[] getTempBuffer1() {
-		if(this.temp1 == null) {
+		if (this.temp1 == null) {
 			this.temp1 = new byte[1];
 		}
 		return this.temp1;
@@ -229,7 +229,7 @@ public class RewindPlayer<PlayerObject> {
 		HPPC hppc = api.getHPPC();
 		voiceGlobalMap = hppc.createObjectObjectHashMap(userDatas.size());
 		voiceGlobalMapInv = hppc.createObjectObjectHashMap(userDatas.size());
-		for(SPacketVoiceSignalGlobalEAG.UserData userData : userDatas) {
+		for (SPacketVoiceSignalGlobalEAG.UserData userData : userDatas) {
 			UUID uuid = api.intern(new UUID(userData.uuidMost, userData.uuidLeast));
 			String name = userData.username.intern();
 			voiceGlobalMap.put(uuid, name);
@@ -254,13 +254,13 @@ public class RewindPlayer<PlayerObject> {
 	}
 
 	public void releaseNatives() {
-		if(notDeflater != null) {
+		if (notDeflater != null) {
 			notDeflater.end();
 		}
-		if(notGZipper != null) {
+		if (notGZipper != null) {
 			notGZipper.end();
 		}
-		if(ungzipper != null) {
+		if (ungzipper != null) {
 			ungzipper.end();
 		}
 	}

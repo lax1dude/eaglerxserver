@@ -27,26 +27,26 @@ public class SPacketNotifBadgeShowV4EAG implements GameMessagePacket {
 
 	public static enum EnumBadgePriority {
 		LOW(0), NORMAL(1), HIGHER(2), HIGHEST(3);
-		
+
 		public final int priority;
-		
+
 		private EnumBadgePriority(int priority) {
 			this.priority = priority;
 		}
-		
+
 		private static final EnumBadgePriority[] lookup = new EnumBadgePriority[4];
-		
+
 		public static EnumBadgePriority getByID(int id) {
-			if(id >= 0 && id < lookup.length) {
+			if (id >= 0 && id < lookup.length) {
 				return lookup[id];
-			}else {
+			} else {
 				return NORMAL;
 			}
 		}
-		
+
 		static {
 			EnumBadgePriority[] _values = values();
-			for(int i = 0; i < _values.length; ++i) {
+			for (int i = 0; i < _values.length; ++i) {
 				lookup[_values[i].priority] = _values[i];
 			}
 		}
@@ -106,7 +106,7 @@ public class SPacketNotifBadgeShowV4EAG implements GameMessagePacket {
 		bodyComponent = buffer.readStringMC(32767);
 		titleComponent = buffer.readStringMC(255);
 		sourceComponent = buffer.readStringMC(255);
-		originalTimestampSec = ((long)buffer.readUnsignedShort() << 32l) | ((long)buffer.readInt() & 0xFFFFFFFFl);
+		originalTimestampSec = ((long) buffer.readUnsignedShort() << 32l) | ((long) buffer.readInt() & 0xFFFFFFFFl);
 		int flags = buffer.readUnsignedByte();
 		silent = (flags & 1) != 0;
 		priority = EnumBadgePriority.getByID((flags >>> 1) & 3);
@@ -116,10 +116,13 @@ public class SPacketNotifBadgeShowV4EAG implements GameMessagePacket {
 		mainIconUUIDLeast = (flags & 8) != 0 ? buffer.readLong() : 0l;
 		titleIconUUIDMost = (flags & 16) != 0 ? buffer.readLong() : 0l;
 		titleIconUUIDLeast = (flags & 16) != 0 ? buffer.readLong() : 0l;
-		backgroundColor = (buffer.readUnsignedByte() << 16) | (buffer.readUnsignedByte() << 8) | buffer.readUnsignedByte();
+		backgroundColor = (buffer.readUnsignedByte() << 16) | (buffer.readUnsignedByte() << 8)
+				| buffer.readUnsignedByte();
 		bodyTxtColor = (buffer.readUnsignedByte() << 16) | (buffer.readUnsignedByte() << 8) | buffer.readUnsignedByte();
-		titleTxtColor = (buffer.readUnsignedByte() << 16) | (buffer.readUnsignedByte() << 8) | buffer.readUnsignedByte();
-		sourceTxtColor = (buffer.readUnsignedByte() << 16) | (buffer.readUnsignedByte() << 8) | buffer.readUnsignedByte();
+		titleTxtColor = (buffer.readUnsignedByte() << 16) | (buffer.readUnsignedByte() << 8)
+				| buffer.readUnsignedByte();
+		sourceTxtColor = (buffer.readUnsignedByte() << 16) | (buffer.readUnsignedByte() << 8)
+				| buffer.readUnsignedByte();
 	}
 
 	@Override
@@ -129,20 +132,23 @@ public class SPacketNotifBadgeShowV4EAG implements GameMessagePacket {
 		buffer.writeStringMC(bodyComponent);
 		buffer.writeStringMC(titleComponent);
 		buffer.writeStringMC(sourceComponent);
-		buffer.writeShort((int)((originalTimestampSec >>> 32l) & 0xFFFFl));
-		buffer.writeInt((int)(originalTimestampSec & 0xFFFFFFFFl));
+		buffer.writeShort((int) ((originalTimestampSec >>> 32l) & 0xFFFFl));
+		buffer.writeInt((int) (originalTimestampSec & 0xFFFFFFFFl));
 		int flags = ((priority != null ? priority.priority : 1) << 1);
-		if(silent) flags |= 1;
-		if(mainIconUUIDMost != 0l || mainIconUUIDLeast != 0l) flags |= 8;
-		if(titleIconUUIDMost != 0l || titleIconUUIDLeast != 0l) flags |= 16;
+		if (silent)
+			flags |= 1;
+		if (mainIconUUIDMost != 0l || mainIconUUIDLeast != 0l)
+			flags |= 8;
+		if (titleIconUUIDMost != 0l || titleIconUUIDLeast != 0l)
+			flags |= 16;
 		buffer.writeByte(flags);
 		buffer.writeByte(hideAfterSec);
 		buffer.writeShort(expireAfterSec);
-		if((flags & 8) != 0) {
+		if ((flags & 8) != 0) {
 			buffer.writeLong(mainIconUUIDMost);
 			buffer.writeLong(mainIconUUIDLeast);
 		}
-		if((flags & 16) != 0) {
+		if ((flags & 16) != 0) {
 			buffer.writeLong(titleIconUUIDMost);
 			buffer.writeLong(titleIconUUIDLeast);
 		}

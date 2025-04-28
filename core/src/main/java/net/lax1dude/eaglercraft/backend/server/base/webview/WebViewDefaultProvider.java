@@ -37,22 +37,22 @@ class WebViewDefaultProvider implements IWebViewProvider<Object> {
 
 	@Override
 	public boolean isChannelAllowed(IWebViewManager<Object> manager) {
-		return ((WebViewManager<?>)manager).isChannelAllowedDefault();
+		return ((WebViewManager<?>) manager).isChannelAllowedDefault();
 	}
 
 	@Override
 	public boolean isRequestAllowed(IWebViewManager<Object> manager) {
-		return ((WebViewManager<?>)manager).isRequestAllowedDefault();
+		return ((WebViewManager<?>) manager).isRequestAllowedDefault();
 	}
 
 	@Override
 	public void handleRequest(IWebViewManager<Object> manager, SHA1Sum hash, Consumer<IWebViewBlob> callback) {
-		((WebViewManager<?>)manager).handleRequestDefault(hash, callback);
+		((WebViewManager<?>) manager).handleRequestDefault(hash, callback);
 	}
 
 	@Override
 	public SHA1Sum handleAlias(IWebViewManager<Object> manager, String aliasName) {
-		return ((WebViewManager<?>)manager).handleAliasDefault(aliasName);
+		return ((WebViewManager<?>) manager).handleAliasDefault(aliasName);
 	}
 
 }

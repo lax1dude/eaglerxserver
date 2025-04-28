@@ -47,8 +47,10 @@ public final class SHA1Sum {
 
 	@Nonnull
 	public static SHA1Sum create(@Nonnull byte[] checksum, int offset, int length) {
-		if(offset < 0) throw new ArrayIndexOutOfBoundsException(offset);
-		if(offset + length > checksum.length) throw new ArrayIndexOutOfBoundsException(length);
+		if (offset < 0)
+			throw new ArrayIndexOutOfBoundsException(offset);
+		if (offset + length > checksum.length)
+			throw new ArrayIndexOutOfBoundsException(length);
 		return create(intHelper(checksum, offset), intHelper(checksum, offset + 4), intHelper(checksum, offset + 8),
 				intHelper(checksum, offset + 12), intHelper(checksum, offset + 16));
 	}
@@ -113,10 +115,10 @@ public final class SHA1Sum {
 	}
 
 	private static void byteHelper(@Nonnull byte[] dst, int a, int off) {
-		dst[off] = (byte)(a >>> 24);
-		dst[off + 1] = (byte)(a >>> 16);
-		dst[off + 2] = (byte)(a >>> 8);
-		dst[off + 3] = (byte)a;
+		dst[off] = (byte) (a >>> 24);
+		dst[off + 1] = (byte) (a >>> 16);
+		dst[off + 2] = (byte) (a >>> 8);
+		dst[off + 3] = (byte) a;
 	}
 
 	@Override
@@ -151,8 +153,8 @@ public final class SHA1Sum {
 
 	@Override
 	public boolean equals(Object obj) {
-		return this == obj || ((obj instanceof SHA1Sum other) && other.a == a && other.b == b
-				&& other.c == c && other.d == d && other.e == e);
+		return this == obj || ((obj instanceof SHA1Sum other) && other.a == a && other.b == b && other.c == c
+				&& other.d == d && other.e == e);
 	}
 
 }

@@ -44,13 +44,13 @@ public class PresetSkinPlayer extends BasePresetSkin {
 	@Override
 	public GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast,
 			GamePluginMessageProtocol protocol) {
-		if(protocol.ver <= 4) {
-			if(rewriteUUIDMost == packet.uuidMost && rewriteUUIDLeast == packet.uuidLeast) {
+		if (protocol.ver <= 4) {
+			if (rewriteUUIDMost == packet.uuidMost && rewriteUUIDLeast == packet.uuidLeast) {
 				return packet;
-			}else {
+			} else {
 				return new SPacketOtherSkinPresetEAG(rewriteUUIDMost, rewriteUUIDLeast, packet.presetSkin);
 			}
-		}else {
+		} else {
 			throw UnsafeUtil.wrongProtocol(protocol);
 		}
 	}
@@ -58,13 +58,13 @@ public class PresetSkinPlayer extends BasePresetSkin {
 	@Override
 	public GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast, EnumSkinModel rewriteModelId,
 			GamePluginMessageProtocol protocol) {
-		if(protocol.ver <= 4) {
-			if(rewriteUUIDMost == packet.uuidMost && rewriteUUIDLeast == packet.uuidLeast) {
+		if (protocol.ver <= 4) {
+			if (rewriteUUIDMost == packet.uuidMost && rewriteUUIDLeast == packet.uuidLeast) {
 				return packet;
-			}else {
+			} else {
 				return new SPacketOtherSkinPresetEAG(rewriteUUIDMost, rewriteUUIDLeast, packet.presetSkin);
 			}
-		}else {
+		} else {
 			throw UnsafeUtil.wrongProtocol(protocol);
 		}
 	}
@@ -72,40 +72,41 @@ public class PresetSkinPlayer extends BasePresetSkin {
 	@Override
 	public GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast, int rewriteModelIdRaw,
 			GamePluginMessageProtocol protocol) {
-		if(protocol.ver <= 4) {
-			if(rewriteUUIDMost == packet.uuidMost && rewriteUUIDLeast == packet.uuidLeast) {
+		if (protocol.ver <= 4) {
+			if (rewriteUUIDMost == packet.uuidMost && rewriteUUIDLeast == packet.uuidLeast) {
 				return packet;
-			}else {
+			} else {
 				return new SPacketOtherSkinPresetEAG(rewriteUUIDMost, rewriteUUIDLeast, packet.presetSkin);
 			}
-		}else {
+		} else {
 			throw UnsafeUtil.wrongProtocol(protocol);
 		}
 	}
 
 	@Override
 	public GameMessagePacket getSkinPacket(int requestId, GamePluginMessageProtocol protocol) {
-		if(protocol.ver >= 5) {
+		if (protocol.ver >= 5) {
 			return new SPacketOtherSkinPresetV5EAG(requestId, packet.presetSkin);
-		}else {
+		} else {
 			throw UnsafeUtil.wrongProtocol(protocol);
 		}
 	}
 
 	@Override
-	public GameMessagePacket getSkinPacket(int requestId, EnumSkinModel rewriteModelId, GamePluginMessageProtocol protocol) {
-		if(protocol.ver >= 5) {
+	public GameMessagePacket getSkinPacket(int requestId, EnumSkinModel rewriteModelId,
+			GamePluginMessageProtocol protocol) {
+		if (protocol.ver >= 5) {
 			return new SPacketOtherSkinPresetV5EAG(requestId, packet.presetSkin);
-		}else {
+		} else {
 			throw UnsafeUtil.wrongProtocol(protocol);
 		}
 	}
 
 	@Override
 	public GameMessagePacket getSkinPacket(int requestId, int rewriteModelIdRaw, GamePluginMessageProtocol protocol) {
-		if(protocol.ver >= 5) {
+		if (protocol.ver >= 5) {
 			return new SPacketOtherSkinPresetV5EAG(requestId, packet.presetSkin);
-		}else {
+		} else {
 			throw UnsafeUtil.wrongProtocol(protocol);
 		}
 	}

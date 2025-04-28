@@ -19,8 +19,7 @@ package net.lax1dude.eaglercraft.backend.rpc.api;
 import javax.annotation.Nonnull;
 
 @FunctionalInterface
-public interface IRPCEventHandlerTiny<PlayerObject, T extends IRPCEvent>
-		extends IRPCEventHandler<PlayerObject, T> {
+public interface IRPCEventHandlerTiny<PlayerObject, T extends IRPCEvent> extends IRPCEventHandler<PlayerObject, T> {
 
 	@Nonnull
 	default EnumExecutorType getExecutor() {

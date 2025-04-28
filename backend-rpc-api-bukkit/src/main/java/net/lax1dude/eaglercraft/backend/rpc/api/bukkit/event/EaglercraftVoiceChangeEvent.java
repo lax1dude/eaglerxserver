@@ -24,8 +24,7 @@ import org.bukkit.event.HandlerList;
 
 import net.lax1dude.eaglercraft.backend.rpc.api.event.IEaglercraftVoiceChangeEvent;
 
-public abstract class EaglercraftVoiceChangeEvent extends Event
-		implements IEaglercraftVoiceChangeEvent<Player> {
+public abstract class EaglercraftVoiceChangeEvent extends Event implements IEaglercraftVoiceChangeEvent<Player> {
 
 	private static final HandlerList handlers = new HandlerList();
 

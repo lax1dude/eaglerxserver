@@ -57,13 +57,14 @@ class SupervisorDataType {
 	}
 
 	static SupervisorDataType provideType(Class<? extends ISupervisorData> clazz) {
-		if(clazz == SupervisorDataVoid.class) {
+		if (clazz == SupervisorDataVoid.class) {
 			return VOID_TYPE;
-		}else {
+		} else {
 			try {
 				return dataTypeCache.get(clazz);
 			} catch (ExecutionException e) {
-				if(e.getCause() instanceof RuntimeException ee) throw ee;
+				if (e.getCause() instanceof RuntimeException ee)
+					throw ee;
 				throw new RuntimeException(e.getCause());
 			}
 		}

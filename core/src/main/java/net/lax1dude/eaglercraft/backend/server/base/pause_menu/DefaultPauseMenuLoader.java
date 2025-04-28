@@ -36,22 +36,22 @@ class DefaultPauseMenuLoader {
 	static ICustomPauseMenu loadDefaultPauseMenu(File dataDir, ConfigDataPauseMenu pauseMenuConf,
 			PauseMenuService<?> service) throws IOException, InvalidMacroException {
 		IPauseMenuBuilder builder = service.createPauseMenuBuilder();
-		if(pauseMenuConf.isEnableServerInfoButton()) {
-			if(pauseMenuConf.isServerInfoButtonOpenNewTab()) {
+		if (pauseMenuConf.isEnableServerInfoButton()) {
+			if (pauseMenuConf.isServerInfoButtonOpenNewTab()) {
 				builder.setServerInfoButtonModeURL(pauseMenuConf.getServerInfoButtonText(),
 						pauseMenuConf.getServerInfoButtonEmbedURL());
-			}else {
+			} else {
 				Set<EnumWebViewPerms> perms = EnumSet.noneOf(EnumWebViewPerms.class);
-				if(pauseMenuConf.isServerInfoButtonEmbedEnableJavascript()) {
+				if (pauseMenuConf.isServerInfoButtonEmbedEnableJavascript()) {
 					perms.add(EnumWebViewPerms.JAVASCRIPT);
 				}
-				if(pauseMenuConf.isServerInfoButtonEmbedEnableMessageAPI()) {
+				if (pauseMenuConf.isServerInfoButtonEmbedEnableMessageAPI()) {
 					perms.add(EnumWebViewPerms.MESSAGE_API);
 				}
-				if(pauseMenuConf.isServerInfoButtonEmbedEnableStrictCSP()) {
+				if (pauseMenuConf.isServerInfoButtonEmbedEnableStrictCSP()) {
 					perms.add(EnumWebViewPerms.STRICT_CSP);
 				}
-				if(pauseMenuConf.isServerInfoButtonModeEmbedFile()) {
+				if (pauseMenuConf.isServerInfoButtonModeEmbedFile()) {
 					ITemplateLoader loader = service.getWebViewService().createTemplateLoader(dataDir,
 							pauseMenuConf.isServerInfoButtonEmbedEnableTemplateMacros());
 					builder.setServerInfoButtonModeWebViewBlob(pauseMenuConf.getServerInfoButtonText(),
@@ -65,13 +65,13 @@ class DefaultPauseMenuLoader {
 				}
 			}
 		}
-		if(pauseMenuConf.isDiscordButtonEnable()) {
+		if (pauseMenuConf.isDiscordButtonEnable()) {
 			builder.setDiscordInviteButtonModeURL(pauseMenuConf.getDiscordButtonText(),
 					pauseMenuConf.getDiscordButtonURL());
 		}
-		for(Map.Entry<String, String> etr : pauseMenuConf.getCustomImages().entrySet()) {
-			builder.setMenuIcon(etr.getKey(), PacketImageLoader.loadPacketImageData(
-					new File(dataDir, etr.getValue()), 255, 255));
+		for (Map.Entry<String, String> etr : pauseMenuConf.getCustomImages().entrySet()) {
+			builder.setMenuIcon(etr.getKey(),
+					PacketImageLoader.loadPacketImageData(new File(dataDir, etr.getValue()), 255, 255));
 		}
 		return builder.buildPauseMenu();
 	}

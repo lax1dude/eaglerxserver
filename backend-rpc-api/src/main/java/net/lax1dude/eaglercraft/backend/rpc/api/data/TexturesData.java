@@ -25,10 +25,10 @@ public final class TexturesData {
 
 	@Nonnull
 	public static TexturesData create(@Nonnull IEaglerPlayerSkin skin, @Nonnull IEaglerPlayerCape cape) {
-		if(skin == null) {
+		if (skin == null) {
 			throw new NullPointerException("skin");
 		}
-		if(cape == null) {
+		if (cape == null) {
 			throw new NullPointerException("cape");
 		}
 		return new TexturesData(skin, cape);

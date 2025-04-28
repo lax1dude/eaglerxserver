@@ -50,10 +50,10 @@ public class GSONConfigBase implements IEaglerConfig {
 
 	@Override
 	public boolean saveIfModified() throws IOException {
-		if(modified) {
+		if (modified) {
 			GSONConfigLoader.writeConfigFile(root.json, file);
 			return true;
-		}else {
+		} else {
 			return false;
 		}
 	}

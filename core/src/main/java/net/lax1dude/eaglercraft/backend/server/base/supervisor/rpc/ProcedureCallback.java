@@ -43,7 +43,7 @@ abstract class ProcedureCallback implements ISupervisorExpiring {
 
 	@Override
 	public void expire() {
-		if(map.remove(key) != null) {
+		if (map.remove(key) != null) {
 			onResultFail(-1);
 		}
 	}

@@ -50,9 +50,9 @@ class IndexNodeFolder extends IndexNode implements Iterable<IndexNode> {
 	@Override
 	ResponseCacheKey getResponse(List<String> index) {
 		int cnt = index.size();
-		for(int i = 0; i < cnt; ++i) {
+		for (int i = 0; i < cnt; ++i) {
 			IndexNode node = children.get(index.get(i));
-			if(node != null && !node.isDirectory()) {
+			if (node != null && !node.isDirectory()) {
 				return node.getResponse(null);
 			}
 		}

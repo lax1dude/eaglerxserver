@@ -47,8 +47,8 @@ public abstract class MessageController {
 	protected final Callable<Void> handleFlush;
 	protected ScheduledFuture<Void> futureSendTask = null;
 
-	public MessageController(GamePluginMessageProtocol protocol, IMessageHandler handler,
-			EventLoop eventLoop, int defragSendDelay) {
+	public MessageController(GamePluginMessageProtocol protocol, IMessageHandler handler, EventLoop eventLoop,
+			int defragSendDelay) {
 		this(protocol, handler, handler, eventLoop, defragSendDelay);
 	}
 
@@ -64,33 +64,33 @@ public abstract class MessageController {
 			GameMessagePacket packet;
 			eagler: {
 				GameMessagePacket[] packets;
-				synchronized(this) {
+				synchronized (this) {
 					futureSendTask = null;
 					int len = sendQueue.size();
-					if(len == 0) {
+					if (len == 0) {
 						return null;
-					}else if(len == 1) {
+					} else if (len == 1) {
 						packet = sendQueue.remove(0);
 						break eagler;
-					}else {
+					} else {
 						packets = sendQueue.toArray(new GameMessagePacket[len]);
-						if(len < 64) {
+						if (len < 64) {
 							sendQueue.clear();
-						}else {
+						} else {
 							sendQueue = new ArrayList<>();
 						}
 					}
 				}
 				try {
 					writeMultiPacket(packets);
-				}catch(IOException ex) {
+				} catch (IOException ex) {
 					onException(ex);
 				}
 				return null;
 			}
 			try {
 				writePacket(packet);
-			}catch(IOException ex) {
+			} catch (IOException ex) {
 				onException(ex);
 			}
 			return null;
@@ -102,17 +102,17 @@ public abstract class MessageController {
 	}
 
 	public void sendPacket(GameMessagePacket packet) {
-		if(defragSendDelay > 0) {
-			synchronized(this) {
+		if (defragSendDelay > 0) {
+			synchronized (this) {
 				sendQueue.add(packet);
-				if(futureSendTask == null || futureSendTask.isDone()) {
+				if (futureSendTask == null || futureSendTask.isDone()) {
 					futureSendTask = eventLoop.schedule(handleFlush, defragSendDelay, TimeUnit.MILLISECONDS);
 				}
 			}
-		}else {
+		} else {
 			try {
 				writePacket(packet);
-			}catch(IOException ex) {
+			} catch (IOException ex) {
 				onException(ex);
 			}
 		}
@@ -121,7 +121,7 @@ public abstract class MessageController {
 	protected void handlePacket(GameMessagePacket packet) {
 		try {
 			packet.handlePacket(handler);
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			onException(ex);
 		}
 	}

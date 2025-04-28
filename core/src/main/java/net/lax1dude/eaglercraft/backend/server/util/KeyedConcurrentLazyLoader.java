@@ -51,16 +51,16 @@ public abstract class KeyedConcurrentLazyLoader<K, T> {
 		private final List<Consumer<T>> list = new ArrayList<>(8);
 
 		public void add(K key, Consumer<T> value) {
-			if(key != null) {
+			if (key != null) {
 				int idx = map.indexOf(key);
-				if(idx >= 0) {
+				if (idx >= 0) {
 					list.set(map.indexGet(idx), value);
-				}else {
+				} else {
 					int i = list.size();
 					map.addTo(key, i);
 					list.add(value);
 				}
-			}else {
+			} else {
 				list.add(value);
 			}
 		}
@@ -84,45 +84,45 @@ public abstract class KeyedConcurrentLazyLoader<K, T> {
 
 	public void load(K key, Consumer<T> callback) {
 		T val = (T) RESULT_HANDLE.getAcquire(this);
-		if(val != null) {
+		if (val != null) {
 			callback.accept(val);
-		}else {
-			eag: synchronized(this) {
+		} else {
+			eag: synchronized (this) {
 				val = result;
-				if(val != null) {
+				if (val != null) {
 					break eag;
 				}
-				if(waitingCallbacks == null) {
+				if (waitingCallbacks == null) {
 					waitingCallbacks = new KeyedConsumerList<>();
 					waitingCallbacks.add(key, callback);
-				}else {
+				} else {
 					waitingCallbacks.add(key, callback);
 					return;
 				}
 			}
-			if(val != null) {
+			if (val != null) {
 				callback.accept(val);
 				return;
 			}
 			loadImpl((res) -> {
-				if(res == null) {
+				if (res == null) {
 					throw new NullPointerException("result must not be null");
 				}
 				KeyedConsumerList<K, T> toCall;
-				synchronized(this) {
-					if(result != null) {
+				synchronized (this) {
+					if (result != null) {
 						return; // ignore multiple results
 					}
 					RESULT_HANDLE.setRelease(this, res);
 					toCall = waitingCallbacks;
 					waitingCallbacks = null;
 				}
-				if(toCall != null) {
+				if (toCall != null) {
 					List<Consumer<T>> toCallList = toCall.getList();
-					for(int i = 0, l = toCallList.size(); i < l; ++i) {
+					for (int i = 0, l = toCallList.size(); i < l; ++i) {
 						try {
 							toCallList.get(i).accept(res);
-						}catch(Exception ex) {
+						} catch (Exception ex) {
 							logger.error("Caught error from lazy load callback", ex);
 						}
 					}

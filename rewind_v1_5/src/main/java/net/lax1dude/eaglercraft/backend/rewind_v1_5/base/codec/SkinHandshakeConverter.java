@@ -21,8 +21,8 @@ import io.netty.buffer.ByteBuf;
 class SkinHandshakeConverter {
 
 	static void convertSkinPixels(ByteBuf imageIn, int offsetIn, byte[] imageOut, int offsetOut, int count) {
-		if(BufferUtils.LITTLE_ENDIAN_SUPPORT) {
-			for(int i = 0, j, k, l = count << 2; i < l; i += 4) {
+		if (BufferUtils.LITTLE_ENDIAN_SUPPORT) {
+			for (int i = 0, j, k, l = count << 2; i < l; i += 4) {
 				j = imageIn.getIntLE(offsetIn + i);
 				k = offsetOut + i;
 				imageOut[k] = (byte) (j >>> 24);
@@ -30,8 +30,8 @@ class SkinHandshakeConverter {
 				imageOut[k + 2] = (byte) (j >>> 8);
 				imageOut[k + 3] = (byte) (j >>> 16);
 			}
-		}else {
-			for(int i = 0, j, k, l = count << 2; i < l; i += 4) {
+		} else {
+			for (int i = 0, j, k, l = count << 2; i < l; i += 4) {
 				j = imageIn.getInt(offsetIn + i);
 				k = offsetOut + i;
 				imageOut[k] = (byte) j;
@@ -58,8 +58,8 @@ class SkinHandshakeConverter {
 		copyRawPixels(imageIn, offsetIn, imageOut, offsetOut, 48, 52, 44, 64, 52, 20, 56, 32, 64, 64);
 	}
 
-	static void copyRawPixels(ByteBuf imageIn, int offsetIn, byte[] imageOut, int offsetOut, int dx1, int dy1,
-			int dx2, int dy2, int sx1, int sy1, int sx2, int sy2, int imgSrcWidth, int imgDstWidth) {
+	static void copyRawPixels(ByteBuf imageIn, int offsetIn, byte[] imageOut, int offsetOut, int dx1, int dy1, int dx2,
+			int dy2, int sx1, int sy1, int sx2, int sy2, int imgSrcWidth, int imgDstWidth) {
 		if (dx1 > dx2) {
 			copyRawPixels(imageIn, offsetIn, imageOut, offsetOut, sx1, sy1, dx2, dy1, sx2 - sx1, sy2 - sy1, imgSrcWidth,
 					imgDstWidth, true);
@@ -71,7 +71,7 @@ class SkinHandshakeConverter {
 
 	private static void copyRawPixels(ByteBuf imageIn, int offsetIn, byte[] imageOut, int offsetOut, int srcX, int srcY,
 			int dstX, int dstY, int width, int height, int imgSrcWidth, int imgDstWidth, boolean flip) {
-		if(BufferUtils.LITTLE_ENDIAN_SUPPORT) {
+		if (BufferUtils.LITTLE_ENDIAN_SUPPORT) {
 			int i, j;
 			for (int y = 0; y < height; ++y) {
 				for (int x = 0; x < width; ++x) {
@@ -88,7 +88,7 @@ class SkinHandshakeConverter {
 					imageOut[j + 3] = (byte) (i >>> 16);
 				}
 			}
-		}else {
+		} else {
 			int i, j;
 			for (int y = 0; y < height; ++y) {
 				for (int x = 0; x < width; ++x) {
@@ -110,8 +110,8 @@ class SkinHandshakeConverter {
 
 	static void convertCape32x32RGBAto23x17RGB(ByteBuf imageIn, int inOffset, byte[] skinOut, int outOffset) {
 		int i, j;
-		for(int y = 0; y < 17; ++y) {
-			for(int x = 0; x < 22; ++x) {
+		for (int y = 0; y < 17; ++y) {
+			for (int x = 0; x < 22; ++x) {
 				i = inOffset + ((y * 32 + x) << 2);
 				j = outOffset + ((y * 23 + x) * 3);
 				skinOut[j] = imageIn.getByte(i);
@@ -119,7 +119,7 @@ class SkinHandshakeConverter {
 				skinOut[j + 2] = imageIn.getByte(i + 2);
 			}
 		}
-		for(int y = 0; y < 11; ++y) {
+		for (int y = 0; y < 11; ++y) {
 			i = inOffset + (((y + 11) * 32 + 22) << 2);
 			j = outOffset + (((y + 6) * 23 + 22) * 3);
 			skinOut[j] = imageIn.getByte(i);

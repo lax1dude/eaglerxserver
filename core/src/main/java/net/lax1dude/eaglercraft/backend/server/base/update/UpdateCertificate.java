@@ -31,7 +31,7 @@ public final class UpdateCertificate implements IUpdateCertificateImpl {
 	private static final Cache<SHA1Sum, UpdateCertificate> interner = CacheBuilder.newBuilder().softValues().build();
 
 	public static IUpdateCertificateImpl intern(byte[] data) {
-		if(data == null) {
+		if (data == null) {
 			throw new NullPointerException("data");
 		}
 		SHA1Sum sum = SHA1Sum.ofData(data);
@@ -40,7 +40,8 @@ public final class UpdateCertificate implements IUpdateCertificateImpl {
 				return new UpdateCertificate(data, sum);
 			});
 		} catch (ExecutionException e) {
-			if(e.getCause() instanceof RuntimeException ee) throw ee;
+			if (e.getCause() instanceof RuntimeException ee)
+				throw ee;
 			throw new RuntimeException(e.getCause());
 		}
 	}
@@ -51,7 +52,8 @@ public final class UpdateCertificate implements IUpdateCertificateImpl {
 				return new UpdateCertificate(data, sum);
 			});
 		} catch (ExecutionException e) {
-			if(e.getCause() instanceof RuntimeException ee) throw ee;
+			if (e.getCause() instanceof RuntimeException ee)
+				throw ee;
 			throw new RuntimeException(e.getCause());
 		}
 	}

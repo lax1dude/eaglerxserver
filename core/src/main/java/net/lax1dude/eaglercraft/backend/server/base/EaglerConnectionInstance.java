@@ -66,8 +66,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 	private NettyPipelineData.ProfileDataHolder profileDataTmp;
 	private UUID eaglerBrandUUID;
 
-	public EaglerConnectionInstance(IPlatformConnection connection,
-			NettyPipelineData pipelineData) {
+	public EaglerConnectionInstance(IPlatformConnection connection, NettyPipelineData pipelineData) {
 		super(connection, pipelineData.attributeHolder);
 		this.channel = pipelineData.channel;
 		this.listenerInfo = pipelineData.listenerInfo;
@@ -117,7 +116,8 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 
 	@Override
 	public boolean hasCapability(EnumCapabilitySpec capability) {
-		return CapabilityBits.hasCapability(acceptedCapabilitiesMask, acceptedCapabilitiesVers, capability.getId(), capability.getVer());
+		return CapabilityBits.hasCapability(acceptedCapabilitiesMask, acceptedCapabilitiesVers, capability.getId(),
+				capability.getVer());
 	}
 
 	@Override
@@ -135,7 +135,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 
 	@Override
 	public boolean hasExtendedCapability(UUID extendedCapability, int version) {
-		if(extendedCapability == null) {
+		if (extendedCapability == null) {
 			throw new NullPointerException("extendedCapability");
 		}
 		Byte b = acceptedExtendedCapabilities.get(extendedCapability);
@@ -144,7 +144,7 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 
 	@Override
 	public int getExtendedCapability(UUID extendedCapability) {
-		if(extendedCapability == null) {
+		if (extendedCapability == null) {
 			throw new NullPointerException("extendedCapability");
 		}
 		Byte b = acceptedExtendedCapabilities.get(extendedCapability);
@@ -208,10 +208,10 @@ public class EaglerConnectionInstance extends BaseConnectionInstance implements 
 
 	@Override
 	public String getWebSocketHeader(EnumWebSocketHeader header) {
-		if(header == null) {
+		if (header == null) {
 			throw new NullPointerException("header");
 		}
-		return switch(header) {
+		return switch (header) {
 		case HEADER_HOST -> headerHost;
 		case HEADER_ORIGIN -> headerOrigin;
 		case HEADER_USER_AGENT -> headerUserAgent;

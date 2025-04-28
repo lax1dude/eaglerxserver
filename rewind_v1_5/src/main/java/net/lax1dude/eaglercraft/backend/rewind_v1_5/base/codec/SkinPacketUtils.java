@@ -32,7 +32,7 @@ public class SkinPacketUtils {
 	public static byte[] rewriteLegacyHandshakeSkinToV1(ByteBuf data) {
 		try {
 			int id = data.readUnsignedByte();
-			switch(id) {
+			switch (id) {
 			case SKIN_TYPE_CUSTOM_LEGACY:
 				return rewriteLegacyHandshakeLegacySkinToV1(data);
 			case SKIN_TYPE_CUSTOM_MODERN_STEVE:
@@ -44,7 +44,7 @@ public class SkinPacketUtils {
 			default:
 				return null;
 			}
-		}catch(IndexOutOfBoundsException ex) {
+		} catch (IndexOutOfBoundsException ex) {
 			return null;
 		}
 	}
@@ -94,16 +94,16 @@ public class SkinPacketUtils {
 
 	private static int[] invertMap(int[] arr) {
 		int max = 0;
-		for(int i = 0; i < arr.length; ++i) {
+		for (int i = 0; i < arr.length; ++i) {
 			int j = arr[i];
-			if(j > max) {
+			if (j > max) {
 				max = j;
 			}
 		}
 		int[] ret = new int[max + 1];
-		for(int i = 0; i < arr.length; ++i) {
+		for (int i = 0; i < arr.length; ++i) {
 			int j = arr[i];
-			if(j != 0) {
+			if (j != 0) {
 				ret[j] = i;
 			}
 		}
@@ -141,7 +141,7 @@ public class SkinPacketUtils {
 		try {
 			int id = data.readUnsignedByte();
 			data.skipBytes(1); // Skip skin layers, TODO: remap this to 1.8 entity metadata?
-			switch(id) {
+			switch (id) {
 			case CAPE_TYPE_CUSTOM:
 				return rewriteLegacyHandshakeCustomCapeToV1(data);
 			case CAPE_TYPE_PRESET:
@@ -149,7 +149,7 @@ public class SkinPacketUtils {
 			default:
 				return null;
 			}
-		}catch(IndexOutOfBoundsException ex) {
+		} catch (IndexOutOfBoundsException ex) {
 			return null;
 		}
 	}
@@ -167,22 +167,22 @@ public class SkinPacketUtils {
 	}
 
 	public static int rewritePresetSkinIdToLegacy(int id) {
-		if(id >= 0 && id < map18to15PresetSkin.length) {
+		if (id >= 0 && id < map18to15PresetSkin.length) {
 			return map18to15PresetSkin[id];
-		}else {
+		} else {
 			return id;
 		}
 	}
 
 	public static void rewriteCustomSkinToLegacy(byte[] data, ByteBuf dest) {
-		if(BufferUtils.LITTLE_ENDIAN_SUPPORT) {
-			for(int i = 0, j; i < 4096; ++i) {
+		if (BufferUtils.LITTLE_ENDIAN_SUPPORT) {
+			for (int i = 0, j; i < 4096; ++i) {
 				j = i * 3;
 				dest.writeIntLE((data[j] & 0xFF) | ((data[j + 1] & 0xFF) << 8) | ((data[j + 2] & 0x7F) << 17)
 						| ((data[j + 2] & 0x80) != 0 ? 0xFF000000 : 0));
 			}
-		}else {
-			for(int i = 0, j; i < 4096; ++i) {
+		} else {
+			for (int i = 0, j; i < 4096; ++i) {
 				j = i * 3;
 				dest.writeInt(((data[j] & 0xFF) << 24) | ((data[j + 1] & 0xFF) << 16) | ((data[j + 2] & 0x7F) << 9)
 						| ((data[j + 2] & 0x80) != 0 ? 0x000000FF : 0));
@@ -194,31 +194,35 @@ public class SkinPacketUtils {
 		int idx = dest.writerIndex();
 		dest.writeZero(4096);
 		int i, j;
-		if(BufferUtils.LITTLE_ENDIAN_SUPPORT) {
-			for(int y = 0; y < 17; ++y) {
-				for(int x = 0; x < 22; ++x) {
+		if (BufferUtils.LITTLE_ENDIAN_SUPPORT) {
+			for (int y = 0; y < 17; ++y) {
+				for (int x = 0; x < 22; ++x) {
 					i = idx + ((y * 32 + x) << 2);
 					j = ((y * 23 + x) * 3);
-					dest.setIntLE(i, 0xFF000000 | ((data[j + 2] & 0xFF) << 16) | ((data[j + 1] & 0xFF) << 8) | (data[j] & 0xFF));
+					dest.setIntLE(i,
+							0xFF000000 | ((data[j + 2] & 0xFF) << 16) | ((data[j + 1] & 0xFF) << 8) | (data[j] & 0xFF));
 				}
 			}
-			for(int y = 0; y < 11; ++y) {
+			for (int y = 0; y < 11; ++y) {
 				i = idx + (((y + 11) * 32 + 22) << 2);
 				j = (((y + 6) * 23 + 22) * 3);
-				dest.setIntLE(i, 0xFF000000 | ((data[j + 2] & 0xFF) << 16) | ((data[j + 1] & 0xFF) << 8) | (data[j] & 0xFF));
+				dest.setIntLE(i,
+						0xFF000000 | ((data[j + 2] & 0xFF) << 16) | ((data[j + 1] & 0xFF) << 8) | (data[j] & 0xFF));
 			}
-		}else {
-			for(int y = 0; y < 17; ++y) {
-				for(int x = 0; x < 22; ++x) {
+		} else {
+			for (int y = 0; y < 17; ++y) {
+				for (int x = 0; x < 22; ++x) {
 					i = idx + ((y * 32 + x) << 2);
 					j = ((y * 23 + x) * 3);
-					dest.setInt(i, 0x000000FF | ((data[j + 2] & 0xFF) << 8) | ((data[j + 1] & 0xFF) << 16) | ((data[j] & 0xFF) << 24));
+					dest.setInt(i, 0x000000FF | ((data[j + 2] & 0xFF) << 8) | ((data[j + 1] & 0xFF) << 16)
+							| ((data[j] & 0xFF) << 24));
 				}
 			}
-			for(int y = 0; y < 11; ++y) {
+			for (int y = 0; y < 11; ++y) {
 				i = idx + (((y + 11) * 32 + 22) << 2);
 				j = (((y + 6) * 23 + 22) * 3);
-				dest.setInt(i, 0x000000FF | ((data[j + 2] & 0xFF) << 8) | ((data[j + 1] & 0xFF) << 16) | ((data[j] & 0xFF) << 24));
+				dest.setInt(i, 0x000000FF | ((data[j + 2] & 0xFF) << 8) | ((data[j + 1] & 0xFF) << 16)
+						| ((data[j] & 0xFF) << 24));
 			}
 		}
 	}

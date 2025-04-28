@@ -46,8 +46,10 @@ public class CPacketRPCSetPlayerFNAWEn implements EaglerBackendRPCPacket {
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
 		int flags = 0;
-		if(enable) flags |= 1;
-		if(force) flags |= 2;
+		if (enable)
+			flags |= 1;
+		if (force)
+			flags |= 2;
 		buffer.writeByte(flags);
 	}
 

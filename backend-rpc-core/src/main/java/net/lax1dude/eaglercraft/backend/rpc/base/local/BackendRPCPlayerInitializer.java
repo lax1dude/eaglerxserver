@@ -20,8 +20,8 @@ import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCPlayerInitializer
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayerInitializer;
 
-class BackendRPCPlayerInitializer<PlayerObject> implements
-		IBackendRPCPlayerInitializer<PlayerInstanceLocal<PlayerObject>, PlayerObject> {
+class BackendRPCPlayerInitializer<PlayerObject>
+		implements IBackendRPCPlayerInitializer<PlayerInstanceLocal<PlayerObject>, PlayerObject> {
 
 	private final EaglerXBackendRPCLocal<PlayerObject> server;
 
@@ -34,13 +34,13 @@ class BackendRPCPlayerInitializer<PlayerObject> implements
 		PlayerInstanceLocal<PlayerObject> playerInstance = new PlayerInstanceLocal<PlayerObject>(server, initializer.getPlayer());
 		initializer.setPlayerAttachment(playerInstance);
 		server.registerPlayer(playerInstance);
-		
+
 	}
 
 	@Override
 	public void confirmPlayer(IPlatformPlayer<PlayerObject> player) {
 		PlayerInstanceLocal<PlayerObject> playerInstance = player.getAttachment();
-		if(playerInstance != null) {
+		if (playerInstance != null) {
 			server.confirmPlayer(playerInstance);
 		}
 	}
@@ -48,7 +48,7 @@ class BackendRPCPlayerInitializer<PlayerObject> implements
 	@Override
 	public void destroyPlayer(IPlatformPlayer<PlayerObject> player) {
 		PlayerInstanceLocal<PlayerObject> playerInstance = player.getAttachment();
-		if(playerInstance != null) {
+		if (playerInstance != null) {
 			server.unregisterPlayer(playerInstance);
 		}
 	}

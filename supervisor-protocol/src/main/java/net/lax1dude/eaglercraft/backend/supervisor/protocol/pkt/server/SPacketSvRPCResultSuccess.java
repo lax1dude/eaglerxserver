@@ -41,7 +41,7 @@ public class SPacketSvRPCResultSuccess implements EaglerSupervisorPacket, IRefCo
 	public void readPacket(ByteBuf buffer) {
 		requestUUID = new UUID(buffer.readLong(), buffer.readLong());
 		int len = EaglerSupervisorPacket.readVarInt(buffer);
-		if(len > 0) {
+		if (len > 0) {
 			dataBuffer = buffer.readRetainedSlice(len);
 		}
 	}
@@ -51,10 +51,10 @@ public class SPacketSvRPCResultSuccess implements EaglerSupervisorPacket, IRefCo
 		buffer.writeLong(requestUUID.getMostSignificantBits());
 		buffer.writeLong(requestUUID.getLeastSignificantBits());
 		int l;
-		if(dataBuffer != null && (l = dataBuffer.readableBytes()) > 0) {
+		if (dataBuffer != null && (l = dataBuffer.readableBytes()) > 0) {
 			EaglerSupervisorPacket.writeVarInt(buffer, l);
 			buffer.writeBytes(dataBuffer, dataBuffer.readerIndex(), l);
-		}else {
+		} else {
 			buffer.writeByte(0);
 		}
 	}

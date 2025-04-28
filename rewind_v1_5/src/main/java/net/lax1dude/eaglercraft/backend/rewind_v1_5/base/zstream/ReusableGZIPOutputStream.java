@@ -53,9 +53,9 @@ public class ReusableGZIPOutputStream extends ReusableDeflaterOutputStream {
 	public void finish() throws IOException {
 		if (!def.finished()) {
 			super.finish();
-			if(BufferUtils.LITTLE_ENDIAN_SUPPORT) {
+			if (BufferUtils.LITTLE_ENDIAN_SUPPORT) {
 				writeTrailerLE();
-			}else {
+			} else {
 				writeTrailer();
 			}
 		}

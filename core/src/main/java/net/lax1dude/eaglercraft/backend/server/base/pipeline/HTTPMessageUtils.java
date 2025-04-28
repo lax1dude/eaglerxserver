@@ -31,31 +31,31 @@ public class HTTPMessageUtils {
 		try {
 			HttpMessage.class.getMethod("protocolVersion");
 			b = true;
-		}catch(ReflectiveOperationException ex) {
+		} catch (ReflectiveOperationException ex) {
 		}
 		IS_NEW_NAMES = b;
 	}
 
 	public static HttpVersion getProtocolVersion(HttpMessage msg) {
-		if(IS_NEW_NAMES) {
+		if (IS_NEW_NAMES) {
 			return msg.protocolVersion();
-		}else {
+		} else {
 			return msg.getProtocolVersion();
 		}
 	}
 
 	public static String getURI(HttpRequest req) {
-		if(IS_NEW_NAMES) {
+		if (IS_NEW_NAMES) {
 			return req.uri();
-		}else {
+		} else {
 			return req.getUri();
 		}
 	}
 
 	public static HttpMethod getMethod(HttpRequest req) {
-		if(IS_NEW_NAMES) {
+		if (IS_NEW_NAMES) {
 			return req.method();
-		}else {
+		} else {
 			return req.getMethod();
 		}
 	}

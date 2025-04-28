@@ -57,7 +57,7 @@ public class BungeeListener implements Listener {
 		IPipelineData pipelineData = channel.attr(PipelineAttributes.<IPipelineData>pipelineData()).getAndSet(null);
 		plugin.initializeConnection(conn, pipelineData,
 				channel.attr(PipelineAttributes.<BungeeConnection>connectionData())::set);
-		
+
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
@@ -65,15 +65,14 @@ public class BungeeListener implements Listener {
 		ProxiedPlayer player = event.getPlayer();
 		BungeeConnection conn = BungeeUnsafe.getInitialHandlerChannel(player.getPendingConnection())
 				.attr(PipelineAttributes.<BungeeConnection>connectionData()).get();
-		if(conn != null && (conn.eaglerPlayerProperty != (byte) 0 || conn.texturesPropertyValue != null)) {
+		if (conn != null && (conn.eaglerPlayerProperty != (byte) 0 || conn.texturesPropertyValue != null)) {
 			BungeeUnsafe.PropertyInjector injector = BungeeUnsafe.propertyInjector(player.getPendingConnection());
-			if(conn.texturesPropertyValue != null) {
-				injector.injectTexturesProperty(conn.texturesPropertyValue,
-						conn.texturesPropertySignature);
+			if (conn.texturesPropertyValue != null) {
+				injector.injectTexturesProperty(conn.texturesPropertyValue, conn.texturesPropertySignature);
 				conn.texturesPropertyValue = null;
 				conn.texturesPropertySignature = null;
 			}
-			if(conn.eaglerPlayerProperty != (byte) 0) {
+			if (conn.eaglerPlayerProperty != (byte) 0) {
 				injector.injectIsEaglerPlayerProperty(conn.eaglerPlayerProperty == (byte) 2);
 			}
 			injector.complete();
@@ -82,19 +81,20 @@ public class BungeeListener implements Listener {
 		conn.awaitPlayState(() -> {
 			try {
 				plugin.initializePlayer(player, conn, (b) -> {
-					if(b) {
+					if (b) {
 						event.completeIntent(plugin);
-					}else {
+					} else {
 						// Hang forever on cancel, connection is already dead, async callback will GC
 					}
 				});
-			}catch(Exception ex) {
+			} catch (Exception ex) {
 				try {
 					event.completeIntent(plugin);
-				}catch(IllegalStateException exx) {
+				} catch (IllegalStateException exx) {
 					return;
 				}
-				if(ex instanceof RuntimeException ee) throw ee;
+				if (ex instanceof RuntimeException ee)
+					throw ee;
 				throw new RuntimeException("Uncaught exception", ex);
 			}
 		});
@@ -109,7 +109,7 @@ public class BungeeListener implements Listener {
 	public void onServerConnectedEvent(ServerConnectedEvent event) {
 		ProxiedPlayer playerIn = event.getPlayer();
 		BungeePlayer player = (BungeePlayer) plugin.getPlayer(playerIn);
-		if(player != null) {
+		if (player != null) {
 			player.server = null;
 			plugin.handleServerPreConnect(player);
 		}
@@ -119,10 +119,10 @@ public class BungeeListener implements Listener {
 	public void onServerSwitchEvent(ServerSwitchEvent event) {
 		ProxiedPlayer playerIn = event.getPlayer();
 		BungeePlayer player = (BungeePlayer) plugin.getPlayer(playerIn);
-		if(player != null) {
+		if (player != null) {
 			ServerInfo info = playerIn.getServer().getInfo();
 			IPlatformServer<ProxiedPlayer> server = plugin.registeredServers.get(info.getName());
-			if(server == null) {
+			if (server == null) {
 				server = new BungeeServer(plugin, info, false);
 			}
 			player.server = server;
@@ -133,31 +133,31 @@ public class BungeeListener implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onServerDisconnectedEvent(ServerDisconnectEvent event) {
 		IPlatformPlayer<ProxiedPlayer> player = plugin.getPlayer(event.getPlayer());
-		if(player != null) {
-			((BungeePlayer)player).server = null;
+		if (player != null) {
+			((BungeePlayer) player).server = null;
 		}
 	}
 
 	@EventHandler(priority = EventPriority.LOW)
 	public void onPluginMessageEvent(PluginMessageEvent event) {
 		PluginMessageHandler handler = plugin.registeredChannelsMap.get(event.getTag());
-		if(handler != null) {
+		if (handler != null) {
 			event.setCancelled(true);
 			Connection src = event.getSender();
 			Connection dst = event.getReceiver();
-			if(handler.backend) {
+			if (handler.backend) {
 				IEaglerXServerMessageHandler<ProxiedPlayer> ls = handler.handler;
-				if(ls != null && (src instanceof Server) && (dst instanceof ProxiedPlayer dst2)) {
+				if (ls != null && (src instanceof Server) && (dst instanceof ProxiedPlayer dst2)) {
 					IPlatformPlayer<ProxiedPlayer> player = plugin.getPlayer(dst2);
-					if(player != null) {
+					if (player != null) {
 						ls.handle(handler.channel, player, event.getData());
 					}
 				}
-			}else {
+			} else {
 				IEaglerXServerMessageHandler<ProxiedPlayer> ls = handler.handler;
-				if(ls != null && (src instanceof ProxiedPlayer src2) && (dst instanceof Server)) {
+				if (ls != null && (src instanceof ProxiedPlayer src2) && (dst instanceof Server)) {
 					IPlatformPlayer<ProxiedPlayer> player = plugin.getPlayer(src2);
-					if(player != null) {
+					if (player != null) {
 						ls.handle(handler.channel, player, event.getData());
 					}
 				}
@@ -168,7 +168,7 @@ public class BungeeListener implements Listener {
 	@EventHandler(priority = EventPriority.LOW)
 	public void onProxyPingEvent(ProxyPingEvent event) {
 		IEaglerXServerPlayerCountHandler count = plugin.playerCountHandler;
-		if(count != null) {
+		if (count != null) {
 			ServerPing.Players players = event.getResponse().getPlayers();
 			players.setOnline(count.getPlayerTotal());
 			players.setMax(count.getPlayerMax());

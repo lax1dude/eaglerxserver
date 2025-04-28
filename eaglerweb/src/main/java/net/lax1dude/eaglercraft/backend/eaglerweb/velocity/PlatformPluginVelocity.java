@@ -74,15 +74,15 @@ public class PlatformPluginVelocity implements IEaglerWebPlatform<Player> {
 		plugin = new EaglerWeb<Player>(this);
 	}
 
-    @Subscribe
-    public void onProxyInit(ProxyInitializeEvent e) {
-    	refreshCommandMeta = (new CommandEaglerWeb(this)).register();
-    	plugin.onEnable(EaglerXServerAPI.instance());
+	@Subscribe
+	public void onProxyInit(ProxyInitializeEvent e) {
+		refreshCommandMeta = (new CommandEaglerWeb(this)).register();
+		plugin.onEnable(EaglerXServerAPI.instance());
 	}
 
 	@Subscribe
-    public void onProxyShutdown(ProxyShutdownEvent e) {
-		if(refreshCommandMeta != null) {
+	public void onProxyShutdown(ProxyShutdownEvent e) {
+		if (refreshCommandMeta != null) {
 			proxy.getCommandManager().unregister(refreshCommandMeta);
 			refreshCommandMeta = null;
 		}

@@ -32,7 +32,7 @@ public class HAProxyDetectionHandler extends ByteToMessageDecoder {
 		try {
 			clzHAProxyHandler = (Class<? extends ChannelHandler>) Class
 					.forName("io.netty.handler.codec.haproxy.HAProxyMessageDecoder");
-		}catch(ClassNotFoundException ex) {
+		} catch (ClassNotFoundException ex) {
 			throw new ExceptionInInitializerError(ex);
 		}
 	}
@@ -42,11 +42,11 @@ public class HAProxyDetectionHandler extends ByteToMessageDecoder {
 		int readable = in.readableBytes();
 		if (!ctx.channel().isActive()) {
 			in.skipBytes(readable);
-		}else {
+		} else {
 			boolean proxy = false;
 			eagler: {
 				int readerIndex = in.readerIndex();
-				if(readable >= 12) {
+				if (readable >= 12) {
 					proxy = in.getByte(readerIndex) == (byte) 0x0D && in.getByte(readerIndex + 1) == (byte) 0x0A
 							&& in.getByte(readerIndex + 2) == (byte) 0x0D && in.getByte(readerIndex + 3) == (byte) 0x0A
 							&& in.getByte(readerIndex + 4) == (byte) 0x00 && in.getByte(readerIndex + 5) == (byte) 0x0D
@@ -54,11 +54,11 @@ public class HAProxyDetectionHandler extends ByteToMessageDecoder {
 							&& in.getByte(readerIndex + 8) == (byte) 0x55 && in.getByte(readerIndex + 9) == (byte) 0x49
 							&& in.getByte(readerIndex + 10) == (byte) 0x54
 							&& in.getByte(readerIndex + 11) == (byte) 0x0A;
-					if(proxy) {
+					if (proxy) {
 						break eagler;
 					}
 				}
-				if(readable >= 6) {
+				if (readable >= 6) {
 					proxy = in.getByte(readerIndex) == (byte) 'P' && in.getByte(readerIndex + 1) == (byte) 'R'
 							&& in.getByte(readerIndex + 2) == (byte) 'O' && in.getByte(readerIndex + 3) == (byte) 'X'
 							&& in.getByte(readerIndex + 4) == (byte) 'Y' && in.getByte(readerIndex + 5) == (byte) ' ';
@@ -67,7 +67,7 @@ public class HAProxyDetectionHandler extends ByteToMessageDecoder {
 				return;
 			}
 			ChannelPipeline pipeline = ctx.pipeline();
-			if(!proxy) {
+			if (!proxy) {
 				pipeline.remove(clzHAProxyHandler);
 			}
 			ctx.fireChannelRead(BufferUtils.readRetainedSlice(in, readable));

@@ -67,27 +67,27 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 
 	void handleRequestRealIP(int requestID) {
 		String realIP = manager().getPlayer().getRealAddress();
-		if(realIP != null) {
+		if (realIP != null) {
 			sendRPCPacket(new SPacketRPCResponseTypeString(requestID, realIP));
-		}else {
+		} else {
 			sendRPCPacket(new SPacketRPCResponseTypeNull(requestID));
 		}
 	}
 
 	void handleRequestHeader(int requestID, EnumWebSocketHeader header) {
 		String str = manager().getPlayer().getWebSocketHeader(header);
-		if(str != null) {
+		if (str != null) {
 			sendRPCPacket(new SPacketRPCResponseTypeString(requestID, str));
-		}else {
+		} else {
 			sendRPCPacket(new SPacketRPCResponseTypeNull(requestID));
 		}
 	}
 
 	void handleRequestPath(int requestID) {
 		String str = manager().getPlayer().getWebSocketPath();
-		if(str != null) {
+		if (str != null) {
 			sendRPCPacket(new SPacketRPCResponseTypeString(requestID, str));
-		}else {
+		} else {
 			sendRPCPacket(new SPacketRPCResponseTypeNull(requestID));
 		}
 	}
@@ -95,9 +95,9 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 	void handleRequestCookie(int requestID) {
 		EaglerPlayerInstance<PlayerObject> player = manager().getPlayer();
 		SPacketRPCResponseTypeCookie pkt;
-		if(player.isCookieEnabled()) {
+		if (player.isCookieEnabled()) {
 			pkt = new SPacketRPCResponseTypeCookie(requestID, true, player.getCookieData());
-		}else {
+		} else {
 			pkt = new SPacketRPCResponseTypeCookie(requestID, false, null);
 		}
 		sendRPCPacket(pkt);
@@ -113,19 +113,20 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 
 	void handleRequestBrandVersionOld(int requestID) {
 		EaglerPlayerInstance<PlayerObject> player = manager().getPlayer();
-		sendRPCPacket(new SPacketRPCResponseTypeString(requestID, player.getEaglerBrandString() + " " + player.getEaglerVersionString()));
+		sendRPCPacket(new SPacketRPCResponseTypeString(requestID,
+				player.getEaglerBrandString() + " " + player.getEaglerVersionString()));
 	}
 
 	void handleRequestVoiceStatus(int requestID) {
 		IVoiceManagerImpl<PlayerObject> voice = manager().getPlayer().getVoiceManager();
 		int response;
-		if(voice != null) {
-			response = switch(voice.getVoiceState()) {
+		if (voice != null) {
+			response = switch (voice.getVoiceState()) {
 			default -> SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_SERVER_DISABLE;
 			case DISABLED -> SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_DISABLED;
 			case ENABLED -> SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_ENABLED;
 			};
-		}else {
+		} else {
 			response = SPacketRPCResponseTypeVoiceStatus.VOICE_STATE_SERVER_DISABLE;
 		}
 		sendRPCPacket(new SPacketRPCResponseTypeVoiceStatus(requestID, response));
@@ -135,19 +136,19 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 		WebViewManager<PlayerObject> webview = manager().getPlayer().getWebViewManager();
 		int response;
 		String channel;
-		if(webview != null) {
-			if(!webview.isRequestAllowed() || !webview.isChannelOpen()) {
+		if (webview != null) {
+			if (!webview.isRequestAllowed() || !webview.isChannelOpen()) {
 				response = SPacketRPCResponseTypeWebViewStatus.WEBVIEW_STATE_SERVER_DISABLE;
 				channel = null;
-			}else {
+			} else {
 				channel = webview.getOpenChannel();
-				if(channel != null) {
+				if (channel != null) {
 					response = SPacketRPCResponseTypeWebViewStatus.WEBVIEW_STATE_CHANNEL_OPEN;
-				}else {
+				} else {
 					response = SPacketRPCResponseTypeWebViewStatus.WEBVIEW_STATE_CHANNEL_CLOSED;
 				}
 			}
-		}else {
+		} else {
 			response = SPacketRPCResponseTypeWebViewStatus.WEBVIEW_STATE_NOT_SUPPORTED;
 			channel = null;
 		}
@@ -170,7 +171,7 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 		if (webview != null) {
 			sendRPCPacket(new SPacketRPCResponseTypeWebViewStatusV2(requestID, webview.isRequestAllowed(),
 					webview.isChannelAllowed(), webview.getOpenChannels()));
-		}else {
+		} else {
 			sendRPCPacket(new SPacketRPCResponseTypeWebViewStatusV2(requestID, false, false, null));
 		}
 	}
@@ -180,7 +181,7 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 	}
 
 	void fireWebViewOpenClose(boolean open, String channel) {
-		if(subscribeWebViewOpenClose) {
+		if (subscribeWebViewOpenClose) {
 			sendRPCPacket(new SPacketRPCEventWebViewOpenClose(open, channel));
 		}
 	}
@@ -190,8 +191,9 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 	}
 
 	void fireWebViewMessage(String channel, boolean binary, byte[] data) {
-		if(subscribeWebViewMessage) {
-			int type = binary ? SPacketRPCEventWebViewMessage.MESSAGE_TYPE_BINARY : SPacketRPCEventWebViewMessage.MESSAGE_TYPE_STRING;
+		if (subscribeWebViewMessage) {
+			int type = binary ? SPacketRPCEventWebViewMessage.MESSAGE_TYPE_BINARY
+					: SPacketRPCEventWebViewMessage.MESSAGE_TYPE_STRING;
 			sendRPCPacket(new SPacketRPCEventWebViewMessage(channel, type, data));
 		}
 	}
@@ -201,13 +203,14 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 	}
 
 	void fireToggleVoice(EnumVoiceState oldVoiceState, EnumVoiceState newVoiceState) {
-		if(subscribeToggleVoice) {
-			sendRPCPacket(new SPacketRPCEventToggledVoice(mapToggleVoice(oldVoiceState), mapToggleVoice(newVoiceState)));
+		if (subscribeToggleVoice) {
+			sendRPCPacket(
+					new SPacketRPCEventToggledVoice(mapToggleVoice(oldVoiceState), mapToggleVoice(newVoiceState)));
 		}
 	}
 
 	private int mapToggleVoice(EnumVoiceState state) {
-		return switch(state) {
+		return switch (state) {
 		default -> SPacketRPCEventToggledVoice.VOICE_STATE_SERVER_DISABLE;
 		case DISABLED -> SPacketRPCEventToggledVoice.VOICE_STATE_DISABLED;
 		case ENABLED -> SPacketRPCEventToggledVoice.VOICE_STATE_ENABLED;
@@ -216,18 +219,18 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 
 	void handleSetPlayerCookie(byte[] cookieData, long expiresSec, boolean revokeQuerySupported, boolean saveToDisk) {
 		EaglerPlayerInstance<PlayerObject> player = manager().getPlayer();
-		if(player.isCookieEnabled()) {
+		if (player.isCookieEnabled()) {
 			player.setCookieData(cookieData, expiresSec, revokeQuerySupported, saveToDisk);
 		}
 	}
 
 	void handleSetPlayerFNAWEn(boolean enable, boolean force) {
 		EnumEnableFNAW en;
-		if(force) {
+		if (force) {
 			en = EnumEnableFNAW.FORCED;
-		}else if(enable) {
+		} else if (enable) {
 			en = EnumEnableFNAW.ENABLED;
-		}else {
+		} else {
 			en = EnumEnableFNAW.DISABLED;
 		}
 		manager().getPlayer().getSkinManager().setEnableFNAWSkins(en);
@@ -235,14 +238,14 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 
 	void handleResetPlayerMulti(boolean resetSkin, boolean resetCape, boolean resetFNAWForce, boolean notifyOthers) {
 		super.handleResetPlayerMulti(resetSkin, resetCape, false, notifyOthers);
-		if(resetFNAWForce) {
+		if (resetFNAWForce) {
 			manager().getPlayer().getSkinManager().resetEnableFNAWSkins();
 		}
 	}
 
 	void handleRedirectPlayer(String redirectURI) {
 		EaglerPlayerInstance<PlayerObject> player = manager().getPlayer();
-		if(player.isRedirectPlayerSupported()) {
+		if (player.isRedirectPlayerSupported()) {
 			player.redirectPlayerToWebSocket(redirectURI);
 		}
 	}
@@ -250,33 +253,34 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 	void handleSendWebViewMessage(String channelName, int messageType, byte[] messageContent) {
 		EaglerPlayerInstance<PlayerObject> player = manager().getPlayer();
 		WebViewManager<PlayerObject> mgr = player.getWebViewManager();
-		if(mgr != null && mgr.isChannelOpen(channelName)) {
+		if (mgr != null && mgr.isChannelOpen(channelName)) {
 			player.sendEaglerMessage(new SPacketWebViewMessageV4EAG(messageType, messageContent));
 		}
 	}
 
 	void handleSetPauseMenuCustom(CPacketRPCSetPauseMenuCustom packet) {
 		PauseMenuManager<PlayerObject> pauseMenuMgr = manager().getPlayer().getPauseMenuManager();
-		if(pauseMenuMgr != null) {
+		if (pauseMenuMgr != null) {
 			pauseMenuMgr.updatePauseMenuRPC(PauseMenuRPCHelper.translateRPCPacket(manager(), packet));
 		}
 	}
 
 	void handleNotifIconRegister(Collection<CPacketRPCNotifIconRegister.RegisterIcon> icons) {
-		if(icons.isEmpty()) return;
+		if (icons.isEmpty())
+			return;
 		NotificationManagerPlayer<PlayerObject> notifManager = manager().getPlayer().getNotificationManager();
-		if(notifManager != null) {
+		if (notifManager != null) {
 			int l = icons.size();
 			SPacketNotifIconsRegisterV4EAG.CreateIcon[] arr = new SPacketNotifIconsRegisterV4EAG.CreateIcon[l];
 			int i = 0;
-			for(CPacketRPCNotifIconRegister.RegisterIcon etr : icons) {
-				if(i >= l) {
+			for (CPacketRPCNotifIconRegister.RegisterIcon etr : icons) {
+				if (i >= l) {
 					break;
 				}
 				arr[i++] = new SPacketNotifIconsRegisterV4EAG.CreateIcon(etr.uuid.getMostSignificantBits(),
 						etr.uuid.getLeastSignificantBits(), TextureDataHelper.packetImageDataRPCToCore(etr.image));
 			}
-			if(i != l) {
+			if (i != l) {
 				throw new IllegalStateException();
 			}
 			notifManager.registerUnmanagedNotificationIconsRaw(Arrays.asList(arr));
@@ -284,20 +288,21 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 	}
 
 	void handleNotifIconRelease(Collection<UUID> icons) {
-		if(icons.isEmpty()) return;
+		if (icons.isEmpty())
+			return;
 		NotificationManagerPlayer<PlayerObject> notifManager = manager().getPlayer().getNotificationManager();
-		if(notifManager != null) {
+		if (notifManager != null) {
 			notifManager.releaseUnmanagedNotificationIcons(icons);
 		}
 	}
 
 	void handleNotifBadgeShow(CPacketRPCNotifBadgeShow packet) {
 		NotificationManagerPlayer<PlayerObject> notifManager = manager().getPlayer().getNotificationManager();
-		if(notifManager != null) {
+		if (notifManager != null) {
 			SPacketNotifBadgeShowV4EAG eagPacket = NotificationRPCHelper.translateRPCPacket(packet);
-			if(packet.managed) {
+			if (packet.managed) {
 				notifManager.showNotificationBadge(eagPacket, packet.mainIconUUID, packet.titleIconUUID);
-			}else {
+			} else {
 				notifManager.showUnmanagedNotificationBadge(eagPacket);
 			}
 		}
@@ -305,39 +310,39 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 
 	void handleNotifBadgeHide(UUID badge) {
 		NotificationManagerPlayer<PlayerObject> notifManager = manager().getPlayer().getNotificationManager();
-		if(notifManager != null) {
+		if (notifManager != null) {
 			notifManager.hideNotificationBadge(badge);
 		}
 	}
 
 	void handleInjectRawBinaryFrame(byte[] data) {
 		Channel channel = manager().getPlayer().getChannel();
-		if(channel.isActive()) {
+		if (channel.isActive()) {
 			channel.writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(data)), channel.voidPromise());
 		}
 	}
 
 	void handleDisplayWebViewURL(String title, String url, Set<EnumWebViewPerms> perms) {
 		WebViewManager<PlayerObject> webViewManager = manager().getPlayer().getWebViewManager();
-		if(webViewManager != null) {
+		if (webViewManager != null) {
 			webViewManager.displayWebViewURL(title, url, perms);
 		}
 	}
 
 	void handleDisplayWebViewBlob(String title, SHA1Sum hash, Set<EnumWebViewPerms> perms) {
 		WebViewManager<PlayerObject> webViewManager = manager().getPlayer().getWebViewManager();
-		if(webViewManager != null) {
+		if (webViewManager != null) {
 			webViewManager.displayWebViewBlob(title, hash, perms);
 		}
 	}
 
 	void handleDisplayWebViewAlias(String title, String name, Set<EnumWebViewPerms> perms) {
 		WebViewManager<PlayerObject> webViewManager = manager().getPlayer().getWebViewManager();
-		if(webViewManager != null) {
+		if (webViewManager != null) {
 			IWebViewProvider<PlayerObject> provider = webViewManager.getProvider();
-			if(provider != null) {
+			if (provider != null) {
 				SHA1Sum hash = provider.handleAlias(webViewManager, name);
-				if(hash != null) {
+				if (hash != null) {
 					webViewManager.displayWebViewBlob(title, hash, perms);
 				}
 			}

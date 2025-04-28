@@ -38,7 +38,7 @@ class APIFactoryImpl extends EaglerXServerAPIFactory.Factory {
 	@Override
 	public Set<Class<?>> getPlayerTypes() {
 		Set<Class<?>> classSet = this.playerClassSet;
-		if(classSet == null) {
+		if (classSet == null) {
 			throw new IllegalStateException("EaglerXServer has not been initialized yet!");
 		}
 		return classSet;
@@ -57,11 +57,12 @@ class APIFactoryImpl extends EaglerXServerAPIFactory.Factory {
 	@SuppressWarnings("unchecked")
 	public <T> IEaglerXServerAPI<T> getAPI(Class<T> playerClass) {
 		IEaglerXServerAPI<?> handle = this.handle;
-		if(handle == null) {
+		if (handle == null) {
 			throw new IllegalStateException("EaglerXServer has not been initialized yet!");
 		}
-		if(!playerClass.isAssignableFrom(this.playerClass)) {
-			throw new ClassCastException("Class \"" + this.playerClass.getName() + "\" cannot be cast to \"" + playerClass.getName() + "\"");
+		if (!playerClass.isAssignableFrom(this.playerClass)) {
+			throw new ClassCastException(
+					"Class \"" + this.playerClass.getName() + "\" cannot be cast to \"" + playerClass.getName() + "\"");
 		}
 		return (IEaglerXServerAPI<T>) handle;
 	}
@@ -69,7 +70,7 @@ class APIFactoryImpl extends EaglerXServerAPIFactory.Factory {
 	@Override
 	public IEaglerXServerAPI<?> getDefaultAPI() {
 		IEaglerXServerAPI<?> handle = this.handle;
-		if(handle == null) {
+		if (handle == null) {
 			throw new IllegalStateException("EaglerXServer has not been initialized yet!");
 		}
 		return handle;

@@ -75,35 +75,35 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player,
 
 	private <I, T extends Event> void fireSync(T event, IEventDispatchCallback<I> cont) {
 		boolean async = event.isAsynchronous();
-		if(async != server.isPrimaryThread()) {
+		if (async != server.isPrimaryThread()) {
 			try {
 				eventMgr.callEvent(event);
-			}catch(Throwable t) {
-				if(cont != null) {
+			} catch (Throwable t) {
+				if (cont != null) {
 					cont.complete(null, t);
 				}
 				return;
 			}
-			if(cont != null) {
-				cont.complete((I)event, null);
+			if (cont != null) {
+				cont.complete((I) event, null);
 			}
-		}else {
+		} else {
 			Runnable runnable = () -> {
 				try {
 					eventMgr.callEvent(event);
-				}catch(Throwable t) {
-					if(cont != null) {
+				} catch (Throwable t) {
+					if (cont != null) {
 						cont.complete(null, t);
 					}
 					return;
 				}
-				if(cont != null) {
-					cont.complete((I)event, null);
+				if (cont != null) {
+					cont.complete((I) event, null);
 				}
 			};
-			if(async) {
+			if (async) {
 				scheduler.runTaskAsynchronously(platformPlugin, runnable);
-			}else {
+			} else {
 				scheduler.runTask(platformPlugin, runnable);
 			}
 		}
@@ -113,14 +113,14 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player,
 		scheduler.runTaskAsynchronously(platformPlugin, () -> {
 			try {
 				eventMgr.callEvent(event);
-			}catch(Throwable t) {
-				if(cont != null) {
+			} catch (Throwable t) {
+				if (cont != null) {
 					cont.complete(null, t);
 				}
 				return;
 			}
-			if(cont != null) {
-				cont.complete((I)event, null);
+			if (cont != null) {
+				cont.complete((I) event, null);
 			}
 		});
 	}
@@ -132,9 +132,10 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player,
 
 	@Override
 	public void dispatchAuthCheckRequired(IEaglerPendingConnection pendingConnection, boolean clientSolicitingPassword,
-			byte[] authUsername, IEventDispatchCallback<IEaglercraftAuthCheckRequiredEvent<Player, BaseComponent>> onComplete) {
-		fireAsync(new BukkitAuthCheckRequiredEventImpl(api, pendingConnection, clientSolicitingPassword,
-				authUsername), onComplete);
+			byte[] authUsername,
+			IEventDispatchCallback<IEaglercraftAuthCheckRequiredEvent<Player, BaseComponent>> onComplete) {
+		fireAsync(new BukkitAuthCheckRequiredEventImpl(api, pendingConnection, clientSolicitingPassword, authUsername),
+				onComplete);
 	}
 
 	@Override
@@ -184,7 +185,8 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player,
 	}
 
 	@Override
-	public void dispatchMOTDEvent(IMOTDConnection connection, IEventDispatchCallback<IEaglercraftMOTDEvent<Player>> onComplete) {
+	public void dispatchMOTDEvent(IMOTDConnection connection,
+			IEventDispatchCallback<IEaglercraftMOTDEvent<Player>> onComplete) {
 		fireSync(new BukkitMOTDEventImpl(api, connection), onComplete);
 	}
 

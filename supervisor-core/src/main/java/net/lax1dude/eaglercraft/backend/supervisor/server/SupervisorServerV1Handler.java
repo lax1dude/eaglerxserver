@@ -63,7 +63,7 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleClient(CPacketSvProxyBrand pkt) {
 		EnumProxyType proxyType = EnumProxyType.UNKNOWN;
-		switch(pkt.proxyType) {
+		switch (pkt.proxyType) {
 		case CPacketSvProxyBrand.PROXY_TYPE_BUNGEE:
 			proxyType = EnumProxyType.BUNGEECORD;
 			break;
@@ -75,7 +75,7 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 			break;
 		}
 		EnumPluginType pluginType = EnumPluginType.UNKNOWN;
-		switch(pkt.pluginType) {
+		switch (pkt.pluginType) {
 		case CPacketSvProxyBrand.PLUGIN_TYPE_EAGLERXBUNGEE:
 			pluginType = EnumPluginType.EAGLERXBUNGEE;
 			break;
@@ -99,7 +99,7 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 		try {
 			client.registerProxyPlayer(pkt.playerUUID, pkt.brandUUID, pkt.gameProtocol, pkt.eaglerProtocol, pkt.username);
 			handler.channelWrite(new SPacketSvAcceptPlayer(pkt.playerUUID));
-		}catch(AlreadyRegisteredException ex) {
+		} catch (AlreadyRegisteredException ex) {
 			handler.channelWrite(new SPacketSvRejectPlayer(pkt.playerUUID, ex.cause));
 		}
 	}
@@ -111,9 +111,9 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 
 	@Override
 	public void handleClient(CPacketSvDropPlayerPartial pkt) {
-		if(pkt.bitmask != 0) {
+		if (pkt.bitmask != 0) {
 			SupervisorPlayerInstance player = client.getPlayerByUUID(pkt.playerUUID);
-			if(player != null) {
+			if (player != null) {
 				player.onDropProxyPlayerData(pkt.serverNotify,
 						(pkt.bitmask & CPacketSvDropPlayerPartial.DROP_PLAYER_SKIN) != 0,
 						(pkt.bitmask & CPacketSvDropPlayerPartial.DROP_PLAYER_CAPE) != 0);
@@ -124,14 +124,15 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleClient(CPacketSvGetOtherSkin pkt) {
 		SupervisorPlayerInstance player = server.getPlayerByUUID(pkt.uuid);
-		if(player != null) {
-			if(player.setClientKnown(client)) {
-				handler.channelWrite(new SPacketSvPlayerNodeID(pkt.uuid, player.getBrandUUID(), player.getOwner().getNodeId()));
+		if (player != null) {
+			if (player.setClientKnown(client)) {
+				handler.channelWrite(
+						new SPacketSvPlayerNodeID(pkt.uuid, player.getBrandUUID(), player.getOwner().getNodeId()));
 			}
 			player.loadSkinData((skin) -> {
 				handler.channelWrite(skin.makeResponse(pkt.uuid));
 			});
-		}else {
+		} else {
 			handler.channelWrite(new SPacketSvOtherSkinError(pkt.uuid));
 		}
 	}
@@ -139,11 +140,11 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleClient(CPacketSvGetSkinByURL pkt) {
 		ISkinCacheService skinCacheService = server.getSkinCache();
-		if(skinCacheService != null) {
+		if (skinCacheService != null) {
 			skinCacheService.resolveSkinByURL(pkt.url, (skin) -> {
 				handler.channelWrite(CachedTextureData.makeSkinResponse(skin, pkt.uuid, pkt.modelId));
 			});
-		}else {
+		} else {
 			handler.channelWrite(new SPacketSvOtherSkinError(pkt.uuid));
 		}
 	}
@@ -151,9 +152,9 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleClient(CPacketSvOtherSkinPreset pkt) {
 		SupervisorPlayerInstance player = client.getPlayerByUUID(pkt.uuid);
-		if(player != null) {
+		if (player != null) {
 			player.onSkinDataReceivedPreset(pkt.presetSkin);
-		}else {
+		} else {
 			logger.warn("Received skin data for unknown player {}", pkt.uuid);
 		}
 	}
@@ -161,9 +162,9 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleClient(CPacketSvOtherSkinCustom pkt) {
 		SupervisorPlayerInstance player = client.getPlayerByUUID(pkt.uuid);
-		if(player != null) {
+		if (player != null) {
 			player.onSkinDataReceivedCustom(pkt.model, pkt.customSkin);
-		}else {
+		} else {
 			logger.warn("Received skin data for unknown player {}", pkt.uuid);
 		}
 	}
@@ -171,16 +172,16 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleClient(CPacketSvOtherSkinURL pkt) {
 		SupervisorPlayerInstance player = client.getPlayerByUUID(pkt.uuid);
-		if(player != null) {
+		if (player != null) {
 			ISkinCacheService skinCacheService = server.getSkinCache();
-			if(skinCacheService != null) {
+			if (skinCacheService != null) {
 				skinCacheService.resolveSkinByURL(pkt.url, (skin) -> {
 					player.onSkinDataReceivedCached(pkt.modelId, skin);
 				});
-			}else {
+			} else {
 				player.onSkinDataReceivedPreset(0);
 			}
-		}else {
+		} else {
 			logger.warn("Received skin data for unknown player {}", pkt.uuid);
 		}
 	}
@@ -188,14 +189,15 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleClient(CPacketSvGetOtherCape pkt) {
 		SupervisorPlayerInstance player = server.getPlayerByUUID(pkt.uuid);
-		if(player != null) {
-			if(player.setClientKnown(client)) {
-				handler.channelWrite(new SPacketSvPlayerNodeID(pkt.uuid, player.getBrandUUID(), player.getOwner().getNodeId()));
+		if (player != null) {
+			if (player.setClientKnown(client)) {
+				handler.channelWrite(
+						new SPacketSvPlayerNodeID(pkt.uuid, player.getBrandUUID(), player.getOwner().getNodeId()));
 			}
 			player.loadCapeData((cape) -> {
 				handler.channelWrite(cape.makeResponse(pkt.uuid));
 			});
-		}else {
+		} else {
 			handler.channelWrite(new SPacketSvOtherCapeError(pkt.uuid));
 		}
 	}
@@ -203,11 +205,11 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleClient(CPacketSvGetCapeByURL pkt) {
 		ISkinCacheService skinCacheService = server.getSkinCache();
-		if(skinCacheService != null) {
+		if (skinCacheService != null) {
 			skinCacheService.resolveCapeByURL(pkt.url, (skin) -> {
 				handler.channelWrite(CachedTextureData.makeCapeResponse(skin, pkt.uuid));
 			});
-		}else {
+		} else {
 			handler.channelWrite(new SPacketSvOtherCapeError(pkt.uuid));
 		}
 	}
@@ -215,9 +217,9 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleClient(CPacketSvOtherCapePreset pkt) {
 		SupervisorPlayerInstance player = client.getPlayerByUUID(pkt.uuid);
-		if(player != null) {
+		if (player != null) {
 			player.onCapeDataReceivedPreset(pkt.presetCape);
-		}else {
+		} else {
 			logger.warn("Received cape data for unknown player {}", pkt.uuid);
 		}
 	}
@@ -225,9 +227,9 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleClient(CPacketSvOtherCapeCustom pkt) {
 		SupervisorPlayerInstance player = client.getPlayerByUUID(pkt.uuid);
-		if(player != null) {
+		if (player != null) {
 			player.onCapeDataReceivedCustom(pkt.customCape);
-		}else {
+		} else {
 			logger.warn("Received cape data for unknown player {}", pkt.uuid);
 		}
 	}
@@ -235,16 +237,16 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleClient(CPacketSvOtherCapeURL pkt) {
 		SupervisorPlayerInstance player = client.getPlayerByUUID(pkt.uuid);
-		if(player != null) {
+		if (player != null) {
 			ISkinCacheService skinCacheService = server.getSkinCache();
-			if(skinCacheService != null) {
+			if (skinCacheService != null) {
 				skinCacheService.resolveCapeByURL(pkt.url, (skin) -> {
 					player.onCapeDataReceivedCached(skin);
 				});
-			}else {
+			} else {
 				player.onCapeDataReceivedPreset(0);
 			}
-		}else {
+		} else {
 			logger.warn("Received cape data for unknown player {}", pkt.uuid);
 		}
 	}
@@ -252,15 +254,16 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleClient(CPacketSvGetClientBrandUUID pkt) {
 		SupervisorPlayerInstance player = server.getPlayerByUUID(pkt.playerUUID);
-		if(player != null && player.setClientKnown(client)) {
-			handler.channelWrite(new SPacketSvPlayerNodeID(pkt.playerUUID, player.getBrandUUID(), player.getOwner().getNodeId()));
-		}else {
+		if (player != null && player.setClientKnown(client)) {
+			handler.channelWrite(
+					new SPacketSvPlayerNodeID(pkt.playerUUID, player.getBrandUUID(), player.getOwner().getNodeId()));
+		} else {
 			handler.channelWrite(new SPacketSvClientBrandError(pkt.playerUUID));
 		}
 	}
 
 	protected static int decodeFailure(int type) {
-		switch(type) {
+		switch (type) {
 		case RPCPending.FAILURE_PROCEDURE:
 			return SPacketSvRPCResultFail.FAILURE_PROCEDURE;
 		case RPCPending.FAILURE_TIMEOUT:
@@ -274,25 +277,25 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleClient(CPacketSvRPCExecuteAll pkt) {
 		List<SupervisorClientInstance> clientList = server.getClientList();
-		if(clientList.size() <= 1) {
-			if(pkt.timeout > 0) {
+		if (clientList.size() <= 1) {
+			if (pkt.timeout > 0) {
 				handler.channelWrite(new SPacketSvRPCResultMulti(pkt.requestUUID, Collections.emptyList()));
 			}
 			return;
 		}
-		if(pkt.timeout > 0) {
+		if (pkt.timeout > 0) {
 			RPCMultiResultAggregator aggregator = new RPCMultiResultAggregator(clientList.size()) {
 				@Override
 				protected void onComplete() {
-					for(int i = 0, l = size(); i < l; ++i) {
+					for (int i = 0, l = size(); i < l; ++i) {
 						get(i).retain();
 					}
 					handler.channelWrite(new SPacketSvRPCResultMulti(pkt.requestUUID, this));
 				}
 			};
-			if(client.addPendingResultAggregator(aggregator)) {
-				for(SupervisorClientInstance otherClient : clientList) {
-					if(otherClient != client) {
+			if (client.addPendingResultAggregator(aggregator)) {
+				for (SupervisorClientInstance otherClient : clientList) {
+					if (otherClient != client) {
 						otherClient.invokeRPC(client.getNodeId(), pkt.nameLength, pkt.payload,
 								new RPCPending(pkt.requestUUID, System.nanoTime() + pkt.timeout * 1000000l) {
 							@Override
@@ -301,22 +304,22 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 							}
 							@Override
 							protected void onFailure(int type) {
-								if(type != RPCPending.FAILURE_HANGUP) {
+								if (type != RPCPending.FAILURE_HANGUP) {
 									aggregator.push(SPacketSvRPCResultMulti.ResultEntry.failure(otherClient.getNodeId(),
 											decodeFailure(type)));
-								}else {
+								} else {
 									aggregator.pushEmpty();
 								}
 							}
 						});
-					}else {
+					} else {
 						aggregator.pushEmpty();
 					}
 				}
 			}
-		}else {
-			for(SupervisorClientInstance otherClient : clientList) {
-				if(otherClient != client) {
+		} else {
+			for (SupervisorClientInstance otherClient : clientList) {
+				if (otherClient != client) {
 					otherClient.invokeRPCVoid(client.getNodeId(), pkt.nameLength, pkt.payload);
 				}
 			}
@@ -326,8 +329,8 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleClient(CPacketSvRPCExecuteNode pkt) {
 		SupervisorClientInstance otherClient = server.getClient(pkt.nodeId);
-		if(pkt.timeout > 0) {
-			if(otherClient != null) {
+		if (pkt.timeout > 0) {
+			if (otherClient != null) {
 				otherClient.invokeRPC(client.getNodeId(), pkt.nameLength, pkt.payload,
 						new RPCPending(pkt.requestUUID, System.nanoTime() + pkt.timeout * 1000000l) {
 					@Override
@@ -339,11 +342,11 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 						handler.channelWrite(new SPacketSvRPCResultFail(pkt.requestUUID, decodeFailure(type)));
 					}
 				});
-			}else {
+			} else {
 				handler.channelWrite(new SPacketSvRPCResultFail(pkt.requestUUID, SPacketSvRPCResultFail.FAILURE_NOT_FOUND));
 			}
-		}else {
-			if(otherClient != null) {
+		} else {
+			if (otherClient != null) {
 				otherClient.invokeRPCVoid(client.getNodeId(), pkt.nameLength, pkt.payload);
 			}
 		}
@@ -352,8 +355,8 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleClient(CPacketSvRPCExecutePlayerName pkt) {
 		SupervisorPlayerInstance player = server.getPlayerByUsername(pkt.playerName);
-		if(pkt.timeout > 0) {
-			if(player != null) {
+		if (pkt.timeout > 0) {
+			if (player != null) {
 				player.getOwner().invokeRPC(client.getNodeId(), pkt.nameLength, pkt.payload,
 						new RPCPending(pkt.requestUUID, System.nanoTime() + pkt.timeout * 1000000l) {
 					@Override
@@ -365,11 +368,11 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 						handler.channelWrite(new SPacketSvRPCResultFail(pkt.requestUUID, decodeFailure(type)));
 					}
 				});
-			}else {
+			} else {
 				handler.channelWrite(new SPacketSvRPCResultFail(pkt.requestUUID, SPacketSvRPCResultFail.FAILURE_NOT_FOUND));
 			}
-		}else {
-			if(player != null) {
+		} else {
+			if (player != null) {
 				player.getOwner().invokeRPCVoid(client.getNodeId(), pkt.nameLength, pkt.payload);
 			}
 		}
@@ -378,8 +381,8 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 	@Override
 	public void handleClient(CPacketSvRPCExecutePlayerUUID pkt) {
 		SupervisorPlayerInstance player = server.getPlayerByUUID(pkt.playerUUID);
-		if(pkt.timeout > 0) {
-			if(player != null) {
+		if (pkt.timeout > 0) {
+			if (player != null) {
 				player.getOwner().invokeRPC(client.getNodeId(), pkt.nameLength, pkt.payload,
 						new RPCPending(pkt.requestUUID, System.nanoTime() + pkt.timeout * 1000000l) {
 					@Override
@@ -391,11 +394,11 @@ public class SupervisorServerV1Handler implements EaglerSupervisorHandler {
 						handler.channelWrite(new SPacketSvRPCResultFail(pkt.requestUUID, decodeFailure(type)));
 					}
 				});
-			}else {
+			} else {
 				handler.channelWrite(new SPacketSvRPCResultFail(pkt.requestUUID, SPacketSvRPCResultFail.FAILURE_NOT_FOUND));
 			}
-		}else {
-			if(player != null) {
+		} else {
+			if (player != null) {
 				player.getOwner().invokeRPCVoid(client.getNodeId(), pkt.nameLength, pkt.payload);
 			}
 		}

@@ -47,8 +47,8 @@ public class TimeoutLoop {
 
 		@Override
 		public void run() {
-			if(timeoutEvents.remove(key) != null) {
-				for(int i = 0, l = queue.size(); i < l; ++i) {
+			if (timeoutEvents.remove(key) != null) {
+				for (int i = 0, l = queue.size(); i < l; ++i) {
 					queue.get(i).expire();
 				}
 			}
@@ -72,20 +72,20 @@ public class TimeoutLoop {
 
 	public boolean addFuture(long now, IExpirable future) {
 		long expires = future.expiresAt();
-		if(now >= expires) {
+		if (now >= expires) {
 			future.expire();
 			return false;
 		}
 		long bucket = (expires + (resolution - 1)) / resolution;
 		Long bucketKey = bucket;
 		TimeoutEvent te = timeoutEvents.get(bucketKey);
-		if(te == null) {
+		if (te == null) {
 			te = new TimeoutEvent(bucketKey);
 			te.queue.add(future);
 			timeoutEvents.put(bucketKey, te);
 			long l = bucket * resolution - now;
 			scheduler.schedule(te, l > 0l ? l : 0l, TimeUnit.NANOSECONDS);
-		}else {
+		} else {
 			te.queue.add(future);
 		}
 		return true;

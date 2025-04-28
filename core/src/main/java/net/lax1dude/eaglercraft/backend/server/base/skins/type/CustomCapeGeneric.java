@@ -40,18 +40,18 @@ public class CustomCapeGeneric extends BaseCustomCape {
 	@Override
 	public GameMessagePacket getCapePacket(long rewriteUUIDMost, long rewriteUUIDLeast,
 			GamePluginMessageProtocol protocol) {
-		if(protocol.ver <= 4) {
+		if (protocol.ver <= 4) {
 			return new SPacketOtherCapeCustomEAG(rewriteUUIDMost, rewriteUUIDLeast, textureData);
-		}else {
+		} else {
 			throw UnsafeUtil.wrongProtocol(protocol);
 		}
 	}
 
 	@Override
 	public GameMessagePacket getCapePacket(int requestId, GamePluginMessageProtocol protocol) {
-		if(protocol.ver >= 5) {
+		if (protocol.ver >= 5) {
 			return new SPacketOtherCapeCustomV5EAG(requestId, textureData);
-		}else {
+		} else {
 			throw UnsafeUtil.wrongProtocol(protocol);
 		}
 	}

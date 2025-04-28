@@ -56,7 +56,7 @@ public class NightConfigSection implements IEaglerConfSection {
 
 	@Override
 	public void setComment(String comment) {
-		if(commentSetter != null) {
+		if (commentSetter != null) {
 			commentSetter.accept(NightConfigLoader.createComment(comment));
 			owner.modified = true;
 		}
@@ -75,9 +75,9 @@ public class NightConfigSection implements IEaglerConfSection {
 	public IEaglerConfSection getSection(String name) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		if(o instanceof CommentedConfig o2) {
+		if (o instanceof CommentedConfig o2) {
 			return new NightConfigSection(owner, o2, (str) -> config.setComment(k, str), true);
-		}else {
+		} else {
 			CommentedConfig sub = config.createSubConfig();
 			config.set(k, sub);
 			owner.modified = true;
@@ -111,7 +111,7 @@ public class NightConfigSection implements IEaglerConfSection {
 	public IEaglerConfList getList(String name) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		if(o instanceof List) {
+		if (o instanceof List) {
 			return new NightConfigList(owner, (List<Object>) o, bindListContext(k), true);
 		} else {
 			List<Object> sub = new ArrayList<>();
@@ -145,11 +145,11 @@ public class NightConfigSection implements IEaglerConfSection {
 	public boolean getBoolean(String name, boolean defaultValue, String comment) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		if(o instanceof Boolean o2) {
+		if (o instanceof Boolean o2) {
 			return o2;
-		}else {
+		} else {
 			config.set(k, defaultValue);
-			if(comment != null) {
+			if (comment != null) {
 				config.setComment(k, NightConfigLoader.createComment(comment));
 			}
 			owner.modified = true;
@@ -162,12 +162,12 @@ public class NightConfigSection implements IEaglerConfSection {
 	public boolean getBoolean(String name, Supplier<Boolean> defaultValue, String comment) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		if(o instanceof Boolean o2) {
+		if (o instanceof Boolean o2) {
 			return o2;
-		}else {
+		} else {
 			Boolean d = defaultValue.get();
 			config.set(k, d);
-			if(comment != null) {
+			if (comment != null) {
 				config.setComment(k, NightConfigLoader.createComment(comment));
 			}
 			owner.modified = true;
@@ -187,11 +187,11 @@ public class NightConfigSection implements IEaglerConfSection {
 	public int getInteger(String name, int defaultValue, String comment) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		if(o instanceof Number o2) {
+		if (o instanceof Number o2) {
 			return o2.intValue();
-		}else {
+		} else {
 			config.set(k, defaultValue);
-			if(comment != null) {
+			if (comment != null) {
 				config.setComment(k, NightConfigLoader.createComment(comment));
 			}
 			owner.modified = true;
@@ -204,12 +204,12 @@ public class NightConfigSection implements IEaglerConfSection {
 	public int getInteger(String name, Supplier<Integer> defaultValue, String comment) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		if(o instanceof Number o2) {
+		if (o instanceof Number o2) {
 			return o2.intValue();
-		}else {
+		} else {
 			Integer d = defaultValue.get();
 			config.set(k, d);
-			if(comment != null) {
+			if (comment != null) {
 				config.setComment(k, NightConfigLoader.createComment(comment));
 			}
 			owner.modified = true;
@@ -236,11 +236,11 @@ public class NightConfigSection implements IEaglerConfSection {
 	public String getString(String name, String defaultValue, String comment) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		if(o instanceof String str) {
+		if (o instanceof String str) {
 			return str;
-		}else {
+		} else {
 			config.set(k, defaultValue);
-			if(comment != null) {
+			if (comment != null) {
 				config.setComment(k, NightConfigLoader.createComment(comment));
 			}
 			owner.modified = true;
@@ -253,12 +253,12 @@ public class NightConfigSection implements IEaglerConfSection {
 	public String getString(String name, Supplier<String> defaultValue, String comment) {
 		List<String> k = Collections.singletonList(name);
 		Object o = config.get(k);
-		if(o instanceof String str) {
+		if (o instanceof String str) {
 			return str;
-		}else {
+		} else {
 			String d = defaultValue.get();
 			config.set(k, d);
-			if(comment != null) {
+			if (comment != null) {
 				config.setComment(k, NightConfigLoader.createComment(comment));
 			}
 			owner.modified = true;

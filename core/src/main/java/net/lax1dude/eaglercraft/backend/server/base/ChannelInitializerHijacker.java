@@ -29,12 +29,12 @@ public abstract class ChannelInitializerHijacker extends ChannelInitializer<Chan
 		public void accept(Channel channel) {
 			Consumer<Channel> run;
 			eagler: {
-				synchronized(ChannelInitializerHijacker.this) {
+				synchronized (ChannelInitializerHijacker.this) {
 					run = impl;
-					if(run != this) {
+					if (run != this) {
 						break eagler;
 					}
-					if(reInject()) {
+					if (reInject()) {
 						impl = ChannelInitializerHijacker.this::callParent;
 						run = (c) -> c.close(channel.voidPromise());
 						break eagler;
@@ -44,7 +44,7 @@ public abstract class ChannelInitializerHijacker extends ChannelInitializer<Chan
 				run.accept(channel);
 				return;
 			}
-			if(run != null) {
+			if (run != null) {
 				run.accept(channel);
 			}
 		}

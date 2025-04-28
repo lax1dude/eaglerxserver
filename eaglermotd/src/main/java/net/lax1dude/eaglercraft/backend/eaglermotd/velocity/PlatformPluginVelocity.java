@@ -74,14 +74,14 @@ public class PlatformPluginVelocity implements IEaglerMOTDPlatform<Player> {
 		eaglermotd = new EaglerMOTD<Player>(this);
 	}
 
-    @Subscribe
-    public void onProxyInit(ProxyInitializeEvent e) {
-    	proxy.getEventManager().register(this, new VelocityListener(this));
-    	eaglermotd.onEnable(EaglerXServerAPI.instance());
+	@Subscribe
+	public void onProxyInit(ProxyInitializeEvent e) {
+		proxy.getEventManager().register(this, new VelocityListener(this));
+		eaglermotd.onEnable(EaglerXServerAPI.instance());
 	}
 
 	@Subscribe
-    public void onProxyShutdown(ProxyShutdownEvent e) {
+	public void onProxyShutdown(ProxyShutdownEvent e) {
 		proxy.getEventManager().unregisterListeners(this);
 		eaglermotd.onDisable(EaglerXServerAPI.instance());
 	}

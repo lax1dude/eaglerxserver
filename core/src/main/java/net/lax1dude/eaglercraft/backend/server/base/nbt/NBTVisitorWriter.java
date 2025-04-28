@@ -119,7 +119,7 @@ public class NBTVisitorWriter implements INBTVisitor {
 	}
 
 	private void handleWriteValue(INBTValue<?> str) throws IOException {
-		if(tmp == null) {
+		if (tmp == null) {
 			tmp = new byte[256];
 		}
 		str.write(dataOutput, tmp);

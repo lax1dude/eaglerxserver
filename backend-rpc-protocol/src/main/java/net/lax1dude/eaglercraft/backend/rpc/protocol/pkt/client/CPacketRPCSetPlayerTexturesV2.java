@@ -45,7 +45,7 @@ public class CPacketRPCSetPlayerTexturesV2 implements EaglerBackendRPCPacket {
 
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
-		if(texturesPacket.length > 32720) {
+		if (texturesPacket.length > 32720) {
 			throw new IOException("Texture data cannot be longer than 32720 bytes!");
 		}
 		buffer.writeBoolean(notifyOthers);

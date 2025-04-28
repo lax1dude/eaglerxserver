@@ -93,12 +93,12 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 		try {
 			res = eventMgr.callEvent(event);
 		} catch (Throwable t) {
-			if(cont != null) {
+			if (cont != null) {
 				cont.complete(null, t);
 			}
 			return;
 		}
-		if(cont != null) {
+		if (cont != null) {
 			cont.complete((I) res, null);
 		}
 	}
@@ -133,9 +133,10 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 			byte[] cookieData, String requestedUsername, String profileUsername, UUID profileUUID,
 			EnumAuthType authType, String authMessage, String authRequestedServer,
 			IEventDispatchCallback<IEaglercraftAuthPasswordEvent<ProxiedPlayer, BaseComponent>> onComplete) {
-		eventMgr.callEvent(new EaglercraftAuthPasswordEvent(api, loginConnection, authUsername, nicknameSelectionEnabled,
-				authSaltingData, authPasswordData, cookiesEnabled, cookieData, requestedUsername, profileUsername,
-				profileUUID, authType, authMessage, authRequestedServer, transformCallback(onComplete)));
+		eventMgr.callEvent(new EaglercraftAuthPasswordEvent(api, loginConnection, authUsername,
+				nicknameSelectionEnabled, authSaltingData, authPasswordData, cookiesEnabled, cookieData,
+				requestedUsername, profileUsername, profileUUID, authType, authMessage, authRequestedServer,
+				transformCallback(onComplete)));
 	}
 
 	@Override
@@ -145,7 +146,8 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 	}
 
 	@Override
-	public void dispatchLoginEvent(IEaglerLoginConnection loginConnection, boolean redirectSupport, String requestedServer,
+	public void dispatchLoginEvent(IEaglerLoginConnection loginConnection, boolean redirectSupport,
+			String requestedServer,
 			IEventDispatchCallback<IEaglercraftLoginEvent<ProxiedPlayer, BaseComponent>> onComplete) {
 		eventMgr.callEvent(new EaglercraftLoginEvent(api, loginConnection, redirectSupport, requestedServer,
 				transformCallback(onComplete)));
@@ -185,7 +187,8 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 
 	@Override
 	public void dispatchVoiceChangeEvent(IEaglerPlayer<ProxiedPlayer> player, EnumVoiceState voiceStateOld,
-			EnumVoiceState voiceStateNew, IEventDispatchCallback<IEaglercraftVoiceChangeEvent<ProxiedPlayer>> onComplete) {
+			EnumVoiceState voiceStateNew,
+			IEventDispatchCallback<IEaglercraftVoiceChangeEvent<ProxiedPlayer>> onComplete) {
 		fireSync(new EaglercraftVoiceChangeEvent(api, player, voiceStateOld, voiceStateNew), onComplete);
 	}
 

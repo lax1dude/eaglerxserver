@@ -50,7 +50,7 @@ public class CPacketVoiceSignalDescEAG implements GameMessagePacket {
 		uuidMost = buffer.readLong();
 		uuidLeast = buffer.readLong();
 		int descLen = buffer.readVarInt();
-		if(descLen > 32750) {
+		if (descLen > 32750) {
 			throw new IOException("Voice signal packet DESC too long!");
 		}
 		desc = new byte[descLen];
@@ -59,7 +59,7 @@ public class CPacketVoiceSignalDescEAG implements GameMessagePacket {
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
-		if(desc.length > 32750) {
+		if (desc.length > 32750) {
 			throw new IOException("Voice signal packet DESC too long!");
 		}
 		buffer.writeLong(uuidMost);

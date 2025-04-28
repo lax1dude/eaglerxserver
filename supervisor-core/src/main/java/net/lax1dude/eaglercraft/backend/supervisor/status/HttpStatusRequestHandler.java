@@ -50,9 +50,9 @@ public class HttpStatusRequestHandler extends ChannelInboundHandlerAdapter {
 
 	public void channelRead(ChannelHandlerContext ctx, Object msgRaw) throws Exception {
 		try {
-			if(msgRaw instanceof HttpRequest) {
+			if (msgRaw instanceof HttpRequest) {
 				handleRequest(ctx, (HttpRequest) msgRaw);
-			}else {
+			} else {
 				ctx.close();
 			}
 		} finally {
@@ -61,7 +61,7 @@ public class HttpStatusRequestHandler extends ChannelInboundHandlerAdapter {
 	}
 
 	private void handleRequest(ChannelHandlerContext ctx, HttpRequest msg) {
-		if(!checkAuthorization(ctx, msg)) {
+		if (!checkAuthorization(ctx, msg)) {
 			return;
 		}
 		String uri = msg.uri();
@@ -72,7 +72,7 @@ public class HttpStatusRequestHandler extends ChannelInboundHandlerAdapter {
 		if (j != -1) {
 			uri = uri.substring(0, j);
 		}
-		switch(uri) {
+		switch (uri) {
 		case "":
 		case "overview":
 			sendResponse(ctx, HttpResponseStatus.OK, "text/html", server.getStatusRendererHTML().renderIndex());
@@ -92,13 +92,15 @@ public class HttpStatusRequestHandler extends ChannelInboundHandlerAdapter {
 	private boolean checkAuthorization(ChannelHandlerContext ctx, HttpRequest msg) {
 		EaglerXSupervisorConfig conf = server.getConfig();
 		String str = conf.getAuthString();
-		if(str != null) {
+		if (str != null) {
 			String authHeader = msg.headers().get(HttpHeaderNames.AUTHORIZATION);
-			if(authHeader != null && str.equals(authHeader)) {
+			if (authHeader != null && str.equals(authHeader)) {
 				return true;
 			}
-			server.getLogger().warn("Invalid password attempt on HTTP status page from {}", ctx.channel().remoteAddress());
-			DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
+			server.getLogger().warn("Invalid password attempt on HTTP status page from {}",
+					ctx.channel().remoteAddress());
+			DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
+					HttpResponseStatus.UNAUTHORIZED);
 			HttpHeaders responseHeaders = response.headers();
 			responseHeaders.add(HttpHeaderNames.WWW_AUTHENTICATE, "Basic realm=\"you eagler\" charset=\"utf-8\"");
 			responseHeaders.add(HttpHeaderNames.DATE, gmt.format(new Date()));
@@ -130,7 +132,7 @@ public class HttpStatusRequestHandler extends ChannelInboundHandlerAdapter {
 	}
 
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		if(ctx.channel().isActive()) {
+		if (ctx.channel().isActive()) {
 			logger.error("[" + ctx.channel().remoteAddress() + "] Encountered an exception: ", cause);
 			ctx.close();
 		}

@@ -26,10 +26,10 @@ public final class IconDef {
 
 	@Nonnull
 	public static IconDef create(@Nonnull UUID uuid, @Nonnull IPacketImageData icon) {
-		if(uuid == null) {
+		if (uuid == null) {
 			throw new NullPointerException("uuid");
 		}
-		if(icon == null) {
+		if (icon == null) {
 			throw new NullPointerException("icon");
 		}
 		return new IconDef(uuid, icon);

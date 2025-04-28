@@ -53,10 +53,10 @@ public class RateLimiterExclusions {
 		protected final int subnet;
 
 		protected Exclusion6(long addrHi, long addrLo, int subnet) {
-			if(subnet > 64) {
+			if (subnet > 64) {
 				this.maskHi = -1l;
 				this.maskLo = ~((1l << (128 - subnet)) - 1);
-			}else {
+			} else {
 				this.maskHi = ~((1l << (64 - subnet)) - 1);
 				this.maskLo = 0l;
 			}
@@ -70,23 +70,23 @@ public class RateLimiterExclusions {
 	public static RateLimiterExclusions create(List<String> list, IPlatformLogger logger) {
 		List<Exclusion4> lst4 = new ArrayList<>();
 		List<Exclusion6> lst6 = new ArrayList<>();
-		for(String str : list) {
+		for (String str : list) {
 			int slashIdx = str.lastIndexOf('/');
 			InetAddress addr;
 			int subnet;
-			if(slashIdx != -1) {
+			if (slashIdx != -1) {
 				try {
 					addr = InetAddresses.forString(str.substring(0, slashIdx));
 					subnet = Integer.parseInt(str.substring(slashIdx + 1));
-				}catch(IllegalArgumentException ex) {
+				} catch (IllegalArgumentException ex) {
 					logger.warn("Skipping invalid ratelimit exclusion: \"" + str + "\"", ex);
 					continue;
 				}
-			}else {
+			} else {
 				addr = InetAddresses.forString(str);
 				subnet = -1;
 			}
-			if(addr instanceof Inet6Address addr6) {
+			if (addr instanceof Inet6Address addr6) {
 				byte[] addrBytes = addr6.getAddress();
 				long addrHi = ((long) (addrBytes[0] & 0xFF) << 56l) | ((long) (addrBytes[1] & 0xFF) << 48l)
 						| ((long) (addrBytes[2] & 0xFF) << 40l) | ((long) (addrBytes[3] & 0xFF) << 32l)
@@ -97,12 +97,12 @@ public class RateLimiterExclusions {
 						| ((long) (addrBytes[12] & 0xFF) << 24l) | ((long) (addrBytes[13] & 0xFF) << 16l)
 						| ((long) (addrBytes[14] & 0xFF) << 8l) | (long) (addrBytes[15] & 0xFF);
 				lst6.add(new Exclusion6(addrHi, addrLo, subnet != -1 ? subnet : 128));
-			}else if(addr instanceof Inet4Address addr4) {
+			} else if (addr instanceof Inet4Address addr4) {
 				byte[] addrBytes = addr4.getAddress();
 				int addrInt = ((addrBytes[0] & 0xFF) << 24) | ((addrBytes[1] & 0xFF) << 16)
 						| ((addrBytes[2] & 0xFF) << 8) | (addrBytes[3] & 0xFF);
 				lst4.add(new Exclusion4(addrInt, subnet != -1 ? subnet : 32));
-			}else {
+			} else {
 				logger.warn("Skipping unknown ratelimit address: \"" + addr + "\" (" + addr.getClass().getName() + ")");
 			}
 		}
@@ -120,26 +120,26 @@ public class RateLimiterExclusions {
 	}
 
 	public boolean testExclusion(InetAddress addr) {
-		if(addr instanceof Inet6Address addr2) {
+		if (addr instanceof Inet6Address addr2) {
 			return testExclusion6(addr2);
-		}else if(addr instanceof Inet4Address addr2) {
+		} else if (addr instanceof Inet4Address addr2) {
 			return testExclusion4(addr2);
-		}else {
+		} else {
 			return false;
 		}
 	}
 
 	public boolean testExclusion4(Inet4Address addr) {
 		int l = lst4.size();
-		if(l == 0) {
+		if (l == 0) {
 			return false;
 		}
 		byte[] addrBytes = addr.getAddress();
-		int addrInt = ((addrBytes[0] & 0xFF) << 24) | ((addrBytes[1] & 0xFF) << 16)
-				| ((addrBytes[2] & 0xFF) << 8) | (addrBytes[3] & 0xFF);
-		for(int i = 0; i < l; ++i) {
+		int addrInt = ((addrBytes[0] & 0xFF) << 24) | ((addrBytes[1] & 0xFF) << 16) | ((addrBytes[2] & 0xFF) << 8)
+				| (addrBytes[3] & 0xFF);
+		for (int i = 0; i < l; ++i) {
 			Exclusion4 ex = lst4.get(i);
-			if((addrInt & ex.mask) == ex.addr) {
+			if ((addrInt & ex.mask) == ex.addr) {
 				return true;
 			}
 		}
@@ -148,7 +148,7 @@ public class RateLimiterExclusions {
 
 	public boolean testExclusion6(Inet6Address addr) {
 		int l = lst6.size();
-		if(l == 0) {
+		if (l == 0) {
 			return false;
 		}
 		byte[] addrBytes = addr.getAddress();
@@ -160,9 +160,9 @@ public class RateLimiterExclusions {
 				| ((long) (addrBytes[10] & 0xFF) << 40l) | ((long) (addrBytes[11] & 0xFF) << 32l)
 				| ((long) (addrBytes[12] & 0xFF) << 24l) | ((long) (addrBytes[13] & 0xFF) << 16l)
 				| ((long) (addrBytes[14] & 0xFF) << 8l) | (long) (addrBytes[15] & 0xFF);
-		for(int i = 0; i < l; ++i) {
+		for (int i = 0; i < l; ++i) {
 			Exclusion6 ex = lst6.get(i);
-			if((addrHi & ex.maskHi) == ex.addrHi && (addrLo & ex.maskLo) == ex.addrLo) {
+			if ((addrHi & ex.maskHi) == ex.addrHi && (addrLo & ex.maskLo) == ex.addrLo) {
 				return true;
 			}
 		}

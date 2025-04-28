@@ -44,11 +44,13 @@ public class VelocityComponentHelper implements IPlatformComponentHelper {
 		JSONComponentSerializer.Builder builder = JSONComponentSerializer.builder();
 		try {
 			builder.legacyHoverEventSerializer(NBTLegacyHoverEventSerializer.get());
-		}catch(Throwable t) {
+		} catch (Throwable t) {
 			try {
-				Class<?> c = Class.forName("com.velocitypowered.proxy.protocol.util.VelocityLegacyHoverEventSerializer");
-				builder.legacyHoverEventSerializer((LegacyHoverEventSerializer)c.getDeclaredField("INSTANCE").get(null));
-			}catch(Throwable tt) {
+				Class<?> c = Class
+						.forName("com.velocitypowered.proxy.protocol.util.VelocityLegacyHoverEventSerializer");
+				builder.legacyHoverEventSerializer(
+						(LegacyHoverEventSerializer) c.getDeclaredField("INSTANCE").get(null));
+			} catch (Throwable tt) {
 				throw new RuntimeException("Legacy hover event serializer is unavailable! (downgrade velocity)");
 			}
 		}
@@ -58,7 +60,8 @@ public class VelocityComponentHelper implements IPlatformComponentHelper {
 		this.modernJSON = JSONComponentSerializer.json();
 		this.builder = new VelocityComponentBuilder();
 		this.standardKickAlreadyPlaying = GlobalTranslator.render(
-				Component.translatable("velocity.error.already-connected-proxy", NamedTextColor.RED), Locale.getDefault());
+				Component.translatable("velocity.error.already-connected-proxy", NamedTextColor.RED),
+				Locale.getDefault());
 	}
 
 	@Override
@@ -119,15 +122,15 @@ public class VelocityComponentHelper implements IPlatformComponentHelper {
 	private Object parseJSON(JSONComponentSerializer serializer, String json) throws IllegalArgumentException {
 		try {
 			Object ret = serializer.deserialize(json);
-			if(ret == null) {
+			if (ret == null) {
 				throw new NullPointerException("Deserialization result is null");
 			}
 			return ret;
-		}catch(IllegalArgumentException ex) {
+		} catch (IllegalArgumentException ex) {
 			throw ex;
-		}catch(JsonParseException ex) {
+		} catch (JsonParseException ex) {
 			throw new IllegalArgumentException(ex.getMessage(), ex.getCause());
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			throw new IllegalArgumentException("Could not parse JSON chat component", ex);
 		}
 	}

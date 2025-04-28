@@ -120,9 +120,9 @@ public class PlayerInstanceLocal<PlayerObject> extends RPCAttributeHolder
 	@Override
 	public IVoiceManager<PlayerObject> getVoiceManager() {
 		BasePlayerRPCLocal<PlayerObject> delegate = handle();
-		if(delegate != null) {
+		if (delegate != null) {
 			return delegate.getVoiceManager();
-		}else {
+		} else {
 			return null;
 		}
 	}
@@ -140,27 +140,29 @@ public class PlayerInstanceLocal<PlayerObject> extends RPCAttributeHolder
 
 	@Override
 	public IRPCFuture<IBasePlayerRPC<PlayerObject>> openFuture() {
-		IRPCFuture<IBasePlayerRPC<PlayerObject>> future = (IRPCFuture<IBasePlayerRPC<PlayerObject>>) FUTURE_HANDLE.getAcquire(this);
-		if(future != null) {
+		IRPCFuture<IBasePlayerRPC<PlayerObject>> future = (IRPCFuture<IBasePlayerRPC<PlayerObject>>) FUTURE_HANDLE
+				.getAcquire(this);
+		if (future != null) {
 			return future;
-		}else {
-			eag: synchronized(this) {
+		} else {
+			eag: synchronized (this) {
 				future = this.future;
-				if(future != null) {
+				if (future != null) {
 					break eag;
 				}
 				BasePlayerRPCLocal<PlayerObject> existingHandle = this.handle;
-				if(existingHandle != null) {
-					FUTURE_HANDLE.setRelease(this, future = RPCImmediateFuture.create(server.schedulerExecutors(), existingHandle));
-				}else {
+				if (existingHandle != null) {
+					FUTURE_HANDLE.setRelease(this,
+							future = RPCImmediateFuture.create(server.schedulerExecutors(), existingHandle));
+				} else {
 					FUTURE_HANDLE.setRelease(this,
 							future = new RPCConsumerFuture<IBasePlayerRPC<PlayerObject>, IBasePlayerRPC<PlayerObject>>(
 									server.schedulerExecutors()) {
-						@Override
-						public void accept(IBasePlayerRPC<PlayerObject> handle) {
-							set(handle);
-						}
-					});
+								@Override
+								public void accept(IBasePlayerRPC<PlayerObject> handle) {
+									set(handle);
+								}
+							});
 				}
 			}
 			return future;
@@ -170,9 +172,9 @@ public class PlayerInstanceLocal<PlayerObject> extends RPCAttributeHolder
 	public boolean offerPlayer(net.lax1dude.eaglercraft.backend.server.api.IBasePlayer<PlayerObject> playerObject) {
 		IRPCFuture<IBasePlayerRPC<PlayerObject>> future = null;
 		BasePlayerRPCLocal<PlayerObject> existingHandle = null;
-		synchronized(this) {
+		synchronized (this) {
 			existingHandle = this.handle;
-			if(existingHandle != null) {
+			if (existingHandle != null) {
 				return false;
 			}
 			future = this.future;
@@ -180,11 +182,11 @@ public class PlayerInstanceLocal<PlayerObject> extends RPCAttributeHolder
 			PLAYER_HANDLE.setRelease(this, existingHandle);
 		}
 		try {
-			if(existingHandle.isEaglerPlayer()) {
+			if (existingHandle.isEaglerPlayer()) {
 				server.getPlatform().eventDispatcher().dispatchPlayerReadyEvent(this);
 			}
-		}finally {
-			if(future != null) {
+		} finally {
+			if (future != null) {
 				((RPCConsumerFuture<IBasePlayerRPC<PlayerObject>, IBasePlayerRPC<PlayerObject>>) future)
 						.accept(existingHandle);
 			}
@@ -192,18 +194,19 @@ public class PlayerInstanceLocal<PlayerObject> extends RPCAttributeHolder
 		return true;
 	}
 
-	private BasePlayerRPCLocal<PlayerObject> createHandle(net.lax1dude.eaglercraft.backend.server.api.IBasePlayer<PlayerObject> player) {
+	private BasePlayerRPCLocal<PlayerObject> createHandle(
+			net.lax1dude.eaglercraft.backend.server.api.IBasePlayer<PlayerObject> player) {
 		net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject> eagPlayer = player.asEaglerPlayer();
-		if(eagPlayer != null) {
+		if (eagPlayer != null) {
 			return new EaglerPlayerRPCLocal<>(this, eagPlayer);
-		}else {
+		} else {
 			return new BasePlayerRPCLocal<>(this, player);
 		}
 	}
 
 	void handleDestroyed() {
 		BasePlayerRPCLocal<PlayerObject> handle = handle();
-		if(handle != null) {
+		if (handle != null) {
 			handle.fireCloseListeners();
 		}
 	}

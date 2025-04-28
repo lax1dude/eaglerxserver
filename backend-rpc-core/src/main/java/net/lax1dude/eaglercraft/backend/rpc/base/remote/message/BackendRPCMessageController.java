@@ -52,30 +52,32 @@ public abstract class BackendRPCMessageController {
 	protected void handleInboundMessage(byte[] packet) {
 		EaglerBackendRPCPacket pkt;
 		try {
-			if(packet.length == 0) {
+			if (packet.length == 0) {
 				throw new IOException("Empty packet recieved");
 			}
-			if(serializeCtx.aquireInputStream()) {
+			if (serializeCtx.aquireInputStream()) {
 				try {
 					serializeCtx.byteInputStreamSingleton.feedBuffer(packet);
-					pkt = protocol.readPacket(serializeCtx.inputStreamSingleton, EaglerBackendRPCProtocol.SERVER_TO_CLIENT);
-				}finally {
+					pkt = protocol.readPacket(serializeCtx.inputStreamSingleton,
+							EaglerBackendRPCProtocol.SERVER_TO_CLIENT);
+				} finally {
 					serializeCtx.byteInputStreamSingleton.feedBuffer(null);
 					serializeCtx.releaseInputStream();
 				}
-			}else {
+			} else {
 				ReusableByteArrayInputStream tmp = new ReusableByteArrayInputStream();
 				tmp.feedBuffer(packet);
 				pkt = protocol.readPacket(new DataInputStream(tmp), EaglerBackendRPCProtocol.SERVER_TO_CLIENT);
 			}
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			onException(ex);
 			return;
 		}
 		try {
 			pkt.handlePacket(handler());
-		}catch(Exception ex) {
-			onException(new IllegalStateException("Failed to process RPC packet: " + pkt.getClass().getSimpleName(), ex));
+		} catch (Exception ex) {
+			onException(
+					new IllegalStateException("Failed to process RPC packet: " + pkt.getClass().getSimpleName(), ex));
 		}
 	}
 
@@ -83,67 +85,76 @@ public abstract class BackendRPCMessageController {
 		int len = packet.length() + 1;
 		byte[] ret;
 		try {
-			if(serializeCtx.aquireOutputStream()) {
+			if (serializeCtx.aquireOutputStream()) {
 				try {
-					serializeCtx.byteOutputStreamSingleton.feedBuffer(len == 0 ? serializeCtx.outputTempBuffer : new byte[len]);
-					protocol.writePacket(serializeCtx.outputStreamSingleton, EaglerBackendRPCProtocol.CLIENT_TO_SERVER, packet);
+					serializeCtx.byteOutputStreamSingleton
+							.feedBuffer(len == 0 ? serializeCtx.outputTempBuffer : new byte[len]);
+					protocol.writePacket(serializeCtx.outputStreamSingleton, EaglerBackendRPCProtocol.CLIENT_TO_SERVER,
+							packet);
 					ret = len == 0 ? serializeCtx.byteOutputStreamSingleton.returnBufferCopied()
 							: serializeCtx.byteOutputStreamSingleton.returnBuffer();
-				}finally {
+				} finally {
 					serializeCtx.releaseOutputStream();
 				}
-			}else {
+			} else {
 				ReusableByteArrayOutputStream bao = new ReusableByteArrayOutputStream();
 				bao.feedBuffer(new byte[len == 0 ? 64 : len]);
 				protocol.writePacket(new DataOutputStream(bao), EaglerBackendRPCProtocol.CLIENT_TO_SERVER, packet);
 				ret = bao.returnBuffer();
 			}
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			onException(ex);
 			return;
 		}
-		if(len != 0 && ret.length != len) {
+		if (len != 0 && ret.length != len) {
 			logger().warn("Packet " + packet.getClass().getSimpleName() + " was the wrong length after serialization, "
 					+ ret.length + " != " + len);
 		}
 		writeOutboundMessage(ret);
 	}
 
-	public static EaglerBackendRPCPacket deserializeINIT(byte[] packet, DataSerializationContext serializeCtx) throws IOException {
-		if(packet.length == 0) {
+	public static EaglerBackendRPCPacket deserializeINIT(byte[] packet, DataSerializationContext serializeCtx)
+			throws IOException {
+		if (packet.length == 0) {
 			throw new IOException("Empty packet recieved");
 		}
-		if(serializeCtx.aquireInputStream()) {
+		if (serializeCtx.aquireInputStream()) {
 			try {
 				serializeCtx.byteInputStreamSingleton.feedBuffer(packet);
-				return EaglerBackendRPCProtocol.INIT.readPacket(serializeCtx.inputStreamSingleton, EaglerBackendRPCProtocol.SERVER_TO_CLIENT);
-			}finally {
+				return EaglerBackendRPCProtocol.INIT.readPacket(serializeCtx.inputStreamSingleton,
+						EaglerBackendRPCProtocol.SERVER_TO_CLIENT);
+			} finally {
 				serializeCtx.byteInputStreamSingleton.feedBuffer(null);
 				serializeCtx.releaseInputStream();
 			}
-		}else {
+		} else {
 			ReusableByteArrayInputStream tmp = new ReusableByteArrayInputStream();
 			tmp.feedBuffer(packet);
-			return EaglerBackendRPCProtocol.INIT.readPacket(new DataInputStream(tmp), EaglerBackendRPCProtocol.SERVER_TO_CLIENT);
+			return EaglerBackendRPCProtocol.INIT.readPacket(new DataInputStream(tmp),
+					EaglerBackendRPCProtocol.SERVER_TO_CLIENT);
 		}
 	}
 
-	public static byte[] serializeINIT(EaglerBackendRPCPacket packet, DataSerializationContext serializeCtx) throws IOException {
+	public static byte[] serializeINIT(EaglerBackendRPCPacket packet, DataSerializationContext serializeCtx)
+			throws IOException {
 		int len = packet.length() + 1;
 		byte[] ret;
-		if(serializeCtx.aquireOutputStream()) {
+		if (serializeCtx.aquireOutputStream()) {
 			try {
-				serializeCtx.byteOutputStreamSingleton.feedBuffer(len == 0 ? serializeCtx.outputTempBuffer : new byte[len]);
-				EaglerBackendRPCProtocol.INIT.writePacket(serializeCtx.outputStreamSingleton, EaglerBackendRPCProtocol.CLIENT_TO_SERVER, packet);
+				serializeCtx.byteOutputStreamSingleton
+						.feedBuffer(len == 0 ? serializeCtx.outputTempBuffer : new byte[len]);
+				EaglerBackendRPCProtocol.INIT.writePacket(serializeCtx.outputStreamSingleton,
+						EaglerBackendRPCProtocol.CLIENT_TO_SERVER, packet);
 				ret = len == 0 ? serializeCtx.byteOutputStreamSingleton.returnBufferCopied()
 						: serializeCtx.byteOutputStreamSingleton.returnBuffer();
-			}finally {
+			} finally {
 				serializeCtx.releaseOutputStream();
 			}
-		}else {
+		} else {
 			ReusableByteArrayOutputStream bao = new ReusableByteArrayOutputStream();
 			bao.feedBuffer(new byte[len == 0 ? 64 : len]);
-			EaglerBackendRPCProtocol.INIT.writePacket(new DataOutputStream(bao), EaglerBackendRPCProtocol.CLIENT_TO_SERVER, packet);
+			EaglerBackendRPCProtocol.INIT.writePacket(new DataOutputStream(bao),
+					EaglerBackendRPCProtocol.CLIENT_TO_SERVER, packet);
 			ret = bao.returnBuffer();
 		}
 		return ret;

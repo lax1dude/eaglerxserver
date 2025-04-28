@@ -29,8 +29,7 @@ class BukkitVoiceCapableEventImpl extends EaglercraftVoiceCapableEvent {
 	private final IEaglerPlayer<Player> player;
 	private IVoiceChannel channel;
 
-	BukkitVoiceCapableEventImpl(IEaglerXBackendRPC<Player> api, IEaglerPlayer<Player> player,
-			IVoiceChannel channel) {
+	BukkitVoiceCapableEventImpl(IEaglerXBackendRPC<Player> api, IEaglerPlayer<Player> player, IVoiceChannel channel) {
 		this.api = api;
 		this.player = player;
 		this.channel = channel;
@@ -53,7 +52,7 @@ class BukkitVoiceCapableEventImpl extends EaglercraftVoiceCapableEvent {
 
 	@Override
 	public void setTargetChannel(IVoiceChannel channel) {
-		if(channel == null) {
+		if (channel == null) {
 			throw new NullPointerException("channel");
 		}
 		this.channel = channel;

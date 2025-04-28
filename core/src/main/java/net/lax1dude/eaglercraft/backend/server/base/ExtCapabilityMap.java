@@ -37,9 +37,10 @@ public class ExtCapabilityMap {
 	private final ReadWriteLock lock = new ReentrantReadWriteLock();
 	private final Map<Object, Set<ExtendedCapabilitySpec>> pluginCapabilities = new IdentityHashMap<>();
 
-	private ExtendedCapabilitySpec internUUIDs(ExtendedCapabilitySpec spec) { //TODO: sort the versions so they can be matched faster
+	private ExtendedCapabilitySpec internUUIDs(ExtendedCapabilitySpec spec) { // TODO: sort the versions so they can be
+																				// matched faster
 		ExtendedCapabilitySpec.Version[] vers = spec.getMajorVersions().clone();
-		for(int i = 0; i < vers.length; ++i) {
+		for (int i = 0; i < vers.length; ++i) {
 			vers[i] = ExtendedCapabilitySpec.version(EaglerXServer.uuidInterner.intern(vers[i].getMajorVersion()),
 					vers[i].getMinorVersions());
 		}
@@ -51,11 +52,11 @@ public class ExtCapabilityMap {
 		lock.writeLock().lock();
 		try {
 			Set<ExtendedCapabilitySpec> caps = pluginCapabilities.get(plugin);
-			if(caps == null) {
+			if (caps == null) {
 				pluginCapabilities.put(capability, caps = new HashSet<>());
 			}
 			caps.add(capability);
-		}finally {
+		} finally {
 			lock.writeLock().unlock();
 		}
 	}
@@ -64,14 +65,14 @@ public class ExtCapabilityMap {
 		lock.writeLock().lock();
 		try {
 			Set<ExtendedCapabilitySpec> caps = pluginCapabilities.get(plugin);
-			if(caps != null) {
-				if(caps.remove(capability)) {
-					if(caps.isEmpty()) {
+			if (caps != null) {
+				if (caps.remove(capability)) {
+					if (caps.isEmpty()) {
 						pluginCapabilities.remove(plugin);
 					}
 				}
 			}
-		}finally {
+		} finally {
 			lock.writeLock().unlock();
 		}
 	}
@@ -81,31 +82,31 @@ public class ExtCapabilityMap {
 		lock.readLock().lock();
 		try {
 			Collection<Set<ExtendedCapabilitySpec>> vals = pluginCapabilities.values();
-			if(vals.isEmpty()) {
+			if (vals.isEmpty()) {
 				return Collections.emptyMap();
 			}
 			builder = new HashMap<>(extCapabilities.size());
-			for(Set<ExtendedCapabilitySpec> specs : vals) {
-				for(ExtendedCapabilitySpec spec : specs) {
+			for (Set<ExtendedCapabilitySpec> specs : vals) {
+				for (ExtendedCapabilitySpec spec : specs) {
 					ExtendedCapabilitySpec.Version[] vers = spec.getMajorVersions();
-					eagler: for(int j = vers.length - 1; j >= 0; --j) {
+					eagler: for (int j = vers.length - 1; j >= 0; --j) {
 						ExtendedCapabilitySpec.Version ver = vers[j];
 						int bitFieldIndex = extCapabilities.indexOf(ver.getMajorVersion());
-						if(bitFieldIndex >= 0) {
+						if (bitFieldIndex >= 0) {
 							int bits = extCapabilities.indexGet(bitFieldIndex);
 							int maxVer = -1;
 							for (int i : ver.getMinorVersions()) {
-								if(i > maxVer && (bits & (1 << i)) != 0) {
+								if (i > maxVer && (bits & (1 << i)) != 0) {
 									maxVer = i;
 								}
 							}
-							if(maxVer != -1) {
+							if (maxVer != -1) {
 								Byte b = builder.get(ver.getMajorVersion());
-								if(b != null) {
-									if((b.byteValue() & 0xFF) < maxVer) {
+								if (b != null) {
+									if ((b.byteValue() & 0xFF) < maxVer) {
 										builder.put(ver.getMajorVersion(), (byte) maxVer);
 									}
-								}else {
+								} else {
 									builder.put(ver.getMajorVersion(), (byte) maxVer);
 								}
 								break eagler;
@@ -114,7 +115,7 @@ public class ExtCapabilityMap {
 					}
 				}
 			}
-		}finally {
+		} finally {
 			lock.readLock().unlock();
 		}
 		return ImmutableMap.copyOf(builder);
@@ -124,18 +125,18 @@ public class ExtCapabilityMap {
 		lock.readLock().lock();
 		try {
 			Collection<Set<ExtendedCapabilitySpec>> vals = pluginCapabilities.values();
-			if(vals.isEmpty()) {
+			if (vals.isEmpty()) {
 				return false;
 			}
-			for(Set<ExtendedCapabilitySpec> specs : vals) {
-				for(ExtendedCapabilitySpec spec : specs) {
+			for (Set<ExtendedCapabilitySpec> specs : vals) {
+				for (ExtendedCapabilitySpec spec : specs) {
 					ExtendedCapabilitySpec.Version[] vers = spec.getMajorVersions();
-					for(int i = 0; i < vers.length; ++i) {
+					for (int i = 0; i < vers.length; ++i) {
 						ExtendedCapabilitySpec.Version ver = vers[i];
-						if(capabilityUUID.equals(ver.getMajorVersion())) {
+						if (capabilityUUID.equals(ver.getMajorVersion())) {
 							int[] minorVerss = ver.getMinorVersions();
-							for(int j = 0, l = minorVerss.length; j < l; ++j) {
-								if((minorVerss[j] & 0xFF) > version) {
+							for (int j = 0, l = minorVerss.length; j < l; ++j) {
+								if ((minorVerss[j] & 0xFF) > version) {
 									return true;
 								}
 							}
@@ -143,7 +144,7 @@ public class ExtCapabilityMap {
 					}
 				}
 			}
-		}finally {
+		} finally {
 			lock.readLock().unlock();
 		}
 		return false;

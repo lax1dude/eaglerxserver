@@ -80,7 +80,7 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter<Playe
 
 		@Override
 		public void accept(T t) {
-			if(t != null) {
+			if (t != null) {
 				event.complete(t, null);
 			}
 		}

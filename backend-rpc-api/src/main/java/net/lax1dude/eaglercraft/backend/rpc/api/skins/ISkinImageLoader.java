@@ -76,10 +76,12 @@ public interface ISkinImageLoader {
 	IEaglerPlayerSkin loadSkinImageData(@Nonnull BufferedImage image, int modelIdRaw);
 
 	@Nonnull
-	IEaglerPlayerSkin loadSkinImageData(@Nonnull @WillNotClose InputStream inputStream, @Nonnull EnumSkinModel modelId) throws IOException;
+	IEaglerPlayerSkin loadSkinImageData(@Nonnull @WillNotClose InputStream inputStream, @Nonnull EnumSkinModel modelId)
+			throws IOException;
 
 	@Nonnull
-	IEaglerPlayerSkin loadSkinImageData(@Nonnull @WillNotClose InputStream inputStream, int modelIdRaw) throws IOException;
+	IEaglerPlayerSkin loadSkinImageData(@Nonnull @WillNotClose InputStream inputStream, int modelIdRaw)
+			throws IOException;
 
 	@Nonnull
 	IEaglerPlayerSkin loadSkinImageData(@Nonnull File imageFile, @Nonnull EnumSkinModel modelId) throws IOException;

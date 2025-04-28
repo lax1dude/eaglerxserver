@@ -110,7 +110,8 @@ public interface HPPC {
 	<K, V> ObjectObjectMap<K, V> createObjectObjectHashMap(int expectedElements);
 
 	@Nonnull
-	<K, V> ObjectObjectMap<K, V> createObjectObjectHashMap(@Nonnull ObjectObjectAssociativeContainer<? extends K, ? extends V> source);
+	<K, V> ObjectObjectMap<K, V> createObjectObjectHashMap(
+			@Nonnull ObjectObjectAssociativeContainer<? extends K, ? extends V> source);
 
 	@Nonnull
 	<K, V> ObjectObjectMap<K, V> createObjectObjectIdentityHashMap();
@@ -119,6 +120,7 @@ public interface HPPC {
 	<K, V> ObjectObjectMap<K, V> createObjectObjectIdentityHashMap(int expectedElements);
 
 	@Nonnull
-	<K, V> ObjectObjectMap<K, V> createObjectObjectIdentityHashMap(@Nonnull ObjectObjectAssociativeContainer<? extends K, ? extends V> source);
+	<K, V> ObjectObjectMap<K, V> createObjectObjectIdentityHashMap(
+			@Nonnull ObjectObjectAssociativeContainer<? extends K, ? extends V> source);
 
 }

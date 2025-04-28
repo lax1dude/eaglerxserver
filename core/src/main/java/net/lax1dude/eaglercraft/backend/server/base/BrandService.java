@@ -186,7 +186,7 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 		protected final String desc;
 		protected final boolean hacked;
 		protected final boolean legacy;
-	
+
 		protected BrandRegistration(UUID uuid, String desc, boolean hacked, boolean legacy) {
 			this.uuid = uuid;
 			this.desc = desc;
@@ -230,18 +230,12 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 	private final ReadWriteLock mapLock;
 	private final Map<UUID, IBrandRegistration> map;
 
-	private static final Set<UUID> builtinUUIDs = ImmutableSet.<UUID>builder()
-			.add(BRAND_VANILLA)
-			.add(BRAND_EAGLERCRAFTX_V4)
-			.add(BRAND_EAGLERCRAFTX_LEGACY)
-			.add(BRAND_EAGLERCRAFT_1_12)
-			.build();
+	private static final Set<UUID> builtinUUIDs = ImmutableSet.<UUID>builder().add(BRAND_VANILLA)
+			.add(BRAND_EAGLERCRAFTX_V4).add(BRAND_EAGLERCRAFTX_LEGACY).add(BRAND_EAGLERCRAFT_1_12).build();
 
-	private static final Set<UUID> invalidUUIDs = ImmutableSet.<UUID>builder()
-			.add(BRAND_VANILLA)
+	private static final Set<UUID> invalidUUIDs = ImmutableSet.<UUID>builder().add(BRAND_VANILLA)
 			.add(new UUID(0x6969696969696969L, 0x6969696969696969L))
-			.add(ClientStateFlagUUIDs.LEGACY_EAGLER_PLAYER_FLAG_PRESENT)
-			.build();
+			.add(ClientStateFlagUUIDs.LEGACY_EAGLER_PLAYER_FLAG_PRESENT).build();
 
 	public BrandService(EaglerXServer<PlayerObject> serverIn) {
 		server = serverIn;
@@ -252,22 +246,22 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 		map.put(BRAND_EAGLERCRAFTX_LEGACY, new BrandRegistrationEaglerOld());
 		map.put(BRAND_EAGLERCRAFT_1_12, new BrandRegistrationEagler112());
 		InputStream brands = BrandService.class.getResourceAsStream("brands.json");
-		if(brands != null) {
+		if (brands != null) {
 			JsonObject brandsFile = null;
-			try(Reader reader = new InputStreamReader(brands, StandardCharsets.UTF_8)) {
+			try (Reader reader = new InputStreamReader(brands, StandardCharsets.UTF_8)) {
 				brandsFile = EaglerXServer.GSON_PRETTY.fromJson(reader, JsonObject.class);
-			}catch(IOException | JsonParseException ex) {
+			} catch (IOException | JsonParseException ex) {
 				serverIn.logger().error("Could not read brands.json", ex);
 				return;
 			}
 			try {
-				for(Entry<String, JsonElement> etr : GsonMap.asMap(brandsFile).entrySet()) {
+				for (Entry<String, JsonElement> etr : GsonMap.asMap(brandsFile).entrySet()) {
 					UUID uuid = UUID.fromString(etr.getKey());
 					JsonObject val = etr.getValue().getAsJsonObject();
 					map.put(uuid, new BrandRegistration(uuid, val.get("desc").getAsString(),
 							val.get("legacy").getAsBoolean(), val.get("hacked").getAsBoolean()));
 				}
-			}catch(Exception ex) {
+			} catch (Exception ex) {
 				serverIn.logger().error("brands.json is invalid", ex);
 			}
 		}
@@ -280,20 +274,20 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 
 	@Override
 	public void resolvePlayerBrand(UUID playerUUID, Consumer<UUID> callback) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		BasePlayerInstance<PlayerObject> player = server.getPlayerByUUID(playerUUID);
-		if(player != null) {
+		if (player != null) {
 			callback.accept(player.getEaglerBrandUUID());
-		}else {
+		} else {
 			ISupervisorServiceImpl<PlayerObject> supervisorService = server.getSupervisorService();
-			if(supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(playerUUID)) {
+			if (supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(playerUUID)) {
 				supervisorService.getRemoteOnlyResolver().resolvePlayerBrand(playerUUID, callback);
-			}else {
+			} else {
 				callback.accept(null);
 			}
 		}
@@ -301,21 +295,21 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 
 	@Override
 	public void resolvePlayerRegisteredBrand(UUID playerUUID, BiConsumer<UUID, IBrandRegistration> callback) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		BasePlayerInstance<PlayerObject> player = server.getPlayerByUUID(playerUUID);
-		if(player != null) {
+		if (player != null) {
 			UUID uuid = player.getEaglerBrandUUID();
 			callback.accept(uuid, lookupRegisteredBrand(uuid));
-		}else {
+		} else {
 			ISupervisorServiceImpl<PlayerObject> supervisorService = server.getSupervisorService();
-			if(supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(playerUUID)) {
+			if (supervisorService.isSupervisorEnabled() && !supervisorService.shouldIgnoreUUID(playerUUID)) {
 				supervisorService.getRemoteOnlyResolver().resolvePlayerRegisteredBrand(playerUUID, callback);
-			}else {
+			} else {
 				callback.accept(null, null);
 			}
 		}
@@ -333,18 +327,18 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 
 	@Override
 	public void registerBrand(UUID brandUUID, String brandDesc, boolean hacked, boolean legacy) {
-		if(brandUUID == null) {
+		if (brandUUID == null) {
 			throw new NullPointerException("brandUUID");
 		}
-		if(brandDesc == null) {
+		if (brandDesc == null) {
 			throw new NullPointerException("brandDesc");
 		}
-		if(!builtinUUIDs.contains(brandUUID)) {
+		if (!builtinUUIDs.contains(brandUUID)) {
 			IBrandRegistration reg = new BrandRegistration(brandUUID, brandDesc, hacked, legacy);
 			mapLock.writeLock().lock();
 			try {
 				map.put(brandUUID, reg);
-			}finally {
+			} finally {
 				mapLock.writeLock().unlock();
 			}
 		}
@@ -352,14 +346,14 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 
 	@Override
 	public void unregisterBrand(UUID brandUUID) {
-		if(brandUUID == null) {
+		if (brandUUID == null) {
 			throw new NullPointerException("brandUUID");
 		}
-		if(!builtinUUIDs.contains(brandUUID)) {
+		if (!builtinUUIDs.contains(brandUUID)) {
 			mapLock.writeLock().lock();
 			try {
 				map.remove(brandUUID);
-			}finally {
+			} finally {
 				mapLock.writeLock().unlock();
 			}
 		}
@@ -367,13 +361,13 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 
 	@Override
 	public IBrandRegistration lookupRegisteredBrand(UUID brandUUID) {
-		if(brandUUID == null) {
+		if (brandUUID == null) {
 			throw new NullPointerException("brandUUID");
 		}
 		mapLock.readLock().lock();
 		try {
 			return map.get(brandUUID);
-		}finally {
+		} finally {
 			mapLock.readLock().unlock();
 		}
 	}

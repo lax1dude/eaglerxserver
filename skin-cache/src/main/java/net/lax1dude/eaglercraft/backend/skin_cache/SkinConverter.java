@@ -19,12 +19,12 @@ package net.lax1dude.eaglercraft.backend.skin_cache;
 public class SkinConverter {
 
 	public static void convertToBytes(int[] imageIn, byte[] imageOut) {
-		for(int i = 0, j, k; i < 4096; ++i) {
+		for (int i = 0, j, k; i < 4096; ++i) {
 			j = i * 3;
 			k = imageIn[i];
-			imageOut[j] = (byte)k;
-			imageOut[j + 1] = (byte)(k >>> 8);
-			imageOut[j + 2] = (byte)(((k >>> 17) & 0x7F) | ((k >>> 24) & 0x80));
+			imageOut[j] = (byte) k;
+			imageOut[j + 1] = (byte) (k >>> 8);
+			imageOut[j + 2] = (byte) (((k >>> 17) & 0x7F) | ((k >>> 24) & 0x80));
 		}
 	}
 
@@ -46,7 +46,7 @@ public class SkinConverter {
 
 	private static void copyRawPixels(int[] imageIn, byte[] imageOut, int dx1, int dy1, int dx2, int dy2, int sx1,
 			int sy1, int sx2, int sy2, int imgSrcWidth, int imgDstWidth) {
-		if(dx1 > dx2) {
+		if (dx1 > dx2) {
 			copyRawPixels(imageIn, imageOut, sx1, sy1, dx2, dy1, sx2 - sx1, sy2 - sy1, imgSrcWidth, imgDstWidth, true);
 		} else {
 			copyRawPixels(imageIn, imageOut, sx1, sy1, dx1, dy1, sx2 - sx1, sy2 - sy1, imgSrcWidth, imgDstWidth, false);
@@ -56,39 +56,39 @@ public class SkinConverter {
 	private static void copyRawPixels(int[] imageIn, byte[] imageOut, int srcX, int srcY, int dstX, int dstY, int width,
 			int height, int imgSrcWidth, int imgDstWidth, boolean flip) {
 		int i, j;
-		for(int y = 0; y < height; ++y) {
-			for(int x = 0; x < width; ++x) {
+		for (int y = 0; y < height; ++y) {
+			for (int x = 0; x < width; ++x) {
 				i = imageIn[(srcY + y) * imgSrcWidth + srcX + x];
-				if(flip) {
+				if (flip) {
 					j = (dstY + y) * imgDstWidth + dstX + width - x - 1;
-				}else {
+				} else {
 					j = (dstY + y) * imgDstWidth + dstX + x;
 				}
 				j = j * 3;
-				imageOut[j] = (byte)i;
-				imageOut[j + 1] = (byte)(i >>> 8);
-				imageOut[j + 2] = (byte)(((i >>> 17) & 0x7F) | ((i >>> 24) & 0x80));
+				imageOut[j] = (byte) i;
+				imageOut[j + 1] = (byte) (i >>> 8);
+				imageOut[j + 2] = (byte) (((i >>> 17) & 0x7F) | ((i >>> 24) & 0x80));
 			}
 		}
 	}
 
 	public static void convertCape64x32RGBAto23x17RGB(int[] skinIn, byte[] skinOut) {
 		int i, j;
-		for(int y = 0; y < 17; ++y) {
-			for(int x = 0; x < 22; ++x) {
+		for (int y = 0; y < 17; ++y) {
+			for (int x = 0; x < 22; ++x) {
 				i = skinIn[y * 64 + x];
 				j = (y * 23 + x) * 3;
-				skinOut[j] = (byte)i;
-				skinOut[j + 1] = (byte)(i >>> 8);
-				skinOut[j + 2] = (byte)(i >>> 16);
+				skinOut[j] = (byte) i;
+				skinOut[j + 1] = (byte) (i >>> 8);
+				skinOut[j + 2] = (byte) (i >>> 16);
 			}
 		}
-		for(int y = 0; y < 11; ++y) {
+		for (int y = 0; y < 11; ++y) {
 			i = skinIn[(y + 11) * 64 + 22];
 			j = ((y + 6) * 23 + 22) * 3;
-			skinOut[j] = (byte)i;
-			skinOut[j + 1] = (byte)(i >>> 8);
-			skinOut[j + 2] = (byte)(i >>> 16);
+			skinOut[j] = (byte) i;
+			skinOut[j + 1] = (byte) (i >>> 8);
+			skinOut[j + 2] = (byte) (i >>> 16);
 		}
 	}
 

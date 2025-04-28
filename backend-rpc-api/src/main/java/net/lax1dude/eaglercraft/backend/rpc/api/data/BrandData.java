@@ -23,15 +23,14 @@ import javax.annotation.Nonnull;
 public final class BrandData {
 
 	@Nonnull
-	public static BrandData create(@Nonnull String brandName, @Nonnull String brandVersion,
-			@Nonnull UUID brandUUID) {
-		if(brandName == null) {
+	public static BrandData create(@Nonnull String brandName, @Nonnull String brandVersion, @Nonnull UUID brandUUID) {
+		if (brandName == null) {
 			throw new NullPointerException("brandName");
 		}
-		if(brandVersion == null) {
+		if (brandVersion == null) {
 			throw new NullPointerException("brandVersion");
 		}
-		if(brandUUID == null) {
+		if (brandUUID == null) {
 			throw new NullPointerException("brandUUID");
 		}
 		return new BrandData(brandName, brandVersion, brandUUID);

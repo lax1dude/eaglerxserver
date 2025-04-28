@@ -40,15 +40,15 @@ class ValueByteArray implements INBTValue<byte[]> {
 
 	@Override
 	public void mutate(byte[] value) throws IOException {
-		if(value == null) {
+		if (value == null) {
 			throw new NullPointerException("Cannot mutate to a null value");
 		}
-		if(done) {
+		if (done) {
 			throw new IllegalStateException();
 		}
-		if(resolved == null) {
+		if (resolved == null) {
 			int len = dataSource.readInt();
-			if(len < 0) {
+			if (len < 0) {
 				throw new IOException("Invalid length!");
 			}
 			dataSource.skipBytes(len);
@@ -58,36 +58,36 @@ class ValueByteArray implements INBTValue<byte[]> {
 
 	@Override
 	public void write(DataOutput dataOutput, byte[] tmp) throws IOException {
-		if(done) {
+		if (done) {
 			throw new IllegalStateException();
 		}
-		if(resolved != null) {
+		if (resolved != null) {
 			dataOutput.writeInt(resolved.length);
 			dataOutput.write(resolved);
-		}else {
+		} else {
 			done = true;
 			int len = dataSource.readInt();
-			if(len < 0) {
+			if (len < 0) {
 				throw new IOException("Invalid length!");
 			}
 			dataOutput.writeInt(len);
-			while(len > 0) {
+			while (len > 0) {
 				int j = Math.min(tmp.length, len);
 				dataSource.readFully(tmp, 0, j);
 				dataOutput.write(tmp, 0, j);
-				len -=j;
+				len -= j;
 			}
 		}
 	}
 
 	@Override
 	public byte[] value() throws IOException {
-		if(done) {
+		if (done) {
 			throw new IllegalStateException();
 		}
-		if(resolved == null) {
+		if (resolved == null) {
 			int len = dataSource.readInt();
-			if(len < 0) {
+			if (len < 0) {
 				throw new IOException("Invalid length!");
 			}
 			resolved = new byte[len];
@@ -97,11 +97,11 @@ class ValueByteArray implements INBTValue<byte[]> {
 	}
 
 	void finish() throws IOException {
-		if(!done) {
+		if (!done) {
 			done = true;
-			if(resolved == null) {
+			if (resolved == null) {
 				int len = dataSource.readInt();
-				if(len < 0) {
+				if (len < 0) {
 					throw new IOException("Invalid length!");
 				}
 				dataSource.skipBytes(len);

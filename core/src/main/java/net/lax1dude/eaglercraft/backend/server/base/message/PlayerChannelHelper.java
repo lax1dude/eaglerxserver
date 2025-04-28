@@ -36,18 +36,21 @@ public class PlayerChannelHelper {
 	static final Map<String, String> CHANNEL_MODERN_NAMES = ImmutableMap.copyOf(GamePluginMessageProtocol
 			.getAllChannels().stream().collect(Collectors.toMap((k) -> k, GamePluginMessageConstants::getModernName)));
 
-	public static <PlayerObject> Collection<IEaglerXServerMessageChannel<PlayerObject>> getPlayerChannels(EaglerXServer<PlayerObject> server) {
+	public static <PlayerObject> Collection<IEaglerXServerMessageChannel<PlayerObject>> getPlayerChannels(
+			EaglerXServer<PlayerObject> server) {
 		IEaglerXServerMessageHandler<PlayerObject> handler = (ch, player, data) -> {
-			BasePlayerInstance<PlayerObject> basePlayer = player.<BasePlayerInstance<PlayerObject>>getPlayerAttachment();
-			if(basePlayer.isEaglerPlayer()) {
+			BasePlayerInstance<PlayerObject> basePlayer = player
+					.<BasePlayerInstance<PlayerObject>>getPlayerAttachment();
+			if (basePlayer.isEaglerPlayer()) {
 				MessageController msgController = basePlayer.asEaglerPlayer().getMessageController();
-				if(msgController instanceof LegacyMessageController msgController2) {
+				if (msgController instanceof LegacyMessageController msgController2) {
 					msgController2.readPacket(ch.getLegacyName(), data);
 				}
 			}
 		};
-		ImmutableList.Builder<IEaglerXServerMessageChannel<PlayerObject>> playerChannelBuilder = ImmutableList.builder();
-		for(String channel : GamePluginMessageProtocol.getAllChannels()) {
+		ImmutableList.Builder<IEaglerXServerMessageChannel<PlayerObject>> playerChannelBuilder = ImmutableList
+				.builder();
+		for (String channel : GamePluginMessageProtocol.getAllChannels()) {
 			String modernChannel = CHANNEL_MODERN_NAMES.get(channel);
 			playerChannelBuilder.add(new MessageChannel<PlayerObject>(channel, modernChannel, handler));
 		}
@@ -56,7 +59,7 @@ public class PlayerChannelHelper {
 
 	public static String mapModernName(String chan) {
 		String ret = CHANNEL_MODERN_NAMES.get(chan);
-		if(ret == null) {
+		if (ret == null) {
 			throw new IllegalStateException("Don't know the modern channel name for: " + chan);
 		}
 		return ret;

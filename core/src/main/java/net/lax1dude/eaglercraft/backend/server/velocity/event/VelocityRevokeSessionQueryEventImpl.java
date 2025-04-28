@@ -30,8 +30,7 @@ class VelocityRevokeSessionQueryEventImpl extends EaglercraftRevokeSessionQueryE
 	private EnumSessionRevokeStatus result;
 	private boolean shouldDelete;
 
-	VelocityRevokeSessionQueryEventImpl(IEaglerXServerAPI<Player> api, IQueryConnection query,
-			byte[] cookieData) {
+	VelocityRevokeSessionQueryEventImpl(IEaglerXServerAPI<Player> api, IQueryConnection query, byte[] cookieData) {
 		this.api = api;
 		this.query = query;
 		this.cookieData = cookieData;
@@ -61,7 +60,7 @@ class VelocityRevokeSessionQueryEventImpl extends EaglercraftRevokeSessionQueryE
 
 	@Override
 	public void setResultStatus(EnumSessionRevokeStatus result) {
-		if(result == null) {
+		if (result == null) {
 			throw new NullPointerException("result");
 		}
 		this.result = result;

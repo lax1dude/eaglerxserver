@@ -30,40 +30,40 @@ import net.lax1dude.eaglercraft.backend.supervisor.server.player.PlayerSkinData;
 public class CachedTextureData {
 
 	public static EaglerSupervisorPacket makeSkinResponse(byte[] data, UUID uuid, int modelId) {
-		if(data == ISkinCacheService.ERROR) {
+		if (data == ISkinCacheService.ERROR) {
 			return new SPacketSvOtherSkinError(uuid);
 		}
-		if(data.length != 12288) {
+		if (data.length != 12288) {
 			throw new IllegalArgumentException("Skin data is the wrong length");
 		}
 		return new SPacketSvOtherSkinCustom(uuid, modelId, data);
 	}
 
 	public static EaglerSupervisorPacket makeCapeResponse(byte[] data, UUID uuid) {
-		if(data == ISkinCacheService.ERROR) {
+		if (data == ISkinCacheService.ERROR) {
 			return new SPacketSvOtherCapeError(uuid);
 		}
-		if(data.length != 1173) {
+		if (data.length != 1173) {
 			throw new IllegalArgumentException("Cape data is the wrong length");
 		}
 		return new SPacketSvOtherCapeCustom(uuid, data);
 	}
 
 	public static PlayerSkinData toSkinData(byte[] data, int modelId) {
-		if(data == ISkinCacheService.ERROR) {
+		if (data == ISkinCacheService.ERROR) {
 			return PlayerSkinData.ERROR;
 		}
-		if(data.length != 12288) {
+		if (data.length != 12288) {
 			throw new IllegalArgumentException("Skin data is the wrong length");
 		}
 		return PlayerSkinData.create(modelId, data);
 	}
 
 	public static PlayerCapeData toCapeData(byte[] data) {
-		if(data == ISkinCacheService.ERROR) {
+		if (data == ISkinCacheService.ERROR) {
 			return PlayerCapeData.ERROR;
 		}
-		if(data.length != 1173) {
+		if (data.length != 1173) {
 			throw new IllegalArgumentException("Cape data is the wrong length");
 		}
 		return PlayerCapeData.create(data);

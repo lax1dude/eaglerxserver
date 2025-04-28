@@ -50,15 +50,15 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player>
 	}
 
 	private <T extends Event> void fire(T event, Consumer<? super T> callback) {
-		if(server.isPrimaryThread()) {
+		if (server.isPrimaryThread()) {
 			eventMgr.callEvent(event);
-			if(callback != null) {
+			if (callback != null) {
 				callback.accept(event);
 			}
-		}else {
+		} else {
 			server.getScheduler().runTask(platformPlugin, () -> {
 				eventMgr.callEvent(event);
-				if(callback != null) {
+				if (callback != null) {
 					callback.accept(event);
 				}
 			});
@@ -77,7 +77,8 @@ public class BukkitEventDispatchAdapter implements IEventDispatchAdapter<Player>
 	}
 
 	@Override
-	public void dispatchVoiceChangeEvent(IEaglerPlayer<Player> player, EnumVoiceState stateOld, EnumVoiceState stateNew) {
+	public void dispatchVoiceChangeEvent(IEaglerPlayer<Player> player, EnumVoiceState stateOld,
+			EnumVoiceState stateNew) {
 		fire(new BukkitVoiceChangeEventImpl(api, player, stateOld, stateNew), null);
 	}
 

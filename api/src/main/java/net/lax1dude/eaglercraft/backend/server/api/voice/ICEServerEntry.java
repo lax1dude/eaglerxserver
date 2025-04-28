@@ -33,10 +33,10 @@ public final class ICEServerEntry {
 	}
 
 	private static String validate(String str, String name) {
-		if(str == null) {
+		if (str == null) {
 			throw new NullPointerException(name + " cannot be null");
 		}
-		if(str.indexOf(';') != -1) {
+		if (str.indexOf(';') != -1) {
 			throw new IllegalArgumentException("Illegal semicolon in " + name);
 		}
 		return str;

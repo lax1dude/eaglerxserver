@@ -67,7 +67,7 @@ public class SimpleInputBufferImpl extends DataInputStream implements GamePacket
 
 	@Override
 	public void skipAllBytes(int n) throws IOException {
-		if(skipBytes(n) != n) {
+		if (skipBytes(n) != n) {
 			throw new EOFException();
 		}
 	}
@@ -79,7 +79,7 @@ public class SimpleInputBufferImpl extends DataInputStream implements GamePacket
 
 		while (true) {
 			int b0 = in.read();
-			if(b0 < 0) {
+			if (b0 < 0) {
 				throw new EOFException();
 			}
 			i |= (b0 & 127) << j++ * 7;
@@ -102,7 +102,7 @@ public class SimpleInputBufferImpl extends DataInputStream implements GamePacket
 
 		while (true) {
 			int b0 = in.read();
-			if(b0 < 0) {
+			if (b0 < 0) {
 				throw new EOFException();
 			}
 			i |= (long) (b0 & 127) << j++ * 7;
@@ -142,16 +142,16 @@ public class SimpleInputBufferImpl extends DataInputStream implements GamePacket
 	@Override
 	public String readStringEaglerASCII8() throws IOException {
 		int len = in.read();
-		if(len < 0) {
+		if (len < 0) {
 			throw new EOFException();
 		}
 		char[] ret = new char[len];
-		for(int i = 0, j; i < len; ++i) {
+		for (int i = 0, j; i < len; ++i) {
 			j = in.read();
-			if(j < 0) {
+			if (j < 0) {
 				throw new EOFException();
 			}
-			ret[i] = (char)j;
+			ret[i] = (char) j;
 		}
 		return new String(ret);
 	}
@@ -160,12 +160,12 @@ public class SimpleInputBufferImpl extends DataInputStream implements GamePacket
 	public String readStringEaglerASCII16() throws IOException {
 		int len = readUnsignedShort();
 		char[] ret = new char[len];
-		for(int i = 0, j; i < len; ++i) {
+		for (int i = 0, j; i < len; ++i) {
 			j = in.read();
-			if(j < 0) {
+			if (j < 0) {
 				throw new EOFException();
 			}
-			ret[i] = (char)j;
+			ret[i] = (char) j;
 		}
 		return new String(ret);
 	}
@@ -184,43 +184,43 @@ public class SimpleInputBufferImpl extends DataInputStream implements GamePacket
 
 	@Override
 	public byte[] toByteArray() throws IOException {
-		if(toByteArrayReturns != null) {
+		if (toByteArrayReturns != null) {
 			return toByteArrayReturns;
-		}else if(toByteArrayLength != -1) {
+		} else if (toByteArrayLength != -1) {
 			byte[] ret = new byte[toByteArrayLength];
 			in.read(ret);
 			return ret;
-		}else if(in instanceof ByteArrayInputStream) {
-			ByteArrayInputStream bis = (ByteArrayInputStream)in;
+		} else if (in instanceof ByteArrayInputStream) {
+			ByteArrayInputStream bis = (ByteArrayInputStream) in;
 			byte[] ret = new byte[bis.available()];
 			bis.read(ret);
 			return ret;
-		}else {
+		} else {
 			ByteArrayOutputStream bao = null;
 			byte[] copyBuffer = new byte[in.available()];
 			int i = in.read(copyBuffer);
-			if(i == copyBuffer.length) {
+			if (i == copyBuffer.length) {
 				int j = in.read();
-				if(j == -1) {
+				if (j == -1) {
 					return copyBuffer;
-				}else {
+				} else {
 					int k = Math.max(copyBuffer.length, 64);
 					bao = new ByteArrayOutputStream(k + 1);
 					bao.write(copyBuffer);
 					bao.write(j);
-					if(k != copyBuffer.length) {
+					if (k != copyBuffer.length) {
 						copyBuffer = new byte[k];
 					}
 				}
-			}else {
+			} else {
 				int j = Math.max(copyBuffer.length, 64);
 				bao = new ByteArrayOutputStream(j);
 				bao.write(copyBuffer);
-				if(j != copyBuffer.length) {
+				if (j != copyBuffer.length) {
 					copyBuffer = new byte[j];
 				}
 			}
-			while((i = in.read(copyBuffer)) != -1) {
+			while ((i = in.read(copyBuffer)) != -1) {
 				bao.write(copyBuffer, 0, i);
 			}
 			return bao.toByteArray();

@@ -50,7 +50,7 @@ public class SPacketSvOtherSkinCustom implements EaglerSupervisorPacket {
 		buffer.writeLong(uuid.getMostSignificantBits());
 		buffer.writeLong(uuid.getLeastSignificantBits());
 		buffer.writeByte(model);
-		if(customSkin.length != 12288) {
+		if (customSkin.length != 12288) {
 			throw new IllegalArgumentException("Skin data is the wrong length");
 		}
 		buffer.writeBytes(customSkin);

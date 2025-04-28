@@ -42,7 +42,8 @@ public class StatusRendererHTML {
 		this.templateFileCache = CacheBuilder.newBuilder().build(new CacheLoader<>() {
 			@Override
 			public String load(String key) throws Exception {
-				try(InputStreamReader reader = new InputStreamReader(StatusRendererHTML.class.getResourceAsStream(key))) {
+				try (InputStreamReader reader = new InputStreamReader(
+						StatusRendererHTML.class.getResourceAsStream(key))) {
 					return CharStreams.toString(reader);
 				}
 			}
@@ -59,9 +60,9 @@ public class StatusRendererHTML {
 
 	private String render(String title, String body, int refreshRate) {
 		String base = cacheLoad("base.html");
-		if(refreshRate > 0) {
+		if (refreshRate > 0) {
 			base = base.replace("${auto_refresh}", "<meta http-equiv=\"refresh\" content=\"" + refreshRate + "\">");
-		}else {
+		} else {
 			base = base.replace("${auto_refresh}", "");
 		}
 		base = base.replace("${title}", title + " - " + server.getServerBrand());
@@ -75,7 +76,8 @@ public class StatusRendererHTML {
 		Runtime rt = Runtime.getRuntime();
 		body = body.replace("${memory_used}", Long.toString((rt.totalMemory() - rt.freeMemory()) / (1024l * 1024l)));
 		body = body.replace("${memory_max}", Long.toString(rt.maxMemory() / (1024l * 1024l)));
-		body = body.replace("${skin_cache_status}", server.getSkinCache() == null ? "Eagler Players Only" : "Enabled (Allow Downloads)");
+		body = body.replace("${skin_cache_status}",
+				server.getSkinCache() == null ? "Eagler Players Only" : "Enabled (Allow Downloads)");
 		body = body.replace("${total_players}", Integer.toString(server.getPlayerCount()));
 		body = body.replace("${max_players}", Integer.toString(server.getMaxPlayers()));
 		SkinCacheStatus[] skinCacheStatus = server.getSkinCacheStatus();
@@ -83,17 +85,19 @@ public class StatusRendererHTML {
 		body = body.replace("${eagler_players_preset_capes}", Integer.toString(skinCacheStatus[1].eaglerPlayerPreset));
 		body = body.replace("${eagler_players_custom_skins}", Integer.toString(skinCacheStatus[0].eaglerPlayerCustom));
 		body = body.replace("${eagler_players_custom_capes}", Integer.toString(skinCacheStatus[1].eaglerPlayerCustom));
-		if(skinCacheStatus[0].downloadEnabled) {
+		if (skinCacheStatus[0].downloadEnabled) {
 			body = body.replace("${downloaded_memory_skins}", Integer.toString(skinCacheStatus[0].downloadedInMemory));
-			body = body.replace("${downloaded_database_skins}", Integer.toString(skinCacheStatus[0].downloadedInDatabase));
-		}else {
+			body = body.replace("${downloaded_database_skins}",
+					Integer.toString(skinCacheStatus[0].downloadedInDatabase));
+		} else {
 			body = body.replace("${downloaded_memory_skins}", "N/A");
 			body = body.replace("${downloaded_database_skins}", "N/A");
 		}
-		if(skinCacheStatus[1].downloadEnabled) {
+		if (skinCacheStatus[1].downloadEnabled) {
 			body = body.replace("${downloaded_memory_capes}", Integer.toString(skinCacheStatus[1].downloadedInMemory));
-			body = body.replace("${downloaded_database_capes}", Integer.toString(skinCacheStatus[1].downloadedInDatabase));
-		}else {
+			body = body.replace("${downloaded_database_capes}",
+					Integer.toString(skinCacheStatus[1].downloadedInDatabase));
+		} else {
 			body = body.replace("${downloaded_memory_capes}", "N/A");
 			body = body.replace("${downloaded_database_capes}", "N/A");
 		}
@@ -106,9 +110,9 @@ public class StatusRendererHTML {
 	private String renderProxyTable(List<SupervisorClientInstance> lst) {
 		StringBuilder ret = new StringBuilder();
 		boolean b = true;
-		for(SupervisorClientInstance proxy : lst) {
+		for (SupervisorClientInstance proxy : lst) {
 			ret.append("<tr");
-			if(b = !b) {
+			if (b = !b) {
 				ret.append(" class=\"tr_alt\"");
 			}
 			ret.append("><td>");
@@ -154,9 +158,9 @@ public class StatusRendererHTML {
 		body = body.replace("${players_total}", Integer.toString(lst.size()));
 		StringBuilder ret = new StringBuilder();
 		boolean b = true;
-		for(SupervisorPlayerInstance player : lst) {
+		for (SupervisorPlayerInstance player : lst) {
 			ret.append("<tr");
-			if(b = !b) {
+			if (b = !b) {
 				ret.append(" class=\"tr_alt\"");
 			}
 			ret.append("><td>");
@@ -167,10 +171,10 @@ public class StatusRendererHTML {
 			ret.append(player.getPlayerUUID());
 			ret.append("</td><td>");
 			int eagProto = player.getEaglerProtocol();
-			if(eagProto == 0) {
+			if (eagProto == 0) {
 				ret.append("MC: ");
 				ret.append(player.getGameProtocol());
-			}else {
+			} else {
 				ret.append("MC: ");
 				ret.append(player.getGameProtocol());
 				ret.append(", EAG: ");
@@ -180,33 +184,33 @@ public class StatusRendererHTML {
 			ret.append(ClientBrandUUIDHelper.toString(player.getBrandUUID()));
 			ret.append("</td><td>");
 			PlayerSkinData sdata = player.getSkinDataIfLoaded();
-			if(sdata == null) {
+			if (sdata == null) {
 				ret.append("Pending");
-			}else if(sdata == PlayerSkinData.ERROR) {
+			} else if (sdata == PlayerSkinData.ERROR) {
 				ret.append("Error");
-			}else if(sdata instanceof PlayerSkinData.Preset) {
+			} else if (sdata instanceof PlayerSkinData.Preset) {
 				ret.append("Preset (");
-				ret.append(((PlayerSkinData.Preset)sdata).presetId);
+				ret.append(((PlayerSkinData.Preset) sdata).presetId);
 				ret.append(")");
-			}else {
+			} else {
 				ret.append("Custom");
 			}
 			ret.append("</td><td>");
 			PlayerCapeData cdata = player.getCapeDataIfLoaded();
-			if(cdata == null) {
+			if (cdata == null) {
 				ret.append("Pending");
-			}else if(cdata == PlayerCapeData.ERROR) {
+			} else if (cdata == PlayerCapeData.ERROR) {
 				ret.append("Error");
-			}else if(cdata instanceof PlayerCapeData.Preset) {
-				int id = ((PlayerCapeData.Preset)cdata).presetId;
-				if(id != 0) {
+			} else if (cdata instanceof PlayerCapeData.Preset) {
+				int id = ((PlayerCapeData.Preset) cdata).presetId;
+				if (id != 0) {
 					ret.append("Preset (");
 					ret.append(id);
 					ret.append(")");
-				}else {
+				} else {
 					ret.append("None");
 				}
-			}else {
+			} else {
 				ret.append("Custom");
 			}
 			ret.append("</td></tr>");

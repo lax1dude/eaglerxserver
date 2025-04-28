@@ -39,8 +39,8 @@ public class HandshakerV2 extends HandshakerV1 {
 		throw new IllegalStateException();
 	}
 
-	public void init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString,
-			int minecraftVersion, boolean auth, byte[] authUsername) {
+	public void init(ChannelHandlerContext ctx, String eaglerBrand, String eaglerVersionString, int minecraftVersion,
+			boolean auth, byte[] authUsername) {
 		handlePacketInit(ctx, eaglerBrand, eaglerVersionString, minecraftVersion, auth, authUsername);
 	}
 
@@ -57,7 +57,8 @@ public class HandshakerV2 extends HandshakerV1 {
 	@Override
 	protected ChannelFuture sendPacketAuthRequired(ChannelHandlerContext ctx,
 			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, String message) {
-		return inboundHandler.sendErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_AUTHENTICATION_REQUIRED,
+		return inboundHandler.sendErrorCode(ctx, getVersion(),
+				HandshakePacketTypes.SERVER_ERROR_AUTHENTICATION_REQUIRED,
 				HandshakePacketTypes.AUTHENTICATION_REQUIRED + " [" + getAuthTypeId(authMethod) + "] " + message);
 	}
 
@@ -69,28 +70,28 @@ public class HandshakerV2 extends HandshakerV1 {
 			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
 			buffer.writeShort(selectedEaglerProtocol);
 			buffer.writeShort(selectedMinecraftProtocol);
-			
+
 			int len = serverBrand.length();
-			if(len > 255) {
+			if (len > 255) {
 				serverBrand = serverBrand.substring(0, 255);
 				len = 255;
 			}
 			buffer.writeByte(len);
 			BufferUtils.writeCharSequence(buffer, serverBrand, StandardCharsets.US_ASCII);
-			
+
 			len = serverVersion.length();
-			if(len > 255) {
+			if (len > 255) {
 				serverVersion = serverVersion.substring(0, 255);
 				len = 255;
 			}
 			buffer.writeByte(len);
 			BufferUtils.writeCharSequence(buffer, serverVersion, StandardCharsets.US_ASCII);
-	
+
 			buffer.writeByte(0);
 			buffer.writeShort(0);
-	
+
 			return ctx.writeAndFlush(buffer.retain());
-		}finally {
+		} finally {
 			buffer.release();
 		}
 	}
@@ -98,31 +99,32 @@ public class HandshakerV2 extends HandshakerV1 {
 	@Override
 	protected ChannelFuture sendPacketVersionAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
 			int selectedMinecraftProtocol, String serverBrand, String serverVersion,
-			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData, boolean nicknameSelection) {
+			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData,
+			boolean nicknameSelection) {
 		int authMethId = getAuthTypeId(authMethod);
-		
-		if(authMethId == -1) {
+
+		if (authMethId == -1) {
 			inboundHandler.terminateInternalError(ctx, getVersion());
 			pipelineData.connectionLogger.error("Unsupported authentication method resolved: " + authMethod);
 			return null;
 		}
-		
+
 		ByteBuf buffer = ctx.alloc().buffer();
 		try {
 			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
 			buffer.writeShort(selectedEaglerProtocol);
 			buffer.writeShort(selectedMinecraftProtocol);
-			
+
 			int len = serverBrand.length();
-			if(len > 255) {
+			if (len > 255) {
 				serverBrand = serverBrand.substring(0, 255);
 				len = 255;
 			}
 			buffer.writeByte(len);
 			BufferUtils.writeCharSequence(buffer, serverBrand, StandardCharsets.US_ASCII);
-			
+
 			len = serverVersion.length();
-			if(len > 255) {
+			if (len > 255) {
 				serverVersion = serverVersion.substring(0, 255);
 				len = 255;
 			}
@@ -130,21 +132,21 @@ public class HandshakerV2 extends HandshakerV1 {
 			BufferUtils.writeCharSequence(buffer, serverVersion, StandardCharsets.US_ASCII);
 
 			buffer.writeByte(authMethId);
-			if(authSaltingData != null) {
+			if (authSaltingData != null) {
 				buffer.writeShort(authSaltingData.length);
 				buffer.writeBytes(authSaltingData);
-			}else {
+			} else {
 				buffer.writeShort(0);
 			}
-			
+
 			return ctx.writeAndFlush(buffer.retain());
-		}finally {
+		} finally {
 			buffer.release();
 		}
 	}
 
 	protected int getAuthTypeId(IEaglercraftAuthCheckRequiredEvent.EnumAuthType meth) {
-		return switch(meth) {
+		return switch (meth) {
 		case PLAINTEXT -> 255; // plaintext authentication
 		case EAGLER_SHA256 -> 1; // eagler_sha256 authentication
 		case AUTHME_SHA256 -> 2; // authme_sha256 authentication

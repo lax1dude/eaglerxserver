@@ -28,8 +28,9 @@ public class MessagePoolEntry implements Comparable<MessagePoolEntry> {
 	public final float weight;
 	public final String next;
 	public final List<IFrameUpdater> frames;
-	
-	public MessagePoolEntry(int interval, int timeout, float weight, String next, List<IFrameUpdater> frames, String name) {
+
+	public MessagePoolEntry(int interval, int timeout, float weight, String next, List<IFrameUpdater> frames,
+			String name) {
 		this.interval = interval;
 		this.timeout = timeout;
 		this.weight = weight;

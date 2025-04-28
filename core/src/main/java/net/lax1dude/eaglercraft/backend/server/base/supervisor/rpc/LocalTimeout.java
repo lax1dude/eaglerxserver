@@ -42,14 +42,14 @@ abstract class LocalTimeout<Out> implements Consumer<Out>, ISupervisorExpiring {
 
 	@Override
 	public void expire() {
-		if(set.remove(this)) {
+		if (set.remove(this)) {
 			onResultTimeout();
 		}
 	}
 
 	@Override
 	public void accept(Out res) {
-		if(set.remove(this)) {
+		if (set.remove(this)) {
 			onResultComplete(res);
 		}
 	}

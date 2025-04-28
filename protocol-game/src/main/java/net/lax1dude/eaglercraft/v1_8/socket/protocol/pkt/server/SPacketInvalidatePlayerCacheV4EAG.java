@@ -33,19 +33,19 @@ public class SPacketInvalidatePlayerCacheV4EAG implements GameMessagePacket {
 	public Collection<InvalidateRequest> players;
 
 	public static class InvalidateRequest {
-		
+
 		public final boolean invalidateSkin;
 		public final boolean invalidateCape;
 		public final long uuidMost;
 		public final long uuidLeast;
-		
+
 		public InvalidateRequest(boolean invalidateSkin, boolean invalidateCape, long uuidMost, long uuidLeast) {
 			this.invalidateSkin = invalidateSkin;
 			this.invalidateCape = invalidateCape;
 			this.uuidMost = uuidMost;
 			this.uuidLeast = uuidLeast;
 		}
-		
+
 	}
 
 	public SPacketInvalidatePlayerCacheV4EAG() {
@@ -59,46 +59,52 @@ public class SPacketInvalidatePlayerCacheV4EAG implements GameMessagePacket {
 		this.players = Arrays.asList(players);
 	}
 
-	public SPacketInvalidatePlayerCacheV4EAG(boolean invalidateSkin, boolean invalidateCape, long uuidMost, long uuidLeast) {
+	public SPacketInvalidatePlayerCacheV4EAG(boolean invalidateSkin, boolean invalidateCape, long uuidMost,
+			long uuidLeast) {
 		this.players = Arrays.asList(new InvalidateRequest(invalidateSkin, invalidateCape, uuidMost, uuidLeast));
 	}
 
 	@Override
 	public void readPacket(GamePacketInputBuffer buffer) throws IOException {
 		int cnt = buffer.readVarInt();
-		List<InvalidateRequest> userList = (List<InvalidateRequest>)(players = new ArrayList<>(cnt));
-		if(cnt > 0) {
-			for(int i = 0; i < cnt; ++i) {
+		List<InvalidateRequest> userList = (List<InvalidateRequest>) (players = new ArrayList<>(cnt));
+		if (cnt > 0) {
+			for (int i = 0; i < cnt; ++i) {
 				int flags = buffer.readUnsignedByte();
-				userList.add(new InvalidateRequest((flags & 1) != 0, (flags & 2) != 0, buffer.readLong(), buffer.readLong()));
+				userList.add(new InvalidateRequest((flags & 1) != 0, (flags & 2) != 0, buffer.readLong(),
+						buffer.readLong()));
 			}
 		}
 	}
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
-		if(players == null || players.size() == 0) {
+		if (players == null || players.size() == 0) {
 			buffer.write(0);
-		}else {
-			if(players instanceof RandomAccess) {
-				List<InvalidateRequest> userList = (List<InvalidateRequest>)players;
+		} else {
+			if (players instanceof RandomAccess) {
+				List<InvalidateRequest> userList = (List<InvalidateRequest>) players;
 				int cnt = userList.size();
 				buffer.writeVarInt(cnt);
-				for(int i = 0; i < cnt; ++i) {
+				for (int i = 0; i < cnt; ++i) {
 					InvalidateRequest dt = userList.get(i);
 					int j = 0;
-					if(dt.invalidateSkin) j |= 1;
-					if(dt.invalidateCape) j |= 2;
+					if (dt.invalidateSkin)
+						j |= 1;
+					if (dt.invalidateCape)
+						j |= 2;
 					buffer.writeByte(j);
 					buffer.writeLong(dt.uuidMost);
 					buffer.writeLong(dt.uuidLeast);
 				}
-			}else {
+			} else {
 				buffer.writeVarInt(players.size());
-				for(InvalidateRequest dt : players) {
+				for (InvalidateRequest dt : players) {
 					int j = 0;
-					if(dt.invalidateSkin) j |= 1;
-					if(dt.invalidateCape) j |= 2;
+					if (dt.invalidateSkin)
+						j |= 1;
+					if (dt.invalidateCape)
+						j |= 2;
 					buffer.writeByte(j);
 					buffer.writeLong(dt.uuidMost);
 					buffer.writeLong(dt.uuidLeast);

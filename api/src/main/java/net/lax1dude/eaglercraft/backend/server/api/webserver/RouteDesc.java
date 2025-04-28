@@ -36,44 +36,55 @@ public final class RouteDesc {
 
 	@Nonnull
 	public static RouteDesc create(@Nonnull String pattern) {
-		if(pattern == null) throw new NullPointerException("pattern");
+		if (pattern == null)
+			throw new NullPointerException("pattern");
 		return new RouteDesc(null, pattern, EnumRequestMethod.bits);
 	}
 
 	@Nonnull
 	public static RouteDesc create(@Nonnull String pattern, @Nonnull EnumRequestMethod method) {
-		if(pattern == null) throw new NullPointerException("pattern");
-		if(method == null) throw new NullPointerException("method");
+		if (pattern == null)
+			throw new NullPointerException("pattern");
+		if (method == null)
+			throw new NullPointerException("method");
 		return new RouteDesc(null, pattern, method.bit());
 	}
 
 	@Nonnull
 	public static RouteDesc create(@Nonnull String pattern, @Nonnull EnumRequestMethod... method) {
-		if(pattern == null) throw new NullPointerException("pattern");
+		if (pattern == null)
+			throw new NullPointerException("pattern");
 		return new RouteDesc(null, pattern, EnumRequestMethod.toBits(method));
 	}
 
 	@Nonnull
 	public static RouteDesc create(@Nonnull String listenerName, @Nonnull String pattern) {
-		if(listenerName == null) throw new NullPointerException("listenerName");
-		if(pattern == null) throw new NullPointerException("pattern");
+		if (listenerName == null)
+			throw new NullPointerException("listenerName");
+		if (pattern == null)
+			throw new NullPointerException("pattern");
 		return new RouteDesc(listenerName, pattern, EnumRequestMethod.bits);
 	}
 
 	@Nonnull
 	public static RouteDesc create(@Nonnull String listenerName, @Nonnull String pattern,
 			@Nonnull EnumRequestMethod method) {
-		if(listenerName == null) throw new NullPointerException("listenerName");
-		if(pattern == null) throw new NullPointerException("pattern");
-		if(method == null) throw new NullPointerException("method");
+		if (listenerName == null)
+			throw new NullPointerException("listenerName");
+		if (pattern == null)
+			throw new NullPointerException("pattern");
+		if (method == null)
+			throw new NullPointerException("method");
 		return new RouteDesc(listenerName, pattern, method.bit());
 	}
 
 	@Nonnull
 	public static RouteDesc create(@Nonnull String listenerName, @Nonnull String pattern,
 			@Nonnull EnumRequestMethod... method) {
-		if(listenerName == null) throw new NullPointerException("listenerName");
-		if(pattern == null) throw new NullPointerException("pattern");
+		if (listenerName == null)
+			throw new NullPointerException("listenerName");
+		if (pattern == null)
+			throw new NullPointerException("pattern");
 		return new RouteDesc(listenerName, pattern, EnumRequestMethod.toBits(method));
 	}
 
@@ -120,9 +131,11 @@ public final class RouteDesc {
 
 	public int hashCode() {
 		int i = 0;
-		if(listenerName != null) i += listenerName.hashCode();
+		if (listenerName != null)
+			i += listenerName.hashCode();
 		i *= 31;
-		if(pattern != null) i += pattern.hashCode();
+		if (pattern != null)
+			i += pattern.hashCode();
 		i *= 31;
 		return i + methods;
 	}

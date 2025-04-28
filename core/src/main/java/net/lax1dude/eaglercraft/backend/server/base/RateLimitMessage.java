@@ -27,8 +27,10 @@ import net.lax1dude.eaglercraft.backend.server.base.pipeline.BufferUtils;
 
 class RateLimitMessage {
 
-	private static final ByteBuf blockedLogin = generateLoginKick(HandshakePacketTypes.SERVER_ERROR_RATELIMIT_BLOCKED, "Too many logins!");
-	private static final ByteBuf lockedLogin = generateLoginKick(HandshakePacketTypes.SERVER_ERROR_RATELIMIT_LOCKED, "Too many logins!");
+	private static final ByteBuf blockedLogin = generateLoginKick(HandshakePacketTypes.SERVER_ERROR_RATELIMIT_BLOCKED,
+			"Too many logins!");
+	private static final ByteBuf lockedLogin = generateLoginKick(HandshakePacketTypes.SERVER_ERROR_RATELIMIT_LOCKED,
+			"Too many logins!");
 
 	private static ByteBuf generateLoginKick(int code, String msg) {
 		ByteBuf buf = Unpooled.buffer();
@@ -38,7 +40,7 @@ class RateLimitMessage {
 			buf.writeByte(msg.length());
 			BufferUtils.writeCharSequence(buf, msg, StandardCharsets.US_ASCII);
 			return buf.retain();
-		}finally {
+		} finally {
 			buf.release();
 		}
 	}

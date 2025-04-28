@@ -25,15 +25,15 @@ import io.netty.channel.ChannelHandlerContext;
 public class ChannelWrapper {
 
 	public ChannelWrapper(ChannelHandlerContext ctx) {
-		
+
 	}
 
 	public void setCompressionThreshold(int compressionThreshold) {
-		
+
 	}
 
 	public void setRemoteAddress(SocketAddress addr) {
-		
+
 	}
 
 	public Channel getHandle() {

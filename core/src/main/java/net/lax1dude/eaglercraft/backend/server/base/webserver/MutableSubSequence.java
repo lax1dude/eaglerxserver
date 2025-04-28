@@ -47,7 +47,7 @@ public class MutableSubSequence implements CharSequence {
 
 	@Override
 	public char charAt(int index) {
-		if(index < 0 || index >= len) {
+		if (index < 0 || index >= len) {
 			throw new IndexOutOfBoundsException(index);
 		}
 		return data.charAt(index + off);
@@ -55,10 +55,10 @@ public class MutableSubSequence implements CharSequence {
 
 	@Override
 	public CharSequence subSequence(int start, int end) {
-		if(start < 0 || start >= len) {
+		if (start < 0 || start >= len) {
 			throw new IndexOutOfBoundsException(start);
 		}
-		if(end < start || end > len) {
+		if (end < start || end > len) {
 			throw new IndexOutOfBoundsException(end);
 		}
 		return data.subSequence(start + off, end + off);
@@ -71,13 +71,13 @@ public class MutableSubSequence implements CharSequence {
 
 	@Override
 	public int hashCode() {
-		if(hash == 0 && !hashIsZero) {
+		if (hash == 0 && !hashIsZero) {
 			int h = 0;
 			int l = len;
 			for (int i = 0; i < l; i++) {
 				h = 31 * h + data.charAt(off + i);
 			}
-			if(h == 0) {
+			if (h == 0) {
 				hashIsZero = true;
 			}
 			return hash = h;
@@ -92,11 +92,12 @@ public class MutableSubSequence implements CharSequence {
 
 	private boolean subEquals(CharSequence obj) {
 		int l = len;
-		if(obj.length() != l) {
+		if (obj.length() != l) {
 			return false;
 		}
 		for (int i = 0; i < l; i++) {
-			if(data.charAt(off + i) != obj.charAt(i)) return false;
+			if (data.charAt(off + i) != obj.charAt(i))
+				return false;
 		}
 		return true;
 	}

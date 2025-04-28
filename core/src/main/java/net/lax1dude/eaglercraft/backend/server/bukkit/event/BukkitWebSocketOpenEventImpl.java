@@ -34,8 +34,7 @@ class BukkitWebSocketOpenEventImpl extends EaglercraftWebSocketOpenEvent
 	private final IEaglerConnection connection;
 	private final FullHttpRequest request;
 
-	BukkitWebSocketOpenEventImpl(IEaglerXServerAPI<Player> api, IEaglerConnection connection,
-			FullHttpRequest request) {
+	BukkitWebSocketOpenEventImpl(IEaglerXServerAPI<Player> api, IEaglerConnection connection, FullHttpRequest request) {
 		this.api = api;
 		this.connection = connection;
 		this.request = request;
@@ -63,7 +62,7 @@ class BukkitWebSocketOpenEventImpl extends EaglercraftWebSocketOpenEvent
 
 	@Override
 	public String getRawHeader(String name) {
-		if(name == null) {
+		if (name == null) {
 			throw new NullPointerException("name");
 		}
 		return request.headers().get(name);
@@ -71,7 +70,7 @@ class BukkitWebSocketOpenEventImpl extends EaglercraftWebSocketOpenEvent
 
 	@Override
 	public List<String> getRawHeaders(String name) {
-		if(name == null) {
+		if (name == null) {
 			throw new NullPointerException("name");
 		}
 		return request.headers().getAll(name);

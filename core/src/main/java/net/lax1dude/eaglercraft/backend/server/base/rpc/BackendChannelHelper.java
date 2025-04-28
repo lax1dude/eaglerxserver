@@ -31,26 +31,30 @@ import net.lax1dude.eaglercraft.backend.voice.protocol.EaglerVCProtocol;
 
 public class BackendChannelHelper {
 
-	public static <PlayerObject> Collection<IEaglerXServerMessageChannel<PlayerObject>> getBackendChannels(EaglerXServer<PlayerObject> server) {
-		ImmutableList.Builder<IEaglerXServerMessageChannel<PlayerObject>> backendChannelBuilder = ImmutableList.builder();
+	public static <PlayerObject> Collection<IEaglerXServerMessageChannel<PlayerObject>> getBackendChannels(
+			EaglerXServer<PlayerObject> server) {
+		ImmutableList.Builder<IEaglerXServerMessageChannel<PlayerObject>> backendChannelBuilder = ImmutableList
+				.builder();
 		backendChannelBuilder.add(new MessageChannel<>(EaglerBackendRPCProtocol.CHANNEL_NAME,
 				EaglerBackendRPCProtocol.CHANNEL_NAME_MODERN, (channel, player, message) -> {
-			BasePlayerInstance<PlayerObject> attachment = player.<BasePlayerInstance<PlayerObject>>getPlayerAttachment();
-			if(attachment != null) {
+			BasePlayerInstance<PlayerObject> attachment = player
+					.<BasePlayerInstance<PlayerObject>>getPlayerAttachment();
+			if (attachment != null) {
 				BasePlayerRPCManager<PlayerObject> rpcManager = attachment.getPlayerRPCManager();
-				if(rpcManager != null) {
+				if (rpcManager != null) {
 					rpcManager.handleRPCPacketData(message);
 				}
 			}
 		}));
 		backendChannelBuilder.add(new MessageChannel<>(EaglerVCProtocol.CHANNEL_NAME,
 				EaglerVCProtocol.CHANNEL_NAME_MODERN, (channel, player, message) -> {
-			BasePlayerInstance<PlayerObject> attachment = player.<BasePlayerInstance<PlayerObject>>getPlayerAttachment();
-			if(attachment != null) {
+			BasePlayerInstance<PlayerObject> attachment = player
+					.<BasePlayerInstance<PlayerObject>>getPlayerAttachment();
+			if (attachment != null) {
 				EaglerPlayerInstance<PlayerObject> eaglerPlayer = attachment.asEaglerPlayer();
-				if(eaglerPlayer != null) {
+				if (eaglerPlayer != null) {
 					IVoiceManagerImpl<PlayerObject> voiceManager = eaglerPlayer.getVoiceManager();
-					if(voiceManager != null) {
+					if (voiceManager != null) {
 						voiceManager.handleBackendMessage(message);
 					}
 				}
@@ -74,8 +78,7 @@ public class BackendChannelHelper {
 	}
 
 	public static String getRPCVoiceChannel(EaglerXServer<?> server) {
-		return server.getConfig().getSettings().isUseModernizedChannelNames()
-				? EaglerVCProtocol.CHANNEL_NAME_MODERN
+		return server.getConfig().getSettings().isUseModernizedChannelNames() ? EaglerVCProtocol.CHANNEL_NAME_MODERN
 				: EaglerVCProtocol.CHANNEL_NAME;
 	}
 

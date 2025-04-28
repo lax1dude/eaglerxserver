@@ -58,13 +58,13 @@ class BukkitScheduler implements IPlatformScheduler {
 
 	@Override
 	public void execute(Runnable runnable) {
-		if(server.isPrimaryThread()) {
+		if (server.isPrimaryThread()) {
 			try {
 				runnable.run();
-			}catch(Exception ex) {
+			} catch (Exception ex) {
 				plugin.logger().error("Scheduler failed to execute a task immediately", ex);
 			}
-		}else {
+		} else {
 			scheduler.runTask(plugin, runnable);
 		}
 	}

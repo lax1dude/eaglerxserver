@@ -48,11 +48,11 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceService<PlayerObje
 	}
 
 	IVoiceChannel wrapConst(net.lax1dude.eaglercraft.backend.server.api.voice.IVoiceChannel channel) {
-		if(channel == disabledChannelDelegate) {
+		if (channel == disabledChannelDelegate) {
 			return disabledChannel;
-		}else if(channel == globalChannelDelegate) {
+		} else if (channel == globalChannelDelegate) {
 			return globalChannel;
-		}else {
+		} else {
 			return VoiceChannelHelper.wrap(channel);
 		}
 	}
@@ -114,18 +114,18 @@ public class VoiceServiceLocal<PlayerObject> implements IVoiceService<PlayerObje
 
 	@Override
 	public Collection<IEaglerPlayer<PlayerObject>> getConnectedPlayers(IVoiceChannel channel) {
-		if(channel == null) {
+		if (channel == null) {
 			throw new NullPointerException("channel");
 		}
 		Collection<net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject>> playersDelegate = delegate
 				.getConnectedPlayers(VoiceChannelHelper.unwrap(channel));
-		if(playersDelegate.isEmpty()) {
+		if (playersDelegate.isEmpty()) {
 			return Collections.emptyList();
 		}
 		ImmutableList.Builder<IEaglerPlayer<PlayerObject>> ret = ImmutableList.builder();
-		for(net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject> player : playersDelegate) {
+		for (net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer<PlayerObject> player : playersDelegate) {
 			IEaglerPlayer<PlayerObject> pp = server.getEaglerPlayer(player.getPlayerObject());
-			if(pp != null) {
+			if (pp != null) {
 				ret.add(pp);
 			}
 		}

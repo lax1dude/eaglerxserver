@@ -40,48 +40,49 @@ public class ServerV3MessageHandler extends ServerMessageHandler {
 
 	public void handleClient(CPacketVoiceSignalConnectEAG packet) {
 		IVoiceManagerImpl<?> mgr = eaglerHandle.getVoiceManager();
-		if(mgr != null) {
+		if (mgr != null) {
 			mgr.handlePlayerSignalPacketTypeConnect();
 		}
-		// Do not throw "not capable" on connect, clients may join in a bad state and send it mistakenly
+		// Do not throw "not capable" on connect, clients may join in a bad state and
+		// send it mistakenly
 	}
 
 	public void handleClient(CPacketVoiceSignalDescEAG packet) {
 		IVoiceManagerImpl<?> mgr = eaglerHandle.getVoiceManager();
-		if(mgr != null) {
+		if (mgr != null) {
 			mgr.handlePlayerSignalPacketTypeDesc(packet.uuidMost, packet.uuidLeast, packet.desc);
-		}else {
+		} else {
 			throw notCapable();
 		}
 	}
 
 	public void handleClient(CPacketVoiceSignalDisconnectV3EAG packet) {
 		IVoiceManagerImpl<?> mgr = eaglerHandle.getVoiceManager();
-		if(mgr != null) {
-			if(packet.isPeerType) {
+		if (mgr != null) {
+			if (packet.isPeerType) {
 				mgr.handlePlayerSignalPacketTypeDisconnectPeer(packet.uuidMost, packet.uuidLeast);
-			}else {
+			} else {
 				mgr.handlePlayerSignalPacketTypeDisconnect();
 			}
-		}else {
+		} else {
 			throw notCapable();
 		}
 	}
 
 	public void handleClient(CPacketVoiceSignalICEEAG packet) {
 		IVoiceManagerImpl<?> mgr = eaglerHandle.getVoiceManager();
-		if(mgr != null) {
+		if (mgr != null) {
 			mgr.handlePlayerSignalPacketTypeICE(packet.uuidMost, packet.uuidLeast, packet.ice);
-		}else {
+		} else {
 			throw notCapable();
 		}
 	}
 
 	public void handleClient(CPacketVoiceSignalRequestEAG packet) {
 		IVoiceManagerImpl<?> mgr = eaglerHandle.getVoiceManager();
-		if(mgr != null) {
+		if (mgr != null) {
 			mgr.handlePlayerSignalPacketTypeRequest(packet.uuidMost, packet.uuidLeast);
-		}else {
+		} else {
 			throw notCapable();
 		}
 	}

@@ -93,27 +93,27 @@ public class CustomSkinGeneric extends BaseCustomSkin implements IModelRewritabl
 
 	@Override
 	protected byte[] textureDataV3() {
-		if(textureDataV3 != null) {
+		if (textureDataV3 != null) {
 			return textureDataV3;
-		}else {
+		} else {
 			return textureDataV3 = SkinConverterExt.convertToV3Raw(textureDataV4);
 		}
 	}
 
 	@Override
 	protected byte[] textureDataV4() {
-		if(textureDataV4 != null) {
+		if (textureDataV4 != null) {
 			return textureDataV4;
-		}else {
+		} else {
 			return textureDataV4 = SkinConverterExt.convertToV4Raw(textureDataV3);
 		}
 	}
 
 	@Override
 	public IEaglerPlayerSkin rewriteModelInternal(int modelId) {
-		if(modelId != this.modelId) {
+		if (modelId != this.modelId) {
 			return new CustomSkinModelRw(this, modelId);
-		}else {
+		} else {
 			return this;
 		}
 	}

@@ -33,8 +33,9 @@ public class SPacketSetServerCookieV4EAG implements GameMessagePacket {
 	public SPacketSetServerCookieV4EAG() {
 	}
 
-	public SPacketSetServerCookieV4EAG(byte[] data, long expires, boolean revokeQuerySupported, boolean saveCookieToDisk) {
-		if(data.length > 255) {
+	public SPacketSetServerCookieV4EAG(byte[] data, long expires, boolean revokeQuerySupported,
+			boolean saveCookieToDisk) {
+		if (data.length > 255) {
 			throw new IllegalArgumentException("Cookie is too large! (Max 255 bytes)");
 		}
 		this.data = data;
@@ -50,28 +51,30 @@ public class SPacketSetServerCookieV4EAG implements GameMessagePacket {
 		saveCookieToDisk = (b & 2) != 0;
 		expires = buffer.readVarLong();
 		int len = buffer.readUnsignedByte();
-		if(len > 0) {
+		if (len > 0) {
 			data = new byte[len];
 			buffer.readFully(data);
-		}else {
+		} else {
 			data = null;
 		}
 	}
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
-		if(data != null && data.length > 255) {
+		if (data != null && data.length > 255) {
 			throw new IOException("Cookie is too large! (Max 255 bytes)");
 		}
 		byte b = 0;
-		if(revokeQuerySupported) b |= 1;
-		if(saveCookieToDisk) b |= 2;
+		if (revokeQuerySupported)
+			b |= 1;
+		if (saveCookieToDisk)
+			b |= 2;
 		buffer.writeByte(b);
 		buffer.writeVarLong(expires);
-		if(data != null) {
+		if (data != null) {
 			buffer.writeByte(data.length);
 			buffer.write(data);
-		}else {
+		} else {
 			buffer.writeByte(0);
 		}
 	}

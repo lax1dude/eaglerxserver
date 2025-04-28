@@ -48,7 +48,7 @@ class PauseMenuRPCHelper {
 		Map<String, Integer> imageMappings;
 		List<PacketImageData> imageData;
 		SPacketCustomizePauseMenuV4EAG parent = null;
-		switch(packet.serverInfoMode) {
+		switch (packet.serverInfoMode) {
 		case CPacketRPCSetPauseMenuCustom.SERVER_INFO_MODE_EXTERNAL_URL:
 			serverInfoMode = SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_EXTERNAL_URL;
 			serverInfoButtonText = packet.serverInfoButtonText;
@@ -75,7 +75,7 @@ class PauseMenuRPCHelper {
 			break;
 		case CPacketRPCSetPauseMenuCustom.SERVER_INFO_MODE_SHOW_NAMED_EMBED_OVER_WS:
 			SHA1Sum mappedHash = handleAlias(manager, packet.serverInfoURL);
-			if(mappedHash != null) {
+			if (mappedHash != null) {
 				serverInfoMode = SPacketCustomizePauseMenuV4EAG.SERVER_INFO_MODE_SHOW_EMBED_OVER_WS;
 				serverInfoButtonText = packet.serverInfoButtonText;
 				serverInfoURL = null;
@@ -94,7 +94,7 @@ class PauseMenuRPCHelper {
 			serverInfoEmbedPerms = 0;
 			break;
 		case CPacketRPCSetPauseMenuCustom.SERVER_INFO_MODE_INHERIT_DEFAULT:
-			if(parent == null) {
+			if (parent == null) {
 				parent = getParent(manager);
 			}
 			serverInfoMode = parent.serverInfoMode;
@@ -105,14 +105,14 @@ class PauseMenuRPCHelper {
 			serverInfoEmbedPerms = parent.serverInfoEmbedPerms;
 			break;
 		}
-		switch(packet.discordButtonMode) {
+		switch (packet.discordButtonMode) {
 		case CPacketRPCSetPauseMenuCustom.DISCORD_MODE_INVITE_URL:
 			discordButtonMode = SPacketCustomizePauseMenuV4EAG.DISCORD_MODE_INVITE_URL;
 			discordButtonText = packet.discordButtonText;
 			discordInviteURL = packet.discordInviteURL;
 			break;
 		case CPacketRPCSetPauseMenuCustom.DISCORD_MODE_INHERIT_DEFAULT:
-			if(parent == null) {
+			if (parent == null) {
 				parent = getParent(manager);
 			}
 			discordButtonMode = parent.discordButtonMode;
@@ -127,24 +127,24 @@ class PauseMenuRPCHelper {
 			break;
 		}
 		imageMappings = packet.imageMappings;
-		if(imageMappings != null && !imageMappings.isEmpty()) {
-			if(imageMappings.containsValue(CPacketRPCSetPauseMenuCustom.ICON_ID_INHERIT)) {
-				if(parent == null) {
+		if (imageMappings != null && !imageMappings.isEmpty()) {
+			if (imageMappings.containsValue(CPacketRPCSetPauseMenuCustom.ICON_ID_INHERIT)) {
+				if (parent == null) {
 					parent = getParent(manager);
 				}
 				Map<PacketImageData, Integer> uniqueImages = new HashMap<>();
 				Iterator<Entry<String, Integer>> itr = imageMappings.entrySet().iterator();
-				while(itr.hasNext()) {
+				while (itr.hasNext()) {
 					Entry<String, Integer> etr = itr.next();
 					int i = etr.getValue();
 					PacketImageData dt;
-					if(i == CPacketRPCSetPauseMenuCustom.ICON_ID_INHERIT) {
+					if (i == CPacketRPCSetPauseMenuCustom.ICON_ID_INHERIT) {
 						eagler: {
-							if(parent.imageMappings != null && parent.imageData != null) {
+							if (parent.imageMappings != null && parent.imageData != null) {
 								Integer parentIdx = parent.imageMappings.get(etr.getKey());
-								if(parentIdx != null) {
+								if (parentIdx != null) {
 									i = parentIdx;
-									if(i >= 0 && i < parent.imageData.size()) {
+									if (i >= 0 && i < parent.imageData.size()) {
 										dt = parent.imageData.get(i);
 										break eagler;
 									}
@@ -153,37 +153,37 @@ class PauseMenuRPCHelper {
 							itr.remove();
 							continue;
 						}
-					}else {
-						if(packet.imageData != null && i >= 0 && i < packet.imageData.size()) {
+					} else {
+						if (packet.imageData != null && i >= 0 && i < packet.imageData.size()) {
 							dt = TextureDataHelper.packetImageDataRPCToCore(packet.imageData.get(i));
-						}else {
+						} else {
 							itr.remove();
 							continue;
 						}
 					}
 					Integer nextIdx = uniqueImages.size();
 					Integer ii = uniqueImages.putIfAbsent(dt, nextIdx);
-					if(ii == null) {
+					if (ii == null) {
 						etr.setValue(nextIdx);
-					}else {
+					} else {
 						etr.setValue(ii);
 					}
 				}
 				PacketImageData[] imageDataArr = new PacketImageData[uniqueImages.size()];
-				for(Map.Entry<PacketImageData, Integer> etr : uniqueImages.entrySet()) {
+				for (Map.Entry<PacketImageData, Integer> etr : uniqueImages.entrySet()) {
 					imageDataArr[etr.getValue()] = etr.getKey();
 				}
 				imageData = Arrays.asList(imageDataArr);
-			}else {
-				if(packet.imageData != null && !packet.imageData.isEmpty()) {
+			} else {
+				if (packet.imageData != null && !packet.imageData.isEmpty()) {
 					imageData = packet.imageData.stream().map(TextureDataHelper::packetImageDataRPCToCore)
 							.collect(Collectors.toList());
-				}else {
+				} else {
 					// wtf?
 					imageData = Collections.emptyList();
 				}
 			}
-		}else {
+		} else {
 			imageMappings = null;
 			imageData = null;
 		}

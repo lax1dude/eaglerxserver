@@ -34,15 +34,16 @@ public class SkinHandshake {
 
 	public static IEaglerPlayerSkin loadSkinDataV1(UUID uuid, byte[] data) {
 		if (data != null && data.length > 0) {
-			switch((int)data[0] & 0xFF) {
+			switch ((int) data[0] & 0xFF) {
 			case PACKET_MY_SKIN_PRESET:
-				if(data.length != 5) {
+				if (data.length != 5) {
 					break;
 				}
 				return new PresetSkinPlayer(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(),
-						((data[1] & 0x7F) << 24) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 8) | (data[4] & 0xFF));
+						((data[1] & 0x7F) << 24) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 8)
+								| (data[4] & 0xFF));
 			case PACKET_MY_SKIN_CUSTOM:
-				if(data.length != 2 + 16384) {
+				if (data.length != 2 + 16384) {
 					break;
 				}
 				byte[] pixels = new byte[16384];
@@ -59,15 +60,16 @@ public class SkinHandshake {
 
 	public static IEaglerPlayerSkin loadSkinDataV2(UUID uuid, byte[] data) {
 		if (data != null && data.length > 0) {
-			switch((int)data[0] & 0xFF) {
+			switch ((int) data[0] & 0xFF) {
 			case PACKET_MY_SKIN_PRESET:
-				if(data.length != 5) {
+				if (data.length != 5) {
 					break;
 				}
 				return new PresetSkinPlayer(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(),
-						((data[1] & 0x7F) << 24) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 8) | (data[4] & 0xFF));
+						((data[1] & 0x7F) << 24) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 8)
+								| (data[4] & 0xFF));
 			case PACKET_MY_SKIN_CUSTOM:
-				if(data.length != 2 + 12288) {
+				if (data.length != 2 + 12288) {
 					break;
 				}
 				byte[] pixels = new byte[12288];
@@ -84,15 +86,16 @@ public class SkinHandshake {
 
 	public static IEaglerPlayerCape loadCapeDataV1(UUID uuid, byte[] data) {
 		if (data != null && data.length > 0) {
-			switch((int)data[0] & 0xFF) {
+			switch ((int) data[0] & 0xFF) {
 			case PACKET_MY_CAPE_PRESET:
-				if(data.length != 5) {
+				if (data.length != 5) {
 					break;
 				}
 				return new PresetCapePlayer(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits(),
-						((data[1] & 0x7F) << 24) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 8) | (data[4] & 0xFF));
+						((data[1] & 0x7F) << 24) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 8)
+								| (data[4] & 0xFF));
 			case PACKET_MY_CAPE_CUSTOM:
-				if(data.length != 1 + 1173) {
+				if (data.length != 1 + 1173) {
 					break;
 				}
 				byte[] pixels = new byte[1173];

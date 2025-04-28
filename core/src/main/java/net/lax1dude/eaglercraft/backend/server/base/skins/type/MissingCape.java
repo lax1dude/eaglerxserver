@@ -42,18 +42,18 @@ public class MissingCape extends BasePresetCape {
 	@Override
 	public GameMessagePacket getCapePacket(long rewriteUUIDMost, long rewriteUUIDLeast,
 			GamePluginMessageProtocol protocol) {
-		if(protocol.ver <= 4) {
+		if (protocol.ver <= 4) {
 			return new SPacketOtherCapePresetEAG(rewriteUUIDMost, rewriteUUIDLeast, 0);
-		}else {
+		} else {
 			throw UnsafeUtil.wrongProtocol(protocol);
 		}
 	}
 
 	@Override
 	public GameMessagePacket getCapePacket(int requestId, GamePluginMessageProtocol protocol) {
-		if(protocol.ver >= 5) {
+		if (protocol.ver >= 5) {
 			return new SPacketOtherCapePresetV5EAG(requestId, 0);
-		}else {
+		} else {
 			throw UnsafeUtil.wrongProtocol(protocol);
 		}
 	}

@@ -55,7 +55,7 @@ public class CPacketRPCDisplayWebViewBlobV2 implements EaglerBackendRPCPacket {
 	public void writePacket(DataOutput buffer) throws IOException {
 		buffer.writeByte(flags);
 		EaglerBackendRPCPacket.writeString(buffer, embedTitle, true, StandardCharsets.UTF_8);
-		if(embedHash.length != 20) {
+		if (embedHash.length != 20) {
 			throw new IOException("Hash is not 20 bytes");
 		}
 		buffer.write(embedHash);

@@ -44,10 +44,10 @@ public class SPacketRPCResponseTypeCookie implements EaglerBackendRPCPacket {
 		int flags = buffer.readUnsignedByte();
 		cookiesEnabled = (flags & 1) != 0;
 		int len = cookiesEnabled ? buffer.readUnsignedByte() : 0;
-		if(cookiesEnabled && len > 0) {
+		if (cookiesEnabled && len > 0) {
 			cookieData = new byte[len];
 			buffer.readFully(cookieData);
-		}else {
+		} else {
 			cookieData = null;
 		}
 	}
@@ -55,18 +55,19 @@ public class SPacketRPCResponseTypeCookie implements EaglerBackendRPCPacket {
 	@Override
 	public void writePacket(DataOutput buffer) throws IOException {
 		buffer.writeInt(requestID);
-		if(cookiesEnabled) {
+		if (cookiesEnabled) {
 			buffer.writeByte(1);
-			if(cookieData != null && cookieData.length > 0) {
-				if(cookieData.length > 255) {
-					throw new IOException("Cookie is too long, max is 255 bytes! (got " + cookieData.length + " bytes)");
+			if (cookieData != null && cookieData.length > 0) {
+				if (cookieData.length > 255) {
+					throw new IOException(
+							"Cookie is too long, max is 255 bytes! (got " + cookieData.length + " bytes)");
 				}
 				buffer.writeByte(cookieData.length);
 				buffer.write(cookieData);
-			}else {
+			} else {
 				buffer.writeByte(0);
 			}
-		}else {
+		} else {
 			buffer.writeByte(0);
 		}
 	}

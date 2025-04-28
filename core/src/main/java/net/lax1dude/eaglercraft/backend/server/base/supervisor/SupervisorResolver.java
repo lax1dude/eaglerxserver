@@ -86,7 +86,8 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 		try {
 			return foreignSkinCache.get(url);
 		} catch (ExecutionException e) {
-			if(e.getCause() instanceof RuntimeException ee) throw ee;
+			if (e.getCause() instanceof RuntimeException ee)
+				throw ee;
 			throw new RuntimeException(e.getCause());
 		}
 	}
@@ -95,18 +96,19 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 		try {
 			return foreignCapeCache.get(url);
 		} catch (ExecutionException e) {
-			if(e.getCause() instanceof RuntimeException ee) throw ee;
+			if (e.getCause() instanceof RuntimeException ee)
+				throw ee;
 			throw new RuntimeException(e.getCause());
 		}
 	}
 
 	@Override
 	public boolean isPlayerKnown(UUID playerUUID) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
 		SupervisorConnection conn = service.getConnection();
-		if(conn != null) {
+		if (conn != null) {
 			return conn.remotePlayers.containsKey(playerUUID);
 		}
 		return false;
@@ -114,13 +116,13 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	@Override
 	public int getCachedNodeId(UUID playerUUID) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
 		SupervisorConnection conn = service.getConnection();
-		if(conn != null) {
+		if (conn != null) {
 			SupervisorPlayer player = conn.remotePlayers.get(playerUUID);
-			if(player != null) {
+			if (player != null) {
 				return player.getNodeId();
 			}
 		}
@@ -129,66 +131,66 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	@Override
 	public void resolvePlayerNodeId(UUID playerUUID, IntProcedure callback) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		SupervisorConnection conn = service.getConnection();
-		if(conn != null) {
+		if (conn != null) {
 			SupervisorPlayer player = conn.loadPlayer(playerUUID);
 			int node = player.getNodeId();
-			if(node != -1) {
+			if (node != -1) {
 				callback.apply(node);
-			}else {
+			} else {
 				player.loadBrandUUID(null, (trash) -> {
-					if(trash != null) {
+					if (trash != null) {
 						callback.apply(player.getNodeId());
-					}else {
+					} else {
 						callback.apply(-1);
 					}
 				});
 			}
-		}else {
+		} else {
 			callback.apply(-1);
 		}
 	}
 
 	@Override
 	public void resolvePlayerBrand(UUID playerUUID, Consumer<UUID> callback) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		SupervisorConnection conn = service.getConnection();
-		if(conn != null) {
+		if (conn != null) {
 			conn.loadPlayer(playerUUID).loadBrandUUID(null, callback);
-		}else {
+		} else {
 			callback.accept(null);
 		}
 	}
 
 	@Override
 	public void resolvePlayerRegisteredBrand(UUID playerUUID, BiConsumer<UUID, IBrandRegistration> callback) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		SupervisorConnection conn = service.getConnection();
-		if(conn != null) {
+		if (conn != null) {
 			conn.loadPlayer(playerUUID).loadBrandUUID(null, (uuid) -> {
-				if(uuid != null) {
+				if (uuid != null) {
 					callback.accept(uuid, service.getEaglerXServer().getBrandService().lookupRegisteredBrand(uuid));
-				}else {
+				} else {
 					callback.accept(null, null);
 				}
 			});
-		}else {
+		} else {
 			callback.accept(null, null);
 		}
 	}
@@ -210,32 +212,32 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	@Override
 	public void resolvePlayerSkin(UUID playerUUID, Consumer<IEaglerPlayerSkin> callback) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		SupervisorConnection conn = service.getConnection();
-		if(conn != null) {
+		if (conn != null) {
 			conn.loadPlayer(playerUUID).loadSkinData(null, callback);
-		}else {
+		} else {
 			callback.accept(MissingSkin.UNAVAILABLE_SKIN);
 		}
 	}
 
 	@Override
 	public void resolvePlayerCape(UUID playerUUID, Consumer<IEaglerPlayerCape> callback) {
-		if(playerUUID == null) {
+		if (playerUUID == null) {
 			throw new NullPointerException("playerUUID");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		SupervisorConnection conn = service.getConnection();
-		if(conn != null) {
+		if (conn != null) {
 			conn.loadPlayer(playerUUID).loadCapeData(null, callback);
-		}else {
+		} else {
 			callback.accept(MissingCape.UNAVAILABLE_CAPE);
 		}
 	}
@@ -247,10 +249,10 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	@Override
 	public void loadCacheSkinFromURL(String skinURL, int modelIdRaw, Consumer<IEaglerPlayerSkin> callback) {
-		if(skinURL == null) {
+		if (skinURL == null) {
 			throw new NullPointerException("skinURL");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		getForeignSkin(skinURL).load(modelIdRaw, null, callback);
@@ -258,10 +260,10 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	@Override
 	public void loadCacheCapeFromURL(String capeURL, Consumer<IEaglerPlayerCape> callback) {
-		if(capeURL == null) {
+		if (capeURL == null) {
 			throw new NullPointerException("capeURL");
 		}
-		if(callback == null) {
+		if (callback == null) {
 			throw new NullPointerException("callback");
 		}
 		getForeignCape(capeURL).load(null, callback);
@@ -270,9 +272,9 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 	@Override
 	public void resolvePlayerSkinKeyed(UUID requester, UUID playerUUID, Consumer<IEaglerPlayerSkin> callback) {
 		SupervisorConnection conn = service.getConnection();
-		if(conn != null) {
+		if (conn != null) {
 			conn.loadPlayer(playerUUID).loadSkinData(requester, callback);
-		}else {
+		} else {
 			callback.accept(MissingSkin.UNAVAILABLE_SKIN);
 		}
 	}
@@ -280,9 +282,9 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 	@Override
 	public void resolvePlayerCapeKeyed(UUID requester, UUID playerUUID, Consumer<IEaglerPlayerCape> callback) {
 		SupervisorConnection conn = service.getConnection();
-		if(conn != null) {
+		if (conn != null) {
 			conn.loadPlayer(playerUUID).loadCapeData(requester, callback);
-		}else {
+		} else {
 			callback.accept(MissingCape.UNAVAILABLE_CAPE);
 		}
 	}
@@ -290,9 +292,9 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 	@Override
 	public void resolvePlayerBrandKeyed(UUID requester, UUID playerUUID, Consumer<UUID> callback) {
 		SupervisorConnection conn = service.getConnection();
-		if(conn != null) {
+		if (conn != null) {
 			conn.loadPlayer(playerUUID).loadBrandUUID(requester, callback);
-		}else {
+		} else {
 			callback.accept(ISupervisorResolverImpl.UNAVAILABLE);
 		}
 	}
@@ -327,10 +329,10 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 		@Override
 		public void expire() {
-			if(pendingSkinLookups.remove(requestUUID) != null) {
+			if (pendingSkinLookups.remove(requestUUID) != null) {
 				try {
 					consumer.accept(MissingSkin.UNAVAILABLE_SKIN);
-				}catch(Exception ex) {
+				} catch (Exception ex) {
 					service.logger().error("Caught error from lazy load callback", ex);
 				}
 			}
@@ -364,10 +366,10 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 		@Override
 		public void expire() {
-			if(pendingCapeLookups.remove(requestUUID) != null) {
+			if (pendingCapeLookups.remove(requestUUID) != null) {
 				try {
 					consumer.accept(MissingCape.UNAVAILABLE_CAPE);
-				}catch(Exception ex) {
+				} catch (Exception ex) {
 					service.logger().error("Caught error from lazy load callback", ex);
 				}
 			}
@@ -384,10 +386,10 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	public boolean onForeignSkinReceived(UUID requestUUID, IEaglerPlayerSkin skin) {
 		PendingSkinLookup lookup = pendingSkinLookups.remove(requestUUID);
-		if(lookup != null) {
+		if (lookup != null) {
 			try {
 				lookup.consumer.accept(skin);
-			}catch(Exception ex) {
+			} catch (Exception ex) {
 				service.logger().error("Caught error from lazy load callback", ex);
 			}
 			return true;
@@ -397,10 +399,10 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	public boolean onForeignCapeReceived(UUID requestUUID, IEaglerPlayerCape cape) {
 		PendingCapeLookup lookup = pendingCapeLookups.remove(requestUUID);
-		if(lookup != null) {
+		if (lookup != null) {
 			try {
 				lookup.consumer.accept(cape);
-			}catch(Exception ex) {
+			} catch (Exception ex) {
 				service.logger().error("Caught error from lazy load callback", ex);
 			}
 			return true;
@@ -414,11 +416,11 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	void addDeferred(IDeferredLoad runnable) {
 		eag: {
-			eagler: synchronized(this) {
-				if(deferred == null) {
+			eagler: synchronized (this) {
+				if (deferred == null) {
 					break eag;
 				}
-				if(getConnection() != null) {
+				if (getConnection() != null) {
 					break eagler;
 				}
 				deferred.add(runnable);
@@ -432,27 +434,27 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	void flushDeferred() {
 		List<IDeferredLoad> lst;
-		synchronized(this) {
-			if(deferred == null) {
+		synchronized (this) {
+			if (deferred == null) {
 				return;
 			}
 			lst = new ArrayList<>(deferred);
 			deferred = null;
 		}
-		for(IDeferredLoad run : lst) {
+		for (IDeferredLoad run : lst) {
 			run.complete(false);
 		}
 	}
 
 	void onConnectionEnd() {
 		Object[] arr = pendingSkinLookups.values().toArray();
-		for(int i = 0; i < arr.length; ++i) {
-			((ISupervisorExpiring)arr[i]).expire();
+		for (int i = 0; i < arr.length; ++i) {
+			((ISupervisorExpiring) arr[i]).expire();
 		}
 		pendingSkinLookups.clear();
 		arr = pendingCapeLookups.values().toArray();
-		for(int i = 0; i < arr.length; ++i) {
-			((ISupervisorExpiring)arr[i]).expire();
+		for (int i = 0; i < arr.length; ++i) {
+			((ISupervisorExpiring) arr[i]).expire();
 		}
 		pendingCapeLookups.clear();
 	}

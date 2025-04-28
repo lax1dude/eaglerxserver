@@ -52,7 +52,7 @@ public enum EnumSubscribeEvents {
 
 	public static int toBits(@Nonnull EnumSubscribeEvents... evts) {
 		int bits = 0;
-		for(int i = 0; i < evts.length; ++i) {
+		for (int i = 0; i < evts.length; ++i) {
 			bits |= evts[i].bit;
 		}
 		return bits;
@@ -61,9 +61,12 @@ public enum EnumSubscribeEvents {
 	@Nonnull
 	public static Set<EnumSubscribeEvents> fromBits(int bits) {
 		Set<EnumSubscribeEvents> set = EnumSet.noneOf(EnumSubscribeEvents.class);
-		if((bits & 1) != 0) set.add(EVENT_WEBVIEW_OPEN_CLOSE);
-		if((bits & 2) != 0) set.add(EVENT_WEBVIEW_MESSAGE);
-		if((bits & 4) != 0) set.add(EVENT_VOICE_CHANGE);
+		if ((bits & 1) != 0)
+			set.add(EVENT_WEBVIEW_OPEN_CLOSE);
+		if ((bits & 2) != 0)
+			set.add(EVENT_WEBVIEW_MESSAGE);
+		if ((bits & 4) != 0)
+			set.add(EVENT_VOICE_CHANGE);
 		return set;
 	}
 

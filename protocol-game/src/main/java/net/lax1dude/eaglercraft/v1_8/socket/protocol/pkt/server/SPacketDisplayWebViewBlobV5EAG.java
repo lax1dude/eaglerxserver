@@ -54,7 +54,7 @@ public class SPacketDisplayWebViewBlobV5EAG implements GameMessagePacket {
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
 		buffer.writeByte(flags);
 		buffer.writeStringMC(embedTitle);
-		if(embedHash.length != 20) {
+		if (embedHash.length != 20) {
 			throw new IOException("Hash is not 20 bytes");
 		}
 		buffer.write(embedHash);

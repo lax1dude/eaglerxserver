@@ -44,7 +44,7 @@ abstract class RPCPending implements IExpirable {
 
 	@Override
 	public void expire() {
-		if(map.remove(key) != null) {
+		if (map.remove(key) != null) {
 			onFailure(FAILURE_TIMEOUT);
 		}
 	}

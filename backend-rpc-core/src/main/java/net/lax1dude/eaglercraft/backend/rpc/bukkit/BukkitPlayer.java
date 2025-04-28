@@ -50,12 +50,12 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 			viewDistanceSend = Player.class.getMethod("setSendViewDistance", int.class);
 			viewDistance = null;
 			support = true;
-		}catch(NoSuchMethodException ex) {
+		} catch (NoSuchMethodException ex) {
 			viewDistanceSend = null;
 			try {
 				viewDistance = Player.class.getMethod("setViewDistance", int.class);
 				support = true;
-			}catch(NoSuchMethodException exx) {
+			} catch (NoSuchMethodException exx) {
 				viewDistance = null;
 				support = false;
 			}
@@ -76,7 +76,7 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 	}
 
 	BukkitTask xchgConfirmTask() {
-		return (BukkitTask)CONFIRM_TASK_HANDLE.getAndSetAcquire(this, null);
+		return (BukkitTask) CONFIRM_TASK_HANDLE.getAndSetAcquire(this, null);
 	}
 
 	@Override
@@ -116,13 +116,13 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 
 	@Override
 	public void setViewDistancePaper(int distance) {
-		if(PAPER_SET_VIEW_DISTANCE_SEND != null) {
+		if (PAPER_SET_VIEW_DISTANCE_SEND != null) {
 			try {
 				PAPER_SET_VIEW_DISTANCE_SEND.invoke(player, distance);
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				throw new RuntimeException("Reflection failed!");
 			}
-		}else if(PAPER_SET_VIEW_DISTANCE != null) {
+		} else if (PAPER_SET_VIEW_DISTANCE != null) {
 			try {
 				PAPER_SET_VIEW_DISTANCE.invoke(player, distance);
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {

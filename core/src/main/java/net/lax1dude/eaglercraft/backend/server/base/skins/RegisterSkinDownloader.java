@@ -57,37 +57,37 @@ class RegisterSkinDownloader {
 	}
 
 	public void run() {
-		if(state.skinURL != null) {
+		if (state.skinURL != null) {
 			skinService.loadPlayerSkinFromURL(state.skinURL, player.getUniqueId(),
 					state.skinModel != null ? state.skinModel : EnumSkinModel.STEVE, (skin) -> {
 				if (skin.isSuccess()) {
 					skinResult = skin;
-				}else {
+				} else {
 					skinResult = state.skinOriginal;
 				}
 				countDown();
 			});
-		}else {
+		} else {
 			skinResult = state.skin != null ? state.skin : state.skinOriginal;
 			countDown();
 		}
-		if(state.capeURL != null) {
+		if (state.capeURL != null) {
 			skinService.loadPlayerCapeFromURL(state.capeURL, player.getUniqueId(), (cape) -> {
-				if(cape.isSuccess()) {
+				if (cape.isSuccess()) {
 					capeResult = cape;
-				}else {
+				} else {
 					capeResult = state.capeOriginal;
 				}
 				countDown();
 			});
-		}else {
+		} else {
 			capeResult = state.cape != null ? state.cape : state.capeOriginal;
 			countDown();
 		}
 	}
 
 	private void countDown() {
-		if((int)COUNT_DOWN_HANDLE.getAndAdd(this, -1) == 0) {
+		if ((int) COUNT_DOWN_HANDLE.getAndAdd(this, -1) == 0) {
 			state.handleComplete(player, skinResult, capeResult, onComplete);
 		}
 	}

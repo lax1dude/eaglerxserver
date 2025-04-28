@@ -37,14 +37,19 @@ public class PacketImageLoader {
 		public IPacketImageData loadPacketImageData(int[] pixelsARGB8, int width, int height) {
 			return PacketImageDataWrapper.wrap(PacketImageLoader.loadPacketImageData(pixelsARGB8, width, height));
 		}
+
 		@Override
 		public IPacketImageData loadPacketImageData(BufferedImage bufferedImage, int maxWidth, int maxHeight) {
-			return PacketImageDataWrapper.wrap(PacketImageLoader.loadPacketImageData(bufferedImage, maxWidth, maxHeight));
+			return PacketImageDataWrapper
+					.wrap(PacketImageLoader.loadPacketImageData(bufferedImage, maxWidth, maxHeight));
 		}
+
 		@Override
-		public IPacketImageData loadPacketImageData(InputStream inputStream, int maxWidth, int maxHeight) throws IOException {
+		public IPacketImageData loadPacketImageData(InputStream inputStream, int maxWidth, int maxHeight)
+				throws IOException {
 			return PacketImageDataWrapper.wrap(PacketImageLoader.loadPacketImageData(inputStream, maxWidth, maxHeight));
 		}
+
 		@Override
 		public IPacketImageData loadPacketImageData(File imageFile, int maxWidth, int maxHeight) throws IOException {
 			return PacketImageDataWrapper.wrap(PacketImageLoader.loadPacketImageData(imageFile, maxWidth, maxHeight));
@@ -53,7 +58,7 @@ public class PacketImageLoader {
 
 	public static PacketImageData loadPacketImageData(int[] pixelsARGB8, int width, int height) {
 		checkSize(width, height);
-		if(pixelsARGB8 == null) {
+		if (pixelsARGB8 == null) {
 			throw new NullPointerException("pixelsARGB8");
 		}
 		return new PacketImageData(width, height, pixelsARGB8);
@@ -63,15 +68,15 @@ public class PacketImageLoader {
 		checkSize(maxWidth, maxHeight);
 		int w = img.getWidth();
 		int h = img.getHeight();
-		if(w > maxWidth || h > maxHeight) {
-			float aspectRatio = (float)w / (float)h;
+		if (w > maxWidth || h > maxHeight) {
+			float aspectRatio = (float) w / (float) h;
 			int nw, nh;
-			if(aspectRatio >= 1.0f) {
-				nw = (int)(maxWidth / aspectRatio);
+			if (aspectRatio >= 1.0f) {
+				nw = (int) (maxWidth / aspectRatio);
 				nh = maxHeight;
-			}else {
+			} else {
 				nw = maxWidth;
-				nh = (int)(maxHeight * aspectRatio);
+				nh = (int) (maxHeight * aspectRatio);
 			}
 			BufferedImage resized = new BufferedImage(nw, nh, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g = (Graphics2D) resized.getGraphics();
@@ -87,7 +92,8 @@ public class PacketImageLoader {
 		return new PacketImageData(w, h, pixels);
 	}
 
-	public static PacketImageData loadPacketImageData(InputStream inputStream, int maxWidth, int maxHeight) throws IOException {
+	public static PacketImageData loadPacketImageData(InputStream inputStream, int maxWidth, int maxHeight)
+			throws IOException {
 		checkSize(maxWidth, maxHeight);
 		return loadPacketImageData(ImageIO.read(inputStream), maxWidth, maxHeight);
 	}
@@ -98,13 +104,13 @@ public class PacketImageLoader {
 	}
 
 	private static void checkSize(int w, int h) {
-		if(w < 0 || h < 0) {
+		if (w < 0 || h < 0) {
 			throw new IllegalArgumentException("Size is negative");
 		}
-		if(w > 255) {
+		if (w > 255) {
 			throw new IllegalArgumentException("Width is greater than 255");
 		}
-		if(h > 255) {
+		if (h > 255) {
 			throw new IllegalArgumentException("Height is greater than 255");
 		}
 	}

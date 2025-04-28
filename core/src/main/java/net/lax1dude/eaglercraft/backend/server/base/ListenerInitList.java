@@ -34,9 +34,9 @@ public class ListenerInitList {
 
 	public synchronized IEaglerXServerListener offer(SocketAddress addr) {
 		Iterator<IEaglerXServerListener> itr = listeners.iterator();
-		while(itr.hasNext()) {
+		while (itr.hasNext()) {
 			IEaglerXServerListener i = itr.next();
-			if(i.matchListenerAddress(addr)) {
+			if (i.matchListenerAddress(addr)) {
 				itr.remove();
 				return i;
 			}
