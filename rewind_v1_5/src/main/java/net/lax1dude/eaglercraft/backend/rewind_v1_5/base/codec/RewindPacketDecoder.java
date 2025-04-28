@@ -365,8 +365,7 @@ public class RewindPacketDecoder<PlayerObject> extends RewindChannelHandler.Deco
 						TabListTracker.ListItem playerItem = tabList().getItemByName(username);
 						if(playerItem != null) {
 							UUID uuid = playerItem.playerUUID;
-							player().addSkinRequest(uuid, cookie);
-							messageController().recieveInboundMessage(new CPacketGetOtherTexturesV5EAG(
+							messageController().recieveInboundMessage(new CPacketGetOtherTexturesV5EAG(cookie,
 									uuid.getMostSignificantBits(), uuid.getLeastSignificantBits()));
 						}
 						break fuck;

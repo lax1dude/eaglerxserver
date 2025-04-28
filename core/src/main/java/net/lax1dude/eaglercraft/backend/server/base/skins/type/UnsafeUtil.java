@@ -18,6 +18,7 @@ package net.lax1dude.eaglercraft.backend.server.base.skins.type;
 
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class UnsafeUtil {
 
@@ -27,6 +28,10 @@ public class UnsafeUtil {
 
 	public static byte[] unsafeGetPixelsDirect(IEaglerPlayerCape skin) {
 		return ((BaseCustomCape)skin).textureData();
+	}
+
+	static UnsupportedOperationException wrongProtocol(GamePluginMessageProtocol protocol) {
+		return new UnsupportedOperationException("Wrong protocol version: " + protocol);
 	}
 
 }

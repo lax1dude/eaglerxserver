@@ -17,7 +17,8 @@
 package net.lax1dude.eaglercraft.backend.server.base.message;
 
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
-import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.CPacketGetOtherTexturesV5EAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.WrongPacketException;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client.*;
 
 public class ServerV5MessageHandler extends ServerV4MessageHandler {
 
@@ -25,8 +26,32 @@ public class ServerV5MessageHandler extends ServerV4MessageHandler {
 		super(eaglerHandle);
 	}
 
+	public void handleClient(CPacketGetOtherCapeEAG packet) {
+		throw new WrongPacketException();
+	}
+
+	public void handleClient(CPacketGetOtherSkinEAG packet) {
+		throw new WrongPacketException();
+	}
+
+	public void handleClient(CPacketGetSkinByURLEAG packet) {
+		throw new WrongPacketException();
+	}
+
+	public void handleClient(CPacketGetOtherSkinV5EAG packet) {
+		eaglerHandle.getSkinManager().handlePacketGetOtherSkinV5(packet.requestId, packet.uuidMost, packet.uuidLeast);
+	}
+
+	public void handleClient(CPacketGetOtherCapeV5EAG packet) {
+		eaglerHandle.getSkinManager().handlePacketGetOtherCapeV5(packet.requestId, packet.uuidMost, packet.uuidLeast);
+	}
+
+	public void handleClient(CPacketGetSkinByURLV5EAG packet) {
+		eaglerHandle.getSkinManager().handlePacketGetSkinByURLV5(packet.requestId, packet.url);
+	}
+
 	public void handleClient(CPacketGetOtherTexturesV5EAG packet) {
-		eaglerHandle.getSkinManager().handlePacketGetTextures(packet.uuidMost, packet.uuidLeast);
+		eaglerHandle.getSkinManager().handlePacketGetTexturesV5(packet.requestId, packet.uuidMost, packet.uuidLeast);
 	}
 
 }

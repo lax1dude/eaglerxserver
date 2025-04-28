@@ -22,6 +22,7 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketForceClientCapePresetV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherCapePresetEAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherCapePresetV5EAG;
 
 public class MissingCape extends BasePresetCape {
 
@@ -41,7 +42,20 @@ public class MissingCape extends BasePresetCape {
 	@Override
 	public GameMessagePacket getCapePacket(long rewriteUUIDMost, long rewriteUUIDLeast,
 			GamePluginMessageProtocol protocol) {
-		return new SPacketOtherCapePresetEAG(rewriteUUIDMost, rewriteUUIDLeast, 0);
+		if(protocol.ver <= 4) {
+			return new SPacketOtherCapePresetEAG(rewriteUUIDMost, rewriteUUIDLeast, 0);
+		}else {
+			throw UnsafeUtil.wrongProtocol(protocol);
+		}
+	}
+
+	@Override
+	public GameMessagePacket getCapePacket(int requestId, GamePluginMessageProtocol protocol) {
+		if(protocol.ver >= 5) {
+			return new SPacketOtherCapePresetV5EAG(requestId, 0);
+		}else {
+			throw UnsafeUtil.wrongProtocol(protocol);
+		}
 	}
 
 	@Override

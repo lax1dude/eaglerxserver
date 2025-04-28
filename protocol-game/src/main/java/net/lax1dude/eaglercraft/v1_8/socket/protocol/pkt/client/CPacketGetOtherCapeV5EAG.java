@@ -23,16 +23,16 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessageHandler;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 
-public class CPacketGetOtherTexturesV5EAG implements GameMessagePacket {
+public class CPacketGetOtherCapeV5EAG implements GameMessagePacket {
 
 	public int requestId;
 	public long uuidMost;
 	public long uuidLeast;
 
-	public CPacketGetOtherTexturesV5EAG() {
+	public CPacketGetOtherCapeV5EAG() {
 	}
 
-	public CPacketGetOtherTexturesV5EAG(int requestId, long uuidMost, long uuidLeast) {
+	public CPacketGetOtherCapeV5EAG(int requestId, long uuidMost, long uuidLeast) {
 		this.requestId = requestId;
 		this.uuidMost = uuidMost;
 		this.uuidLeast = uuidLeast;

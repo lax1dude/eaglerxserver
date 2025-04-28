@@ -57,6 +57,21 @@ public class CustomSkinModelRw extends BaseCustomSkin implements IModelRewritabl
 	}
 
 	@Override
+	public GameMessagePacket getSkinPacket(int requestId, GamePluginMessageProtocol protocol) {
+		return data.getSkinPacket(requestId, modelId, protocol);
+	}
+
+	@Override
+	public GameMessagePacket getSkinPacket(int requestId, EnumSkinModel rewriteModelId, GamePluginMessageProtocol protocol) {
+		return data.getSkinPacket(requestId, rewriteModelId, protocol);
+	}
+
+	@Override
+	public GameMessagePacket getSkinPacket(int requestId, int rewriteModelIdRaw, GamePluginMessageProtocol protocol) {
+		return data.getSkinPacket(requestId, rewriteModelIdRaw, protocol);
+	}
+
+	@Override
 	public GameMessagePacket getForceSkinPacketV4() {
 		return new SPacketForceClientSkinCustomV4EAG(modelId, data.textureDataV4());
 	}

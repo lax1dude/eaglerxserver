@@ -36,6 +36,9 @@ public interface IEaglerPlayerCape extends IOptional<IEaglerPlayerCape> {
 	}
 
 	@Nonnull
+	GameMessagePacket getCapePacket(int requestId, @Nonnull GamePluginMessageProtocol protocol);
+
+	@Nonnull
 	GameMessagePacket getForceCapePacketV4();
 
 	boolean isCapeEnabled();

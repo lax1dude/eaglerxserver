@@ -58,6 +58,16 @@ public interface IEaglerPlayerSkin extends IOptional<IEaglerPlayerSkin> {
 	}
 
 	@Nonnull
+	GameMessagePacket getSkinPacket(int requestId, @Nonnull GamePluginMessageProtocol protocol);
+
+	@Nonnull
+	GameMessagePacket getSkinPacket(int requestId, @Nonnull EnumSkinModel rewriteModelId,
+			@Nonnull GamePluginMessageProtocol protocol);
+
+	@Nonnull
+	GameMessagePacket getSkinPacket(int requestId, int rewriteModelIdRaw, @Nonnull GamePluginMessageProtocol protocol);
+
+	@Nonnull
 	GameMessagePacket getForceSkinPacketV4();
 
 	boolean isSkinPreset();

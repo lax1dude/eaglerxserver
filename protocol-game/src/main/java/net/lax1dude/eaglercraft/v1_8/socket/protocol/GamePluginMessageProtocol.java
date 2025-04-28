@@ -102,10 +102,10 @@ public enum GamePluginMessageProtocol {
 	), V5(5,
 
 			// Client to server
-			define(0x01, CLIENT_TO_SERVER, CPacketGetOtherSkinEAG.class, CPacketGetOtherSkinEAG::new),
-			define(0x02, CLIENT_TO_SERVER, CPacketGetOtherCapeEAG.class, CPacketGetOtherCapeEAG::new),
+			define(0x01, CLIENT_TO_SERVER, CPacketGetOtherSkinV5EAG.class, CPacketGetOtherSkinV5EAG::new),
+			define(0x02, CLIENT_TO_SERVER, CPacketGetOtherCapeV5EAG.class, CPacketGetOtherCapeV5EAG::new),
 			define(0x03, CLIENT_TO_SERVER, CPacketGetOtherTexturesV5EAG.class, CPacketGetOtherTexturesV5EAG::new),
-			define(0x04, CLIENT_TO_SERVER, CPacketGetSkinByURLEAG.class, CPacketGetSkinByURLEAG::new),
+			define(0x04, CLIENT_TO_SERVER, CPacketGetSkinByURLV5EAG.class, CPacketGetSkinByURLV5EAG::new),
 			define(0x05, CLIENT_TO_SERVER, CPacketInstallSkinSPEAG.class, CPacketInstallSkinSPEAG::new),
 			define(0x06, CLIENT_TO_SERVER, CPacketVoiceSignalRequestEAG.class, CPacketVoiceSignalRequestEAG::new),
 			define(0x07, CLIENT_TO_SERVER, CPacketVoiceSignalConnectEAG.class, CPacketVoiceSignalConnectEAG::new),
@@ -119,10 +119,10 @@ public enum GamePluginMessageProtocol {
 			define(0x0F, CLIENT_TO_SERVER, CPacketWebViewMessageV4EAG.class, CPacketWebViewMessageV4EAG::new),
 
 			// Server to client
-			define(0x01, SERVER_TO_CLIENT, SPacketOtherSkinPresetEAG.class, SPacketOtherSkinPresetEAG::new),
-			define(0x02, SERVER_TO_CLIENT, SPacketOtherSkinCustomV4EAG.class, SPacketOtherSkinCustomV4EAG::new),
-			define(0x03, SERVER_TO_CLIENT, SPacketOtherCapePresetEAG.class, SPacketOtherCapePresetEAG::new),
-			define(0x04, SERVER_TO_CLIENT, SPacketOtherCapeCustomEAG.class, SPacketOtherCapeCustomEAG::new),
+			define(0x01, SERVER_TO_CLIENT, SPacketOtherSkinPresetV5EAG.class, SPacketOtherSkinPresetV5EAG::new),
+			define(0x02, SERVER_TO_CLIENT, SPacketOtherSkinCustomV5EAG.class, SPacketOtherSkinCustomV5EAG::new),
+			define(0x03, SERVER_TO_CLIENT, SPacketOtherCapePresetV5EAG.class, SPacketOtherCapePresetV5EAG::new),
+			define(0x04, SERVER_TO_CLIENT, SPacketOtherCapeCustomV5EAG.class, SPacketOtherCapeCustomV5EAG::new),
 			define(0x05, SERVER_TO_CLIENT, SPacketOtherTexturesV5EAG.class, SPacketOtherTexturesV5EAG::new),
 			define(0x06, SERVER_TO_CLIENT, SPacketVoiceSignalAllowedEAG.class, SPacketVoiceSignalAllowedEAG::new),
 			define(0x07, SERVER_TO_CLIENT, SPacketVoiceSignalConnectV4EAG.class, SPacketVoiceSignalConnectV4EAG::new),

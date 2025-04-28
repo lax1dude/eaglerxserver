@@ -14,7 +14,7 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client;
+package net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server;
 
 import java.io.IOException;
 
@@ -23,43 +23,47 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessageHandler;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 
-public class CPacketGetOtherTexturesV5EAG implements GameMessagePacket {
+public class SPacketOtherSkinCustomV5EAG implements GameMessagePacket {
 
 	public int requestId;
-	public long uuidMost;
-	public long uuidLeast;
+	public int modelID;
+	public byte[] customSkin;
 
-	public CPacketGetOtherTexturesV5EAG() {
+	public SPacketOtherSkinCustomV5EAG() {
 	}
 
-	public CPacketGetOtherTexturesV5EAG(int requestId, long uuidMost, long uuidLeast) {
+	public SPacketOtherSkinCustomV5EAG(int requestId, int modelID, byte[] customSkin) {
 		this.requestId = requestId;
-		this.uuidMost = uuidMost;
-		this.uuidLeast = uuidLeast;
+		this.modelID = modelID;
+		this.customSkin = customSkin;
 	}
 
 	@Override
 	public void readPacket(GamePacketInputBuffer buffer) throws IOException {
 		requestId = buffer.readVarInt();
-		uuidMost = buffer.readLong();
-		uuidLeast = buffer.readLong();
+		modelID = buffer.readUnsignedByte();
+		customSkin = new byte[12288];
+		buffer.readFully(customSkin);
 	}
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
+		if(customSkin.length != 12288) {
+			throw new IOException("Custom skin data length is not 12288 bytes! (" + customSkin.length + ")");
+		}
 		buffer.writeVarInt(requestId);
-		buffer.writeLong(uuidMost);
-		buffer.writeLong(uuidLeast);
+		buffer.write(modelID);
+		buffer.write(customSkin);
 	}
 
 	@Override
 	public void handlePacket(GameMessageHandler handler) {
-		handler.handleClient(this);
+		handler.handleServer(this);
 	}
 
 	@Override
 	public int length() {
-		return GamePacketOutputBuffer.getVarIntSize(requestId) + 16;
+		return GamePacketOutputBuffer.getVarIntSize(requestId) + 12289;
 	}
 
 }

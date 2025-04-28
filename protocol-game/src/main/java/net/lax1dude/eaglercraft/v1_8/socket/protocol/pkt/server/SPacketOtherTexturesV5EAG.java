@@ -25,8 +25,7 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 
 public class SPacketOtherTexturesV5EAG implements GameMessagePacket {
 
-	public long uuidMost;
-	public long uuidLeast;
+	public int requestId;
 	public int skinID;
 	public byte[] customSkin;
 	public int capeID;
@@ -35,10 +34,8 @@ public class SPacketOtherTexturesV5EAG implements GameMessagePacket {
 	public SPacketOtherTexturesV5EAG() {
 	}
 
-	public SPacketOtherTexturesV5EAG(long uuidMost, long uuidLeast, int skinID, byte[] customSkin,
-			int capeID, byte[] customCape) {
-		this.uuidMost = uuidMost;
-		this.uuidLeast = uuidLeast;
+	public SPacketOtherTexturesV5EAG(int requestId, int skinID, byte[] customSkin, int capeID, byte[] customCape) {
+		this.requestId = requestId;
 		this.skinID = skinID;
 		this.customSkin = customSkin;
 		this.capeID = capeID;
@@ -47,8 +44,7 @@ public class SPacketOtherTexturesV5EAG implements GameMessagePacket {
 
 	@Override
 	public void readPacket(GamePacketInputBuffer buffer) throws IOException {
-		uuidMost = buffer.readLong();
-		uuidLeast = buffer.readLong();
+		requestId = buffer.readVarInt();
 		skinID = buffer.readInt();
 		capeID = buffer.readInt();
 		if(skinID < 0) {
@@ -63,8 +59,7 @@ public class SPacketOtherTexturesV5EAG implements GameMessagePacket {
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
-		buffer.writeLong(uuidMost);
-		buffer.writeLong(uuidLeast);
+		buffer.writeVarInt(requestId);
 		buffer.writeInt(skinID);
 		buffer.writeInt(capeID);
 		if(skinID < 0) {
@@ -88,7 +83,7 @@ public class SPacketOtherTexturesV5EAG implements GameMessagePacket {
 
 	@Override
 	public int length() {
-		int i = 25;
+		int i = 8 + GamePacketOutputBuffer.getVarIntSize(requestId);
 		if(skinID < 0) i += 12288;
 		if(capeID < 0) i += 1173;
 		return i;

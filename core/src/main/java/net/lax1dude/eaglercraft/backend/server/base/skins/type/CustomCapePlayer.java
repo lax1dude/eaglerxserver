@@ -22,6 +22,7 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketForceClientCapeCustomV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherCapeCustomEAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherCapeCustomV5EAG;
 
 public class CustomCapePlayer extends BaseCustomCape {
 
@@ -43,10 +44,23 @@ public class CustomCapePlayer extends BaseCustomCape {
 	@Override
 	public GameMessagePacket getCapePacket(long rewriteUUIDMost, long rewriteUUIDLeast,
 			GamePluginMessageProtocol protocol) {
-		if(rewriteUUIDMost == packet.uuidMost && rewriteUUIDLeast == packet.uuidLeast) {
-			return packet;
+		if(protocol.ver <= 4) {
+			if(rewriteUUIDMost == packet.uuidMost && rewriteUUIDLeast == packet.uuidLeast) {
+				return packet;
+			}else {
+				return new SPacketOtherCapeCustomEAG(rewriteUUIDMost, rewriteUUIDLeast, packet.customCape);
+			}
 		}else {
-			return new SPacketOtherCapeCustomEAG(rewriteUUIDMost, rewriteUUIDLeast, packet.customCape);
+			throw UnsafeUtil.wrongProtocol(protocol);
+		}
+	}
+
+	@Override
+	public GameMessagePacket getCapePacket(int requestId, GamePluginMessageProtocol protocol) {
+		if(protocol.ver >= 5) {
+			return new SPacketOtherCapeCustomV5EAG(requestId, packet.customCape);
+		}else {
+			throw UnsafeUtil.wrongProtocol(protocol);
 		}
 	}
 

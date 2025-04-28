@@ -24,6 +24,7 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketForceClientSkinCustomV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherSkinCustomV3EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherSkinCustomV4EAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherSkinCustomV5EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.SkinPacketVersionCache;
 
 public class CustomSkinPlayer extends BaseCustomSkin implements IModelRewritable {
@@ -61,13 +62,14 @@ public class CustomSkinPlayer extends BaseCustomSkin implements IModelRewritable
 				return new SPacketOtherSkinCustomV3EAG(rewriteUUIDMost, rewriteUUIDLeast, packetV3.modelID, packetV3.customSkin);
 			}
 		case V4:
-		default:
 			SPacketOtherSkinCustomV4EAG packetV4 = packetV4();
 			if(rewriteUUIDMost == packetV4.uuidMost && rewriteUUIDLeast == packetV4.uuidLeast) {
 				return packetV4;
 			}else {
 				return new SPacketOtherSkinCustomV4EAG(rewriteUUIDMost, rewriteUUIDLeast, packetV4.modelID, packetV4.customSkin);
 			}
+		default:
+			throw UnsafeUtil.wrongProtocol(protocol);
 		}
 	}
 
@@ -89,13 +91,38 @@ public class CustomSkinPlayer extends BaseCustomSkin implements IModelRewritable
 				return new SPacketOtherSkinCustomV3EAG(rewriteUUIDMost, rewriteUUIDLeast, rewriteModelIdRaw, packetV3.customSkin);
 			}
 		case V4:
-		default:
 			SPacketOtherSkinCustomV4EAG packetV4 = packetV4();
 			if(rewriteUUIDMost == packetV4.uuidMost && rewriteUUIDLeast == packetV4.uuidLeast && rewriteModelIdRaw == packetV4.modelID) {
 				return packetV4;
 			}else {
 				return new SPacketOtherSkinCustomV4EAG(rewriteUUIDMost, rewriteUUIDLeast, rewriteModelIdRaw, packetV4.customSkin);
 			}
+		default:
+			throw UnsafeUtil.wrongProtocol(protocol);
+		}
+	}
+
+	@Override
+	public GameMessagePacket getSkinPacket(int requestId, GamePluginMessageProtocol protocol) {
+		if(protocol.ver >= 5) {
+			SPacketOtherSkinCustomV4EAG packetV4 = packetV4();
+			return new SPacketOtherSkinCustomV5EAG(requestId, packetV4.modelID, packetV4.customSkin);
+		}else {
+			throw UnsafeUtil.wrongProtocol(protocol);
+		}
+	}
+
+	@Override
+	public GameMessagePacket getSkinPacket(int requestId, EnumSkinModel rewriteModelId, GamePluginMessageProtocol protocol) {
+		return getSkinPacket(requestId, rewriteModelId.getId(), protocol);
+	}
+
+	@Override
+	public GameMessagePacket getSkinPacket(int requestId, int rewriteModelIdRaw, GamePluginMessageProtocol protocol) {
+		if(protocol.ver >= 5) {
+			return new SPacketOtherSkinCustomV5EAG(requestId, rewriteModelIdRaw, textureDataV4());
+		}else {
+			throw UnsafeUtil.wrongProtocol(protocol);
 		}
 	}
 

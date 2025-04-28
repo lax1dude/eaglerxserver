@@ -25,6 +25,7 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketForceClientSkinPresetV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherSkinPresetEAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherSkinPresetV5EAG;
 
 public class MissingSkin extends BasePresetSkin {
 
@@ -54,19 +55,58 @@ public class MissingSkin extends BasePresetSkin {
 	@Override
 	public GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast,
 			GamePluginMessageProtocol protocol) {
-		return new SPacketOtherSkinPresetEAG(rewriteUUIDMost, rewriteUUIDLeast, skinId);
+		if(protocol.ver <= 4) {
+			return new SPacketOtherSkinPresetEAG(rewriteUUIDMost, rewriteUUIDLeast, skinId);
+		}else {
+			throw UnsafeUtil.wrongProtocol(protocol);
+		}
 	}
 
 	@Override
 	public GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast,
 			EnumSkinModel rewriteModelId, GamePluginMessageProtocol protocol) {
-		return new SPacketOtherSkinPresetEAG(rewriteUUIDMost, rewriteUUIDLeast, skinId);
+		if(protocol.ver <= 4) {
+			return new SPacketOtherSkinPresetEAG(rewriteUUIDMost, rewriteUUIDLeast, skinId);
+		}else {
+			throw UnsafeUtil.wrongProtocol(protocol);
+		}
 	}
 
 	@Override
 	public GameMessagePacket getSkinPacket(long rewriteUUIDMost, long rewriteUUIDLeast, int rewriteModelIdRaw,
 			GamePluginMessageProtocol protocol) {
-		return new SPacketOtherSkinPresetEAG(rewriteUUIDMost, rewriteUUIDLeast, skinId);
+		if(protocol.ver <= 4) {
+			return new SPacketOtherSkinPresetEAG(rewriteUUIDMost, rewriteUUIDLeast, skinId);
+		}else {
+			throw UnsafeUtil.wrongProtocol(protocol);
+		}
+	}
+
+	@Override
+	public GameMessagePacket getSkinPacket(int requestId, GamePluginMessageProtocol protocol) {
+		if(protocol.ver >= 5) {
+			return new SPacketOtherSkinPresetV5EAG(requestId, skinId);
+		}else {
+			throw UnsafeUtil.wrongProtocol(protocol);
+		}
+	}
+
+	@Override
+	public GameMessagePacket getSkinPacket(int requestId, EnumSkinModel rewriteModelId, GamePluginMessageProtocol protocol) {
+		if(protocol.ver >= 5) {
+			return new SPacketOtherSkinPresetV5EAG(requestId, skinId);
+		}else {
+			throw UnsafeUtil.wrongProtocol(protocol);
+		}
+	}
+
+	@Override
+	public GameMessagePacket getSkinPacket(int requestId, int rewriteModelIdRaw, GamePluginMessageProtocol protocol) {
+		if(protocol.ver >= 5) {
+			return new SPacketOtherSkinPresetV5EAG(requestId, skinId);
+		}else {
+			throw UnsafeUtil.wrongProtocol(protocol);
+		}
 	}
 
 	@Override

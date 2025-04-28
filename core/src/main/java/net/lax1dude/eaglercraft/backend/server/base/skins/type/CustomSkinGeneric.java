@@ -24,6 +24,7 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketForceClientSkinCustomV4EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherSkinCustomV3EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherSkinCustomV4EAG;
+import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketOtherSkinCustomV5EAG;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.util.SkinPacketVersionCache;
 
 public class CustomSkinGeneric extends BaseCustomSkin implements IModelRewritable {
@@ -58,8 +59,9 @@ public class CustomSkinGeneric extends BaseCustomSkin implements IModelRewritabl
 		case V3:
 			return new SPacketOtherSkinCustomV3EAG(rewriteUUIDMost, rewriteUUIDLeast, modelId, textureDataV3());
 		case V4:
-		default:
 			return new SPacketOtherSkinCustomV4EAG(rewriteUUIDMost, rewriteUUIDLeast, modelId, textureDataV4());
+		default:
+			throw UnsafeUtil.wrongProtocol(protocol);
 		}
 	}
 
@@ -76,8 +78,32 @@ public class CustomSkinGeneric extends BaseCustomSkin implements IModelRewritabl
 		case V3:
 			return new SPacketOtherSkinCustomV3EAG(rewriteUUIDMost, rewriteUUIDLeast, rewriteModelIdRaw, textureDataV3());
 		case V4:
-		default:
 			return new SPacketOtherSkinCustomV4EAG(rewriteUUIDMost, rewriteUUIDLeast, rewriteModelIdRaw, textureDataV4());
+		default:
+			throw UnsafeUtil.wrongProtocol(protocol);
+		}
+	}
+
+	@Override
+	public GameMessagePacket getSkinPacket(int requestId, GamePluginMessageProtocol protocol) {
+		if(protocol.ver >= 5) {
+			return new SPacketOtherSkinCustomV5EAG(requestId, modelId, textureDataV4());
+		}else {
+			throw UnsafeUtil.wrongProtocol(protocol);
+		}
+	}
+
+	@Override
+	public GameMessagePacket getSkinPacket(int requestId, EnumSkinModel rewriteModelId, GamePluginMessageProtocol protocol) {
+		return getSkinPacket(requestId, rewriteModelId.getId(), protocol);
+	}
+
+	@Override
+	public GameMessagePacket getSkinPacket(int requestId, int rewriteModelIdRaw, GamePluginMessageProtocol protocol) {
+		if(protocol.ver >= 5) {
+			return new SPacketOtherSkinCustomV5EAG(requestId, rewriteModelIdRaw, textureDataV4());
+		}else {
+			throw UnsafeUtil.wrongProtocol(protocol);
 		}
 	}
 

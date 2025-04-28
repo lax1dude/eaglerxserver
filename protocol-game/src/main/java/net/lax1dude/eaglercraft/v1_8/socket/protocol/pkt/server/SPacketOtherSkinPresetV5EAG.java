@@ -14,7 +14,7 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.client;
+package net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server;
 
 import java.io.IOException;
 
@@ -23,43 +23,39 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePacketOutputBuffer;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessageHandler;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.GameMessagePacket;
 
-public class CPacketGetOtherTexturesV5EAG implements GameMessagePacket {
+public class SPacketOtherSkinPresetV5EAG implements GameMessagePacket {
 
 	public int requestId;
-	public long uuidMost;
-	public long uuidLeast;
+	public int presetSkin;
 
-	public CPacketGetOtherTexturesV5EAG() {
+	public SPacketOtherSkinPresetV5EAG() {
 	}
 
-	public CPacketGetOtherTexturesV5EAG(int requestId, long uuidMost, long uuidLeast) {
+	public SPacketOtherSkinPresetV5EAG(int requestId, int presetSkin) {
 		this.requestId = requestId;
-		this.uuidMost = uuidMost;
-		this.uuidLeast = uuidLeast;
+		this.presetSkin = presetSkin;
 	}
 
 	@Override
 	public void readPacket(GamePacketInputBuffer buffer) throws IOException {
 		requestId = buffer.readVarInt();
-		uuidMost = buffer.readLong();
-		uuidLeast = buffer.readLong();
+		presetSkin = buffer.readVarInt();
 	}
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
 		buffer.writeVarInt(requestId);
-		buffer.writeLong(uuidMost);
-		buffer.writeLong(uuidLeast);
+		buffer.writeVarInt(presetSkin);
 	}
 
 	@Override
 	public void handlePacket(GameMessageHandler handler) {
-		handler.handleClient(this);
+		handler.handleServer(this);
 	}
 
 	@Override
 	public int length() {
-		return GamePacketOutputBuffer.getVarIntSize(requestId) + 16;
+		return GamePacketOutputBuffer.getVarIntSize(requestId) + GamePacketOutputBuffer.getVarIntSize(presetSkin);
 	}
 
 }

@@ -53,7 +53,6 @@ public class RewindPlayer<PlayerObject> {
 	private INBTContext nbtContext;
 	private IComponentHelper componentHelper;
 	private TabListTracker tabList;
-	private ObjectObjectMap<UUID, SkinRequest> skinRequests;
 	private ObjectObjectMap<UUID, String> voiceGlobalMap;
 	private ObjectObjectMap<String, UUID> voiceGlobalMapInv;
 	private Deflater notDeflater;
@@ -74,17 +73,6 @@ public class RewindPlayer<PlayerObject> {
 	private boolean isSneaking = false;
 
 	private byte[] temp1;
-
-	private long lastReqFlush;
-
-	private static class SkinRequest {
-		protected final long createdAt;
-		protected final int cookie;
-		protected SkinRequest(long createdAt, int cookie) {
-			this.createdAt = createdAt;
-			this.cookie = cookie;
-		}
-	}
 
 	public RewindPlayer(RewindProtocol<PlayerObject> rewind, IMessageController messageController,
 			IOutboundInjector outboundInjector, Channel channel, String logName) {
@@ -229,29 +217,6 @@ public class RewindPlayer<PlayerObject> {
 			this.temp1 = new byte[1];
 		}
 		return this.temp1;
-	}
-
-	public void addSkinRequest(UUID uuid, int cookie) {
-		long nanoTime = System.nanoTime();
-		if(nanoTime - lastReqFlush > (15l * 1000l * 1000l * 1000l)) {
-			lastReqFlush = nanoTime;
-			flushRequests(nanoTime);
-		}
-		if(skinRequests == null) {
-			skinRequests = rewind.getServerAPI().getHPPC().createObjectObjectHashMap(64);
-		}
-		skinRequests.put(uuid, new SkinRequest(nanoTime, cookie));
-	}
-
-	private void flushRequests(long nanoTime) {
-		if(skinRequests == null) return;
-		skinRequests.removeAll((k, v) -> nanoTime - v.createdAt > (30l * 1000l * 1000l * 1000l));
-	}
-
-	public int removeSkinRequest(UUID uuid) {
-		if(skinRequests == null) return -1;
-		SkinRequest req = skinRequests.remove(uuid);
-		return req != null ? req.cookie : -1;
 	}
 
 	public void releaseVoiceGlobalMap() {
