@@ -382,7 +382,7 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 				if(!res.isSuccess()) {
 					player.getRateLimits().ratelimitSkinAntagonist();
 				}
-				player.sendEaglerMessage(res.getSkinPacket(uuidMost, uuidLeast, player.getEaglerProtocol()));
+				player.sendEaglerMessage(res.getSkinPacket(uuidMost, uuidLeast, 0xFF, player.getEaglerProtocol()));
 			}
 		});
 	}
@@ -476,7 +476,7 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 				if(!res.isSuccess()) {
 					player.getRateLimits().ratelimitSkinAntagonist();
 				}
-				player.sendEaglerMessage(res.getSkinPacket(requestId, player.getEaglerProtocol()));
+				player.sendEaglerMessage(res.getSkinPacket(requestId, 0xFF, player.getEaglerProtocol()));
 			}
 		});
 	}
