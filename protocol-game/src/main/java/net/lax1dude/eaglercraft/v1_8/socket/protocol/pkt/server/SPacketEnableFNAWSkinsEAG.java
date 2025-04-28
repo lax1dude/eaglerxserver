@@ -45,7 +45,10 @@ public class SPacketEnableFNAWSkinsEAG implements GameMessagePacket {
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
-		buffer.writeByte((enableSkins ? 1 : 0) | (force ? 2 : 0));
+		int i = 0;
+		if(enableSkins) i |= 1;
+		if(force) i |= 2;
+		buffer.writeByte(i);
 	}
 
 	@Override

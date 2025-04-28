@@ -131,10 +131,10 @@ public class SPacketNotifBadgeShowV4EAG implements GameMessagePacket {
 		buffer.writeStringMC(sourceComponent);
 		buffer.writeShort((int)((originalTimestampSec >>> 32l) & 0xFFFFl));
 		buffer.writeInt((int)(originalTimestampSec & 0xFFFFFFFFl));
-		int flags = (silent ? 1 : 0);
-		flags |= ((priority != null ? priority.priority : 1) << 1);
-		flags |= ((mainIconUUIDMost != 0l || mainIconUUIDLeast != 0l) ? 8 : 0);
-		flags |= ((titleIconUUIDMost != 0l || titleIconUUIDLeast != 0l) ? 16 : 0);
+		int flags = ((priority != null ? priority.priority : 1) << 1);
+		if(silent) flags |= 1;
+		if(mainIconUUIDMost != 0l || mainIconUUIDLeast != 0l) flags |= 8;
+		if(titleIconUUIDMost != 0l || titleIconUUIDLeast != 0l) flags |= 16;
 		buffer.writeByte(flags);
 		buffer.writeByte(hideAfterSec);
 		buffer.writeShort(expireAfterSec);

@@ -48,7 +48,11 @@ public class SPacketUnforceClientV4EAG implements GameMessagePacket {
 
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
-		buffer.writeByte((resetSkin ? 1 : 0) | (resetCape ? 2 : 0) | (resetFNAW ? 4 : 0));
+		int i = 0;
+		if(resetSkin) i |= 1;
+		if(resetCape) i |= 2;
+		if(resetFNAW) i |= 4;
+		buffer.writeByte(i);
 	}
 
 	@Override

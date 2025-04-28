@@ -86,14 +86,20 @@ public class SPacketInvalidatePlayerCacheV4EAG implements GameMessagePacket {
 				buffer.writeVarInt(cnt);
 				for(int i = 0; i < cnt; ++i) {
 					InvalidateRequest dt = userList.get(i);
-					buffer.writeByte((dt.invalidateSkin ? 1 : 0) | (dt.invalidateCape ? 2 : 0));
+					int j = 0;
+					if(dt.invalidateSkin) j |= 1;
+					if(dt.invalidateCape) j |= 2;
+					buffer.writeByte(j);
 					buffer.writeLong(dt.uuidMost);
 					buffer.writeLong(dt.uuidLeast);
 				}
 			}else {
 				buffer.writeVarInt(players.size());
 				for(InvalidateRequest dt : players) {
-					buffer.writeByte((dt.invalidateSkin ? 1 : 0) | (dt.invalidateCape ? 2 : 0));
+					int j = 0;
+					if(dt.invalidateSkin) j |= 1;
+					if(dt.invalidateCape) j |= 2;
+					buffer.writeByte(j);
 					buffer.writeLong(dt.uuidMost);
 					buffer.writeLong(dt.uuidLeast);
 				}

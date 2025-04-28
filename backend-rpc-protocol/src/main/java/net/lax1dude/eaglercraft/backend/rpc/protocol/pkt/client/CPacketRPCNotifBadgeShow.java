@@ -129,9 +129,8 @@ public class CPacketRPCNotifBadgeShow implements EaglerBackendRPCPacket {
 		writeString(buffer, sourceComponent, false, StandardCharsets.UTF_8);
 		buffer.writeShort((int)(originalTimestampSec >> 32l));
 		buffer.writeInt((int)originalTimestampSec);
-		int flags = 0;
+		int flags = ((priority != null ? priority.priority : 1) << 1);
 		if(silent) flags |= 1;
-		flags |= ((priority != null ? priority.priority : 1) << 1);
 		if(mainIconUUID != null) flags |= 8;
 		if(titleIconUUID != null) flags |= 16;
 		if(managed) flags |= 32;

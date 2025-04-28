@@ -63,7 +63,10 @@ public class SPacketSetServerCookieV4EAG implements GameMessagePacket {
 		if(data != null && data.length > 255) {
 			throw new IOException("Cookie is too large! (Max 255 bytes)");
 		}
-		buffer.writeByte((revokeQuerySupported ? 1 : 0) | (saveCookieToDisk ? 2 : 0));
+		byte b = 0;
+		if(revokeQuerySupported) b |= 1;
+		if(saveCookieToDisk) b |= 2;
+		buffer.writeByte(b);
 		buffer.writeVarLong(expires);
 		if(data != null) {
 			buffer.writeByte(data.length);

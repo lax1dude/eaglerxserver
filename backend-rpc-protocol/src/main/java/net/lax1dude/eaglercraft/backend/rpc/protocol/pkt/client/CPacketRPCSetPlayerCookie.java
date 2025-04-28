@@ -61,7 +61,10 @@ public class CPacketRPCSetPlayerCookie implements EaglerBackendRPCPacket {
 		if(cookieData != null && cookieData.length > 255) {
 			throw new IOException("Cookie cannot be longer than 255 bytes!");
 		}
-		buffer.writeByte((revokeQuerySupported ? 1 : 0) | (saveToDisk ? 2 : 0));
+		int flags = 0;
+		if(revokeQuerySupported) flags |= 1;
+		if(saveToDisk) flags |= 2;
+		buffer.writeByte(flags);
 		buffer.writeInt(expires);
 		if(cookieData != null) {
 			buffer.writeByte(cookieData.length);
