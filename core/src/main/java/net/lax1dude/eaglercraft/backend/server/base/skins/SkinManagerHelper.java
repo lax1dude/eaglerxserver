@@ -35,7 +35,7 @@ class SkinManagerHelper {
 				EaglerPlayerInstance<PlayerObject> playerObj = player
 						.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().asEaglerPlayer();
 				if (playerObj != null && playerObj != playerIn) {
-					playerObj.writePacket(invalidatePacket);
+					playerObj.sendEaglerMessage(invalidatePacket);
 				}
 			});
 		}
