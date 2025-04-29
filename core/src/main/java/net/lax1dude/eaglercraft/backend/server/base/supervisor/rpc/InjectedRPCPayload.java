@@ -60,9 +60,9 @@ class InjectedRPCPayload implements IInjectedPayload {
 			}
 			ISupervisorData ret;
 			try {
-				ret = dataType.ctor.newInstance();
-			} catch (ReflectiveOperationException e) {
-				throw Util.propagateReflectThrowable(e);
+				ret = (ISupervisorData) dataType.ctor.invoke();
+			} catch (Throwable e) {
+				throw Util.propagateInvokeThrowable(e);
 			}
 			ret.read(new ByteBufInputWrapper(buf));
 			return ret;

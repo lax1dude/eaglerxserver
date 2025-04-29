@@ -16,7 +16,12 @@
 
 package net.lax1dude.eaglercraft.backend.server.util;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
@@ -41,6 +46,8 @@ public class Util {
 			if (cause != null) {
 				if (cause instanceof RuntimeException cause2) {
 					return cause2;
+				} else if (cause instanceof Error cause2) {
+					throw cause2;
 				}
 				return new RuntimeException("Encountered an InvocationTargetException while performing reflection",
 						cause);
@@ -49,6 +56,29 @@ public class Util {
 			return exx;
 		}
 		return new RuntimeException("Could not perform reflection!", ex);
+	}
+
+	public static RuntimeException propagateInvokeThrowable(Throwable ex) {
+		if (ex instanceof RuntimeException exx) {
+			return exx;
+		} else if (ex instanceof Error exx) {
+			throw exx;
+		}
+		return new RuntimeException("Could not invoke method handle!", ex);
+	}
+
+	public static MethodHandle findDeclaredMethod(MethodHandles.Lookup lookup, Class<?> clazz, String name,
+			Class<?>... args) throws ReflectiveOperationException {
+		Method meth = clazz.getDeclaredMethod(name, args);
+		meth.setAccessible(true);
+		return lookup.unreflect(meth);
+	}
+
+	public static VarHandle findDeclaredField(MethodHandles.Lookup lookup, Class<?> clazz, String name)
+			throws ReflectiveOperationException {
+		Field field = clazz.getDeclaredField(name);
+		field.setAccessible(true);
+		return lookup.unreflectVarHandle(field);
 	}
 
 	public static byte[] sha1(byte[] input) {

@@ -16,7 +16,8 @@
 
 package net.lax1dude.eaglercraft.backend.server.base.supervisor.rpc;
 
-import java.lang.reflect.Constructor;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.util.concurrent.ExecutionException;
 
 import com.google.common.cache.CacheBuilder;
@@ -40,13 +41,13 @@ class SupervisorDataType {
 	static final SupervisorDataType VOID_TYPE = new SupervisorDataType();
 
 	protected final Class<? extends ISupervisorData> clazz;
-	protected final Constructor<? extends ISupervisorData> ctor;
+	protected final MethodHandle ctor;
 
 	private SupervisorDataType(Class<? extends ISupervisorData> clazz) {
 		this.clazz = clazz;
 		try {
-			this.ctor = clazz.getConstructor();
-		} catch (NoSuchMethodException | SecurityException e) {
+			this.ctor = MethodHandles.lookup().unreflectConstructor(clazz.getConstructor());
+		} catch (ReflectiveOperationException e) {
 			throw new IllegalArgumentException("Data class must define a default constructor with zero arguments!");
 		}
 	}
