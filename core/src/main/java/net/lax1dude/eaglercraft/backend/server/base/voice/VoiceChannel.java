@@ -120,15 +120,24 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 			}
 			Object[] allPlayers = connectedPlayers.values().toArray();
 			int len = allPlayers.length;
-			GameMessagePacket v3p = null;
-			GameMessagePacket v4p = null;
 			SPacketVoiceSignalGlobalEAG.UserData[] userDatas = new SPacketVoiceSignalGlobalEAG.UserData[len];
 			for (int i = 0; i < len; ++i) {
 				Context ctx = (Context) allPlayers[i];
-				EaglerPlayerInstance<PlayerObject> ctxPlayer = ctx.mgr.player;
 				userDatas[i] = new SPacketVoiceSignalGlobalEAG.UserData(ctx.selfUUID.getMostSignificantBits(),
-						ctx.selfUUID.getLeastSignificantBits(), ctxPlayer.getUsername());
+						ctx.selfUUID.getLeastSignificantBits(), ctx.mgr.player.getUsername());
+			}
+			GameMessagePacket packetToBroadcast = new SPacketVoiceSignalGlobalEAG(Arrays.asList(userDatas));
+			for (int i = 0; i < len; ++i) {
+				((Context) allPlayers[i]).mgr.player.sendEaglerMessage(packetToBroadcast);
+			}
+			EaglerPlayerInstance<PlayerObject> self = mgr.player;
+			boolean selfV3 = self.getEaglerProtocol().ver <= 3;
+			GameMessagePacket v3p = null;
+			GameMessagePacket v4p = null;
+			for (int i = 0; i < len; ++i) {
+				Context ctx = (Context) allPlayers[i];
 				if (ctx != this) {
+					EaglerPlayerInstance<PlayerObject> ctxPlayer = ctx.mgr.player;
 					if (ctxPlayer.getEaglerProtocol().ver <= 3) {
 						ctxPlayer.sendEaglerMessage(v3p == null
 								? (v3p = new SPacketVoiceSignalConnectV3EAG(selfUUID.getMostSignificantBits(),
@@ -141,17 +150,6 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 												selfUUID.getMostSignificantBits(), selfUUID.getLeastSignificantBits()))
 										: v4p);
 					}
-				}
-			}
-			GameMessagePacket packetToBroadcast = new SPacketVoiceSignalGlobalEAG(Arrays.asList(userDatas));
-			for (int i = 0; i < len; ++i) {
-				((Context) allPlayers[i]).mgr.player.sendEaglerMessage(packetToBroadcast);
-			}
-			EaglerPlayerInstance<PlayerObject> self = mgr.player;
-			boolean selfV3 = self.getEaglerProtocol().ver <= 3;
-			for (int i = 0; i < len; ++i) {
-				Context ctx = (Context) allPlayers[i];
-				if (ctx != this) {
 					if (selfV3) {
 						self.sendEaglerMessage(new SPacketVoiceSignalConnectV3EAG(ctx.selfUUID.getMostSignificantBits(),
 								ctx.selfUUID.getLeastSignificantBits(), true, false));

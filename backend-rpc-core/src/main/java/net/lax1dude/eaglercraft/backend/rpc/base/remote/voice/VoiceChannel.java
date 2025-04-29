@@ -120,16 +120,21 @@ class VoiceChannel<PlayerObject> implements IVoiceChannel {
 			SPacketVCPlayerList.UserData[] userDatas = new SPacketVCPlayerList.UserData[len];
 			for (int i = 0; i < len; ++i) {
 				Context ctx = (Context) allPlayers[i];
-				VoiceManagerRemote<PlayerObject> ctxMgr = ctx.mgr;
 				userDatas[i] = new SPacketVCPlayerList.UserData(ctx.selfUUID.getMostSignificantBits(),
-						ctx.selfUUID.getLeastSignificantBits(), ctxMgr.player.getUsername());
-				if (ctx != this) {
-					ctxMgr.writeOutboundVoicePacket(announcePacket);
-				}
+						ctx.selfUUID.getLeastSignificantBits(), ctx.mgr.player.getUsername());
+				
 			}
 			EaglerVCPacket packetToBroadcast = new SPacketVCPlayerList(Arrays.asList(userDatas));
 			for (int i = 0; i < len; ++i) {
 				((Context) allPlayers[i]).mgr.writeOutboundVoicePacket(packetToBroadcast);
+			}
+			for (int i = 0; i < len; ++i) {
+				Context ctx = (Context) allPlayers[i];
+				if (ctx != this) {
+					ctx.mgr.writeOutboundVoicePacket(announcePacket);
+					mgr.writeOutboundVoicePacket(new SPacketVCAnnounce(ctx.selfUUID.getMostSignificantBits(),
+							ctx.selfUUID.getLeastSignificantBits()));
+				}
 			}
 		}
 
