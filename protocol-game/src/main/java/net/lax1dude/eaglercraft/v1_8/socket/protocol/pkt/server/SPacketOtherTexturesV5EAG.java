@@ -45,8 +45,8 @@ public class SPacketOtherTexturesV5EAG implements GameMessagePacket {
 	@Override
 	public void readPacket(GamePacketInputBuffer buffer) throws IOException {
 		requestId = buffer.readVarInt();
-		skinID = buffer.readInt();
-		capeID = buffer.readInt();
+		skinID = buffer.readVarInt();
+		capeID = buffer.readVarInt();
 		if (skinID < 0) {
 			customSkin = new byte[12288];
 			buffer.readFully(customSkin);
@@ -60,8 +60,8 @@ public class SPacketOtherTexturesV5EAG implements GameMessagePacket {
 	@Override
 	public void writePacket(GamePacketOutputBuffer buffer) throws IOException {
 		buffer.writeVarInt(requestId);
-		buffer.writeInt(skinID);
-		buffer.writeInt(capeID);
+		buffer.writeVarInt(skinID);
+		buffer.writeVarInt(capeID);
 		if (skinID < 0) {
 			if (customSkin.length != 12288) {
 				throw new IOException("Custom skin data length is not 12288 bytes! (" + customSkin.length + ")");
@@ -83,7 +83,8 @@ public class SPacketOtherTexturesV5EAG implements GameMessagePacket {
 
 	@Override
 	public int length() {
-		int i = 8 + GamePacketOutputBuffer.getVarIntSize(requestId);
+		int i = GamePacketOutputBuffer.getVarIntSize(skinID) + GamePacketOutputBuffer.getVarIntSize(capeID)
+				+ GamePacketOutputBuffer.getVarIntSize(requestId);
 		if (skinID < 0)
 			i += 12288;
 		if (capeID < 0)
