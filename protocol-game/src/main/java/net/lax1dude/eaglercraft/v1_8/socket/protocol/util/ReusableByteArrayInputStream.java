@@ -31,6 +31,12 @@ public class ReusableByteArrayInputStream extends InputStream {
 		markIDX = 0;
 	}
 
+	public void feedBuffer(byte[] b, int offset) {
+		currentBuffer = b;
+		idx = offset;
+		markIDX = offset;
+	}
+
 	@Override
 	public int read() throws IOException {
 		if (currentBuffer.length <= idx)
@@ -72,7 +78,7 @@ public class ReusableByteArrayInputStream extends InputStream {
 
 	public void setReaderIndex(int i) {
 		idx = i;
-		markIDX = idx;
+		markIDX = i;
 	}
 
 	public boolean markSupported() {
