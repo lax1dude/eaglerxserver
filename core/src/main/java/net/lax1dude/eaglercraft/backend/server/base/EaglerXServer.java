@@ -551,6 +551,15 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			}
 		}
 
+		if (!skinService.isSkinDownloadEnabled()) {
+			int ver = playerInstance.getEaglerProtocol().ver;
+			if (ver >= 5) {
+				playerInstance.sendEaglerMessage(new SPacketClientStateFlagV5EAG(
+						ClientStateFlagUUIDs.DISABLE_SKIN_URL_LOOKUP.getMostSignificantBits(),
+						ClientStateFlagUUIDs.DISABLE_SKIN_URL_LOOKUP.getLeastSignificantBits(), 1));
+			}
+		}
+
 		skinService.createEaglerSkinManager(playerInstance, profileData, (mgr) -> {
 			playerInstance.skinManager = mgr;
 
