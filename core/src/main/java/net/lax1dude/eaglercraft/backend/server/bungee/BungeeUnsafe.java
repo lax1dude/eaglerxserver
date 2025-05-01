@@ -16,8 +16,11 @@
 
 package net.lax1dude.eaglercraft.backend.server.bungee;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.invoke.VarHandle;
 import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -54,86 +57,98 @@ import net.md_5.bungee.netty.ChannelWrapper;
 public class BungeeUnsafe {
 
 	private static final Class<?> class_InitialHandler;
-	private static final Method method_InitialHandler_getBrandMessage;
-	private static final Field field_InitialHandler_loginProfile;
-	private static final Field field_InitialHandler_ch;
-	private static final Class<?> class_ChannelWrapper;
-	private static final Method method_ChannelWrapper_close;
 	private static final Class<?> class_PluginMessage;
-	private static final Method method_PluginMessage_getData;
+	private static final MethodHandle method_InitialHandler_getBrandMessage;
+	private static final MethodHandle method_PluginMessage_getData;
+	private static final VarHandle field_InitialHandler_loginProfile;
+	private static final VarHandle field_InitialHandler_ch;
+	private static final Class<?> class_ChannelWrapper;
+	private static final MethodHandle method_ChannelWrapper_close;
 	private static final Class<?> class_LoginResult;
-	private static final Constructor<?> constructor_LoginResult;
-	private static final Method method_LoginResult_getProperties;
-	private static final Method method_LoginResult_setProperties;
+	private static final MethodHandle constructor_LoginResult;
+	private static final MethodHandle method_LoginResult_getProperties;
+	private static final MethodHandle method_LoginResult_setProperties;
 	private static final Class<?> class_Property;
-	private static final Constructor<?> constructor_Property;
+	private static final MethodHandle constructor_Property;
 	private static final Object isEaglerPlayerPropertyT;
 	private static final Object isEaglerPlayerPropertyF;
-	private static final Method method_Property_getName;
-	private static final Method method_Property_getValue;
+	private static final MethodHandle method_Property_getName;
+	private static final MethodHandle method_Property_getValue;
 	private static final Class<?> class_BungeeCord;
-	private static final Field field_BungeeCord_listeners;
-	private static final Field field_BungeeCord_config;
-	private static final Field field_BungeeCord_eventLoops;
-	private static final Field field_BungeeCord_bossEventLoopGroup;
-	private static final Field field_BungeeCord_workerEventLoopGroup;
+	private static final VarHandle field_BungeeCord_listeners;
+	private static final VarHandle field_BungeeCord_config;
+	private static final VarHandle field_BungeeCord_eventLoops;
+	private static final VarHandle field_BungeeCord_bossEventLoopGroup;
+	private static final VarHandle field_BungeeCord_workerEventLoopGroup;
 	private static final Class<?> class_Configuration;
-	private static final Method method_Configuration_isOnlineMode;
-	private static final Method method_Configuration_getPlayerLimit;
+	private static final MethodHandle method_Configuration_isOnlineMode;
+	private static final MethodHandle method_Configuration_getPlayerLimit;
 	private static final Class<?> class_PipelineUtils;
-	private static final Method method_PipelineUtils_getChannel;
-	private static final Method method_PipelineUtils_getServerChannel;
+	private static final MethodHandle method_PipelineUtils_getChannel;
+	private static final MethodHandle method_PipelineUtils_getServerChannel;
 	private static final Class<?> class_HandlerBoss;
-	private static final Field field_HandlerBoss_channel;
+	private static final VarHandle field_HandlerBoss_channel;
 
 	static {
 		try {
+			MethodHandles.Lookup lookup = MethodHandles.lookup();
 			class_InitialHandler = Class.forName("net.md_5.bungee.connection.InitialHandler");
-			method_InitialHandler_getBrandMessage = class_InitialHandler.getMethod("getBrandMessage");
-			field_InitialHandler_loginProfile = class_InitialHandler.getDeclaredField("loginProfile");
-			field_InitialHandler_loginProfile.setAccessible(true);
-			field_InitialHandler_ch = class_InitialHandler.getDeclaredField("ch");
-			field_InitialHandler_ch.setAccessible(true);
-			class_ChannelWrapper = Class.forName("net.md_5.bungee.netty.ChannelWrapper");
-			method_ChannelWrapper_close = class_ChannelWrapper.getMethod("close");
 			class_PluginMessage = Class.forName("net.md_5.bungee.protocol.packet.PluginMessage");
-			method_PluginMessage_getData = class_PluginMessage.getMethod("getData");
+			method_InitialHandler_getBrandMessage = lookup.findVirtual(class_InitialHandler, "getBrandMessage",
+					MethodType.methodType(class_PluginMessage));
+			method_PluginMessage_getData = lookup.findVirtual(class_PluginMessage, "getData",
+					MethodType.methodType(byte[].class));
+			field_InitialHandler_loginProfile = Util.findDeclaredField(lookup, class_InitialHandler, "loginProfile");
+			field_InitialHandler_ch = Util.findDeclaredField(lookup, class_InitialHandler, "ch");
+			class_ChannelWrapper = Class.forName("net.md_5.bungee.netty.ChannelWrapper");
+			method_ChannelWrapper_close = lookup.findVirtual(class_ChannelWrapper, "close",
+					MethodType.methodType(void.class));
 			class_LoginResult = Class.forName("net.md_5.bungee.connection.LoginResult");
 			class_Property = Class.forName("net.md_5.bungee.protocol.Property");
 			Class<?> propArrayClass = Array.newInstance(class_Property, 0).getClass();
-			constructor_LoginResult = class_LoginResult.getConstructor(String.class, String.class, propArrayClass);
-			method_LoginResult_getProperties = class_LoginResult.getMethod("getProperties");
-			method_LoginResult_setProperties = class_LoginResult.getMethod("setProperties", propArrayClass);
-			constructor_Property = class_Property.getConstructor(String.class, String.class, String.class);
-			isEaglerPlayerPropertyT = constructor_Property.newInstance("isEaglerPlayer", "true", null);
-			isEaglerPlayerPropertyF = constructor_Property.newInstance("isEaglerPlayer", "false", null);
-			method_Property_getName = class_Property.getMethod("getName");
-			method_Property_getValue = class_Property.getMethod("getValue");
-			class_BungeeCord = Class.forName("net.md_5.bungee.BungeeCord");
-			field_BungeeCord_listeners = class_BungeeCord.getDeclaredField("listeners");
-			field_BungeeCord_listeners.setAccessible(true);
-			field_BungeeCord_config = class_BungeeCord.getDeclaredField("config");
-			field_BungeeCord_config.setAccessible(true);
-			Field bossGroup = null, workerGroup = null, group = null;
+			constructor_LoginResult = lookup.findConstructor(class_LoginResult,
+					MethodType.methodType(void.class, String.class, String.class, propArrayClass));
+			method_LoginResult_getProperties = lookup.findVirtual(class_LoginResult, "getProperties",
+					MethodType.methodType(propArrayClass));
+			method_LoginResult_setProperties = lookup.findVirtual(class_LoginResult, "setProperties",
+					MethodType.methodType(void.class, propArrayClass));
+			constructor_Property = lookup.findConstructor(class_Property,
+					MethodType.methodType(void.class, String.class, String.class, String.class));
 			try {
-				bossGroup = class_BungeeCord.getField("bossEventLoopGroup");
-				workerGroup = class_BungeeCord.getField("workerEventLoopGroup");
+				isEaglerPlayerPropertyT = constructor_Property.invoke("isEaglerPlayer", "true", null);
+				isEaglerPlayerPropertyF = constructor_Property.invoke("isEaglerPlayer", "false", null);
+			} catch (Throwable t) {
+				throw new RuntimeException(t);
+			}
+			method_Property_getName = lookup.findVirtual(class_Property, "getName",
+					MethodType.methodType(String.class));
+			method_Property_getValue = lookup.findVirtual(class_Property, "getValue",
+					MethodType.methodType(String.class));
+			class_BungeeCord = Class.forName("net.md_5.bungee.BungeeCord");
+			field_BungeeCord_listeners = Util.findDeclaredField(lookup, class_BungeeCord, "listeners");
+			field_BungeeCord_config = Util.findDeclaredField(lookup, class_BungeeCord, "config");
+			VarHandle bossGroup = null, workerGroup = null, group = null;
+			try {
+				bossGroup = Util.findDeclaredField(lookup, class_BungeeCord, "bossEventLoopGroup");
+				workerGroup = Util.findDeclaredField(lookup, class_BungeeCord, "workerEventLoopGroup");
 			} catch (Exception ex) {
-				group = class_BungeeCord.getField("eventLoops");
+				group = Util.findDeclaredField(lookup, class_BungeeCord, "eventLoops");
 			}
 			field_BungeeCord_eventLoops = group;
 			field_BungeeCord_bossEventLoopGroup = bossGroup;
 			field_BungeeCord_workerEventLoopGroup = workerGroup;
 			class_Configuration = Class.forName("net.md_5.bungee.conf.Configuration");
-			method_Configuration_isOnlineMode = class_Configuration.getMethod("isOnlineMode");
-			method_Configuration_getPlayerLimit = class_Configuration.getMethod("getPlayerLimit");
+			method_Configuration_isOnlineMode = lookup.findVirtual(class_Configuration, "isOnlineMode",
+					MethodType.methodType(boolean.class));
+			method_Configuration_getPlayerLimit = lookup.findVirtual(class_Configuration, "getPlayerLimit",
+					MethodType.methodType(int.class));
 			class_PipelineUtils = Class.forName("net.md_5.bungee.netty.PipelineUtils");
-			method_PipelineUtils_getChannel = class_PipelineUtils.getMethod("getChannel", SocketAddress.class);
-			method_PipelineUtils_getServerChannel = class_PipelineUtils.getMethod("getServerChannel",
-					SocketAddress.class);
+			method_PipelineUtils_getChannel = lookup.findStatic(class_PipelineUtils, "getChannel",
+					MethodType.methodType(Class.class, SocketAddress.class));
+			method_PipelineUtils_getServerChannel = lookup.findStatic(class_PipelineUtils, "getServerChannel",
+					MethodType.methodType(Class.class, SocketAddress.class));
 			class_HandlerBoss = Class.forName("net.md_5.bungee.netty.HandlerBoss");
-			field_HandlerBoss_channel = class_HandlerBoss.getDeclaredField("channel");
-			field_HandlerBoss_channel.setAccessible(true);
+			field_HandlerBoss_channel = Util.findDeclaredField(lookup, class_HandlerBoss, "channel");
 		} catch (ReflectiveOperationException ex) {
 			throw new ExceptionInInitializerError(ex);
 		}
@@ -147,8 +162,8 @@ public class BungeeUnsafe {
 					return null;
 				}
 				return (byte[]) method_PluginMessage_getData.invoke(obj);
-			} catch (ReflectiveOperationException ex) {
-				throw Util.propagateReflectThrowable(ex);
+			} catch (Throwable ex) {
+				throw Util.propagateInvokeThrowable(ex);
 			}
 		} else {
 			return null;
@@ -159,8 +174,8 @@ public class BungeeUnsafe {
 		if (class_InitialHandler.isAssignableFrom(pendingConnection.getClass())) {
 			try {
 				return ((ChannelWrapper) field_InitialHandler_ch.get(pendingConnection)).getHandle();
-			} catch (ReflectiveOperationException ex) {
-				throw Util.propagateReflectThrowable(ex);
+			} catch (Throwable ex) {
+				throw Util.propagateInvokeThrowable(ex);
 			}
 		} else {
 			throw new RuntimeException(
@@ -173,8 +188,8 @@ public class BungeeUnsafe {
 		if (class_InitialHandler.isAssignableFrom(pendingConnection.getClass())) {
 			try {
 				method_ChannelWrapper_close.invoke(field_InitialHandler_ch.get(pendingConnection));
-			} catch (ReflectiveOperationException ex) {
-				throw Util.propagateReflectThrowable(ex);
+			} catch (Throwable ex) {
+				throw Util.propagateInvokeThrowable(ex);
 			}
 		} else {
 			throw new RuntimeException(
@@ -189,8 +204,8 @@ public class BungeeUnsafe {
 	@SuppressWarnings("deprecation")
 	public static boolean isOnlineMode(ProxyServer proxy) {
 		try {
-			return (Boolean) method_Configuration_isOnlineMode.invoke(field_BungeeCord_config.get(proxy));
-		} catch (ReflectiveOperationException e) {
+			return (boolean) method_Configuration_isOnlineMode.invoke(field_BungeeCord_config.get(proxy));
+		} catch (Throwable e) {
 			return proxy.getConfig().isOnlineMode();
 		}
 	}
@@ -198,8 +213,8 @@ public class BungeeUnsafe {
 	@SuppressWarnings("deprecation")
 	public static int getPlayerMax(ProxyServer proxy) {
 		try {
-			return (Integer) method_Configuration_getPlayerLimit.invoke(field_BungeeCord_config.get(proxy));
-		} catch (ReflectiveOperationException e) {
+			return (int) method_Configuration_getPlayerLimit.invoke(field_BungeeCord_config.get(proxy));
+		} catch (Throwable e) {
 			return proxy.getConfig().getPlayerLimit();
 		}
 	}
@@ -232,8 +247,8 @@ public class BungeeUnsafe {
 								}
 							});
 				}
-			} catch (ReflectiveOperationException e) {
-				throw Util.propagateReflectThrowable(e);
+			} catch (Throwable e) {
+				throw Util.propagateInvokeThrowable(e);
 			}
 		} else {
 			throw new RuntimeException("PendingConnection is an unknown type: " + conn.getClass().getName());
@@ -256,8 +271,8 @@ public class BungeeUnsafe {
 					}
 				}
 				return null;
-			} catch (ReflectiveOperationException e) {
-				throw Util.propagateReflectThrowable(e);
+			} catch (Throwable e) {
+				throw Util.propagateInvokeThrowable(e);
 			}
 		} else {
 			throw new RuntimeException("PendingConnection is an unknown type: " + conn.getClass().getName());
@@ -268,8 +283,8 @@ public class BungeeUnsafe {
 		if (class_HandlerBoss.isAssignableFrom(handler.getClass())) {
 			try {
 				((ChannelWrapper) field_HandlerBoss_channel.get(handler)).setRemoteAddress(addr);
-			} catch (ReflectiveOperationException e) {
-				throw Util.propagateReflectThrowable(e);
+			} catch (Throwable e) {
+				throw Util.propagateInvokeThrowable(e);
 			}
 		}
 	}
@@ -311,33 +326,29 @@ public class BungeeUnsafe {
 			Collection<IEaglerXServerListener> listenersList) {
 		CleanupList cleanupList = new CleanupList();
 		final ListenerInitList initList = new ListenerInitList(listenersList);
-		try {
-			final Set<Channel> channels = (Set<Channel>) field_BungeeCord_listeners.get(server);
-			for (Channel ch : channels) {
-				injectChannelInitializer(ch, initList, initHandler, cleanupList);
-			}
-			Set<Channel> hackSet = new ForwardingSet<Channel>() {
-				@Override
-				protected Set<Channel> delegate() {
-					return channels;
-				}
-
-				@Override
-				public boolean add(Channel element) {
-					if (super.add(element)) {
-						if (cleanupList.cleanup != null) {
-							injectChannelInitializer(element, initList, initHandler, cleanupList);
-						}
-						return true;
-					} else {
-						return false;
-					}
-				}
-			};
-			field_BungeeCord_listeners.set(server, hackSet);
-		} catch (ReflectiveOperationException ex) {
-			throw Util.propagateReflectThrowable(ex);
+		final Set<Channel> channels = (Set<Channel>) field_BungeeCord_listeners.get(server);
+		for (Channel ch : channels) {
+			injectChannelInitializer(ch, initList, initHandler, cleanupList);
 		}
+		Set<Channel> hackSet = new ForwardingSet<Channel>() {
+			@Override
+			protected Set<Channel> delegate() {
+				return channels;
+			}
+
+			@Override
+			public boolean add(Channel element) {
+				if (super.add(element)) {
+					if (cleanupList.cleanup != null) {
+						injectChannelInitializer(element, initList, initHandler, cleanupList);
+					}
+					return true;
+				} else {
+					return false;
+				}
+			}
+		};
+		field_BungeeCord_listeners.set(server, hackSet);
 		return cleanupList;
 	}
 
@@ -443,11 +454,7 @@ public class BungeeUnsafe {
 
 	public static EventLoopGroup getBossEventLoopGroup(ProxyServer proxy) {
 		if (field_BungeeCord_bossEventLoopGroup != null) {
-			try {
-				return (EventLoopGroup) field_BungeeCord_bossEventLoopGroup.get(proxy);
-			} catch (ReflectiveOperationException e) {
-				throw Util.propagateReflectThrowable(e);
-			}
+			return (EventLoopGroup) field_BungeeCord_bossEventLoopGroup.get(proxy);
 		} else {
 			return null;
 		}
@@ -455,17 +462,9 @@ public class BungeeUnsafe {
 
 	public static EventLoopGroup getWorkerEventLoopGroup(ProxyServer proxy) {
 		if (field_BungeeCord_workerEventLoopGroup != null) {
-			try {
-				return (EventLoopGroup) field_BungeeCord_workerEventLoopGroup.get(proxy);
-			} catch (ReflectiveOperationException e) {
-				throw Util.propagateReflectThrowable(e);
-			}
+			return (EventLoopGroup) field_BungeeCord_workerEventLoopGroup.get(proxy);
 		} else if (field_BungeeCord_eventLoops != null) {
-			try {
-				return (EventLoopGroup) field_BungeeCord_eventLoops.get(proxy);
-			} catch (ReflectiveOperationException e) {
-				throw Util.propagateReflectThrowable(e);
-			}
+			return (EventLoopGroup) field_BungeeCord_eventLoops.get(proxy);
 		} else {
 			throw new IllegalStateException("Event loop group field could not be found");
 		}
@@ -474,9 +473,9 @@ public class BungeeUnsafe {
 	public static Function<SocketAddress, Class<? extends Channel>> getChannelFactory() {
 		return (addr) -> {
 			try {
-				return (Class<? extends Channel>) method_PipelineUtils_getChannel.invoke(null, addr);
-			} catch (ReflectiveOperationException e) {
-				throw Util.propagateReflectThrowable(e);
+				return (Class<? extends Channel>) method_PipelineUtils_getChannel.invoke(addr);
+			} catch (Throwable e) {
+				throw Util.propagateInvokeThrowable(e);
 			}
 		};
 	}
@@ -485,9 +484,9 @@ public class BungeeUnsafe {
 	public static Function<SocketAddress, Class<? extends ServerChannel>> getServerChannelFactory() {
 		return (addr) -> {
 			try {
-				return (Class<? extends ServerChannel>) method_PipelineUtils_getServerChannel.invoke(null, addr);
-			} catch (ReflectiveOperationException e) {
-				throw Util.propagateReflectThrowable(e);
+				return (Class<? extends ServerChannel>) method_PipelineUtils_getServerChannel.invoke(addr);
+			} catch (Throwable e) {
+				throw Util.propagateInvokeThrowable(e);
 			}
 		};
 	}
@@ -495,16 +494,16 @@ public class BungeeUnsafe {
 	private static final Predicate<Object> removeTexturesProperty = (obj) -> {
 		try {
 			return "textures".equals(method_Property_getName.invoke(obj));
-		} catch (ReflectiveOperationException e) {
-			throw Util.propagateReflectThrowable(e);
+		} catch (Throwable e) {
+			throw Util.propagateInvokeThrowable(e);
 		}
 	};
 
 	private static final Predicate<Object> removeEaglerPlayerProperty = (obj) -> {
 		try {
 			return "isEaglerPlayer".equals(method_Property_getName.invoke(obj));
-		} catch (ReflectiveOperationException e) {
-			throw Util.propagateReflectThrowable(e);
+		} catch (Throwable e) {
+			throw Util.propagateInvokeThrowable(e);
 		}
 	};
 
@@ -526,9 +525,9 @@ public class BungeeUnsafe {
 		public void injectTexturesProperty(String value, String signature) {
 			Object o;
 			try {
-				o = constructor_Property.newInstance("textures", value, signature);
-			} catch (ReflectiveOperationException e) {
-				throw Util.propagateReflectThrowable(e);
+				o = constructor_Property.invoke("textures", value, signature);
+			} catch (Throwable e) {
+				throw Util.propagateInvokeThrowable(e);
 			}
 			propList.removeIf(removeTexturesProperty);
 			propList.add(o);
@@ -543,8 +542,8 @@ public class BungeeUnsafe {
 			try {
 				method_LoginResult_setProperties.invoke(loginResult, new Object[] {
 						propList.toArray((Object[]) Array.newInstance(class_Property, propList.size())) });
-			} catch (ReflectiveOperationException e) {
-				throw Util.propagateReflectThrowable(e);
+			} catch (Throwable e) {
+				throw Util.propagateInvokeThrowable(e);
 			}
 		}
 
@@ -556,15 +555,15 @@ public class BungeeUnsafe {
 				Object loginResult = field_InitialHandler_loginProfile.get(conn);
 				Object[] oldPropertyList = null;
 				if (loginResult == null) {
-					loginResult = constructor_LoginResult.newInstance(conn.getName(),
+					loginResult = constructor_LoginResult.invoke(conn.getName(),
 							Util.toUUIDStringUndashed(conn.getUniqueId()).toString(), null);
 					field_InitialHandler_loginProfile.set(conn, loginResult);
 				} else {
 					oldPropertyList = (Object[]) method_LoginResult_getProperties.invoke(loginResult);
 				}
 				return new PropertyInjector(loginResult, oldPropertyList);
-			} catch (ReflectiveOperationException e) {
-				throw Util.propagateReflectThrowable(e);
+			} catch (Throwable e) {
+				throw Util.propagateInvokeThrowable(e);
 			}
 		} else {
 			throw new RuntimeException("PendingConnection is an unknown type: " + conn.getClass().getName());
