@@ -131,7 +131,7 @@ public class BungeeUnsafe {
 			try {
 				bossGroup = Util.findDeclaredField(lookup, class_BungeeCord, "bossEventLoopGroup");
 				workerGroup = Util.findDeclaredField(lookup, class_BungeeCord, "workerEventLoopGroup");
-			} catch (Exception ex) {
+			} catch (ReflectiveOperationException ex) {
 				group = Util.findDeclaredField(lookup, class_BungeeCord, "eventLoops");
 			}
 			field_BungeeCord_eventLoops = group;
