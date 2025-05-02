@@ -58,7 +58,7 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			"fireworksSpark",
 			"bubble",
 			"splash",
-			"", // wake
+			null, // wake
 			"suspended",
 			"depthsuspend",
 			"crit",
@@ -87,13 +87,13 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 			"snowshovel",
 			"slime",
 			"heart",
-			"", // barrier
-			"tilecrack_*_*", // iconcrack_(id)_(data)
-			"iconcrack_*", // blockcrack_(id)
-			"iconcrack_*", // blockdust_(id)
-			"", // droplet
-			"", // take
-			"" // mobappearance
+			null, // barrier
+			"", // iconcrack_(id)_(data)
+			"", // blockcrack_(id)
+			"", // blockdust_(id)
+			null, // droplet
+			null, // take
+			null // mobappearance
 	};
 
 	public RewindPacketEncoder(HPPC hppc) {
@@ -642,28 +642,27 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.writeByte(0x38);
 		boolean mcbSkyLightSent = in.readBoolean();
 		int mcbCcc = BufferUtils.readVarInt(in);
-		int[] chunkX = new int[mcbCcc];
-		int[] chunkZ = new int[mcbCcc];
-		int[] bitmap = new int[mcbCcc];
+		int[] tmpInts = new int[mcbCcc * (OLD_CHUNK_FORMAT ? 4 : 3)];
+		int b = mcbCcc * 2;
 		for (int ii = 0; ii < mcbCcc; ++ii) {
-			chunkX[ii] = in.readInt();
-			chunkZ[ii] = in.readInt();
-			bitmap[ii] = in.readUnsignedShort();
+			tmpInts[ii] = in.readInt();
+			tmpInts[ii + mcbCcc] = in.readInt();
+			tmpInts[ii + b] = in.readUnsignedShort();
 		}
 		int aaaa = bb.writerIndex();
 		bb.writerIndex(aaaa + 7);
 		if (OLD_CHUNK_FORMAT) {
-			int[] sizes = new int[mcbCcc];
+			int c = mcbCcc * 3;
 			int size = 0;
 			for (int ii = 0; ii < mcbCcc; ++ii) {
-				int chunkSize = BufferUtils.calcChunkDataSize(Integer.bitCount(bitmap[ii]), mcbSkyLightSent, true);
-				sizes[ii] = chunkSize;
+				int chunkSize = BufferUtils.calcChunkDataSize(Integer.bitCount(tmpInts[ii + b]), mcbSkyLightSent, true);
+				tmpInts[ii + c] = chunkSize;
 				size += chunkSize;
 			}
 			ByteBuf tmp = alloc.buffer(size);
 			try {
 				for (int ii = 0; ii < mcbCcc; ++ii) {
-					BufferUtils.convertChunk2Legacy(bitmap[ii], sizes[ii], in, tmp);
+					BufferUtils.convertChunk2Legacy(tmpInts[ii + b], tmpInts[ii + c], in, tmp);
 				}
 				int notDeflateLen = BufferUtils.sizeEstimateNotDeflated(size);
 				bb.ensureWritable(notDeflateLen);
@@ -672,9 +671,11 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 				tmp.release();
 			}
 		} else {
+			int c;
 			for (int ii = 0; ii < mcbCcc; ++ii) {
-				int chunkSize = BufferUtils.calcChunkDataSize(Integer.bitCount(bitmap[ii]), mcbSkyLightSent, true);
-				BufferUtils.convertChunk2Legacy(bitmap[ii], chunkSize, in, bb);
+				c = tmpInts[ii + b];
+				int chunkSize = BufferUtils.calcChunkDataSize(Integer.bitCount(c), mcbSkyLightSent, true);
+				BufferUtils.convertChunk2Legacy(c, chunkSize, in, bb);
 			}
 		}
 		bb.setShort(aaaa, mcbCcc);
@@ -688,9 +689,9 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 		bb.setBoolean(aaaa, mcbSkyLightSent);
 		// aaaa += 1;
 		for (int ii = 0; ii < mcbCcc; ++ii) {
-			bb.writeInt(chunkX[ii]);
-			bb.writeInt(chunkZ[ii]);
-			bb.writeShort(bitmap[ii]);
+			bb.writeInt(tmpInts[ii]);
+			bb.writeInt(tmpInts[ii + mcbCcc]);
+			bb.writeShort(tmpInts[ii + b]);
 			bb.writeShort(0);
 		}
 	}
@@ -764,21 +765,35 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 	private ByteBuf handleParticle(ByteBuf in, ByteBufAllocator alloc) {
 		int pId = in.readInt();
 		String pName = particleNames[pId];
-		if (!pName.isEmpty()) {
+		if (pName != null) {
 			ByteBuf bb = alloc.buffer();
 			try {
 				bb.writeByte(0x3F);
 				in.readBoolean();
-				float[] pFloats = new float[] { in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat(),
-						in.readFloat(), in.readFloat(), in.readFloat() };
+				float f1 = in.readFloat();
+				float f2 = in.readFloat();
+				float f3 = in.readFloat();
+				float f4 = in.readFloat();
+				float f5 = in.readFloat();
+				float f6 = in.readFloat();
+				float f7 = in.readFloat();
 				int pInt = in.readInt();
-				while (pName.contains("*")) {
-					pName = pName.replaceFirst("\\*", "" + BufferUtils.readVarInt(in));
+				if (pId == 36) { // EntityBreakingFX
+					int id = BufferUtils.readVarInt(in);
+					BufferUtils.readVarInt(in);
+					pName = "iconcrack_" + BufferUtils.convertItem2Legacy(id);
+				} else if(pId == 37 || pId == 38) { // EntityDiggingFX, EntityBlockDustFX
+					int id = BufferUtils.readVarInt(in);
+					pName = "tilecrack_" + BufferUtils.convertType2Legacy(id & 4095) + "_" + (id >> 12 & 15);
 				}
 				BufferUtils.writeLegacyMCString(bb, pName, 255);
-				for (float pFloat : pFloats) {
-					bb.writeFloat(pFloat);
-				}
+				bb.writeFloat(f1);
+				bb.writeFloat(f2);
+				bb.writeFloat(f3);
+				bb.writeFloat(f4);
+				bb.writeFloat(f5);
+				bb.writeFloat(f6);
+				bb.writeFloat(f7);
 				bb.writeInt(pInt);
 				bb.retain();
 			} finally {
