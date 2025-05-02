@@ -21,13 +21,41 @@ import java.util.UUID;
 
 import javax.annotation.Nonnull;
 
+/**
+ * Used for registering "extended" capability types that unofficial
+ * Eaglercraft clients can request via protocol V5.
+ * 
+ * @see IEaglerXServerAPI#registerExtendedCapability(Object, ExtendedCapabilitySpec)
+ */
 public final class ExtendedCapabilitySpec {
 
+	/**
+	 * Creates an extended capability spec with one major version.
+	 * 
+	 * @param majorVersion  The major version UUID of this extended capability
+	 * @param minorVersions The list of subversions of this extended capability
+	 * @return An extended capability spec that can be registered with the API
+	 * @throws IllegalArgumentException If minorVersions contains a value less
+	 *                                  than 0 or greater than 31
+	 */
 	@Nonnull
 	public static ExtendedCapabilitySpec create(@Nonnull UUID majorVersion, @Nonnull int... minorVersions) {
 		return new ExtendedCapabilitySpec(version(majorVersion, minorVersions));
 	}
 
+	/**
+	 * Creates an extended capability spec with several major versions.
+	 * 
+	 * <p>The major versions should be provided in their preferred order,
+	 * where the first major version specified is the least preferred
+	 * version, and the last major version specified is the most preferred
+	 * version. If a client requests multiple major versions, the most
+	 * preferred one will be accepted and the others will be ignored.
+	 * 
+	 * @param majorVersion The major version UUID of this extended capability
+	 * @param minorVersions The list of subversions of this extended capability
+	 * @return An extended capability spec that can be registered with the API
+	 */
 	@Nonnull
 	public static ExtendedCapabilitySpec create(@Nonnull Version... majorVersions) {
 		return new ExtendedCapabilitySpec(majorVersions);

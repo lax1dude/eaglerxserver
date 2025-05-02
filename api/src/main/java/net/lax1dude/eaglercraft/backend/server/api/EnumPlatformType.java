@@ -18,6 +18,9 @@ package net.lax1dude.eaglercraft.backend.server.api;
 
 import javax.annotation.Nonnull;
 
+/**
+ * Represents platform types that EaglerXServer is supported on
+ */
 public enum EnumPlatformType {
 	BUNGEECORD("BungeeCord", true, false),
 	VELOCITY("Velocity", true, false),

@@ -19,6 +19,9 @@ package net.lax1dude.eaglercraft.backend.server.api;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * Represents the request method of an inbound HTTP request.
+ */
 public enum EnumRequestMethod {
 	GET(0, 1), HEAD(1, 2), PUT(2, 4), DELETE(3, 8), POST(4, 16), PATCH(5, 32), OPTIONS(6, -1);
 
@@ -35,14 +38,40 @@ public enum EnumRequestMethod {
 		this.bit = bit;
 	}
 
+	/**
+	 * Returns the ID of the request method.
+	 * 
+	 * <p>Used internally by the Web Server API.
+	 * 
+	 * @return The request method ID.
+	 */
 	public int id() {
 		return id;
 	}
 
+	/**
+	 * Returns the bit of the request method, for use in bitfields.
+	 * 
+	 * <p>Used internally by the Web Server API.
+	 * 
+	 * @return The request method bit, or {@code -1} if the request method is
+	 *         {@code OPTIONS}
+	 * @see #toBits(EnumRequestMethod[])
+	 */
 	public int bit() {
 		return bit;
 	}
 
+	/**
+	 * Converts an array of request methods to a bitfield.
+	 * 
+	 * @param methods An array of request methods
+	 * @return A bitfield representing the request methods
+	 * @throws IllegalArgumentException If the array contains {@code OPTIONS}.
+	 * @throws NullPointerException     If the array is {@code null} or contains a
+	 *                                  {@code null} value.
+	 * @see #bit()
+	 */
 	public static int toBits(@Nonnull EnumRequestMethod[] methods) {
 		int r = 0, j;
 		for (int i = 0; i < methods.length; ++i) {
@@ -55,6 +84,14 @@ public enum EnumRequestMethod {
 		return r;
 	}
 
+	/**
+	 * Converts a bitfield to an array of request methods.
+	 * 
+	 * <p>Attempting to pass an invalid bitfield will cause undefined behavior.
+	 * 
+	 * @param bits The request method bitfield.
+	 * @return An array of request methods.
+	 */
 	@Nonnull
 	public static EnumRequestMethod[] fromBits(int bits) {
 		bits &= EnumRequestMethod.bits;
@@ -68,6 +105,13 @@ public enum EnumRequestMethod {
 		return ret;
 	}
 
+	/**
+	 * Finds a request method from its internal ID.
+	 * 
+	 * @param id The request method ID.
+	 * @return The request method enum, or {@code null} if unknown.
+	 * @see #id()
+	 */
 	@Nullable
 	public static EnumRequestMethod fromId(int id) {
 		return id >= 0 && id < VALUES.length ? VALUES[id] : null;

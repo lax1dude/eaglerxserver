@@ -16,10 +16,36 @@
 
 package net.lax1dude.eaglercraft.backend.server.api;
 
+/**
+ * Standard HTTP headers present on WebSocket connections.
+ * 
+ * @see IEaglerConnection#getWebSocketHeader(EnumWebSocketHeader)
+ */
 public enum EnumWebSocketHeader {
+
+	/**
+	 * The {@code Origin} header.
+	 */
 	HEADER_ORIGIN,
+
+	/**
+	 * The {@code User-Agent} header.
+	 */
 	HEADER_USER_AGENT,
+
+	/**
+	 * The {@code Host} header.
+	 */
 	HEADER_HOST,
+
+	/**
+	 * The {@code Cookie} header.
+	 */
 	HEADER_COOKIE,
+
+	/**
+	 * The {@code Authorization} header.
+	 */
 	HEADER_AUTHORIZATION
+
 }

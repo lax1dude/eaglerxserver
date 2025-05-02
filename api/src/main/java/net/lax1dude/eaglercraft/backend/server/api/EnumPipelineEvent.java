@@ -16,6 +16,9 @@
 
 package net.lax1dude.eaglercraft.backend.server.api;
 
+/**
+ * Dispatched to the Netty pipeline as user events
+ */
 public enum EnumPipelineEvent {
 	EAGLER_STATE_HTTP_REQUEST,
 	EAGLER_STATE_WEBSOCKET_PLAYER,
