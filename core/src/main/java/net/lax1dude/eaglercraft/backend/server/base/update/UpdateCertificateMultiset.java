@@ -18,7 +18,6 @@ package net.lax1dude.eaglercraft.backend.server.base.update;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
@@ -27,23 +26,33 @@ import com.google.common.collect.MapMaker;
 
 public class UpdateCertificateMultiset {
 
-	private final ConcurrentMap<IUpdateCertificateImpl, AtomicInteger> updateCertSet;
+	private final ConcurrentMap<IUpdateCertificateImpl, RefCount> updateCertSet;
 
 	public UpdateCertificateMultiset() {
 		updateCertSet = (new MapMaker()).weakKeys().makeMap();
 	}
 
-	private static class Witness implements BiFunction<IUpdateCertificateImpl, AtomicInteger, AtomicInteger> {
+	private static class RefCount {
+
+		protected int value;
+
+		protected RefCount(int value) {
+			this.value = value;
+		}
+
+	}
+
+	private static class Witness implements BiFunction<IUpdateCertificateImpl, RefCount, RefCount> {
 
 		protected boolean create;
 
 		@Override
-		public AtomicInteger apply(IUpdateCertificateImpl certt, AtomicInteger refCnt) {
+		public RefCount apply(IUpdateCertificateImpl certt, RefCount refCnt) {
 			if (refCnt == null) {
 				create = true;
-				return new AtomicInteger(1);
+				return new RefCount(1);
 			} else {
-				refCnt.getAndIncrement();
+				++refCnt.value;
 				return refCnt;
 			}
 		}
@@ -57,7 +66,7 @@ public class UpdateCertificateMultiset {
 	}
 
 	public void remove(IUpdateCertificateImpl cert) {
-		updateCertSet.computeIfPresent(cert, (certt, refCnt) -> refCnt.getAndDecrement() > 1 ? refCnt : null);
+		updateCertSet.computeIfPresent(cert, (certt, refCnt) -> --refCnt.value > 0 ? refCnt : null);
 	}
 
 	public List<IUpdateCertificateImpl> dump() {

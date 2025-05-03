@@ -272,11 +272,12 @@ public class UpdateService {
 		}
 		boolean dirty = false;
 		Map<String, CachedClientCertificate> certs = new HashMap<>();
+		Map<String, CachedClientCertificate> oldCerts = new HashMap<>(certsCache);
 		for (int i = 0; i < dirList.length; ++i) {
 			File f = dirList[i];
 			String n = f.getName();
 			long lastModified = f.lastModified();
-			CachedClientCertificate cc = certsCache.get(n);
+			CachedClientCertificate cc = oldCerts.remove(n);
 			if (cc != null) {
 				if (cc.lastModified != lastModified) {
 					dirty = true;
@@ -289,7 +290,7 @@ public class UpdateService {
 				loadCert(certs, f, lastModified);
 			}
 		}
-		if (!dirty) {
+		if (!dirty && oldCerts.isEmpty()) {
 			return null;
 		}
 		List<IUpdateCertificateImpl> broadcastList = null;
