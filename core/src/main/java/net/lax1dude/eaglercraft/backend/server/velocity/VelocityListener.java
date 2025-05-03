@@ -76,7 +76,7 @@ class VelocityListener {
 		}
 	}
 
-	@Subscribe(priority = Short.MAX_VALUE)
+	@Subscribe(priority = 16384, async = false)
 	public void onPreLoginEvent(PreLoginEvent handshakeEvent) {
 		InboundConnection conn = handshakeEvent.getConnection();
 		Channel channel = VelocityUnsafe.getInboundChannel(conn);
@@ -85,7 +85,7 @@ class VelocityListener {
 				channel.attr(PipelineAttributes.<VelocityConnection>connectionData())::set);
 	}
 
-	@Subscribe(priority = -16384)
+	@Subscribe(priority = -16384, async = false)
 	public void onGameProfileRequestEvent(GameProfileRequestEvent gameProfileEvent) {
 		VelocityConnection conn = VelocityUnsafe.getInboundChannel(gameProfileEvent.getConnection())
 				.attr(PipelineAttributes.<VelocityConnection>connectionData()).get();
@@ -149,7 +149,7 @@ class VelocityListener {
 		});
 	}
 
-	@Subscribe(priority = Short.MIN_VALUE)
+	@Subscribe(priority = Short.MIN_VALUE, async = false)
 	public void onPlayerDisconnected(DisconnectEvent disconnectEvent) {
 		plugin.dropPlayer(disconnectEvent.getPlayer());
 	}
