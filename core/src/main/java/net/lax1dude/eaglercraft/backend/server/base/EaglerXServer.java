@@ -169,6 +169,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	private WebViewService<PlayerObject> webViewService;
 	private PauseMenuService<PlayerObject> pauseMenuService;
 	private UpdateService updateService;
+	private UpdateChecker updateChecker;
 	private BackendRPCService<PlayerObject> backendRPCService;
 	private ISupervisorServiceImpl<PlayerObject> supervisorService;
 	private PlayerRateLimits.RateLimitParams ratelimitParams;
@@ -313,6 +314,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		if (config.getSettings().getUpdateService().isEnableUpdateSystem()) {
 			updateService = new UpdateService(this);
 		}
+
+		updateChecker = new UpdateChecker(this, config.getSettings().getUpdateChecker());
 
 		if (config.getSettings().isEnableBackendRPCAPI() && platform.getType().proxy) {
 			backendRPCService = new BackendRPCService<>(this);
@@ -459,6 +462,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			updateService.start();
 		}
 
+		updateChecker.handleEnable();
+
 		supervisorService.handleEnable();
 
 		platform.getScheduler().executeDelayed(pipelineTransformer::nagAgain, 10000);
@@ -496,6 +501,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		if (updateService != null) {
 			updateService.stop();
 		}
+
+		updateChecker.handleDisable();
 
 		supervisorService.handleDisable();
 	}
@@ -581,6 +588,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 					platformPlayer.setViewDistancePaper(Math.max(distance, 3));
 				}
 			}
+
+			updateChecker.sendUpdateMessage(platformPlayer);
 
 			onComplete.run();
 		});

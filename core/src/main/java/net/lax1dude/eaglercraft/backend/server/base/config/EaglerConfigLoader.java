@@ -47,6 +47,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.api.voice.ICEServerEntry;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerXServerVersion;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfList;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfSection;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
@@ -184,6 +185,10 @@ public class EaglerConfigLoader {
 				"Default value is 120, sets the rate limit per minute for webview message packets."
 			);
 			IEaglerConfSection protocols = config.getSection("protocols");
+			if (!protocols.exists()) {
+				protocols.setComment("Sets the protocol versions Eaglercraft players should be allowed "
+						+ "to join this server with.");
+			}
 			int minMinecraftProtocol = protocols.getInteger(
 				"min_minecraft_protocol", 3,
 				"Default value is 3, sets the minimum Minecraft protocol version that "
@@ -223,6 +228,10 @@ public class EaglerConfigLoader {
 				"If v5 clients should be allowed to join."
 			);
 			IEaglerConfSection skinService = config.getSection("skin_service");
+			if (!skinService.exists()) {
+				skinService.setComment("Settings for the eagler skins and capes service, and "
+						+ "for the skin cache database.");
+			}
 			boolean downloadVanillaSkinsToClients = skinService.getBoolean(
 				"download_vanilla_skins_to_clients", true,
 				"Default value is true, sets if the server should download the textures of "
@@ -329,6 +338,9 @@ public class EaglerConfigLoader {
 				+ "SkinsRestorer skins to display properly to eagler clients."
 			);
 			IEaglerConfSection voiceService = config.getSection("voice_service");
+			if (!voiceService.exists()) {
+				voiceService.setComment("Settings for the eagler voice chat service.");
+			}
 			boolean enableVoiceService = voiceService.getBoolean(
 				"enable_voice_service", false,
 				"Default value is false, if the voice service should be enabled, using voice chat on "
@@ -379,6 +391,9 @@ public class EaglerConfigLoader {
 				+ "WebRTC descriptions and ICE candidates once handshaking."
 			);
 			IEaglerConfSection updateService = config.getSection("update_service");
+			if (!updateService.exists()) {
+				updateService.setComment("Settings for the eagler update certificate service.");
+			}
 			boolean enableUpdateSystem = updateService.getBoolean(
 				"enable_update_system", true,
 				"Default value is true, if relaying certificates for the client update system "
@@ -426,6 +441,26 @@ public class EaglerConfigLoader {
 				"Default value is 28800 seconds, defines how often to check the URL list for "
 				+ "updated certificates"
 			);
+			IEaglerConfSection updateChecker = config.getSection("update_checker");
+			if (!updateChecker.exists()) {
+				updateChecker.setComment("Settings for the eagler server update checker, "
+						+ "please keep your server updated!");
+			}
+			boolean enableUpdateChecker = EaglerXServerVersion.UPDATE_CHECK != null ? updateChecker.getBoolean(
+				"enable_update_checker", true,
+				"Default value is true, if EaglerXServer should check for plugin updates "
+				+ "from lax1dude. Updates are never installed automatically."
+			) : false;
+			int checkForServerUpdateEvery = EaglerXServerVersion.UPDATE_CHECK != null ? updateChecker.getInteger(
+				"check_for_update_every", 86400,
+				"Default value is 86400 seconds, defines how often EaglerXServer should "
+				+ "check for updates, set to -1 to only check for updates at startup."
+			) : -1;
+			boolean updateChatMessages = EaglerXServerVersion.UPDATE_CHECK != null ? updateChecker.getBoolean(
+				"print_chat_messages", true,
+				"Default value is true, if the server should print reminders in the chat "
+				+ "when a new plugin update is available."
+			) : false;
 			return new ConfigDataSettings(serverName, serverUUID, eaglerLoginTimeout, httpMaxInitialLineLength,
 					httpMaxHeaderSize, httpMaxChunkSize, httpMaxContentLength, httpWebSocketCompressionLevel,
 					httpWebSocketFragmentSize, httpWebSocketMaxFrameLength, tlsCertRefreshRate,
@@ -446,7 +481,9 @@ public class EaglerConfigLoader {
 							voiceConnectRatelimit, voiceRequestRatelimit, voiceICERatelimit),
 					new ConfigDataSettings.ConfigDataUpdateService(enableUpdateSystem, discardLoginPacketCerts,
 							certPacketDataRateLimit, enableEagcertFolder, downloadLatestCerts, downloadCertsFrom,
-							checkForUpdateEvery));
+							checkForUpdateEvery),
+					new ConfigDataSettings.ConfigDataUpdateChecker(enableUpdateChecker, checkForServerUpdateEvery,
+							updateChatMessages));
 		});
 		Map<File, String> secrets = new HashMap<>();
 		Function<String, String> secretLoader = (str) -> {

@@ -380,6 +380,33 @@ public class ConfigDataSettings {
 
 	}
 
+	public static class ConfigDataUpdateChecker {
+
+		private final boolean enableUpdateChecker;
+		private final int checkForServerUpdateEvery;
+		private final boolean updateChatMessages;
+
+		public ConfigDataUpdateChecker(boolean enableUpdateChecker, int checkForServerUpdateEvery,
+				boolean updateChatMessages) {
+			this.enableUpdateChecker = enableUpdateChecker;
+			this.checkForServerUpdateEvery = checkForServerUpdateEvery;
+			this.updateChatMessages = updateChatMessages;
+		}
+
+		public boolean isEnableUpdateChecker() {
+			return enableUpdateChecker;
+		}
+
+		public int getCheckForServerUpdateEvery() {
+			return checkForServerUpdateEvery;
+		}
+
+		public boolean isUpdateChatMessages() {
+			return updateChatMessages;
+		}
+
+	}
+
 	private final String serverName;
 	private final UUID serverUUID;
 	private final String serverUUIDString;
@@ -406,6 +433,7 @@ public class ConfigDataSettings {
 	private final ConfigDataSkinService skinService;
 	private final ConfigDataVoiceService voiceService;
 	private final ConfigDataUpdateService updateService;
+	private final ConfigDataUpdateChecker updateChecker;
 
 	public ConfigDataSettings(String serverName, UUID serverUUID, int eaglerLoginTimeout, int httpMaxInitialLineLength,
 			int httpMaxHeaderSize, int httpMaxChunkSize, int httpMaxContentLength, int httpWebSocketCompressionLevel,
@@ -414,7 +442,8 @@ public class ConfigDataSettings {
 			int eaglerPlayersViewDistance, String eaglerPlayersVanillaSkin, boolean enableIsEaglerPlayerPropery,
 			int protocolV4DefragSendDelay, int brandLookupRatelimit, int webviewDownloadRatelimit,
 			int webviewMessageRatelimit, ConfigDataProtocols protocols, ConfigDataSkinService skinService,
-			ConfigDataVoiceService voiceService, ConfigDataUpdateService updateService) {
+			ConfigDataVoiceService voiceService, ConfigDataUpdateService updateService,
+			ConfigDataUpdateChecker updateChecker) {
 		this.serverName = serverName;
 		this.serverUUID = serverUUID;
 		this.serverUUIDString = serverUUID.toString();
@@ -441,6 +470,7 @@ public class ConfigDataSettings {
 		this.skinService = skinService;
 		this.voiceService = voiceService;
 		this.updateService = updateService;
+		this.updateChecker = updateChecker;
 	}
 
 	public String getServerName() {
@@ -545,6 +575,10 @@ public class ConfigDataSettings {
 
 	public ConfigDataUpdateService getUpdateService() {
 		return updateService;
+	}
+
+	public ConfigDataUpdateChecker getUpdateChecker() {
+		return updateChecker;
 	}
 
 }

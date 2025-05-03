@@ -16,10 +16,18 @@
 
 package net.lax1dude.eaglercraft.backend.server.base;
 
+import net.lax1dude.eaglercraft.backend.server.util.SemanticVersion;
+
 public class EaglerXServerVersion {
 
 	public static final String BRAND = "EaglercraftXServer";
 	public static final String AUTHOR = "lax1dude";
 	public static final String VERSION = "1.0.0";
+
+	public static final SemanticVersion UPDATE_VERSION = SemanticVersion.parse(VERSION);
+
+	public static final String UPDATE_CHECK = "https://lax1dude.net/eaglerxserver/version.txt";
+	public static final String UPDATE_LINK = "https://lax1dude.net/eaglerxserver/";
+	public static final String UPDATE_LINE = "-----------------------------------";
 
 }
