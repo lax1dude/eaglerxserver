@@ -299,8 +299,7 @@ public class VelocityUnsafe {
 
 	public static void injectCompressionDisable(ProxyServer server, Player player) {
 		// Note: This does not affect the MinecraftConnection in the pipeline or player
-		// object
-		// therefore performance is not a concern
+		// object therefore performance is not a concern
 		try {
 			Object o = field_MinecraftConnection_activeSessionHandler.get(getMinecraftConnection(player));
 			if (class_AuthSessionHandler.isAssignableFrom(o.getClass())) {
