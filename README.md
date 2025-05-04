@@ -5,7 +5,7 @@
 a.k.a. "EaglerXServer"
 
 > [!WARNING]
-> This is not a "crack" for Minecraft, it simply changes how frames are encoded in the Minecraft protocol to make it compatible with browsers, it does not tamper with the server's authentication subsystem or do anything to force the authentication state of inbound connections.
+> This is not a "crack" for Minecraft, it simply changes how frames (and a few packets) are encoded in the Minecraft protocol to make it compatible with browsers and extend its capabilities, it does not tamper with the server's authentication settings or do anything to modify the authentication state of inbound connections.
 
 **Delete EaglercraftXBungee and EaglercraftXVelocity today!**
 
