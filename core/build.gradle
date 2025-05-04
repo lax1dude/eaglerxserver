@@ -1,7 +1,6 @@
 
 plugins {
 	id "java"
-	id "eclipse"
 	id "com.gradleup.shadow" version "8.3.6"
 }
 
@@ -10,7 +9,6 @@ dependencies {
 	implementation project(":backend-rpc-protocol")
 	implementation project(":voice-rpc-protocol")
 	implementation project(":supervisor-protocol")
-	implementation project(":api")
 	implementation project(":api-bukkit")
 	implementation project(":api-bungee")
 	implementation project(":api-velocity")
@@ -34,6 +32,15 @@ java {
 }
 
 tasks.named("shadowJar", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+	dependsOn ":protocol-game:jar" // Workaround
+	dependsOn ":backend-rpc-protocol:jar" // Workaround
+	dependsOn ":voice-rpc-protocol:jar" // Workaround
+	dependsOn ":supervisor-protocol:jar" // Workaround
+	dependsOn ":api:jar" // Workaround
+	dependsOn ":api-bukkit:jar" // Workaround
+	dependsOn ":api-bungee:jar" // Workaround
+	dependsOn ":api-velocity:jar" // Workaround
+	dependsOn ":skin-cache:jar" // Workaround
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	relocate "org.objectweb.asm", "net.lax1dude.eaglercraft.backend.server.libs.asm"
 }

@@ -1,7 +1,6 @@
 
 plugins {
 	id "java"
-	id "eclipse"
 }
 
 dependencies {
@@ -20,6 +19,9 @@ java {
 }
 
 jar {
+	dependsOn ":supervisor-protocol:jar" // Workaround
+	dependsOn ":skin-cache:jar" // Workaround
+
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
 	manifest {

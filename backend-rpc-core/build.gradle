@@ -1,13 +1,11 @@
 
 plugins {
 	id "java"
-	id "eclipse"
 }
 
 dependencies {
 	compileOnly project(":api-bukkit")
 	implementation project(":voice-rpc-protocol")
-	implementation project(":backend-rpc-api")
 	implementation project(":backend-rpc-api-bukkit")
 	implementation project(":backend-rpc-protocol")
 	compileOnly(libs.paper.api)
@@ -22,7 +20,13 @@ java {
 }
 
 jar {
+	dependsOn ":voice-rpc-protocol:jar" // Workaround
+	dependsOn ":backend-rpc-api:jar" // Workaround
+	dependsOn ":backend-rpc-api-bukkit:jar" // Workaround
+	dependsOn ":backend-rpc-protocol:jar" // Workaround
+
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
 	from {
 		configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
 	}
