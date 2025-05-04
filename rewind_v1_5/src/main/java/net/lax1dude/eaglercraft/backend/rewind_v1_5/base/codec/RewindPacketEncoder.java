@@ -806,26 +806,33 @@ public class RewindPacketEncoder<PlayerObject> extends RewindChannelHandler.Enco
 
 	private ByteBuf handleChangeGameState(ByteBuf in, ByteBufAllocator alloc) {
 		short cgsReason = in.readUnsignedByte();
-		if (cgsReason >= 0 && cgsReason <= 4) {
-			if (cgsReason == 1) {
-				cgsReason = 0;
-			} else if (cgsReason == 0) {
-				cgsReason = 1;
-			}
-			ByteBuf bb = alloc.buffer();
-			try {
-				bb.writeByte(0x46);
-				bb.writeByte(cgsReason);
-				float cgsValue = in.readFloat();
-				if (cgsValue > 1)
-					cgsValue = 0;
-				bb.writeByte((int) cgsValue);
-				return bb.retain();
-			} finally {
-				bb.release();
-			}
+		switch(cgsReason) {
+		case 1:
+			cgsReason = 2;
+			break;
+		case 2:
+			cgsReason = 1;
+			break;
+		case 0:
+		case 3:
+		case 4:
+		case 6:
+			break;
+		default:
+			return null;
 		}
-		return null;
+		ByteBuf bb = alloc.buffer();
+		try {
+			bb.writeByte(0x46);
+			bb.writeByte(cgsReason);
+			float cgsValue = in.readFloat();
+			if (cgsValue > 1)
+				cgsValue = 0;
+			bb.writeByte((int) cgsValue);
+			return bb.retain();
+		} finally {
+			bb.release();
+		}
 	}
 
 	private void handleSpawnGlobalEntity(ByteBuf in, ByteBuf bb) {
