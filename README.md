@@ -20,11 +20,11 @@ a.k.a. "EaglerXServer"
 
 ## Downloads
 
-If you lack the motivation to figure this out yourself, you can get started quickly by downloading a complete Paper 1.12.2 Eaglercraft server distribution from LINK that supports EaglercraftX 1.8, Eaglercraft 1.12.2, and Eaglercraft 1.5.2 clients all from a single server.
+**If you lack the motivation to figure this out yourself, you can get started quickly by downloading a complete Paper 1.12.2 Eaglercraft server distribution from [https://github.com/Eaglercraft-Templates/Eaglercraft-Server-Paper](https://github.com/Eaglercraft-Templates/Eaglercraft-Server-Paper) that supports EaglercraftX 1.8, Eaglercraft 1.12.2, and Eaglercraft 1.5.2 clients all from a single server.**
 
 You will not receive support for issues installing EaglercraftXServer on Spigot (or forks of Spigot like Paper) if you are using a version of Spigot greater than 1.12.2, because limitations in plugin messages prevent protocol V4 and below EaglercraftX clients from working on these servers properly.
 
-Please see the Releases tab to get the latest stable binaries, the available files are:
+Please see the [Releases](https://github.com/lax1dude/eaglerxserver/releases) tab to get the latest stable binaries, the available files are:
 
 - **EaglerXServer** - The core EaglercraftXServer plugin for Spigot, BungeeCord, and Velocity
 - **EaglerXRewind** - Add support for Eaglercraft 1.5.2 by translating the packets to 1.8 like ViaVersion
@@ -54,45 +54,62 @@ Additionally, the EaglercraftX 1.8 protocol module is exposed in the API as well
 
 We also plan to write a javadoc for 100% of all the API's classes, interfaces, and methods. This has not been completed yet but will hopefully be soon.
 
-## Development on Spigot
+### Maven Repository
 
-This is a partial example of a `build.gradle` for creating a Spigot plugin.
+The stable API is available through a Maven repository, add it to your `build.gradle` by putting the following lines in the `repositories` block:
 
-TODO
+```gradle
+maven {
+	name = "lax1dude"
+	url = uri("https://repo.lax1dude.net/repository/releases/")
+}
+```
 
-Be sure to add `depend: [EaglercraftXServer]` to your `plugin.yml` or things will not work.
+### Development on Spigot
+
+Add the following line to your Spigot plugin's Gradle `dependencies` block to use EaglercraftXServer with the Spigot API:
+
+```gradle
+compileOnly "net.lax1dude.eaglercraft.backend:api-bukkit:1.0.0"
+```
 
 The native Spigot version of the API is Paper 1.12.2, but it will also work with most other legacy versions of the Spigot API. Your project must be using at least Java 17, otherwise Gradle will probably pretend that it can't find the dependencies.
+
+Be sure to add `depend: [ EaglercraftXServer ]` to your `plugin.yml` or things will not work.
 
 We don't currently support Folia, you'd be better off with BungeeCord or Velocity at that point.
 
 Call `EaglerXServerAPI.instance()` (using `import net.lax1dude.eaglercraft.backend.server.api.bukkit.EaglerXServerAPI;`) during or after your plugin's `onLoad` handler has been called to access the API.
 
-### Known issues on Spigot
+#### Known issues on Spigot
 
 - You cannot set a player's UUID through any Eaglercraft login events
 
-## Development on BungeeCord
+### Development on BungeeCord
 
-This is a partial example of a `build.gradle` for creating a BungeeCord plugin.
+Add the following line to your BungeeCord plugin's Gradle `dependencies` block to use EaglercraftXServer with the BungeeCord API:
 
-TODO
+```gradle
+compileOnly "net.lax1dude.eaglercraft.backend:api-bungee:1.0.0"
+```
 
-Be sure to add `depends: [EaglercraftXServer]` to your `plugin.yml` or things will not work.
+Be sure to add `depends: [ EaglercraftXServer ]` to your `plugin.yml` or things will not work.
 
 Your project must be using at least Java 17, otherwise Gradle will probably pretend that it can't find the dependencies.
 
 Call `EaglerXServerAPI.instance()` (using `import net.lax1dude.eaglercraft.backend.server.api.bungee.EaglerXServerAPI;`) during or after your plugin's `onLoad` handler has been called to access the API.
 
-### Known issues on BungeeCord
+#### Known issues on BungeeCord
 
 - `PostLoginEvent` is blocked asynchronously until the EaglerXServer player is initialized, meaning you cannot reliably obtain the `IBasePlayer` or `IEaglerPlayer` from within a `PostLoginEvent` handler. You must use `EaglercraftInitializePlayerEvent` to reliably obtain the `IEaglerPlayer` or wait until after `PostLoginEvent` has fired before you attempt to access the player instance through the EaglercraftXServer API.
 
-## Development on Velocity
+### Development on Velocity
 
-This is a partial example of a `build.gradle` for creating a Velocity plugin.
+Add the following line to your Velocity plugin's Gradle `dependencies` block to use EaglercraftXServer with the Velocity API:
 
-TODO
+```gradle
+compileOnly "net.lax1dude.eaglercraft.backend:api-velocity:1.0.0"
+```
 
 Be sure to add `dependencies = { @Dependency(id = EaglerXServerAPI.PLUGIN_ID, optional = false) }` to your plugin annotation or things will not work.
 
@@ -100,9 +117,23 @@ Your project must be using at least Java 17, otherwise Gradle will probably pret
 
 Call `EaglerXServerAPI.instance()` (using `import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;`) during or after your plugin is constructed to access the API.
 
-### Known issues on Velocity
+#### Known issues on Velocity
 
 - Avoid async event handlers for code that is sensitive to the order events are observed in (like handling WebView message events), Velocity's event bus will cause the order to be undefined unless your handler, and all handlers of a higher priority, are not async. All event handlers in Velocity currently default to being async unless you explicitly add `async = false` to the subscribe annotation!
+
+## Using the RPC API
+
+If you are using EaglercraftXServer on BungeeCord or Velocity, and want to access the API from your backend Spigot servers, you can use the backend RPC API. Only a subset of the core API is currently available, mainly functions related to player objects, such as detecting Eaglercraft players or retrieving additional Eaglercraft-related information about a player.
+
+Add the following line to your Spigot plugin's Gradle `dependencies` block to use EaglercraftXBackendRPC with the Spigot API:
+
+```gradle
+compileOnly "net.lax1dude.eaglercraft.backend:backend-rpc-api-bukkit:1.0.0"
+```
+
+You will also need to add the EaglercraftXBackendRPC JAR file to you Spigot plugins folder, and enable the backend RPC API in the EaglercraftXServer settings file.
+
+Call `EaglerXBackendRPC.instance()` (using `import net.lax1dude.eaglercraft.backend.rpc.api.bukkit.EaglerXBackendRPC;`) during or after your plugin is constructed to access the API.
 
 ## Contributing to EaglercraftXServer
 
