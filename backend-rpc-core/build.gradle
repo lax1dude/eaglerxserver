@@ -25,6 +25,8 @@ jar {
 	dependsOn ":backend-rpc-api-bukkit:jar" // Workaround
 	dependsOn ":backend-rpc-protocol:jar" // Workaround
 
+	archiveFileName = "EaglerXBackendRPC.jar"
+
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
 	from {

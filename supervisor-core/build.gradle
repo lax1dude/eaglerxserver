@@ -22,6 +22,8 @@ jar {
 	dependsOn ":supervisor-protocol:jar" // Workaround
 	dependsOn ":skin-cache:jar" // Workaround
 
+	archiveFileName = "EaglerXSupervisor.jar"
+
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
 	manifest {

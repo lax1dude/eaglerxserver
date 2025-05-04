@@ -20,7 +20,10 @@ java {
 }
 
 jar {
+	archiveFileName = "EaglerWeb.jar"
+
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
 	from {
 		configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
 	}

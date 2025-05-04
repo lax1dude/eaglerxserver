@@ -42,5 +42,6 @@ tasks.named("shadowJar", com.github.jengelman.gradle.plugins.shadow.tasks.Shadow
 	dependsOn ":api-velocity:jar" // Workaround
 	dependsOn ":skin-cache:jar" // Workaround
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	archiveFileName = "EaglerXServer.jar"
 	relocate "org.objectweb.asm", "net.lax1dude.eaglercraft.backend.server.libs.asm"
 }
