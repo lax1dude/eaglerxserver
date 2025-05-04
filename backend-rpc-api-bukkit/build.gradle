@@ -1,11 +1,12 @@
 
 plugins {
-	id "java"
+	id "java-library"
 	id "eclipse"
+	id "maven-publish"
 }
 
 dependencies {
-	implementation project(":backend-rpc-api")
+	api project(":backend-rpc-api")
 	compileOnly(libs.paper.api)
 	compileOnly(libs.jsr305)
 }
@@ -13,5 +14,18 @@ dependencies {
 java {
 	sourceCompatibility = JavaVersion.VERSION_17
 	targetCompatibility = JavaVersion.VERSION_17
+}
+
+publishing {
+	publications {
+		maven(MavenPublication) {
+			from components.java
+			pom {
+				name = "EaglercraftXBackendRPC API - Bukkit"
+				description = "Bukkit RPC API for Eaglercraft servers"
+				url = providers.gradleProperty("eaglerxserver.url").get()
+			}
+		}
+	}
 }
 

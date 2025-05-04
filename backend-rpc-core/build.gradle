@@ -5,9 +5,7 @@ plugins {
 }
 
 dependencies {
-	compileOnly project(":api")
 	compileOnly project(":api-bukkit")
-	compileOnly project(":protocol-game")
 	implementation project(":voice-rpc-protocol")
 	implementation project(":backend-rpc-api")
 	implementation project(":backend-rpc-api-bukkit")
@@ -24,8 +22,6 @@ java {
 }
 
 jar {
-	compileJava.options.encoding = "UTF-8"
-	javadoc.options.encoding = "UTF-8"
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	from {
 		configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }

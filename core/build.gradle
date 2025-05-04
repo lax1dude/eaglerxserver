@@ -34,8 +34,6 @@ java {
 }
 
 tasks.named("shadowJar", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
-	compileJava.options.encoding = "UTF-8"
-	javadoc.options.encoding = "UTF-8"
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	relocate "org.objectweb.asm", "net.lax1dude.eaglercraft.backend.server.libs.asm"
 }

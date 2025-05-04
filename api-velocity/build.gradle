@@ -1,12 +1,12 @@
 
 plugins {
-	id "java"
+	id "java-library"
 	id "eclipse"
+	id "maven-publish"
 }
 
 dependencies {
-	implementation project(":api")
-	implementation project(":protocol-game")
+	api project(":api")
 	compileOnly(libs.velocity.api)
 	compileOnly(libs.jsr305)
 }
@@ -16,3 +16,15 @@ java {
 	targetCompatibility = JavaVersion.VERSION_17
 }
 
+publishing {
+	publications {
+		maven(MavenPublication) {
+			from components.java
+			pom {
+				name = "EaglercraftXServer API - Velocity"
+				description = "Velocity API for Eaglercraft servers"
+				url = providers.gradleProperty("eaglerxserver.url").get()
+			}
+		}
+	}
+}

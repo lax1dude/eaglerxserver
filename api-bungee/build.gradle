@@ -1,12 +1,12 @@
 
 plugins {
-	id "java"
+	id "java-library"
 	id "eclipse"
+	id "maven-publish"
 }
 
 dependencies {
-	implementation project(":api")
-	implementation project(":protocol-game")
+	api project(":api")
 	compileOnly(libs.bungeecord.api)
 	compileOnly(libs.bundles.netty.api)
 	compileOnly(libs.jsr305)
@@ -17,3 +17,15 @@ java {
 	targetCompatibility = JavaVersion.VERSION_17
 }
 
+publishing {
+	publications {
+		maven(MavenPublication) {
+			from components.java
+			pom {
+				name = "EaglercraftXServer API - BungeeCord"
+				description = "BungeeCord API for Eaglercraft servers"
+				url = providers.gradleProperty("eaglerxserver.url").get()
+			}
+		}
+	}
+}

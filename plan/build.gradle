@@ -11,11 +11,9 @@ repositories {
 }
 
 dependencies {
-    compileOnly project(":protocol-game")
-    compileOnly project(":api")
-    compileOnly project(":api-bukkit")
-    compileOnly project(":api-bungee")
-    compileOnly project(":api-velocity")
+	compileOnly project(":api-bukkit")
+	compileOnly project(":api-bungee")
+	compileOnly project(":api-velocity")
     compileOnly(libs.bungeecord.api)
     compileOnly(libs.velocity.api)
     compileOnly(libs.paper.api)
@@ -30,8 +28,6 @@ java {
 }
 
 jar {
-    compileJava.options.encoding = "UTF-8"
-    javadoc.options.encoding = "UTF-8"
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
