@@ -25,10 +25,10 @@ import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -119,14 +119,17 @@ class ResponseCache {
 		protected ResponseLoaderContext(int i) {
 			loaderBuffer = new byte[1024 * 1024];
 			thread = new Thread(() -> {
-				while (!disposed) {
+				for (;;) {
 					try {
-						semaphore.acquire();
-						ResponseLoaderRunnable runnable = queue.poll();
-						if (runnable != null) {
-							runnable.run(this);
+						ResponseLoaderRunnable runnable = queue.take();
+						if (runnable == TERMINATE) {
+							break;
 						}
+						runnable.run(this);
 					} catch (Throwable ex) {
+						if (ex instanceof ThreadDeath exx) {
+							throw exx;
+						}
 						logger.error("Caught exception in worker thread #" + (i + 1), ex);
 					}
 				}
@@ -170,12 +173,12 @@ class ResponseCache {
 		void run(ResponseLoaderContext ctx);
 	}
 
+	private static final ResponseLoaderRunnable TERMINATE = (ctx) -> {};
+
 	protected final LoadingCache<ResponseCacheKey, ResponseLoader> cache;
 	protected final IEaglerWebLogger logger;
-	protected volatile boolean disposed = false;
 	protected final ResponseLoaderContext[] threads;
-	protected final Semaphore semaphore = new Semaphore(0);
-	protected final ConcurrentLinkedQueue<ResponseLoaderRunnable> queue = new ConcurrentLinkedQueue<>();
+	protected final BlockingQueue<ResponseLoaderRunnable> queue = new LinkedBlockingQueue<>();
 	protected final CountDownLatch disposeLatch;
 
 	ResponseCache(long expiresAfter, int maxCacheFiles, int threadCount, IEaglerWebLogger loggerIn) {
@@ -215,13 +218,12 @@ class ResponseCache {
 			callback.accept(ctx.loadFileAsByte(file));
 		};
 		queue.add(runnable);
-		semaphore.release();
 	}
 
 	void dispose() {
-		disposed = true;
-		queue.clear();
-		semaphore.release(threads.length);
+		for (int i = 0; i < threads.length; ++i) {
+			queue.add(TERMINATE);
+		}
 		try {
 			disposeLatch.await();
 		} catch (InterruptedException e) {
