@@ -35,7 +35,6 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent.EnumAuthType;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCookieEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthPasswordEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftClientBrandEvent;
@@ -112,8 +111,7 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter<Playe
 	@Override
 	public void dispatchAuthCookieEvent(IEaglerLoginConnection loginConnection, byte[] authUsername,
 			boolean nicknameSelectionEnabled, boolean cookiesEnabled, byte[] cookieData, String requestedUsername,
-			String profileUsername, UUID profileUUID, EnumAuthType authType, String authMessage,
-			String authRequestedServer,
+			String profileUsername, UUID profileUUID, byte authType, String authMessage, String authRequestedServer,
 			IEventDispatchCallback<IEaglercraftAuthCookieEvent<Player, Component>> onComplete) {
 		fire(new VelocityAuthCookieEventImpl(api, loginConnection, authUsername, nicknameSelectionEnabled,
 				cookiesEnabled, cookieData, requestedUsername, profileUsername, profileUUID, authType, authMessage,
@@ -123,8 +121,8 @@ public class VelocityEventDispatchAdapter implements IEventDispatchAdapter<Playe
 	@Override
 	public void dispatchAuthPasswordEvent(IEaglerLoginConnection loginConnection, byte[] authUsername,
 			boolean nicknameSelectionEnabled, byte[] authSaltingData, byte[] authPasswordData, boolean cookiesEnabled,
-			byte[] cookieData, String requestedUsername, String profileUsername, UUID profileUUID,
-			EnumAuthType authType, String authMessage, String authRequestedServer,
+			byte[] cookieData, String requestedUsername, String profileUsername, UUID profileUUID, byte authType,
+			String authMessage, String authRequestedServer,
 			IEventDispatchCallback<IEaglercraftAuthPasswordEvent<Player, Component>> onComplete) {
 		fire(new VelocityAuthPasswordEventImpl(api, loginConnection, authUsername, nicknameSelectionEnabled,
 				authSaltingData, authPasswordData, cookiesEnabled, cookieData, requestedUsername, profileUsername,

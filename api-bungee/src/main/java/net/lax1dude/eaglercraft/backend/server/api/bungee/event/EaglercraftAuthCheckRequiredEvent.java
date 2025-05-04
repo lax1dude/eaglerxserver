@@ -38,7 +38,7 @@ public final class EaglercraftAuthCheckRequiredEvent
 	private final byte[] authUsername;
 	private boolean nicknameSelectionEnabled;
 	private byte[] saltingData;
-	private EnumAuthType authType;
+	private byte authType;
 	private EnumAuthResponse authRequired;
 	private String authMessage = "enter the code:";
 	private BaseComponent kickMessage;
@@ -99,14 +99,13 @@ public final class EaglercraftAuthCheckRequiredEvent
 		this.saltingData = saltingData;
 	}
 
-	@Nullable
 	@Override
-	public EnumAuthType getUseAuthType() {
+	public byte getUseAuthTypeRaw() {
 		return authType;
 	}
 
 	@Override
-	public void setUseAuthType(@Nullable EnumAuthType authType) {
+	public void setUseAuthTypeRaw(byte authType) {
 		this.authType = authType;
 	}
 

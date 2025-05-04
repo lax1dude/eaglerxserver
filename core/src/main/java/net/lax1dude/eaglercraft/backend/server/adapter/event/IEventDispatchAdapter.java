@@ -26,7 +26,6 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent.EnumAuthType;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChannelEvent.EnumEventType;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent.EnumMessageType;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent;
@@ -56,14 +55,13 @@ public interface IEventDispatchAdapter<PlayerObject, ComponentObject> {
 
 	void dispatchAuthCookieEvent(IEaglerLoginConnection pendingConnection, byte[] authUsername,
 			boolean nicknameSelectionEnabled, boolean cookiesEnabled, byte[] cookieData, String requestedUsername,
-			String profileUsername, UUID profileUUID, EnumAuthType authType, String authMessage,
-			String authRequestedServer,
+			String profileUsername, UUID profileUUID, byte authType, String authMessage, String authRequestedServer,
 			IEventDispatchCallback<IEaglercraftAuthCookieEvent<PlayerObject, ComponentObject>> onComplete);
 
 	void dispatchAuthPasswordEvent(IEaglerLoginConnection pendingConnection, byte[] authUsername,
 			boolean nicknameSelectionEnabled, byte[] authSaltingData, byte[] authPasswordData, boolean cookiesEnabled,
-			byte[] cookieData, String requestedUsername, String profileUsername, UUID profileUUID,
-			EnumAuthType authType, String authMessage, String authRequestedServer,
+			byte[] cookieData, String requestedUsername, String profileUsername, UUID profileUUID, byte authType,
+			String authMessage, String authRequestedServer,
 			IEventDispatchCallback<IEaglercraftAuthPasswordEvent<PlayerObject, ComponentObject>> onComplete);
 
 	void dispatchClientBrandEvent(IEaglerPendingConnection pendingConnection,

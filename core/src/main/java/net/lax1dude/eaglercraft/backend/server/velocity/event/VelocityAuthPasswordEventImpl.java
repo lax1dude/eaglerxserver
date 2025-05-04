@@ -23,7 +23,6 @@ import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent.EnumAuthType;
 import net.lax1dude.eaglercraft.backend.server.api.velocity.event.EaglercraftAuthPasswordEvent;
 
 class VelocityAuthPasswordEventImpl extends EaglercraftAuthPasswordEvent {
@@ -39,7 +38,7 @@ class VelocityAuthPasswordEventImpl extends EaglercraftAuthPasswordEvent {
 	private final String requestedUsername;
 	private String profileUsername;
 	private UUID profileUUID;
-	private final EnumAuthType authType;
+	private final byte authType;
 	private final String authMessage;
 	private String authRequestedServer;
 	private EnumAuthResponse authResponse;
@@ -51,7 +50,7 @@ class VelocityAuthPasswordEventImpl extends EaglercraftAuthPasswordEvent {
 	VelocityAuthPasswordEventImpl(IEaglerXServerAPI<Player> api, IEaglerLoginConnection loginConnection,
 			byte[] authUsername, boolean nicknameSelectionEnabled, byte[] authSaltingData, byte[] authPasswordData,
 			boolean cookiesEnabled, byte[] cookieData, String requestedUsername, String profileUsername,
-			UUID profileUUID, EnumAuthType authType, String authMessage, String authRequestedServer) {
+			UUID profileUUID, byte authType, String authMessage, String authRequestedServer) {
 		this.api = api;
 		this.loginConnection = loginConnection;
 		this.authUsername = authUsername;
@@ -140,7 +139,7 @@ class VelocityAuthPasswordEventImpl extends EaglercraftAuthPasswordEvent {
 	}
 
 	@Override
-	public EnumAuthType getAuthType() {
+	public byte getAuthTypeRaw() {
 		return authType;
 	}
 

@@ -24,7 +24,6 @@ import javax.annotation.Nullable;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCookieEvent;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent.EnumAuthType;
 import net.md_5.bungee.api.Callback;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -44,7 +43,7 @@ public final class EaglercraftAuthCookieEvent
 	private final String requestedUsername;
 	private String profileUsername;
 	private UUID profileUUID;
-	private final EnumAuthType authType;
+	private final byte authType;
 	private final String authMessage;
 	private String authRequestedServer;
 	private EnumAuthResponse authResponse;
@@ -57,7 +56,7 @@ public final class EaglercraftAuthCookieEvent
 			@Nonnull IEaglerLoginConnection loginConnection, @Nonnull byte[] authUsername,
 			boolean nicknameSelectionEnabled, boolean cookiesEnabled, @Nullable byte[] cookieData,
 			@Nonnull String requestedUsername, @Nonnull String profileUsername, @Nonnull UUID profileUUID,
-			@Nullable EnumAuthType authType, @Nullable String authMessage, @Nonnull String authRequestedServer,
+			byte authType, @Nullable String authMessage, @Nonnull String authRequestedServer,
 			@Nonnull Callback<IEaglercraftAuthCookieEvent<ProxiedPlayer, BaseComponent>> cb) {
 		super(cb);
 		this.api = api;
@@ -142,9 +141,8 @@ public final class EaglercraftAuthCookieEvent
 		profileUUID = uuid;
 	}
 
-	@Nullable
 	@Override
-	public EnumAuthType getAuthType() {
+	public byte getAuthTypeRaw() {
 		return authType;
 	}
 

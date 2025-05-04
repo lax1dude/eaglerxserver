@@ -27,7 +27,29 @@ public interface IEaglercraftAuthCheckRequiredEvent<PlayerObject, ComponentObjec
 	}
 
 	public static enum EnumAuthType {
-		PLAINTEXT, EAGLER_SHA256, AUTHME_SHA256
+		PLAINTEXT((byte) 255),
+		EAGLER_SHA256((byte) 1),
+		AUTHME_SHA256((byte) 2);
+
+		private byte id;
+
+		private EnumAuthType(byte id) {
+			this.id = id;
+		}
+
+		public byte getId() {
+			return id;
+		}
+
+		public static EnumAuthType getById(byte id) {
+			return switch (id) {
+			case (byte) 255 -> PLAINTEXT;
+			case (byte) 1 -> EAGLER_SHA256;
+			case (byte) 2 -> AUTHME_SHA256;
+			default -> null;
+			};
+		}
+
 	}
 
 	boolean isClientSolicitingPassword();
@@ -45,9 +67,17 @@ public interface IEaglercraftAuthCheckRequiredEvent<PlayerObject, ComponentObjec
 	void setSaltingData(@Nullable byte[] saltingData);
 
 	@Nullable
-	EnumAuthType getUseAuthType();
+	default EnumAuthType getUseAuthType() {
+		return EnumAuthType.getById(getUseAuthTypeRaw());
+	}
 
-	void setUseAuthType(@Nullable EnumAuthType authType);
+	default void setUseAuthType(@Nullable EnumAuthType authType) {
+		setUseAuthTypeRaw(authType != null ? authType.id : (byte) 0);
+	}
+
+	byte getUseAuthTypeRaw();
+
+	void setUseAuthTypeRaw(byte authType);
 
 	@Nullable
 	EnumAuthResponse getAuthRequired();

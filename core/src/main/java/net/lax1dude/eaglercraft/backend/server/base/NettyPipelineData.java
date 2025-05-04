@@ -48,7 +48,6 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPendingConnection;
 import net.lax1dude.eaglercraft.backend.server.api.INettyChannel;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.backend.server.base.message.RewindMessageControllerHandle;
 import net.lax1dude.eaglercraft.backend.server.util.EnumRateLimitState;
@@ -124,7 +123,7 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	public UUID uuid;
 	public String requestedServer;
 	public boolean authEventEnabled;
-	public IEaglercraftAuthCheckRequiredEvent.EnumAuthType authType;
+	public byte authType;
 	public String authMessage;
 	public boolean nicknameSelectionEnabled;
 	public byte[] authSalt;

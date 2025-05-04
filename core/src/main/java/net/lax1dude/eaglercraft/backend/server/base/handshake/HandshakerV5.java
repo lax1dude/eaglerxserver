@@ -23,7 +23,6 @@ import java.util.UUID;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.BufferUtils;
@@ -94,17 +93,8 @@ public class HandshakerV5 extends HandshakerV4 {
 
 	@Override
 	protected ChannelFuture sendPacketVersionAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
-			int selectedMinecraftProtocol, String serverBrand, String serverVersion,
-			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData,
-			boolean nicknameSelection) {
-		int authMethId = getAuthTypeId(authMethod);
-
-		if (authMethId == -1) {
-			inboundHandler.terminateInternalError(ctx, getVersion());
-			pipelineData.connectionLogger.error("Unsupported authentication method resolved: " + authMethod);
-			return null;
-		}
-
+			int selectedMinecraftProtocol, String serverBrand, String serverVersion, byte authMethod,
+			byte[] authSaltingData, boolean nicknameSelection) {
 		ByteBuf buffer = ctx.alloc().buffer();
 		try {
 			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
@@ -127,7 +117,7 @@ public class HandshakerV5 extends HandshakerV4 {
 			buffer.writeByte(len);
 			BufferUtils.writeCharSequence(buffer, serverVersion, StandardCharsets.US_ASCII);
 
-			buffer.writeByte(authMethId);
+			buffer.writeByte(authMethod);
 			if (authSaltingData != null) {
 				buffer.writeShort(authSaltingData.length);
 				buffer.writeBytes(authSaltingData);

@@ -43,7 +43,6 @@ import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftWebSo
 import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftWebViewChannelEvent;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.event.EaglercraftWebViewMessageEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent.EnumAuthType;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCookieEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthPasswordEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftClientBrandEvent;
@@ -119,8 +118,7 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 	@Override
 	public void dispatchAuthCookieEvent(IEaglerLoginConnection loginConnection, byte[] authUsername,
 			boolean nicknameSelectionEnabled, boolean cookiesEnabled, byte[] cookieData, String requestedUsername,
-			String profileUsername, UUID profileUUID, EnumAuthType authType, String authMessage,
-			String authRequestedServer,
+			String profileUsername, UUID profileUUID, byte authType, String authMessage, String authRequestedServer,
 			IEventDispatchCallback<IEaglercraftAuthCookieEvent<ProxiedPlayer, BaseComponent>> onComplete) {
 		eventMgr.callEvent(new EaglercraftAuthCookieEvent(api, loginConnection, authUsername, nicknameSelectionEnabled,
 				cookiesEnabled, cookieData, requestedUsername, profileUsername, profileUUID, authType, authMessage,
@@ -130,8 +128,8 @@ public class BungeeEventDispatchAdapter implements IEventDispatchAdapter<Proxied
 	@Override
 	public void dispatchAuthPasswordEvent(IEaglerLoginConnection loginConnection, byte[] authUsername,
 			boolean nicknameSelectionEnabled, byte[] authSaltingData, byte[] authPasswordData, boolean cookiesEnabled,
-			byte[] cookieData, String requestedUsername, String profileUsername, UUID profileUUID,
-			EnumAuthType authType, String authMessage, String authRequestedServer,
+			byte[] cookieData, String requestedUsername, String profileUsername, UUID profileUUID, byte authType,
+			String authMessage, String authRequestedServer,
 			IEventDispatchCallback<IEaglercraftAuthPasswordEvent<ProxiedPlayer, BaseComponent>> onComplete) {
 		eventMgr.callEvent(new EaglercraftAuthPasswordEvent(api, loginConnection, authUsername,
 				nicknameSelectionEnabled, authSaltingData, authPasswordData, cookiesEnabled, cookieData,

@@ -23,7 +23,6 @@ import java.util.UUID;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.BufferUtils;
@@ -121,8 +120,7 @@ public class HandshakerV1 extends HandshakerInstance {
 	}
 
 	@Override
-	protected ChannelFuture sendPacketAuthRequired(ChannelHandlerContext ctx,
-			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, String message) {
+	protected ChannelFuture sendPacketAuthRequired(ChannelHandlerContext ctx, byte authMethod, String message) {
 		throw new IllegalStateException();
 	}
 
@@ -161,9 +159,8 @@ public class HandshakerV1 extends HandshakerInstance {
 
 	@Override
 	protected ChannelFuture sendPacketVersionAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
-			int selectedMinecraftProtocol, String serverBrand, String serverVersion,
-			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData,
-			boolean nicknameSelection) {
+			int selectedMinecraftProtocol, String serverBrand, String serverVersion, byte authMethod,
+			byte[] authSaltingData, boolean nicknameSelection) {
 		throw new IllegalStateException();
 	}
 

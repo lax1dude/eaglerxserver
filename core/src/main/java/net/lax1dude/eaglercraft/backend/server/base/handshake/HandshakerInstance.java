@@ -131,7 +131,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 					} else {
 						pipelineData.nicknameSelectionEnabled = evt.isNicknameSelectionEnabled();
 						pipelineData.cookieAuthEventEnabled = evt.getEnableCookieAuth();
-						pipelineData.authType = evt.getUseAuthType();
+						pipelineData.authType = evt.getUseAuthTypeRaw();
 						pipelineData.authMessage = evt.getAuthMessage();
 						switch (response) {
 						case SKIP:
@@ -141,7 +141,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 									server.getServerVersion());
 							break;
 						case REQUIRE:
-							if (pipelineData.authType == null) {
+							if (pipelineData.authType == (byte) 0) {
 								state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 								inboundHandler.terminateInternalError(ctx, getVersion());
 								pipelineData.connectionLogger
@@ -196,16 +196,14 @@ public abstract class HandshakerInstance implements IHandshaker {
 
 	protected abstract GamePluginMessageProtocol getFinalVersion();
 
-	protected abstract ChannelFuture sendPacketAuthRequired(ChannelHandlerContext ctx,
-			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, String message);
+	protected abstract ChannelFuture sendPacketAuthRequired(ChannelHandlerContext ctx, byte authMethod, String message);
 
 	protected abstract ChannelFuture sendPacketVersionNoAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
 			int selectedMinecraftProtocol, String serverBrand, String serverVersions);
 
 	protected abstract ChannelFuture sendPacketVersionAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
-			int selectedMinecraftProtocol, String serverBrand, String serverVersion,
-			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData,
-			boolean nicknameSelection);
+			int selectedMinecraftProtocol, String serverBrand, String serverVersion, byte authMethod,
+			byte[] authSaltingData, boolean nicknameSelection);
 
 	protected void handlePacketRequestLogin(ChannelHandlerContext ctx, String requestedUsername, String requestedServer,
 			byte[] authPassword, boolean enableCookie, byte[] authCookie, int standardCapabilities,

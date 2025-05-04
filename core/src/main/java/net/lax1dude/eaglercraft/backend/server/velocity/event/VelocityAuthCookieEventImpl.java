@@ -24,7 +24,6 @@ import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerLoginConnection;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.velocity.event.EaglercraftAuthCookieEvent;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent.EnumAuthType;
 
 class VelocityAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 
@@ -37,7 +36,7 @@ class VelocityAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 	private final String requestedUsername;
 	private String profileUsername;
 	private UUID profileUUID;
-	private final EnumAuthType authType;
+	private final byte authType;
 	private final String authMessage;
 	private String authRequestedServer;
 	private EnumAuthResponse authResponse;
@@ -48,8 +47,8 @@ class VelocityAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 
 	VelocityAuthCookieEventImpl(IEaglerXServerAPI<Player> api, IEaglerLoginConnection loginConnection,
 			byte[] authUsername, boolean nicknameSelectionEnabled, boolean cookiesEnabled, byte[] cookieData,
-			String requestedUsername, String profileUsername, UUID profileUUID, EnumAuthType authType,
-			String authMessage, String authRequestedServer) {
+			String requestedUsername, String profileUsername, UUID profileUUID, byte authType, String authMessage,
+			String authRequestedServer) {
 		this.api = api;
 		this.loginConnection = loginConnection;
 		this.authUsername = authUsername;
@@ -126,7 +125,7 @@ class VelocityAuthCookieEventImpl extends EaglercraftAuthCookieEvent {
 	}
 
 	@Override
-	public EnumAuthType getAuthType() {
+	public byte getAuthTypeRaw() {
 		return authType;
 	}
 

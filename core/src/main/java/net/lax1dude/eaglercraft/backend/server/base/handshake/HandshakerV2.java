@@ -21,7 +21,6 @@ import java.nio.charset.StandardCharsets;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.BufferUtils;
@@ -55,11 +54,10 @@ public class HandshakerV2 extends HandshakerV1 {
 	}
 
 	@Override
-	protected ChannelFuture sendPacketAuthRequired(ChannelHandlerContext ctx,
-			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, String message) {
+	protected ChannelFuture sendPacketAuthRequired(ChannelHandlerContext ctx, byte authMethod, String message) {
 		return inboundHandler.sendErrorCode(ctx, getVersion(),
 				HandshakePacketTypes.SERVER_ERROR_AUTHENTICATION_REQUIRED,
-				HandshakePacketTypes.AUTHENTICATION_REQUIRED + " [" + getAuthTypeId(authMethod) + "] " + message);
+				HandshakePacketTypes.AUTHENTICATION_REQUIRED + " [" + (authMethod & 0xFF) + "] " + message);
 	}
 
 	@Override
@@ -98,17 +96,8 @@ public class HandshakerV2 extends HandshakerV1 {
 
 	@Override
 	protected ChannelFuture sendPacketVersionAuth(ChannelHandlerContext ctx, int selectedEaglerProtocol,
-			int selectedMinecraftProtocol, String serverBrand, String serverVersion,
-			IEaglercraftAuthCheckRequiredEvent.EnumAuthType authMethod, byte[] authSaltingData,
-			boolean nicknameSelection) {
-		int authMethId = getAuthTypeId(authMethod);
-
-		if (authMethId == -1) {
-			inboundHandler.terminateInternalError(ctx, getVersion());
-			pipelineData.connectionLogger.error("Unsupported authentication method resolved: " + authMethod);
-			return null;
-		}
-
+			int selectedMinecraftProtocol, String serverBrand, String serverVersion, byte authMethod,
+			byte[] authSaltingData, boolean nicknameSelection) {
 		ByteBuf buffer = ctx.alloc().buffer();
 		try {
 			buffer.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_VERSION);
@@ -131,7 +120,7 @@ public class HandshakerV2 extends HandshakerV1 {
 			buffer.writeByte(len);
 			BufferUtils.writeCharSequence(buffer, serverVersion, StandardCharsets.US_ASCII);
 
-			buffer.writeByte(authMethId);
+			buffer.writeByte(authMethod);
 			if (authSaltingData != null) {
 				buffer.writeShort(authSaltingData.length);
 				buffer.writeBytes(authSaltingData);
@@ -143,15 +132,6 @@ public class HandshakerV2 extends HandshakerV1 {
 		} finally {
 			buffer.release();
 		}
-	}
-
-	protected int getAuthTypeId(IEaglercraftAuthCheckRequiredEvent.EnumAuthType meth) {
-		return switch (meth) {
-		case PLAINTEXT -> 255; // plaintext authentication
-		case EAGLER_SHA256 -> 1; // eagler_sha256 authentication
-		case AUTHME_SHA256 -> 2; // authme_sha256 authentication
-		default -> -1;
-		};
 	}
 
 }
