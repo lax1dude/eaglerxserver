@@ -60,11 +60,13 @@ This is a partial example of a `build.gradle` for creating a Spigot plugin.
 
 TODO
 
-The native Spigot version of the API is Paper 1.12.2, but it will also work with most other legacy versions of the Spigot API.
+Be sure to add `depend: [EaglercraftXServer]` to your `plugin.yml` or things will not work.
+
+The native Spigot version of the API is Paper 1.12.2, but it will also work with most other legacy versions of the Spigot API. Your project must be using at least Java 17, otherwise Gradle will probably pretend that it can't find the dependencies.
 
 We don't currently support Folia, you'd be better off with BungeeCord or Velocity at that point.
 
-Call `EaglerXServerAPI.instance()` during or after your plugin's `onLoad` handler has been called to access the API.
+Call `EaglerXServerAPI.instance()` (using `import net.lax1dude.eaglercraft.backend.server.api.bukkit.EaglerXServerAPI;`) during or after your plugin's `onLoad` handler has been called to access the API.
 
 ### Known issues on Spigot
 
@@ -76,7 +78,11 @@ This is a partial example of a `build.gradle` for creating a BungeeCord plugin.
 
 TODO
 
-Call `EaglerXServerAPI.instance()` during or after your plugin's `onLoad` handler has been called to access the API.
+Be sure to add `depends: [EaglercraftXServer]` to your `plugin.yml` or things will not work.
+
+Your project must be using at least Java 17, otherwise Gradle will probably pretend that it can't find the dependencies.
+
+Call `EaglerXServerAPI.instance()` (using `import net.lax1dude.eaglercraft.backend.server.api.bungee.EaglerXServerAPI;`) during or after your plugin's `onLoad` handler has been called to access the API.
 
 ### Known issues on BungeeCord
 
@@ -88,7 +94,11 @@ This is a partial example of a `build.gradle` for creating a Velocity plugin.
 
 TODO
 
-Call `EaglerXServerAPI.instance()` during or after your plugin is constructed to access the API.
+Be sure to add `dependencies = { @Dependency(id = EaglerXServerAPI.PLUGIN_ID, optional = false) }` to your plugin annotation or things will not work.
+
+Your project must be using at least Java 17, otherwise Gradle will probably pretend that it can't find the dependencies.
+
+Call `EaglerXServerAPI.instance()` (using `import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;`) during or after your plugin is constructed to access the API.
 
 ### Known issues on Velocity
 
@@ -98,7 +108,7 @@ Call `EaglerXServerAPI.instance()` during or after your plugin is constructed to
 
 I'll accept PRs for bugfixes and performance improvements, but if you plan to change the API or add a new feature you need to create an issue first explaining what you plan to do. If you attempt to PR new features or API without talking it over in an issue first, there's no timeline for when your code will be actually be reviewed or merged.
 
-ATTENTION TO DETAIL IS CRUCIAL, IF YOUR CONTRIBUTIONS WERE CLEARLY MADE AS A RESULT OF ATTEMPTING TO APPLY YOUR LIMTED KNOWLEDGE OF HIGHER LEVEL LANGUAGES AND FRAMEWORKS (SUCH AS JAVASCRIPT OR NODEJS) TO JAVA AND NETTY WITHOUT SOME IN-DEPTH RESEARCH, OR YOUR CODE IS HORRIBLY INEFFICIENT DUE TO NOT ATTEMPTING TO USE PROPER DATA STRUCTURES AND/OR ACCESS THEM CORRECLY, YOUR CONTRIBUTIONS WILL BE REJECTED EVEN IF THEY WORK PROPERLY!
+Attention to detail is crucial, if your contributions were made as a result of attempting to apply knowledge of higher level languages and frameworks (such as JavaScript or Node.js) to Java and Netty without proper research, or your code is horribly inefficient due to not attempting to use proper data structures and/or accessing them correctly, your contributions will be rejected!
 
 If you contribute to EaglercraftXServer, you must consent to your patches being considered part of the public domain. You are not allowed to GPL your contributions or attach any license to them besides what is in this repository's LICENSE file. If you try to attach some kind of foreign license to your contribution, it will not be accepted.
 
