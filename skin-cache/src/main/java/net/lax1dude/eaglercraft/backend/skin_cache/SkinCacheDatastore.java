@@ -22,9 +22,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
@@ -41,10 +41,8 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 
 	protected final ILoggerAdapter logger;
 	protected final SkinCacheDatastoreThreadEnv[] threads;
-	protected final Semaphore semaphore = new Semaphore(0);
-	protected final ConcurrentLinkedQueue<SkinCacheDatastoreRunnable> databaseQueue = new ConcurrentLinkedQueue<>();
+	protected final BlockingQueue<SkinCacheDatastoreRunnable> databaseQueue = new LinkedBlockingQueue<>();
 	protected final Connection conn;
-	protected volatile boolean disposed;
 	protected final CountDownLatch disposeLatch;
 
 	protected long lastCleanup = 0l;
@@ -77,14 +75,17 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 				throw new RuntimeException("This JRE does not support SHA-1!", ex);
 			}
 			thread = new Thread(() -> {
-				while (!disposed) {
+				for (;;) {
 					try {
-						semaphore.acquire();
-						SkinCacheDatastoreRunnable runnable = databaseQueue.poll();
-						if (runnable != null) {
-							runnable.run(this);
+						SkinCacheDatastoreRunnable runnable = databaseQueue.take();
+						if (runnable == TERMINATE) {
+							break;
 						}
+						runnable.run(this);
 					} catch (Throwable ex) {
+						if (ex instanceof ThreadDeath exx) {
+							throw exx;
+						}
 						logger.error("Caught exception in worker thread #" + (i + 1), ex);
 					}
 				}
@@ -112,6 +113,8 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 		void run(SkinCacheDatastoreThreadEnv env);
 	}
 
+	private static final SkinCacheDatastoreRunnable TERMINATE = (env) -> {};
+
 	public SkinCacheDatastore(Connection conn, int threadCount, int keepObjectsDays, int maxObjects,
 			int compressionLevel, boolean sqliteCompatible, ILoggerAdapter logger) throws SQLException {
 		this.conn = conn;
@@ -121,7 +124,6 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 		this.logger = logger;
 		skin = new SkinCacheTable("eagler_skins", conn, sqliteCompatible, logger);
 		cape = new SkinCacheTable("eagler_capes", conn, sqliteCompatible, logger);
-		disposed = false;
 		disposeLatch = new CountDownLatch(threadCount);
 		threads = new SkinCacheDatastoreThreadEnv[threadCount];
 		for (int i = 0; i < threadCount; ++i) {
@@ -131,7 +133,6 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 
 	private void execute(SkinCacheDatastoreRunnable runnable) {
 		databaseQueue.add(runnable);
-		semaphore.release();
 	}
 
 	@Override
@@ -270,9 +271,9 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 
 	@Override
 	public void dispose() {
-		disposed = true;
-		databaseQueue.clear();
-		semaphore.release(threads.length);
+		for (int i = 0; i < threads.length; ++i) {
+			databaseQueue.add(TERMINATE);
+		}
 		try {
 			disposeLatch.await();
 		} catch (InterruptedException e) {
