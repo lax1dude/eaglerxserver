@@ -81,7 +81,7 @@ public class BungeeUnsafe {
 	private static final Class<?> class_PipelineUtils;
 	private static final Method method_PipelineUtils_getChannel;
 	private static final Method method_PipelineUtils_getServerChannel;
-	private static final Class<? extends ChannelHandler> class_HandlerBoss;
+	private static final Class<?> class_HandlerBoss;
 	private static final Field field_HandlerBoss_channel;
 
 	static {
@@ -129,7 +129,7 @@ public class BungeeUnsafe {
 			method_PipelineUtils_getChannel = class_PipelineUtils.getMethod("getChannel", SocketAddress.class);
 			method_PipelineUtils_getServerChannel = class_PipelineUtils.getMethod("getServerChannel",
 					SocketAddress.class);
-			class_HandlerBoss = (Class<? extends ChannelHandler>) Class.forName("net.md_5.bungee.netty.HandlerBoss");
+			class_HandlerBoss = Class.forName("net.md_5.bungee.netty.HandlerBoss");
 			field_HandlerBoss_channel = class_HandlerBoss.getDeclaredField("channel");
 			field_HandlerBoss_channel.setAccessible(true);
 		} catch (ReflectiveOperationException ex) {
@@ -216,7 +216,7 @@ public class BungeeUnsafe {
 								+ "config.yml if that is an issue");
 					}
 					field_InitialHandler_ch.set(conn,
-							new ChannelWrapper(ch.getHandle().pipeline().context(class_HandlerBoss)) {
+							new ChannelWrapper(ch.getHandle().pipeline().context("inbound-boss")) {
 								@Override
 								public void setCompressionThreshold(int compressionThreshold) {
 									// FUCK YOU!!!
