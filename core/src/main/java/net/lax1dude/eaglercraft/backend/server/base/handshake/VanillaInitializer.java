@@ -107,9 +107,13 @@ public class VanillaInitializer {
 			if (connectionState == STATE_PRE) {
 				if (pktId == 0x00) {
 					handleKickPacket(ctx, msg);
-				} else {
-					pipelineData.connectionLogger.error("Disconnecting, server sent unexpected packet " + pktId);
+				} else if (pktId == 0x01) {
 					inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
+					pipelineData.connectionLogger.error(
+							"Disconnecting, server tried to enable online mode encryption, please make sure the server is not in online mode");
+				} else {
+					inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
+					pipelineData.connectionLogger.error("Disconnecting, server sent unexpected packet " + pktId);
 				}
 			} else if (connectionState == STATE_SENT_LOGIN) {
 				switch (pktId) {
@@ -160,7 +164,8 @@ public class VanillaInitializer {
 					bufferedPackets.add(msg.retain());
 				}
 			} else {
-				pipelineData.connectionLogger.error("Disconnecting, server sent unexpected packet " + pktId);
+				pipelineData.connectionLogger
+						.error("Disconnecting, server sent unexpected packet " + pktId + " in unknown state");
 				inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
 			}
 		} catch (IndexOutOfBoundsException ex) {
