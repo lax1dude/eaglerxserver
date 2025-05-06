@@ -32,6 +32,10 @@ public class ChannelWrapper {
 
 	}
 
+	public SocketAddress getRemoteAddress() {
+		return null;
+	}
+
 	public void setRemoteAddress(SocketAddress addr) {
 
 	}

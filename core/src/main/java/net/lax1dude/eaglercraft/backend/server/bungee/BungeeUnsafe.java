@@ -34,8 +34,10 @@ import com.google.common.collect.ForwardingSet;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
@@ -215,13 +217,21 @@ public class BungeeUnsafe {
 								+ "\" and will be overridden, set compression threshold to -1 in the BungeeCord "
 								+ "config.yml if that is an issue");
 					}
-					field_InitialHandler_ch.set(conn,
-							new ChannelWrapper(ch.getHandle().pipeline().context("inbound-boss")) {
-								@Override
-								public void setCompressionThreshold(int compressionThreshold) {
-									// FUCK YOU!!!
-								}
-							});
+					ChannelPipeline pipeline = ch.getHandle().pipeline();
+					ChannelHandler bossHandler = pipeline.get("inbound-boss");
+					ChannelHandlerContext bossHandlerCtx = pipeline.context("inbound-boss");
+					if (bossHandler == null || bossHandlerCtx == null) {
+						throw new IllegalStateException("Could not find inbound-boss in pipeline!");
+					}
+					ChannelWrapper newCh = new ChannelWrapper(bossHandlerCtx) {
+						@Override
+						public void setCompressionThreshold(int compressionThreshold) {
+							// FUCK YOU!!!
+						}
+					};
+					newCh.setRemoteAddress(ch.getRemoteAddress());
+					field_InitialHandler_ch.set(conn, newCh);
+					field_HandlerBoss_channel.set(bossHandler, newCh);
 				}
 			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
