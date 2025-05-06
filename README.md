@@ -36,7 +36,7 @@ Please see the [Releases](https://github.com/lax1dude/eaglerxserver/releases) ta
 
 ## Installation
 
-To get started, place the EaglerXServer JAR in the "plugins" folder of your Spigot, BungeeCord, or Velocity server. In most cased you will also need to use ViaVersion, ViaBackwards, and ViaRewind to make your Spigot servers compatible with 1.8. If you would like to support 1.5, add the EaglerXRewind JAR to the "plugins" folder as well. Add EaglerMOTD for animated MOTDs and EaglerWeb if you want to host a website from your server.
+To get started, place the EaglerXServer JAR in the "plugins" folder of your Spigot, BungeeCord, or Velocity server. In most cases you will also need to use ViaVersion, ViaBackwards, and ViaRewind to make your Spigot servers compatible with 1.8. If you would like to support 1.5, add the EaglerXRewind JAR to the "plugins" folder as well. Add EaglerMOTD for animated MOTDs and EaglerWeb if you want to host a website from your server.
 
 **Velocity Note:** You may have issues if you attempt to use EaglercraftXServer with other plugins that also register plugin message event handlers, because Velocity's event bus will cause the plugin messages to be observed in an undefined order if an async handler is given higher priority than EaglercraftXServer.
 
