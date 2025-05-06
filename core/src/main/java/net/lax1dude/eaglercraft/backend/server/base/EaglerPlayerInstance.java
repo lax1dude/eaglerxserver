@@ -311,8 +311,13 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 		}
 		if (send) {
 			SPacketUpdateCertEAG pkt = impl.packet();
-			server.getUpdateService().getLoop().pushRunnable(() -> {
+			server.getUpdateService().getLoop()
+					.pushRunnable(getEaglerProtocol() != GamePluginMessageProtocol.V4 ? () -> {
 				sendEaglerMessage(pkt);
+				return pkt.length();
+			} : () -> {
+				// v4 clients don't like receiving these in a multi-packet
+				messageController.sendPacketImmediately(pkt);
 				return pkt.length();
 			});
 		}
@@ -324,7 +329,12 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 			throw new UnsupportedOperationException("Unknown certificate: " + cert);
 		}
 		if (updateSupport) {
-			sendEaglerMessage(c2.packet());
+			if (getEaglerProtocol() != GamePluginMessageProtocol.V4) {
+				sendEaglerMessage(c2.packet());
+			} else {
+				// v4 clients don't like receiving these in a multi-packet
+				messageController.sendPacketImmediately(c2.packet());
+			}
 		}
 	}
 

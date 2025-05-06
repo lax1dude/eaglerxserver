@@ -118,6 +118,14 @@ public abstract class MessageController {
 		}
 	}
 
+	public void sendPacketImmediately(GameMessagePacket packet) {
+		try {
+			writePacket(packet);
+		} catch (IOException ex) {
+			onException(ex);
+		}
+	}
+
 	protected void handlePacket(GameMessagePacket packet) {
 		try {
 			packet.handlePacket(handler);
