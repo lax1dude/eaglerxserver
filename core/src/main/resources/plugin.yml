@@ -1,5 +1,5 @@
 name: EaglercraftXServer
-version: 1.0.0
+version: 1.0.1
 main: net.lax1dude.eaglercraft.backend.server.bukkit.PlatformPluginBukkit
 description: Official EaglercraftX plugin for Spigot and Paper servers
 author: lax1dude
