@@ -26,15 +26,40 @@ import net.lax1dude.eaglercraft.backend.server.api.skins.ISkinManagerBase;
 
 public interface IBasePlayer<PlayerObject> extends IBaseLoginConnection {
 
+	/**
+	 * Gets the server API instance associated with this connection.
+	 * 
+	 * @return the server API instance.
+	 */
 	@Nonnull
 	IEaglerXServerAPI<PlayerObject> getServerAPI();
 
+	/**
+	 * Gets the underlying platform's player object associated with this connection.
+	 * 
+	 * <p>The player object type is dependent on what platform the plugin is running on
+	 * (Bukkit, BungeeCord, Velocity, etc).
+	 * 
+	 * @return The underlying platform's player object.
+	 */
 	@Nonnull
 	PlayerObject getPlayerObject();
 
+	/**
+	 * Gets the {@code MC|Brand} string of this player.
+	 * 
+	 * @return The brand string, or {@code null} if the client has not sent one.
+	 */
 	@Nullable
 	String getMinecraftBrand();
 
+	/**
+	 * Gets the eagler brand UUID of this player.
+	 * 
+	 * <p>Vanilla players will ret
+	 * 
+	 * @return
+	 */
 	@Nonnull
 	UUID getEaglerBrandUUID();
 

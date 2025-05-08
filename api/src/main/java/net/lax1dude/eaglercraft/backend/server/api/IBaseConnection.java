@@ -18,10 +18,21 @@ package net.lax1dude.eaglercraft.backend.server.api;
 
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeHolder;
 
+/**
+ * The base type for all inbound connections
+ */
 public interface IBaseConnection extends INettyChannel, IAttributeHolder {
 
+	/**
+	 * Checks if this connection is active.
+	 * 
+	 * @return {@code true} If the connection is active.
+	 */
 	boolean isConnected();
 
+	/**
+	 * Disconnects this connection, sends a generic kick message if this is a player.
+	 */
 	void disconnect();
 
 }

@@ -23,12 +23,27 @@ import javax.annotation.Nullable;
 
 public interface IBaseLoginConnection extends IBasePendingConnection {
 
+	/**
+	 * Gets the UUID of this player connection.
+	 * 
+	 * @return The player's UUID.
+	 */
 	@Nonnull
 	UUID getUniqueId();
 
+	/**
+	 * Gets the username of this player connection.
+	 * 
+	 * @return The player's username.
+	 */
 	@Nonnull
 	String getUsername();
 
+	/**
+	 * Checks if this connection is in "online mode".
+	 * 
+	 * @return {@code true} if the connection is in online mode.
+	 */
 	boolean isOnlineMode();
 
 	@Nullable
