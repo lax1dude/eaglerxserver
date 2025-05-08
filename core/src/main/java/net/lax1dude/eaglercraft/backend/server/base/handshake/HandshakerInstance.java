@@ -24,10 +24,13 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.EventLoop;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
+import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchCallback;
 import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilityType;
 import net.lax1dude.eaglercraft.backend.server.api.collect.ObjectIntMap;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftAuthCheckRequiredEvent;
@@ -61,6 +64,25 @@ public abstract class HandshakerInstance implements IHandshaker {
 		this.inboundHandler = inboundHandler;
 	}
 
+	protected <T> IEventDispatchCallback<T> inEventLoop(Channel channel, IEventDispatchCallback<T> cb) {
+		return (evt, err) -> {
+			EventLoop eventLoop = channel.eventLoop();
+			if (eventLoop.inEventLoop()) {
+				if (!channel.isActive()) {
+					return;
+				}
+				cb.complete(evt, err);
+			} else {
+				eventLoop.execute(() -> {
+					if (!channel.isActive()) {
+						return;
+					}
+					cb.complete(evt, err);
+				});
+			}
+		};
+	}
+
 	protected void handleInvalidData(ChannelHandlerContext ctx) {
 		inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_INVALID_PACKET,
 				"Invalid Packet");
@@ -82,7 +104,8 @@ public abstract class HandshakerInstance implements IHandshaker {
 			pipelineData.minecraftProtocol = minecraftVersion;
 			pipelineData.handshakeAuthEnabled = auth;
 			pipelineData.handshakeAuthUsername = authUsername;
-			server.eventDispatcher().dispatchClientBrandEvent(pipelineData.asPendingConnection(), (evt, err) -> {
+			server.eventDispatcher().dispatchClientBrandEvent(pipelineData.asPendingConnection(),
+					inEventLoop(ctx.channel(), (evt, err) -> {
 				if (err == null) {
 					if (!evt.isCancelled()) {
 						continueHandshakeInit(ctx);
@@ -101,7 +124,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 					inboundHandler.terminateInternalError(ctx, getVersion());
 					pipelineData.connectionLogger.error("Caught exception dispatching client brand event", err);
 				}
-			});
+			}));
 		} else {
 			inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_WRONG_PACKET,
 					"Wrong Initial Packet");
@@ -118,10 +141,8 @@ public abstract class HandshakerInstance implements IHandshaker {
 				return;
 			}
 			server.eventDispatcher().dispatchAuthCheckRequired(pipelineData.asPendingConnection(),
-					pipelineData.handshakeAuthEnabled, pipelineData.handshakeAuthUsername, (evt, err) -> {
-				if (!ctx.channel().isActive()) {
-					return;
-				}
+					pipelineData.handshakeAuthEnabled, pipelineData.handshakeAuthUsername,
+					inEventLoop(ctx.channel(), (evt, err) -> {
 				if (err == null) {
 					IEaglercraftAuthCheckRequiredEvent.EnumAuthResponse response = evt.getAuthRequired();
 					if (response == null) {
@@ -139,6 +160,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 							sendPacketVersionNoAuth(ctx, pipelineData.handshakeProtocol,
 									pipelineData.minecraftProtocol, server.getServerBrand(),
 									server.getServerVersion());
+							inboundHandler.canSendV3Kick = true;
 							break;
 						case REQUIRE:
 							if (pipelineData.authType == (byte) 0) {
@@ -152,17 +174,18 @@ public abstract class HandshakerInstance implements IHandshaker {
 									&& (getVersion() < 4 || !pipelineData.cookieAuthEventEnabled)) {
 								inboundHandler.terminated = true;
 								state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
-								ctx.channel().eventLoop()
-										.execute(() -> sendPacketAuthRequired(ctx, pipelineData.authType,
-												evt.getAuthMessage()).addListener(ChannelFutureListener.CLOSE));
+								sendPacketAuthRequired(ctx, pipelineData.authType, evt.getAuthMessage())
+										.addListener(ChannelFutureListener.CLOSE);
 								break;
 							}
 							pipelineData.authEventEnabled = true;
 							state = HandshakePacketTypes.STATE_CLIENT_VERSION;
-							if (sendPacketVersionAuth(ctx, pipelineData.handshakeProtocol,
+							ChannelFuture future = sendPacketVersionAuth(ctx, pipelineData.handshakeProtocol,
 									pipelineData.minecraftProtocol, server.getServerBrand(),
 									server.getServerVersion(), pipelineData.authType, evt.getSaltingData(),
-									evt.isNicknameSelectionEnabled()) == null) {
+									evt.isNicknameSelectionEnabled());
+							inboundHandler.canSendV3Kick = true;
+							if (future == null) {
 								state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 							}
 							break;
@@ -184,11 +207,12 @@ public abstract class HandshakerInstance implements IHandshaker {
 					pipelineData.connectionLogger
 							.error("Caught exception dispatching auth required check event", err);
 				}
-			});
+			}));
 		} else {
 			state = HandshakePacketTypes.STATE_CLIENT_VERSION;
 			sendPacketVersionNoAuth(ctx, pipelineData.handshakeProtocol, pipelineData.minecraftProtocol,
 					server.getServerBrand(), server.getServerVersion());
+			inboundHandler.canSendV3Kick = true;
 		}
 	}
 
@@ -369,21 +393,19 @@ public abstract class HandshakerInstance implements IHandshaker {
 				pipelineData.handshakeAuthUsername, pipelineData.nicknameSelectionEnabled, pipelineData.authSalt,
 				authPassword, pipelineData.cookieEnabled, pipelineData.cookieData, requestedUsername,
 				pipelineData.username, pipelineData.uuid, pipelineData.authType, pipelineData.authMessage,
-				pipelineData.requestedServer, (evt, err) -> {
+				pipelineData.requestedServer, inEventLoop(ctx.channel(), (evt, err) -> {
 			IEaglercraftAuthPasswordEvent.EnumAuthResponse response = evt.getAuthResponse();
 			if (response == null) {
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 				inboundHandler.terminateInternalError(ctx, getVersion());
 				pipelineData.connectionLogger.error("Auth password event was not handled");
 			} else if (response == IEaglercraftAuthPasswordEvent.EnumAuthResponse.ALLOW) {
-				ctx.channel().eventLoop().execute(() -> {
-					pipelineData.username = evt.getProfileUsername();
-					if (server.getPlatform().getType() != EnumAdapterPlatformType.BUKKIT) {
-						pipelineData.uuid = evt.getProfileUUID();
-					}
-					pipelineData.requestedServer = evt.getAuthRequestedServer();
-					handleContinueLogin(ctx);
-				});
+				pipelineData.username = evt.getProfileUsername();
+				if (server.getPlatform().getType() != EnumAdapterPlatformType.BUKKIT) {
+					pipelineData.uuid = evt.getProfileUUID();
+				}
+				pipelineData.requestedServer = evt.getAuthRequestedServer();
+				handleContinueLogin(ctx);
 			} else {
 				Object obj = evt.getKickMessage();
 				if (obj == null) {
@@ -392,17 +414,17 @@ public abstract class HandshakerInstance implements IHandshaker {
 				}
 				final Object obj2 = obj;
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
-				ctx.channel().eventLoop()
-						.execute(() -> sendPacketDenyLogin(ctx, obj2).addListener(ChannelFutureListener.CLOSE));
+				sendPacketDenyLogin(ctx, obj2).addListener(ChannelFutureListener.CLOSE);
 			}
-		});
+		}));
 	}
 
 	private void continueLoginCookieAuth(ChannelHandlerContext ctx, String requestedUsername) {
 		server.eventDispatcher().dispatchAuthCookieEvent(pipelineData.asLoginConnection(),
 				pipelineData.handshakeAuthUsername, pipelineData.nicknameSelectionEnabled, pipelineData.cookieEnabled,
 				pipelineData.cookieData, requestedUsername, pipelineData.username, pipelineData.uuid,
-				pipelineData.authType, pipelineData.authMessage, pipelineData.requestedServer, (evt, err) -> {
+				pipelineData.authType, pipelineData.authMessage, pipelineData.requestedServer,
+				inEventLoop(ctx.channel(), (evt, err) -> {
 			IEaglercraftAuthCookieEvent.EnumAuthResponse response = evt.getAuthResponse();
 			if (response == null) {
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
@@ -412,14 +434,12 @@ public abstract class HandshakerInstance implements IHandshaker {
 			}
 			switch (response) {
 			case ALLOW:
-				ctx.channel().eventLoop().execute(() -> {
-					pipelineData.username = evt.getProfileUsername();
-					if (server.getPlatform().getType() != EnumAdapterPlatformType.BUKKIT) {
-						pipelineData.uuid = evt.getProfileUUID();
-					}
-					pipelineData.requestedServer = evt.getAuthRequestedServer();
-					handleContinueLogin(ctx);
-				});
+				pipelineData.username = evt.getProfileUsername();
+				if (server.getPlatform().getType() != EnumAdapterPlatformType.BUKKIT) {
+					pipelineData.uuid = evt.getProfileUUID();
+				}
+				pipelineData.requestedServer = evt.getAuthRequestedServer();
+				handleContinueLogin(ctx);
 				break;
 			case DENY:
 				Object obj = evt.getKickMessage();
@@ -429,18 +449,16 @@ public abstract class HandshakerInstance implements IHandshaker {
 				}
 				final Object obj2 = obj;
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
-				ctx.channel().eventLoop()
-						.execute(() -> sendPacketDenyLogin(ctx, obj2).addListener(ChannelFutureListener.CLOSE));
+				sendPacketDenyLogin(ctx, obj2).addListener(ChannelFutureListener.CLOSE);
 				break;
 			case REQUIRE_AUTH:
 				inboundHandler.terminated = true;
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
-				ctx.channel().eventLoop()
-						.execute(() -> sendPacketAuthRequired(ctx, pipelineData.authType, evt.getAuthMessage())
-								.addListener(ChannelFutureListener.CLOSE));
+				sendPacketAuthRequired(ctx, pipelineData.authType, evt.getAuthMessage())
+						.addListener(ChannelFutureListener.CLOSE);
 				break;
 			}
-		});
+		}));
 	}
 
 	private void updateLoggerName() {
@@ -449,10 +467,8 @@ public abstract class HandshakerInstance implements IHandshaker {
 
 	private void handleContinueLogin(ChannelHandlerContext ctx) {
 		server.eventDispatcher().dispatchLoginEvent(pipelineData.asLoginConnection(),
-				pipelineData.hasLoginStateRedirectCap(), pipelineData.requestedServer, (evt, err) -> {
-			if (!ctx.channel().isActive()) {
-				return;
-			}
+				pipelineData.hasLoginStateRedirectCap(), pipelineData.requestedServer,
+				inEventLoop(ctx.channel(), (evt, err) -> {
 			if (err == null) {
 				if (evt.isCancelled()) {
 					state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
@@ -461,9 +477,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 						String redirectAddr = evt.getRedirectAddress();
 						if (redirectAddr != null) {
 							if (evt.isLoginStateRedirectSupported()) {
-								ctx.channel().eventLoop()
-										.execute(() -> sendPacketLoginStateRedirect(ctx, redirectAddr)
-												.addListener(ChannelFutureListener.CLOSE));
+								sendPacketLoginStateRedirect(ctx, redirectAddr).addListener(ChannelFutureListener.CLOSE);
 							} else {
 								inboundHandler.terminateInternalError(ctx, getVersion());
 								pipelineData.connectionLogger
@@ -477,24 +491,21 @@ public abstract class HandshakerInstance implements IHandshaker {
 						}
 					}
 					final Object msg2 = kickMsg;
-					ctx.channel().eventLoop().execute(
-							() -> sendPacketDenyLogin(ctx, msg2).addListener(ChannelFutureListener.CLOSE));
+					sendPacketDenyLogin(ctx, msg2).addListener(ChannelFutureListener.CLOSE);
 				} else {
 					pipelineData.username = evt.getProfileUsername();
 					if (server.getPlatform().getType() != EnumAdapterPlatformType.BUKKIT) {
 						pipelineData.uuid = evt.getProfileUUID();
 					}
 					pipelineData.requestedServer = evt.getRequestedServer();
-					ctx.channel().eventLoop().execute(() -> {
-						inboundHandler.beginBackendHandshake(ctx);
-					});
+					inboundHandler.beginBackendHandshake(ctx);
 				}
 			} else {
 				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 				inboundHandler.terminateInternalError(ctx, getVersion());
 				pipelineData.connectionLogger.error("Caught exception dispatching login event", err);
 			}
-		});
+		}));
 	}
 
 	public void handleBackendHandshakeSuccess(ChannelHandlerContext ctx, String acceptedUsername, UUID acceptedUUID) {

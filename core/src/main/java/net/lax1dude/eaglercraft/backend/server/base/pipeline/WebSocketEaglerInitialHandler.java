@@ -97,6 +97,7 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 	private IHandshaker handshaker;
 	private VanillaInitializer vanillaInitializer;
 	public boolean terminated;
+	public boolean canSendV3Kick;
 
 	public WebSocketEaglerInitialHandler(EaglerXServer<?> server, NettyPipelineData pipelineData) {
 		this.server = server;
@@ -108,7 +109,7 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		ByteBuf buf = ctx.alloc().buffer();
 		buf.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_ERROR);
 		buf.writeByte(errorCode);
-		if (handshakeProtocol >= 3) {
+		if (handshakeProtocol >= 3 && canSendV3Kick) {
 			if (errorMessage.length() > 65535) {
 				errorMessage = errorMessage.substring(0, 65535);
 			}
@@ -137,7 +138,7 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		ByteBuf buf = ctx.alloc().buffer();
 		buf.writeByte(HandshakePacketTypes.PROTOCOL_SERVER_ERROR);
 		buf.writeByte(errorCode);
-		if (handshakeProtocol >= 3) {
+		if (handshakeProtocol >= 3 && canSendV3Kick) {
 			String errorMessage = server.componentHelper().serializeLegacyJSON(errorComponent);
 			if (errorMessage.length() > 65535) {
 				errorMessage = errorMessage.substring(0, 65535);
