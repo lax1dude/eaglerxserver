@@ -5,9 +5,13 @@ set -e
 SCRIPT_DIR=$(dirname "$0")
 cd "$SCRIPT_DIR"
 
-docker build -t ghcr.io/lax1dude/eaglerxserver:latest .
+if [ "$DOCKER_CMD" = "" ]; then
+	DOCKER_CMD="docker"
+fi
+
+$DOCKER_CMD build -t ghcr.io/lax1dude/eaglerxserver:latest .
 mkdir -p ./build
-docker run -v ./build:/data/jars ghcr.io/lax1dude/eaglerxserver
+$DOCKER_CMD run -v ./build:/data/jars ghcr.io/lax1dude/eaglerxserver
 
 echo "Success! Jars were copied to $( pwd )/build"
 
