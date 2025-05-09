@@ -26,11 +26,6 @@ dependencies {
 	annotationProcessor(libs.velocity.api)
 }
 
-java {
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
-}
-
 tasks.named("shadowJar", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
 	dependsOn ":protocol-game:jar" // Workaround
 	dependsOn ":backend-rpc-protocol:jar" // Workaround

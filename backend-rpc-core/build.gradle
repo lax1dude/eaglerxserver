@@ -14,11 +14,6 @@ dependencies {
 	compileOnly(libs.jsr305)
 }
 
-java {
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
-}
-
 jar {
 	dependsOn ":voice-rpc-protocol:jar" // Workaround
 	dependsOn ":backend-rpc-api:jar" // Workaround

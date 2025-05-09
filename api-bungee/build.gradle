@@ -11,11 +11,6 @@ dependencies {
 	compileOnly(libs.jsr305)
 }
 
-java {
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
-}
-
 publishing {
 	publications {
 		maven(MavenPublication) {

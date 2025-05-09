@@ -26,16 +26,15 @@ subprojects {
 	group = providers.gradleProperty("eaglerxserver.group").get()
 	version = providers.gradleProperty("eaglerxserver.version").get()
 
-	tasks.withType(JavaCompile).configureEach {
-		options.encoding = "UTF-8"
-	}
-
-	tasks.withType(Javadoc).configureEach {
-		options.encoding = "UTF-8"
-	}
-
-	// https://github.com/gradle/gradle/issues/32284
 	plugins.withId("java") {
+
+		java {
+			toolchain {
+				languageVersion = JavaLanguageVersion.of(17)
+			}
+		}
+
+		// https://github.com/gradle/gradle/issues/32284
 		sourceSets.configureEach {
 			def eclipseCompileClasspath = configurations.resolvable(getTaskName(null, "eclipseCompileClasspath")) {
 				def compileClasspath = configurations.getByName(getCompileClasspathConfigurationName())
@@ -53,6 +52,15 @@ subprojects {
 				}
 			}
 		}
+
+	}
+
+	tasks.withType(JavaCompile).configureEach {
+		options.encoding = "UTF-8"
+	}
+
+	tasks.withType(Javadoc).configureEach {
+		options.encoding = "UTF-8"
 	}
 
 }

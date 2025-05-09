@@ -13,11 +13,6 @@ dependencies {
 	runtimeOnly(libs.logback)
 }
 
-java {
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
-}
-
 jar {
 	dependsOn ":supervisor-protocol:jar" // Workaround
 	dependsOn ":skin-cache:jar" // Workaround

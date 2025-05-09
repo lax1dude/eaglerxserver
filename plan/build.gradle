@@ -21,11 +21,6 @@ dependencies {
     testCompileOnly "com.github.plan-player-analytics:Plan:5.6.2965"
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
 jar {
 	archiveFileName = "EaglerXPlan.jar"
 

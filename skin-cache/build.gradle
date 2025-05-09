@@ -7,9 +7,3 @@ dependencies {
 	compileOnly(libs.guava)
 	compileOnly(libs.bundles.netty.all)
 }
-
-java {
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
-}
-
