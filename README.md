@@ -50,6 +50,30 @@ Please keep in mind that on BungeeCord and Velocity you must edit the Eaglercraf
 
 On BungeeCord and Velocity, EaglercraftXServer should generate detailed comments in the config files, describing each property in detail. However this does not work on most Spigot versions (like 1.12) due to the YAML parser/serializer bundled with it not supporting comments. There will eventually be a configuration guide for people who get stuck without comments in their config files, however this has not been completed yet.
 
+## Building From Source
+
+If you choose to build without Docker, make sure you have Java 17 or greater installed on your system. Keep in mind that if you compile with a Java version greater than 17, users of the compiled jars will need the version you used or higher.
+
+## Windows
+
+Run `build_all.bat`. All compiled jars will be in the same directory you ran the script.
+
+## Linux and MacOS (Without Docker)
+
+Run `./build_all.sh`. All compiled jars will be in the same directory you ran the script.
+
+## Linux and MacOS (With Docker)
+
+Run `./build_all_docker.sh`. All compiled jars will be in the `build` directory.
+
+If you need to run Docker with `sudo`, specify the Docker command with the `DOCKER_CMD` environment variable:
+
+```bash
+DOCKER_CMD="sudo docker" ./build_all_docker.sh
+```
+
+You can also use `DOCKER_CMD` to specify `podman` if you prefer it to Docker.
+
 ## Plugin Development
 
 One of the goals of EaglercraftXServer is to provide a proper API for interacting with EaglercraftX-based clients. The API allows you to do things such as changing player skins, creating and managing voice channels, and using the authentication and cookie system in the EaglercraftX client.
