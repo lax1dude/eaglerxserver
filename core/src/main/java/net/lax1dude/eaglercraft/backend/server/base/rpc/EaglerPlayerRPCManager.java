@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.EaglerBackendRPCProtocol;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCEnabledSuccess;
 import net.lax1dude.eaglercraft.backend.rpc.protocol.pkt.server.SPacketRPCEnabledSuccessEaglerV2;
-import net.lax1dude.eaglercraft.backend.server.base.EaglerConnectionInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 
 public class EaglerPlayerRPCManager<PlayerObject> extends BasePlayerRPCManager<PlayerObject> {
@@ -48,12 +47,11 @@ public class EaglerPlayerRPCManager<PlayerObject> extends BasePlayerRPCManager<P
 		if (protocol == EaglerBackendRPCProtocol.V1) {
 			sendRPCInitPacket(new SPacketRPCEnabledSuccess(protocol.vers, player.getEaglerProtocol().ver));
 		} else {
-			EaglerConnectionInstance conn = player.connectionImpl();
 			sendRPCInitPacket(new SPacketRPCEnabledSuccessEaglerV2(protocol.vers, player.getMinecraftProtocol(),
 					player.getEaglerXServer().getSupervisorService().getNodeId(), player.getHandshakeEaglerProtocol(),
-					player.getEaglerProtocol().ver, player.getRewindProtocolVersion(), conn.getCapabilityMask(),
-					conn.getCapabilityVers(),
-					conn.getExtCapabilities().entrySet().stream()
+					player.getEaglerProtocol().ver, player.getRewindProtocolVersion(), player.getCapabilityMask(),
+					player.getCapabilityVers(),
+					player.getExtCapabilities().entrySet().stream()
 							.map((etr) -> new SPacketRPCEnabledSuccessEaglerV2.ExtCapability(etr.getKey(),
 									etr.getValue() & 0xFF))
 							.collect(Collectors.toList())));

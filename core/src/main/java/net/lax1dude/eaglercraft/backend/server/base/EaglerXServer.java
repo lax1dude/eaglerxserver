@@ -332,7 +332,7 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		init.setOnServerEnable(this::enableHandler);
 		init.setOnServerDisable(this::disableHandler);
 		init.setPipelineInitializer(new EaglerXServerNettyPipelineInitializer<>(this));
-		init.setConnectionInitializer(new EaglerXServerConnectionInitializer<>(this));
+		init.setConnectionInitializer(new EaglerXServerLoginInitializer<>(this));
 		init.setPlayerInitializer(new EaglerXServerPlayerInitializer<>(this));
 		init.setServerJoinListener(new EaglerXServerJoinListener<>(this));
 		init.setCommandRegistry(
@@ -524,8 +524,6 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			throw new RegistrationStateException();
 		}
 
-		EaglerConnectionInstance pendingConnection = playerInstance.connectionImpl();
-
 		playerInstance.messageController = MessageControllerFactory.initializePlayer(playerInstance);
 
 		if (updateService != null) {
@@ -571,9 +569,9 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			playerInstance.skinManager = mgr;
 
 			try {
-				if (pendingConnection.isEaglerXRewindPlayer()) {
-					((IEaglerXRewindProtocol<PlayerObject, Object>) pendingConnection.getRewindProtocol())
-							.handleCreatePlayer(pendingConnection.getRewindAttachment(), playerInstance);
+				if (playerInstance.isEaglerXRewindPlayer()) {
+					((IEaglerXRewindProtocol<PlayerObject, Object>) playerInstance.getRewindProtocol())
+							.handleCreatePlayer(playerInstance.getRewindAttachment(), playerInstance);
 				}
 			} catch (Exception ex) {
 				logger().error("Uncaught exception initializing rewind player", ex);
@@ -613,11 +611,9 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			playerInstance.voiceManager.destroyVoiceManager();
 		}
 
-		EaglerConnectionInstance pendingConnection = playerInstance.connectionImpl();
-
-		if (pendingConnection.isEaglerXRewindPlayer()) {
-			((IEaglerXRewindProtocol<PlayerObject, Object>) pendingConnection.getRewindProtocol())
-					.handleDestroyPlayer(pendingConnection.getRewindAttachment());
+		if (playerInstance.isEaglerXRewindPlayer()) {
+			((IEaglerXRewindProtocol<PlayerObject, Object>) playerInstance.getRewindProtocol())
+					.handleDestroyPlayer(playerInstance.getRewindAttachment());
 		}
 	}
 

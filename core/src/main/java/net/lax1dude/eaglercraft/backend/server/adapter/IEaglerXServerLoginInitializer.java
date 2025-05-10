@@ -16,8 +16,8 @@
 
 package net.lax1dude.eaglercraft.backend.server.adapter;
 
-public interface IEaglerXServerConnectionInitializer<PipelineAttachment extends IPipelineData, ConnectionAttachment> {
+public interface IEaglerXServerLoginInitializer<PipelineAttachment extends IPipelineData> {
 
-	void initializeConnection(IPlatformConnectionInitializer<PipelineAttachment, ConnectionAttachment> initializer);
+	void initializeLogin(IPlatformLoginInitializer<PipelineAttachment> initializer);
 
 }

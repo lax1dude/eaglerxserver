@@ -16,8 +16,11 @@
 
 package net.lax1dude.eaglercraft.backend.server.base;
 
+import java.net.SocketAddress;
+import java.util.Map;
 import java.util.UUID;
 
+import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformSubLogger;
 import net.lax1dude.eaglercraft.backend.server.api.EnumCapabilitySpec;
@@ -27,8 +30,10 @@ import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerPlayer;
 import net.lax1dude.eaglercraft.backend.server.api.IUpdateCertificate;
 import net.lax1dude.eaglercraft.backend.server.api.SHA1Sum;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.backend.server.base.collect.ObjectHashSet;
 import net.lax1dude.eaglercraft.backend.server.base.message.MessageController;
+import net.lax1dude.eaglercraft.backend.server.base.message.RewindMessageControllerHandle;
 import net.lax1dude.eaglercraft.backend.server.base.notifications.NotificationManagerPlayer;
 import net.lax1dude.eaglercraft.backend.server.base.pause_menu.PauseMenuManager;
 import net.lax1dude.eaglercraft.backend.server.base.rpc.EaglerPlayerRPCManager;
@@ -48,12 +53,39 @@ import net.lax1dude.eaglercraft.v1_8.socket.protocol.pkt.server.SPacketUpdateCer
 public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<PlayerObject>
 		implements IEaglerPlayer<PlayerObject> {
 
-	private final EaglerConnectionInstance connectionInstance;
+	private final Channel channel;
+	private final IEaglerListenerInfo listenerInfo;
+	private final String eaglerBrandString;
+	private final String eaglerVersionString;
+	private final boolean wss;
+	private final String headerHost;
+	private final String headerOrigin;
+	private final String headerUserAgent;
+	private final String headerCookie;
+	private final String headerAuthorization;
+	private final String requestPath;
+	private final String realAddress;
+	private final int handshakeProtocol;
+	private final GamePluginMessageProtocol gameProtocol;
+	private final int minecraftProtocol;
+	private final boolean handshakeAuthEnabled;
+	private final byte[] handshakeAuthUsername;
+	private final boolean cookieSupport;
+	private final boolean cookieEnabled;
+	private byte[] cookieData;
+	private final Object rewindAttachment;
+	private final IEaglerXRewindProtocol<?, ?> rewindProtocol;
+	private final int rewindProtocolVersion;
+	private final RewindMessageControllerHandle rewindMessageControllerHandle;
+	private final int acceptedCapabilitiesMask;
+	private final byte[] acceptedCapabilitiesVers;
+	private final Map<UUID, Byte> acceptedExtendedCapabilities;
 	private final IPlatformSubLogger playerLogger;
 	private final ObjectHashSet<SHA1Sum> updateSent;
 	private final boolean redirectSupport;
 	private final boolean updateSupport;
 	private final PlayerRateLimits rateLimits;
+	private UUID eaglerBrandUUID;
 	MessageController messageController;
 	IVoiceManagerImpl<PlayerObject> voiceManager;
 	NotificationManagerPlayer<PlayerObject> notifManager;
@@ -61,12 +93,39 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	PauseMenuManager<PlayerObject> pauseMenuManager;
 	IUpdateCertificateImpl updateCertificate;
 
-	public EaglerPlayerInstance(IPlatformPlayer<PlayerObject> player, EaglerXServer<PlayerObject> server) {
-		super(player, server);
-		connectionInstance = player.getConnectionAttachment();
-		playerLogger = connectionInstance.logger();
-		redirectSupport = connectionInstance.hasCapability(EnumCapabilitySpec.REDIRECT_V0);
-		updateSupport = connectionInstance.hasCapability(EnumCapabilitySpec.UPDATE_V0);
+	@SuppressWarnings("unchecked")
+	public EaglerPlayerInstance(IPlatformPlayer<PlayerObject> player, NettyPipelineData pipelineData) {
+		super(player, pipelineData.attributeHolder, (EaglerXServer<PlayerObject>) pipelineData.server);
+		channel = pipelineData.channel;
+		listenerInfo = pipelineData.listenerInfo;
+		eaglerBrandString = pipelineData.eaglerBrandString.intern();
+		eaglerVersionString = pipelineData.eaglerVersionString.intern();
+		wss = pipelineData.wss;
+		headerHost = pipelineData.headerHost != null ? pipelineData.headerHost.intern() : null;
+		headerOrigin = pipelineData.headerOrigin != null ? pipelineData.headerOrigin.intern() : null;
+		headerUserAgent = pipelineData.headerUserAgent != null ? pipelineData.headerUserAgent.intern() : null;
+		headerCookie = pipelineData.headerCookie;
+		headerAuthorization = pipelineData.headerAuthorization;
+		requestPath = pipelineData.requestPath != null ? pipelineData.requestPath.intern() : null;
+		realAddress = pipelineData.realAddress;
+		handshakeProtocol = pipelineData.handshakeProtocol;
+		gameProtocol = pipelineData.gameProtocol;
+		minecraftProtocol = pipelineData.minecraftProtocol;
+		handshakeAuthEnabled = pipelineData.handshakeAuthEnabled;
+		handshakeAuthUsername = pipelineData.handshakeAuthUsername;
+		cookieSupport = pipelineData.cookieSupport;
+		cookieEnabled = pipelineData.cookieEnabled;
+		cookieData = pipelineData.cookieData;
+		rewindAttachment = pipelineData.rewindAttachment;
+		rewindProtocol = pipelineData.rewindProtocol;
+		rewindProtocolVersion = pipelineData.rewindProtocolVersion;
+		rewindMessageControllerHandle = pipelineData.rewindMessageControllerHandle;
+		acceptedCapabilitiesMask = pipelineData.acceptedCapabilitiesMask;
+		acceptedCapabilitiesVers = pipelineData.acceptedCapabilitiesVers;
+		acceptedExtendedCapabilities = pipelineData.acceptedExtendedCapabilities;
+		playerLogger = pipelineData.connectionLogger;
+		redirectSupport = hasCapability(EnumCapabilitySpec.REDIRECT_V0);
+		updateSupport = hasCapability(EnumCapabilitySpec.UPDATE_V0);
 		rateLimits = new PlayerRateLimits(server.rateLimitParams());
 		if (updateSupport && server.getUpdateService() != null) {
 			updateSent = new ObjectHashSet<>(16);
@@ -76,93 +135,150 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	}
 
 	@Override
+	public SocketAddress getSocketAddress() {
+		return channel.remoteAddress();
+	}
+
+	@Override
+	public int getMinecraftProtocol() {
+		return minecraftProtocol;
+	}
+
+	@Override
 	public boolean hasCapability(EnumCapabilitySpec capability) {
-		return connectionInstance.hasCapability(capability);
+		return CapabilityBits.hasCapability(acceptedCapabilitiesMask, acceptedCapabilitiesVers, capability.getId(),
+				capability.getVer());
 	}
 
 	@Override
 	public int getCapability(EnumCapabilityType capability) {
-		return connectionInstance.getCapability(capability);
+		return CapabilityBits.getCapability(acceptedCapabilitiesMask, acceptedCapabilitiesVers, capability.getId());
+	}
+
+	public int getCapabilityMask() {
+		return acceptedCapabilitiesMask;
+	}
+
+	public byte[] getCapabilityVers() {
+		return acceptedCapabilitiesVers;
 	}
 
 	@Override
 	public boolean hasExtendedCapability(UUID extendedCapability, int version) {
-		return connectionInstance.hasExtendedCapability(extendedCapability, version);
+		if (extendedCapability == null) {
+			throw new NullPointerException("extendedCapability");
+		}
+		Byte b = acceptedExtendedCapabilities.get(extendedCapability);
+		return b != null && (b.byteValue() & 0xFF) >= version;
 	}
 
 	@Override
 	public int getExtendedCapability(UUID extendedCapability) {
-		return connectionInstance.getExtendedCapability(extendedCapability);
+		if (extendedCapability == null) {
+			throw new NullPointerException("extendedCapability");
+		}
+		Byte b = acceptedExtendedCapabilities.get(extendedCapability);
+		return b != null ? (b.byteValue() & 0xFF) : -1;
+	}
+
+	public Map<UUID, Byte> getExtCapabilities() {
+		return acceptedExtendedCapabilities;
 	}
 
 	@Override
 	public boolean isHandshakeAuthEnabled() {
-		return connectionInstance.isHandshakeAuthEnabled();
+		return handshakeAuthEnabled;
 	}
 
 	@Override
 	public byte[] getAuthUsername() {
-		return connectionInstance.getAuthUsername();
+		return handshakeAuthUsername != null ? handshakeAuthUsername.clone() : null;
+	}
+
+	public byte[] getAuthUsernameUnsafe() {
+		return handshakeAuthUsername;
 	}
 
 	@Override
 	public IEaglerListenerInfo getListenerInfo() {
-		return connectionInstance.getListenerInfo();
+		return listenerInfo;
 	}
 
 	@Override
 	public String getRealAddress() {
-		return connectionInstance.getRealAddress();
+		return realAddress;
 	}
 
 	@Override
 	public boolean isWebSocketSecure() {
-		return connectionInstance.isWebSocketSecure();
+		return wss;
 	}
 
 	@Override
 	public boolean isEaglerXRewindPlayer() {
-		return connectionInstance.isEaglerXRewindPlayer();
+		return rewindProtocol != null;
 	}
 
 	@Override
 	public int getRewindProtocolVersion() {
-		return connectionInstance.getRewindProtocolVersion();
+		return rewindProtocolVersion;
+	}
+
+	public IEaglerXRewindProtocol<?, ?> getRewindProtocol() {
+		return rewindProtocol;
+	}
+
+	public Object getRewindAttachment() {
+		return rewindAttachment;
+	}
+
+	public RewindMessageControllerHandle getRewindMessageControllerHandle() {
+		return rewindMessageControllerHandle;
 	}
 
 	@Override
 	public String getWebSocketHeader(EnumWebSocketHeader header) {
-		return connectionInstance.getWebSocketHeader(header);
+		if (header == null) {
+			throw new NullPointerException("header");
+		}
+		return switch (header) {
+		case HEADER_HOST -> headerHost;
+		case HEADER_ORIGIN -> headerOrigin;
+		case HEADER_USER_AGENT -> headerUserAgent;
+		case HEADER_COOKIE -> headerCookie;
+		case HEADER_AUTHORIZATION -> headerAuthorization;
+		default -> null;
+		};
 	}
 
 	@Override
 	public String getWebSocketPath() {
-		return connectionInstance.getWebSocketPath();
+		return requestPath;
 	}
 
 	@Override
 	public String getEaglerVersionString() {
-		return connectionInstance.getEaglerVersionString();
+		return eaglerVersionString;
 	}
 
 	@Override
 	public String getEaglerBrandString() {
-		return connectionInstance.getEaglerBrandString();
+		return eaglerBrandString;
 	}
 
 	@Override
 	public UUID getEaglerBrandUUID() {
-		return connectionInstance.getEaglerBrandUUID();
+		return eaglerBrandUUID;
 	}
 
 	@Override
 	public int getHandshakeEaglerProtocol() {
-		return connectionInstance.getHandshakeEaglerProtocol();
+		return handshakeProtocol;
 	}
 
 	@Override
 	public GamePluginMessageProtocol getEaglerProtocol() {
-		return connectionInstance.getEaglerProtocol();
+		return gameProtocol;
 	}
 
 	@Override
@@ -222,24 +338,24 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	@Override
 	public boolean isCookieSupported() {
-		return connectionInstance.isCookieSupported();
+		return cookieSupport;
 	}
 
 	@Override
 	public boolean isCookieEnabled() {
-		return connectionInstance.isCookieEnabled();
+		return cookieEnabled;
 	}
 
 	@Override
 	public byte[] getCookieData() {
-		return connectionInstance.getCookieData();
+		return cookieData;
 	}
 
 	@Override
 	public void setCookieData(byte[] data, long expiresAfterSec, boolean revokeQuerySupported,
 			boolean clientSaveCookieToDisk) {
-		if (connectionInstance.isCookieEnabled()) {
-			connectionInstance.setCookieData(data);
+		if (cookieEnabled) {
+			cookieData = data;
 			sendEaglerMessage(new SPacketSetServerCookieV4EAG(data, expiresAfterSec, revokeQuerySupported,
 					clientSaveCookieToDisk));
 		} else {
@@ -345,10 +461,6 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 
 	public IPlatformSubLogger logger() {
 		return playerLogger;
-	}
-
-	public EaglerConnectionInstance connectionImpl() {
-		return connectionInstance;
 	}
 
 	public PlayerRateLimits getRateLimits() {

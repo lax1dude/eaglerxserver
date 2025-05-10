@@ -81,6 +81,10 @@ public class PlayerPostLoginInjector {
 	protected Class<Object> packetLoginSuccessClass;
 	protected Field packetLoginSuccessGameProfile;
 
+	protected Class<?> packetPlayDisconnect;
+	protected Constructor<?> packetPlayDisconnectCtor;
+	protected Field packetLoginDisconnectMsg;
+
 	protected final ConcurrentMap<Property, Player> entityPlayers;
 
 	public PlayerPostLoginInjector(PlatformPluginBukkit plugin) {
@@ -208,6 +212,7 @@ public class PlayerPostLoginInjector {
 		protected Object proxiedNetworkManager;
 		protected boolean compressionDisable;
 		protected boolean throwOnLoginSuccess;
+		protected volatile boolean clientPlayState;
 
 		protected LoginEventContext(Object originalNetworkManager, Channel channel) {
 			this.originalNetworkManager = originalNetworkManager;
@@ -226,13 +231,10 @@ public class PlayerPostLoginInjector {
 			this.throwOnLoginSuccess = en;
 		}
 
-	}
-
-	public static void markCompressionDisable(Channel ch, boolean en) {
-		LoginEventContext ctx = ch.attr(attr).get();
-		if (ctx != null) {
-			ctx.markCompressionDisable(en);
+		public void markClientPlayState(boolean en) {
+			this.clientPlayState = en;
 		}
+
 	}
 
 	public static class EaglerError extends Error {
@@ -264,9 +266,20 @@ public class PlayerPostLoginInjector {
 								meth.invoke(netManager, args);
 								return null;
 							}
-						} else if (ctx.throwOnLoginSuccess && sendPacketMethod1.equals(meth)) {
+						} else if (sendPacketMethod1.equals(meth)) {
+							String nm = args[0].getClass().getSimpleName();
+							if (nm.equals("PacketLoginOutDisconnect") && ctx.clientPlayState) {
+								if (packetPlayDisconnect == null) {
+									bindPacketPlayDisconnect(args[0].getClass());
+								}
+								if (packetPlayDisconnect != void.class) {
+									args[0] = packetPlayDisconnectCtor.newInstance(packetLoginDisconnectMsg.get(args[0]));
+								} else {
+									return null;
+								}
+							}
 							meth.invoke(netManager, args);
-							if (args[0].getClass().getSimpleName().equals("PacketLoginOutSuccess")) {
+							if (ctx.throwOnLoginSuccess && nm.equals("PacketLoginOutSuccess")) {
 								throw new EaglerError(getPacketProfile(args[0]));
 							}
 							return null;
@@ -462,7 +475,7 @@ public class PlayerPostLoginInjector {
 									}
 									if (player != null) {
 										final Player playerFinal = player;
-										fireEventLoginPostAsync(playerFinal, ctx.channel, (res) -> {
+										fireEventLoginPostAsync(playerFinal, ctx, (res) -> {
 											try {
 												if (!res.isCancelled()) {
 													handlerAdded.set(ctx.originalNetworkManager, false);
@@ -502,6 +515,55 @@ public class PlayerPostLoginInjector {
 		}
 	}
 
+	private synchronized void bindPacketPlayDisconnect(Class<?> loginDisconnectPacket) {
+		if (packetPlayDisconnect != null) {
+			return;
+		}
+		try {
+			String nm2 = loginDisconnectPacket.getName();
+			nm2 = nm2.substring(0, nm2.lastIndexOf('.') + 1);
+			Class<?> clz;
+			try {
+				clz = Class.forName(nm2 + "PacketPlayOutKickDisconnect");
+			} catch (ReflectiveOperationException ex) {
+				if (nm2.endsWith(".login.")) {
+					clz = Class.forName(nm2.substring(0, nm2.length() - 7) + ".game.PacketPlayOutKickDisconnect");
+				} else {
+					throw ex;
+				}
+			}
+			Constructor<?> ctor = null;
+			Class<?> cmp = null;
+			Field f = null;
+			for (Constructor<?> ctor2 : loginDisconnectPacket.getConstructors()) {
+				if (ctor2.getParameterCount() == 1) {
+					Class<?>[] params = ctor2.getParameterTypes();
+					ctor = clz.getConstructor(params);
+					cmp = params[0];
+					break;
+				}
+			}
+			if (ctor == null) {
+				throw new ReflectiveOperationException();
+			}
+			for (Field ff : loginDisconnectPacket.getDeclaredFields()) {
+				if (cmp.equals(ff.getType())) {
+					ff.setAccessible(true);
+					f = ff;
+					break;
+				}
+			}
+			if (f == null) {
+				throw new ReflectiveOperationException();
+			}
+			packetLoginDisconnectMsg = f;
+			packetPlayDisconnectCtor = ctor;
+			packetPlayDisconnect = clz;
+		} catch (ReflectiveOperationException ex) {
+			packetPlayDisconnect = void.class;
+		}
+	}
+
 	public void handleLoginEvent(PlayerLoginEvent event) {
 		Property marker = new Property("$eaglerMarker_" + ThreadLocalRandom.current().nextLong(Long.MAX_VALUE), "TMP");
 		Object player = BukkitUnsafe.getHandle(event.getPlayer());
@@ -514,10 +576,14 @@ public class PlayerPostLoginInjector {
 		plugin.getServer().getPluginManager().callEvent(new PlayerLoginInitEventImpl(channel));
 	}
 
-	private void fireEventLoginPostAsync(Player player, Channel channel, Consumer<PlayerLoginPostEvent> callback) {
-		PlayerLoginPostEventImpl evt = new PlayerLoginPostEventImpl(player, channel, callback);
+	private void fireEventLoginPostAsync(Player player, LoginEventContext ctx, Consumer<PlayerLoginPostEvent> callback) {
+		PlayerLoginPostEventImpl evt = new PlayerLoginPostEventImpl(player, ctx, callback);
 		plugin.getServer().getPluginManager().callEvent(evt);
 		evt.complete();
+	}
+
+	public static void setPlayState(PlayerLoginPostEvent evt) {
+		((PlayerLoginPostEventImpl) evt).ctx.clientPlayState = true;
 	}
 
 }

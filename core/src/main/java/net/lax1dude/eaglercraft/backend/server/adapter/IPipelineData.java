@@ -20,6 +20,8 @@ public interface IPipelineData {
 
 	boolean isEaglerPlayer();
 
+	boolean isCompressionDisable();
+
 	void awaitPlayState(Runnable continueHandler);
 
 }

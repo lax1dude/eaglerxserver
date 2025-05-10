@@ -26,10 +26,11 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import io.netty.channel.Channel;
-import io.netty.util.Attribute;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.PlayerLoginInitEvent;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.PlayerLoginPostEvent;
+import net.lax1dude.eaglercraft.backend.server.bukkit.async.PlayerPostLoginInjector;
 import net.md_5.bungee.api.chat.BaseComponent;
 
 class BukkitListener implements Listener {
@@ -47,7 +48,12 @@ class BukkitListener implements Listener {
 
 	@EventHandler(priority = EventPriority.LOW)
 	public void onPlayerLoginInitEvent(PlayerLoginInitEvent evt) {
-		plugin.handleConnectionInit(evt.netty().getChannel());
+		Channel channel = evt.netty().getChannel();
+		PlayerPostLoginInjector.LoginEventContext ctx = channel.attr(PlayerPostLoginInjector.attr).get();
+		IPipelineData pipelineData = channel.attr(PipelineAttributes.<IPipelineData>pipelineData()).get();
+		if (pipelineData != null && pipelineData.isCompressionDisable()) {
+			ctx.markCompressionDisable(true);
+		}
 	}
 
 	@EventHandler(priority = EventPriority.LOW)
@@ -57,12 +63,12 @@ class BukkitListener implements Listener {
 			BukkitUnsafe.addPlayerChannel(player, ch);
 		});
 		Channel channel = evt.netty().getChannel();
-		Attribute<BukkitConnection> attr = channel.attr(PipelineAttributes.<BukkitConnection>connectionData());
-		BukkitConnection conn = attr.get();
+		IPipelineData pipelineData = channel.attr(PipelineAttributes.<IPipelineData>pipelineData()).getAndSet(null);
 		evt.registerIntent(plugin);
-		Runnable cont = () -> {
+		awaitPlayState(pipelineData, () -> {
+			PlayerPostLoginInjector.setPlayState(evt);
 			try {
-				plugin.initializePlayer(player, conn, attr::set, (b) -> {
+				plugin.initializePlayer(player, channel, pipelineData, (b) -> {
 					if (b != Boolean.TRUE) {
 						if (b != null) {
 							evt.setKickMessage((BaseComponent) b);
@@ -82,7 +88,10 @@ class BukkitListener implements Listener {
 					throw exx;
 				throw new RuntimeException("Uncaught exception", ex);
 			}
-		};
+		});
+	}
+
+	private static void awaitPlayState(IPipelineData conn, Runnable cont) {
 		if (conn != null) {
 			conn.awaitPlayState(cont);
 		} else {

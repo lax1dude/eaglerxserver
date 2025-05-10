@@ -21,6 +21,7 @@ import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,6 +29,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.slf4j.Logger;
 
@@ -43,13 +45,14 @@ import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Dependency;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
-import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
+import com.velocitypowered.api.util.GameProfile;
+import com.velocitypowered.api.util.GameProfile.Property;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
@@ -64,7 +67,7 @@ import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.adapter.AbortLoadException;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerCommandType;
-import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionInitializer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerLoginInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerJoinListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
@@ -78,8 +81,6 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformCommandSender;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnectionInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformNettyPipelineInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
@@ -128,8 +129,8 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 	protected Runnable onServerEnable;
 	protected Runnable onServerDisable;
 	protected IEaglerXServerNettyPipelineInitializer<IPipelineData> pipelineInitializer;
-	protected IEaglerXServerConnectionInitializer<IPipelineData, Object> connectionInitializer;
-	protected IEaglerXServerPlayerInitializer<Object, Object, Player> playerInitializer;
+	protected IEaglerXServerLoginInitializer<IPipelineData> loginInitializer;
+	protected IEaglerXServerPlayerInitializer<IPipelineData, Object, Player> playerInitializer;
 	protected IEaglerXServerJoinListener<Player> serverJoinListener;
 	protected Collection<IEaglerXServerCommandType<Player>> commandsList;
 	protected Collection<CommandMeta> registeredCommandsList;
@@ -219,14 +220,13 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 			}
 
 			@Override
-			public void setConnectionInitializer(
-					IEaglerXServerConnectionInitializer<? extends IPipelineData, ?> initializer) {
-				connectionInitializer = (IEaglerXServerConnectionInitializer<IPipelineData, Object>) initializer;
+			public void setConnectionInitializer(IEaglerXServerLoginInitializer<? extends IPipelineData> initializer) {
+				loginInitializer = (IEaglerXServerLoginInitializer<IPipelineData>) initializer;
 			}
 
 			@Override
-			public void setPlayerInitializer(IEaglerXServerPlayerInitializer<?, ?, Player> initializer) {
-				playerInitializer = (IEaglerXServerPlayerInitializer<Object, Object, Player>) initializer;
+			public void setPlayerInitializer(IEaglerXServerPlayerInitializer<? extends IPipelineData, ?, Player> initializer) {
+				playerInitializer = (IEaglerXServerPlayerInitializer<IPipelineData, Object, Player>) initializer;
 			}
 
 			@Override
@@ -601,60 +601,47 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		return workerEventLoopGroup;
 	}
 
-	public void initializeConnection(InboundConnection conn, String username, UUID uuid, IPipelineData pipelineData,
-			Consumer<VelocityConnection> setAttr) {
-		boolean eag = pipelineData != null && pipelineData.isEaglerPlayer();
-		VelocityConnection c = new VelocityConnection(this, conn, username, uuid,
-				eag ? pipelineData::awaitPlayState : null);
-		if (eag) {
-			c.compressionDisable = true;
+	private static final Property isEaglerPlayerT = new Property("isEaglerPlayer", "true", "");
+	private static final Property isEaglerPlayerF = new Property("isEaglerPlayer", "false", "");
+	private static final Predicate<Property> isEaglerPlayerPredicate = (prop) -> "isEaglerPlayer"
+			.equals(prop.getName());
+	private static final Predicate<Property> texturesPredicate = (prop) -> "textures".equals(prop.getName());
+
+	public GameProfile initializeLogin(IPipelineData pipelineData, GameProfile gameProfile) {
+		VelocityLoginData initializer = new VelocityLoginData(pipelineData);
+		loginInitializer.initializeLogin(initializer);
+		if (initializer.profileUUID != null && !initializer.profileUUID.equals(gameProfile.getId())) {
+			gameProfile = gameProfile.withId(initializer.profileUUID);
 		}
-		setAttr.accept(c);
-		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<IPipelineData, Object>() {
-			@Override
-			public void setConnectionAttachment(Object attachment) {
-				c.attachment = attachment;
+		if (initializer.texturesPropertyValue != null || initializer.eaglerPlayerProperty != (byte) 0) {
+			List<GameProfile.Property> props = gameProfile.getProperties();
+			List<GameProfile.Property> fixedProps = new LinkedList<>(props);
+			if (initializer.texturesPropertyValue != null) {
+				fixedProps.removeIf(texturesPredicate);
+				fixedProps.add(new Property("textures", initializer.texturesPropertyValue, initializer.texturesPropertySignature));
+				initializer.texturesPropertyValue = null;
+				initializer.texturesPropertySignature = null;
 			}
-
-			@Override
-			public IPipelineData getPipelineAttachment() {
-				return pipelineData;
+			if (initializer.eaglerPlayerProperty != (byte) 0) {
+				fixedProps.removeIf(isEaglerPlayerPredicate);
+				fixedProps.add(initializer.eaglerPlayerProperty == (byte) 2 ? isEaglerPlayerT : isEaglerPlayerF);
 			}
-
-			@Override
-			public IPlatformConnection getConnection() {
-				return c;
-			}
-
-			@Override
-			public void setUniqueId(UUID uuid) {
-				c.uuid = uuid;
-			}
-
-			@Override
-			public void setTexturesProperty(String propertyValue, String propertySignature) {
-				c.texturesPropertyValue = propertyValue;
-				c.texturesPropertySignature = propertySignature;
-			}
-
-			@Override
-			public void setEaglerPlayerProperty(boolean enable) {
-				c.eaglerPlayerProperty = enable ? (byte) 2 : (byte) 1;
-			}
-		});
+			gameProfile = gameProfile.withProperties(fixedProps);
+		}
+		return gameProfile;
 	}
 
-	public void initializePlayer(Player player, VelocityConnection connection, Consumer<Boolean> onComplete) {
-		VelocityPlayer p = new VelocityPlayer(player, connection);
-		playerInitializer.initializePlayer(new IPlatformPlayerInitializer<Object, Object, Player>() {
+	public void initializePlayer(Player player, IPipelineData pipelineData, Consumer<Boolean> onComplete) {
+		VelocityPlayer p = new VelocityPlayer(player);
+		playerInitializer.initializePlayer(new IPlatformPlayerInitializer<IPipelineData, Object, Player>() {
 			@Override
 			public void setPlayerAttachment(Object attachment) {
 				p.attachment = attachment;
 			}
 
 			@Override
-			public Object getConnectionAttachment() {
-				return connection.attachment;
+			public IPipelineData getPipelineAttachment() {
+				return pipelineData;
 			}
 
 			@Override

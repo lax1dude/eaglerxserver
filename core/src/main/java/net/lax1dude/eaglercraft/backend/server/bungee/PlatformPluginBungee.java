@@ -43,7 +43,7 @@ import io.netty.channel.ServerChannel;
 import net.lax1dude.eaglercraft.backend.server.adapter.AbortLoadException;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerCommandType;
-import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionInitializer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerLoginInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerJoinListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
@@ -56,8 +56,6 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformCommandSender;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnectionInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformNettyPipelineInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
@@ -79,7 +77,6 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginManager;
@@ -94,8 +91,8 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 	protected Runnable onServerEnable;
 	protected Runnable onServerDisable;
 	protected IEaglerXServerNettyPipelineInitializer<IPipelineData> pipelineInitializer;
-	protected IEaglerXServerConnectionInitializer<IPipelineData, Object> connectionInitializer;
-	protected IEaglerXServerPlayerInitializer<Object, Object, ProxiedPlayer> playerInitializer;
+	protected IEaglerXServerLoginInitializer<IPipelineData> connectionInitializer;
+	protected IEaglerXServerPlayerInitializer<IPipelineData, Object, ProxiedPlayer> playerInitializer;
 	protected IEaglerXServerJoinListener<ProxiedPlayer> serverJoinListener;
 	protected Collection<IEaglerXServerCommandType<ProxiedPlayer>> commandsList;
 	protected Collection<IEaglerXServerListener> listenersList;
@@ -175,14 +172,14 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 			}
 
 			@Override
-			public void setConnectionInitializer(
-					IEaglerXServerConnectionInitializer<? extends IPipelineData, ?> initializer) {
-				connectionInitializer = (IEaglerXServerConnectionInitializer<IPipelineData, Object>) initializer;
+			public void setConnectionInitializer(IEaglerXServerLoginInitializer<? extends IPipelineData> initializer) {
+				connectionInitializer = (IEaglerXServerLoginInitializer<IPipelineData>) initializer;
 			}
 
 			@Override
-			public void setPlayerInitializer(IEaglerXServerPlayerInitializer<?, ?, ProxiedPlayer> initializer) {
-				playerInitializer = (IEaglerXServerPlayerInitializer<Object, Object, ProxiedPlayer>) initializer;
+			public void setPlayerInitializer(
+					IEaglerXServerPlayerInitializer<? extends IPipelineData, ?, ProxiedPlayer> initializer) {
+				playerInitializer = (IEaglerXServerPlayerInitializer<IPipelineData, Object, ProxiedPlayer>) initializer;
 			}
 
 			@Override
@@ -552,59 +549,21 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 		return workerEventLoopGroup;
 	}
 
-	public void initializeConnection(PendingConnection conn, IPipelineData pipelineData,
-			Consumer<BungeeConnection> setAttr) {
-		boolean eag = pipelineData != null && pipelineData.isEaglerPlayer();
-		if (eag) {
-			BungeeUnsafe.injectCompressionDisable(conn);
-		}
-		BungeeConnection c = new BungeeConnection(this, conn, eag ? pipelineData::awaitPlayState : null);
-		setAttr.accept(c);
-		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<IPipelineData, Object>() {
-			@Override
-			public void setConnectionAttachment(Object attachment) {
-				c.attachment = attachment;
-			}
-
-			@Override
-			public IPipelineData getPipelineAttachment() {
-				return pipelineData;
-			}
-
-			@Override
-			public IPlatformConnection getConnection() {
-				return c;
-			}
-
-			@Override
-			public void setUniqueId(UUID uuid) {
-				conn.setUniqueId(uuid);
-			}
-
-			@Override
-			public void setTexturesProperty(String propertyValue, String propertySignature) {
-				c.texturesPropertyValue = propertyValue;
-				c.texturesPropertySignature = propertySignature;
-			}
-
-			@Override
-			public void setEaglerPlayerProperty(boolean enable) {
-				c.eaglerPlayerProperty = enable ? (byte) 2 : (byte) 1;
-			}
-		});
+	public void initializeLogin(BungeeLoginData loginData) {
+		connectionInitializer.initializeLogin(loginData);
 	}
 
-	public void initializePlayer(ProxiedPlayer player, BungeeConnection connection, Consumer<Boolean> onComplete) {
-		BungeePlayer p = new BungeePlayer(player, connection);
-		playerInitializer.initializePlayer(new IPlatformPlayerInitializer<Object, Object, ProxiedPlayer>() {
+	public void initializePlayer(ProxiedPlayer player, IPipelineData pipelineData, Consumer<Boolean> onComplete) {
+		BungeePlayer p = new BungeePlayer(player);
+		playerInitializer.initializePlayer(new IPlatformPlayerInitializer<IPipelineData, Object, ProxiedPlayer>() {
 			@Override
 			public void setPlayerAttachment(Object attachment) {
 				p.attachment = attachment;
 			}
 
 			@Override
-			public Object getConnectionAttachment() {
-				return connection.attachment;
+			public IPipelineData getPipelineAttachment() {
+				return pipelineData;
 			}
 
 			@Override

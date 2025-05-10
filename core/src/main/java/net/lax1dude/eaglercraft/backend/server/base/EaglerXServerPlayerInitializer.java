@@ -24,7 +24,7 @@ import net.lax1dude.eaglercraft.backend.server.base.supervisor.EnumAcceptPlayer;
 import net.lax1dude.eaglercraft.backend.server.base.supervisor.ISupervisorServiceImpl;
 
 class EaglerXServerPlayerInitializer<PlayerObject> implements
-		IEaglerXServerPlayerInitializer<BaseConnectionInstance, BasePlayerInstance<PlayerObject>, PlayerObject> {
+		IEaglerXServerPlayerInitializer<NettyPipelineData, BasePlayerInstance<PlayerObject>, PlayerObject> {
 
 	private final EaglerXServer<PlayerObject> server;
 
@@ -34,24 +34,26 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 
 	@Override
 	public void initializePlayer(
-			IPlatformPlayerInitializer<BaseConnectionInstance, BasePlayerInstance<PlayerObject>, PlayerObject> initializer) {
-		BaseConnectionInstance conn = initializer.getConnectionAttachment();
-		if (conn == null) {
-			return;
+			IPlatformPlayerInitializer<NettyPipelineData, BasePlayerInstance<PlayerObject>, PlayerObject> initializer) {
+		NettyPipelineData pipelineData = initializer.getPipelineAttachment();
+		NettyPipelineData.ProfileDataHolder profileData;
+		if (pipelineData != null && !pipelineData.isEaglerPlayer()) {
+			pipelineData = null;
+			profileData = null;
+		} else {
+			profileData = pipelineData.profileDataHelper();
 		}
-		if (conn.isEaglerPlayer()) {
-			conn.asEaglerPlayer().processProfileData();
-		}
+		IPlatformPlayer<PlayerObject> platformPlayer = initializer.getPlayer();
 		ISupervisorServiceImpl<PlayerObject> supervisor = server.getSupervisorService();
 		if (supervisor.isSupervisorEnabled()) {
-			supervisor.acceptPlayer(conn.getUniqueId(),
-					conn.isEaglerPlayer() ? conn.asEaglerPlayer().getEaglerBrandUUID() : IBrandRegistry.BRAND_VANILLA,
-					conn.getMinecraftProtocol(),
-					conn.isEaglerPlayer() ? conn.asEaglerPlayer().getHandshakeEaglerProtocol() : 0, conn.getUsername(),
-					(res) -> {
+			supervisor.acceptPlayer(platformPlayer.getUniqueId(),
+					pipelineData != null ? profileData.brandUUID : IBrandRegistry.BRAND_VANILLA,
+					pipelineData != null ? pipelineData.minecraftProtocol
+							: initializer.getPlayer().getMinecraftProtocol(),
+					pipelineData != null ? pipelineData.handshakeProtocol : 0, platformPlayer.getUsername(), (res) -> {
 				if (res == EnumAcceptPlayer.ACCEPT) {
 					server.getPlatform().getScheduler().executeAsync(() -> {
-						acceptPlayer(initializer);
+						acceptPlayer(initializer, profileData);
 					});
 				} else {
 					switch (res) {
@@ -59,8 +61,7 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 					case REJECT_DUPLICATE_USERNAME:
 					case REJECT_DUPLICATE_UUID:
 						try {
-							initializer.getPlayer()
-									.disconnect(server.componentHelper().getStandardKickAlreadyPlaying());
+							platformPlayer.disconnect(server.componentHelper().getStandardKickAlreadyPlaying());
 						} finally {
 							initializer.cancel();
 						}
@@ -68,7 +69,7 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 					case REJECT_UNKNOWN:
 					default:
 						try {
-							initializer.getPlayer().disconnect(server.componentBuilder().buildTextComponent()
+							platformPlayer.disconnect(server.componentBuilder().buildTextComponent()
 									.text("Internal Supervisor Error").end());
 						} finally {
 							initializer.cancel();
@@ -76,7 +77,7 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 						break;
 					case SUPERVISOR_UNAVAILABLE:
 						try {
-							initializer.getPlayer().disconnect(server.componentBuilder().buildTextComponent()
+							platformPlayer.disconnect(server.componentBuilder().buildTextComponent()
 									.text(server.getConfig().getSupervisor().getSupervisorUnavailableMessage())
 									.end());
 						} finally {
@@ -87,16 +88,16 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 				}
 			});
 		} else {
-			acceptPlayer(initializer);
+			acceptPlayer(initializer, profileData);
 		}
 	}
 
 	private void acceptPlayer(
-			IPlatformPlayerInitializer<BaseConnectionInstance, BasePlayerInstance<PlayerObject>, PlayerObject> initializer) {
-		BaseConnectionInstance conn = initializer.getConnectionAttachment();
-		if (conn.isEaglerPlayer()) {
-			NettyPipelineData.ProfileDataHolder profileData = conn.asEaglerPlayer().transferProfileData();
-			EaglerPlayerInstance<PlayerObject> instance = new EaglerPlayerInstance<>(initializer.getPlayer(), server);
+			IPlatformPlayerInitializer<NettyPipelineData, BasePlayerInstance<PlayerObject>, PlayerObject> initializer,
+			NettyPipelineData.ProfileDataHolder profileData) {
+		NettyPipelineData conn = initializer.getPipelineAttachment();
+		if (conn != null && conn.isEaglerPlayer()) {
+			EaglerPlayerInstance<PlayerObject> instance = new EaglerPlayerInstance<>(initializer.getPlayer(), conn);
 			initializer.setPlayerAttachment(instance);
 			try {
 				server.registerEaglerPlayer(instance, profileData, () -> {
@@ -129,7 +130,8 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 				return;
 			}
 		} else {
-			BasePlayerInstance<PlayerObject> instance = new BasePlayerInstance<>(initializer.getPlayer(), server);
+			BasePlayerInstance<PlayerObject> instance = new BasePlayerInstance<>(initializer.getPlayer(),
+					conn != null ? conn.attributeHolder : server.getEaglerAttribManager().createEaglerHolder(), server);
 			initializer.setPlayerAttachment(instance);
 			try {
 				server.registerPlayer(instance);

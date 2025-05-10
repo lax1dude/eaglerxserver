@@ -16,38 +16,39 @@
 
 package net.lax1dude.eaglercraft.backend.server.bungee;
 
+import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
+import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.TranslatableComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.connection.Server;
 
 class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
 
+	static final BaseComponent DEFAULT_KICK_MESSAGE = new TranslatableComponent("disconnect.closed");
+
 	private final ProxiedPlayer player;
-	private final BungeeConnection connection;
 	Object attachment;
 	IPlatformServer<ProxiedPlayer> server;
 
-	BungeePlayer(ProxiedPlayer player, BungeeConnection connection) {
+	BungeePlayer(ProxiedPlayer player) {
 		this.player = player;
-		this.connection = connection;
-		this.connection.playerInstance = player;
-	}
-
-	@Override
-	public IPlatformConnection getConnection() {
-		return connection;
 	}
 
 	@Override
 	public ProxiedPlayer getPlayerObject() {
 		return player;
+	}
+
+	@Override
+	public Channel getChannel() {
+		return BungeeUnsafe.getInitialHandlerChannel(player.getPendingConnection());
 	}
 
 	@Override
@@ -63,6 +64,16 @@ class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
 	@Override
 	public UUID getUniqueId() {
 		return player.getUniqueId();
+	}
+
+	@Override
+	public SocketAddress getSocketAddress() {
+		return player.getSocketAddress();
+	}
+
+	@Override
+	public int getMinecraftProtocol() {
+		return player.getPendingConnection().getVersion();
 	}
 
 	@Override
@@ -130,7 +141,7 @@ class BungeePlayer implements IPlatformPlayer<ProxiedPlayer> {
 
 	@Override
 	public void disconnect() {
-		player.disconnect(BungeeConnection.DEFAULT_KICK_MESSAGE);
+		player.disconnect(DEFAULT_KICK_MESSAGE);
 	}
 
 	@Override

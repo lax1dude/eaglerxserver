@@ -16,10 +16,7 @@
 
 package net.lax1dude.eaglercraft.backend.server.velocity;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 import com.velocitypowered.api.event.Continuation;
 import com.velocitypowered.api.event.Subscribe;
@@ -27,7 +24,6 @@ import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.PluginMessageEvent;
 import com.velocitypowered.api.event.connection.PluginMessageEvent.ForwardResult;
 import com.velocitypowered.api.event.connection.PostLoginEvent;
-import com.velocitypowered.api.event.connection.PreLoginEvent;
 import com.velocitypowered.api.event.permission.PermissionsSetupEvent;
 import com.velocitypowered.api.event.player.GameProfileRequestEvent;
 import com.velocitypowered.api.event.player.ServerPostConnectEvent;
@@ -37,16 +33,12 @@ import com.velocitypowered.api.event.proxy.ProxyPingEvent;
 import com.velocitypowered.api.event.query.ProxyQueryEvent;
 import com.velocitypowered.api.network.ListenerType;
 import com.velocitypowered.api.permission.PermissionSubject;
-import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.messages.ChannelMessageSink;
 import com.velocitypowered.api.proxy.messages.ChannelMessageSource;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
-import com.velocitypowered.api.util.GameProfile;
-import com.velocitypowered.api.util.GameProfile.Property;
 
-import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerCountHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
@@ -59,12 +51,6 @@ class VelocityListener {
 
 	private final PlatformPluginVelocity plugin;
 
-	private static final Property isEaglerPlayerT = new Property("isEaglerPlayer", "true", "");
-	private static final Property isEaglerPlayerF = new Property("isEaglerPlayer", "false", "");
-	private static final Predicate<Property> isEaglerPlayerPredicate = (prop) -> "isEaglerPlayer"
-			.equals(prop.getName());
-	private static final Predicate<Property> texturesPredicate = (prop) -> "textures".equals(prop.getName());
-
 	VelocityListener(PlatformPluginVelocity plugin) {
 		this.plugin = plugin;
 	}
@@ -76,44 +62,11 @@ class VelocityListener {
 		}
 	}
 
-	@Subscribe(priority = 16384, async = false)
-	public void onPreLoginEvent(PreLoginEvent handshakeEvent) {
-		InboundConnection conn = handshakeEvent.getConnection();
-		Channel channel = VelocityUnsafe.getInboundChannel(conn);
-		IPipelineData pipelineData = channel.attr(PipelineAttributes.<IPipelineData>pipelineData()).getAndSet(null);
-		plugin.initializeConnection(conn, handshakeEvent.getUsername(), handshakeEvent.getUniqueId(), pipelineData,
-				channel.attr(PipelineAttributes.<VelocityConnection>connectionData())::set);
-	}
-
 	@Subscribe(priority = -16384, async = false)
 	public void onGameProfileRequestEvent(GameProfileRequestEvent gameProfileEvent) {
-		VelocityConnection conn = VelocityUnsafe.getInboundChannel(gameProfileEvent.getConnection())
-				.attr(PipelineAttributes.<VelocityConnection>connectionData()).get();
-		GameProfile gameProfile = gameProfileEvent.getGameProfile();
-		boolean changed = false;
-		if (conn.uuid != null && !conn.uuid.equals(gameProfile.getId())) {
-			gameProfile = gameProfile.withId(conn.uuid);
-			changed = true;
-		}
-		if (conn.texturesPropertyValue != null || conn.eaglerPlayerProperty != (byte) 0) {
-			List<GameProfile.Property> props = gameProfile.getProperties();
-			List<GameProfile.Property> fixedProps = new LinkedList<>(props);
-			if (conn.texturesPropertyValue != null) {
-				fixedProps.removeIf(texturesPredicate);
-				fixedProps.add(new Property("textures", conn.texturesPropertyValue, conn.texturesPropertySignature));
-				conn.texturesPropertyValue = null;
-				conn.texturesPropertySignature = null;
-			}
-			if (conn.eaglerPlayerProperty != (byte) 0) {
-				fixedProps.removeIf(isEaglerPlayerPredicate);
-				fixedProps.add(conn.eaglerPlayerProperty == (byte) 2 ? isEaglerPlayerT : isEaglerPlayerF);
-			}
-			gameProfile = gameProfile.withProperties(fixedProps);
-			changed = true;
-		}
-		if (changed) {
-			gameProfileEvent.setGameProfile(gameProfile);
-		}
+		IPipelineData pipelineData = VelocityUnsafe.getInboundChannel(gameProfileEvent.getConnection())
+				.attr(PipelineAttributes.<IPipelineData>pipelineData()).get();
+		gameProfileEvent.setGameProfile(plugin.initializeLogin(pipelineData, gameProfileEvent.getGameProfile()));
 	}
 
 	@Subscribe(async = false)
@@ -121,9 +74,9 @@ class VelocityListener {
 		// Fired right before compression is enabled
 		PermissionSubject p = permissionsSetupEvent.getSubject();
 		if (p instanceof Player player) {
-			VelocityConnection conn = VelocityUnsafe.getInboundChannel(player)
-					.attr(PipelineAttributes.<VelocityConnection>connectionData()).get();
-			if (conn.compressionDisable) {
+			IPipelineData conn = VelocityUnsafe.getInboundChannel(player)
+					.attr(PipelineAttributes.<IPipelineData>pipelineData()).get();
+			if (conn != null && conn.isCompressionDisable()) {
 				VelocityUnsafe.injectCompressionDisable(plugin.proxy(), player);
 			}
 		}
@@ -132,9 +85,9 @@ class VelocityListener {
 	@Subscribe(priority = Short.MAX_VALUE, async = true)
 	public void onPostLoginEvent(PostLoginEvent loginEvent, Continuation cont) {
 		Player player = loginEvent.getPlayer();
-		VelocityConnection conn = VelocityUnsafe.getInboundChannel(player)
-				.attr(PipelineAttributes.<VelocityConnection>connectionData()).get();
-		conn.awaitPlayState(() -> {
+		IPipelineData conn = VelocityUnsafe.getInboundChannel(player)
+				.attr(PipelineAttributes.<IPipelineData>pipelineData()).getAndSet(null);
+		awaitPlayState(conn, () -> {
 			try {
 				plugin.initializePlayer(player, conn, (b) -> {
 					if (b) {
@@ -147,6 +100,14 @@ class VelocityListener {
 				cont.resumeWithException(ex);
 			}
 		});
+	}
+
+	private static void awaitPlayState(IPipelineData conn, Runnable cont) {
+		if (conn != null) {
+			conn.awaitPlayState(cont);
+		} else {
+			cont.run();
+		}
 	}
 
 	@Subscribe(priority = Short.MIN_VALUE, async = false)

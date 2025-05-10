@@ -18,13 +18,9 @@ package net.lax1dude.eaglercraft.backend.server.adapter;
 
 import java.util.UUID;
 
-public interface IPlatformConnectionInitializer<PipelineAttachment extends IPipelineData, ConnectionAttachment> {
-
-	IPlatformConnection getConnection();
+public interface IPlatformLoginInitializer<PipelineAttachment extends IPipelineData> {
 
 	PipelineAttachment getPipelineAttachment();
-
-	void setConnectionAttachment(ConnectionAttachment attachment);
 
 	void setUniqueId(UUID uuid);
 

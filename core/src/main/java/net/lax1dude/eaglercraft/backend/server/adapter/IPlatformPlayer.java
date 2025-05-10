@@ -16,19 +16,26 @@
 
 package net.lax1dude.eaglercraft.backend.server.adapter;
 
+import java.net.SocketAddress;
 import java.util.UUID;
+
+import io.netty.channel.Channel;
 
 public interface IPlatformPlayer<PlayerObject> extends IPlatformCommandSender<PlayerObject> {
 
-	IPlatformConnection getConnection();
-
 	PlayerObject getPlayerObject();
+
+	Channel getChannel();
 
 	IPlatformServer<PlayerObject> getServer();
 
 	String getUsername();
 
 	UUID getUniqueId();
+
+	SocketAddress getSocketAddress();
+
+	int getMinecraftProtocol();
 
 	boolean isConnected();
 
@@ -55,9 +62,5 @@ public interface IPlatformPlayer<PlayerObject> extends IPlatformCommandSender<Pl
 	<ComponentObject> void disconnect(ComponentObject kickMessage);
 
 	<T> T getPlayerAttachment();
-
-	default <T> T getConnectionAttachment() {
-		return getConnection().getAttachment();
-	}
 
 }

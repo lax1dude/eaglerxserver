@@ -60,7 +60,7 @@ import io.netty.util.Attribute;
 import net.lax1dude.eaglercraft.backend.server.adapter.AbortLoadException;
 import net.lax1dude.eaglercraft.backend.server.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerCommandType;
-import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerConnectionInitializer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerLoginInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerJoinListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
@@ -73,8 +73,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatform;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformCommandSender;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformComponentHelper;
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnectionInitializer;
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLoginInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformNettyPipelineInitializer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
@@ -106,8 +105,8 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	protected Runnable onServerEnable;
 	protected Runnable onServerDisable;
 	protected IEaglerXServerNettyPipelineInitializer<IPipelineData> pipelineInitializer;
-	protected IEaglerXServerConnectionInitializer<IPipelineData, Object> connectionInitializer;
-	protected IEaglerXServerPlayerInitializer<Object, Object, Player> playerInitializer;
+	protected IEaglerXServerLoginInitializer<IPipelineData> loginInitializer;
+	protected IEaglerXServerPlayerInitializer<IPipelineData, Object, Player> playerInitializer;
 	protected IEaglerXServerJoinListener<Player> serverJoinListener;
 	protected Collection<IEaglerXServerCommandType<Player>> commandsList;
 	protected IEaglerXServerListener listenerConf;
@@ -167,14 +166,14 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			}
 
 			@Override
-			public void setConnectionInitializer(
-					IEaglerXServerConnectionInitializer<? extends IPipelineData, ?> initializer) {
-				connectionInitializer = (IEaglerXServerConnectionInitializer<IPipelineData, Object>) initializer;
+			public void setConnectionInitializer(IEaglerXServerLoginInitializer<? extends IPipelineData> initializer) {
+				loginInitializer = (IEaglerXServerLoginInitializer<IPipelineData>) initializer;
 			}
 
 			@Override
-			public void setPlayerInitializer(IEaglerXServerPlayerInitializer<?, ?, Player> initializer) {
-				playerInitializer = (IEaglerXServerPlayerInitializer<Object, Object, Player>) initializer;
+			public void setPlayerInitializer(
+					IEaglerXServerPlayerInitializer<? extends IPipelineData, ?, Player> initializer) {
+				playerInitializer = (IEaglerXServerPlayerInitializer<IPipelineData, Object, Player>) initializer;
 			}
 
 			@Override
@@ -534,18 +533,6 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	public void setPlayerCountHandler(IEaglerXServerPlayerCountHandler playerCountHandler) {
 	}
 
-	public void handleConnectionInit(Channel channel) {
-		PlayerPostLoginInjector.LoginEventContext ctx = channel.attr(PlayerPostLoginInjector.attr).get();
-		LoginConnectionHolder holder = BukkitUnsafe.getLoginConnection(ctx.originalNetworkManager());
-		IPipelineData pipelineData = channel.attr(PipelineAttributes.<IPipelineData>pipelineData()).getAndSet(null);
-		boolean eag = pipelineData != null && pipelineData.isEaglerPlayer();
-		if (eag) {
-			ctx.markCompressionDisable(true);
-		}
-		Attribute<BukkitConnection> attr = channel.attr(PipelineAttributes.<BukkitConnection>connectionData());
-		initializeConnection(holder, pipelineData, attr::set);
-	}
-
 	@Override
 	public Bootstrap setChannelFactory(Bootstrap bootstrap, SocketAddress address) {
 		if (address instanceof DomainSocketAddress) {
@@ -580,45 +567,6 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		return eventLoopGroup;
 	}
 
-	public void initializeConnection(LoginConnectionHolder loginConnection, IPipelineData pipelineData,
-			Consumer<BukkitConnection> setAttr) {
-		boolean eag = pipelineData != null && pipelineData.isEaglerPlayer();
-		BukkitConnection c = new BukkitConnection(this, loginConnection, eag ? pipelineData::awaitPlayState : null);
-		c.closeRedirector = new CloseRedirector();
-		setAttr.accept(c);
-		connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<IPipelineData, Object>() {
-			@Override
-			public void setConnectionAttachment(Object attachment) {
-				c.attachment = attachment;
-			}
-
-			@Override
-			public IPipelineData getPipelineAttachment() {
-				return pipelineData;
-			}
-
-			@Override
-			public IPlatformConnection getConnection() {
-				return c;
-			}
-
-			@Override
-			public void setUniqueId(UUID uuid) {
-			}
-
-			@Override
-			public void setTexturesProperty(String propertyValue, String propertySignature) {
-				c.texturesPropertyValue = propertyValue;
-				c.texturesPropertySignature = propertySignature;
-			}
-
-			@Override
-			public void setEaglerPlayerProperty(boolean enable) {
-				c.eaglerPlayerProperty = enable ? (byte) 2 : (byte) 1;
-			}
-		});
-	}
-
 	private static class CloseRedirector implements Consumer<Object> {
 
 		protected Object val;
@@ -630,72 +578,33 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 	}
 
-	public void initializePlayer(Player player, BukkitConnection connection, Consumer<BukkitConnection> setAttr,
+	public void initializePlayer(Player player, Channel channel, IPipelineData pipelineData,
 			Consumer<Object> onComplete) {
-		BukkitPlayer p;
-		final BukkitConnection c;
-		if (connection == null) {
-			// vanilla players won't have an initialized connection
-			c = new BukkitConnection(this, null, null);
-			c.closeRedirector = new CloseRedirector();
-			p = new BukkitPlayer(player, c);
-			setAttr.accept(c);
-			connectionInitializer.initializeConnection(new IPlatformConnectionInitializer<IPipelineData, Object>() {
-				@Override
-				public void setConnectionAttachment(Object attachment) {
-					c.attachment = attachment;
-				}
-
-				@Override
-				public IPipelineData getPipelineAttachment() {
-					return null;
-				}
-
-				@Override
-				public IPlatformConnection getConnection() {
-					return c;
-				}
-
-				@Override
-				public void setUniqueId(UUID uuid) {
-				}
-
-				@Override
-				public void setTexturesProperty(String propertyValue, String propertySignature) {
-					c.texturesPropertyValue = propertyValue;
-					c.texturesPropertySignature = propertySignature;
-				}
-
-				@Override
-				public void setEaglerPlayerProperty(boolean enable) {
-					c.eaglerPlayerProperty = enable ? (byte) 2 : (byte) 1;
-				}
-			});
-		} else {
-			c = connection;
-			p = new BukkitPlayer(player, c);
-		}
-		if (c.eaglerPlayerProperty != (byte) 0 || c.texturesPropertyValue != null) {
+		BukkitLoginData loginData = new BukkitLoginData(pipelineData);
+		loginInitializer.initializeLogin(loginData);
+		if (loginData.eaglerPlayerProperty != (byte) 0 || loginData.texturesPropertyValue != null) {
 			BukkitUnsafe.PropertyInjector injector = BukkitUnsafe.propertyInjector(player);
-			if (c.texturesPropertyValue != null) {
-				injector.injectTexturesProperty(c.texturesPropertyValue, c.texturesPropertySignature);
-				c.texturesPropertyValue = null;
-				c.texturesPropertySignature = null;
+			if (loginData.texturesPropertyValue != null) {
+				injector.injectTexturesProperty(loginData.texturesPropertyValue, loginData.texturesPropertySignature);
+				loginData.texturesPropertyValue = null;
+				loginData.texturesPropertySignature = null;
 			}
-			if (c.eaglerPlayerProperty != (byte) 0) {
-				injector.injectIsEaglerPlayerProperty(c.eaglerPlayerProperty == (byte) 2);
+			if (loginData.eaglerPlayerProperty != (byte) 0) {
+				injector.injectIsEaglerPlayerProperty(loginData.eaglerPlayerProperty == (byte) 2);
 			}
 			injector.complete();
 		}
-		playerInitializer.initializePlayer(new IPlatformPlayerInitializer<Object, Object, Player>() {
+		BukkitPlayer p = new BukkitPlayer(this, player, channel);
+		p.closeRedirector = new CloseRedirector();
+		playerInitializer.initializePlayer(new IPlatformPlayerInitializer<IPipelineData, Object, Player>() {
 			@Override
 			public void setPlayerAttachment(Object attachment) {
 				p.attachment = attachment;
 			}
 
 			@Override
-			public Object getConnectionAttachment() {
-				return c.attachment;
+			public IPipelineData getPipelineAttachment() {
+				return pipelineData;
 			}
 
 			@Override
@@ -706,10 +615,10 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			@Override
 			public void complete() {
 				Object obj = null;
-				synchronized (c) {
-					if (c.closeRedirector != null) {
-						obj = ((CloseRedirector) c.closeRedirector).val;
-						c.closeRedirector = null;
+				synchronized (p) {
+					if (p.closeRedirector != null) {
+						obj = ((CloseRedirector) p.closeRedirector).val;
+						p.closeRedirector = null;
 					}
 				}
 				if (obj != null) {
@@ -733,10 +642,10 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			@Override
 			public void cancel() {
 				Object obj = null;
-				synchronized (c) {
-					if (c.closeRedirector != null) {
-						obj = ((CloseRedirector) c.closeRedirector).val;
-						c.closeRedirector = null;
+				synchronized (p) {
+					if (p.closeRedirector != null) {
+						obj = ((CloseRedirector) p.closeRedirector).val;
+						p.closeRedirector = null;
 					}
 				}
 				if (obj != null) {

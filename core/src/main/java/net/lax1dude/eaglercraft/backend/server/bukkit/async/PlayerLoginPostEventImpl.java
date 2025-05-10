@@ -29,16 +29,17 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 class PlayerLoginPostEventImpl extends PlayerLoginPostEvent implements PlayerLoginPostEvent.NettyUnsafe {
 
-	private final Channel channel;
+	final PlayerPostLoginInjector.LoginEventContext ctx;
 	private final Consumer<PlayerLoginPostEvent> callback;
 	private BaseComponent message;
 	private boolean cancelled = false;
 	private boolean completed = false;
 	private ObjectSet<Object> intents;
 
-	PlayerLoginPostEventImpl(Player player, Channel channel, Consumer<PlayerLoginPostEvent> callback) {
+	PlayerLoginPostEventImpl(Player player, PlayerPostLoginInjector.LoginEventContext ctx,
+			Consumer<PlayerLoginPostEvent> callback) {
 		super(player);
-		this.channel = channel;
+		this.ctx = ctx;
 		this.callback = callback;
 	}
 
@@ -117,7 +118,7 @@ class PlayerLoginPostEventImpl extends PlayerLoginPostEvent implements PlayerLog
 
 	@Override
 	public Channel getChannel() {
-		return channel;
+		return ctx.channel;
 	}
 
 }

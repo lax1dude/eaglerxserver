@@ -20,6 +20,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -28,7 +29,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
+import io.netty.channel.Channel;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -71,17 +72,19 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 		PAPER_SET_VIEW_DISTANCE = viewDistance;
 	}
 
+	private final PlatformPluginBukkit plugin;
 	private final Player player;
-	private final BukkitConnection connection;
+	private final Channel channel;
 	volatile BukkitTask confirmTask;
 	Object attachment;
 	private String brandString;
 	Consumer<Object> closeRedirector;
+	boolean closePending;
 
-	BukkitPlayer(Player player, BukkitConnection connection) {
+	BukkitPlayer(PlatformPluginBukkit plugin, Player player, Channel channel) {
+		this.plugin = plugin;
 		this.player = player;
-		this.connection = connection;
-		this.connection.bindPlayer(player);
+		this.channel = channel;
 		this.brandString = null;
 	}
 
@@ -90,19 +93,19 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 	}
 
 	@Override
-	public IPlatformConnection getConnection() {
-		return connection;
-	}
-
-	@Override
 	public Player getPlayerObject() {
 		return player;
 	}
 
 	@Override
+	public Channel getChannel() {
+		return channel;
+	}
+
+	@Override
 	public IPlatformServer<Player> getServer() {
 		World world = player.getWorld();
-		return world != null ? new BukkitWorld(connection.getPlugin(), world) : null;
+		return world != null ? new BukkitWorld(plugin, world) : null;
 	}
 
 	@Override
@@ -117,12 +120,26 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 
 	@Override
 	public boolean isConnected() {
-		return connection.isConnected();
+		if (closePending) {
+			return false;
+		}
+		Channel c = BukkitUnsafe.getPlayerChannel(player);
+		return c != null && c.isActive();
+	}
+
+	@Override
+	public SocketAddress getSocketAddress() {
+		return player.getAddress();
+	}
+
+	@Override
+	public int getMinecraftProtocol() {
+		return 47; // TODO: how to get protocol?
 	}
 
 	@Override
 	public boolean isOnlineMode() {
-		return connection.isOnlineMode();
+		return plugin.getServer().getOnlineMode();
 	}
 
 	@Override
@@ -132,7 +149,7 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 
 	@Override
 	public void sendDataClient(String channel, byte[] message) {
-		player.sendPluginMessage(connection.getPlugin(), channel, message);
+		player.sendPluginMessage(plugin, channel, message);
 	}
 
 	@Override
@@ -179,20 +196,40 @@ class BukkitPlayer implements IPlatformPlayer<Player> {
 
 	@Override
 	public void disconnect() {
-		connection.disconnect();
+		disconnect("Connection Closed");
 	}
 
 	@Override
 	public void disconnect(String kickMessage) {
-		connection.disconnect(new TextComponent(kickMessage));
+		closePending = true;
+		synchronized (this) {
+			if (closeRedirector != null) {
+				closeRedirector.accept(new TextComponent(kickMessage));
+				return;
+			}
+		}
+		plugin.getScheduler().execute(() -> {
+			player.kickPlayer(kickMessage);
+		});
 	}
 
 	@Override
 	public <ComponentObject> void disconnect(ComponentObject kickMessage) {
-		connection.disconnect(kickMessage);
+		closePending = true;
+		synchronized (this) {
+			if (closeRedirector != null) {
+				closeRedirector.accept(kickMessage);
+				return;
+			}
+		}
+		String msg = ((BaseComponent) kickMessage).toLegacyText();
+		plugin.getScheduler().execute(() -> {
+			player.kickPlayer(msg);
+		});
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> T getPlayerAttachment() {
 		return (T) attachment;
 	}

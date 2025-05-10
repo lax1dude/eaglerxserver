@@ -42,7 +42,7 @@ public interface IPlatform<PlayerObject> {
 
 		void setPipelineInitializer(IEaglerXServerNettyPipelineInitializer<? extends IPipelineData> initializer);
 
-		void setConnectionInitializer(IEaglerXServerConnectionInitializer<? extends IPipelineData, ?> initializer);
+		void setConnectionInitializer(IEaglerXServerLoginInitializer<? extends IPipelineData> initializer);
 
 		void setPlayerInitializer(IEaglerXServerPlayerInitializer<?, ?, PlayerObject> initializer);
 

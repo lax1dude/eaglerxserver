@@ -185,6 +185,11 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	}
 
 	@Override
+	public boolean isCompressionDisable() {
+		return listenerInfo != null;
+	}
+
+	@Override
 	public boolean isConnected() {
 		return channel.isActive();
 	}
@@ -418,8 +423,13 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 		}
 	}
 
+	@Override
 	public void awaitPlayState(Runnable continueHandler) {
-		if (!PLAY_STATE_REACHED_HANDLE.compareAndSet(this, null, continueHandler)) {
+		if (listenerInfo != null) {
+			if (!PLAY_STATE_REACHED_HANDLE.compareAndSet(this, null, continueHandler)) {
+				continueHandler.run();
+			}
+		} else {
 			continueHandler.run();
 		}
 	}

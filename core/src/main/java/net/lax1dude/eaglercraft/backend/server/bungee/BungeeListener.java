@@ -17,6 +17,7 @@
 package net.lax1dude.eaglercraft.backend.server.bungee;
 
 import io.netty.channel.Channel;
+import io.netty.util.Attribute;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerPlayerCountHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
@@ -54,33 +55,43 @@ public class BungeeListener implements Listener {
 	public void onPreLoginEvent(PreLoginEvent event) {
 		PendingConnection conn = event.getConnection();
 		Channel channel = BungeeUnsafe.getInitialHandlerChannel(conn);
-		IPipelineData pipelineData = channel.attr(PipelineAttributes.<IPipelineData>pipelineData()).getAndSet(null);
-		plugin.initializeConnection(conn, pipelineData,
-				channel.attr(PipelineAttributes.<BungeeConnection>connectionData())::set);
-
+		Attribute<IPipelineData> attr = channel.attr(PipelineAttributes.<IPipelineData>pipelineData());
+		IPipelineData pipelineData = attr.get();
+		if (pipelineData != null && pipelineData.isCompressionDisable()) {
+			BungeeUnsafe.injectCompressionDisable(conn);
+		}
+		BungeeLoginData loginData = new BungeeLoginData(pipelineData, conn);
+		attr.set(loginData);
+		plugin.initializeLogin(loginData);
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onPostLoginEvent(PostLoginEvent event) {
 		ProxiedPlayer player = event.getPlayer();
-		BungeeConnection conn = BungeeUnsafe.getInitialHandlerChannel(player.getPendingConnection())
-				.attr(PipelineAttributes.<BungeeConnection>connectionData()).get();
-		if (conn != null && (conn.eaglerPlayerProperty != (byte) 0 || conn.texturesPropertyValue != null)) {
-			BungeeUnsafe.PropertyInjector injector = BungeeUnsafe.propertyInjector(player.getPendingConnection());
-			if (conn.texturesPropertyValue != null) {
-				injector.injectTexturesProperty(conn.texturesPropertyValue, conn.texturesPropertySignature);
-				conn.texturesPropertyValue = null;
-				conn.texturesPropertySignature = null;
+		IPipelineData data = BungeeUnsafe.getInitialHandlerChannel(player.getPendingConnection())
+				.attr(PipelineAttributes.<IPipelineData>pipelineData()).getAndSet(null);
+		IPipelineData pipelineData;
+		if (data instanceof BungeeLoginData loginData) {
+			pipelineData = loginData.getPipelineAttachment();
+			if (loginData.eaglerPlayerProperty != (byte) 0 || loginData.texturesPropertyValue != null) {
+				BungeeUnsafe.PropertyInjector injector = BungeeUnsafe.propertyInjector(player.getPendingConnection());
+				if (loginData.texturesPropertyValue != null) {
+					injector.injectTexturesProperty(loginData.texturesPropertyValue, loginData.texturesPropertySignature);
+					loginData.texturesPropertyValue = null;
+					loginData.texturesPropertySignature = null;
+				}
+				if (loginData.eaglerPlayerProperty != (byte) 0) {
+					injector.injectIsEaglerPlayerProperty(loginData.eaglerPlayerProperty == (byte) 2);
+				}
+				injector.complete();
 			}
-			if (conn.eaglerPlayerProperty != (byte) 0) {
-				injector.injectIsEaglerPlayerProperty(conn.eaglerPlayerProperty == (byte) 2);
-			}
-			injector.complete();
+		} else {
+			pipelineData = data;
 		}
 		event.registerIntent(plugin);
-		conn.awaitPlayState(() -> {
+		awaitPlayState(pipelineData, () -> {
 			try {
-				plugin.initializePlayer(player, conn, (b) -> {
+				plugin.initializePlayer(player, pipelineData, (b) -> {
 					if (b) {
 						event.completeIntent(plugin);
 					} else {
@@ -98,6 +109,14 @@ public class BungeeListener implements Listener {
 				throw new RuntimeException("Uncaught exception", ex);
 			}
 		});
+	}
+
+	private static void awaitPlayState(IPipelineData conn, Runnable cont) {
+		if (conn != null) {
+			conn.awaitPlayState(cont);
+		} else {
+			cont.run();
+		}
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

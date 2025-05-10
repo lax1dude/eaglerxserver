@@ -16,6 +16,7 @@
 
 package net.lax1dude.eaglercraft.backend.server.velocity;
 
+import java.net.SocketAddress;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,32 +24,31 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.util.GameProfile;
 
+import io.netty.channel.Channel;
 import net.kyori.adventure.text.Component;
-import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformConnection;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 
 class VelocityPlayer implements IPlatformPlayer<Player> {
 
+	static final Component DEFAULT_KICK_MESSAGE = Component.translatable("disconnect.closed");
+
 	private final Player player;
-	private final VelocityConnection connection;
 	Object attachment;
 	IPlatformServer<Player> server;
 
-	VelocityPlayer(Player player, VelocityConnection connection) {
+	VelocityPlayer(Player player) {
 		this.player = player;
-		this.connection = connection;
-		this.connection.playerInstance = player;
-	}
-
-	@Override
-	public IPlatformConnection getConnection() {
-		return connection;
 	}
 
 	@Override
 	public Player getPlayerObject() {
 		return player;
+	}
+
+	@Override
+	public Channel getChannel() {
+		return VelocityUnsafe.getInboundChannel(player);
 	}
 
 	@Override
@@ -59,6 +59,16 @@ class VelocityPlayer implements IPlatformPlayer<Player> {
 	@Override
 	public String getUsername() {
 		return player.getUsername();
+	}
+
+	@Override
+	public SocketAddress getSocketAddress() {
+		return player.getRemoteAddress();
+	}
+
+	@Override
+	public int getMinecraftProtocol() {
+		return player.getProtocolVersion().getProtocol();
 	}
 
 	@Override
@@ -128,7 +138,7 @@ class VelocityPlayer implements IPlatformPlayer<Player> {
 
 	@Override
 	public void disconnect() {
-		player.disconnect(VelocityConnection.DEFAULT_KICK_MESSAGE);
+		player.disconnect(DEFAULT_KICK_MESSAGE);
 	}
 
 	@Override

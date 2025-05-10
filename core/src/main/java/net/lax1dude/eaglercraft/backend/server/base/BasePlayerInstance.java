@@ -39,9 +39,10 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 	BasePlayerRPCManager<PlayerObject> backendRPCManager;
 	DataSerializationContext serializationContext;
 
-	public BasePlayerInstance(IPlatformPlayer<PlayerObject> player, EaglerXServer<PlayerObject> server) {
+	public BasePlayerInstance(IPlatformPlayer<PlayerObject> player,
+			EaglerAttributeManager.EaglerAttributeHolder attributeHolder, EaglerXServer<PlayerObject> server) {
 		this.player = player;
-		this.attributeHolder = player.<BaseConnectionInstance>getConnectionAttachment().attributeHolder;
+		this.attributeHolder = attributeHolder;
 		this.server = server;
 	}
 
@@ -61,17 +62,17 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 
 	@Override
 	public SocketAddress getSocketAddress() {
-		return player.getConnection().getSocketAddress();
+		return player.getChannel().remoteAddress();
 	}
 
 	@Override
 	public int getMinecraftProtocol() {
-		return player.<BaseConnectionInstance>getConnectionAttachment().getMinecraftProtocol();
+		return player.getMinecraftProtocol();
 	}
 
 	@Override
 	public SocketAddress getPlayerAddress() {
-		return player.<BaseConnectionInstance>getConnectionAttachment().getPlayerAddress();
+		return player.getSocketAddress();
 	}
 
 	@Override
@@ -152,7 +153,7 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 
 	@Override
 	public void disconnect() {
-		player.getConnection().disconnect();
+		player.disconnect();
 	}
 
 	@Override
@@ -182,7 +183,7 @@ public class BasePlayerInstance<PlayerObject> extends IIdentifiedConnection.Base
 
 	@Override
 	public Channel getChannel() {
-		return player.getConnection().getChannel();
+		return player.getChannel();
 	}
 
 	public BasePlayerRPCManager<PlayerObject> getPlayerRPCManager() {

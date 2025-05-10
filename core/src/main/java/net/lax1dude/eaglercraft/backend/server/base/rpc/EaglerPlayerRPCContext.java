@@ -162,8 +162,7 @@ public class EaglerPlayerRPCContext<PlayerObject> extends BasePlayerRPCContext<P
 	}
 
 	void handleRequestAuthUsername(int requestID) {
-		sendRPCPacket(new SPacketRPCResponseTypeBytes(requestID,
-				manager().getPlayer().connectionImpl().getAuthUsernameUnsafe()));
+		sendRPCPacket(new SPacketRPCResponseTypeBytes(requestID, manager().getPlayer().getAuthUsernameUnsafe()));
 	}
 
 	void handleRequestWebViewStatusV2(int requestID) {
