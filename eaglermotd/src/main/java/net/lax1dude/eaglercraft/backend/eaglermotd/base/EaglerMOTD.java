@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 
 import com.google.gson.JsonParseException;
 
+import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDLogger;
+import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDPlatform;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerListenerInfo;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.ITask;

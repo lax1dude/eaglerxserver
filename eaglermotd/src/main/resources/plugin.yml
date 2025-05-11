@@ -1,8 +1,0 @@
-name: EaglerMOTD-Reborn
-version: 1.0.0
-main: net.lax1dude.eaglercraft.backend.eaglermotd.bukkit.PlatformPluginBukkit
-description: Official EaglerMOTD plugin for EaglercraftXServer
-authors:
-- lax1dude
-depend:
-- EaglercraftXServer

@@ -4,17 +4,21 @@ plugins {
 }
 
 dependencies {
-	compileOnly project(":api-bukkit")
-	compileOnly project(":api-bungee")
-	compileOnly project(":api-velocity")
-	compileOnly(libs.bungeecord.api)
-	compileOnly(libs.velocity.api)
-	compileOnly(libs.paper.api)
-	compileOnly(libs.bundles.netty.all)
-	annotationProcessor(libs.velocity.api)
+	implementation project(":eaglermotd:eaglermotd-common")
+	implementation project(":eaglermotd:eaglermotd-platform-bukkit")
+	implementation project(":eaglermotd:eaglermotd-platform-bungee")
+	implementation project(":eaglermotd:eaglermotd-platform-velocity")
+	compileOnly project(":api")
+	compileOnly(libs.guava)
+	compileOnly(libs.gson)
 }
 
 jar {
+	dependsOn ":eaglermotd:eaglermotd-common:jar" // Workaround
+	dependsOn ":eaglermotd:eaglermotd-platform-bukkit:jar" // Workaround
+	dependsOn ":eaglermotd:eaglermotd-platform-bungee:jar" // Workaround
+	dependsOn ":eaglermotd:eaglermotd-platform-velocity:jar" // Workaround
+
 	archiveFileName = "EaglerMOTD.jar"
 
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE

@@ -14,7 +14,7 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.eaglermotd.base;
+package net.lax1dude.eaglercraft.backend.eaglermotd.adapter;
 
 public interface IEaglerMOTDLogger {
 

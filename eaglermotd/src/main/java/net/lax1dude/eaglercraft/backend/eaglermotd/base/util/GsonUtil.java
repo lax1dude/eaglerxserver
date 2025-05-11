@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
@@ -34,6 +35,7 @@ import com.google.gson.JsonPrimitive;
 public class GsonUtil {
 
 	private static final Gson GSON;
+	private static final Method asMapMethod;
 	private static final Field mapField;
 
 	static {
@@ -43,9 +45,10 @@ public class GsonUtil {
 		} catch (ReflectiveOperationException ex) {
 			throw new ExceptionInInitializerError(ex);
 		}
+		Method _asMapMethod = null;
 		Field _mapField = null;
 		try {
-			JsonObject.class.getMethod("asMap");
+			_asMapMethod = JsonObject.class.getMethod("asMap");
 		} catch (ReflectiveOperationException ex) {
 			try {
 				_mapField = JsonObject.class.getDeclaredField("members");
@@ -54,6 +57,7 @@ public class GsonUtil {
 				throw new ExceptionInInitializerError(exx);
 			}
 		}
+		asMapMethod = _asMapMethod;
 		mapField = _mapField;
 	}
 
@@ -93,9 +97,14 @@ public class GsonUtil {
 		return (el != null && el instanceof JsonArray ell) ? ell : null;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static Map<String, JsonElement> asMap(JsonObject object) {
-		if (mapField == null) {
-			return object.asMap();
+		if (asMapMethod != null) {
+			try {
+				return (Map<String, JsonElement>) asMapMethod.invoke(object);
+			} catch (ReflectiveOperationException e) {
+				throw new RuntimeException(e);
+			}
 		} else {
 			try {
 				return (Map<String, JsonElement>) mapField.get(object);

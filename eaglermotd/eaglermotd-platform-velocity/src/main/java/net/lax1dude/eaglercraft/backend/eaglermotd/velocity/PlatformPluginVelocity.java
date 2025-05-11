@@ -32,9 +32,12 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 
-import net.lax1dude.eaglercraft.backend.eaglermotd.base.EaglerMOTD;
-import net.lax1dude.eaglercraft.backend.eaglermotd.base.IEaglerMOTDLogger;
-import net.lax1dude.eaglercraft.backend.eaglermotd.base.IEaglerMOTDPlatform;
+import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDImpl;
+import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDLogger;
+import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDPlatform;
+import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.SLF4JLogger;
+import net.lax1dude.eaglercraft.backend.eaglermotd.base.EaglerMOTDFactory;
+import net.lax1dude.eaglercraft.backend.eaglermotd.base.EaglerMOTDVersion;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
 
@@ -45,7 +48,7 @@ import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
 		PlatformPluginVelocity.PLUGIN_AUTHOR
 	},
 	version = PlatformPluginVelocity.PLUGIN_VERSION,
-	description = PlatformPluginVelocity.PLUGIN_DESC,
+	description = "Official EaglerMOTD plugin for EaglercraftXServer",
 	dependencies = {
 		@Dependency(id = EaglerXServerAPI.PLUGIN_ID, optional = false)
 	}
@@ -53,16 +56,15 @@ import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
 public class PlatformPluginVelocity implements IEaglerMOTDPlatform<Player> {
 
 	public static final String PLUGIN_ID = "eaglermotd-reborn";
-	public static final String PLUGIN_NAME = "EaglerMOTD-Reborn";
-	public static final String PLUGIN_AUTHOR = "lax1dude";
-	public static final String PLUGIN_VERSION = "1.0.0";
-	public static final String PLUGIN_DESC = "Official EaglerMOTD plugin for EaglercraftXServer";
+	public static final String PLUGIN_NAME = EaglerMOTDVersion.PLUGIN_BRAND;
+	public static final String PLUGIN_AUTHOR = EaglerMOTDVersion.PLUGIN_AUTHOR;
+	public static final String PLUGIN_VERSION = EaglerMOTDVersion.PLUGIN_VERSION;
 
 	private final ProxyServer proxy;
 	private final Logger logger;
 	private final File dataDir;
 	private final SLF4JLogger rewindLogger;
-	private final EaglerMOTD<Player> eaglermotd;
+	private final IEaglerMOTDImpl<Player> eaglermotd;
 	Consumer<IEaglercraftMOTDEvent<Player>> onMOTDHandler;
 
 	@Inject
@@ -71,7 +73,7 @@ public class PlatformPluginVelocity implements IEaglerMOTDPlatform<Player> {
 		logger = loggerIn;
 		dataDir = dataDirIn.toFile();
 		rewindLogger = new SLF4JLogger(loggerIn);
-		eaglermotd = new EaglerMOTD<Player>(this);
+		eaglermotd = EaglerMOTDFactory.create(this);
 	}
 
 	@Subscribe

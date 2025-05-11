@@ -21,23 +21,48 @@ import java.util.function.Consumer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import net.lax1dude.eaglercraft.backend.eaglermotd.base.EaglerMOTD;
-import net.lax1dude.eaglercraft.backend.eaglermotd.base.IEaglerMOTDLogger;
-import net.lax1dude.eaglercraft.backend.eaglermotd.base.IEaglerMOTDPlatform;
-import net.lax1dude.eaglercraft.backend.eaglermotd.bungee.JavaLogger;
+import eu.hexagonmc.spigot.annotation.meta.DependencyType;
+import eu.hexagonmc.spigot.annotation.plugin.Dependency;
+import eu.hexagonmc.spigot.annotation.plugin.Plugin;
+import eu.hexagonmc.spigot.annotation.plugin.Plugin.Spigot;
+import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDImpl;
+import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDLogger;
+import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDPlatform;
+import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.JavaLogger;
+import net.lax1dude.eaglercraft.backend.eaglermotd.base.EaglerMOTDFactory;
+import net.lax1dude.eaglercraft.backend.eaglermotd.base.EaglerMOTDVersion;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.EaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 
+@Plugin(
+	name = PlatformPluginBukkit.PLUGIN_NAME,
+	version = PlatformPluginBukkit.PLUGIN_VERSION,
+	description = "Official EaglerMOTD plugin for EaglercraftXServer",
+	spigot = @Spigot(
+		authors = {
+			PlatformPluginBukkit.PLUGIN_AUTHOR
+		},
+		website = "https://lax1dude.net/eaglerxserver",
+		prefix = "EaglerMOTD"
+	),
+	dependencies = {
+		@Dependency(name = EaglerXServerAPI.PLUGIN_NAME, type = DependencyType.DEPEND)
+	}
+)
 public class PlatformPluginBukkit extends JavaPlugin implements IEaglerMOTDPlatform<Player> {
 
+	public static final String PLUGIN_NAME = EaglerMOTDVersion.PLUGIN_BRAND;
+	public static final String PLUGIN_AUTHOR = EaglerMOTDVersion.PLUGIN_AUTHOR;
+	public static final String PLUGIN_VERSION = EaglerMOTDVersion.PLUGIN_VERSION;
+
 	private JavaLogger logger;
-	private EaglerMOTD<Player> eaglermotd;
+	private IEaglerMOTDImpl<Player> eaglermotd;
 	Consumer<IEaglercraftMOTDEvent<Player>> onMOTDHandler;
 
 	@Override
 	public void onLoad() {
 		logger = new JavaLogger(getLogger());
-		eaglermotd = new EaglerMOTD<Player>(this);
+		eaglermotd = EaglerMOTDFactory.create(this);
 	}
 
 	@Override

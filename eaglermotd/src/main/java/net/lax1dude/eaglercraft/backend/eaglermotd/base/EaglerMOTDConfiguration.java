@@ -34,6 +34,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 
+import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDLogger;
 import net.lax1dude.eaglercraft.backend.eaglermotd.base.frame.PipelineLoader;
 import net.lax1dude.eaglercraft.backend.eaglermotd.base.util.BitmapUtil;
 import net.lax1dude.eaglercraft.backend.eaglermotd.base.util.GsonUtil;

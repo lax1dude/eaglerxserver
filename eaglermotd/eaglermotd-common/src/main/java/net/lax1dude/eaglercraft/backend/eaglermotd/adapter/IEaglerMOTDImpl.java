@@ -14,19 +14,14 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.eaglermotd.base;
+package net.lax1dude.eaglercraft.backend.eaglermotd.adapter;
 
-import java.io.File;
-import java.util.function.Consumer;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 
-import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
+public interface IEaglerMOTDImpl<PlayerObject> {
 
-public interface IEaglerMOTDPlatform<PlayerObject> {
+	void onEnable(IEaglerXServerAPI<PlayerObject> serverAPI);
 
-	IEaglerMOTDLogger logger();
-
-	void setOnMOTD(Consumer<IEaglercraftMOTDEvent<PlayerObject>> handler);
-
-	File getDataFolder();
+	void onDisable(IEaglerXServerAPI<PlayerObject> serverAPI);
 
 }

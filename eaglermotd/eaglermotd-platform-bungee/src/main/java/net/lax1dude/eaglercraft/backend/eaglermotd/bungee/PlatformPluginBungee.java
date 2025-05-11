@@ -18,24 +18,43 @@ package net.lax1dude.eaglercraft.backend.eaglermotd.bungee;
 
 import java.util.function.Consumer;
 
-import net.lax1dude.eaglercraft.backend.eaglermotd.base.EaglerMOTD;
-import net.lax1dude.eaglercraft.backend.eaglermotd.base.IEaglerMOTDLogger;
-import net.lax1dude.eaglercraft.backend.eaglermotd.base.IEaglerMOTDPlatform;
+import eu.hexagonmc.spigot.annotation.meta.DependencyType;
+import eu.hexagonmc.spigot.annotation.plugin.Dependency;
+import eu.hexagonmc.spigot.annotation.plugin.Plugin.Bungee;
+import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDImpl;
+import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDLogger;
+import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDPlatform;
+import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.JavaLogger;
+import net.lax1dude.eaglercraft.backend.eaglermotd.base.EaglerMOTDFactory;
+import net.lax1dude.eaglercraft.backend.eaglermotd.base.EaglerMOTDVersion;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.EaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 
+@eu.hexagonmc.spigot.annotation.plugin.Plugin(
+	name = PlatformPluginBungee.PLUGIN_NAME,
+	version = PlatformPluginBungee.PLUGIN_VERSION,
+	description = "Official EaglerMOTD plugin for EaglercraftXServer",
+	bungee = @Bungee(author = PlatformPluginBungee.PLUGIN_AUTHOR),
+	dependencies = {
+		@Dependency(name = EaglerXServerAPI.PLUGIN_NAME, type = DependencyType.DEPEND)
+	}
+)
 public class PlatformPluginBungee extends Plugin implements IEaglerMOTDPlatform<ProxiedPlayer> {
 
+	public static final String PLUGIN_NAME = EaglerMOTDVersion.PLUGIN_BRAND;
+	public static final String PLUGIN_AUTHOR = EaglerMOTDVersion.PLUGIN_AUTHOR;
+	public static final String PLUGIN_VERSION = EaglerMOTDVersion.PLUGIN_VERSION;
+
 	private JavaLogger logger;
-	private EaglerMOTD<ProxiedPlayer> eaglermotd;
+	private IEaglerMOTDImpl<ProxiedPlayer> eaglermotd;
 	Consumer<IEaglercraftMOTDEvent<ProxiedPlayer>> onMOTDHandler;
 
 	@Override
 	public void onLoad() {
 		logger = new JavaLogger(getLogger());
-		eaglermotd = new EaglerMOTD<ProxiedPlayer>(this);
+		eaglermotd = EaglerMOTDFactory.create(this);
 	}
 
 	@Override
