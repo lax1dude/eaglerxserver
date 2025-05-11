@@ -16,6 +16,8 @@
 
 package net.lax1dude.eaglercraft.backend.server.bukkit;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -49,144 +51,20 @@ import net.lax1dude.eaglercraft.backend.server.util.Util;
 
 public class BukkitUnsafe {
 
-	public static class LoginConnectionHolder {
+	private static final VarHandle CLASS_CRAFTPLAYER_HANDLE;
+	private static final VarHandle CLASS_NETWORKMANAGER_HANDLE;
 
-		public final Object networkManager;
-		public final Object loginListener;
-
-		protected LoginConnectionHolder(Object networkManager, Object loginListener) {
-			this.networkManager = networkManager;
-			this.loginListener = loginListener;
-		}
-
-		public SocketAddress getRemoteAddress() {
-			try {
-				Channel c = (Channel) field_NetworkManager_channel.get(networkManager);
-				return c != null ? c.remoteAddress() : null;
-			} catch (IllegalArgumentException | IllegalAccessException e) {
-				throw Util.propagateReflectThrowable(e);
-			}
-		}
-
-		public boolean isConnected() {
-			try {
-				Channel c = (Channel) field_NetworkManager_channel.get(networkManager);
-				return c != null && c.isActive();
-			} catch (IllegalArgumentException | IllegalAccessException e) {
-				throw Util.propagateReflectThrowable(e);
-			}
-		}
-
-		public void disconnect() {
-			try {
-				method_LoginListener_disconnect.invoke(loginListener, "Connection Closed");
-			} catch (ReflectiveOperationException e) {
-				throw Util.propagateReflectThrowable(e);
-			}
-		}
-
-		public void disconnect(String message) {
-			try {
-				method_LoginListener_disconnect.invoke(loginListener, message);
-			} catch (ReflectiveOperationException e) {
-				throw Util.propagateReflectThrowable(e);
-			}
-		}
-
-		public Channel getChannel() {
-			try {
-				return (Channel) field_NetworkManager_channel.get(networkManager);
-			} catch (ReflectiveOperationException e) {
-				throw Util.propagateReflectThrowable(e);
-			}
-		}
-
-	}
-
-	private static Class<?> class_NetworkManager = null;
-	private static Field field_NetworkManager_channel = null;
-	private static Method method_NetworkManager_getPacketListener = null;
-	private static Class<?> class_LoginListener_maybe = null;
-	private static Method method_LoginListener_disconnect = null;
-	private static Field field_LoginListener_gameProfile = null;
-
-	private static synchronized void bindLoginConnection(Object networkManager) {
-		if (class_NetworkManager != null) {
-			return;
-		}
-		Class<?> clz = networkManager.getClass();
+	static {
 		try {
-			Field[] fields = clz.getFields();
-			for (int i = 0; i < fields.length; ++i) {
-				Field f = fields[i];
-				if (Channel.class.isAssignableFrom(f.getType())) {
-					field_NetworkManager_channel = f;
-					break;
-				}
-			}
-			if (field_NetworkManager_channel == null) {
-				throw new IllegalStateException("Could not locate channel field of " + clz.getName());
-			}
-			Method[] meth = clz.getMethods();
-			for (int i = 0; i < meth.length; ++i) {
-				Method m = meth[i];
-				if (m.getParameterCount() == 0 && m.getReturnType().getSimpleName().equals("PacketListener")) {
-					method_NetworkManager_getPacketListener = m;
-					break;
-				}
-			}
-			if (method_NetworkManager_getPacketListener == null) {
-				throw new IllegalStateException("Could not locate getPacketListener method of " + clz.getName());
-			}
-			Object packetListener = method_NetworkManager_getPacketListener.invoke(networkManager);
-			if (packetListener == null) {
-				throw new IllegalStateException("NetworkManager.getPacketListener is null!");
-			}
-			Class<?> clz2 = packetListener.getClass();
-			method_LoginListener_disconnect = clz2.getMethod("disconnect", String.class);
-			fields = clz2.getDeclaredFields();
-			for (int i = 0; i < fields.length; ++i) {
-				Field f = fields[i];
-				if (GameProfile.class.isAssignableFrom(f.getType())) {
-					f.setAccessible(true);
-					field_LoginListener_gameProfile = f;
-					break;
-				}
-			}
-			if (field_LoginListener_gameProfile == null) {
-				throw new IllegalStateException("LoginListener gameProfile field could not be found for "
-						+ packetListener.getClass().getName());
-			}
-			class_LoginListener_maybe = clz2;
-			class_NetworkManager = clz;
-		} catch (IllegalStateException ex) {
-			throw ex;
-		} catch (Exception ex) {
-			throw Util.propagateReflectThrowable(ex);
-		}
-
-	}
-
-	public static LoginConnectionHolder getLoginConnection(Object networkManager) {
-		if (class_NetworkManager == null) {
-			bindLoginConnection(networkManager);
-		}
-		try {
-			Object packetListener = method_NetworkManager_getPacketListener.invoke(networkManager);
-			if (packetListener == null) {
-				throw new IllegalStateException("NetworkManager.getPacketListener is null!");
-			}
-			if (!class_LoginListener_maybe.isAssignableFrom(packetListener.getClass())) {
-				throw new IllegalStateException("PacketListener class is not LoginListener: "
-						+ packetListener.getClass().getName() + " != " + class_LoginListener_maybe.getName());
-			}
-			return new LoginConnectionHolder(networkManager, packetListener);
-		} catch (ReflectiveOperationException e) {
-			throw Util.propagateReflectThrowable(e);
+			MethodHandles.Lookup lookup = MethodHandles.lookup();
+			CLASS_CRAFTPLAYER_HANDLE = lookup.findStaticVarHandle(BukkitUnsafe.class, "class_CraftPlayer", Class.class);
+			CLASS_NETWORKMANAGER_HANDLE = lookup.findStaticVarHandle(BukkitUnsafe.class, "class_NetworkManager", Class.class);
+		} catch(ReflectiveOperationException ex) {
+			throw new ExceptionInInitializerError(ex);
 		}
 	}
 
-	private static Class<?> class_CraftPlayer = null;
+	private static volatile Class<?> class_CraftPlayer = null;
 	private static Method method_CraftPlayer_getHandle = null;
 	private static Method method_CraftPlayer_addChannel = null;
 	private static Class<?> class_EntityPlayer = null;
@@ -194,9 +72,12 @@ public class BukkitUnsafe {
 	private static Method method_EntityPlayer_getProfile = null;
 	private static Class<?> class_PlayerConnection = null;
 	private static Field field_PlayerConnection_networkManager = null;
+	private static volatile Class<?> class_NetworkManager = null;
+	private static Field field_NetworkManager_channel = null;
+	private static Field field_NetworkManager_address = null;
 
 	private static synchronized void bindCraftPlayer(Player playerObject) {
-		if (class_CraftPlayer != null) {
+		if (CLASS_CRAFTPLAYER_HANDLE.getAcquire() != null) {
 			return;
 		}
 		Class<?> clz = playerObject.getClass();
@@ -228,23 +109,35 @@ public class BukkitUnsafe {
 			for (Field f : clz4.getFields()) {
 				if (Channel.class.isAssignableFrom(f.getType())) {
 					field_NetworkManager_channel = f;
+					break;
+				}
+			}
+			for (Field f : clz4.getDeclaredFields()) {
+				if (SocketAddress.class.isAssignableFrom(f.getType())) {
+					f.setAccessible(true);
+					field_NetworkManager_address = f;
+					break;
 				}
 			}
 			if (field_NetworkManager_channel == null) {
 				throw new IllegalStateException("Could not locate channel field of " + clz4.getName());
 			}
+			if (field_NetworkManager_address == null) {
+				System.err.println("Could not find SocketAddress field in class " + clz4.getName());
+				System.err.println("Use Spigot if you want EaglerXServer to forward player IPs");
+			}
 			method_EntityPlayer_getProfile = clz2.getMethod("getProfile");
-			class_NetworkManager = clz4;
+			CLASS_NETWORKMANAGER_HANDLE.setRelease(clz4);
 			class_PlayerConnection = clz3;
 			class_EntityPlayer = clz2;
-			class_CraftPlayer = clz;
+			CLASS_CRAFTPLAYER_HANDLE.setRelease(clz);
 		} catch (Exception ex) {
 			throw Util.propagateReflectThrowable(ex);
 		}
 	}
 
 	public static Channel getPlayerChannel(Player playerObject) {
-		if (class_CraftPlayer == null) {
+		if (CLASS_CRAFTPLAYER_HANDLE.getAcquire() == null) {
 			bindCraftPlayer(playerObject);
 		}
 		try {
@@ -256,7 +149,7 @@ public class BukkitUnsafe {
 	}
 
 	public static String getTexturesProperty(Player player) {
-		if (class_CraftPlayer == null) {
+		if (CLASS_CRAFTPLAYER_HANDLE.getAcquire() == null) {
 			bindCraftPlayer(player);
 		}
 		try {
@@ -299,7 +192,7 @@ public class BukkitUnsafe {
 	}
 
 	public static BukkitUnsafe.PropertyInjector propertyInjector(Player player) {
-		if (class_CraftPlayer == null) {
+		if (CLASS_CRAFTPLAYER_HANDLE.getAcquire() == null) {
 			bindCraftPlayer(player);
 		}
 		try {
@@ -312,7 +205,7 @@ public class BukkitUnsafe {
 	}
 
 	public static Object getHandle(Player player) {
-		if (class_CraftPlayer == null) {
+		if (CLASS_CRAFTPLAYER_HANDLE.getAcquire() == null) {
 			bindCraftPlayer(player);
 		}
 		try {
@@ -330,33 +223,33 @@ public class BukkitUnsafe {
 		}
 	}
 
-	private static Class<?> class_realAddr_NetworkManager = null;
-	private static Field field_realAddr_NetworkManager_address = null;
-
 	private static synchronized void bindRealAddress(Object networkManager) {
-		if (class_realAddr_NetworkManager != null) {
+		if (CLASS_NETWORKMANAGER_HANDLE.getAcquire() != null) {
 			return;
 		}
-		class_realAddr_NetworkManager = networkManager.getClass();
-		for (Field field : class_realAddr_NetworkManager.getDeclaredFields()) {
+		Class<?> clz = networkManager.getClass();
+		for (Field field : clz.getDeclaredFields()) {
 			if (SocketAddress.class.isAssignableFrom(field.getType())) {
 				field.setAccessible(true);
-				field_realAddr_NetworkManager_address = field;
+				field_NetworkManager_address = field;
+				CLASS_NETWORKMANAGER_HANDLE.setRelease(clz);
 				return;
 			}
 		}
-		System.err.println("Could not find SocketAddress field in class " + networkManager.getClass().getName());
+		CLASS_NETWORKMANAGER_HANDLE.setRelease(clz);
+		System.err.println("Could not find SocketAddress field in class " + clz.getName());
 		System.err.println("Use Spigot if you want EaglerXServer to forward player IPs");
 	}
 
 	public static void updateRealAddress(Object networkManager, SocketAddress address) {
-		if (class_realAddr_NetworkManager == null) {
+		Class<?> clz;
+		if ((clz = (Class<?>) CLASS_NETWORKMANAGER_HANDLE.getAcquire()) == null) {
 			bindRealAddress(networkManager);
+			clz = (Class<?>) CLASS_NETWORKMANAGER_HANDLE.getAcquire();
 		}
-		if (field_realAddr_NetworkManager_address != null
-				&& class_realAddr_NetworkManager.isAssignableFrom(networkManager.getClass())) {
+		if (field_NetworkManager_address != null && clz.isAssignableFrom(networkManager.getClass())) {
 			try {
-				field_realAddr_NetworkManager_address.set(networkManager, address);
+				field_NetworkManager_address.set(networkManager, address);
 			} catch (IllegalArgumentException | IllegalAccessException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
@@ -364,7 +257,7 @@ public class BukkitUnsafe {
 	}
 
 	public static void addPlayerChannel(Player player, String ch) {
-		if (class_CraftPlayer == null) {
+		if (CLASS_CRAFTPLAYER_HANDLE.getAcquire() == null) {
 			bindCraftPlayer(player);
 		}
 		try {

@@ -16,6 +16,8 @@
 
 package net.lax1dude.eaglercraft.backend.rpc.bukkit;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -30,13 +32,24 @@ import com.mojang.authlib.properties.Property;
 
 public class BukkitUnsafe {
 
-	private static Class<?> class_CraftPlayer = null;
+	private static final VarHandle CLASS_CRAFTPLAYER_HANDLE;
+
+	static {
+		try {
+			MethodHandles.Lookup lookup = MethodHandles.lookup();
+			CLASS_CRAFTPLAYER_HANDLE = lookup.findStaticVarHandle(BukkitUnsafe.class, "class_CraftPlayer", Class.class);
+		} catch(ReflectiveOperationException ex) {
+			throw new ExceptionInInitializerError(ex);
+		}
+	}
+
+	private static volatile Class<?> class_CraftPlayer = null;
 	private static Method method_CraftPlayer_getHandle = null;
 	private static Class<?> class_EntityPlayer = null;
 	private static Method method_EntityPlayer_getProfile = null;
 
 	private static synchronized void bindCraftPlayer(Player playerObject) {
-		if (class_CraftPlayer != null) {
+		if (CLASS_CRAFTPLAYER_HANDLE.getAcquire() != null) {
 			return;
 		}
 		Class<?> clz = playerObject.getClass();
@@ -46,7 +59,7 @@ public class BukkitUnsafe {
 			Class<?> clz2 = entityPlayer.getClass();
 			method_EntityPlayer_getProfile = clz2.getMethod("getProfile");
 			class_EntityPlayer = clz2;
-			class_CraftPlayer = clz;
+			CLASS_CRAFTPLAYER_HANDLE.setRelease(clz);
 		} catch (Exception ex) {
 			throw new RuntimeException("Reflection failed!", ex);
 		}
@@ -69,7 +82,7 @@ public class BukkitUnsafe {
 		if (paperProfileAPISupport) {
 			return isEaglerPlayerPropertyPaper(player);
 		} else {
-			if (class_CraftPlayer == null) {
+			if (CLASS_CRAFTPLAYER_HANDLE.getAcquire() == null) {
 				bindCraftPlayer(player);
 			}
 			try {

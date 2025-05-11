@@ -16,6 +16,8 @@
 
 package net.lax1dude.eaglercraft.backend.server.bukkit.async;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -48,11 +50,28 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 public class PlayerPostLoginInjector {
 
+	private static final VarHandle NETMANAGERCLASS_HANDLE;
+	private static final VarHandle LOGINLISTENERCLASS_HANDLE;
+	private static final VarHandle PACKETLOGINSUCCESSCLASS_HANDLE;
+	private static final VarHandle PACKETPLAYDISCONNECT_HANDLE;
+
+	static {
+		try {
+			MethodHandles.Lookup lookup = MethodHandles.lookup();
+			NETMANAGERCLASS_HANDLE = lookup.findVarHandle(PlayerPostLoginInjector.class, "netManagerClass", Class.class);
+			LOGINLISTENERCLASS_HANDLE = lookup.findVarHandle(PlayerPostLoginInjector.class, "loginListenerClass", Class.class);
+			PACKETLOGINSUCCESSCLASS_HANDLE = lookup.findVarHandle(PlayerPostLoginInjector.class, "packetLoginSuccessClass", Class.class);
+			PACKETPLAYDISCONNECT_HANDLE = lookup.findVarHandle(PlayerPostLoginInjector.class, "packetPlayDisconnect", Class.class);
+		} catch(ReflectiveOperationException ex) {
+			throw new ExceptionInInitializerError(ex);
+		}
+	}
+
 	public static final AttributeKey<LoginEventContext> attr = AttributeKey.valueOf("eagler-postlogin-hack");
 
 	protected final PlatformPluginBukkit plugin;
 
-	protected Class<Object> netManagerClass;
+	protected volatile Class<Object> netManagerClass;
 	protected Constructor<Object> netManagerCtor;
 	protected ClassProxy<Object> netManagerProxy;
 	protected Field netManagerDir;
@@ -66,7 +85,7 @@ public class PlayerPostLoginInjector {
 	protected Field handshakeListenerNetManager;
 	protected Field handlerAdded;
 
-	protected Class<Object> loginListenerClass;
+	protected volatile Class<Object> loginListenerClass;
 	protected Constructor<Object> loginListenerCtor;
 	protected ClassProxy<Object> loginListenerProxy;
 	protected Field loginListenerServer;
@@ -78,10 +97,10 @@ public class PlayerPostLoginInjector {
 	protected Method loginListenerDisconnect;
 	protected Field loginListenerPlayer;
 
-	protected Class<Object> packetLoginSuccessClass;
+	protected volatile Class<Object> packetLoginSuccessClass;
 	protected Field packetLoginSuccessGameProfile;
 
-	protected Class<?> packetPlayDisconnect;
+	protected volatile Class<?> packetPlayDisconnect;
 	protected Constructor<?> packetPlayDisconnectCtor;
 	protected Field packetLoginDisconnectMsg;
 
@@ -93,7 +112,7 @@ public class PlayerPostLoginInjector {
 	}
 
 	private synchronized void bind(Object netManager) {
-		if (this.netManagerClass != null) {
+		if (NETMANAGERCLASS_HANDLE.getAcquire(this) != null) {
 			return;
 		}
 		try {
@@ -186,7 +205,6 @@ public class PlayerPostLoginInjector {
 			}
 			this.netManagerCtor = netManagerClass.getDeclaredConstructor(protocolDirType);
 			this.netManagerCtor.setAccessible(true);
-			this.netManagerClass = netManagerClass;
 			this.netManagerProxy = ClassProxy.bindProxy(PlayerPostLoginInjector.class.getClassLoader(),
 					netManagerClass);
 			this.netManagerDir = protocolDirField;
@@ -200,6 +218,7 @@ public class PlayerPostLoginInjector {
 			this.handshakeListenerNetManager = handshakeListenerNetManager;
 			this.handlerAdded = ChannelHandlerAdapter.class.getDeclaredField("added");
 			this.handlerAdded.setAccessible(true);
+			NETMANAGERCLASS_HANDLE.setRelease(this, netManagerClass);
 		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
@@ -248,8 +267,10 @@ public class PlayerPostLoginInjector {
 	}
 
 	public Object wrapNetworkManager(Object netManager, Channel channel) {
-		if (netManagerClass == null) {
+		Class<?> netManagerClass;
+		if ((netManagerClass = (Class<?>) NETMANAGERCLASS_HANDLE.getAcquire(this)) == null) {
 			bind(netManager);
+			netManagerClass = (Class<?>) NETMANAGERCLASS_HANDLE.getAcquire(this);
 		}
 		if (!netManagerClass.isAssignableFrom(netManager.getClass())) {
 			throw new IllegalStateException("Unknown NetworkManager type: " + netManager.getClass().getName());
@@ -269,10 +290,12 @@ public class PlayerPostLoginInjector {
 						} else if (sendPacketMethod1.equals(meth)) {
 							String nm = args[0].getClass().getSimpleName();
 							if (nm.equals("PacketLoginOutDisconnect") && ctx.clientPlayState) {
-								if (packetPlayDisconnect == null) {
+								Class<?> clz2;
+								if ((clz2 = (Class<?>) PACKETPLAYDISCONNECT_HANDLE.getAcquire(this)) == null) {
 									bindPacketPlayDisconnect(args[0].getClass());
+									clz2 = (Class<?>) PACKETPLAYDISCONNECT_HANDLE.getAcquire(this);
 								}
-								if (packetPlayDisconnect != void.class) {
+								if (clz2 != void.class) {
 									args[0] = packetPlayDisconnectCtor.newInstance(packetLoginDisconnectMsg.get(args[0]));
 								} else {
 									return null;
@@ -302,7 +325,7 @@ public class PlayerPostLoginInjector {
 	}
 
 	private synchronized void bindPacketProfile(Object packet) {
-		if (packetLoginSuccessClass != null) {
+		if (PACKETLOGINSUCCESSCLASS_HANDLE.getAcquire(this) != null) {
 			return;
 		}
 		Field gameProfile = null;
@@ -317,15 +340,17 @@ public class PlayerPostLoginInjector {
 		if (gameProfile == null) {
 			throw new IllegalStateException("Could not locate game profile field of " + clz.getName());
 		}
-		packetLoginSuccessClass = clz;
 		packetLoginSuccessGameProfile = gameProfile;
+		PACKETLOGINSUCCESSCLASS_HANDLE.setRelease(this, clz);
 	}
 
 	private GameProfile getPacketProfile(Object packet) {
-		if (packetLoginSuccessClass == null) {
+		Class<?> clz;
+		if ((clz = (Class<?>) PACKETLOGINSUCCESSCLASS_HANDLE.getAcquire(this)) == null) {
 			bindPacketProfile(packet);
+			clz = (Class<?>) PACKETLOGINSUCCESSCLASS_HANDLE.getAcquire(this);
 		}
-		if (!packetLoginSuccessClass.isAssignableFrom(packet.getClass())) {
+		if (!clz.isAssignableFrom(packet.getClass())) {
 			throw new IllegalStateException("Unknown PacketLoginOutSuccess type: " + packet.getClass().getName());
 		}
 		try {
@@ -336,10 +361,11 @@ public class PlayerPostLoginInjector {
 	}
 
 	private synchronized void bindLogin(Object loginListener) {
-		if (this.loginListenerClass != null) {
+		if (LOGINLISTENERCLASS_HANDLE.getAcquire(this) != null) {
 			return;
 		}
-		if (netManagerClass == null) {
+		Class<?> clz2;
+		if ((clz2 = (Class<?>) NETMANAGERCLASS_HANDLE.getAcquire(this)) == null) {
 			throw new IllegalStateException();
 		}
 		try {
@@ -348,7 +374,7 @@ public class PlayerPostLoginInjector {
 			Constructor<Object> loginListenerCtor = null;
 			for (Constructor<? extends Object> ctor : loginListenerClass.getConstructors()) {
 				Class<?>[] params = ctor.getParameterTypes();
-				if (params.length == 2 && params[1] == netManagerClass) {
+				if (params.length == 2 && params[1] == clz2) {
 					loginListenerCtor = (Constructor<Object>) ctor;
 					mcServerClass = (Class<Object>) params[0];
 					break;
@@ -366,7 +392,7 @@ public class PlayerPostLoginInjector {
 				if (f.getType() == mcServerClass) {
 					f.setAccessible(true);
 					loginListenerServer = f;
-				} else if (f.getType() == netManagerClass) {
+				} else if (f.getType() == clz2) {
 					f.setAccessible(true);
 					loginListenerNetManager = f;
 				} else if (f.getType().getName().equals(loginListenerClass.getName() + "$EnumProtocolState")) {
@@ -422,7 +448,6 @@ public class PlayerPostLoginInjector {
 				throw new IllegalStateException(
 						"Could not locate stalling state enum of " + enumProtocolState.getName());
 			}
-			this.loginListenerClass = loginListenerClass;
 			this.loginListenerCtor = loginListenerCtor;
 			this.loginListenerProxy = ClassProxy.bindProxy(PlayerPostLoginInjector.class.getClassLoader(),
 					loginListenerClass);
@@ -434,14 +459,17 @@ public class PlayerPostLoginInjector {
 			this.loginListenerTick = loginListenerTick;
 			this.loginListenerDisconnect = loginListenerDisconnect;
 			this.loginListenerPlayer = loginListenerPlayer;
+			LOGINLISTENERCLASS_HANDLE.setRelease(this, loginListenerClass);
 		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
 		}
 	}
 
 	private Object wrapLoginListener(Object loginListener, LoginEventContext ctx) {
-		if (loginListenerClass == null) {
+		Class<?> loginListenerClass;
+		if ((loginListenerClass = (Class<?>) LOGINLISTENERCLASS_HANDLE.getAcquire(this)) == null) {
 			bindLogin(loginListener);
+			loginListenerClass = (Class<?>) LOGINLISTENERCLASS_HANDLE.getAcquire(this);
 		}
 		if (!loginListenerClass.isAssignableFrom(loginListener.getClass())) {
 			throw new IllegalStateException("Unknown LoginListener type: " + loginListener.getClass().getName());
@@ -516,7 +544,7 @@ public class PlayerPostLoginInjector {
 	}
 
 	private synchronized void bindPacketPlayDisconnect(Class<?> loginDisconnectPacket) {
-		if (packetPlayDisconnect != null) {
+		if (PACKETPLAYDISCONNECT_HANDLE.getAcquire(this) != null) {
 			return;
 		}
 		try {
@@ -558,9 +586,9 @@ public class PlayerPostLoginInjector {
 			}
 			packetLoginDisconnectMsg = f;
 			packetPlayDisconnectCtor = ctor;
-			packetPlayDisconnect = clz;
+			PACKETPLAYDISCONNECT_HANDLE.setRelease(this, clz);
 		} catch (ReflectiveOperationException ex) {
-			packetPlayDisconnect = void.class;
+			PACKETPLAYDISCONNECT_HANDLE.setRelease(this, void.class);
 		}
 	}
 
