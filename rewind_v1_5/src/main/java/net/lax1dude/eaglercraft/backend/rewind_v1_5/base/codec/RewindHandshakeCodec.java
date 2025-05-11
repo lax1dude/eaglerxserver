@@ -51,6 +51,7 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 	protected String username;
 	protected byte[] skinData;
 	protected byte[] capeData;
+	protected boolean isV3Kick;
 
 	public RewindHandshakeCodec(IPacket2ClientProtocol firstPacket) {
 		this.username = firstPacket.getUsername();
@@ -259,6 +260,7 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 						"Backend response does not match the requested protocol: V" + protocolVers + ", mc" + gameVers);
 				return;
 			}
+			isV3Kick = true;
 			ByteBuf packet = ctx.alloc().buffer();
 			try {
 				// PROTOCOL_CLIENT_REQUEST_LOGIN
@@ -418,12 +420,12 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 	private void handleServerError(ChannelHandlerContext ctx, ByteBuf buf) {
 		state = STATE_COMPLETED;
 		int errorCode = buf.readUnsignedByte();
-		int stringLen = buf.readUnsignedShort();
+		int stringLen = isV3Kick ? buf.readUnsignedShort() : buf.readUnsignedByte();
 		String str = BufferUtils.readCharSequence(buf, stringLen, StandardCharsets.UTF_8).toString();
 		if (errorCode == 0x08) {
 			// SERVER_ERROR_CUSTOM_MESSAGE
 			String str2 = str;
-			if (str2.startsWith("{")) {
+			if (isV3Kick && str2.startsWith("{")) {
 				try {
 					str2 = serverAPI().getComponentHelper().convertJSONToLegacySection(str2);
 				} catch (Exception ex) {
