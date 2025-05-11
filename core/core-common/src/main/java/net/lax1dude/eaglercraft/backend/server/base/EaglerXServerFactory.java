@@ -14,26 +14,24 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.server.api.bukkit;
+package net.lax1dude.eaglercraft.backend.server.base;
 
-import javax.annotation.Nonnull;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerImpl;
+import net.lax1dude.eaglercraft.backend.server.util.Util;
 
-import org.bukkit.entity.Player;
+/**
+ * Class to invoke the EaglerXServer constructor without a static dependency
+ */
+public class EaglerXServerFactory {
 
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
-import net.lax1dude.eaglercraft.backend.server.api.internal.factory.EaglerXServerAPIFactory;
-
-public final class EaglerXServerAPI {
-
-	@Nonnull
-	public static final String PLUGIN_NAME = "EaglercraftXServer";
-
-	@Nonnull
-	public static IEaglerXServerAPI<Player> instance() {
-		return EaglerXServerAPIFactory.INSTANCE.getAPI(Player.class);
-	}
-
-	private EaglerXServerAPI() {
+	@SuppressWarnings("unchecked")
+	public static <PlayerObject> IEaglerXServerImpl<PlayerObject> create() {
+		try {
+			Class<?> clz = Class.forName("net.lax1dude.eaglercraft.backend.server.base.EaglerXServer");
+			return (IEaglerXServerImpl<PlayerObject>) clz.getConstructor().newInstance();
+		} catch (ReflectiveOperationException ex) {
+			throw Util.propagateReflectThrowable(ex);
+		}
 	}
 
 }

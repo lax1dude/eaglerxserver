@@ -19,6 +19,7 @@ package net.lax1dude.eaglercraft.backend.server.base.supervisor;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerCape;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingCape;
 import net.lax1dude.eaglercraft.backend.server.util.KeyedConcurrentLazyLoader;
@@ -56,6 +57,11 @@ class ForeignCape extends KeyedConcurrentLazyLoader<UUID, IEaglerPlayerCape> {
 	public void load(UUID key, Consumer<IEaglerPlayerCape> callback) {
 		cmpXchgRelease(MissingCape.UNAVAILABLE_CAPE, null);
 		super.load(key, callback);
+	}
+
+	@Override
+	protected IPlatformLogger getLogger() {
+		return owner.logger();
 	}
 
 }

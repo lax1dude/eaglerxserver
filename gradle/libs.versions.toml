@@ -11,6 +11,7 @@ bungeecord-chat = { module = "net.md-5:bungeecord-chat", version.ref = "bungeeco
 velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity" }
 velocity-nightconfig = "com.electronwill.night-config:toml:3.6.7"
 velocity-legacy-serializer = { module = "net.kyori:adventure-text-serializer-json-legacy-impl", version.ref = "velocity-adventure" }
+pluginannotations = "eu.hexagonmc:spigot-annotations:1.2"
 paper-api = { module = "com.destroystokyo.paper:paper-api", version.ref = "paper" }
 netty-handler = { module = "io.netty:netty-handler", version.ref = "netty" }
 netty-codec = { module = "io.netty:netty-codec", version.ref = "netty" }
@@ -20,6 +21,7 @@ netty-transport-epoll = { module = "io.netty:netty-transport-native-epoll", vers
 netty-transport-kqueue = { module = "io.netty:netty-transport-native-kqueue", version.ref = "netty" }
 guava = "com.google.guava:guava:21.0"
 gson = "com.google.code.gson:gson:2.8.0"
+snakeyaml = "org.yaml:snakeyaml:2.2"
 logback = "ch.qos.logback:logback-classic:1.5.16"
 slf4j = "org.slf4j:slf4j-api:2.0.12"
 hppc = "com.carrotsearch:hppc:0.10.0"

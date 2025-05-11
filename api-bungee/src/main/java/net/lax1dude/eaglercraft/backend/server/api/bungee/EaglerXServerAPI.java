@@ -25,6 +25,9 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 public final class EaglerXServerAPI {
 
 	@Nonnull
+	public static final String PLUGIN_NAME = "EaglercraftXServer";
+
+	@Nonnull
 	public static IEaglerXServerAPI<ProxiedPlayer> instance() {
 		return EaglerXServerAPIFactory.INSTANCE.getAPI(ProxiedPlayer.class);
 	}

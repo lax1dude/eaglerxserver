@@ -1,0 +1,11 @@
+
+plugins {
+	id "java-library"
+}
+
+dependencies {
+	compileOnly(libs.velocity.nightconfig)
+	compileOnly(libs.snakeyaml)
+	compileOnly(libs.gson)
+	compileOnly(libs.guava)
+}

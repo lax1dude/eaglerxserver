@@ -14,26 +14,26 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.server.api.bukkit;
+package net.lax1dude.eaglercraft.backend.server.config;
 
-import javax.annotation.Nonnull;
+import java.lang.reflect.InvocationTargetException;
 
-import org.bukkit.entity.Player;
+public class ReflectUtil {
 
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
-import net.lax1dude.eaglercraft.backend.server.api.internal.factory.EaglerXServerAPIFactory;
-
-public final class EaglerXServerAPI {
-
-	@Nonnull
-	public static final String PLUGIN_NAME = "EaglercraftXServer";
-
-	@Nonnull
-	public static IEaglerXServerAPI<Player> instance() {
-		return EaglerXServerAPIFactory.INSTANCE.getAPI(Player.class);
-	}
-
-	private EaglerXServerAPI() {
+	public static RuntimeException propagateReflectThrowable(Exception ex) {
+		if (ex instanceof InvocationTargetException exx) {
+			Throwable cause = exx.getCause();
+			if (cause != null) {
+				if (cause instanceof RuntimeException cause2) {
+					return cause2;
+				}
+				return new RuntimeException("Encountered an InvocationTargetException while performing reflection",
+						cause);
+			}
+		} else if (ex instanceof RuntimeException exx) {
+			return exx;
+		}
+		return new RuntimeException("Could not perform reflection!", ex);
 	}
 
 }

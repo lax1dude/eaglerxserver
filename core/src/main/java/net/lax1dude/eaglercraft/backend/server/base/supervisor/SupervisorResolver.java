@@ -31,6 +31,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.MapMaker;
 
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.api.brand.IBrandRegistration;
 import net.lax1dude.eaglercraft.backend.server.api.collect.IntProcedure;
 import net.lax1dude.eaglercraft.backend.server.api.skins.EnumSkinModel;
@@ -80,6 +81,10 @@ public class SupervisorResolver implements ISupervisorResolverImpl {
 
 	SupervisorConnection getConnection() {
 		return service.getConnection();
+	}
+
+	IPlatformLogger logger() {
+		return service.logger();
 	}
 
 	ForeignSkin getForeignSkin(String url) {

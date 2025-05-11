@@ -14,26 +14,33 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.server.api.bukkit;
+package net.lax1dude.eaglercraft.backend.server.util;
 
-import javax.annotation.Nonnull;
+import java.net.SocketAddress;
+import java.util.Collection;
+import java.util.Iterator;
 
-import org.bukkit.entity.Player;
+import com.google.common.collect.Lists;
 
-import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
-import net.lax1dude.eaglercraft.backend.server.api.internal.factory.EaglerXServerAPIFactory;
+import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 
-public final class EaglerXServerAPI {
+public class ListenerInitList {
 
-	@Nonnull
-	public static final String PLUGIN_NAME = "EaglercraftXServer";
+	private final Collection<IEaglerXServerListener> listeners;
 
-	@Nonnull
-	public static IEaglerXServerAPI<Player> instance() {
-		return EaglerXServerAPIFactory.INSTANCE.getAPI(Player.class);
+	public ListenerInitList(Collection<IEaglerXServerListener> listeners) {
+		this.listeners = Lists.newArrayList(listeners);
 	}
 
-	private EaglerXServerAPI() {
+	public IEaglerXServerListener offer(SocketAddress addr) {
+		Iterator<IEaglerXServerListener> itr = listeners.iterator();
+		while (itr.hasNext()) {
+			IEaglerXServerListener i = itr.next();
+			if (i.matchListenerAddress(addr)) {
+				return i;
+			}
+		}
+		return null;
 	}
 
 }

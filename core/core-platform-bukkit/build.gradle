@@ -1,0 +1,15 @@
+
+plugins {
+	id "java-library"
+}
+
+dependencies {
+	implementation project(":api-bukkit")
+	implementation project(":core:core-platform-bungee-chat")
+	implementation project(":core:core-common")
+	compileOnly project(":stubs")
+	compileOnly(libs.paper.api)
+	compileOnly(libs.pluginannotations)
+	compileOnly(libs.bundles.netty.all)
+	annotationProcessor(libs.pluginannotations)
+}

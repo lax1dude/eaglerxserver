@@ -12,18 +12,15 @@ dependencies {
 	implementation project(":api-bukkit")
 	implementation project(":api-bungee")
 	implementation project(":api-velocity")
-	implementation project(":skin-cache")
-	implementation(libs.asm)
-	compileOnly project(":stubs")
-	compileOnly(libs.bungeecord.api)
-	compileOnly(libs.velocity.api)
-	compileOnly(libs.velocity.legacy.serializer)
-	compileOnly(libs.velocity.nightconfig)
-	compileOnly(libs.paper.api)
+	implementation project(":core:core-common")
+	implementation project(":core:core-platform-bukkit")
+	implementation project(":core:core-platform-bungee")
+	implementation project(":core:core-platform-velocity")
 	compileOnly(libs.bundles.netty.all)
 	compileOnly(libs.jsr305)
+	compileOnly(libs.gson)
+	compileOnly(libs.guava)
 	compileOnly(libs.skinsrestorer.api)
-	annotationProcessor(libs.velocity.api)
 }
 
 tasks.named("shadowJar", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
@@ -35,6 +32,11 @@ tasks.named("shadowJar", com.github.jengelman.gradle.plugins.shadow.tasks.Shadow
 	dependsOn ":api-bukkit:jar" // Workaround
 	dependsOn ":api-bungee:jar" // Workaround
 	dependsOn ":api-velocity:jar" // Workaround
+	dependsOn ":core:core-common:jar" // Workaround
+	dependsOn ":core:core-platform-bukkit:jar" // Workaround
+	dependsOn ":core:core-platform-bungee:jar" // Workaround
+	dependsOn ":core:core-platform-velocity:jar" // Workaround
+	dependsOn ":core-config:jar" // Workaround
 	dependsOn ":skin-cache:jar" // Workaround
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	archiveFileName = "EaglerXServer.jar"

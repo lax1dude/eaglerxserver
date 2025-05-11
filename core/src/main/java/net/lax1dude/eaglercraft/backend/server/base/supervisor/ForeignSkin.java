@@ -19,6 +19,7 @@ package net.lax1dude.eaglercraft.backend.server.base.supervisor;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformLogger;
 import net.lax1dude.eaglercraft.backend.server.api.skins.IEaglerPlayerSkin;
 import net.lax1dude.eaglercraft.backend.server.base.skins.type.MissingSkin;
 import net.lax1dude.eaglercraft.backend.server.util.KeyedConcurrentLazyLoader;
@@ -64,6 +65,11 @@ class ForeignSkin extends KeyedConcurrentLazyLoader<UUID, IEaglerPlayerSkin> {
 		this.skinModel = modelId;
 		cmpXchgRelease(MissingSkin.UNAVAILABLE_SKIN, null);
 		this.load(key, callback);
+	}
+
+	@Override
+	protected IPlatformLogger getLogger() {
+		return owner.logger();
 	}
 
 }
