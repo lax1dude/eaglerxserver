@@ -5,9 +5,9 @@ plugins {
 
 dependencies {
 	implementation project(":rewind_v1_5:rewind_v1_5-common")
-	implementation project(":rewind_v1_5:rewind_v1_5-platform-bukkit")
-	implementation project(":rewind_v1_5:rewind_v1_5-platform-bungee")
-	implementation project(":rewind_v1_5:rewind_v1_5-platform-velocity")
+	runtimeOnly project(":rewind_v1_5:rewind_v1_5-platform-bukkit")
+	runtimeOnly project(":rewind_v1_5:rewind_v1_5-platform-bungee")
+	runtimeOnly project(":rewind_v1_5:rewind_v1_5-platform-velocity")
 	compileOnly project(":api")
 	compileOnly(libs.guava)
 	compileOnly(libs.bundles.netty.all)

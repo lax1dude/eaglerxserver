@@ -11,9 +11,9 @@ repositories {
 
 dependencies {
 	implementation project(":plan:plan-common")
-	implementation project(":plan:plan-platform-bukkit")
-	implementation project(":plan:plan-platform-bungee")
-	implementation project(":plan:plan-platform-velocity")
+	runtimeOnly project(":plan:plan-platform-bukkit")
+	runtimeOnly project(":plan:plan-platform-bungee")
+	runtimeOnly project(":plan:plan-platform-velocity")
 	compileOnly project(":api")
 	compileOnly "com.github.plan-player-analytics:Plan:5.6.2965"
 }

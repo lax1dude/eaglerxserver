@@ -8,7 +8,7 @@ dependencies {
 	implementation project(":backend-rpc-api-bukkit")
 	implementation project(":backend-rpc-protocol")
 	implementation project(":backend-rpc-core:backend-rpc-core-common")
-	implementation project(":backend-rpc-core:backend-rpc-core-platform-bukkit")
+	runtimeOnly project(":backend-rpc-core:backend-rpc-core-platform-bukkit")
 	compileOnly project(":api")
 	compileOnly(libs.paper.api)
 	compileOnly(libs.bungeecord.chat)

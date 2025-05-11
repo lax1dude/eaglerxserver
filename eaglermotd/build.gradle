@@ -5,9 +5,9 @@ plugins {
 
 dependencies {
 	implementation project(":eaglermotd:eaglermotd-common")
-	implementation project(":eaglermotd:eaglermotd-platform-bukkit")
-	implementation project(":eaglermotd:eaglermotd-platform-bungee")
-	implementation project(":eaglermotd:eaglermotd-platform-velocity")
+	runtimeOnly project(":eaglermotd:eaglermotd-platform-bukkit")
+	runtimeOnly project(":eaglermotd:eaglermotd-platform-bungee")
+	runtimeOnly project(":eaglermotd:eaglermotd-platform-velocity")
 	compileOnly project(":api")
 	compileOnly(libs.guava)
 	compileOnly(libs.gson)
