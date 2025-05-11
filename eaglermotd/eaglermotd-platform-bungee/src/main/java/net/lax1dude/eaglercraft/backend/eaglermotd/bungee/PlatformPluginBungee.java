@@ -43,7 +43,7 @@ import net.md_5.bungee.api.plugin.Plugin;
 )
 public class PlatformPluginBungee extends Plugin implements IEaglerMOTDPlatform<ProxiedPlayer> {
 
-	public static final String PLUGIN_NAME = EaglerMOTDVersion.PLUGIN_BRAND;
+	public static final String PLUGIN_NAME = "EaglerMOTD-Reborn";
 	public static final String PLUGIN_AUTHOR = EaglerMOTDVersion.PLUGIN_AUTHOR;
 	public static final String PLUGIN_VERSION = EaglerMOTDVersion.PLUGIN_VERSION;
 

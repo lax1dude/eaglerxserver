@@ -51,7 +51,7 @@ import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 )
 public class PlatformPluginBukkit extends JavaPlugin implements IEaglerMOTDPlatform<Player> {
 
-	public static final String PLUGIN_NAME = EaglerMOTDVersion.PLUGIN_BRAND;
+	public static final String PLUGIN_NAME = "EaglerMOTD-Reborn";
 	public static final String PLUGIN_AUTHOR = EaglerMOTDVersion.PLUGIN_AUTHOR;
 	public static final String PLUGIN_VERSION = EaglerMOTDVersion.PLUGIN_VERSION;
 
