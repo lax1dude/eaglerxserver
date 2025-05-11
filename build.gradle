@@ -1,4 +1,6 @@
 
+def localLibsFolder = uri(file("gradle/local-libs"));
+
 subprojects {
 
 	apply plugin: "eclipse"
@@ -20,6 +22,10 @@ subprojects {
 		maven {
 			name = "sonatype-oss"
 			url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+		}
+		maven {
+			name = "eagler-local"
+			url = localLibsFolder
 		}
 	}
 

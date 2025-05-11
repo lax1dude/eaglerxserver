@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>eu.hexagonmc</groupId>
+  <artifactId>spigot-annotations</artifactId>
+  <version>1.2-EAGLER</version>
+  <dependencies>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>26.0-jre</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
+      <version>1.23</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+  <description>Annotation processor for Spigot- and BungeeCord-Plugins</description>
+  <name>Spigot-Annotations</name>
+  <url>https://github.com/HexagonMC/Spigot-Annotations</url>
+  <licenses>
+    <license>
+      <name>GNU General Public License (GPL)</name>
+      <url>http://www.gnu.org/licenses/gpl.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>zartec</id>
+      <name>Zartec</name>
+      <email>zartec@mccluster.eu</email>
+      <organization>HexagonMc</organization>
+      <organizationUrl>https://github.com/HexagonMC</organizationUrl>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/HexagonMC/Spigot-Annotations.git</connection>
+    <developerConnection>scm:git:ssh://github.com:HexagonMC/Spigot-Annotations.git</developerConnection>
+    <url>https://github.com/HexagonMC/Spigot-Annotations/tree/master</url>
+  </scm>
+</project>

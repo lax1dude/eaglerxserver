@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>eu.hexagonmc</groupId>
+  <artifactId>spigot-annotations</artifactId>
+  <versioning>
+    <latest>1.2-EAGLER</latest>
+    <release>1.2-EAGLER</release>
+    <versions>
+      <version>1.2-EAGLER</version>
+    </versions>
+    <lastUpdated>20250511200851</lastUpdated>
+  </versioning>
+</metadata>

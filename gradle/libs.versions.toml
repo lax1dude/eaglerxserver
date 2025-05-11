@@ -11,7 +11,7 @@ bungeecord-chat = { module = "net.md-5:bungeecord-chat", version.ref = "bungeeco
 velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity" }
 velocity-nightconfig = "com.electronwill.night-config:toml:3.6.7"
 velocity-legacy-serializer = { module = "net.kyori:adventure-text-serializer-json-legacy-impl", version.ref = "velocity-adventure" }
-pluginannotations = "eu.hexagonmc:spigot-annotations:1.2"
+pluginannotations = "eu.hexagonmc:spigot-annotations:1.2-EAGLER"
 paper-api = { module = "com.destroystokyo.paper:paper-api", version.ref = "paper" }
 netty-handler = { module = "io.netty:netty-handler", version.ref = "netty" }
 netty-codec = { module = "io.netty:netty-codec", version.ref = "netty" }

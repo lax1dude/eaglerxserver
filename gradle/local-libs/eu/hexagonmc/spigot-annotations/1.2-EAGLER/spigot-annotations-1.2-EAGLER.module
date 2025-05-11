@@ -1,0 +1,76 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "eu.hexagonmc",
+    "module": "spigot-annotations",
+    "version": "1.2-EAGLER",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.3"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "spigot-annotations-1.2-EAGLER.jar",
+          "url": "spigot-annotations-1.2-EAGLER.jar",
+          "size": 51456,
+          "sha512": "edea7af2f473cffddd72c80e60a81ecd11f90644fdc03ffc03a4da1dd5b9f4d5fa40a929b8d75db4d47b30ffccc2c1830cb847e0f48c2ef9515cbefb9ec62282",
+          "sha256": "b4076b94793469bf447527379fe900b8a213d4f540f1fe72f18a8cd67c2baad7",
+          "sha1": "30912da36a4cde015f032c8fa9968a3505e3e484",
+          "md5": "0665049a5d0f9755b5c5a85e6ee48902"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "26.0-jre"
+          }
+        },
+        {
+          "group": "org.yaml",
+          "module": "snakeyaml",
+          "version": {
+            "requires": "1.23"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spigot-annotations-1.2-EAGLER.jar",
+          "url": "spigot-annotations-1.2-EAGLER.jar",
+          "size": 51456,
+          "sha512": "edea7af2f473cffddd72c80e60a81ecd11f90644fdc03ffc03a4da1dd5b9f4d5fa40a929b8d75db4d47b30ffccc2c1830cb847e0f48c2ef9515cbefb9ec62282",
+          "sha256": "b4076b94793469bf447527379fe900b8a213d4f540f1fe72f18a8cd67c2baad7",
+          "sha1": "30912da36a4cde015f032c8fa9968a3505e3e484",
+          "md5": "0665049a5d0f9755b5c5a85e6ee48902"
+        }
+      ]
+    }
+  ]
+}
