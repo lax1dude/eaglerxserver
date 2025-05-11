@@ -14,11 +14,9 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.eaglerweb.velocity;
+package net.lax1dude.eaglercraft.backend.eaglerweb.adapter;
 
 import org.slf4j.Logger;
-
-import net.lax1dude.eaglercraft.backend.eaglerweb.base.IEaglerWebLogger;
 
 public class SLF4JLogger implements IEaglerWebLogger {
 

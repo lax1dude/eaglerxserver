@@ -16,24 +16,43 @@
 
 package net.lax1dude.eaglercraft.backend.eaglerweb.bungee;
 
-import net.lax1dude.eaglercraft.backend.eaglerweb.base.EaglerWeb;
-import net.lax1dude.eaglercraft.backend.eaglerweb.base.IEaglerWebLogger;
-import net.lax1dude.eaglercraft.backend.eaglerweb.base.IEaglerWebPlatform;
+import eu.hexagonmc.spigot.annotation.meta.DependencyType;
+import eu.hexagonmc.spigot.annotation.plugin.Dependency;
+import eu.hexagonmc.spigot.annotation.plugin.Plugin.Bungee;
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebImpl;
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebLogger;
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebPlatform;
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.JavaLogger;
+import net.lax1dude.eaglercraft.backend.eaglerweb.base.EaglerWebFactory;
+import net.lax1dude.eaglercraft.backend.eaglerweb.base.EaglerWebVersion;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.EaglerXServerAPI;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginDescription;
 
+@eu.hexagonmc.spigot.annotation.plugin.Plugin(
+	name = PlatformPluginBungee.PLUGIN_NAME,
+	version = PlatformPluginBungee.PLUGIN_VERSION,
+	description = "Official EaglerWeb plugin for EaglercraftXServer",
+	bungee = @Bungee(author = PlatformPluginBungee.PLUGIN_AUTHOR),
+	dependencies = {
+		@Dependency(name = EaglerXServerAPI.PLUGIN_NAME, type = DependencyType.DEPEND)
+	}
+)
 public class PlatformPluginBungee extends Plugin implements IEaglerWebPlatform<ProxiedPlayer> {
 
+	public static final String PLUGIN_NAME = "EaglerWeb";
+	public static final String PLUGIN_AUTHOR = EaglerWebVersion.PLUGIN_AUTHOR;
+	public static final String PLUGIN_VERSION = EaglerWebVersion.PLUGIN_VERSION;
+
 	private JavaLogger logger;
-	private EaglerWeb<ProxiedPlayer> plugin;
+	private IEaglerWebImpl<ProxiedPlayer> plugin;
 	IHandleRefresh handleRefresh;
 
 	@Override
 	public void onLoad() {
 		logger = new JavaLogger(getLogger());
-		plugin = new EaglerWeb<ProxiedPlayer>(this);
+		plugin = EaglerWebFactory.create(this);
 	}
 
 	@Override

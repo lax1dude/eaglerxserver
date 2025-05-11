@@ -16,21 +16,22 @@
 
 package net.lax1dude.eaglercraft.backend.eaglerweb.base;
 
-import java.io.File;
-import java.io.IOException;
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebImpl;
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebPlatform;
 
-public interface IEaglerWebPlatform<PlayerObject> {
+/**
+ * Class to invoke the EaglerWeb constructor without a static dependency
+ */
+public class EaglerWebFactory {
 
-	IEaglerWebLogger logger();
-
-	String getVersionString();
-
-	File getDataFolder();
-
-	void setHandleRefresh(IHandleRefresh handleRefresh);
-
-	public interface IHandleRefresh {
-		int refresh() throws IOException;
+	@SuppressWarnings("unchecked")
+	public static <PlayerObject> IEaglerWebImpl<PlayerObject> create(IEaglerWebPlatform<PlayerObject> platform) {
+		try {
+			Class<?> clz = Class.forName("net.lax1dude.eaglercraft.backend.eaglerweb.base.EaglerWeb");
+			return (IEaglerWebImpl<PlayerObject>) clz.getConstructor(IEaglerWebPlatform.class).newInstance(platform);
+		} catch (ReflectiveOperationException ex) {
+			throw new RuntimeException(ex);
+		}
 	}
 
 }

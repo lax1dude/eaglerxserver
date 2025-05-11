@@ -24,7 +24,7 @@ import com.velocitypowered.api.command.SimpleCommand;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.lax1dude.eaglercraft.backend.eaglerweb.base.IEaglerWebPlatform;
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebPlatform;
 
 class CommandEaglerWeb implements SimpleCommand {
 

@@ -18,7 +18,7 @@ package net.lax1dude.eaglercraft.backend.eaglerweb.bungee;
 
 import java.io.IOException;
 
-import net.lax1dude.eaglercraft.backend.eaglerweb.base.IEaglerWebPlatform;
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebPlatform;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.BaseComponent;

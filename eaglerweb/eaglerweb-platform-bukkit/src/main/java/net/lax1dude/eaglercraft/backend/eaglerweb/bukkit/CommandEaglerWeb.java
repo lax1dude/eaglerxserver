@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-import net.lax1dude.eaglercraft.backend.eaglerweb.base.IEaglerWebPlatform;
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebPlatform;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;

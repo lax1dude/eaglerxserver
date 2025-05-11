@@ -14,32 +14,14 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.eaglerweb.base;
+package net.lax1dude.eaglercraft.backend.eaglerweb.adapter;
 
-public interface IEaglerWebLogger {
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 
-	void info(String msg);
+public interface IEaglerWebImpl<PlayerObject> {
 
-	void info(String msg, Throwable thrown);
+	void onEnable(IEaglerXServerAPI<PlayerObject> server);
 
-	void warn(String msg);
-
-	void warn(String msg, Throwable thrown);
-
-	void error(String msg);
-
-	void error(String msg, Throwable thrown);
-
-	IRewindSubLogger createSubLogger(String name);
-
-	public interface IRewindSubLogger extends IEaglerWebLogger {
-
-		IEaglerWebLogger getParent();
-
-		String getName();
-
-		void setName(String name);
-
-	}
+	void onDisable(IEaglerXServerAPI<PlayerObject> server);
 
 }

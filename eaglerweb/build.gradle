@@ -4,17 +4,21 @@ plugins {
 }
 
 dependencies {
-	compileOnly project(":api-bukkit")
-	compileOnly project(":api-bungee")
-	compileOnly project(":api-velocity")
-	compileOnly(libs.bungeecord.api)
-	compileOnly(libs.velocity.api)
-	compileOnly(libs.paper.api)
-	compileOnly(libs.bundles.netty.all)
-	annotationProcessor(libs.velocity.api)
+	implementation project(":eaglerweb:eaglerweb-common")
+	implementation project(":eaglerweb:eaglerweb-platform-bukkit")
+	implementation project(":eaglerweb:eaglerweb-platform-bungee")
+	implementation project(":eaglerweb:eaglerweb-platform-velocity")
+	compileOnly project(":api")
+	compileOnly(libs.guava)
+	compileOnly(libs.gson)
 }
 
 jar {
+	dependsOn ":eaglerweb:eaglerweb-common:jar" // Workaround
+	dependsOn ":eaglerweb:eaglerweb-platform-bukkit:jar" // Workaround
+	dependsOn ":eaglerweb:eaglerweb-platform-bungee:jar" // Workaround
+	dependsOn ":eaglerweb:eaglerweb-platform-velocity:jar" // Workaround
+
 	archiveFileName = "EaglerWeb.jar"
 
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE

@@ -1,8 +1,0 @@
-name: EaglerWeb
-version: 1.0.0
-main: net.lax1dude.eaglercraft.backend.eaglerweb.bukkit.PlatformPluginBukkit
-description: Official EaglerWeb plugin for EaglercraftXServer
-authors:
-- lax1dude
-depend:
-- EaglercraftXServer

@@ -40,6 +40,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebLogger;
+
 public class EaglerWebConfig {
 
 	private static final Gson GSON;

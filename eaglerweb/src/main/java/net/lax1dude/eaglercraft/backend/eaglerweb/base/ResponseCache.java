@@ -36,6 +36,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebLogger;
+
 class ResponseCache {
 
 	static final byte[] ERROR = new byte[0];

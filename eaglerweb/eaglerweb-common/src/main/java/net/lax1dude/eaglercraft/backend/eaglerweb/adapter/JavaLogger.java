@@ -14,12 +14,10 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.eaglerweb.bungee;
+package net.lax1dude.eaglercraft.backend.eaglerweb.adapter;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import net.lax1dude.eaglercraft.backend.eaglerweb.base.IEaglerWebLogger;
 
 public class JavaLogger implements IEaglerWebLogger {
 

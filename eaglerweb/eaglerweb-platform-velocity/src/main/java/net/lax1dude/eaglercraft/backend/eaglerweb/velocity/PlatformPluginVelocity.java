@@ -32,9 +32,12 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 
-import net.lax1dude.eaglercraft.backend.eaglerweb.base.EaglerWeb;
-import net.lax1dude.eaglercraft.backend.eaglerweb.base.IEaglerWebLogger;
-import net.lax1dude.eaglercraft.backend.eaglerweb.base.IEaglerWebPlatform;
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebImpl;
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebLogger;
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebPlatform;
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.SLF4JLogger;
+import net.lax1dude.eaglercraft.backend.eaglerweb.base.EaglerWebFactory;
+import net.lax1dude.eaglercraft.backend.eaglerweb.base.EaglerWebVersion;
 import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
 
 @Plugin(
@@ -44,7 +47,7 @@ import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
 		PlatformPluginVelocity.PLUGIN_AUTHOR
 	},
 	version = PlatformPluginVelocity.PLUGIN_VERSION,
-	description = PlatformPluginVelocity.PLUGIN_DESC,
+	description = "Official EaglerWeb plugin for EaglercraftXServer",
 	dependencies = {
 		@Dependency(id = EaglerXServerAPI.PLUGIN_ID, optional = false)
 	}
@@ -52,16 +55,15 @@ import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
 public class PlatformPluginVelocity implements IEaglerWebPlatform<Player> {
 
 	public static final String PLUGIN_ID = "eaglerweb";
-	public static final String PLUGIN_NAME = "EaglerWeb";
-	public static final String PLUGIN_AUTHOR = "lax1dude";
-	public static final String PLUGIN_VERSION = "1.0.0";
-	public static final String PLUGIN_DESC = "Official EaglerWeb plugin for EaglercraftXServer";
+	public static final String PLUGIN_NAME = EaglerWebVersion.PLUGIN_BRAND;
+	public static final String PLUGIN_AUTHOR = EaglerWebVersion.PLUGIN_AUTHOR;
+	public static final String PLUGIN_VERSION = EaglerWebVersion.PLUGIN_VERSION;
 
 	private final ProxyServer proxy;
 	private final Logger logger;
 	private final File dataDir;
 	private final SLF4JLogger rewindLogger;
-	private final EaglerWeb<Player> plugin;
+	private final IEaglerWebImpl<Player> plugin;
 	private CommandMeta refreshCommandMeta;
 	IHandleRefresh handleRefresh;
 
@@ -71,7 +73,7 @@ public class PlatformPluginVelocity implements IEaglerWebPlatform<Player> {
 		logger = loggerIn;
 		dataDir = dataDirIn.toFile();
 		rewindLogger = new SLF4JLogger(loggerIn);
-		plugin = new EaglerWeb<Player>(this);
+		plugin = EaglerWebFactory.create(this);
 	}
 
 	@Subscribe

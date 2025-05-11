@@ -20,13 +20,16 @@ import java.io.IOException;
 
 import com.google.gson.JsonParseException;
 
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebImpl;
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebLogger;
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebPlatform;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IPreflightContext;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestContext;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestHandler;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.RouteDesc;
 
-public class EaglerWeb<PlayerObject> {
+public class EaglerWeb<PlayerObject> implements IEaglerWebImpl<PlayerObject> {
 
 	private final IEaglerWebPlatform<PlayerObject> platform;
 	private IEaglerXServerAPI<PlayerObject> server;
@@ -39,6 +42,7 @@ public class EaglerWeb<PlayerObject> {
 		this.platform = platform;
 	}
 
+	@Override
 	public void onEnable(IEaglerXServerAPI<PlayerObject> server) {
 		this.server = server;
 		platform.logger().info("Loading config files...");
@@ -95,6 +99,7 @@ public class EaglerWeb<PlayerObject> {
 		registered = true;
 	}
 
+	@Override
 	public void onDisable(IEaglerXServerAPI<PlayerObject> server) {
 		platform.logger().info("Shutting down, please wait...");
 		platform.setHandleRefresh(null);

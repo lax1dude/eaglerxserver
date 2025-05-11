@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebLogger;
 import net.lax1dude.eaglercraft.backend.eaglerweb.base.EaglerWebConfig.ConfigDataMIMEType;
 
 class ResponseCacheBuilder {
