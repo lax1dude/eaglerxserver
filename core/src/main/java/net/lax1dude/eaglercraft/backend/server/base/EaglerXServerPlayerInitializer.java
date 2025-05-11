@@ -101,25 +101,8 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 			initializer.setPlayerAttachment(instance);
 			try {
 				server.registerEaglerPlayer(instance, profileData, () -> {
-					server.eventDispatcher().dispatchInitializePlayerEvent(instance, profileData.extraData,
-							(evt, err) -> {
-						if (err == null) {
-							initializer.complete();
-						} else {
-							try {
-								instance.logger().error("Uncaught exception handling initialize player event",
-										err);
-								initializer.getPlayer().disconnect(server.componentBuilder()
-										.buildTextComponent().text("Internal Error").end());
-							} finally {
-								try {
-									server.getSupervisorService().dropOwnPlayer(instance.getUniqueId());
-								} finally {
-									initializer.cancel();
-								}
-							}
-						}
-					});
+					initializer.complete();
+					server.eventDispatcher().dispatchInitializePlayerEvent(instance, profileData.extraData, null);
 				});
 			} catch (EaglerXServer.RegistrationStateException ex) {
 				try {
