@@ -4,10 +4,12 @@ plugins {
 }
 
 dependencies {
-	compileOnly project(":api-bukkit")
 	implementation project(":voice-rpc-protocol")
 	implementation project(":backend-rpc-api-bukkit")
 	implementation project(":backend-rpc-protocol")
+	implementation project(":backend-rpc-core:backend-rpc-core-common")
+	implementation project(":backend-rpc-core:backend-rpc-core-platform-bukkit")
+	compileOnly project(":api")
 	compileOnly(libs.paper.api)
 	compileOnly(libs.bungeecord.chat)
 	compileOnly(libs.bundles.netty.all)
@@ -19,6 +21,8 @@ jar {
 	dependsOn ":backend-rpc-api:jar" // Workaround
 	dependsOn ":backend-rpc-api-bukkit:jar" // Workaround
 	dependsOn ":backend-rpc-protocol:jar" // Workaround
+	dependsOn ":backend-rpc-core:backend-rpc-core-common:jar" // Workaround
+	dependsOn ":backend-rpc-core:backend-rpc-core-platform-bukkit:jar" // Workaround
 
 	archiveFileName = "EaglerXBackendRPC.jar"
 

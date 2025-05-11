@@ -1,5 +1,0 @@
-name: EaglercraftXBackendRPC
-version: 1.0.0
-main: net.lax1dude.eaglercraft.backend.rpc.bukkit.PlatformPluginBukkit
-description: Official backend RPC plugin for EaglercraftXServer
-author: lax1dude

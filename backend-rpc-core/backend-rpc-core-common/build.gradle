@@ -1,0 +1,11 @@
+
+plugins {
+	id "java-library"
+}
+
+dependencies {
+	api project(":backend-rpc-api")
+	compileOnly project(":api")
+	compileOnly(libs.guava)
+	compileOnly(libs.jsr305)
+}

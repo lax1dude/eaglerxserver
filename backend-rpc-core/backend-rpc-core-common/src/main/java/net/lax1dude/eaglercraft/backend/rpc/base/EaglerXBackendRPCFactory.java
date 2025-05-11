@@ -14,23 +14,23 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.rpc.api.bukkit;
+package net.lax1dude.eaglercraft.backend.rpc.base;
 
-import javax.annotation.Nonnull;
+import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCImpl;
 
-import org.bukkit.entity.Player;
+/**
+ * Class to invoke the EaglerXBackendRPC constructor without a static dependency
+ */
+public class EaglerXBackendRPCFactory {
 
-import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXBackendRPC;
-import net.lax1dude.eaglercraft.backend.rpc.api.internal.factory.EaglerXBackendRPCFactory;
-
-public class EaglerXBackendRPC {
-
-	@Nonnull
-	public static final String PLUGIN_NAME = "EaglercraftXBackendRPC";
-
-	@Nonnull
-	public static IEaglerXBackendRPC<Player> instance() {
-		return EaglerXBackendRPCFactory.INSTANCE.getAPI(Player.class);
+	@SuppressWarnings("unchecked")
+	public static <PlayerObject> IBackendRPCImpl<PlayerObject> create() {
+		try {
+			Class<?> clz = Class.forName("net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCBase");
+			return (IBackendRPCImpl<PlayerObject>) clz.getMethod("init").invoke(null);
+		} catch (ReflectiveOperationException ex) {
+			throw new RuntimeException(ex);
+		}
 	}
 
 }

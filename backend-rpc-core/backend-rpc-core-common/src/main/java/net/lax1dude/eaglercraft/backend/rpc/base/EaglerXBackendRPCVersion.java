@@ -14,23 +14,12 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.rpc.api.bukkit;
+package net.lax1dude.eaglercraft.backend.rpc.base;
 
-import javax.annotation.Nonnull;
+public class EaglerXBackendRPCVersion {
 
-import org.bukkit.entity.Player;
-
-import net.lax1dude.eaglercraft.backend.rpc.api.IEaglerXBackendRPC;
-import net.lax1dude.eaglercraft.backend.rpc.api.internal.factory.EaglerXBackendRPCFactory;
-
-public class EaglerXBackendRPC {
-
-	@Nonnull
-	public static final String PLUGIN_NAME = "EaglercraftXBackendRPC";
-
-	@Nonnull
-	public static IEaglerXBackendRPC<Player> instance() {
-		return EaglerXBackendRPCFactory.INSTANCE.getAPI(Player.class);
-	}
+	public static final String BRAND = "EaglercraftXBackendRPC";
+	public static final String AUTHOR = "lax1dude";
+	public static final String VERSION = "1.0.0";
 
 }

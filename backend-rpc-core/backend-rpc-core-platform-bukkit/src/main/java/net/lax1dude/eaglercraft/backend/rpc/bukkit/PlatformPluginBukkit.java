@@ -32,6 +32,10 @@ import org.bukkit.scheduler.BukkitTask;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapMaker;
 
+import eu.hexagonmc.spigot.annotation.meta.DependencyType;
+import eu.hexagonmc.spigot.annotation.plugin.Dependency;
+import eu.hexagonmc.spigot.annotation.plugin.Plugin;
+import eu.hexagonmc.spigot.annotation.plugin.Plugin.Spigot;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.EnumAdapterPlatformType;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCMessageChannel;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IBackendRPCMessageHandler;
@@ -45,14 +49,36 @@ import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformPlayerInitializer;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformScheduler;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.JavaLogger;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.event.IEventDispatchAdapter;
-import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCBase;
+import net.lax1dude.eaglercraft.backend.rpc.api.bukkit.EaglerXBackendRPC;
+import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCFactory;
+import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCVersion;
 import net.lax1dude.eaglercraft.backend.rpc.bukkit.event.BukkitEventDispatchAdapter;
+import net.lax1dude.eaglercraft.backend.server.api.bukkit.EaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftInitializePlayerEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftVoiceChangeEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewChannelEvent;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftWebViewMessageEvent;
 
+@Plugin(
+	name = PlatformPluginBukkit.PLUGIN_NAME,
+	version = PlatformPluginBukkit.PLUGIN_VERSION,
+	description = "Official backend RPC plugin for EaglercraftXServer",
+	spigot = @Spigot(
+		authors = {
+			PlatformPluginBukkit.PLUGIN_AUTHOR
+		},
+		website = "https://lax1dude.net/eaglerxserver",
+		prefix = "EaglerXBackendRPC"
+	),
+	dependencies = {
+		@Dependency(name = EaglerXServerAPI.PLUGIN_NAME, type = DependencyType.SOFTDEPEND)
+	}
+)
 public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player> {
+
+	public static final String PLUGIN_NAME = EaglerXBackendRPC.PLUGIN_NAME;
+	public static final String PLUGIN_AUTHOR = EaglerXBackendRPCVersion.AUTHOR;
+	public static final String PLUGIN_VERSION = EaglerXBackendRPCVersion.VERSION;
 
 	private IPlatformLogger loggerImpl;
 	private IEventDispatchAdapter<Player> eventDispatcher;
@@ -145,7 +171,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 				};
 			}
 		};
-		EaglerXBackendRPCBase.<Player>init().load(init);
+		EaglerXBackendRPCFactory.<Player>create().load(init);
 	}
 
 	@Override
