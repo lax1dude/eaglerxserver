@@ -19,6 +19,8 @@ package net.lax1dude.eaglercraft.backend.rewind_v1_5.base;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.IRewindLogger;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.IRewindPlatform;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.codec.RewindChannelHandler;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.codec.RewindHandshakeCodec;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.codec.RewindMessageHandler;

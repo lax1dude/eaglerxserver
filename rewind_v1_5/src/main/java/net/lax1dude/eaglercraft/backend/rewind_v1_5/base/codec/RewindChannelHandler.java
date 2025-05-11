@@ -21,7 +21,7 @@ import java.util.List;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.IRewindLogger;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.IRewindLogger;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindPlayer;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindProtocol;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.TabListTracker;

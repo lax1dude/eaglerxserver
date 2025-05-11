@@ -19,21 +19,48 @@ package net.lax1dude.eaglercraft.backend.rewind_v1_5.bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.IRewindLogger;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.IRewindPlatform;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindProtocol;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.bungee.JavaLogger;
+import eu.hexagonmc.spigot.annotation.meta.DependencyType;
+import eu.hexagonmc.spigot.annotation.plugin.Dependency;
+import eu.hexagonmc.spigot.annotation.plugin.Plugin;
+import eu.hexagonmc.spigot.annotation.plugin.Plugin.Spigot;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.IRewindLogger;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.IRewindPlatform;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.JavaLogger;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindFactory;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindVersion;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.EaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 
+@Plugin(
+	name = PlatformPluginBukkit.PLUGIN_NAME,
+	version = PlatformPluginBukkit.PLUGIN_VERSION,
+	description = PlatformPluginBukkit.PLUGIN_DESC,
+	spigot = @Spigot(
+		authors = {
+			"ayunami2000",
+			"lax1dude"
+		},
+		website = "https://lax1dude.net/eaglerxserver",
+		prefix = "EaglerXRewind-" + RewindVersion.REWIND_VERSION
+	),
+	dependencies = {
+		@Dependency(name = EaglerXServerAPI.PLUGIN_NAME, type = DependencyType.DEPEND)
+	}
+)
 public class PlatformPluginBukkit extends JavaPlugin implements IRewindPlatform<Player> {
 
+	public static final String PLUGIN_NAME = "EaglercraftXRewind-" + RewindVersion.REWIND_VERSION_DASHED;
+	public static final String PLUGIN_AUTHOR = RewindVersion.PLUGIN_AUTHOR;
+	public static final String PLUGIN_VERSION = RewindVersion.PLUGIN_VERSION;
+	public static final String PLUGIN_DESC = RewindVersion.PLUGIN_DESC;
+
 	private JavaLogger logger;
-	private RewindProtocol<Player> protocol;
+	private IEaglerXRewindProtocol<Player, ?> protocol;
 
 	@Override
 	public void onLoad() {
 		logger = new JavaLogger(getLogger());
-		protocol = new RewindProtocol<Player>(this);
+		protocol = RewindFactory.createRewind(this);
 	}
 
 	@Override

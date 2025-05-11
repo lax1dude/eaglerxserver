@@ -30,9 +30,12 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.IRewindLogger;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.IRewindPlatform;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindProtocol;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.IRewindLogger;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.IRewindPlatform;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.SLF4JLogger;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindFactory;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindVersion;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
 
 @Plugin(
@@ -50,23 +53,23 @@ import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
 )
 public class PlatformPluginVelocity implements IRewindPlatform<Player> {
 
-	public static final String PLUGIN_ID = "eaglerxrewind-1-5";
-	public static final String PLUGIN_NAME = "EaglercraftXRewind-1.5";
-	public static final String PLUGIN_AUTHOR = "ayunami2000";
-	public static final String PLUGIN_VERSION = "1.0.0";
-	public static final String PLUGIN_DESC = "Official Eaglercraft 1.5 compatibility plugin for EaglercraftXServer";
+	public static final String PLUGIN_ID = "eaglerxrewind-" + RewindVersion.REWIND_VERSION_DASHED;
+	public static final String PLUGIN_NAME = "EaglercraftXRewind-" + RewindVersion.REWIND_VERSION;
+	public static final String PLUGIN_AUTHOR = RewindVersion.PLUGIN_AUTHOR;
+	public static final String PLUGIN_VERSION = RewindVersion.PLUGIN_VERSION;
+	public static final String PLUGIN_DESC = RewindVersion.PLUGIN_DESC;
 
 	private final ProxyServer proxy;
 	private final Logger logger;
 	private final SLF4JLogger rewindLogger;
-	private final RewindProtocol<Player> protocol;
+	private final IEaglerXRewindProtocol<Player, ?> protocol;
 
 	@Inject
 	public PlatformPluginVelocity(ProxyServer proxyIn, Logger loggerIn, @DataDirectory Path dataDirIn) {
 		proxy = proxyIn;
 		logger = loggerIn;
 		rewindLogger = new SLF4JLogger(loggerIn);
-		protocol = new RewindProtocol<Player>(this);
+		protocol = RewindFactory.createRewind(this);
 	}
 
 	@Subscribe

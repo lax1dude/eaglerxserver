@@ -25,6 +25,7 @@ import java.util.zip.Inflater;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.IRewindLogger;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.zstream.HackedBufferedInputStream;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.zstream.HackedBufferedOutputStream;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.zstream.HackedDataOutputStream;

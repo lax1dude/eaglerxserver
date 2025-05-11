@@ -14,17 +14,16 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.rewind_v1_5.velocity;
+package net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter;
 
-import org.slf4j.Logger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.IRewindLogger;
-
-public class SLF4JLogger implements IRewindLogger {
+public class JavaLogger implements IRewindLogger {
 
 	protected final Logger logger;
 
-	public SLF4JLogger(Logger logger) {
+	public JavaLogger(Logger logger) {
 		this.logger = logger;
 	}
 
@@ -35,27 +34,27 @@ public class SLF4JLogger implements IRewindLogger {
 
 	@Override
 	public void info(String msg, Throwable thrown) {
-		logger.info(msg, thrown);
+		logger.log(Level.INFO, msg, thrown);
 	}
 
 	@Override
 	public void warn(String msg) {
-		logger.warn(msg);
+		logger.warning(msg);
 	}
 
 	@Override
 	public void warn(String msg, Throwable thrown) {
-		logger.warn(msg, thrown);
+		logger.log(Level.WARNING, msg, thrown);
 	}
 
 	@Override
 	public void error(String msg) {
-		logger.error(msg);
+		logger.severe(msg);
 	}
 
 	@Override
 	public void error(String msg, Throwable thrown) {
-		logger.error(msg, thrown);
+		logger.log(Level.SEVERE, msg, thrown);
 	}
 
 	@Override
@@ -75,32 +74,32 @@ public class SLF4JLogger implements IRewindLogger {
 
 		@Override
 		public void info(String msg) {
-			logger.info("[{}]: {}", name, msg);
+			logger.info("[" + name + "]: " + msg);
 		}
 
 		@Override
 		public void info(String msg, Throwable thrown) {
-			logger.info("[" + name + "]: " + msg, thrown);
+			logger.log(Level.INFO, "[" + name + "]: " + msg, thrown);
 		}
 
 		@Override
 		public void warn(String msg) {
-			logger.warn("[{}]: {}", name, msg);
+			logger.warning("[" + name + "]: " + msg);
 		}
 
 		@Override
 		public void warn(String msg, Throwable thrown) {
-			logger.warn("[" + name + "]: " + msg, thrown);
+			logger.log(Level.WARNING, "[" + name + "]: " + msg, thrown);
 		}
 
 		@Override
 		public void error(String msg) {
-			logger.error("[{}]: {}", name, msg);
+			logger.severe("[" + name + "]: " + msg);
 		}
 
 		@Override
 		public void error(String msg, Throwable thrown) {
-			logger.error("[" + name + "]: " + msg, thrown);
+			logger.log(Level.SEVERE, "[" + name + "]: " + msg, thrown);
 		}
 
 		@Override

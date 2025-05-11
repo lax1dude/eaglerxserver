@@ -16,22 +16,42 @@
 
 package net.lax1dude.eaglercraft.backend.rewind_v1_5.bungee;
 
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.IRewindLogger;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.IRewindPlatform;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindProtocol;
+import eu.hexagonmc.spigot.annotation.meta.DependencyType;
+import eu.hexagonmc.spigot.annotation.plugin.Dependency;
+import eu.hexagonmc.spigot.annotation.plugin.Plugin.Bungee;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.IRewindLogger;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.IRewindPlatform;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.JavaLogger;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindFactory;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindVersion;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.EaglerXServerAPI;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 
+@eu.hexagonmc.spigot.annotation.plugin.Plugin(
+	name = PlatformPluginBungee.PLUGIN_NAME,
+	version = PlatformPluginBungee.PLUGIN_VERSION,
+	description = PlatformPluginBungee.PLUGIN_DESC,
+	bungee = @Bungee(author = PlatformPluginBungee.PLUGIN_AUTHOR),
+	dependencies = {
+		@Dependency(name = EaglerXServerAPI.PLUGIN_NAME, type = DependencyType.DEPEND)
+	}
+)
 public class PlatformPluginBungee extends Plugin implements IRewindPlatform<ProxiedPlayer> {
 
+	public static final String PLUGIN_NAME = "EaglercraftXRewind-" + RewindVersion.REWIND_VERSION_DASHED;
+	public static final String PLUGIN_AUTHOR = RewindVersion.PLUGIN_AUTHOR;
+	public static final String PLUGIN_VERSION = RewindVersion.PLUGIN_VERSION;
+	public static final String PLUGIN_DESC = RewindVersion.PLUGIN_DESC;
+
 	private JavaLogger logger;
-	private RewindProtocol<ProxiedPlayer> protocol;
+	private IEaglerXRewindProtocol<ProxiedPlayer, ?> protocol;
 
 	@Override
 	public void onLoad() {
 		logger = new JavaLogger(getLogger());
-		protocol = new RewindProtocol<ProxiedPlayer>(this);
+		protocol = RewindFactory.createRewind(this);
 	}
 
 	@Override

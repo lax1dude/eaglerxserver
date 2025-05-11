@@ -1,0 +1,11 @@
+
+plugins {
+	id "java-library"
+}
+
+dependencies {
+	implementation project(":rewind_v1_5:rewind_v1_5-common")
+	compileOnly project(":api-velocity")
+	compileOnly(libs.velocity.api)
+	annotationProcessor(libs.velocity.api)
+}

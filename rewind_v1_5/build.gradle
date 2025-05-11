@@ -4,17 +4,21 @@ plugins {
 }
 
 dependencies {
-	compileOnly project(":api-bukkit")
-	compileOnly project(":api-bungee")
-	compileOnly project(":api-velocity")
-	compileOnly(libs.bungeecord.api)
-	compileOnly(libs.velocity.api)
-	compileOnly(libs.paper.api)
+	implementation project(":rewind_v1_5:rewind_v1_5-common")
+	implementation project(":rewind_v1_5:rewind_v1_5-platform-bukkit")
+	implementation project(":rewind_v1_5:rewind_v1_5-platform-bungee")
+	implementation project(":rewind_v1_5:rewind_v1_5-platform-velocity")
+	compileOnly project(":api")
+	compileOnly(libs.guava)
 	compileOnly(libs.bundles.netty.all)
-	annotationProcessor(libs.velocity.api)
 }
 
 jar {
+	dependsOn ":rewind_v1_5:rewind_v1_5-common:jar" // Workaround
+	dependsOn ":rewind_v1_5:rewind_v1_5-platform-bukkit:jar" // Workaround
+	dependsOn ":rewind_v1_5:rewind_v1_5-platform-bungee:jar" // Workaround
+	dependsOn ":rewind_v1_5:rewind_v1_5-platform-velocity:jar" // Workaround
+
 	archiveFileName = "EaglerXRewind.jar"
 
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE

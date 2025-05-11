@@ -16,8 +16,24 @@
 
 package net.lax1dude.eaglercraft.backend.rewind_v1_5.base;
 
-public interface IRewindPlatform<PlayerObject> {
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.IRewindPlatform;
+import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 
-	IRewindLogger logger();
+/**
+ * Class to invoke the RewindProtocol constructor without a static dependency
+ */
+public class RewindFactory {
+
+	@SuppressWarnings("unchecked")
+	public static <PlayerObject> IEaglerXRewindProtocol<PlayerObject, ?> createRewind(
+			IRewindPlatform<PlayerObject> platform) {
+		try {
+			Class<?> clz = Class.forName("net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindProtocol");
+			return (IEaglerXRewindProtocol<PlayerObject, ?>) clz.getConstructor(IRewindPlatform.class)
+					.newInstance(platform);
+		} catch (ReflectiveOperationException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
 
 }
