@@ -18,7 +18,9 @@ package net.lax1dude.eaglercraft.backend.plan.velocity;
 
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
-import net.lax1dude.eaglercraft.backend.plan.PlanHook;
+
+import net.lax1dude.eaglercraft.backend.plan.PlanHelper;
+import net.lax1dude.eaglercraft.backend.plan.PlanVersion;
 
 import com.velocitypowered.api.plugin.Dependency;
 import com.velocitypowered.api.plugin.Plugin;
@@ -29,10 +31,10 @@ import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
 	id = PlatformPluginVelocity.PLUGIN_ID,
 	name = PlatformPluginVelocity.PLUGIN_NAME,
 	authors = {
-		"ayunami2000"
+		PlatformPluginVelocity.PLUGIN_AUTHOR
 	},
 	version = PlatformPluginVelocity.PLUGIN_VERSION,
-	description = PlatformPluginVelocity.PLUGIN_DESC,
+	description = "Official Plan player analytics integration plugin for EaglercraftXServer",
 	dependencies = {
 		@Dependency(id = EaglerXServerAPI.PLUGIN_ID, optional = false),
 		@Dependency(id = "plan", optional = false)
@@ -41,14 +43,13 @@ import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
 public class PlatformPluginVelocity {
 
 	public static final String PLUGIN_ID = "eaglerxplan";
-	public static final String PLUGIN_NAME = "EaglercraftXPlan";
-	public static final String PLUGIN_AUTHOR = "ayunami2000";
-	public static final String PLUGIN_VERSION = "1.0.0";
-	public static final String PLUGIN_DESC = "Official Plan player analytics integration plugin for EaglercraftXServer";
+	public static final String PLUGIN_NAME = PlanVersion.PLUGIN_BRAND;
+	public static final String PLUGIN_AUTHOR = PlanVersion.PLUGIN_AUTHOR;
+	public static final String PLUGIN_VERSION = PlanVersion.PLUGIN_VERSION;
 
 	@Subscribe
 	public void onProxyInitialize(ProxyInitializeEvent event) {
-		PlanHook.hookIntoPlan(EaglerXServerAPI.instance());
+		PlanHelper.initialize(EaglerXServerAPI.instance());
 	}
 
 }

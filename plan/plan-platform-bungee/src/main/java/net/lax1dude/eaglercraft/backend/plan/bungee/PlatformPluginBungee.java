@@ -16,13 +16,33 @@
 
 package net.lax1dude.eaglercraft.backend.plan.bungee;
 
-import net.lax1dude.eaglercraft.backend.plan.PlanHook;
+import eu.hexagonmc.spigot.annotation.meta.DependencyType;
+import eu.hexagonmc.spigot.annotation.plugin.Dependency;
+import eu.hexagonmc.spigot.annotation.plugin.Plugin.Bungee;
+import net.lax1dude.eaglercraft.backend.plan.PlanHelper;
+import net.lax1dude.eaglercraft.backend.plan.PlanVersion;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.EaglerXServerAPI;
 import net.md_5.bungee.api.plugin.Plugin;
 
+@eu.hexagonmc.spigot.annotation.plugin.Plugin(
+	name = PlatformPluginBungee.PLUGIN_NAME,
+	version = PlatformPluginBungee.PLUGIN_VERSION,
+	description = "Official Plan player analytics integration plugin for EaglercraftXServer",
+	bungee = @Bungee(author = PlatformPluginBungee.PLUGIN_AUTHOR),
+	dependencies = {
+		@Dependency(name = EaglerXServerAPI.PLUGIN_NAME, type = DependencyType.DEPEND),
+		@Dependency(name = "Plan", type = DependencyType.DEPEND)
+	}
+)
 public class PlatformPluginBungee extends Plugin {
+
+	public static final String PLUGIN_NAME = "EaglercraftXPlan";
+	public static final String PLUGIN_AUTHOR = PlanVersion.PLUGIN_AUTHOR;
+	public static final String PLUGIN_VERSION = PlanVersion.PLUGIN_VERSION;
+
 	@Override
 	public void onEnable() {
-		PlanHook.hookIntoPlan(EaglerXServerAPI.instance());
+		PlanHelper.initialize(EaglerXServerAPI.instance());
 	}
+
 }

@@ -1,0 +1,11 @@
+
+plugins {
+	id "java-library"
+}
+
+dependencies {
+	implementation project(":plan:plan-common")
+	compileOnly project(":api-velocity")
+	compileOnly(libs.velocity.api)
+	annotationProcessor(libs.velocity.api)
+}

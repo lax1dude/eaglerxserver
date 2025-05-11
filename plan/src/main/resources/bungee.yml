@@ -1,8 +1,0 @@
-name: EaglercraftXPlan
-version: 1.0.0
-main: net.lax1dude.eaglercraft.backend.plan.bungee.PlatformPluginBungee
-description: Official Plan player analytics integration plugin for EaglercraftXServer
-author: ayunami2000
-depends:
-  - EaglercraftXServer
-  - Plan

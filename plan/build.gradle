@@ -1,32 +1,34 @@
 
 plugins {
-    id "java"
+	id "java"
 }
 
 repositories {
-    maven {
-        url  "https://jitpack.io"
-    }
+	maven {
+		url "https://jitpack.io"
+	}
 }
 
 dependencies {
-	compileOnly project(":api-bukkit")
-	compileOnly project(":api-bungee")
-	compileOnly project(":api-velocity")
-    compileOnly(libs.bungeecord.api)
-    compileOnly(libs.velocity.api)
-    compileOnly(libs.paper.api)
-    annotationProcessor(libs.velocity.api)
-    compileOnly "com.github.plan-player-analytics:Plan:5.6.2965"
-    testCompileOnly "com.github.plan-player-analytics:Plan:5.6.2965"
+	implementation project(":plan:plan-common")
+	implementation project(":plan:plan-platform-bukkit")
+	implementation project(":plan:plan-platform-bungee")
+	implementation project(":plan:plan-platform-velocity")
+	compileOnly project(":api")
+	compileOnly "com.github.plan-player-analytics:Plan:5.6.2965"
 }
 
 jar {
+	dependsOn ":plan:plan-common:jar" // Workaround
+	dependsOn ":plan:plan-platform-bukkit:jar" // Workaround
+	dependsOn ":plan:plan-platform-bungee:jar" // Workaround
+	dependsOn ":plan:plan-platform-velocity:jar" // Workaround
+
 	archiveFileName = "EaglerXPlan.jar"
 
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-   
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+	from {
+		configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+	}
 }

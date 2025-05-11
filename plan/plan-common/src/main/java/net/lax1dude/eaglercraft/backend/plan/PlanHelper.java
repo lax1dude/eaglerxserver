@@ -14,15 +14,17 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.plan.bukkit;
+package net.lax1dude.eaglercraft.backend.plan;
 
-import net.lax1dude.eaglercraft.backend.plan.PlanHook;
-import net.lax1dude.eaglercraft.backend.server.api.bukkit.EaglerXServerAPI;
-import org.bukkit.plugin.java.JavaPlugin;
+import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 
-public class PlatformPluginBukkit extends JavaPlugin {
-	@Override
-	public void onEnable() {
-		PlanHook.hookIntoPlan(EaglerXServerAPI.instance());
+public class PlanHelper {
+	public static void initialize(IEaglerXServerAPI<?> serverAPI) {
+		try {
+			Class.forName("net.lax1dude.eaglercraft.backend.plan.PlanHook")
+					.getMethod("hookIntoPlan", IEaglerXServerAPI.class).invoke(null, serverAPI);
+		} catch (ReflectiveOperationException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

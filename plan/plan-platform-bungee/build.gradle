@@ -1,0 +1,12 @@
+
+plugins {
+	id "java-library"
+}
+
+dependencies {
+	implementation project(":plan:plan-common")
+	compileOnly project(":api-bungee")
+	compileOnly(libs.bungeecord.api)
+	compileOnly(libs.pluginannotations)
+	annotationProcessor(libs.pluginannotations)
+}
