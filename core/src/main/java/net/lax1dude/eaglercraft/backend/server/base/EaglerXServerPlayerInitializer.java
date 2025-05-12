@@ -37,7 +37,7 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 			IPlatformPlayerInitializer<NettyPipelineData, BasePlayerInstance<PlayerObject>, PlayerObject> initializer) {
 		NettyPipelineData pipelineData = initializer.getPipelineAttachment();
 		NettyPipelineData.ProfileDataHolder profileData;
-		if (pipelineData != null && !pipelineData.isEaglerPlayer()) {
+		if (pipelineData == null || !pipelineData.isEaglerPlayer()) {
 			pipelineData = null;
 			profileData = null;
 		} else {
