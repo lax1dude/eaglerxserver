@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-	implementation project(":eaglermotd:eaglermotd-common")
+	api project(":eaglermotd")
 	compileOnly project(":api-bukkit")
 	compileOnly(libs.paper.api)
 	compileOnly(libs.pluginannotations)

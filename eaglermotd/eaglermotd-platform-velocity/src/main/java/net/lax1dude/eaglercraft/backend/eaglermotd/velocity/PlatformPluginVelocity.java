@@ -36,7 +36,7 @@ import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDImpl;
 import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDLogger;
 import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDPlatform;
 import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.SLF4JLogger;
-import net.lax1dude.eaglercraft.backend.eaglermotd.base.EaglerMOTDFactory;
+import net.lax1dude.eaglercraft.backend.eaglermotd.base.EaglerMOTD;
 import net.lax1dude.eaglercraft.backend.eaglermotd.base.EaglerMOTDVersion;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
@@ -73,7 +73,7 @@ public class PlatformPluginVelocity implements IEaglerMOTDPlatform<Player> {
 		logger = loggerIn;
 		dataDir = dataDirIn.toFile();
 		rewindLogger = new SLF4JLogger(loggerIn);
-		eaglermotd = EaglerMOTDFactory.create(this);
+		eaglermotd = new EaglerMOTD<>(this);
 	}
 
 	@Subscribe

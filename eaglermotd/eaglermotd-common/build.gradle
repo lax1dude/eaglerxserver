@@ -1,9 +1,0 @@
-
-plugins {
-	id "java-library"
-}
-
-dependencies {
-	compileOnly project(":api")
-	compileOnly(libs.slf4j)
-}

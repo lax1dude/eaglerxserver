@@ -29,7 +29,7 @@ import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDImpl;
 import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDLogger;
 import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.IEaglerMOTDPlatform;
 import net.lax1dude.eaglercraft.backend.eaglermotd.adapter.JavaLogger;
-import net.lax1dude.eaglercraft.backend.eaglermotd.base.EaglerMOTDFactory;
+import net.lax1dude.eaglercraft.backend.eaglermotd.base.EaglerMOTD;
 import net.lax1dude.eaglercraft.backend.eaglermotd.base.EaglerMOTDVersion;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.EaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
@@ -62,7 +62,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IEaglerMOTDPlatf
 	@Override
 	public void onLoad() {
 		logger = new JavaLogger(getLogger());
-		eaglermotd = EaglerMOTDFactory.create(this);
+		eaglermotd = new EaglerMOTD<>(this);
 	}
 
 	@Override
