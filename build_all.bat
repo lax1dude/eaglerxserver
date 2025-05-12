@@ -1,5 +1,5 @@
 @echo off
-call gradlew core:shadowJar backend-rpc-core:jar rewind_v1_5:jar eaglermotd:jar eaglerweb:jar plan:jar supervisor-core:jar
+call gradlew core:shadowJar backend-rpc-core:shadowJar rewind_v1_5:shadowJar eaglermotd:shadowJar eaglerweb:shadowJar plan:shadowJar supervisor-core:shadowJar
 copy "core\build\libs\EaglerXServer.jar" "EaglerXServer.jar"
 copy "backend-rpc-core\build\libs\EaglerXBackendRPC.jar" "EaglerXBackendRPC.jar"
 copy "rewind_v1_5\build\libs\EaglerXRewind.jar" "EaglerXRewind.jar"
