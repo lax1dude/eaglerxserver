@@ -23,7 +23,7 @@ public class RewindVersion {
 
 	public static final String PLUGIN_BRAND = "EaglercraftXRewind-" + REWIND_VERSION;
 	public static final String PLUGIN_AUTHOR = "ayunami2000";
-	public static final String PLUGIN_VERSION = "1.0.0";
+	public static final String PLUGIN_VERSION = "1.0.1";
 	public static final String PLUGIN_DESC = "Official Eaglercraft 1.5 compatibility plugin for EaglercraftXServer";
 
 }
