@@ -126,18 +126,18 @@ public abstract class HandshakerInstance implements IHandshaker {
 				}
 			}));
 		} else {
+			state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 			inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_WRONG_PACKET,
 					"Wrong Initial Packet");
-			state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 		}
 	}
 
 	private void continueHandshakeInit(ChannelHandlerContext ctx) {
 		if (server.isAuthenticationEventsEnabled()) {
 			if (getVersion() <= 1 || pipelineData.handshakeAuthUsername == null) {
+				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 				inboundHandler.terminateErrorCode(ctx, getVersion(), HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE,
 						"Outdated Client (Authentication Required)");
-				state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 				return;
 			}
 			server.eventDispatcher().dispatchAuthCheckRequired(pipelineData.asPendingConnection(),
@@ -157,10 +157,10 @@ public abstract class HandshakerInstance implements IHandshaker {
 						switch (response) {
 						case SKIP:
 							state = HandshakePacketTypes.STATE_CLIENT_VERSION;
+							inboundHandler.canSendV3Kick = true;
 							sendPacketVersionNoAuth(ctx, pipelineData.handshakeProtocol,
 									pipelineData.minecraftProtocol, server.getServerBrand(),
 									server.getServerVersion());
-							inboundHandler.canSendV3Kick = true;
 							break;
 						case REQUIRE:
 							if (pipelineData.authType == (byte) 0) {
@@ -210,9 +210,9 @@ public abstract class HandshakerInstance implements IHandshaker {
 			}));
 		} else {
 			state = HandshakePacketTypes.STATE_CLIENT_VERSION;
+			inboundHandler.canSendV3Kick = true;
 			sendPacketVersionNoAuth(ctx, pipelineData.handshakeProtocol, pipelineData.minecraftProtocol,
 					server.getServerBrand(), server.getServerVersion());
-			inboundHandler.canSendV3Kick = true;
 		}
 	}
 
