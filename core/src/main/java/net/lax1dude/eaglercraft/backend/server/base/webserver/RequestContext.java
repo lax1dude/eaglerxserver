@@ -35,6 +35,7 @@ import net.lax1dude.eaglercraft.backend.server.api.webserver.IPreparedResponse;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestContext;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IRequestHandler;
 import net.lax1dude.eaglercraft.backend.server.api.webserver.IWebServer;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.HTTPMessageUtils;
 
 public class RequestContext implements IPreflightContext, IRequestContext.NettyUnsafe {
 
@@ -331,7 +332,7 @@ public class RequestContext implements IPreflightContext, IRequestContext.NettyU
 
 	@Override
 	public Iterable<String> getRequestedHeaders() {
-		return request.headers().getAll("access-control-request-headers");
+		return HTTPMessageUtils.getAllValues(request.headers(), "access-control-request-headers");
 	}
 
 	@Override

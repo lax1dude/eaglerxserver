@@ -19,7 +19,6 @@ package net.lax1dude.eaglercraft.backend.server.base.pipeline;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.List;
 
 import com.google.common.net.InetAddresses;
 
@@ -80,9 +79,9 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 				}
 
 				if (conf.isForwardIP()) {
-					List<String> forwardedIP = headers.getAll(conf.getForwardIPHeader());
-					if (forwardedIP != null && !forwardedIP.isEmpty()) {
-						pipelineData.realAddress = forwardedIP.get(0);
+					String forwardedIP = HTTPMessageUtils.getFirstValue(headers, conf.getForwardIPHeader());
+					if (forwardedIP != null) {
+						pipelineData.realAddress = forwardedIP;
 						CompoundRateLimiterMap rateLimiter = pipelineData.listenerInfo.getRateLimiter();
 						if (rateLimiter != null) {
 							InetAddress addr;
@@ -111,14 +110,11 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 					}
 				}
 
-				String connection = headers.get("connection");
-				if (connection != null && "upgrade".equalsIgnoreCase(connection)) {
-					String upgrade = headers.get("upgrade");
-					if (upgrade != null && "websocket".equalsIgnoreCase(upgrade)) {
-						pipelineData.initStall = true;
-						handleWebSocket(ctx, pipelineData, msg);
-						return;
-					}
+				if (headers.containsValue("connection", "upgrade", true)
+						&& headers.containsValue("upgrade", "websocket", false)) {
+					pipelineData.initStall = true;
+					handleWebSocket(ctx, pipelineData, msg);
+					return;
 				}
 
 				handleHTTP(ctx, pipelineData, msg);
@@ -221,9 +217,9 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 			}
 		}
 		if (conf.isForwardIP()) {
-			List<String> forwardedIP = headers.getAll(conf.getForwardIPHeader());
-			if (forwardedIP != null && !forwardedIP.isEmpty()) {
-				pipelineData.realAddress = forwardedIP.get(0);
+			String forwardedIP = HTTPMessageUtils.getFirstValue(headers, conf.getForwardIPHeader());
+			if (forwardedIP != null) {
+				pipelineData.realAddress = forwardedIP;
 				CompoundRateLimiterMap rateLimiter = pipelineData.listenerInfo.getRateLimiter();
 				if (rateLimiter != null) {
 					InetAddress addr;

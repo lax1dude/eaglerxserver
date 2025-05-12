@@ -16,6 +16,13 @@
 
 package net.lax1dude.eaglercraft.backend.server.base.pipeline;
 
+import java.util.List;
+
+import com.google.common.base.Function;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
+
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -57,6 +64,38 @@ public class HTTPMessageUtils {
 			return req.method();
 		} else {
 			return req.getMethod();
+		}
+	}
+
+	public static String getFirstValue(HttpHeaders headers, CharSequence name) {
+		String ret = headers.get(name);
+		if (ret != null) {
+			int i = ret.indexOf(',');
+			if (i != -1) {
+				while (i > 0 && Character.isWhitespace(ret.charAt(i - 1))) {
+					--i;
+				}
+				return ret.substring(0, i);
+			} else {
+				return ret;
+			}
+		} else {
+			return null;
+		}
+	}
+
+	private static final Splitter SPLITTER_COMMA = Splitter.onPattern("\\s*,\\s*");
+
+	private static final Function<String, Iterable<String>> APPLY_SPLITTER = (str) -> {
+		return SPLITTER_COMMA.split(str);
+	};
+
+	public static Iterable<String> getAllValues(HttpHeaders headers, CharSequence name) {
+		List<String> ret = headers.getAll(name);
+		if (!ret.isEmpty()) {
+			return Iterables.concat(Iterables.transform(ret, APPLY_SPLITTER));
+		} else {
+			return ret;
 		}
 	}
 
