@@ -179,12 +179,12 @@ public abstract class HandshakerInstance implements IHandshaker {
 								break;
 							}
 							pipelineData.authEventEnabled = true;
+							inboundHandler.canSendV3Kick = true;
 							state = HandshakePacketTypes.STATE_CLIENT_VERSION;
 							ChannelFuture future = sendPacketVersionAuth(ctx, pipelineData.handshakeProtocol,
 									pipelineData.minecraftProtocol, server.getServerBrand(),
 									server.getServerVersion(), pipelineData.authType, evt.getSaltingData(),
 									evt.isNicknameSelectionEnabled());
-							inboundHandler.canSendV3Kick = true;
 							if (future == null) {
 								state = HandshakePacketTypes.STATE_CLIENT_COMPLETE;
 							}
