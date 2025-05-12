@@ -37,9 +37,9 @@ public class PlanHook {
 			}
 		});
 		return (uuid, name) -> {
-            if (extCaller != null) {
-                extCaller.updatePlayerData(uuid, name);
-            }
-        };
-    }
+			if (extCaller != null) {
+				extCaller.updatePlayerData(uuid, name);
+			}
+		};
+	}
 }
