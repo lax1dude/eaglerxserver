@@ -22,7 +22,7 @@ import eu.hexagonmc.spigot.annotation.plugin.Plugin.Bungee;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.IRewindLogger;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.IRewindPlatform;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.JavaLogger;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindFactory;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindProtocol;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindVersion;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.EaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
@@ -51,7 +51,7 @@ public class PlatformPluginBungee extends Plugin implements IRewindPlatform<Prox
 	@Override
 	public void onLoad() {
 		logger = new JavaLogger(getLogger());
-		protocol = RewindFactory.createRewind(this);
+		protocol = new RewindProtocol<ProxiedPlayer>(this);
 	}
 
 	@Override

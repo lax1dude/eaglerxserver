@@ -26,7 +26,7 @@ import eu.hexagonmc.spigot.annotation.plugin.Plugin.Spigot;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.IRewindLogger;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.IRewindPlatform;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.JavaLogger;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindFactory;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindProtocol;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindVersion;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.EaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
@@ -60,7 +60,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IRewindPlatform<
 	@Override
 	public void onLoad() {
 		logger = new JavaLogger(getLogger());
-		protocol = RewindFactory.createRewind(this);
+		protocol = new RewindProtocol<Player>(this);
 	}
 
 	@Override

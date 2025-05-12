@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-	implementation project(":rewind_v1_5:rewind_v1_5-common")
+	api project(":rewind_v1_5")
 	compileOnly project(":api-velocity")
 	compileOnly(libs.velocity.api)
 	annotationProcessor(libs.velocity.api)

@@ -33,7 +33,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.IRewindLogger;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.IRewindPlatform;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.adapter.SLF4JLogger;
-import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindFactory;
+import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindProtocol;
 import net.lax1dude.eaglercraft.backend.rewind_v1_5.base.RewindVersion;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
@@ -69,7 +69,7 @@ public class PlatformPluginVelocity implements IRewindPlatform<Player> {
 		proxy = proxyIn;
 		logger = loggerIn;
 		rewindLogger = new SLF4JLogger(loggerIn);
-		protocol = RewindFactory.createRewind(this);
+		protocol = new RewindProtocol<Player>(this);
 	}
 
 	@Subscribe
