@@ -42,7 +42,7 @@ public class EaglerXDataExtension implements DataExtension {
 	@Override
 	public CallEvents[] callExtensionMethodsOn() {
 		return new CallEvents[]{
-				CallEvents.PLAYER_JOIN
+				CallEvents.MANUAL
 		};
 	}
 

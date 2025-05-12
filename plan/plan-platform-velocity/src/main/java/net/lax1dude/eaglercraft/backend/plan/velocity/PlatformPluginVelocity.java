@@ -17,8 +17,10 @@
 package net.lax1dude.eaglercraft.backend.plan.velocity;
 
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 
+import com.velocitypowered.api.proxy.Player;
 import net.lax1dude.eaglercraft.backend.plan.PlanHook;
 import net.lax1dude.eaglercraft.backend.plan.PlanVersion;
 
@@ -26,6 +28,9 @@ import com.velocitypowered.api.plugin.Dependency;
 import com.velocitypowered.api.plugin.Plugin;
 
 import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
+
+import java.util.UUID;
+import java.util.function.BiConsumer;
 
 @Plugin(
 	id = PlatformPluginVelocity.PLUGIN_ID,
@@ -47,9 +52,17 @@ public class PlatformPluginVelocity {
 	public static final String PLUGIN_AUTHOR = PlanVersion.PLUGIN_AUTHOR;
 	public static final String PLUGIN_VERSION = PlanVersion.PLUGIN_VERSION;
 
+	private BiConsumer<UUID, String> eaglerInit;
+
 	@Subscribe
 	public void onProxyInitialize(ProxyInitializeEvent event) {
-		PlanHook.hookIntoPlan(EaglerXServerAPI.instance());
+		eaglerInit = PlanHook.hookIntoPlan(EaglerXServerAPI.instance());
+	}
+
+	@Subscribe
+	public void onPlayerJoin(ServerConnectedEvent event) {
+		Player player = event.getPlayer();
+		eaglerInit.accept(player.getUniqueId(), player.getUsername());
 	}
 
 }

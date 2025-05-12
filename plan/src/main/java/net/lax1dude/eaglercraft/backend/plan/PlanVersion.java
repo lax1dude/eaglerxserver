@@ -20,6 +20,6 @@ public class PlanVersion {
 
 	public static final String PLUGIN_BRAND = "EaglercraftXPlan";
 	public static final String PLUGIN_AUTHOR = "ayunami2000";
-	public static final String PLUGIN_VERSION = "1.0.0";
+	public static final String PLUGIN_VERSION = "1.0.1";
 
 }

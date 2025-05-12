@@ -19,12 +19,19 @@ package net.lax1dude.eaglercraft.backend.plan.bukkit;
 import net.lax1dude.eaglercraft.backend.plan.PlanHook;
 import net.lax1dude.eaglercraft.backend.plan.PlanVersion;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.EaglerXServerAPI;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import eu.hexagonmc.spigot.annotation.meta.DependencyType;
 import eu.hexagonmc.spigot.annotation.plugin.Dependency;
 import eu.hexagonmc.spigot.annotation.plugin.Plugin;
 import eu.hexagonmc.spigot.annotation.plugin.Plugin.Spigot;
+
+import java.util.UUID;
+import java.util.function.BiConsumer;
 
 @Plugin(
 	name = PlatformPluginBukkit.PLUGIN_NAME,
@@ -42,15 +49,24 @@ import eu.hexagonmc.spigot.annotation.plugin.Plugin.Spigot;
 		@Dependency(name = "Plan", type = DependencyType.DEPEND)
 	}
 )
-public class PlatformPluginBukkit extends JavaPlugin {
+public class PlatformPluginBukkit extends JavaPlugin implements Listener {
 
 	public static final String PLUGIN_NAME = "EaglercraftXPlan";
 	public static final String PLUGIN_AUTHOR = PlanVersion.PLUGIN_AUTHOR;
 	public static final String PLUGIN_VERSION = PlanVersion.PLUGIN_VERSION;
 
+	private BiConsumer<UUID, String> eaglerInit;
+
 	@Override
 	public void onEnable() {
-		PlanHook.hookIntoPlan(EaglerXServerAPI.instance());
+		eaglerInit = PlanHook.hookIntoPlan(EaglerXServerAPI.instance());
+		this.getServer().getPluginManager().registerEvents(this, this);
+	}
+
+	@EventHandler
+	public void onPlayerJoin(PlayerJoinEvent event) {
+		Player player = event.getPlayer();
+		eaglerInit.accept(player.getUniqueId(), player.getName());
 	}
 
 }

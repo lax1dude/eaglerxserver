@@ -17,18 +17,29 @@
 package net.lax1dude.eaglercraft.backend.plan;
 
 import com.djrapitops.plan.capability.CapabilityService;
+import com.djrapitops.plan.extension.Caller;
 import com.djrapitops.plan.extension.ExtensionService;
 import net.lax1dude.eaglercraft.backend.server.api.IEaglerXServerAPI;
 
+import java.util.UUID;
+import java.util.function.BiConsumer;
+
 public class PlanHook {
-	public static void hookIntoPlan(IEaglerXServerAPI<?> serverAPI) {
+	private static Caller extCaller;
+
+	public static BiConsumer<UUID, String> hookIntoPlan(IEaglerXServerAPI<?> serverAPI) {
 		if (!CapabilityService.getInstance().hasCapability("DATA_EXTENSION_VALUES"))
-			return;
-		ExtensionService.getInstance().register(new EaglerXDataExtension(serverAPI));
+			return (uuid, name) -> {};
+		extCaller = ExtensionService.getInstance().register(new EaglerXDataExtension(serverAPI)).orElse(null);
 		CapabilityService.getInstance().registerEnableListener(isPlanEnabled -> {
 			if (isPlanEnabled) {
-				ExtensionService.getInstance().register(new EaglerXDataExtension(serverAPI));
+				extCaller = ExtensionService.getInstance().register(new EaglerXDataExtension(serverAPI)).orElse(null);
 			}
 		});
-	}
+		return (uuid, name) -> {
+            if (extCaller != null) {
+                extCaller.updatePlayerData(uuid, name);
+            }
+        };
+    }
 }
