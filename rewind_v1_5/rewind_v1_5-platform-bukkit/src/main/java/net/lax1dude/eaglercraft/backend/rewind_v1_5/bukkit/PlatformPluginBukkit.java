@@ -60,7 +60,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IRewindPlatform<
 	@Override
 	public void onLoad() {
 		logger = new JavaLogger(getLogger());
-		protocol = new RewindProtocol<Player>(this);
+		protocol = new RewindProtocol<>(this);
 	}
 
 	@Override

@@ -51,7 +51,7 @@ public class PlatformPluginBungee extends Plugin implements IRewindPlatform<Prox
 	@Override
 	public void onLoad() {
 		logger = new JavaLogger(getLogger());
-		protocol = new RewindProtocol<ProxiedPlayer>(this);
+		protocol = new RewindProtocol<>(this);
 	}
 
 	@Override

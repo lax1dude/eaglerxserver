@@ -69,7 +69,7 @@ public class PlatformPluginVelocity implements IRewindPlatform<Player> {
 		proxy = proxyIn;
 		logger = loggerIn;
 		rewindLogger = new SLF4JLogger(loggerIn);
-		protocol = new RewindProtocol<Player>(this);
+		protocol = new RewindProtocol<>(this);
 	}
 
 	@Subscribe
