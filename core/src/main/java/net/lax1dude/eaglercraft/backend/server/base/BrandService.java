@@ -242,9 +242,9 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 		mapLock = new ReentrantReadWriteLock();
 		map = new HashMap<>();
 		map.put(BRAND_VANILLA, new BrandRegistrationVanilla());
-		map.put(BRAND_EAGLERCRAFTX_V4, new BrandRegistrationEaglerV4());
-		map.put(BRAND_EAGLERCRAFTX_LEGACY, new BrandRegistrationEaglerOld());
-		map.put(BRAND_EAGLERCRAFT_1_12, new BrandRegistrationEagler112());
+		map.put(serverIn.intern(BRAND_EAGLERCRAFTX_V4), new BrandRegistrationEaglerV4());
+		map.put(serverIn.intern(BRAND_EAGLERCRAFTX_LEGACY), new BrandRegistrationEaglerOld());
+		map.put(serverIn.intern(BRAND_EAGLERCRAFT_1_12), new BrandRegistrationEagler112());
 		InputStream brands = BrandService.class.getResourceAsStream("brands.json");
 		if (brands != null) {
 			JsonObject brandsFile = null;
@@ -256,7 +256,7 @@ public class BrandService<PlayerObject> implements IBrandService<PlayerObject> {
 			}
 			try {
 				for (Entry<String, JsonElement> etr : GsonMap.asMap(brandsFile).entrySet()) {
-					UUID uuid = UUID.fromString(etr.getKey());
+					UUID uuid = serverIn.intern(UUID.fromString(etr.getKey()));
 					JsonObject val = etr.getValue().getAsJsonObject();
 					map.put(uuid, new BrandRegistration(uuid, val.get("desc").getAsString(),
 							val.get("legacy").getAsBoolean(), val.get("hacked").getAsBoolean()));

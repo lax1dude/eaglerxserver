@@ -85,7 +85,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	private final boolean redirectSupport;
 	private final boolean updateSupport;
 	private final PlayerRateLimits rateLimits;
-	private UUID eaglerBrandUUID;
+	private final UUID eaglerBrandUUID;
 	MessageController messageController;
 	IVoiceManagerImpl<PlayerObject> voiceManager;
 	NotificationManagerPlayer<PlayerObject> notifManager;
@@ -94,7 +94,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 	IUpdateCertificateImpl updateCertificate;
 
 	@SuppressWarnings("unchecked")
-	public EaglerPlayerInstance(IPlatformPlayer<PlayerObject> player, NettyPipelineData pipelineData) {
+	public EaglerPlayerInstance(IPlatformPlayer<PlayerObject> player, NettyPipelineData pipelineData, UUID brandUUID) {
 		super(player, pipelineData.attributeHolder, (EaglerXServer<PlayerObject>) pipelineData.server);
 		channel = pipelineData.channel;
 		listenerInfo = pipelineData.listenerInfo;
@@ -127,6 +127,7 @@ public class EaglerPlayerInstance<PlayerObject> extends BasePlayerInstance<Playe
 		redirectSupport = hasCapability(EnumCapabilitySpec.REDIRECT_V0);
 		updateSupport = hasCapability(EnumCapabilitySpec.UPDATE_V0);
 		rateLimits = new PlayerRateLimits(server.rateLimitParams());
+		eaglerBrandUUID = server.intern(brandUUID);
 		if (updateSupport && server.getUpdateService() != null) {
 			updateSent = new ObjectHashSet<>(16);
 		} else {

@@ -97,7 +97,8 @@ class EaglerXServerPlayerInitializer<PlayerObject> implements
 			NettyPipelineData.ProfileDataHolder profileData) {
 		NettyPipelineData conn = initializer.getPipelineAttachment();
 		if (conn != null && conn.isEaglerPlayer()) {
-			EaglerPlayerInstance<PlayerObject> instance = new EaglerPlayerInstance<>(initializer.getPlayer(), conn);
+			EaglerPlayerInstance<PlayerObject> instance = new EaglerPlayerInstance<>(initializer.getPlayer(), conn,
+					profileData.brandUUID);
 			initializer.setPlayerAttachment(instance);
 			try {
 				server.registerEaglerPlayer(instance, profileData, () -> {
