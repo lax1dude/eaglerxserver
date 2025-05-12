@@ -32,7 +32,7 @@ import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebImpl;
 import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebLogger;
 import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.IEaglerWebPlatform;
 import net.lax1dude.eaglercraft.backend.eaglerweb.adapter.JavaLogger;
-import net.lax1dude.eaglercraft.backend.eaglerweb.base.EaglerWebFactory;
+import net.lax1dude.eaglercraft.backend.eaglerweb.base.EaglerWeb;
 import net.lax1dude.eaglercraft.backend.eaglerweb.base.EaglerWebVersion;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.EaglerXServerAPI;
 
@@ -64,7 +64,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IEaglerWebPlatfo
 	@Override
 	public void onLoad() {
 		logger = new JavaLogger(getLogger());
-		plugin = EaglerWebFactory.create(this);
+		plugin = new EaglerWeb<>(this);
 	}
 
 	@Override

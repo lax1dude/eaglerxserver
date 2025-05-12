@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-	implementation project(":eaglerweb:eaglerweb-common")
+	api project(":eaglerweb")
 	compileOnly project(":api-bungee")
 	compileOnly(libs.bungeecord.api)
 	compileOnly(libs.pluginannotations)
