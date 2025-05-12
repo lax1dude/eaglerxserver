@@ -50,7 +50,7 @@ import net.lax1dude.eaglercraft.backend.rpc.adapter.IPlatformScheduler;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.JavaLogger;
 import net.lax1dude.eaglercraft.backend.rpc.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.rpc.api.bukkit.EaglerXBackendRPC;
-import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCFactory;
+import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCBase;
 import net.lax1dude.eaglercraft.backend.rpc.base.EaglerXBackendRPCVersion;
 import net.lax1dude.eaglercraft.backend.rpc.bukkit.event.BukkitEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.EaglerXServerAPI;
@@ -171,7 +171,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 				};
 			}
 		};
-		EaglerXBackendRPCFactory.<Player>create().load(init);
+		EaglerXBackendRPCBase.<Player>init().load(init);
 	}
 
 	@Override

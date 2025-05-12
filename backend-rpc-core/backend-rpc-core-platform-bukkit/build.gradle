@@ -4,8 +4,8 @@ plugins {
 }
 
 dependencies {
-	implementation project(":backend-rpc-api-bukkit")
-	implementation project(":backend-rpc-core:backend-rpc-core-common")
+	api project(":backend-rpc-api-bukkit")
+	api project(":backend-rpc-core")
 	compileOnly project(":api-bukkit")
 	compileOnly(libs.paper.api)
 	compileOnly(libs.bungeecord.chat)

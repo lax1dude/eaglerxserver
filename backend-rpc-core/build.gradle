@@ -1,34 +1,41 @@
 
 plugins {
-	id "java"
+	id "java-library"
+	id "com.gradleup.shadow" version "8.3.6"
+}
+
+configurations {
+	platformBukkit
 }
 
 dependencies {
-	implementation project(":voice-rpc-protocol")
-	implementation project(":backend-rpc-api-bukkit")
-	implementation project(":backend-rpc-protocol")
-	implementation project(":backend-rpc-core:backend-rpc-core-common")
-	runtimeOnly project(":backend-rpc-core:backend-rpc-core-platform-bukkit")
+	api project(":backend-rpc-api")
+	api project(":backend-rpc-protocol")
+	api project(":voice-rpc-protocol")
+	platformBukkit project(":backend-rpc-core:backend-rpc-core-platform-bukkit")
 	compileOnly project(":api")
-	compileOnly(libs.paper.api)
-	compileOnly(libs.bungeecord.chat)
 	compileOnly(libs.bundles.netty.all)
+	compileOnly(libs.guava)
+	compileOnly(libs.snakeyaml)
 	compileOnly(libs.jsr305)
 }
 
-jar {
-	dependsOn ":voice-rpc-protocol:jar" // Workaround
-	dependsOn ":backend-rpc-api:jar" // Workaround
-	dependsOn ":backend-rpc-api-bukkit:jar" // Workaround
-	dependsOn ":backend-rpc-protocol:jar" // Workaround
-	dependsOn ":backend-rpc-core:backend-rpc-core-common:jar" // Workaround
-	dependsOn ":backend-rpc-core:backend-rpc-core-platform-bukkit:jar" // Workaround
-
+tasks.named("shadowJar", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+	group "shadow"
+	description "Builds the JAR for all supported platforms"
+	configurations = [
+		project.configurations.runtimeClasspath,
+		project.configurations.platformBukkit
+	]
 	archiveFileName = "EaglerXBackendRPC.jar"
+}
 
-	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-	from {
-		configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-	}
+tasks.register("shadowJarBukkit", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+	group "shadow"
+	description "Builds the JAR for Bukkit platforms"
+	configurations = [
+		project.configurations.runtimeClasspath,
+		project.configurations.platformBukkit
+	]
+	archiveFileName = "EaglerXBackendRPC-Bukkit.jar"
 }
