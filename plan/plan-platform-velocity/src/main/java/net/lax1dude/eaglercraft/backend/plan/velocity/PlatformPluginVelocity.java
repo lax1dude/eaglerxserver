@@ -19,7 +19,7 @@ package net.lax1dude.eaglercraft.backend.plan.velocity;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 
-import net.lax1dude.eaglercraft.backend.plan.PlanHelper;
+import net.lax1dude.eaglercraft.backend.plan.PlanHook;
 import net.lax1dude.eaglercraft.backend.plan.PlanVersion;
 
 import com.velocitypowered.api.plugin.Dependency;
@@ -49,7 +49,7 @@ public class PlatformPluginVelocity {
 
 	@Subscribe
 	public void onProxyInitialize(ProxyInitializeEvent event) {
-		PlanHelper.initialize(EaglerXServerAPI.instance());
+		PlanHook.hookIntoPlan(EaglerXServerAPI.instance());
 	}
 
 }

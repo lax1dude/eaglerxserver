@@ -1,6 +1,13 @@
 
 plugins {
-	id "java"
+	id "java-library"
+	id "com.gradleup.shadow" version "8.3.6"
+}
+
+configurations {
+	platformBukkit
+	platformBungee
+	platformVelocity
 }
 
 repositories {
@@ -10,25 +17,51 @@ repositories {
 }
 
 dependencies {
-	implementation project(":plan:plan-common")
-	runtimeOnly project(":plan:plan-platform-bukkit")
-	runtimeOnly project(":plan:plan-platform-bungee")
-	runtimeOnly project(":plan:plan-platform-velocity")
+	platformBukkit project(":plan:plan-platform-bukkit")
+	platformBungee project(":plan:plan-platform-bungee")
+	platformVelocity project(":plan:plan-platform-velocity")
 	compileOnly project(":api")
 	compileOnly "com.github.plan-player-analytics:Plan:5.6.2965"
 }
 
-jar {
-	dependsOn ":plan:plan-common:jar" // Workaround
-	dependsOn ":plan:plan-platform-bukkit:jar" // Workaround
-	dependsOn ":plan:plan-platform-bungee:jar" // Workaround
-	dependsOn ":plan:plan-platform-velocity:jar" // Workaround
-
+tasks.named("shadowJar", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+	group "shadow"
+	description "Builds the JAR for all supported platforms"
+	configurations = [
+		project.configurations.runtimeClasspath,
+		project.configurations.platformBukkit,
+		project.configurations.platformBungee,
+		project.configurations.platformVelocity
+	]
 	archiveFileName = "EaglerXPlan.jar"
+}
 
-	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+tasks.register("shadowJarBukkit", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+	group "shadow"
+	description "Builds the JAR for Bukkit platforms"
+	configurations = [
+		project.configurations.runtimeClasspath,
+		project.configurations.platformBukkit
+	]
+	archiveFileName = "EaglerXPlan-Bukkit.jar"
+}
 
-	from {
-		configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-	}
+tasks.register("shadowJarBungee", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+	group "shadow"
+	description "Builds the JAR for Bungee platforms"
+	configurations = [
+		project.configurations.runtimeClasspath,
+		project.configurations.platformBungee
+	]
+	archiveFileName = "EaglerXPlan-Bungee.jar"
+}
+
+tasks.register("shadowJarVelocity", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+	group "shadow"
+	description "Builds the JAR for Velocity platforms"
+	configurations = [
+		project.configurations.runtimeClasspath,
+		project.configurations.platformVelocity
+	]
+	archiveFileName = "EaglerXPlan-Velocity.jar"
 }

@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-	implementation project(":plan:plan-common")
+	api project(":plan")
 	compileOnly project(":api-bukkit")
 	compileOnly(libs.paper.api)
 	compileOnly(libs.pluginannotations)

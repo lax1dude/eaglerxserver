@@ -19,7 +19,7 @@ package net.lax1dude.eaglercraft.backend.plan.bungee;
 import eu.hexagonmc.spigot.annotation.meta.DependencyType;
 import eu.hexagonmc.spigot.annotation.plugin.Dependency;
 import eu.hexagonmc.spigot.annotation.plugin.Plugin.Bungee;
-import net.lax1dude.eaglercraft.backend.plan.PlanHelper;
+import net.lax1dude.eaglercraft.backend.plan.PlanHook;
 import net.lax1dude.eaglercraft.backend.plan.PlanVersion;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.EaglerXServerAPI;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -42,7 +42,7 @@ public class PlatformPluginBungee extends Plugin {
 
 	@Override
 	public void onEnable() {
-		PlanHelper.initialize(EaglerXServerAPI.instance());
+		PlanHook.hookIntoPlan(EaglerXServerAPI.instance());
 	}
 
 }
