@@ -87,7 +87,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPi
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.EaglerXServerAPI;
-import net.lax1dude.eaglercraft.backend.server.base.EaglerXServerFactory;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServerVersion;
 import net.lax1dude.eaglercraft.backend.server.bukkit.async.PlayerPostLoginInjector;
 import net.lax1dude.eaglercraft.backend.server.bukkit.async.PlayerPostLoginInjector.LoginEventContext;
@@ -229,7 +229,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 
 		};
 		try {
-			EaglerXServerFactory.<Player>create().load(init);
+			(new EaglerXServer<Player>()).load(init);
 		} catch (AbortLoadException ex) {
 			logger().error("Server startup aborted: " + ex.getMessage());
 			Throwable t = ex.getCause();

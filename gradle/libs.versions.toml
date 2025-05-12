@@ -11,6 +11,10 @@ bungeecord-chat = { module = "net.md-5:bungeecord-chat", version.ref = "bungeeco
 velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity" }
 velocity-nightconfig = "com.electronwill.night-config:toml:3.6.7"
 velocity-legacy-serializer = { module = "net.kyori:adventure-text-serializer-json-legacy-impl", version.ref = "velocity-adventure" }
+adventure-api = { module = "net.kyori:adventure-api", version.ref = "velocity-adventure" }
+adventure-serializer-json = { module = "net.kyori:adventure-text-serializer-json", version.ref = "velocity-adventure" }
+adventure-serializer-legacy = { module = "net.kyori:adventure-text-serializer-legacy", version.ref = "velocity-adventure" }
+adventure-serializer-plain = { module = "net.kyori:adventure-text-serializer-plain", version.ref = "velocity-adventure" }
 pluginannotations = "eu.hexagonmc:spigot-annotations:1.2-EAGLER"
 paper-api = { module = "com.destroystokyo.paper:paper-api", version.ref = "paper" }
 netty-handler = { module = "io.netty:netty-handler", version.ref = "netty" }
@@ -48,4 +52,11 @@ netty-supervisor = [
 	"netty-codec-http",
 	"netty-transport-epoll",
 	"netty-transport-kqueue"
+]
+velocity-adventure-api = [
+	"velocity-legacy-serializer",
+	"adventure-api",
+	"adventure-serializer-json",
+	"adventure-serializer-legacy",
+	"adventure-serializer-plain"
 ]

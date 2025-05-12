@@ -4,11 +4,11 @@ plugins {
 }
 
 dependencies {
-	implementation project(":api-velocity")
-	implementation project(":core:core-common")
+	api project(":api-velocity")
+	api project(":core")
+	api project(":core:core-platform-adventure-chat")
 	compileOnly project(":stubs")
 	compileOnly(libs.velocity.api)
-	compileOnly(libs.velocity.legacy.serializer)
 	compileOnly(libs.bundles.netty.all)
 	annotationProcessor(libs.velocity.api)
 }

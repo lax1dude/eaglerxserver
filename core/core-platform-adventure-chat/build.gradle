@@ -5,5 +5,6 @@ plugins {
 
 dependencies {
 	implementation project(":core")
-	compileOnly(libs.bungeecord.chat)
+	compileOnly(libs.bundles.velocity.adventure.api)
+	compileOnly(libs.gson)
 }

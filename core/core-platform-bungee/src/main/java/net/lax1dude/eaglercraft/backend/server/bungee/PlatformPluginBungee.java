@@ -70,7 +70,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPi
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.api.bungee.EaglerXServerAPI;
-import net.lax1dude.eaglercraft.backend.server.base.EaglerXServerFactory;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServerVersion;
 import net.lax1dude.eaglercraft.backend.server.bungee.chat.BungeeComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.bungee.event.BungeeEventDispatchAdapter;
@@ -226,7 +226,7 @@ public class PlatformPluginBungee extends Plugin implements IPlatform<ProxiedPla
 
 		};
 		try {
-			EaglerXServerFactory.<ProxiedPlayer>create().load(init);
+			(new EaglerXServer<ProxiedPlayer>()).load(init);
 		} catch (AbortLoadException ex) {
 			logger().error("Server startup aborted: " + ex.getMessage());
 			Throwable t = ex.getCause();

@@ -91,7 +91,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.SLF4JLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.event.IEventDispatchAdapter;
 import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
-import net.lax1dude.eaglercraft.backend.server.base.EaglerXServerFactory;
+import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServerVersion;
 import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
 import net.lax1dude.eaglercraft.backend.server.util.ListenerInitList;
@@ -255,7 +255,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 
 		};
 		try {
-			EaglerXServerFactory.<Player>create().load(init);
+			(new EaglerXServer<Player>()).load(init);
 		} catch (AbortLoadException ex) {
 			logger().error("Server startup aborted: " + ex.getMessage());
 			Throwable t = ex.getCause();

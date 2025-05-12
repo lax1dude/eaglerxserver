@@ -4,13 +4,13 @@ plugins {
 }
 
 dependencies {
-	implementation project(":api-bungee")
-	implementation project(":core:core-platform-bungee-chat")
-	implementation project(":core:core-common")
+	api project(":api-bungee")
+	api project(":core")
+	api project(":core:core-platform-bungee-chat")
 	compileOnly project(":stubs")
 	compileOnly(libs.bungeecord.api)
-	compileOnly(libs.pluginannotations)
 	compileOnly(libs.bundles.netty.all)
+	compileOnly(libs.pluginannotations)
 	annotationProcessor(libs.pluginannotations)
 	
 }

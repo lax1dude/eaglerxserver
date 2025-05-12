@@ -1,44 +1,76 @@
 
 plugins {
-	id "java"
+	id "java-library"
 	id "com.gradleup.shadow" version "8.3.6"
 }
 
+configurations {
+	platformBukkit
+	platformBungee
+	platformVelocity
+}
+
 dependencies {
-	implementation project(":protocol-game")
-	implementation project(":backend-rpc-protocol")
-	implementation project(":voice-rpc-protocol")
-	implementation project(":supervisor-protocol")
-	implementation project(":api-bukkit")
-	implementation project(":api-bungee")
-	implementation project(":api-velocity")
-	implementation project(":core:core-common")
-	runtimeOnly project(":core:core-platform-bukkit")
-	runtimeOnly project(":core:core-platform-bungee")
-	runtimeOnly project(":core:core-platform-velocity")
+	api project(":api")
+	api project(":core-config")
+	api project(":skin-cache")
+	api project(":backend-rpc-protocol")
+	api project(":voice-rpc-protocol")
+	api project(":supervisor-protocol")
+	platformBukkit project(":core:core-platform-bukkit")
+	platformBungee project(":core:core-platform-bungee")
+	platformVelocity project(":core:core-platform-velocity")
+	implementation(libs.asm)
 	compileOnly(libs.bundles.netty.all)
 	compileOnly(libs.jsr305)
 	compileOnly(libs.gson)
 	compileOnly(libs.guava)
+	compileOnly(libs.slf4j)
 	compileOnly(libs.skinsrestorer.api)
 }
 
 tasks.named("shadowJar", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
-	dependsOn ":protocol-game:jar" // Workaround
-	dependsOn ":backend-rpc-protocol:jar" // Workaround
-	dependsOn ":voice-rpc-protocol:jar" // Workaround
-	dependsOn ":supervisor-protocol:jar" // Workaround
-	dependsOn ":api:jar" // Workaround
-	dependsOn ":api-bukkit:jar" // Workaround
-	dependsOn ":api-bungee:jar" // Workaround
-	dependsOn ":api-velocity:jar" // Workaround
-	dependsOn ":core:core-common:jar" // Workaround
-	dependsOn ":core:core-platform-bukkit:jar" // Workaround
-	dependsOn ":core:core-platform-bungee:jar" // Workaround
-	dependsOn ":core:core-platform-velocity:jar" // Workaround
-	dependsOn ":core-config:jar" // Workaround
-	dependsOn ":skin-cache:jar" // Workaround
-	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	group "shadow"
+	description "Builds the JAR for all supported platforms"
+	configurations = [
+		project.configurations.runtimeClasspath,
+		project.configurations.platformBukkit,
+		project.configurations.platformBungee,
+		project.configurations.platformVelocity
+	]
 	archiveFileName = "EaglerXServer.jar"
+	relocate "org.objectweb.asm", "net.lax1dude.eaglercraft.backend.server.libs.asm"
+}
+
+tasks.register("shadowJarBukkit", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+	group "shadow"
+	description "Builds the JAR for Bukkit platforms"
+	configurations = [
+		project.configurations.runtimeClasspath,
+		project.configurations.platformBukkit
+	]
+	archiveFileName = "EaglerXServer-Bukkit.jar"
+	relocate "org.objectweb.asm", "net.lax1dude.eaglercraft.backend.server.libs.asm"
+}
+
+tasks.register("shadowJarBungee", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+	group "shadow"
+	description "Builds the JAR for Bungee platforms"
+	configurations = [
+		project.configurations.runtimeClasspath,
+		project.configurations.platformBungee
+	]
+	archiveFileName = "EaglerXServer-Bungee.jar"
+	relocate "org.objectweb.asm", "net.lax1dude.eaglercraft.backend.server.libs.asm"
+}
+
+tasks.register("shadowJarVelocity", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+	group "shadow"
+	description "Builds the JAR for Velocity platforms"
+	configurations = [
+		project.configurations.runtimeClasspath,
+		project.configurations.platformVelocity
+	]
+	archiveFileName = "EaglerXServer-Velocity.jar"
 	relocate "org.objectweb.asm", "net.lax1dude.eaglercraft.backend.server.libs.asm"
 }
