@@ -148,7 +148,7 @@ public class PipelineTransformer {
 		String before = null;
 		String first = null;
 		boolean e = false;
-		boolean haproxy = false;
+		IPipelineComponent haproxy = null;
 		String bungeeHack = null;
 		for (IPipelineComponent comp : components) {
 			if (VANILLA_FRAME_DECODERS.contains(comp.getIdentifiedType())) {
@@ -162,7 +162,7 @@ public class PipelineTransformer {
 						first = before;
 						e = true;
 					} else {
-						haproxy = true;
+						haproxy = comp;
 					}
 					before = comp.getName();
 				}
@@ -194,17 +194,21 @@ public class PipelineTransformer {
 		} else {
 			initializeHTTPHandler(pipelineData, null, pipeline, first);
 		}
-		if (haproxy && eagListener.getConfigData().isDualStackHAProxyDetection()) {
-			channel.pipeline().addFirst(HANDLER_HAPROXY_DETECTION, new HAProxyDetectionHandler());
+		if (haproxy != null) {
+			if (eagListener.getConfigData().isForceDisableHAProxy()) {
+				pipeline.remove(haproxy.getHandle());
+			} else if (eagListener.getConfigData().isDualStackHAProxyDetection()) {
+				pipeline.addFirst(HANDLER_HAPROXY_DETECTION, new HAProxyDetectionHandler(haproxy.getHandle()));
+			}
 		}
-		channel.pipeline().addLast(HANDLER_OUTBOUND_THROW, OutboundPacketThrowHandler.INSTANCE);
+		pipeline.addLast(HANDLER_OUTBOUND_THROW, OutboundPacketThrowHandler.INSTANCE);
 	}
 
 	public void injectDualStack(List<IPipelineComponent> components, Channel channel, NettyPipelineData pipelineData) {
 		List<ChannelHandler> toRemove = new ArrayList<>(4);
 		String first = null;
 		String bungeeHack = null;
-		boolean haproxy = false;
+		IPipelineComponent haproxy = null;
 		for (IPipelineComponent comp : components) {
 			if (VANILLA_FRAME_DECODERS.contains(comp.getIdentifiedType())) {
 				toRemove.add(comp.getHandle());
@@ -216,7 +220,7 @@ public class PipelineTransformer {
 					if (comp.getIdentifiedType() != EnumPipelineComponent.HAPROXY_HANDLER) {
 						first = comp.getName();
 					} else {
-						haproxy = true;
+						haproxy = comp;
 					}
 				}
 			}
@@ -227,8 +231,12 @@ public class PipelineTransformer {
 		channel.pipeline().addBefore(first, HANDLER_MULTI_STACK_INITIAL,
 				new MultiStackInitialInboundHandler(this, pipelineData, toRemove, bungeeHack));
 		EaglerListener eagListener = pipelineData.listenerInfo;
-		if (haproxy && eagListener.getConfigData().isDualStackHAProxyDetection()) {
-			channel.pipeline().addFirst(HANDLER_HAPROXY_DETECTION, new HAProxyDetectionHandler());
+		if (haproxy != null) {
+			if (eagListener.getConfigData().isForceDisableHAProxy()) {
+				channel.pipeline().remove(haproxy.getHandle());
+			} else if (eagListener.getConfigData().isDualStackHAProxyDetection()) {
+				channel.pipeline().addFirst(HANDLER_HAPROXY_DETECTION, new HAProxyDetectionHandler(haproxy.getHandle()));
+			}
 		}
 		channel.pipeline().addLast(HANDLER_OUTBOUND_THROW, OutboundPacketThrowHandler.INSTANCE);
 	}

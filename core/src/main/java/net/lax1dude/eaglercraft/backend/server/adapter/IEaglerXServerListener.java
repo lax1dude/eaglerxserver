@@ -24,6 +24,14 @@ public interface IEaglerXServerListener {
 
 	boolean matchListenerAddress(SocketAddress addr);
 
+	default boolean isCloneListenerEnabled() {
+		return false;
+	}
+
+	default SocketAddress getCloneListenerAddress() {
+		return null;
+	}
+
 	default void reportVelocityInjected(Channel channel) {
 	}
 

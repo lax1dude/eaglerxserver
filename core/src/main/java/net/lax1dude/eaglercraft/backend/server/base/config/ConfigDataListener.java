@@ -61,6 +61,7 @@ public class ConfigDataListener {
 
 	private final String listenerName;
 	private final SocketAddress injectAddress;
+	private final boolean cloneListenerEnabled;
 	private final boolean dualStack;
 	private final boolean forwardIP;
 	private final String forwardIPHeader;
@@ -70,6 +71,7 @@ public class ConfigDataListener {
 	private final String forwardSecretValue;
 	private final boolean spoofPlayerAddressForwarded;
 	private final boolean dualStackHAProxyDetection;
+	private final boolean forceDisableHAProxy;
 	private final boolean enableTLS;
 	private final boolean requireTLS;
 	private final boolean tlsManagedByExternalPlugin;
@@ -97,9 +99,10 @@ public class ConfigDataListener {
 	private final ConfigRateLimit limitHTTP;
 	private final List<String> limitExclusions;
 
-	public ConfigDataListener(String listenerName, SocketAddress injectAddress, boolean dualStack, boolean forwardIp,
-			String forwardIPHeader, boolean forwardSecret, String forwardSecretHeader, String forwardSecretFile,
-			String forwardSecretValue, boolean spoofPlayerAddressForwarded, boolean dualStackHAProxyDetection,
+	public ConfigDataListener(String listenerName, SocketAddress injectAddress, boolean cloneListenerEnabled,
+			boolean dualStack, boolean forwardIp, String forwardIPHeader, boolean forwardSecret,
+			String forwardSecretHeader, String forwardSecretFile, String forwardSecretValue,
+			boolean spoofPlayerAddressForwarded, boolean dualStackHAProxyDetection, boolean forceDisableHAProxy,
 			boolean enableTLS, boolean requireTLS, boolean tlsManagedByExternalPlugin, String tlsPublicChainFile,
 			String tlsPrivateKeyFile, String tlsPrivateKeyPassword, boolean tlsAutoRefreshCert,
 			String redirectLegacyClientsTo, String serverIcon, List<String> serverMOTD, boolean allowMOTD,
@@ -109,6 +112,7 @@ public class ConfigDataListener {
 			ConfigRateLimit limitQuery, ConfigRateLimit limitHTTP, List<String> limitExclusions) {
 		this.listenerName = listenerName;
 		this.injectAddress = injectAddress;
+		this.cloneListenerEnabled = cloneListenerEnabled;
 		this.dualStack = dualStack;
 		this.forwardIP = forwardIp;
 		this.forwardIPHeader = forwardIPHeader;
@@ -118,6 +122,7 @@ public class ConfigDataListener {
 		this.forwardSecretValue = forwardSecretValue;
 		this.spoofPlayerAddressForwarded = spoofPlayerAddressForwarded;
 		this.dualStackHAProxyDetection = dualStackHAProxyDetection;
+		this.forceDisableHAProxy = forceDisableHAProxy;
 		this.enableTLS = enableTLS;
 		this.requireTLS = requireTLS;
 		this.tlsManagedByExternalPlugin = tlsManagedByExternalPlugin;
@@ -188,6 +193,10 @@ public class ConfigDataListener {
 
 	public boolean isDualStackHAProxyDetection() {
 		return dualStackHAProxyDetection;
+	}
+
+	public boolean isForceDisableHAProxy() {
+		return forceDisableHAProxy;
 	}
 
 	public boolean isEnableTLS() {
@@ -292,6 +301,10 @@ public class ConfigDataListener {
 
 	public List<String> getLimitExclusions() {
 		return limitExclusions;
+	}
+
+	public boolean isCloneListenerEnabled() {
+		return cloneListenerEnabled;
 	}
 
 }

@@ -395,6 +395,19 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		aborted = false;
 	}
 
+	@Subscribe(priority = Short.MIN_VALUE)
+	public void onProxyInitPost(ProxyInitializeEvent e) {
+		if (aborted) {
+			return;
+		}
+		for (IEaglerXServerListener listener : listenersList) {
+			if (listener.isCloneListenerEnabled()) {
+				logger().info("EaglerXServer is attempting to clone listener for: " + listener.getCloneListenerAddress());
+				VelocityUnsafe.cloneListener(proxy, listener.getCloneListenerAddress());
+			}
+		}
+	}
+
 	@Subscribe
 	public void onProxyShutdown(ProxyShutdownEvent e) {
 		if (aborted) {

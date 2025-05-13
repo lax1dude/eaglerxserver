@@ -19,6 +19,7 @@ package net.lax1dude.eaglercraft.backend.server.velocity;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.Map;
@@ -71,6 +72,7 @@ public class VelocityUnsafe {
 	private static final Field field_VelocityServer_cm;
 	private static final Class<?> class_ConnectionManager;
 	private static final Method method_ConnectionManager_getServerChannelInitializer;
+	private static final Method method_ConnectionManager_bind;
 	private static final Field field_ConnectionManager_endpoints;
 	private static final Field field_ConnectionManager_bossGroup;
 	private static final Field field_ConnectionManager_workerGroup;
@@ -116,6 +118,7 @@ public class VelocityUnsafe {
 			class_ConnectionManager = Class.forName("com.velocitypowered.proxy.network.ConnectionManager");
 			method_ConnectionManager_getServerChannelInitializer = class_ConnectionManager
 					.getMethod("getServerChannelInitializer");
+			method_ConnectionManager_bind = class_ConnectionManager.getMethod("bind", InetSocketAddress.class);
 			field_ConnectionManager_endpoints = class_ConnectionManager.getDeclaredField("endpoints");
 			field_ConnectionManager_endpoints.setAccessible(true);
 			field_ConnectionManager_bossGroup = class_ConnectionManager.getDeclaredField("bossGroup");
@@ -344,6 +347,14 @@ public class VelocityUnsafe {
 					listener.reportVelocityInjected(ch);
 				}
 			}
+		}
+	}
+
+	public static void cloneListener(ProxyServer server, SocketAddress cloneListenerAddress) {
+		try {
+			method_ConnectionManager_bind.invoke(field_VelocityServer_cm.get(server), cloneListenerAddress);
+		} catch (ReflectiveOperationException ex) {
+			throw Util.propagateReflectThrowable(ex);
 		}
 	}
 

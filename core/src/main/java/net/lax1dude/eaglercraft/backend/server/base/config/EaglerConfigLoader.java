@@ -526,9 +526,15 @@ public class EaglerConfigLoader {
 			listeners = root.loadConfig("listeners", (config) -> {
 				IEaglerConfList list = config.getList("listener_list");
 				if (!list.exists()) {
-					list.setComment("Defines the list of listeners to enable Eaglercraft support on, "
+					if (platform == EnumAdapterPlatformType.VELOCITY) {
+						list.setComment("Defines the list of listeners to enable Eaglercraft support on, "
 							+ "each listener's address must be the address of a listener you've also configured in the base "
-							+ "BungeeCord/Velocity server.");
+							+ "Velocity server, unless the listener's cloning option is also enabled.");
+					} else {
+						list.setComment("Defines the list of listeners to enable Eaglercraft support on, "
+							+ "each listener's address must be the address of a listener you've also configured in the base "
+							+ "proxy server.");
+					}
 					list.appendSection().getString("listener_name", "listener0", "The unique name to use when identifying this listener");
 				}
 				Map<String, ConfigDataListener> map = new HashMap<>();
@@ -805,11 +811,23 @@ public class EaglerConfigLoader {
 			EnumAdapterPlatformType platform, Function<String, String> secretLoader) {
 		SocketAddress injectAddress = null;
 		if (platform != EnumAdapterPlatformType.BUKKIT) {
-			injectAddress = getAddr(listener.getString(
-				"inject_address", mapDefaultListener(platform),
-				"The address of the listener to inject into, note that if no listeners with "
-				+ "this address are configured on the underlying proxy, then this entry will "
-				+ "not do anything"));
+			injectAddress = getAddr(listener.getString("inject_address", mapDefaultListener(platform),
+				platform == EnumAdapterPlatformType.VELOCITY ? "The address of the listener to inject "
+				+ "into. If this is not the same as the underlying Velocity proxy's bind address, you "
+				+ "need to enable the velocity_clone_listener option to make the server bind the "
+				+ "additional ports in ProxyInitializeEvent." : "The address of the listener to inject "
+				+ "into, note that if no listeners with this address are configured on the underlying "
+				+ "proxy, then this entry will not do anything"));
+		}
+		boolean cloneListenerEnabled = false;
+		if (platform == EnumAdapterPlatformType.VELOCITY) {
+			cloneListenerEnabled = listener.getBoolean(
+				"velocity_clone_listener", false,
+				"Default value is false, can be used to make Velocity bind an additional port besides "
+				+ "the primary bind address specified in velocity.toml. This may cause problems due "
+				+ "to the additional ports being bound early during ProxyInitializeEvent instead of "
+				+ "waiting until after the proxy has been fully initialized."
+			);
 		}
 		boolean dualStack = listener.getBoolean(
 			"dual_stack", true,
@@ -873,6 +891,13 @@ public class EaglerConfigLoader {
 			+ "HAProxy PROXY protocol header, and will automatically disable HAProxy "
 			+ "for the channel if it is not present. You must enable HAProxy on the "
 			+ "underlying BungeeCord/Velocity listener for this to work properly."
+		) : false;
+		boolean forceDisableHAProxy = platform.proxy ? listener.getBoolean(
+			"force_disable_haproxy", false,
+			"Default value is false, if HAProxy should be forcefully disabled when "
+			+ "its detected on a channel from this listener. Can be useful if the "
+			+ "underlying server does not allow disabling HAProxy on a per-listener "
+			+ "basis (like Velocity)."
 		) : false;
 		IEaglerConfSection tlsConfigSection = listener.getSection("tls_config");
 		if (!tlsConfigSection.exists()) {
@@ -1013,13 +1038,13 @@ public class EaglerConfigLoader {
 						+ "entire subnets, default value includes localhost to ensure ratelimiting is disabled by "
 						+ "default when EaglerXServer is used with nginx and caddy. If forward_ip is true, the "
 						+ "ratelimits will be applied based on the forwarded address instead of the raw socket address."));
-		return new ConfigDataListener(name, injectAddress, dualStack, forwardIp, forwardIPHeader, forwardSecret,
-				forwardSecretHeader, forwardSecretFile, forwardSecretValue, spoofPlayerAddressForwarded,
-				dualStackHAProxyDetection, enableTLS, requireTLS, tlsManagedByExternalPlugin, tlsPublicChainFile,
-				tlsPrivateKeyFile, tlsPrivateKeyPassword, tlsAutoRefreshCert, redirectLegacyClientsTo, serverIcon,
-				serverMOTD, allowMOTD, allowQuery, showMOTDPlayerList, allowCookieRevokeQuery, motdCacheTTL,
-				motdCacheAnimation, motdCacheResults, motdCacheTrending, motdCachePortfolios, limitIP, limitLogin,
-				limitMOTD, limitQuery, limitHTTP, exceptionsConfList);
+		return new ConfigDataListener(name, injectAddress, cloneListenerEnabled, dualStack, forwardIp, forwardIPHeader,
+				forwardSecret, forwardSecretHeader, forwardSecretFile, forwardSecretValue, spoofPlayerAddressForwarded,
+				dualStackHAProxyDetection, forceDisableHAProxy, enableTLS, requireTLS, tlsManagedByExternalPlugin,
+				tlsPublicChainFile, tlsPrivateKeyFile, tlsPrivateKeyPassword, tlsAutoRefreshCert,
+				redirectLegacyClientsTo, serverIcon, serverMOTD, allowMOTD, allowQuery, showMOTDPlayerList,
+				allowCookieRevokeQuery, motdCacheTTL, motdCacheAnimation, motdCacheResults, motdCacheTrending,
+				motdCachePortfolios, limitIP, limitLogin, limitMOTD, limitQuery, limitHTTP, exceptionsConfList);
 	}
 
 	private static ConfigDataListener.ConfigRateLimit loadRatelimiter(IEaglerConfSection parent, String name,

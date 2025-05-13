@@ -222,6 +222,16 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 	}
 
 	@Override
+	public boolean isCloneListenerEnabled() {
+		return listenerConf.isCloneListenerEnabled();
+	}
+
+	@Override
+	public SocketAddress getCloneListenerAddress() {
+		return listenerConf.getInjectAddress();
+	}
+
+	@Override
 	public void reportVelocityInjected(Channel channel) {
 		server.logger().info("Listener \"" + listenerConf.getListenerName() + "\" injected into channel " + channel
 				+ " successfully (Velocity method)");

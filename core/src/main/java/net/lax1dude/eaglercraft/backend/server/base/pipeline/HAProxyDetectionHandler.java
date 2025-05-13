@@ -26,15 +26,10 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 
 public class HAProxyDetectionHandler extends ByteToMessageDecoder {
 
-	private static final Class<? extends ChannelHandler> clzHAProxyHandler;
+	private final ChannelHandler handlerToRemove;
 
-	static {
-		try {
-			clzHAProxyHandler = (Class<? extends ChannelHandler>) Class
-					.forName("io.netty.handler.codec.haproxy.HAProxyMessageDecoder");
-		} catch (ClassNotFoundException ex) {
-			throw new ExceptionInInitializerError(ex);
-		}
+	public HAProxyDetectionHandler(ChannelHandler handlerToRemove) {
+		this.handlerToRemove = handlerToRemove;
 	}
 
 	@Override
@@ -68,7 +63,7 @@ public class HAProxyDetectionHandler extends ByteToMessageDecoder {
 			}
 			ChannelPipeline pipeline = ctx.pipeline();
 			if (!proxy) {
-				pipeline.remove(clzHAProxyHandler);
+				pipeline.remove(handlerToRemove);
 			}
 			ctx.fireChannelRead(BufferUtils.readRetainedSlice(in, readable));
 			pipeline.remove(this);
