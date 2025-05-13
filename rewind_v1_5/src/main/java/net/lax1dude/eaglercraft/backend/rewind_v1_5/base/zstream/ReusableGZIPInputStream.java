@@ -57,6 +57,7 @@ public class ReusableGZIPInputStream extends ReusableInflaterInputStream {
 			readHeader(dataIn);
 		}
 		start = dataIn.readerIndex();
+		remaining = limit;
 		super.setInput(dataIn);
 	}
 

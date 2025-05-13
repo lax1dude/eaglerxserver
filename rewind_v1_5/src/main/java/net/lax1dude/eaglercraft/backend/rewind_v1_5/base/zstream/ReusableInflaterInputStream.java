@@ -31,7 +31,6 @@ public class ReusableInflaterInputStream extends InputStream {
 
 	protected ByteBuf buf;
 	protected Inflater inf;
-	protected int len;
 	private boolean closed = false;
 	private boolean reachEOF = false;
 	private byte[] singleByteBuf;
@@ -108,7 +107,7 @@ public class ReusableInflaterInputStream extends InputStream {
 		}
 	}
 
-	private byte[] b = new byte[512];
+	private static final byte[] b = new byte[512];
 
 	public long skip(long n) throws IOException {
 		if (n < 0) {
