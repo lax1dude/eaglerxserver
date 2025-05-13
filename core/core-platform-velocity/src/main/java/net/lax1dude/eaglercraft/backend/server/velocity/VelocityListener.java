@@ -28,10 +28,8 @@ import com.velocitypowered.api.event.permission.PermissionsSetupEvent;
 import com.velocitypowered.api.event.player.GameProfileRequestEvent;
 import com.velocitypowered.api.event.player.ServerPostConnectEvent;
 import com.velocitypowered.api.event.player.ServerPreConnectEvent;
-import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
 import com.velocitypowered.api.event.proxy.ProxyPingEvent;
 import com.velocitypowered.api.event.query.ProxyQueryEvent;
-import com.velocitypowered.api.network.ListenerType;
 import com.velocitypowered.api.permission.PermissionSubject;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ServerConnection;
@@ -53,13 +51,6 @@ class VelocityListener {
 
 	VelocityListener(PlatformPluginVelocity plugin) {
 		this.plugin = plugin;
-	}
-
-	@Subscribe(async = false)
-	public void onListenerBound(ListenerBoundEvent bindEvent) {
-		if (bindEvent.getListenerType() == ListenerType.MINECRAFT) {
-			VelocityUnsafe.injectListenerAttr(plugin.proxy(), bindEvent.getAddress(), plugin.listenersToInit);
-		}
 	}
 
 	@Subscribe(priority = -16384, async = false)

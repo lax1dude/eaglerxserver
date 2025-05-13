@@ -19,13 +19,15 @@ package net.lax1dude.eaglercraft.backend.server.velocity;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import com.google.common.collect.ForwardingMap;
+import com.google.common.collect.ForwardingMultimap;
 import com.google.common.collect.Multimap;
+import com.velocitypowered.api.network.ListenerType;
 import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.Player;
@@ -42,6 +44,7 @@ import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
+import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import net.kyori.adventure.text.Component;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
@@ -77,6 +80,7 @@ public class VelocityUnsafe {
 	private static final Field field_TransportType_serverSocketChannelFactory;
 	private static final Class<?> class_Endpoint;
 	private static final Method method_Endpoint_getChannel;
+	private static final Method method_Endpoint_getType;
 	private static final Class<?> class_ServerChannelInitializerHolder;
 	private static final Method method_ServerChannelInitializerHolder_get;
 	private static final Method method_ServerChannelInitializerHolder_set;
@@ -128,6 +132,7 @@ public class VelocityUnsafe {
 			field_TransportType_serverSocketChannelFactory.setAccessible(true);
 			class_Endpoint = Class.forName("com.velocitypowered.proxy.network.Endpoint");
 			method_Endpoint_getChannel = class_Endpoint.getMethod("getChannel");
+			method_Endpoint_getType = class_Endpoint.getMethod("getType");
 			class_ServerChannelInitializerHolder = Class
 					.forName("com.velocitypowered.proxy.network.ServerChannelInitializerHolder");
 			method_ServerChannelInitializerHolder_get = class_ServerChannelInitializerHolder.getMethod("get");
@@ -224,7 +229,9 @@ public class VelocityUnsafe {
 
 	}
 
-	public static Runnable injectChannelInitializer(ProxyServer server, IListenerInitHandler initHandler) {
+	@SuppressWarnings("unchecked")
+	public static Runnable injectChannelInitializer(ProxyServer server,
+			Collection<IEaglerXServerListener> listenersList, IListenerInitHandler initHandler) {
 		try {
 			Object cm = field_VelocityServer_cm.get(server);
 			Object holder = method_ConnectionManager_getServerChannelInitializer.invoke(cm);
@@ -245,6 +252,7 @@ public class VelocityUnsafe {
 				}
 			});
 			method_ServerChannelInitializerHolder_set.invoke(holder, impl);
+			injectListenerAttrs(cm, new ListenerInitList(listenersList));
 			return () -> {
 				impl.impl = (ch) -> {
 					try {
@@ -268,32 +276,74 @@ public class VelocityUnsafe {
 		}
 	}
 
-	public static void injectListenerAttr(ProxyServer server, InetSocketAddress address,
-			ListenerInitList listenersToInit) {
-		try {
-			Object cm = field_VelocityServer_cm.get(server);
-			Object obj = field_ConnectionManager_endpoints.get(cm);
-			Object endpoint;
-			if (obj instanceof Multimap) {
-				Collection<Object> endpoints = ((Multimap<InetSocketAddress, Object>) obj).get(address);
-				if (!endpoints.isEmpty()) {
-					endpoint = endpoints.iterator().next();
-				} else {
-					endpoint = null;
-				}
-			} else {
-				endpoint = ((Map<InetSocketAddress, Object>) obj).get(address);
+	@SuppressWarnings("rawtypes")
+	public static void injectListenerAttrs(Object cm, ListenerInitList initList) throws ReflectiveOperationException {
+		Object obj = field_ConnectionManager_endpoints.get(cm);
+		if (obj instanceof Multimap) {
+			Multimap impl = (Multimap) obj;
+			for (Object endpoint : impl.values()) {
+				injectListenerAttr(endpoint, initList);
 			}
-			if (endpoint != null) {
-				IEaglerXServerListener listener = listenersToInit.offer(address);
-				if (listener != null) {
-					Channel ch = (Channel) method_Endpoint_getChannel.invoke(endpoint);
-					ch.attr(EAGLER_LISTENER).set(listener);
+			obj = new ForwardingMultimap() {
+				@Override
+				protected Multimap delegate() {
+					return impl;
+				}
+				@Override
+				@SuppressWarnings("unchecked")
+				public boolean put(Object key, Object value) {
+					if (super.put(key, value)) {
+						try {
+							injectListenerAttr(value, initList);
+						} catch (ReflectiveOperationException e) {
+							throw Util.propagateReflectThrowable(e);
+						}
+						return true;
+					} else {
+						return false;
+					}
+				}
+			};
+		} else {
+			Map impl = (Map) obj;
+			for (Object endpoint : impl.values()) {
+				injectListenerAttr(endpoint, initList);
+			}
+			obj = new ForwardingMap() {
+				@Override
+				protected Map delegate() {
+					return impl;
+				}
+				@Override
+				@SuppressWarnings("unchecked")
+				public Object put(Object key, Object value) {
+					Object r = super.put(key, value);
+					if (r != value) {
+						try {
+							injectListenerAttr(value, initList);
+						} catch (ReflectiveOperationException e) {
+							throw Util.propagateReflectThrowable(e);
+						}
+					}
+					return r;
+				}
+			};
+		}
+		field_ConnectionManager_endpoints.set(cm, obj);
+	}
+
+	private static void injectListenerAttr(Object endpoint, ListenerInitList listenersToInit)
+			throws ReflectiveOperationException {
+		ListenerType type = (ListenerType) method_Endpoint_getType.invoke(endpoint);
+		if (type == ListenerType.MINECRAFT) {
+			Channel ch = (Channel) method_Endpoint_getChannel.invoke(endpoint);
+			IEaglerXServerListener listener = listenersToInit.offer(ch.localAddress());
+			if (listener != null) {
+				Attribute<IEaglerXServerListener> attr = ch.attr(EAGLER_LISTENER);
+				if (attr.getAndSet(listener) != listener) {
 					listener.reportVelocityInjected(ch);
 				}
 			}
-		} catch (ReflectiveOperationException e) {
-			throw Util.propagateReflectThrowable(e);
 		}
 	}
 

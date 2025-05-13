@@ -94,7 +94,6 @@ import net.lax1dude.eaglercraft.backend.server.api.velocity.EaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServerVersion;
 import net.lax1dude.eaglercraft.backend.server.config.EnumConfigFormat;
-import net.lax1dude.eaglercraft.backend.server.util.ListenerInitList;
 import net.lax1dude.eaglercraft.backend.server.velocity.chat.VelocityComponentHelper;
 import net.lax1dude.eaglercraft.backend.server.velocity.event.VelocityEventDispatchAdapter;
 
@@ -168,8 +167,6 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 
 	private final ConcurrentMap<Player, VelocityPlayer> playerInstanceMap = (new MapMaker()).initialCapacity(1024)
 			.concurrencyLevel(16).makeMap();
-
-	protected ListenerInitList listenersToInit = null;
 
 	@Inject
 	public PlatformPluginVelocity(ProxyServer proxyIn, Logger loggerIn, @DataDirectory Path dataDirIn) {
@@ -289,7 +286,6 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		}
 		aborted = true; // Will set to false if onProxyInit completes normally
 		proxy.getEventManager().register(this, new VelocityListener(this));
-		listenersToInit = new ListenerInitList(listenersList);
 		registeredCommandsList.clear();
 		for (IEaglerXServerCommandType<Player> cmd : commandsList) {
 			registeredCommandsList.add((new VelocityCommand(this, cmd)).register());
@@ -309,7 +305,7 @@ public class PlatformPluginVelocity implements IPlatform<Player> {
 		registeredChannels = registeredChannelsMap.keySet()
 				.toArray(new ChannelIdentifier[registeredChannelsMap.size()]);
 		proxy.getChannelRegistrar().register(registeredChannels);
-		VelocityUnsafe.injectChannelInitializer(proxy, (listenerConf, channel) -> {
+		VelocityUnsafe.injectChannelInitializer(proxy, listenersList, (listenerConf, channel) -> {
 			if (!channel.isActive()) {
 				return;
 			}
