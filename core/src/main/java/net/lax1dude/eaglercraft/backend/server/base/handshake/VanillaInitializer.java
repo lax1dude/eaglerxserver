@@ -106,11 +106,12 @@ public class VanillaInitializer {
 			int pktId = BufferUtils.readVarInt(msg, 3);
 			if (connectionState == STATE_PRE) {
 				if (pktId == 0x00) {
+					// S00PacketDisconnect
 					handleKickPacket(ctx, msg);
 				} else if (pktId == 0x01) {
-					inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
-					pipelineData.connectionLogger.error(
-							"Disconnecting, server tried to enable online mode encryption, please make sure the server is not in online mode");
+					// S01PacketEncryptionRequest
+					inboundHandler.terminateErrorCode(ctx, pipelineData.handshakeProtocol,
+							HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE, HandshakePacketTypes.MSG_ONLINE_MODE);
 				} else {
 					inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
 					pipelineData.connectionLogger.error("Disconnecting, server sent unexpected packet " + pktId);
@@ -123,9 +124,8 @@ public class VanillaInitializer {
 					break;
 				case 0x01:
 					// S01PacketEncryptionRequest
-					inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
-					pipelineData.connectionLogger.error(
-							"Disconnecting, server tried to enable online mode encryption, please make sure the server is not in online mode");
+					inboundHandler.terminateErrorCode(ctx, pipelineData.handshakeProtocol,
+							HandshakePacketTypes.SERVER_ERROR_CUSTOM_MESSAGE, HandshakePacketTypes.MSG_ONLINE_MODE);
 					break;
 				case 0x02:
 					connectionState = STATE_STALLING;
