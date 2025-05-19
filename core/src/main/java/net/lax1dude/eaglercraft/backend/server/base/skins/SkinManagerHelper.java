@@ -34,7 +34,7 @@ class SkinManagerHelper {
 			server.forEachPlayer((player) -> {
 				EaglerPlayerInstance<PlayerObject> playerObj = player
 						.<BasePlayerInstance<PlayerObject>>getPlayerAttachment().asEaglerPlayer();
-				if (playerObj != null && playerObj != playerIn) {
+				if (playerObj != null && playerObj != playerIn && playerObj.getEaglerProtocol().ver >= 4) {
 					playerObj.sendEaglerMessage(invalidatePacket);
 				}
 			});
