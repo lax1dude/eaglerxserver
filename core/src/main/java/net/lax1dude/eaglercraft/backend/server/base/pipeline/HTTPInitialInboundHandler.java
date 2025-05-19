@@ -110,8 +110,8 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 					}
 				}
 
-				if (headers.containsValue("connection", "upgrade", true)
-						&& headers.containsValue("upgrade", "websocket", false)) {
+				if (HTTPMessageUtils.containsValue(headers, "connection", "upgrade", true)
+						&& HTTPMessageUtils.containsValue(headers, "upgrade", "websocket", false)) {
 					pipelineData.initStall = true;
 					handleWebSocket(ctx, pipelineData, msg);
 					return;

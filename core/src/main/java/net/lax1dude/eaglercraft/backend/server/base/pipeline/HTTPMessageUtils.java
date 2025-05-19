@@ -32,6 +32,7 @@ import io.netty.handler.codec.http.HttpVersion;
 public class HTTPMessageUtils {
 
 	private static final boolean IS_NEW_NAMES;
+	private static final boolean IS_CONTAINS_VALUE;
 
 	static {
 		boolean b = false;
@@ -41,6 +42,12 @@ public class HTTPMessageUtils {
 		} catch (ReflectiveOperationException ex) {
 		}
 		IS_NEW_NAMES = b;
+		try {
+			HttpHeaders.class.getMethod("containsValue", CharSequence.class, CharSequence.class, boolean.class);
+			b = true;
+		} catch (ReflectiveOperationException ex) {
+		}
+		IS_CONTAINS_VALUE = b;
 	}
 
 	public static HttpVersion getProtocolVersion(HttpMessage msg) {
@@ -96,6 +103,31 @@ public class HTTPMessageUtils {
 			return Iterables.concat(Iterables.transform(ret, APPLY_SPLITTER));
 		} else {
 			return ret;
+		}
+	}
+
+	public static boolean containsValue(HttpHeaders headers, CharSequence name, CharSequence value,
+			boolean ignoreCase) {
+		if (IS_CONTAINS_VALUE) {
+			return headers.containsValue(name, value, ignoreCase);
+		} else {
+			// Will probably only do this on Spigot 1.8
+			String val = value.toString();
+			Iterable<String> itr = getAllValues(headers, name);
+			if (ignoreCase) {
+				for (String str : itr) {
+					if (str.equalsIgnoreCase(val)) {
+						return true;
+					}
+				}
+			} else {
+				for (String str : itr) {
+					if (str.equals(val)) {
+						return true;
+					}
+				}
+			}
+			return false;
 		}
 	}
 
