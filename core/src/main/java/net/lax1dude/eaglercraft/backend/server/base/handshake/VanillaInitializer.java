@@ -83,6 +83,8 @@ public class VanillaInitializer {
 			return;
 		}
 
+		connectionState = STATE_SENT_LOGIN;
+
 		// C00PacketLoginStart
 		buffer = ctx.alloc().buffer();
 		try {
@@ -96,8 +98,6 @@ public class VanillaInitializer {
 		if (inboundHandler.terminated || !ctx.channel().isActive()) {
 			return;
 		}
-
-		connectionState = STATE_SENT_LOGIN;
 	}
 
 	public void handleInbound(ChannelHandlerContext ctx, ByteBuf msg) {
