@@ -24,8 +24,10 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformPlayer;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
+import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakePacketTypes;
 import net.lax1dude.eaglercraft.backend.server.bungee.PlatformPluginBungee.PluginMessageHandler;
 import net.md_5.bungee.api.ServerPing;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.Connection;
 import net.md_5.bungee.api.connection.PendingConnection;
@@ -57,8 +59,15 @@ public class BungeeListener implements Listener {
 		Channel channel = BungeeUnsafe.getInitialHandlerChannel(conn);
 		Attribute<IPipelineData> attr = channel.attr(PipelineAttributes.<IPipelineData>pipelineData());
 		IPipelineData pipelineData = attr.get();
-		if (pipelineData != null && pipelineData.isCompressionDisable()) {
-			BungeeUnsafe.injectCompressionDisable(conn);
+		if (pipelineData != null) {
+			if (pipelineData.isEaglerPlayer() && conn.isOnlineMode()) {
+				// avoid processing eagler players in a bad state...
+				event.setReason(new TextComponent(HandshakePacketTypes.MSG_ONLINE_MODE));
+				event.setCancelled(true);
+				return;
+			} else if (pipelineData.isCompressionDisable()) {
+				BungeeUnsafe.injectCompressionDisable(conn);
+			}
 		}
 		BungeeLoginData loginData = new BungeeLoginData(pipelineData, conn);
 		attr.set(loginData);
