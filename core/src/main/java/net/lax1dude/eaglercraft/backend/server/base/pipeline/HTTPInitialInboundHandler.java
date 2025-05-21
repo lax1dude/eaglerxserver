@@ -145,7 +145,9 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 		pipeline.replace(PipelineTransformer.HANDLER_HTTP_INITIAL, PipelineTransformer.HANDLER_WS_INITIAL,
 				WebSocketInitialHandler.INSTANCE);
 		pipeline.addBefore(PipelineTransformer.HANDLER_WS_INITIAL, PipelineTransformer.HANDLER_WS_PING,
-				new WebSocketPingFrameHandler());
+				pipelineData.server.getConfig().getSettings().getHTTPWebSocketPingIntervention()
+						? new WebSocketActivePingFrameHandler(pipelineData.idleStateHandler)
+						: new WebSocketPingFrameHandler(pipelineData.idleStateHandler));
 
 		IEventDispatchAdapter<?, ?> dispatch = pipelineData.server.eventDispatcher();
 		msg.retain();
@@ -197,11 +199,11 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 			throws Exception {
 		ChannelPipeline pipeline = ctx.pipeline();
 		pipelineData.server.getPipelineTransformer().removeVanillaHandlers(pipeline);
+		pipeline.remove(PipelineTransformer.HANDLER_HTTP_INITIAL);
 		pipeline.addLast(PipelineTransformer.HANDLER_HTTP,
 				new HTTPRequestInboundHandler(pipelineData.server, pipelineData));
 		pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_STATE_HTTP_REQUEST);
 		ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
-		pipeline.remove(PipelineTransformer.HANDLER_HTTP_INITIAL);
 	}
 
 	static boolean recheckRatelimitAddress(ChannelHandlerContext ctx, NettyPipelineData pipelineData,

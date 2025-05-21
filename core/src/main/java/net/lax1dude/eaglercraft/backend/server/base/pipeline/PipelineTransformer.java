@@ -34,7 +34,7 @@ import io.netty.handler.codec.http.websocketx.extensions.WebSocketServerExtensio
 import io.netty.handler.codec.http.websocketx.extensions.compression.DeflateFrameServerExtensionHandshaker;
 import io.netty.handler.codec.http.websocketx.extensions.compression.PerMessageDeflateServerExtensionHandshaker;
 import io.netty.handler.ssl.SslHandler;
-import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineComponent.EnumPipelineComponent;
 import net.lax1dude.eaglercraft.backend.server.api.EnumPlatformType;
@@ -166,6 +166,10 @@ public class PipelineTransformer {
 					}
 					before = comp.getName();
 				}
+				if (comp.getIdentifiedType() == EnumPipelineComponent.READ_TIMEOUT_HANDLER
+						&& comp.getHandle() instanceof IdleStateHandler idleStateHandler) {
+					pipelineData.idleStateHandler = idleStateHandler;
+				}
 			}
 		}
 		if (bungeeHack != null) {
@@ -222,6 +226,10 @@ public class PipelineTransformer {
 					} else {
 						haproxy = comp;
 					}
+				}
+				if (comp.getIdentifiedType() == EnumPipelineComponent.READ_TIMEOUT_HANDLER
+						&& comp.getHandle() instanceof IdleStateHandler idleStateHandler) {
+					pipelineData.idleStateHandler = idleStateHandler;
 				}
 			}
 		}
@@ -291,7 +299,7 @@ public class PipelineTransformer {
 				while (keyItr.hasNext()) {
 					nm = keyItr.next();
 					ChannelHandler handler = pipeline.get(nm);
-					if (!(handler instanceof ReadTimeoutHandler)) {
+					if (!(handler instanceof IdleStateHandler)) {
 						try {
 							pipeline.remove(nm);
 						} catch (NoSuchElementException ex) {

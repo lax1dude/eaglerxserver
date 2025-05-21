@@ -418,6 +418,7 @@ public class ConfigDataSettings {
 	private final int httpWebSocketCompressionLevel;
 	private final int httpWebSocketFragmentSize;
 	private final int httpWebSocketMaxFrameLength;
+	private final boolean httpWebSocketPingIntervention;
 	private final int tlsCertRefreshRate;
 	private final boolean enableAuthenticationEvents;
 	private final boolean enableBackendRPCAPI;
@@ -437,13 +438,13 @@ public class ConfigDataSettings {
 
 	public ConfigDataSettings(String serverName, UUID serverUUID, int eaglerLoginTimeout, int httpMaxInitialLineLength,
 			int httpMaxHeaderSize, int httpMaxChunkSize, int httpMaxContentLength, int httpWebSocketCompressionLevel,
-			int httpWebSocketFragmentSize, int httpWebSocketMaxFrameLength, int tlsCertRefreshRate,
-			boolean enableAuthenticationEvents, boolean enableBackendRPCAPI, boolean useModernizedChannelNames,
-			int eaglerPlayersViewDistance, String eaglerPlayersVanillaSkin, boolean enableIsEaglerPlayerPropery,
-			int protocolV4DefragSendDelay, int brandLookupRatelimit, int webviewDownloadRatelimit,
-			int webviewMessageRatelimit, ConfigDataProtocols protocols, ConfigDataSkinService skinService,
-			ConfigDataVoiceService voiceService, ConfigDataUpdateService updateService,
-			ConfigDataUpdateChecker updateChecker) {
+			int httpWebSocketFragmentSize, int httpWebSocketMaxFrameLength, boolean httpWebSocketPingIntervention,
+			int tlsCertRefreshRate, boolean enableAuthenticationEvents, boolean enableBackendRPCAPI,
+			boolean useModernizedChannelNames, int eaglerPlayersViewDistance, String eaglerPlayersVanillaSkin,
+			boolean enableIsEaglerPlayerPropery, int protocolV4DefragSendDelay, int brandLookupRatelimit,
+			int webviewDownloadRatelimit, int webviewMessageRatelimit, ConfigDataProtocols protocols,
+			ConfigDataSkinService skinService, ConfigDataVoiceService voiceService,
+			ConfigDataUpdateService updateService, ConfigDataUpdateChecker updateChecker) {
 		this.serverName = serverName;
 		this.serverUUID = serverUUID;
 		this.serverUUIDString = serverUUID.toString();
@@ -455,6 +456,7 @@ public class ConfigDataSettings {
 		this.httpWebSocketCompressionLevel = httpWebSocketCompressionLevel;
 		this.httpWebSocketFragmentSize = httpWebSocketFragmentSize;
 		this.httpWebSocketMaxFrameLength = httpWebSocketMaxFrameLength;
+		this.httpWebSocketPingIntervention = httpWebSocketPingIntervention;
 		this.tlsCertRefreshRate = tlsCertRefreshRate;
 		this.enableAuthenticationEvents = enableAuthenticationEvents;
 		this.enableBackendRPCAPI = enableBackendRPCAPI;
@@ -515,6 +517,10 @@ public class ConfigDataSettings {
 
 	public int getHTTPWebSocketMaxFrameLength() {
 		return httpWebSocketMaxFrameLength;
+	}
+
+	public boolean getHTTPWebSocketPingIntervention() {
+		return httpWebSocketPingIntervention;
 	}
 
 	public int getTLSCertRefreshRate() {

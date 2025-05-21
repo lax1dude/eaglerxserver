@@ -73,8 +73,8 @@ public class WebSocketInitialHandler extends ChannelInboundHandlerAdapter {
 				}
 				ChannelPipeline pipeline = ctx.pipeline();
 				pipelineData.server.getPipelineTransformer().removeVanillaHandlers(pipeline);
-				pipeline.replace(PipelineTransformer.HANDLER_WS_INITIAL, PipelineTransformer.HANDLER_QUERY,
-						new WebSocketQueryHandler(pipelineData.server, pipelineData));
+				pipeline.remove(PipelineTransformer.HANDLER_WS_INITIAL);
+				pipeline.addLast(PipelineTransformer.HANDLER_QUERY, new WebSocketQueryHandler(pipelineData.server, pipelineData));
 				pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_STATE_WEBSOCKET_QUERY);
 				ctx.fireChannelRead(msg2.retain());
 			} else {

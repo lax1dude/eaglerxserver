@@ -37,6 +37,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.timeout.IdleStateHandler;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPipelineData;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformSubLogger;
 import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformTask;
@@ -97,6 +98,7 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	public final Consumer<SocketAddress> realAddressHandle;
 	public SocketAddress realSocketAddressInstance;
 	public CompoundRateLimiterMap.ICompoundRatelimits rateLimits;
+	public IdleStateHandler idleStateHandler;
 	public boolean initStall;
 
 	public EaglerListener listenerInfo;

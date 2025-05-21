@@ -113,6 +113,14 @@ public class EaglerConfigLoader {
 				"http_websocket_max_frame_length", 2097151,
 				"Default value is 2097151, sets the max size for websocket frames"
 			);
+			boolean httpWebSocketPingIntervention = config.getBoolean(
+				"http_websocket_ping_intervention", false,
+				"Default value is false, can be used to make EaglerXServer \"intervene\" when "
+				+ "it detects a connection about to time out due to inactivity, by sending a "
+				+ "WebSocket ping frame to try and get a response from the client. Chrome has "
+				+ "been shown to ignore WebSocket ping frames on an inactive tab, so this "
+				+ "won't do anything to prevent the game from timing out when switching tabs."
+			);
 			int tlsCertRefreshRate = config.getInteger(
 				"tls_certificate_refresh_rate", 60,
 				"Default value is 60, how often in seconds to check if any listener TLS "
@@ -463,8 +471,8 @@ public class EaglerConfigLoader {
 			) : false;
 			return new ConfigDataSettings(serverName, serverUUID, eaglerLoginTimeout, httpMaxInitialLineLength,
 					httpMaxHeaderSize, httpMaxChunkSize, httpMaxContentLength, httpWebSocketCompressionLevel,
-					httpWebSocketFragmentSize, httpWebSocketMaxFrameLength, tlsCertRefreshRate,
-					enableAuthenticationEvents, enableBackendRPCAPI, useModernizedChannelNames,
+					httpWebSocketFragmentSize, httpWebSocketMaxFrameLength, httpWebSocketPingIntervention,
+					tlsCertRefreshRate, enableAuthenticationEvents, enableBackendRPCAPI, useModernizedChannelNames,
 					eaglerPlayersViewDistance, eaglerPlayersVanillaSkin, enableIsEaglerPlayerProperty,
 					protocolV4DefragSendDelay, brandLookupRatelimit, webviewDownloadRatelimit, webviewMessageRatelimit,
 					new ConfigDataSettings.ConfigDataProtocols(minMinecraftProtocol, maxMinecraftProtocol,
