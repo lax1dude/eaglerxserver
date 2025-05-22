@@ -77,7 +77,7 @@ public class EaglerXSupervisorServer implements Runnable {
 	private static final Logger logger = LoggerFactory.getLogger("EaglerXSupervisorServer");
 
 	private static final String serverBrand = "EaglercraftXSupervisor";
-	private static final String serverVersion = "1.0.0";
+	private static final String serverVersion = "1.0.1";
 
 	private static final File configFile = new File("supervisor_config.properties");
 	private final EaglerXSupervisorConfig config = new EaglerXSupervisorConfig();
