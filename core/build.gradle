@@ -8,6 +8,7 @@ configurations {
 	platformBukkit
 	platformBungee
 	platformVelocity
+	sqliteDriver
 }
 
 dependencies {
@@ -27,6 +28,18 @@ dependencies {
 	compileOnly(libs.guava)
 	compileOnly(libs.slf4j)
 	compileOnly(libs.skinsrestorer.api)
+	sqliteDriver project(":skin-cache:sqlite-jdbc-jar")
+}
+
+def embedSQLiteJar(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar taskIn) {
+	taskIn.dependsOn ":skin-cache:sqlite-jdbc-jar:jar"
+	configurations.sqliteDriver.each {
+		def phile = it
+		taskIn.from(phile.parentFile.absolutePath) {
+			include phile.name
+			rename phile.name, "net/lax1dude/eaglercraft/backend/skin_cache/libs/sqlite-jdbc.library"
+		}
+	}
 }
 
 tasks.named("shadowJar", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
@@ -38,6 +51,7 @@ tasks.named("shadowJar", com.github.jengelman.gradle.plugins.shadow.tasks.Shadow
 		project.configurations.platformBungee,
 		project.configurations.platformVelocity
 	]
+	embedSQLiteJar(it)
 	archiveFileName = "EaglerXServer.jar"
 	relocate "org.objectweb.asm", "net.lax1dude.eaglercraft.backend.server.libs.asm"
 }
@@ -49,6 +63,7 @@ tasks.register("shadowJarBukkit", com.github.jengelman.gradle.plugins.shadow.tas
 		project.configurations.runtimeClasspath,
 		project.configurations.platformBukkit
 	]
+	embedSQLiteJar(it)
 	archiveFileName = "EaglerXServer-Bukkit.jar"
 	relocate "org.objectweb.asm", "net.lax1dude.eaglercraft.backend.server.libs.asm"
 }
@@ -60,6 +75,7 @@ tasks.register("shadowJarBungee", com.github.jengelman.gradle.plugins.shadow.tas
 		project.configurations.runtimeClasspath,
 		project.configurations.platformBungee
 	]
+	embedSQLiteJar(it)
 	archiveFileName = "EaglerXServer-Bungee.jar"
 	relocate "org.objectweb.asm", "net.lax1dude.eaglercraft.backend.server.libs.asm"
 }
@@ -71,6 +87,7 @@ tasks.register("shadowJarVelocity", com.github.jengelman.gradle.plugins.shadow.t
 		project.configurations.runtimeClasspath,
 		project.configurations.platformVelocity
 	]
+	embedSQLiteJar(it)
 	archiveFileName = "EaglerXServer-Velocity.jar"
 	relocate "org.objectweb.asm", "net.lax1dude.eaglercraft.backend.server.libs.asm"
 }

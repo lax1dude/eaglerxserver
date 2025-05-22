@@ -45,16 +45,17 @@ public class EaglerDrivers {
 				if (address.equalsIgnoreCase("internal")) {
 					driver = new File(baseFolder, "drivers/sqlite-jdbc.jar");
 					driver.getParentFile().mkdirs();
-					if (!driver.exists()) {
-						try {
-							URL u = new URL(
-									"https://repo1.maven.org/maven2/org/xerial/sqlite-jdbc/3.48.0.0/sqlite-jdbc-3.48.0.0.jar");
-							logger.info("Downloading from maven: " + u);
-							copyURLToFile(u, driver);
-						} catch (Throwable ex) {
-							logger.error("Could not download sqlite-jdbc.jar from repo1.maven.org!");
-							logger.error("Please download \"org.xerial:sqlite-jdbc:3.48.0.0\" jar to file: "
-									+ driver.getAbsolutePath());
+					if (!driver.isFile()) {
+						try (InputStream is = EaglerDrivers.class.getResourceAsStream(
+									"/net/lax1dude/eaglercraft/backend/skin_cache/libs/sqlite-jdbc.library")) {
+							if (is == null) {
+								throw new IOException(
+										"Missing classpath resource: net/lax1dude/eaglercraft/backend/skin_cache/libs/sqlite-jdbc.library");
+							}
+							try (OutputStream os = new FileOutputStream(driver)) {
+								is.transferTo(os);
+							}
+						} catch (IOException ex) {
 							throw new ExceptionInInitializerError(ex);
 						}
 					}
@@ -117,15 +118,4 @@ public class EaglerDrivers {
 		}
 	}
 
-	private static void copyURLToFile(URL url, File file) throws IOException {
-		try (InputStream is = url.openStream()) {
-			try (OutputStream os = new FileOutputStream(file)) {
-				byte[] buf = new byte[32768];
-				int i;
-				while ((i = is.read(buf)) != -1) {
-					os.write(buf, 0, i);
-				}
-			}
-		}
-	}
 }

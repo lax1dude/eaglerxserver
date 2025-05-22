@@ -1,0 +1,31 @@
+
+plugins {
+	id "java"
+}
+
+configurations {
+	sqliteDriver
+}
+
+dependencies {
+	sqliteDriver(libs.jdbc.sqlite)
+}
+
+jar {
+	entryCompression = ZipEntryCompression.STORED
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	from {
+		configurations.sqliteDriver.collect { it.isDirectory() ? it : zipTree(it) }
+	}
+	exclude "org/sqlite/native/FreeBSD/x86/*"
+	exclude "org/sqlite/native/Linux/arm/*"
+	exclude "org/sqlite/native/Linux/armv6/*"
+	exclude "org/sqlite/native/Linux/ppc64/*"
+	exclude "org/sqlite/native/Linux/riscv64/*"
+	exclude "org/sqlite/native/Linux/x86/*"
+	exclude "org/sqlite/native/Linux-Android/x86/*"
+	exclude "org/sqlite/native/Linux-Android/x86_64/*"
+	exclude "org/sqlite/native/Linux-Musl/x86/*"
+	exclude "org/sqlite/native/Windows/armv7/*"
+	exclude "org/sqlite/native/Windows/x86/*"
+}

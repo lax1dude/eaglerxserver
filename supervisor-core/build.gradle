@@ -4,6 +4,10 @@ plugins {
 	id "com.gradleup.shadow" version "8.3.6"
 }
 
+configurations {
+	sqliteDriver
+}
+
 dependencies {
 	implementation project(":supervisor-protocol")
 	implementation project(":skin-cache")
@@ -12,13 +16,26 @@ dependencies {
 	implementation(libs.slf4j)
 	implementation(libs.bundles.netty.supervisor)
 	runtimeOnly(libs.logback)
+	sqliteDriver project(":skin-cache:sqlite-jdbc-jar")
 }
 
 application {
 	mainClass = "net.lax1dude.eaglercraft.backend.supervisor.EaglerXSupervisorServer"
 }
 
+def embedSQLiteJar(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar taskIn) {
+	taskIn.dependsOn ":skin-cache:sqlite-jdbc-jar:jar"
+	configurations.sqliteDriver.each {
+		def phile = it
+		taskIn.from(phile.parentFile.absolutePath) {
+			include phile.name
+			rename phile.name, "net/lax1dude/eaglercraft/backend/skin_cache/libs/sqlite-jdbc.library"
+		}
+	}
+}
+
 tasks.named("shadowJar", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+	embedSQLiteJar(it)
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	archiveFileName = "EaglerXSupervisor.jar"
 }

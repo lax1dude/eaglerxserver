@@ -32,6 +32,7 @@ hppc = "com.carrotsearch:hppc:0.10.0"
 jsr305 = "com.google.code.findbugs:jsr305:3.0.2"
 skinsrestorer-api = "net.skinsrestorer:skinsrestorer-api:15.3.1"
 asm = "org.ow2.asm:asm:9.8"
+jdbc-sqlite = "org.xerial:sqlite-jdbc:3.49.1.0"
 
 [bundles]
 netty-all = [
