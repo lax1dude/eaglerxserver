@@ -28,7 +28,7 @@ public class RewindMessageControllerImpl extends MessageController {
 
 	public RewindMessageControllerImpl(RewindMessageControllerHandle handle, GamePluginMessageProtocol protocol,
 			GameMessageHandler handler, IExceptionCallback exceptionHandler) {
-		super(protocol, handler, exceptionHandler, null, -1);
+		super(protocol, handler, exceptionHandler, null, -1, 0);
 		this.handle = handle;
 		this.handle.impl = this;
 	}

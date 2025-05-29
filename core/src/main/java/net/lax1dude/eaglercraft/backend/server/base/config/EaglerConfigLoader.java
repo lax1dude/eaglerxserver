@@ -180,6 +180,18 @@ public class EaglerConfigLoader {
 				+ "the same effect on clientbound packets as setting eaglerNoDelay to true does "
 				+ "on a post-u37 client for all serverbound packets."
 			);
+			int protocolV4DefragMaxPackets = config.getInteger(
+				"protocol_v4_defrag_max_packets", 64,
+				"Default value is 64, sets the maximum number of EaglercraftX plugin messages "
+				+ "that a client can send in a single plugin message packet. The server will "
+				+ "attempt to forward this parameter to V5+ clients joining the server so that "
+				+ "they don't accidentally exceed it, but outdated clients will just ignore it. "
+				+ "Therefore, any extra packets in an oversized multi-packet are currently "
+				+ "just ignored without raising an exception to avoid kicking outdated clients."
+			);
+			if (protocolV4DefragMaxPackets < 1) {
+				protocolV4DefragMaxPackets = 1;
+			}
 			int brandLookupRatelimit = config.getInteger(
 				"brand_lookup_ratelimit", 240,
 				"Default value is 240, sets the rate limit per minute for client brand lookup requests."
@@ -474,7 +486,7 @@ public class EaglerConfigLoader {
 					httpWebSocketFragmentSize, httpWebSocketMaxFrameLength, httpWebSocketPingIntervention,
 					tlsCertRefreshRate, enableAuthenticationEvents, enableBackendRPCAPI, useModernizedChannelNames,
 					eaglerPlayersViewDistance, eaglerPlayersVanillaSkin, enableIsEaglerPlayerProperty,
-					protocolV4DefragSendDelay, brandLookupRatelimit, webviewDownloadRatelimit, webviewMessageRatelimit,
+					protocolV4DefragSendDelay, protocolV4DefragMaxPackets, brandLookupRatelimit, webviewDownloadRatelimit, webviewMessageRatelimit,
 					new ConfigDataSettings.ConfigDataProtocols(minMinecraftProtocol, maxMinecraftProtocol,
 							maxMinecraftProtocolV5, eaglerXRewindAllowed, protocolLegacyAllowed, protocolV3Allowed,
 							protocolV4Allowed, protocolV5Allowed),

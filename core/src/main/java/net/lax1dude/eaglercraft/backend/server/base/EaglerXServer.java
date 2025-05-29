@@ -532,8 +532,8 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 			playerInstance.backendRPCManager = backendRPCService.createEaglerPlayerRPCManager(playerInstance);
 		}
 
+		int ver = playerInstance.getEaglerProtocol().ver;
 		if (config.getSettings().isEnableIsEaglerPlayerProperty()) {
-			int ver = playerInstance.getEaglerProtocol().ver;
 			if (ver >= 5) {
 				playerInstance.sendEaglerMessage(new SPacketClientStateFlagV5EAG(
 						ClientStateFlagUUIDs.EAGLER_PLAYER_FLAG_PRESENT.getMostSignificantBits(),
@@ -549,12 +549,18 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 		}
 
 		if (!skinService.isSkinDownloadEnabled()) {
-			int ver = playerInstance.getEaglerProtocol().ver;
 			if (ver >= 5) {
 				playerInstance.sendEaglerMessage(new SPacketClientStateFlagV5EAG(
 						ClientStateFlagUUIDs.DISABLE_SKIN_URL_LOOKUP.getMostSignificantBits(),
 						ClientStateFlagUUIDs.DISABLE_SKIN_URL_LOOKUP.getLeastSignificantBits(), 1));
 			}
+		}
+
+		if (ver >= 5) {
+			playerInstance.sendEaglerMessage(new SPacketClientStateFlagV5EAG(
+					ClientStateFlagUUIDs.SET_MAX_MULTI_PACKET.getMostSignificantBits(),
+					ClientStateFlagUUIDs.SET_MAX_MULTI_PACKET.getLeastSignificantBits(),
+					config.getSettings().getProtocolV4DefragMaxPackets()));
 		}
 
 		skinService.createEaglerSkinManager(playerInstance, profileData, (mgr) -> {

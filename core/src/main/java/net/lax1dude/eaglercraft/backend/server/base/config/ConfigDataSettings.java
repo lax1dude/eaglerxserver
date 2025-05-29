@@ -427,6 +427,7 @@ public class ConfigDataSettings {
 	private final String eaglerPlayersVanillaSkin;
 	private final boolean enableIsEaglerPlayerPropery;
 	private final int protocolV4DefragSendDelay;
+	private final int protocolV4DefragMaxPackets;
 	private final int brandLookupRatelimit;
 	private final int webviewDownloadRatelimit;
 	private final int webviewMessageRatelimit;
@@ -441,9 +442,9 @@ public class ConfigDataSettings {
 			int httpWebSocketFragmentSize, int httpWebSocketMaxFrameLength, boolean httpWebSocketPingIntervention,
 			int tlsCertRefreshRate, boolean enableAuthenticationEvents, boolean enableBackendRPCAPI,
 			boolean useModernizedChannelNames, int eaglerPlayersViewDistance, String eaglerPlayersVanillaSkin,
-			boolean enableIsEaglerPlayerPropery, int protocolV4DefragSendDelay, int brandLookupRatelimit,
-			int webviewDownloadRatelimit, int webviewMessageRatelimit, ConfigDataProtocols protocols,
-			ConfigDataSkinService skinService, ConfigDataVoiceService voiceService,
+			boolean enableIsEaglerPlayerPropery, int protocolV4DefragSendDelay, int protocolV4DefragMaxPackets,
+			int brandLookupRatelimit, int webviewDownloadRatelimit, int webviewMessageRatelimit,
+			ConfigDataProtocols protocols, ConfigDataSkinService skinService, ConfigDataVoiceService voiceService,
 			ConfigDataUpdateService updateService, ConfigDataUpdateChecker updateChecker) {
 		this.serverName = serverName;
 		this.serverUUID = serverUUID;
@@ -465,6 +466,7 @@ public class ConfigDataSettings {
 		this.eaglerPlayersVanillaSkin = eaglerPlayersVanillaSkin;
 		this.enableIsEaglerPlayerPropery = enableIsEaglerPlayerPropery;
 		this.protocolV4DefragSendDelay = protocolV4DefragSendDelay;
+		this.protocolV4DefragMaxPackets = protocolV4DefragMaxPackets;
 		this.brandLookupRatelimit = brandLookupRatelimit;
 		this.webviewDownloadRatelimit = webviewDownloadRatelimit;
 		this.webviewMessageRatelimit = webviewMessageRatelimit;
@@ -553,6 +555,10 @@ public class ConfigDataSettings {
 
 	public int getProtocolV4DefragSendDelay() {
 		return protocolV4DefragSendDelay;
+	}
+
+	public int getProtocolV4DefragMaxPackets() {
+		return protocolV4DefragMaxPackets;
 	}
 
 	public int getBrandLookupRatelimit() {

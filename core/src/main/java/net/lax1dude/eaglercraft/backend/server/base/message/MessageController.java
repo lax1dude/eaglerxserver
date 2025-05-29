@@ -42,23 +42,28 @@ public abstract class MessageController {
 	protected final IExceptionCallback exceptionHandler;
 	protected final EventLoop eventLoop;
 	protected final int defragSendDelay;
+	protected final int maxPackets;
 
 	protected List<GameMessagePacket> sendQueue;
 	protected final Callable<Void> handleFlush;
 	protected ScheduledFuture<Void> futureSendTask = null;
 
 	public MessageController(GamePluginMessageProtocol protocol, IMessageHandler handler, EventLoop eventLoop,
-			int defragSendDelay) {
-		this(protocol, handler, handler, eventLoop, defragSendDelay);
+			int defragSendDelay, int maxPackets) {
+		this(protocol, handler, handler, eventLoop, defragSendDelay, maxPackets);
 	}
 
 	public MessageController(GamePluginMessageProtocol protocol, GameMessageHandler handler,
-			IExceptionCallback exceptionHandler, EventLoop eventLoop, int defragSendDelay) {
+			IExceptionCallback exceptionHandler, EventLoop eventLoop, int defragSendDelay, int maxPackets) {
 		this.protocol = protocol;
 		this.handler = handler;
 		this.exceptionHandler = exceptionHandler;
 		this.eventLoop = eventLoop;
+		if (maxPackets <= 1) {
+			defragSendDelay = 0;
+		}
 		this.defragSendDelay = defragSendDelay;
+		this.maxPackets = maxPackets;
 		this.sendQueue = defragSendDelay > 0 ? new ArrayList<>() : null;
 		this.handleFlush = defragSendDelay > 0 ? () -> {
 			GameMessagePacket packet;

@@ -39,8 +39,8 @@ public class InjectedMessageController extends MessageController {
 	protected final int[] marks;
 
 	public InjectedMessageController(GamePluginMessageProtocol protocol, ServerMessageHandler handler, Channel channel,
-			int defragSendDelay) {
-		super(protocol, handler, channel.eventLoop(), defragSendDelay);
+			int defragSendDelay, int maxPackets) {
+		super(protocol, handler, channel.eventLoop(), defragSendDelay, maxPackets);
 		this.channel = channel;
 		this.inputWrapper = new ByteBufInputWrapper();
 		this.outputWrapper = new ByteBufOutputWrapper();
@@ -48,9 +48,9 @@ public class InjectedMessageController extends MessageController {
 	}
 
 	public static InjectedMessageController injectEagler(GamePluginMessageProtocol protocol,
-			ServerMessageHandler handler, Channel channel, int defragSendDelay) {
+			ServerMessageHandler handler, Channel channel, int defragSendDelay, int maxPackets) {
 		InjectedMessageController controller = new InjectedMessageController(protocol, handler, channel,
-				defragSendDelay);
+				defragSendDelay, maxPackets);
 		channel.pipeline().addAfter(PipelineTransformer.HANDLER_FRAME_CODEC, PipelineTransformer.HANDLER_INJECTED,
 				new EaglerInjectedMessageHandler(controller));
 		channel.pipeline().fireUserEventTriggered(EnumPipelineEvent.EAGLER_INJECTED_MESSAGE_CONTROLLER);
@@ -73,6 +73,10 @@ public class InjectedMessageController extends MessageController {
 						is.readUnsignedByte();
 						int count = is.readVarInt();
 						for (int i = 0, j, k; i < count; ++i) {
+							if (i >= maxPackets) {
+								// Potentially an old client, ignore the rest of the packets
+								return;
+							}
 							j = is.readVarInt();
 							k = (buffer.readerIndex() - start) + j;
 							if (j > is.available()) {
@@ -170,8 +174,8 @@ public class InjectedMessageController extends MessageController {
 								lastLen = GamePacketOutputBuffer.getVarIntSize(i) + i;
 								totalLen += lastLen;
 								++sendCount;
-							} while (totalLen < 32760 && total - start - sendCount > 0);
-							if (totalLen >= 32760) {
+							} while (totalLen < 32760 && total - start - sendCount > 0 && sendCount <= maxPackets);
+							if (totalLen >= 32760 || sendCount > maxPackets) {
 								--sendCount;
 								totalLen -= lastLen;
 							}

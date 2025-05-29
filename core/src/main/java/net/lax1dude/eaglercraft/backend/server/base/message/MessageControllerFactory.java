@@ -18,6 +18,7 @@ package net.lax1dude.eaglercraft.backend.server.base.message;
 
 import net.lax1dude.eaglercraft.backend.server.base.EaglerPlayerInstance;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
+import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
 public class MessageControllerFactory {
@@ -30,19 +31,21 @@ public class MessageControllerFactory {
 			return new RewindMessageControllerImpl(rewindHandle, protocol, handler);
 		}
 		EaglerXServer<?> server = instance.getEaglerXServer();
-		int sendDelay = server.getConfig().getSettings().getProtocolV4DefragSendDelay();
+		ConfigDataSettings settings = server.getConfig().getSettings();
+		int sendDelay = settings.getProtocolV4DefragSendDelay();
+		int maxPackets = settings.getProtocolV4DefragMaxPackets();
 		if (protocol.ver >= 5) {
 			return InjectedMessageController.injectEagler(protocol, handler,
-					instance.getPlatformPlayer().getChannel(), sendDelay);
+					instance.getPlatformPlayer().getChannel(), sendDelay, maxPackets);
 		} else {
 			boolean modernChannelNames = server.getPlatform().isModernPluginChannelNamesOnly()
 					|| instance.getMinecraftProtocol() > 340;
 			if (protocol.ver == 4 && sendDelay > 0) {
 				return new LegacyMessageController(protocol, handler,
-						instance.getPlatformPlayer().getChannel().eventLoop(), sendDelay,
+						instance.getPlatformPlayer().getChannel().eventLoop(), sendDelay, maxPackets,
 						modernChannelNames);
 			} else {
-				return new LegacyMessageController(protocol, handler, null, 0, modernChannelNames);
+				return new LegacyMessageController(protocol, handler, null, 0, maxPackets, modernChannelNames);
 			}
 		}
 	}

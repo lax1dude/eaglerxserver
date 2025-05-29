@@ -64,8 +64,8 @@ public class LegacyMessageController extends MessageController {
 	}
 
 	public LegacyMessageController(GamePluginMessageProtocol protocol, ServerMessageHandler handler,
-			EventLoop eventLoop, int defragSendDelay, boolean modernChannelNames) {
-		super(protocol, handler, eventLoop, defragSendDelay);
+			EventLoop eventLoop, int defragSendDelay, int maxPackets, boolean modernChannelNames) {
+		super(protocol, handler, eventLoop, defragSendDelay, maxPackets);
 		this.modernChannelNames = modernChannelNames;
 	}
 
@@ -82,6 +82,10 @@ public class LegacyMessageController extends MessageController {
 						inputStreamSingleton.readByte();
 						int count = inputStreamSingleton.readVarInt();
 						for (int i = 0, j, k; i < count; ++i) {
+							if (i >= maxPackets) {
+								// Potentially an old client, ignore the rest of the packets
+								return true;
+							}
 							j = inputStreamSingleton.readVarInt();
 							inputStreamSingleton.setToByteArrayReturns(j - 1);
 							k = byteInputStreamSingleton.getReaderIndex() + j;
@@ -127,6 +131,10 @@ public class LegacyMessageController extends MessageController {
 					inputBuffer.readByte();
 					int count = inputBuffer.readVarInt();
 					for (int i = 0, j, k; i < count; ++i) {
+						if (i >= maxPackets) {
+							// Potentially an old client, ignore the rest of the packets
+							return true;
+						}
 						j = inputBuffer.readVarInt();
 						inputBuffer.setToByteArrayReturns(j - 1);
 						k = inputStream.getReaderIndex() + j;
@@ -249,8 +257,8 @@ public class LegacyMessageController extends MessageController {
 				lastLen = GamePacketOutputBuffer.getVarIntSize(i) + i;
 				totalLen += lastLen;
 				++sendCount;
-			} while (totalLen < 32760 && sendCount < total - start);
-			if (totalLen >= 32760) {
+			} while (totalLen < 32760 && sendCount < total - start && sendCount <= maxPackets);
+			if (totalLen >= 32760 || sendCount > maxPackets) {
 				--sendCount;
 				totalLen -= lastLen;
 			}
