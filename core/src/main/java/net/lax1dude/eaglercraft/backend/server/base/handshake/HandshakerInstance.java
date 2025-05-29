@@ -40,6 +40,7 @@ import net.lax1dude.eaglercraft.backend.server.base.CapabilityBits;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
 import net.lax1dude.eaglercraft.backend.server.base.NettyPipelineData;
 import net.lax1dude.eaglercraft.backend.server.base.collect.ObjectIntHashMap;
+import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataSettings;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler.IHandshaker;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
@@ -518,6 +519,18 @@ public abstract class HandshakerInstance implements IHandshaker {
 							+ "the expected offline-mode UUID for their username");
 		}
 		pipelineData.uuid = acceptedUUID;
+		ConfigDataSettings settings = server.getConfig().getSettings();
+		if (settings.isDebugLogOriginHeaders()) {
+			if (pipelineData.headerOrigin != null) {
+				pipelineData.connectionLogger.info("Player is from origin: " + pipelineData.headerOrigin);
+			} else {
+				pipelineData.connectionLogger.info("Player has no origin header");
+			}
+		}
+		if (settings.isDebugLogClientBrands()) {
+			pipelineData.connectionLogger.info("Player is using client: " + pipelineData.eaglerBrandString + " - "
+					+ pipelineData.eaglerVersionString);
+		}
 		state = HandshakePacketTypes.STATE_CLIENT_LOGIN;
 		sendPacketAllowLogin(ctx, pipelineData.username, pipelineData.uuid, pipelineData.acceptedCapabilitiesMask,
 				pipelineData.acceptedCapabilitiesVers, pipelineData.acceptedExtendedCapabilities);

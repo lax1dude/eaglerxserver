@@ -431,6 +431,10 @@ public class ConfigDataSettings {
 	private final int brandLookupRatelimit;
 	private final int webviewDownloadRatelimit;
 	private final int webviewMessageRatelimit;
+	private final boolean debugLogNewChannels;
+	private final boolean debugLogRealIPHeaders;
+	private final boolean debugLogOriginHeaders;
+	private final boolean debugLogClientBrands;
 	private final ConfigDataProtocols protocols;
 	private final ConfigDataSkinService skinService;
 	private final ConfigDataVoiceService voiceService;
@@ -444,8 +448,10 @@ public class ConfigDataSettings {
 			boolean useModernizedChannelNames, int eaglerPlayersViewDistance, String eaglerPlayersVanillaSkin,
 			boolean enableIsEaglerPlayerPropery, int protocolV4DefragSendDelay, int protocolV4DefragMaxPackets,
 			int brandLookupRatelimit, int webviewDownloadRatelimit, int webviewMessageRatelimit,
-			ConfigDataProtocols protocols, ConfigDataSkinService skinService, ConfigDataVoiceService voiceService,
-			ConfigDataUpdateService updateService, ConfigDataUpdateChecker updateChecker) {
+			boolean debugLogNewChannels, boolean debugLogRealIPHeaders, boolean debugLogOriginHeaders,
+			boolean debugLogClientBrands, ConfigDataProtocols protocols, ConfigDataSkinService skinService,
+			ConfigDataVoiceService voiceService, ConfigDataUpdateService updateService,
+			ConfigDataUpdateChecker updateChecker) {
 		this.serverName = serverName;
 		this.serverUUID = serverUUID;
 		this.serverUUIDString = serverUUID.toString();
@@ -470,6 +476,10 @@ public class ConfigDataSettings {
 		this.brandLookupRatelimit = brandLookupRatelimit;
 		this.webviewDownloadRatelimit = webviewDownloadRatelimit;
 		this.webviewMessageRatelimit = webviewMessageRatelimit;
+		this.debugLogNewChannels = debugLogNewChannels;
+		this.debugLogRealIPHeaders = debugLogRealIPHeaders;
+		this.debugLogOriginHeaders = debugLogOriginHeaders;
+		this.debugLogClientBrands = debugLogClientBrands;
 		this.protocols = protocols;
 		this.skinService = skinService;
 		this.voiceService = voiceService;
@@ -571,6 +581,22 @@ public class ConfigDataSettings {
 
 	public int getWebviewMessageRatelimit() {
 		return webviewMessageRatelimit;
+	}
+
+	public boolean isDebugLogNewChannels() {
+		return debugLogNewChannels;
+	}
+
+	public boolean isDebugLogRealIPHeaders() {
+		return debugLogRealIPHeaders;
+	}
+
+	public boolean isDebugLogOriginHeaders() {
+		return debugLogOriginHeaders;
+	}
+
+	public boolean isDebugLogClientBrands() {
+		return debugLogClientBrands;
 	}
 
 	public ConfigDataProtocols getProtocols() {

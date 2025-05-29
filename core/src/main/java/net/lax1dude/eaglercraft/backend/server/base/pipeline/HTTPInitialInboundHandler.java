@@ -78,9 +78,12 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 					}
 				}
 
-				if (conf.isForwardIP()) {
+				if (listener.isForwardIP()) {
 					String forwardedIP = HTTPMessageUtils.getFirstValue(headers, conf.getForwardIPHeader());
 					if (forwardedIP != null) {
+						if (pipelineData.server.getConfig().getSettings().isDebugLogRealIPHeaders()) {
+							pipelineData.connectionLogger.info("Real IP header value: \"" + forwardedIP + "\"");
+						}
 						pipelineData.realAddress = forwardedIP;
 						CompoundRateLimiterMap rateLimiter = pipelineData.listenerInfo.getRateLimiter();
 						if (rateLimiter != null) {
@@ -218,9 +221,12 @@ public class HTTPInitialInboundHandler extends ChannelInboundHandlerAdapter {
 				return false;
 			}
 		}
-		if (conf.isForwardIP()) {
+		if (listener.isForwardIP()) {
 			String forwardedIP = HTTPMessageUtils.getFirstValue(headers, conf.getForwardIPHeader());
 			if (forwardedIP != null) {
+				if (pipelineData.server.getConfig().getSettings().isDebugLogRealIPHeaders()) {
+					pipelineData.connectionLogger.info("Real IP header value: \"" + forwardedIP + "\"");
+				}
 				pipelineData.realAddress = forwardedIP;
 				CompoundRateLimiterMap rateLimiter = pipelineData.listenerInfo.getRateLimiter();
 				if (rateLimiter != null) {

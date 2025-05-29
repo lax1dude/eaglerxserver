@@ -204,6 +204,28 @@ public class EaglerConfigLoader {
 				"webview_message_ratelimit", 120,
 				"Default value is 120, sets the rate limit per minute for webview message packets."
 			);
+			boolean debugLogNewChannels = config.getBoolean(
+				"debug_log_new_channels", false,
+				"Default value is false, if the server should log all inbound TCP connections "
+				+ "on Eaglercraft listeners to the console, can be useful for diagnosing certain "
+				+ "connection issues. Connection issues are your problem if there's nothing "
+				+ "printed in the console with this setting enabled."
+			);
+			boolean debugLogRealIPHeaders = config.getBoolean(
+				"debug_log_real_ip_headers", false,
+				"Default value is false, if the server should log IP forwarding headers to the "
+				+ "console, for verifying if IP forwarding is set up correctly."
+			);
+			boolean debugLogOriginHeaders = config.getBoolean(
+				"debug_log_origin_headers", false,
+				"Default value is false, if the server should log origin headers to the console. "
+				+ "This used to be default on EaglerXBungee and EaglerXVelocity."
+			);
+			boolean debugLogClientBrands = config.getBoolean(
+				"debug_log_client_brands", false,
+				"Default value is false, if the server should log client brand information to the "
+				+ "console. Can be nice for keeping track of what clients your players are using."
+			);
 			IEaglerConfSection protocols = config.getSection("protocols");
 			if (!protocols.exists()) {
 				protocols.setComment("Sets the protocol versions Eaglercraft players should be allowed "
@@ -486,7 +508,9 @@ public class EaglerConfigLoader {
 					httpWebSocketFragmentSize, httpWebSocketMaxFrameLength, httpWebSocketPingIntervention,
 					tlsCertRefreshRate, enableAuthenticationEvents, enableBackendRPCAPI, useModernizedChannelNames,
 					eaglerPlayersViewDistance, eaglerPlayersVanillaSkin, enableIsEaglerPlayerProperty,
-					protocolV4DefragSendDelay, protocolV4DefragMaxPackets, brandLookupRatelimit, webviewDownloadRatelimit, webviewMessageRatelimit,
+					protocolV4DefragSendDelay, protocolV4DefragMaxPackets, brandLookupRatelimit,
+					webviewDownloadRatelimit, webviewMessageRatelimit, debugLogNewChannels, debugLogRealIPHeaders,
+					debugLogOriginHeaders, debugLogClientBrands,
 					new ConfigDataSettings.ConfigDataProtocols(minMinecraftProtocol, maxMinecraftProtocol,
 							maxMinecraftProtocolV5, eaglerXRewindAllowed, protocolLegacyAllowed, protocolV3Allowed,
 							protocolV4Allowed, protocolV5Allowed),
