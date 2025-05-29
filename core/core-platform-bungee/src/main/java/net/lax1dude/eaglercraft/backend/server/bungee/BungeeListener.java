@@ -26,6 +26,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.IPlatformServer;
 import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakePacketTypes;
 import net.lax1dude.eaglercraft.backend.server.bungee.PlatformPluginBungee.PluginMessageHandler;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
@@ -33,6 +34,7 @@ import net.md_5.bungee.api.connection.Connection;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.connection.Server;
+import net.md_5.bungee.api.event.LoginEvent;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
@@ -72,6 +74,16 @@ public class BungeeListener implements Listener {
 		BungeeLoginData loginData = new BungeeLoginData(pipelineData, conn);
 		attr.set(loginData);
 		plugin.initializeLogin(loginData);
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onLoginEvent(LoginEvent event) {
+		// BungeeCord only checks for duplicate UUIDs...
+		ProxyServer proxy = plugin.getProxy();
+		if (proxy.getPlayer(event.getConnection().getName()) != null) {
+			event.setReason(new TextComponent(proxy.getTranslation("already_connected_proxy")));
+			event.setCancelled(true);
+		}
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
