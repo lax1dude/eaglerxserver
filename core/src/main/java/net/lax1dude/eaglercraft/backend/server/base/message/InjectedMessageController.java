@@ -68,6 +68,9 @@ public class InjectedMessageController extends MessageController {
 				is.buffer = buffer.skipBytes(1);
 				int ii = buffer.readerIndex();
 				if (buffer.getUnsignedByte(ii) == (short) 0xFF) {
+					if (buffer.readableBytes() > 32768) {
+						throw new IOException("Impossible large multi-packet received: " + buffer.readableBytes());
+					}
 					try {
 						int start = buffer.readerIndex();
 						is.readUnsignedByte();
@@ -102,6 +105,9 @@ public class InjectedMessageController extends MessageController {
 					} catch (IndexOutOfBoundsException ex) {
 						throw new IOException("Packet buffer underflow! (Packet ID 0x"
 								+ Integer.toHexString(buffer.getUnsignedByte(ii)) + ")", ex);
+					}
+					if (is.available() != 0) {
+						throw new IOException("Packet was the wrong length: " + pkt.getClass().getSimpleName());
 					}
 					handlePacket(pkt);
 				}
@@ -174,8 +180,8 @@ public class InjectedMessageController extends MessageController {
 								lastLen = GamePacketOutputBuffer.getVarIntSize(i) + i;
 								totalLen += lastLen;
 								++sendCount;
-							} while (totalLen < 32760 && total - start - sendCount > 0 && sendCount <= maxPackets);
-							if (totalLen >= 32760 || sendCount > maxPackets) {
+							} while (totalLen < 32760 && total - start - sendCount > 0 && sendCount < maxPackets);
+							if (totalLen >= 32760) {
 								--sendCount;
 								totalLen -= lastLen;
 							}
