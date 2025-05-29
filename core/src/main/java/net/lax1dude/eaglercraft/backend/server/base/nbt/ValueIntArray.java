@@ -38,6 +38,12 @@ class ValueIntArray implements INBTValue<int[]> {
 		this.done = false;
 	}
 
+	private void checkLength(int len) throws IOException {
+		if (len < 0 || len > (NBTVisitorReader.MAX_ARRAY_LENGTH >> 2)) {
+			throw new IOException("Int array too long: " + len + " > " + (NBTVisitorReader.MAX_ARRAY_LENGTH >> 2));
+		}
+	}
+
 	@Override
 	public void mutate(int[] value) throws IOException {
 		if (value == null) {
@@ -48,9 +54,7 @@ class ValueIntArray implements INBTValue<int[]> {
 		}
 		if (resolved == null) {
 			int len = dataSource.readInt();
-			if (len < 0 || len > (Integer.MAX_VALUE >> 2)) {
-				throw new IOException("Invalid length!");
-			}
+			checkLength(len);
 			dataSource.skipBytes(len << 2);
 		}
 		resolved = value;
@@ -68,9 +72,7 @@ class ValueIntArray implements INBTValue<int[]> {
 		} else {
 			done = true;
 			int len = dataSource.readInt();
-			if (len < 0 || len > (Integer.MAX_VALUE >> 2)) {
-				throw new IOException("Invalid length!");
-			}
+			checkLength(len);
 			dataOutput.writeInt(len);
 			len <<= 2;
 			while (len > 0) {
@@ -89,9 +91,7 @@ class ValueIntArray implements INBTValue<int[]> {
 		}
 		if (resolved == null) {
 			int len = dataSource.readInt();
-			if (len < 0 || len > (Integer.MAX_VALUE >> 2)) {
-				throw new IOException("Invalid length!");
-			}
+			checkLength(len);
 			resolved = new int[len];
 			readInts(dataSource, resolved, len);
 		}
@@ -103,9 +103,7 @@ class ValueIntArray implements INBTValue<int[]> {
 			done = true;
 			if (resolved == null) {
 				int len = dataSource.readInt();
-				if (len < 0 || len > (Integer.MAX_VALUE >> 2)) {
-					throw new IOException("Invalid length!");
-				}
+				checkLength(len);
 				dataSource.skipBytes(len << 2);
 			}
 		}

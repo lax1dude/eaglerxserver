@@ -25,6 +25,8 @@ import net.lax1dude.eaglercraft.backend.server.api.nbt.INBTVisitor;
 public class NBTVisitorReader {
 
 	public static final int MAX_RECURSION = 128;
+	public static final int MAX_ARRAY_LENGTH = 65536;
+	public static final int MAX_LIST_LENGTH = 8192;
 
 	public static void read(DataInput dataInput, INBTVisitor visitor, IWrapperFactory wrapper) throws IOException {
 		int type = dataInput.readUnsignedByte();
@@ -97,10 +99,10 @@ public class NBTVisitorReader {
 				visitor.visitTagList(EnumDataType.NONE, 0);
 				break;
 			}
-			EnumDataType listType = parseTag(listTypeId);
-			if (len < 0) {
-				throw new IOException("Invalid list length: " + len);
+			if (len < 0 || len > MAX_LIST_LENGTH) {
+				throw new IOException("List too long: " + len + " > " + MAX_LIST_LENGTH);
 			}
+			EnumDataType listType = parseTag(listTypeId);
 			INBTVisitor visitor2 = visitor.visitTagList(listType, len);
 			for (int i = 0; i < len; ++i) {
 				readValue(dataInput, lvl + 1, listTypeId, visitor2, wrapper);
