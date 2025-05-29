@@ -95,9 +95,6 @@ public class VanillaInitializer {
 			buffer.release();
 		}
 
-		if (inboundHandler.terminated || !ctx.channel().isActive()) {
-			return;
-		}
 	}
 
 	public void handleInbound(ChannelHandlerContext ctx, ByteBuf msg) {
