@@ -171,8 +171,20 @@ public class SimpleInputBufferImpl extends DataInputStream implements GamePacket
 	}
 
 	@Override
+	@Deprecated(forRemoval = true)
 	public byte[] readByteArrayMC() throws IOException {
 		byte[] abyte = new byte[this.readVarInt()];
+		this.readFully(abyte);
+		return abyte;
+	}
+
+	@Override
+	public byte[] readByteArrayMC(int maxLen) throws IOException {
+		int i = this.readVarInt();
+		if (i > maxLen) {
+			throw new IOException("Byte array is too long: " + i + " > " + maxLen);
+		}
+		byte[] abyte = new byte[i];
 		this.readFully(abyte);
 		return abyte;
 	}

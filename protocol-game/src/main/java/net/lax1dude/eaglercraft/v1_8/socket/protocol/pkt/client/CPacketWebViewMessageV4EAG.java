@@ -53,7 +53,7 @@ public class CPacketWebViewMessageV4EAG implements GameMessagePacket {
 	@Override
 	public void readPacket(GamePacketInputBuffer buffer) throws IOException {
 		type = buffer.readUnsignedByte();
-		data = buffer.readByteArrayMC();
+		data = buffer.readByteArrayMC(32750);
 	}
 
 	@Override
