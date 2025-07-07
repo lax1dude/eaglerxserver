@@ -103,5 +103,10 @@
 		"desc": "Kone Client",
 		"legacy": true,
 		"hacked": false
+	},
+	"db3e9b94-5afc-341d-8c14-bd722fe648d4": {
+		"desc": "Justin Client v3",
+		"legacy": false,
+		"hacked": true
 	}
 }
