@@ -537,7 +537,16 @@ public class BukkitUnsafe {
 			return (Boolean) propertyManager.getClass().getMethod("getBoolean", String.class, boolean.class)
 					.invoke(propertyManager, "use-native-transport", true);
 		} catch (ReflectiveOperationException e) {
-			throw Util.propagateReflectThrowable(e);
+			try {
+				Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
+				Object dedicatedServer = dedicatedPlayerList.getClass().getMethod("getServer").invoke(dedicatedPlayerList);
+				Object propertyManager = dedicatedServer.getClass().getMethod("getDedicatedServerProperties").invoke(dedicatedServer);
+				Method getBoolean = propertyManager.getClass().getSuperclass().getDeclaredMethod("getBoolean", String.class, boolean.class);
+				getBoolean.setAccessible(true);
+				return (Boolean) getBoolean.invoke(propertyManager, "use-native-transport", true);
+			} catch (Exception e1) {
+				throw Util.propagateReflectThrowable(e1);
+			}
 		}
 	}
 
