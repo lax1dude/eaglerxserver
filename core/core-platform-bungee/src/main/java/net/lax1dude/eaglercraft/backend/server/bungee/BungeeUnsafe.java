@@ -99,7 +99,7 @@ public class BungeeUnsafe {
 			class_PluginMessage = Class.forName("net.md_5.bungee.protocol.packet.PluginMessage");
 			method_PluginMessage_getData = class_PluginMessage.getMethod("getData");
 			class_LoginResult = Class.forName("net.md_5.bungee.connection.LoginResult");
-			class_Property = Class.forName("net.md_5.bungee.protocol.Property");
+			class_Property = Class.forName("net.md_5.bungee.protocol.data.Property");
 			Class<?> propArrayClass = Array.newInstance(class_Property, 0).getClass();
 			constructor_LoginResult = class_LoginResult.getConstructor(String.class, String.class, propArrayClass);
 			method_LoginResult_getProperties = class_LoginResult.getMethod("getProperties");
