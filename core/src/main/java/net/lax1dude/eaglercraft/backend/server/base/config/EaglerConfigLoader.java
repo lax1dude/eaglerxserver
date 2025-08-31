@@ -300,7 +300,7 @@ public class EaglerConfigLoader {
 			);
 			String skinCacheDBURI = skinService.getString(
 				"skin_cache_db_uri", "jdbc:sqlite:eagler_skins_cache.db",
-				"Default value is 'jdbc:sqlite:eaglercraft_skins_cache.db', the URI of JDBC "
+				"Default value is 'jdbc:sqlite:eagler_skins_cache.db', the URI of JDBC "
 				+ "database the cache to use for skins downloaded from Mojang, for MySQL "
 				+ "databases this should include the username and password"
 			);
@@ -720,13 +720,13 @@ public class EaglerConfigLoader {
 			String serverInfoButtonEmbedURL = serverInfoButtonConf.getString(
 				"server_info_embed_url", "",
 				"Sets the URL for the \"Server Info\" button to use if it should open a URL in a new tab "
-				+ "or the webview instead of directly downloading the markup to display from the "
-				+ "EaglerXBungee server itself over the WebSocket."
+				+ "or the webview instead of directly downloading the markup to display from "
+				+ "EaglerXServer itself over the WebSocket."
 			);
 			boolean serverInfoButtonModeEmbedFile = serverInfoButtonConf.getBoolean(
 				"button_mode_embed_file", true,
 				"Determines if the \"Server Info\" button should download the webview markup directly "
-				+ "from the EaglerXBungee server over WebSocket instead of loading an external URL. Cannot "
+				+ "from EaglerXServer over WebSocket instead of loading an external URL. Cannot "
 				+ "be used with button_mode_open_new_tab!"
 			);
 			String serverInfoButtonEmbedFile = serverInfoButtonConf.getString(
@@ -885,7 +885,7 @@ public class EaglerConfigLoader {
 			"forward_ip", false,
 			"Default value is false, sets if connections to this listener will use an HTTP "
 			+ "header to forward the player's real IP address from a reverse proxy (or "
-			+ "CloudFlare) to the BungeeCord server. This is required for EaglerXBungee's "
+			+ "CloudFlare) to the BungeeCord/Velocity server. This is required for EaglerXServer's "
 			+ "rate limiting and a lot of plugins to work correctly if they are used behind "
 			+ "a reverse HTTP proxy or CloudFlare."
 		);
@@ -899,13 +899,13 @@ public class EaglerConfigLoader {
 			"forward_secret", false,
 			"Default value is false, sets if HTTP and WebSocket connections to this listener "
 			+ "require a header with a secret to be accepted, can be used to prevent someone "
-			+ "from bypassing CloudFlare or nginx or whatever and connecting directly to the "
+			+ "from bypassing CloudFlare, nginx, or whatever and connecting directly to the "
 			+ "EaglerXServer listener with a fake forward IP header."
 		);
 		String forwardSecretHeader = listener.getString(
 			"forward_secret_header", "X-Eagler-Secret",
 			"Default value is 'X-Eagler-Secret', sets the name of the request header that "
-			+ "contains the sectet if the forward_secret option is enabled."
+			+ "contains the secret if the forward_secret option is enabled."
 		);
 		String forwardSecretFile = listener.getString(
 			"forward_secret_file", "eagler_forwarding.secret",
@@ -1018,8 +1018,8 @@ public class EaglerConfigLoader {
 		boolean allowCookieRevokeQuery = listener.getBoolean(
 			"allow_cookie_revoke_query", true,
 			"Default value is true, If this listener should accept queries from post-u37 "
-			+ "clients to revoke session tokens, you need to create your own BungeeCord "
-			+ "plugin to go with EaglerXBungee that handles the EaglercraftRevokeSessionQueryEvent "
+			+ "clients to revoke session tokens, you need to create your own BungeeCord/Velocity "
+			+ "plugin to go with EaglerXServer that handles the EaglercraftRevokeSessionQueryEvent "
 			+ "event it fires in order for this feature to work correctly."
 		);
 		IEaglerConfSection requestMOTDCache = listener.getSection("request_motd_cache");
