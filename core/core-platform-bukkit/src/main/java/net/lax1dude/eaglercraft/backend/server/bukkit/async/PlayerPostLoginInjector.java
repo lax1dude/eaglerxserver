@@ -36,6 +36,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.util.AttributeKey;
@@ -58,11 +59,15 @@ public class PlayerPostLoginInjector {
 	static {
 		try {
 			MethodHandles.Lookup lookup = MethodHandles.lookup();
-			NETMANAGERCLASS_HANDLE = lookup.findVarHandle(PlayerPostLoginInjector.class, "netManagerClass", Class.class);
-			LOGINLISTENERCLASS_HANDLE = lookup.findVarHandle(PlayerPostLoginInjector.class, "loginListenerClass", Class.class);
-			PACKETLOGINSUCCESSCLASS_HANDLE = lookup.findVarHandle(PlayerPostLoginInjector.class, "packetLoginSuccessClass", Class.class);
-			PACKETPLAYDISCONNECT_HANDLE = lookup.findVarHandle(PlayerPostLoginInjector.class, "packetPlayDisconnect", Class.class);
-		} catch(ReflectiveOperationException ex) {
+			NETMANAGERCLASS_HANDLE = lookup.findVarHandle(PlayerPostLoginInjector.class, "netManagerClass",
+					Class.class);
+			LOGINLISTENERCLASS_HANDLE = lookup.findVarHandle(PlayerPostLoginInjector.class, "loginListenerClass",
+					Class.class);
+			PACKETLOGINSUCCESSCLASS_HANDLE = lookup.findVarHandle(PlayerPostLoginInjector.class,
+					"packetLoginSuccessClass", Class.class);
+			PACKETPLAYDISCONNECT_HANDLE = lookup.findVarHandle(PlayerPostLoginInjector.class, "packetPlayDisconnect",
+					Class.class);
+		} catch (ReflectiveOperationException ex) {
 			throw new ExceptionInInitializerError(ex);
 		}
 	}
@@ -122,7 +127,8 @@ public class PlayerPostLoginInjector {
 			Field channelField = null;
 			for (Field f : netManagerClass.getDeclaredFields()) {
 				Class<?> clz = f.getType();
-				if (clz.getSimpleName().equals("EnumProtocolDirection")) {
+				String name = clz.getSimpleName();
+    			if (name.equals("EnumProtocolDirection") || name.equals("PacketFlow")) {
 					f.setAccessible(true);
 					protocolDirType = (Class<Object>) f.getType();
 					protocolDirField = f;
@@ -163,7 +169,9 @@ public class PlayerPostLoginInjector {
 					sendPacketMethod2 = null;
 				} else if (sendPacketMethod3 == null && sendPacketMethod2 == null && params.length == 2
 						&& params[0].getSimpleName().equals("Packet")
-						&& params[1].equals(GenericFutureListener.class)) {
+						&& (params[1].equals(GenericFutureListener.class)
+								|| params[1].equals(ChannelFutureListener.class)
+								|| params[1].getSimpleName().equals("PacketSendListener"))) {
 					sendPacketMethod2 = m;
 				} else if (getHandlerMethod == null && params.length == 0
 						&& m.getReturnType().getSimpleName().equals("PacketListener")) {
@@ -296,7 +304,8 @@ public class PlayerPostLoginInjector {
 									clz2 = (Class<?>) PACKETPLAYDISCONNECT_HANDLE.getAcquire(this);
 								}
 								if (clz2 != void.class) {
-									args[0] = packetPlayDisconnectCtor.newInstance(packetLoginDisconnectMsg.get(args[0]));
+									args[0] = packetPlayDisconnectCtor
+											.newInstance(packetLoginDisconnectMsg.get(args[0]));
 								} else {
 									return null;
 								}
@@ -604,7 +613,8 @@ public class PlayerPostLoginInjector {
 		plugin.getServer().getPluginManager().callEvent(new PlayerLoginInitEventImpl(channel));
 	}
 
-	private void fireEventLoginPostAsync(Player player, LoginEventContext ctx, Consumer<PlayerLoginPostEvent> callback) {
+	private void fireEventLoginPostAsync(Player player, LoginEventContext ctx,
+			Consumer<PlayerLoginPostEvent> callback) {
 		PlayerLoginPostEventImpl evt = new PlayerLoginPostEventImpl(player, ctx, callback);
 		plugin.getServer().getPluginManager().callEvent(evt);
 		evt.complete();

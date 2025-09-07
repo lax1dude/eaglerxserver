@@ -22,6 +22,7 @@ dependencies {
 	platformBungee project(":core:core-platform-bungee")
 	platformVelocity project(":core:core-platform-velocity")
 	implementation(libs.asm)
+	implementation(libs.netty.codec.http)
 	compileOnly(libs.bundles.netty.all)
 	compileOnly(libs.jsr305)
 	compileOnly(libs.gson)
@@ -54,6 +55,7 @@ tasks.named("shadowJar", com.github.jengelman.gradle.plugins.shadow.tasks.Shadow
 	embedSQLiteJar(it)
 	archiveFileName = "EaglerXServer.jar"
 	relocate "org.objectweb.asm", "net.lax1dude.eaglercraft.backend.server.libs.asm"
+	relocate "io.netty.handler.codec.http", "net.lax1dude.eaglercraft.backend.server.libs.netty.http"
 }
 
 tasks.register("shadowJarBukkit", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
@@ -66,6 +68,7 @@ tasks.register("shadowJarBukkit", com.github.jengelman.gradle.plugins.shadow.tas
 	embedSQLiteJar(it)
 	archiveFileName = "EaglerXServer-Bukkit.jar"
 	relocate "org.objectweb.asm", "net.lax1dude.eaglercraft.backend.server.libs.asm"
+	relocate "io.netty.handler.codec.http", "net.lax1dude.eaglercraft.backend.server.libs.netty.http"
 }
 
 tasks.register("shadowJarBungee", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
@@ -78,6 +81,7 @@ tasks.register("shadowJarBungee", com.github.jengelman.gradle.plugins.shadow.tas
 	embedSQLiteJar(it)
 	archiveFileName = "EaglerXServer-Bungee.jar"
 	relocate "org.objectweb.asm", "net.lax1dude.eaglercraft.backend.server.libs.asm"
+	relocate "io.netty.handler.codec.http", "net.lax1dude.eaglercraft.backend.server.libs.netty.http"
 }
 
 tasks.register("shadowJarVelocity", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
@@ -90,4 +94,5 @@ tasks.register("shadowJarVelocity", com.github.jengelman.gradle.plugins.shadow.t
 	embedSQLiteJar(it)
 	archiveFileName = "EaglerXServer-Velocity.jar"
 	relocate "org.objectweb.asm", "net.lax1dude.eaglercraft.backend.server.libs.asm"
+	relocate "io.netty.handler.codec.http", "net.lax1dude.eaglercraft.backend.server.libs.netty.http"
 }
