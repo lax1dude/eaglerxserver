@@ -47,6 +47,7 @@ import io.netty.channel.EventLoopGroup;
 import io.papermc.paper.network.ChannelInitializeListener;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerListener;
 import net.lax1dude.eaglercraft.backend.server.util.ChannelInitializerHijacker;
+import net.lax1dude.eaglercraft.backend.server.util.ObfuscationHelper;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 
 public class BukkitUnsafe {
@@ -531,84 +532,65 @@ public class BukkitUnsafe {
 
 	public static boolean isEnableNativeTransport(Server server) {
 		try {
-			Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
-			Object dedicatedServer = dedicatedPlayerList.getClass().getMethod("getServer").invoke(dedicatedPlayerList);
-			Object propertyManager = dedicatedServer.getClass().getMethod("getPropertyManager").invoke(dedicatedServer);
-			return (Boolean) propertyManager.getClass().getMethod("getBoolean", String.class, boolean.class)
-					.invoke(propertyManager, "use-native-transport", true);
+			Object dpl = server.getClass().getMethod("getHandle").invoke(server);
+			Object dedicatedServer = dpl.getClass().getMethod("getServer").invoke(dpl);
+
+			Method mProps = ObfuscationHelper.method(
+				dedicatedServer.getClass(),
+				new String[] { "getPropertyManager", "getDedicatedServerProperties", "a" },
+				m -> m.getParameterCount() == 0 && !m.getReturnType().isPrimitive());
+			Object props = mProps.invoke(dedicatedServer);
+
+			Method getBool = ObfuscationHelper.method(
+				props.getClass().getSuperclass(),
+				new String[] { "getBoolean", "b" },
+				boolean.class, String.class, boolean.class);
+
+			return (boolean) getBool.invoke(props, "use-native-transport", true);
 		} catch (ReflectiveOperationException e) {
-			try {
-				Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
-				Object dedicatedServer = dedicatedPlayerList.getClass().getMethod("getServer").invoke(dedicatedPlayerList);
-				Object propertyManager = dedicatedServer.getClass().getMethod("getDedicatedServerProperties").invoke(dedicatedServer);
-				Method getBoolean = propertyManager.getClass().getSuperclass().getDeclaredMethod("getBoolean", String.class, boolean.class);
-				getBoolean.setAccessible(true);
-				return (Boolean) getBoolean.invoke(propertyManager, "use-native-transport", true);
-			} catch (ReflectiveOperationException e1) {
-				try {
-					Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
-					Object dedicatedServer = dedicatedPlayerList.getClass().getMethod("b").invoke(dedicatedPlayerList);
-					Object propertyManager = dedicatedServer.getClass().getMethod("a").invoke(dedicatedServer);
-					Method getBoolean = propertyManager.getClass().getSuperclass().getDeclaredMethod("b", String.class, boolean.class);
-					getBoolean.setAccessible(true);
-					return (Boolean) getBoolean.invoke(propertyManager, "use-native-transport", true);
-				} catch (ReflectiveOperationException e2) {
-					throw Util.propagateReflectThrowable(e2);
-				}
-			}
+			throw Util.propagateReflectThrowable(e);
 		}
 	}
 
 	public static EventLoopGroup getEventLoopGroup(Server server, boolean enableNativeTransport) {
-		Class<?> serverConnection;
 		try {
-			Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
-			Object minecraftServer = dedicatedPlayerList.getClass().getMethod("getServer").invoke(dedicatedPlayerList);
-			serverConnection = minecraftServer.getClass().getMethod("getServerConnection").getReturnType();
-		} catch (ReflectiveOperationException e) {
-			try {
-				Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
-				Object minecraftServer = dedicatedPlayerList.getClass().getMethod("getServer").invoke(dedicatedPlayerList);
-				serverConnection = minecraftServer.getClass().getMethod("getConnection").getReturnType();
-			} catch (ReflectiveOperationException e1) {
-				try {
-					Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
-					Object minecraftServer = dedicatedPlayerList.getClass().getMethod("b").invoke(dedicatedPlayerList);
-					serverConnection = minecraftServer.getClass().getMethod("ad").getReturnType();
-				} catch (ReflectiveOperationException e2) {
-					throw Util.propagateReflectThrowable(e2);
-				}
-			}
-		}
-		return getEventLoopGroup(serverConnection, enableNativeTransport);
-	}
+			Object dpl = server.getClass().getMethod("getHandle").invoke(server);
+			Object ms = dpl.getClass().getMethod("getServer").invoke(dpl);
 
-	public static EventLoopGroup getEventLoopGroup(Class<?> serverConnection, boolean enableNativeTransport) {
-		for (Field field : serverConnection.getFields()) {
-			String t = field.getType().getSimpleName();
-			if (!t.equals("LazyInitVar") && !t.equals("Supplier")) continue;
+			Method mGetConn = ObfuscationHelper.method(
+				ms.getClass(),
+				new String[] { "getServerConnection", "getConnection", "ad" },
+				m -> m.getParameterCount() == 0 && !m.getReturnType().isPrimitive());
+			Class<?> serverConnClass = mGetConn.getReturnType();
+
+			for (Field field : serverConnClass.getFields()) {
+			String simple = field.getType().getSimpleName();
+			if (!simple.equals("LazyInitVar") && !simple.equals("Supplier")) continue;
 			try {
 				Object v = field.get(null);
 				Object r = null;
 				if (v instanceof java.util.function.Supplier) {
-					r = ((java.util.function.Supplier<?>) v).get();
+				r = ((java.util.function.Supplier<?>) v).get();
 				} else {
-					for (Method m : v.getClass().getMethods()) {
-						if (m.getParameterCount() == 0) {
-							Object x = m.invoke(v);
-							if (x instanceof EventLoopGroup) { r = x; break; }
-						}
+				for (Method m : v.getClass().getMethods()) {
+					if (m.getParameterCount() == 0) {
+					Object x = m.invoke(v);
+					if (x instanceof EventLoopGroup) { r = x; break; }
 					}
 				}
-				if (r instanceof EventLoopGroup) {
-					if (enableNativeTransport && r instanceof io.netty.channel.epoll.EpollEventLoopGroup) return (EventLoopGroup) r;
-					if (!enableNativeTransport && r instanceof io.netty.channel.nio.NioEventLoopGroup) return (EventLoopGroup) r;
+				}
+				if (r instanceof EventLoopGroup elg) {
+				if (enableNativeTransport && elg instanceof io.netty.channel.epoll.EpollEventLoopGroup) return elg;
+				if (!enableNativeTransport && elg instanceof io.netty.channel.nio.NioEventLoopGroup) return elg;
 				}
 			} catch (ReflectiveOperationException e) {
 				throw Util.propagateReflectThrowable(e);
 			}
+			}
+			throw new RuntimeException("Could not locate the server event loop!");
+		} catch (ReflectiveOperationException e) {
+			throw Util.propagateReflectThrowable(e);
 		}
-		throw new RuntimeException("Could not locate the server event loop!");
 	}
 
 }
