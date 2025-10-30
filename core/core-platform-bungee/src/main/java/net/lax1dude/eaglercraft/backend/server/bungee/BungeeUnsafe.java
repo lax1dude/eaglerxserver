@@ -99,16 +99,22 @@ public class BungeeUnsafe {
 			class_PluginMessage = Class.forName("net.md_5.bungee.protocol.packet.PluginMessage");
 			method_PluginMessage_getData = class_PluginMessage.getMethod("getData");
 			class_LoginResult = Class.forName("net.md_5.bungee.connection.LoginResult");
-			class_Property = Class.forName("net.md_5.bungee.protocol.Property");
-			Class<?> propArrayClass = Array.newInstance(class_Property, 0).getClass();
+			Class<?> prop;
+			try {
+				prop = Class.forName("net.md_5.bungee.protocol.data.Property");
+			} catch (Exception ex) {
+				prop = Class.forName("net.md_5.bungee.protocol.Property");
+			}
+			class_Property = prop;
+			Class<?> propArrayClass = Array.newInstance(prop, 0).getClass();
 			constructor_LoginResult = class_LoginResult.getConstructor(String.class, String.class, propArrayClass);
 			method_LoginResult_getProperties = class_LoginResult.getMethod("getProperties");
 			method_LoginResult_setProperties = class_LoginResult.getMethod("setProperties", propArrayClass);
-			constructor_Property = class_Property.getConstructor(String.class, String.class, String.class);
+			constructor_Property = prop.getConstructor(String.class, String.class, String.class);
 			isEaglerPlayerPropertyT = constructor_Property.newInstance("isEaglerPlayer", "true", null);
 			isEaglerPlayerPropertyF = constructor_Property.newInstance("isEaglerPlayer", "false", null);
-			method_Property_getName = class_Property.getMethod("getName");
-			method_Property_getValue = class_Property.getMethod("getValue");
+			method_Property_getName = prop.getMethod("getName");
+			method_Property_getValue = prop.getMethod("getValue");
 			class_BungeeCord = Class.forName("net.md_5.bungee.BungeeCord");
 			field_BungeeCord_listeners = class_BungeeCord.getDeclaredField("listeners");
 			field_BungeeCord_listeners.setAccessible(true);
