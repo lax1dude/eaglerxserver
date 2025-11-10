@@ -544,8 +544,17 @@ public class BukkitUnsafe {
 				Method getBoolean = propertyManager.getClass().getSuperclass().getDeclaredMethod("getBoolean", String.class, boolean.class);
 				getBoolean.setAccessible(true);
 				return (Boolean) getBoolean.invoke(propertyManager, "use-native-transport", true);
-			} catch (Exception e1) {
-				throw Util.propagateReflectThrowable(e1);
+			} catch (ReflectiveOperationException e1) {
+				try {
+					Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
+					Object dedicatedServer = dedicatedPlayerList.getClass().getMethod("b").invoke(dedicatedPlayerList);
+					Object propertyManager = dedicatedServer.getClass().getMethod("a").invoke(dedicatedServer);
+					Method getBoolean = propertyManager.getClass().getSuperclass().getDeclaredMethod("b", String.class, boolean.class);
+					getBoolean.setAccessible(true);
+					return (Boolean) getBoolean.invoke(propertyManager, "use-native-transport", true);
+				} catch (ReflectiveOperationException e2) {
+					throw Util.propagateReflectThrowable(e2);
+				}
 			}
 		}
 	}
@@ -557,54 +566,46 @@ public class BukkitUnsafe {
 			Object minecraftServer = dedicatedPlayerList.getClass().getMethod("getServer").invoke(dedicatedPlayerList);
 			serverConnection = minecraftServer.getClass().getMethod("getServerConnection").getReturnType();
 		} catch (ReflectiveOperationException e) {
-			throw Util.propagateReflectThrowable(e);
+			try {
+				Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
+				Object minecraftServer = dedicatedPlayerList.getClass().getMethod("getServer").invoke(dedicatedPlayerList);
+				serverConnection = minecraftServer.getClass().getMethod("getConnection").getReturnType();
+			} catch (ReflectiveOperationException e1) {
+				try {
+					Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
+					Object minecraftServer = dedicatedPlayerList.getClass().getMethod("b").invoke(dedicatedPlayerList);
+					serverConnection = minecraftServer.getClass().getMethod("ad").getReturnType();
+				} catch (ReflectiveOperationException e2) {
+					throw Util.propagateReflectThrowable(e2);
+				}
+			}
 		}
 		return getEventLoopGroup(serverConnection, enableNativeTransport);
 	}
 
 	public static EventLoopGroup getEventLoopGroup(Class<?> serverConnection, boolean enableNativeTransport) {
-		Field[] fields = serverConnection.getFields();
-		if (enableNativeTransport) {
-			for (Field field : fields) {
-				Class<?> clz = field.getType();
-				if (clz.getSimpleName().equals("LazyInitVar")) {
-					Type type = field.getGenericType();
-					if (type instanceof ParameterizedType tt) {
-						Type[] args = tt.getActualTypeArguments();
-						if (args.length == 1
-								&& "io.netty.channel.epoll.EpollEventLoopGroup".equals(args[0].getTypeName())) {
-							for (Method m : clz.getMethods()) {
-								if (m.getGenericReturnType() != m.getReturnType()) {
-									try {
-										return (EventLoopGroup) m.invoke(field.get(null));
-									} catch (ReflectiveOperationException e) {
-										throw Util.propagateReflectThrowable(e);
-									}
-								}
-							}
+		for (Field field : serverConnection.getFields()) {
+			String t = field.getType().getSimpleName();
+			if (!t.equals("LazyInitVar") && !t.equals("Supplier")) continue;
+			try {
+				Object v = field.get(null);
+				Object r = null;
+				if (v instanceof java.util.function.Supplier) {
+					r = ((java.util.function.Supplier<?>) v).get();
+				} else {
+					for (Method m : v.getClass().getMethods()) {
+						if (m.getParameterCount() == 0) {
+							Object x = m.invoke(v);
+							if (x instanceof EventLoopGroup) { r = x; break; }
 						}
 					}
 				}
-			}
-		}
-		for (Field field : fields) {
-			Class<?> clz = field.getType();
-			if (clz.getSimpleName().equals("LazyInitVar")) {
-				Type type = field.getGenericType();
-				if (type instanceof ParameterizedType tt) {
-					Type[] args = tt.getActualTypeArguments();
-					if (args.length == 1 && "io.netty.channel.nio.NioEventLoopGroup".equals(args[0].getTypeName())) {
-						for (Method m : clz.getMethods()) {
-							if (m.getGenericReturnType() != m.getReturnType()) {
-								try {
-									return (EventLoopGroup) m.invoke(field.get(null));
-								} catch (ReflectiveOperationException e) {
-									throw Util.propagateReflectThrowable(e);
-								}
-							}
-						}
-					}
+				if (r instanceof EventLoopGroup) {
+					if (enableNativeTransport && r instanceof io.netty.channel.epoll.EpollEventLoopGroup) return (EventLoopGroup) r;
+					if (!enableNativeTransport && r instanceof io.netty.channel.nio.NioEventLoopGroup) return (EventLoopGroup) r;
 				}
+			} catch (ReflectiveOperationException e) {
+				throw Util.propagateReflectThrowable(e);
 			}
 		}
 		throw new RuntimeException("Could not locate the server event loop!");
