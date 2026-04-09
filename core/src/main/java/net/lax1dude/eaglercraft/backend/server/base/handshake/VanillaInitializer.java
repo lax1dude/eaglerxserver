@@ -90,6 +90,14 @@ public class VanillaInitializer {
 		try {
 			BufferUtils.writeVarInt(buffer, 0x00);
 			BufferUtils.writeMCString(buffer, pipelineData.username, 16);
+			if (pipelineData.minecraftProtocol >= 764) {
+				java.util.UUID uuid = pipelineData.uuid;
+				if (uuid == null) {
+					uuid = java.util.UUID.nameUUIDFromBytes(("OfflinePlayer:" + pipelineData.username).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+				}
+				buffer.writeLong(uuid.getMostSignificantBits());
+				buffer.writeLong(uuid.getLeastSignificantBits());
+			}
 			ctx.fireChannelRead(buffer.retain());
 		} finally {
 			buffer.release();
@@ -128,14 +136,34 @@ public class VanillaInitializer {
 					connectionState = STATE_STALLING;
 					// S02PacketLoginSuccess
 					UUID playerUUID;
-					String uuidStr = BufferUtils.readMCString(msg, 36);
-					try {
-						playerUUID = UUID.fromString(uuidStr);
-					} catch (IllegalArgumentException ex) {
-						inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
-						return;
+					String usernameStr;
+					int mcProto = pipelineData.minecraftProtocol;
+					if (mcProto >= 735) {
+						playerUUID = new UUID(msg.readLong(), msg.readLong());
+						usernameStr = BufferUtils.readMCString(msg, 16);
+						if (mcProto >= 759) {
+							int propCount = BufferUtils.readVarInt(msg, 5);
+							for (int j = 0; j < propCount; ++j) {
+								BufferUtils.readMCString(msg, 32767);
+								BufferUtils.readMCString(msg, 32767);
+								if (msg.readBoolean()) {
+									BufferUtils.readMCString(msg, 32767);
+								}
+							}
+						}
+						if (mcProto >= 766 && msg.isReadable()) {
+							msg.readBoolean();
+						}
+					} else {
+						String uuidStr = BufferUtils.readMCString(msg, 36);
+						try {
+							playerUUID = UUID.fromString(uuidStr);
+						} catch (IllegalArgumentException ex) {
+							inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
+							return;
+						}
+						usernameStr = BufferUtils.readMCString(msg, 16);
 					}
-					String usernameStr = BufferUtils.readMCString(msg, 16);
 					inboundHandler.handleBackendHandshakeSuccess(ctx, usernameStr, playerUUID);
 					break;
 				case 0x03:
