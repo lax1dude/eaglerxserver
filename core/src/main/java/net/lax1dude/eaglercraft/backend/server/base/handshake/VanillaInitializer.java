@@ -91,12 +91,8 @@ public class VanillaInitializer {
 			BufferUtils.writeVarInt(buffer, 0x00);
 			BufferUtils.writeMCString(buffer, pipelineData.username, 16);
 			if (pipelineData.minecraftProtocol >= 764) {
-				java.util.UUID uuid = pipelineData.uuid;
-				if (uuid == null) {
-					uuid = java.util.UUID.nameUUIDFromBytes(("OfflinePlayer:" + pipelineData.username).getBytes(java.nio.charset.StandardCharsets.UTF_8));
-				}
-				buffer.writeLong(uuid.getMostSignificantBits());
-				buffer.writeLong(uuid.getLeastSignificantBits());
+				buffer.writeLong(pipelineData.uuid.getMostSignificantBits());
+				buffer.writeLong(pipelineData.uuid.getLeastSignificantBits());
 			}
 			ctx.fireChannelRead(buffer.retain());
 		} finally {
@@ -144,10 +140,10 @@ public class VanillaInitializer {
 						if (mcProto >= 759) {
 							int propCount = BufferUtils.readVarInt(msg, 5);
 							for (int j = 0; j < propCount; ++j) {
-								BufferUtils.readMCString(msg, 32767);
-								BufferUtils.readMCString(msg, 32767);
+								msg.skipBytes(BufferUtils.readVarInt(msg, 5));
+								msg.skipBytes(BufferUtils.readVarInt(msg, 5));
 								if (msg.readBoolean()) {
-									BufferUtils.readMCString(msg, 32767);
+									msg.skipBytes(BufferUtils.readVarInt(msg, 5));
 								}
 							}
 						}

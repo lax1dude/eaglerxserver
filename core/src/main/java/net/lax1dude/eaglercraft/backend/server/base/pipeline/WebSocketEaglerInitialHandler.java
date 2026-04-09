@@ -660,9 +660,9 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		ChannelPipeline pipeline = ctx.pipeline();
 		pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_HANDSHAKE_COMPLETE);
 		if (pipelineData.minecraftProtocol >= 764) {
-			io.netty.buffer.ByteBuf ackBuf = ctx.alloc().buffer();
+			ByteBuf ackBuf = ctx.alloc().buffer();
 			try {
-				net.lax1dude.eaglercraft.backend.server.base.pipeline.BufferUtils.writeVarInt(ackBuf, 0x03);
+				BufferUtils.writeVarInt(ackBuf, 0x03);
 				ctx.fireChannelRead(ackBuf.retain());
 			} finally {
 				ackBuf.release();
