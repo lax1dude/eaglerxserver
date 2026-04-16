@@ -529,27 +529,6 @@ public class SkinManagerEagler<PlayerObject> implements ISkinManagerEagler<Playe
 		}
 	}
 
-	public void handlePacketGetSignedSkinV5(int requestId, SHA1Sum checksum) {
-		PlayerRateLimits rateLimits = player.getRateLimits();
-		if (!rateLimits.ratelimitSkin()) {
-			return;
-		}
-
-	}
-
-	public void callbackSignedSkin(int requestId, String skinURL) {
-		skinService.loadCacheSkinFromURLKeyed(this, skinURL, EnumSkinModel.STEVE, (res) -> {
-			if (res != MissingSkin.UNAVAILABLE_SKIN) {
-				player.sendEaglerMessage(res.getSkinPacket(requestId, player.getEaglerProtocol()));
-			}
-		});
-	}
-
-	public void callbackInvalidSignedSkin(int requestId) {
-		player.getRateLimits().ratelimitSkinAntagonist();
-		player.sendEaglerMessage(MissingSkin.MISSING_SKIN.getSkinPacket(requestId, player.getEaglerProtocol()));
-	}
-
 	SPacketOtherTexturesV5EAG createV5Textures(int requestId, IEaglerPlayerSkin skin, IEaglerPlayerCape cape) {
 		int skinID = 0;
 		byte[] customSkin = null;
