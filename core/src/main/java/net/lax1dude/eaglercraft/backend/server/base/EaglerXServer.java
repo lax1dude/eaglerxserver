@@ -744,6 +744,11 @@ public class EaglerXServer<PlayerObject> implements IEaglerXServerImpl<PlayerObj
 	}
 
 	@Override
+	public boolean isMinecraftProtocolSupportedV5(int vers) {
+		return config.getSettings().getProtocols().isMinecraftProtocolSupportedV5(vers);
+	}
+
+	@Override
 	public BasePlayerInstance<PlayerObject> getPlayer(PlayerObject player) {
 		if (player == null) {
 			throw new NullPointerException("player");

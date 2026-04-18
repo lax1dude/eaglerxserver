@@ -132,7 +132,11 @@ public class ConfigDataSettings {
 		}
 
 		public boolean isMinecraftProtocolSupported(int vers) {
-			return minMinecraftProtocol >= vers && maxMinecraftProtocol <= vers;
+			return minMinecraftProtocol <= vers && (maxMinecraftProtocol >= vers || maxMinecraftProtocol == -1);
+		}
+
+		public boolean isMinecraftProtocolSupportedV5(int vers) {
+			return minMinecraftProtocol <= vers && (maxMinecraftProtocolV5 >= vers || maxMinecraftProtocolV5 == -1);
 		}
 
 	}

@@ -99,6 +99,8 @@ public interface IEaglerXServerAPI<PlayerObject> extends IAttributeHolder {
 
 	boolean isMinecraftProtocolSupported(int vers);
 
+	boolean isMinecraftProtocolSupportedV5(int vers);
+
 	@Nullable
 	IBasePlayer<PlayerObject> getPlayer(@Nonnull PlayerObject player);
 
