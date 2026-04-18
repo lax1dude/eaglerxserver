@@ -18,6 +18,7 @@ package net.lax1dude.eaglercraft.backend.rewind_v1_5.base.zstream;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 import java.util.zip.ZipException;
@@ -34,6 +35,8 @@ public class ReusableInflaterInputStream extends InputStream {
 	private boolean closed = false;
 	private boolean reachEOF = false;
 	private byte[] singleByteBuf;
+	private ByteBuffer[] extraBuffers;
+	private int extraBufferIndex;
 
 	public ReusableInflaterInputStream(Inflater inf, byte[] singleByteBuf) {
 		this.inf = inf;
@@ -43,18 +46,38 @@ public class ReusableInflaterInputStream extends InputStream {
 	public void setInput(ByteBuf dataIn) throws IOException {
 		closed = false;
 		reachEOF = false;
+		extraBuffers = null;
+		buf = dataIn;
 		inf.reset();
 		if (dataIn.hasArray()) {
 			byte[] arr = dataIn.array();
 			int arrIndex = dataIn.arrayOffset();
 			inf.setInput(arr, arrIndex + dataIn.readerIndex(), dataIn.readableBytes());
-			buf = dataIn;
-		} else if (dataIn.nioBufferCount() == 1) {
-			inf.setInput(dataIn.internalNioBuffer(dataIn.readerIndex(), dataIn.readableBytes()));
-			buf = dataIn;
 		} else {
-			throw new IllegalStateException("Composite buffers not supported! (Input)");
+			int num = dataIn.nioBufferCount();
+			if (num == 1) {
+				inf.setInput(dataIn.internalNioBuffer(dataIn.readerIndex(), dataIn.readableBytes()));
+			} else if (num > 0) {
+				ByteBuffer[] extraBuffers = dataIn.nioBuffers(dataIn.readerIndex(), dataIn.readableBytes());
+				if (extraBuffers != null && extraBuffers.length > 0) {
+					inf.setInput(extraBuffers[0]);
+					this.extraBuffers = extraBuffers;
+					this.extraBufferIndex = 1;
+				} else {
+					inf.setInput(singleByteBuf, 1, 0);
+				}
+			} else {
+				inf.setInput(singleByteBuf, 1, 0);
+			}
 		}
+	}
+
+	private boolean feedNextBuffer() {
+		if (extraBuffers != null && extraBufferIndex < extraBuffers.length) {
+			inf.setInput(extraBuffers[extraBufferIndex++]);
+			return true;
+		}
+		return false;
 	}
 
 	private void ensureOpen() throws IOException {
@@ -73,21 +96,24 @@ public class ReusableInflaterInputStream extends InputStream {
 			throw new NullPointerException();
 		} else if (off < 0 || len < 0 || len > b.length - off) {
 			throw new IndexOutOfBoundsException();
-		} else if (len == 0) {
-			return 0;
 		}
 		try {
-			int n;
-			if ((n = inf.inflate(b, off, len)) == 0) {
-				if (inf.finished() || inf.needsDictionary()) {
-					reachEOF = true;
-					return -1;
-				}
-				if (inf.needsInput()) {
-					throw new ZipException("Input data was not complete");
+			int total = 0;
+			for (int n; total < len; total += n) {
+				if ((n = inf.inflate(b, off + total, len - total)) == 0) {
+					if (inf.finished() || inf.needsDictionary()) {
+						reachEOF = true;
+						if (total == 0) {
+							return -1;
+						}
+						break;
+					}
+					if (inf.needsInput() && !feedNextBuffer()) {
+						throw new ZipException("Input data was not complete");
+					}
 				}
 			}
-			return n;
+			return total;
 		} catch (DataFormatException e) {
 			String s = e.getMessage();
 			throw new ZipException(s != null ? s : "Invalid ZLIB data format");
@@ -134,6 +160,7 @@ public class ReusableInflaterInputStream extends InputStream {
 	public void close() throws IOException {
 		closed = true;
 		buf = null;
+		extraBuffers = null;
 	}
 
 	public boolean markSupported() {
