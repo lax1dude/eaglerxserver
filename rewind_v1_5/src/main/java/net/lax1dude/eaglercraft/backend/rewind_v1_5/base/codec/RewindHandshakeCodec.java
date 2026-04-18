@@ -71,7 +71,10 @@ public class RewindHandshakeCodec<PlayerObject> extends RewindChannelHandler.Cod
 					break;
 				default:
 					handleUnexpectedClientPacket(ctx, type);
-					break;
+					return;
+				}
+				if (buf.isReadable()) {
+					throw new IndexOutOfBoundsException();
 				}
 			} catch (IndexOutOfBoundsException ex) {
 				state = STATE_COMPLETED;
