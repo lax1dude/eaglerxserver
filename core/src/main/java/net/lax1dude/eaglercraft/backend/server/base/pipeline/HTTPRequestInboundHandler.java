@@ -393,9 +393,14 @@ public class HTTPRequestInboundHandler extends ChannelInboundHandlerAdapter {
 				responseSlot.complete(populateHeadersFrom(createResponse(status, null, 0), context));
 				break;
 			case RequestContext.RESPONSE_UNSAFE_BUF:
-				responseSlot
-						.complete(populateHeadersFrom(createResponse(status, context.responseUnsafeByteBuf, 0), context)
-								.retain());
+				if (context.meth == EnumRequestMethod.HEAD) {
+					responseSlot.complete(populateHeadersFrom(
+							createResponse(status, null, context.responseUnsafeByteBuf.readableBytes()), context));
+				} else {
+					responseSlot.complete(
+							populateHeadersFrom(createResponse(status, context.responseUnsafeByteBuf, 0), context)
+									.retain());
+				}
 				break;
 			case RequestContext.RESPONSE_UNSAFE_FULL:
 				responseSlot.complete(context.responseUnsafeFull.retain());
