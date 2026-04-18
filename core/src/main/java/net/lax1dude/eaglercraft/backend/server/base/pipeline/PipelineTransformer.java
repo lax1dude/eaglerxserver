@@ -77,7 +77,7 @@ public class PipelineTransformer {
 	private static final boolean SUPPORTS_COMPRESSION_FRAME = Util.classExists(
 			"io.netty.handler.codec.http.websocketx.extensions.compression.DeflateFrameServerExtensionHandshaker");
 	private static final boolean SUPPORTS_COMPRESSION_MESSAGE = Util.classExists(
-			"io.netty.handler.codec.http.websocketx.extensions.compression.DeflateFrameServerExtensionHandshaker");
+			"io.netty.handler.codec.http.websocketx.extensions.compression.PerMessageDeflateServerExtensionHandshaker");
 
 	private static final boolean NEW_AGGREGATOR_CTOR;
 
