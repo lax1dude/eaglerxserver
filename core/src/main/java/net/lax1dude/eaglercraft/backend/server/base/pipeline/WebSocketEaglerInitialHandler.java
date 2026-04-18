@@ -243,31 +243,15 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 				}
 				switch (j) {
 				case 2:
-					if (v2InList) {
-						ctx.close();
-						return;
-					}
 					v2InList = true;
 					break;
 				case 3:
-					if (v3InList) {
-						ctx.close();
-						return;
-					}
 					v3InList = true;
 					break;
 				case 4:
-					if (v4InList) {
-						ctx.close();
-						return;
-					}
 					v4InList = true;
 					break;
 				case 5:
-					if (v5InList) {
-						ctx.close();
-						return;
-					}
 					v5InList = true;
 					maxAllowedMC = maxAllowedMCV5;
 					break;

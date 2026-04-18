@@ -466,7 +466,6 @@ public class EaglerConfigLoader {
 			if (!downloadCertsFromConf.exists()) {
 				downloadCertsFromConf.setComment("List of strings, defines the URLs to download "
 						+ "the certificates from if download_latest_certs is enabled");
-				downloadCertsFromConf.appendString("https://eaglercraft.com/backup.cert");
 				downloadCertsFromConf.appendString("https://deev.is/eagler/backup.cert");
 			}
 			ImmutableList.Builder<URI> builder = ImmutableList.builder();
