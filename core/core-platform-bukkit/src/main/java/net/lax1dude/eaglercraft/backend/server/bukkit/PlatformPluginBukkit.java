@@ -33,6 +33,8 @@ import org.bukkit.World;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -267,6 +269,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 		server.getPluginManager().registerEvents(new BukkitListener(this), this);
 		CommandMap cmdMap = BukkitUnsafe.getCommandMap(server);
 		for (IEaglerXServerCommandType<Player> cmd : commandsList) {
+			server.getPluginManager().addPermission(new Permission(cmd.getPermission(), PermissionDefault.OP));
 			cmdMap.register("eagler", new BukkitCommand(this, cmd));
 		}
 		Messenger msgr = server.getMessenger();
@@ -402,6 +405,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 			onServerDisable.run();
 		}
 		Server server = getServer();
+		for (IEaglerXServerCommandType<Player> cmd : commandsList) {
+			server.getPluginManager().removePermission(cmd.getPermission());
+		}
 		Messenger msgr = server.getMessenger();
 		if (!post_v1_13) {
 			msgr.unregisterIncomingPluginChannel(this, "MC|Brand");

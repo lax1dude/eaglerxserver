@@ -21,6 +21,8 @@ import java.lang.reflect.InvocationTargetException;
 import org.bukkit.Server;
 import org.bukkit.command.CommandMap;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -77,6 +79,8 @@ public class PlatformPluginBukkit extends JavaPlugin implements IEaglerWebPlatfo
 				| IllegalArgumentException | InvocationTargetException e) {
 			throw new RuntimeException("Reflection failed!", e);
 		}
+		getServer().getPluginManager()
+				.addPermission(new Permission("eaglercraft.eaglerweb.refresh", PermissionDefault.OP));
 		map.register("eagler", new CommandEaglerWeb(this));
 		plugin.onEnable(EaglerXServerAPI.instance());
 	}
@@ -84,6 +88,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IEaglerWebPlatfo
 	@Override
 	public void onDisable() {
 		plugin.onDisable(EaglerXServerAPI.instance());
+		getServer().getPluginManager().removePermission("eaglercraft.eaglerweb.refresh");
 	}
 
 	@Override
