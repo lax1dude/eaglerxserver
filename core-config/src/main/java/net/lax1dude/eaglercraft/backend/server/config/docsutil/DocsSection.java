@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableList;
 
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfList;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfSection;
+import net.lax1dude.eaglercraft.backend.server.config.IRandomSupplier;
 
 class DocsSection implements IEaglerConfSection {
 
@@ -118,7 +119,7 @@ class DocsSection implements IEaglerConfSection {
 		if (entries.get(name) instanceof DocsValue v && v.type == DocsValue.Type.BOOL) {
 			return Boolean.parseBoolean(v.value);
 		} else {
-			DocsValue val = new DocsValue(DocsValue.Type.BOOL, Boolean.toString(defaultValue), comment);
+			DocsValue val = new DocsValue(DocsValue.Type.BOOL, Boolean.toString(defaultValue), comment, false);
 			entries.put(name, val);
 			initialized = true;
 			return defaultValue;
@@ -131,7 +132,8 @@ class DocsSection implements IEaglerConfSection {
 			return Boolean.parseBoolean(v.value);
 		} else {
 			boolean def = defaultValue.get();
-			DocsValue val = new DocsValue(DocsValue.Type.BOOL, Boolean.toString(def), comment);
+			DocsValue val = new DocsValue(DocsValue.Type.BOOL, Boolean.toString(def), comment,
+					defaultValue instanceof IRandomSupplier);
 			entries.put(name, val);
 			initialized = true;
 			return def;
@@ -151,7 +153,7 @@ class DocsSection implements IEaglerConfSection {
 		if (entries.get(name) instanceof DocsValue v && v.type == DocsValue.Type.INT) {
 			return Integer.parseInt(v.value);
 		} else {
-			DocsValue val = new DocsValue(DocsValue.Type.INT, Integer.toString(defaultValue), comment);
+			DocsValue val = new DocsValue(DocsValue.Type.INT, Integer.toString(defaultValue), comment, false);
 			entries.put(name, val);
 			initialized = true;
 			return defaultValue;
@@ -164,7 +166,8 @@ class DocsSection implements IEaglerConfSection {
 			return Integer.parseInt(v.value);
 		} else {
 			int def = defaultValue.get();
-			DocsValue val = new DocsValue(DocsValue.Type.INT, Integer.toString(def), comment);
+			DocsValue val = new DocsValue(DocsValue.Type.INT, Integer.toString(def), comment,
+					defaultValue instanceof IRandomSupplier);
 			entries.put(name, val);
 			initialized = true;
 			return def;
@@ -192,7 +195,7 @@ class DocsSection implements IEaglerConfSection {
 		if (entries.get(name) instanceof DocsValue v && v.type == DocsValue.Type.STR) {
 			return v.value;
 		} else {
-			DocsValue val = new DocsValue(DocsValue.Type.STR, defaultValue, comment);
+			DocsValue val = new DocsValue(DocsValue.Type.STR, defaultValue, comment, false);
 			entries.put(name, val);
 			initialized = true;
 			return defaultValue;
@@ -205,7 +208,8 @@ class DocsSection implements IEaglerConfSection {
 			return v.value;
 		} else {
 			String def = defaultValue.get();
-			DocsValue val = new DocsValue(DocsValue.Type.STR, def, comment);
+			DocsValue val = new DocsValue(DocsValue.Type.STR, def, comment,
+					defaultValue instanceof IRandomSupplier);
 			entries.put(name, val);
 			initialized = true;
 			return def;

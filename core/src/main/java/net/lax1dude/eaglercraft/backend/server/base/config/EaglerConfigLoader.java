@@ -50,6 +50,7 @@ import net.lax1dude.eaglercraft.backend.server.api.voice.ICEServerEntry;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServerVersion;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfList;
 import net.lax1dude.eaglercraft.backend.server.config.IEaglerConfSection;
+import net.lax1dude.eaglercraft.backend.server.config.IRandomSupplier;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 
 public class EaglerConfigLoader {
@@ -70,7 +71,7 @@ public class EaglerConfigLoader {
 				+ "and used for the default \"404 websocket upgrade failure\" page"
 			);
 			UUID serverUUID = UUID.fromString(config.getString(
-				"server_uuid", () -> UUID.randomUUID().toString(),
+				"server_uuid", (IRandomSupplier<String>) () -> UUID.randomUUID().toString(),
 				"Sets the UUID of this EaglercraftX server to send with query responses, has "
 				+ "no official uses outside of server lists"
 			));

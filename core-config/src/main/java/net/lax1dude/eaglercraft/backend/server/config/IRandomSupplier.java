@@ -14,24 +14,10 @@
  * 
  */
 
-package net.lax1dude.eaglercraft.backend.server.config.docsutil;
+package net.lax1dude.eaglercraft.backend.server.config;
 
-class DocsValue {
+import java.util.function.Supplier;
 
-	static enum Type {
-		BOOL, INT, STR
-	}
-
-	final Type type;
-	final String value;
-	final String comment;
-	final boolean randomized;
-
-	DocsValue(Type type, String value, String comment, boolean randomized) {
-		this.type = type;
-		this.value = value;
-		this.comment = comment;
-		this.randomized = randomized;
-	}
+public interface IRandomSupplier<T> extends Supplier<T> {
 
 }

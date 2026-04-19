@@ -77,11 +77,9 @@ public class DocsGenerator {
 		List<String> values = new ArrayList<>();
 		for (Object etr : section.entries) {
 			if (etr instanceof DocsValue v) {
-				if (v.type == DocsValue.Type.STR) {
-					values.add("\"" + v.value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"");
-				} else {
-					values.add(v.value);
-				}
+				values.add(v.value == null ? "null" :
+					v.type != DocsValue.Type.STR ? v.value :
+					("\"" + v.value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""));
 			} else if (etr instanceof DocsSection v) {
 				int idx = title.lastIndexOf(": ");
 				if (idx == -1) {
@@ -140,11 +138,14 @@ public class DocsGenerator {
 			summaryObj.platforms.add(platf);
 			contentObj.summary.add(summaryObj);
 		}
-		Defaults defaultsObj = new Defaults(value.type == DocsValue.Type.STR
-				? ("\"" + value.value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"")
-				: value.value);
-		defaultsObj.platforms.add(platf);
-		contentObj.defaults.add(defaultsObj);
+		if (!value.randomized) {
+			Defaults defaultsObj = new Defaults(
+				value.value == null ? "null" :
+				value.type != DocsValue.Type.STR ? value.value :
+				("\"" + value.value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""));
+			defaultsObj.platforms.add(platf);
+			contentObj.defaults.add(defaultsObj);
+		}
 		merge(content, pfx, contentObj);
 	}
 
@@ -283,11 +284,15 @@ public class DocsGenerator {
 				for (Summary sum : sec.summary) {
 					writer.println("- " + sum.summary + "&emsp;<sub>(" + String.join(", ", sum.platforms) + ")</sub>");
 				}
-				writer.println();
 			}
-			writer.println("**Defaults:**");
-			for (Defaults def : sec.defaults) {
-				writer.println("- `" + def.defaults + "`&emsp;<sub>(" + String.join(", ", def.platforms) + ")</sub>");
+			if (!sec.defaults.isEmpty()) {
+				if (!sec.summary.isEmpty()) {
+					writer.println();
+				}
+				writer.println("**Defaults:**");
+				for (Defaults def : sec.defaults) {
+					writer.println("- `" + def.defaults + "`&emsp;<sub>(" + String.join(", ", def.platforms) + ")</sub>");
+				}
 			}
 		}
 

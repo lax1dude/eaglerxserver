@@ -221,11 +221,6 @@ Generated from the source code of EaglerXServer 1.0.8
 **Summary:**
 - Sets the UUID of this EaglercraftX server to send with query responses, has no official uses outside of server lists&emsp;<sub>(Bukkit, BungeeCord, Velocity)</sub>
 
-**Defaults:**
-- `"28dc3367-27cd-425c-9ff8-fde18454d27f"`&emsp;<sub>(Bukkit)</sub>
-- `"237eee88-b425-43f4-a2b0-941c6c6ea74e"`&emsp;<sub>(BungeeCord)</sub>
-- `"7af994d4-3fed-42de-93e9-733a2d02c07a"`&emsp;<sub>(Velocity)</sub>
-
 ## `/settings.cfg` &gt; `skin_service`&emsp;<sub>(Bukkit, BungeeCord, Velocity)</sub>
 **Summary:**
 - Settings for the eagler skins and capes service, and for the skin cache database.&emsp;<sub>(Bukkit, BungeeCord, Velocity)</sub>

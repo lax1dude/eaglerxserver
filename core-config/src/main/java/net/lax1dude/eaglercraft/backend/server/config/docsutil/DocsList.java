@@ -64,14 +64,14 @@ class DocsList implements IEaglerConfList {
 
 	@Override
 	public void appendInteger(int value) {
-		DocsValue object = new DocsValue(DocsValue.Type.INT, Integer.toString(value), null);
+		DocsValue object = new DocsValue(DocsValue.Type.INT, Integer.toString(value), null, false);
 		entries.add(object);
 		initialized = true;
 	}
 
 	@Override
 	public void appendString(String string) {
-		DocsValue object = new DocsValue(DocsValue.Type.STR, string, null);
+		DocsValue object = new DocsValue(DocsValue.Type.STR, string, null, false);
 		entries.add(object);
 		initialized = true;
 	}
