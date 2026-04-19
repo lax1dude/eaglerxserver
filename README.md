@@ -48,7 +48,9 @@ Please keep in mind that on BungeeCord and Velocity you must edit the Eaglercraf
 
 ## Configuration
 
-On BungeeCord and Velocity, EaglercraftXServer should generate detailed comments in the config files, describing each property in detail. However this does not work on most Spigot versions (like 1.12) due to the YAML parser/serializer bundled with it not supporting comments. There will eventually be a configuration guide for people who get stuck without comments in their config files, however this has not been completed yet.
+On BungeeCord and Velocity, EaglercraftXServer should generate detailed comments in the config files, describing each property in detail. However this does not work on most Spigot versions (like 1.12) due to the YAML parser/serializer bundled with it not supporting comments.
+
+**See [CONFIG.md](CONFIG.md) for a copy of the default config on each platform with full descriptions for each property**
 
 ## Plugin Development
 

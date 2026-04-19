@@ -691,7 +691,7 @@ public class EaglerConfigLoader {
 			return builder.build();
 		});
 		ConfigDataPauseMenu pauseMenu = root.loadConfig("pause_menu", (config) -> {
-			if (!config.exists()) {
+			if (!config.exists() && root.getBaseDir() != null) {
 				extractDefaultPauseMenuAssets(root.getBaseDir());
 			}
 			boolean enableCustomPauseMenu = config.getBoolean(
