@@ -95,27 +95,46 @@ public class EaglerDrivers {
 	private static final Map<String, ClassLoader> driversJARs = new HashMap<>();
 	private static final Map<String, Driver> driversDrivers = new HashMap<>();
 
-	public static Connection connectToDatabase(String address, String driverClass, String driverPath, Properties props,
-			File baseFolder, ILoggerAdapter logger) throws SQLException {
+	public static Connection[] connectToDatabase(String address, String driverClass, String driverPath,
+			Properties props, File baseFolder, ILoggerAdapter logger, int count) throws SQLException {
 		if (driverClass.equalsIgnoreCase("internal")) {
 			driverClass = "org.sqlite.JDBC";
 		}
-		if (driverPath == null) {
-			try {
-				Class.forName(driverClass);
-			} catch (ClassNotFoundException e) {
-				throw new SQLException("Driver class not found in JRE: " + driverClass, e);
+		Connection[] arr = new Connection[count];
+		try {
+			if (driverPath == null) {
+				try {
+					Class.forName(driverClass);
+				} catch (ClassNotFoundException e) {
+					throw new SQLException("Driver class not found in JRE: " + driverClass, e);
+				}
+				for (int i = 0; i < count; ++i) {
+					arr[i] = DriverManager.getConnection(address, props);
+				}
+			} else {
+				String driverMapPath = "" + driverPath + "?" + driverClass;
+				Driver dv = driversDrivers.get(driverMapPath);
+				if (dv == null) {
+					dv = initializeDriver(driverPath, driverClass, baseFolder, logger);
+					driversDrivers.put(driverMapPath, dv);
+				}
+				for (int i = 0; i < count; ++i) {
+					arr[i] = dv.connect(address, props);
+				}
 			}
-			return DriverManager.getConnection(address, props);
-		} else {
-			String driverMapPath = "" + driverPath + "?" + driverClass;
-			Driver dv = driversDrivers.get(driverMapPath);
-			if (dv == null) {
-				dv = initializeDriver(driverPath, driverClass, baseFolder, logger);
-				driversDrivers.put(driverMapPath, dv);
+		} catch (SQLException ex) {
+			for (int i = 0; i < count; ++i) {
+				if (arr[i] != null) {
+					try {
+						arr[i].close();
+					} catch (SQLException exx) {
+						ex.addSuppressed(exx);
+					}
+				}
 			}
-			return dv.connect(address, props);
+			throw ex;
 		}
+		return arr;
 	}
 
 }

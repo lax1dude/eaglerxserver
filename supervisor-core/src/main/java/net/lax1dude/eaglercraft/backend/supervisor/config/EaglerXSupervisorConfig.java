@@ -49,6 +49,7 @@ public class EaglerXSupervisorConfig {
 	private Set<String> allowedSkinDownloadOrigins = null;
 	private String skinCacheDBURI = null;
 	private boolean skinCacheDBSQLiteCompatible = false;
+	private boolean skinCacheDBForceConnectionPool = false;
 	private int skinCacheThreadPoolSize = -1;
 	private int databaseKeepObjectsDays = 45;
 	private int databaseMaxObjects = 32768;
@@ -97,13 +98,15 @@ public class EaglerXSupervisorConfig {
 			statusPassword = null;
 			authString = null;
 		}
-		downloadVanillaSkins = "true".equalsIgnoreCase(getStringOrNull(props, "download-vanilla-skins"));
+		downloadVanillaSkins = Boolean.parseBoolean(getStringOrNull(props, "download-vanilla-skins"));
 		if (downloadVanillaSkins) {
 			allowedSkinDownloadOrigins = new HashSet<>(
 					Arrays.asList(getRequiredString(props, "valid-skin-download-origins").split("\\s*[;,]\\s*")));
 			skinCacheDBURI = getRequiredString(props, "skin-cache-db-uri");
 			skinCacheDBSQLiteCompatible = Boolean
 					.parseBoolean(getRequiredString(props, "skin-cache-db-sqlite-compatible"));
+			skinCacheDBForceConnectionPool = Boolean
+					.parseBoolean(getStringOrNull(props, "skin-cache-db-force-connection-pool"));
 			skinCacheThreadPoolSize = getRequiredInt(props, "skin-cache-thread-pool-size");
 			databaseKeepObjectsDays = getRequiredInt(props, "database-keep-objects-days");
 			databaseMaxObjects = getRequiredInt(props, "database-max-objects");
@@ -116,6 +119,7 @@ public class EaglerXSupervisorConfig {
 			allowedSkinDownloadOrigins = null;
 			skinCacheDBURI = null;
 			skinCacheDBSQLiteCompatible = false;
+			skinCacheDBForceConnectionPool = false;
 			skinCacheThreadPoolSize = -1;
 			databaseKeepObjectsDays = 45;
 			databaseMaxObjects = 32768;
@@ -205,6 +209,10 @@ public class EaglerXSupervisorConfig {
 
 	public boolean getSkinCacheDBSQLiteCompatible() {
 		return skinCacheDBSQLiteCompatible;
+	}
+
+	public boolean getSkinCacheDBForceConnectionPool() {
+		return skinCacheDBForceConnectionPool;
 	}
 
 	public int getSkinCacheThreadPoolSize() {

@@ -300,6 +300,13 @@ Generated from the source code of EaglerXServer 1.0.8
 **Defaults:**
 - `"internal"`&emsp;<sub>(Bukkit, BungeeCord, Velocity)</sub>
 
+## <small>`/settings.cfg` &gt; `skin_service` : `skin_cache_db_force_connection_pool`&emsp;<sub>(Bukkit, BungeeCord, Velocity)</sub></small>
+**Summary:**
+- Default value is false, if the skin cache should always use a pool of multiple connections even when skin_cache_db_sqlite_compatible is true, you don't want want to enable this unless you're using the SQLite compatible syntax feature with a non-embedded database.&emsp;<sub>(Bukkit, BungeeCord, Velocity)</sub>
+
+**Defaults:**
+- `false`&emsp;<sub>(Bukkit, BungeeCord, Velocity)</sub>
+
 ## <small>`/settings.cfg` &gt; `skin_service` : `skin_cache_db_sqlite_compatible`&emsp;<sub>(Bukkit, BungeeCord, Velocity)</sub></small>
 **Summary:**
 - Default value is true, if the skin cache should use SQL syntax compatible with SQLite, if false it is assumed you are using a MySQL or MariaDB database instead of the default setup.&emsp;<sub>(Bukkit, BungeeCord, Velocity)</sub>

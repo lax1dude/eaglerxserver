@@ -321,6 +321,13 @@ public class EaglerConfigLoader {
 				+ "SQLite, if false it is assumed you are using a MySQL or MariaDB database "
 				+ "instead of the default setup."
 			);
+			boolean skinCacheForceConnectionPool = skinService.getBoolean(
+				"skin_cache_db_force_connection_pool", false,
+				"Default value is false, if the skin cache should always use a pool of multiple "
+				+ "connections even when skin_cache_db_sqlite_compatible is true, you don't want "
+				+ "want to enable this unless you're using the SQLite compatible syntax feature "
+				+ "with a non-embedded database."
+			);
 			int skinCacheThreadCount = skinService.getInteger(
 				"skin_cache_thread_count", -1,
 				"Default value is -1, sets the number of threads to use for database queries "
@@ -515,10 +522,11 @@ public class EaglerConfigLoader {
 							protocolV4Allowed, protocolV5Allowed),
 					new ConfigDataSettings.ConfigDataSkinService(skinLookupRatelimit, capeLookupRatelimit,
 							downloadVanillaSkinsToClients, validSkinDownloadURLs, skinCacheDBURI, skinCacheDriverClass,
-							skinCacheDriverPath, skinCacheSQLiteCompatible, skinCacheThreadCount,
-							skinCacheCompressionLevel, skinCacheMemoryKeepSeconds, skinCacheMemoryMaxObjects,
-							skinCacheDiskKeepObjectsDays, skinCacheDiskMaxObjects, skinCacheAntagonistsRatelimit,
-							enableFNAWSkinModelsGlobal, enableFNAWSkinModelsOnServers, enableSkinsRestorerApplyHook),
+							skinCacheDriverPath, skinCacheSQLiteCompatible, skinCacheForceConnectionPool,
+							skinCacheThreadCount, skinCacheCompressionLevel, skinCacheMemoryKeepSeconds,
+							skinCacheMemoryMaxObjects, skinCacheDiskKeepObjectsDays, skinCacheDiskMaxObjects,
+							skinCacheAntagonistsRatelimit, enableFNAWSkinModelsGlobal, enableFNAWSkinModelsOnServers,
+							enableSkinsRestorerApplyHook),
 					new ConfigDataSettings.ConfigDataVoiceService(enableVoiceService, enableVoiceChatAllServers,
 							enableVoiceChatOnServers, separateVoiceChannelsPerServer, voiceBackendRelayMode,
 							voiceConnectRatelimit, voiceRequestRatelimit, voiceICERatelimit),

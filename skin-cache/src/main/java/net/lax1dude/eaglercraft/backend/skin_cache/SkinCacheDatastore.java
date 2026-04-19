@@ -42,7 +42,6 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 	protected final ILoggerAdapter logger;
 	protected final SkinCacheDatastoreThreadEnv[] threads;
 	protected final BlockingQueue<SkinCacheDatastoreRunnable> databaseQueue = new LinkedBlockingQueue<>();
-	protected final Connection conn;
 	protected final CountDownLatch disposeLatch;
 
 	protected long lastCleanup = 0l;
@@ -115,19 +114,18 @@ public class SkinCacheDatastore implements ISkinCacheDatastore {
 
 	private static final SkinCacheDatastoreRunnable TERMINATE = (env) -> {};
 
-	public SkinCacheDatastore(Connection conn, int threadCount, int keepObjectsDays, int maxObjects,
+	public SkinCacheDatastore(Connection[] conn, int threadCount, int keepObjectsDays, int maxObjects,
 			int compressionLevel, boolean sqliteCompatible, ILoggerAdapter logger) throws SQLException {
-		this.conn = conn;
 		this.keepObjectsDays = keepObjectsDays;
 		this.maxObjects = maxObjects;
 		this.sqliteCompatible = sqliteCompatible;
 		this.logger = logger;
-		skin = new SkinCacheTable("eagler_skins", conn, sqliteCompatible, logger);
-		cape = new SkinCacheTable("eagler_capes", conn, sqliteCompatible, logger);
+		skin = new SkinCacheTable("eagler_skins", conn[0], sqliteCompatible, logger);
+		cape = new SkinCacheTable("eagler_capes", conn[0], sqliteCompatible, logger);
 		disposeLatch = new CountDownLatch(threadCount);
 		threads = new SkinCacheDatastoreThreadEnv[threadCount];
 		for (int i = 0; i < threadCount; ++i) {
-			threads[i] = new SkinCacheDatastoreThreadEnv(i, compressionLevel, conn);
+			threads[i] = new SkinCacheDatastoreThreadEnv(i, compressionLevel, conn[conn.length > 1 ? i : 0]);
 		}
 	}
 

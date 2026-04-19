@@ -151,6 +151,7 @@ public class ConfigDataSettings {
 		private final String skinCacheDriverClass;
 		private final String skinCacheDriverPath;
 		private final boolean skinCacheSQLiteCompatible;
+		private final boolean skinCacheForceConnectionPool;
 		private final int skinCacheThreadCount;
 		private final int skinCacheCompressionLevel;
 		private final int skinCacheMemoryKeepSeconds;
@@ -165,9 +166,9 @@ public class ConfigDataSettings {
 		public ConfigDataSkinService(int skinLookupRatelimit, int capeLookupRatelimit,
 				boolean downloadVanillaSkinsToClients, Set<String> validSkinDownloadURLs, String skinCacheDBURI,
 				String skinCacheDriverClass, String skinCacheDriverPath, boolean skinCacheSQLiteCompatible,
-				int skinCacheThreadCount, int skinCacheCompressionLevel, int skinCacheMemoryKeepSeconds,
-				int skinCacheMemoryMaxObjects, int skinCacheDiskKeepObjectsDays, int skinCacheDiskMaxObjects,
-				int skinCacheAntagonistsRatelimit, boolean enableFNAWSkinModelsGlobal,
+				boolean skinCacheForceConnectionPool, int skinCacheThreadCount, int skinCacheCompressionLevel,
+				int skinCacheMemoryKeepSeconds, int skinCacheMemoryMaxObjects, int skinCacheDiskKeepObjectsDays,
+				int skinCacheDiskMaxObjects, int skinCacheAntagonistsRatelimit, boolean enableFNAWSkinModelsGlobal,
 				Set<String> enableFNAWSkinModelsOnServers, boolean enableSkinsRestorerApplyHook) {
 			this.skinLookupRatelimit = skinLookupRatelimit;
 			this.capeLookupRatelimit = capeLookupRatelimit;
@@ -177,6 +178,7 @@ public class ConfigDataSettings {
 			this.skinCacheDriverClass = skinCacheDriverClass;
 			this.skinCacheDriverPath = skinCacheDriverPath;
 			this.skinCacheSQLiteCompatible = skinCacheSQLiteCompatible;
+			this.skinCacheForceConnectionPool = skinCacheForceConnectionPool;
 			this.skinCacheThreadCount = skinCacheThreadCount;
 			this.skinCacheCompressionLevel = skinCacheCompressionLevel;
 			this.skinCacheMemoryKeepSeconds = skinCacheMemoryKeepSeconds;
@@ -219,6 +221,10 @@ public class ConfigDataSettings {
 
 		public boolean isSkinCacheSQLiteCompatible() {
 			return skinCacheSQLiteCompatible;
+		}
+
+		public boolean isSkinCacheForceConnectionPool() {
+			return skinCacheForceConnectionPool;
 		}
 
 		public int getSkinCacheThreadCount() {

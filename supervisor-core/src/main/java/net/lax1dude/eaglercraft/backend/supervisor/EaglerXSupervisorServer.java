@@ -103,7 +103,7 @@ public class EaglerXSupervisorServer implements Runnable {
 
 	private HTTPClient skinHTTPClient = null;
 	private ISkinCacheService skinCache = null;
-	private Connection skinJDBCConnection = null;
+	private Connection[] skinJDBCConnection = null;
 	private ISkinCacheDatastore datastore = null;
 
 	private StatusRendererHTML statusRendererHTML = null;
@@ -136,11 +136,14 @@ public class EaglerXSupervisorServer implements Runnable {
 			if (threads <= 0) {
 				threads = Runtime.getRuntime().availableProcessors();
 			}
-
+			int connectionCount = 1;
+			if (!config.getSkinCacheDBSQLiteCompatible() || config.getSkinCacheDBForceConnectionPool()) {
+				connectionCount = threads;
+			}
 			try {
 				skinJDBCConnection = EaglerDrivers.connectToDatabase(config.getSkinCacheDBURI(),
 						config.getSQLDriverClass(), config.getSQLDriverPath(), new Properties(), new File("."),
-						LoggerSv.getLogger("EaglerDrivers"));
+						LoggerSv.getLogger("EaglerDrivers"), connectionCount);
 				datastore = new SkinCacheDatastore(skinJDBCConnection, threads, config.getDatabaseKeepObjectsDays(),
 						config.getDatabaseMaxObjects(), config.getDatabaseCompressionLevel(),
 						config.getSkinCacheDBSQLiteCompatible(), LoggerSv.getLogger("SkinCacheDatastore"));
@@ -148,9 +151,11 @@ public class EaglerXSupervisorServer implements Runnable {
 			} catch (SQLException ex) {
 				logger.info("Failed to connect to database!", ex);
 				if (skinJDBCConnection != null) {
-					try {
-						skinJDBCConnection.close();
-					} catch (SQLException exx) {
+					for (int i = 0; i < skinJDBCConnection.length; ++i) {
+						try {
+							skinJDBCConnection[i].close();
+						} catch (SQLException exx) {
+						}
 					}
 				}
 				return;
@@ -250,13 +255,16 @@ public class EaglerXSupervisorServer implements Runnable {
 		if (skinCache != null) {
 			logger.info("Stopping skin cache...");
 			datastore.dispose();
-			eag: {
+			boolean errored = false;
+			for (int i = 0; i < skinJDBCConnection.length; ++i) {
 				try {
-					skinJDBCConnection.close();
+					skinJDBCConnection[i].close();
 				} catch (SQLException ex) {
 					logger.error("Failed to disconnect from database '{}'", ex);
-					break eag;
+					errored = true;
 				}
+			}
+			if (!errored) {
 				logger.info("Successfully disconnected from database '{}'", config.getSkinCacheDBURI());
 			}
 		}
