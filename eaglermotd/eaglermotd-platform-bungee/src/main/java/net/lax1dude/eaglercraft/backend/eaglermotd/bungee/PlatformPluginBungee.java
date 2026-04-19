@@ -31,6 +31,7 @@ import net.lax1dude.eaglercraft.backend.server.api.bungee.EaglerXServerAPI;
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.api.plugin.PluginManager;
 
 @eu.hexagonmc.spigot.annotation.plugin.Plugin(
 	name = PlatformPluginBungee.PLUGIN_NAME,
@@ -50,6 +51,7 @@ public class PlatformPluginBungee extends Plugin implements IEaglerMOTDPlatform<
 	private JavaLogger logger;
 	private IEaglerMOTDImpl<ProxiedPlayer> eaglermotd;
 	Consumer<IEaglercraftMOTDEvent<ProxiedPlayer>> onMOTDHandler;
+	IHandleReload handleReload;
 
 	@Override
 	public void onLoad() {
@@ -59,13 +61,17 @@ public class PlatformPluginBungee extends Plugin implements IEaglerMOTDPlatform<
 
 	@Override
 	public void onEnable() {
-		getProxy().getPluginManager().registerListener(this, new BungeeListener(this));
+		PluginManager mgr = getProxy().getPluginManager();
+		mgr.registerListener(this, new BungeeListener(this));
+		mgr.registerCommand(this, new CommandEaglerMOTD(this));
 		eaglermotd.onEnable(EaglerXServerAPI.instance());
 	}
 
 	@Override
 	public void onDisable() {
-		getProxy().getPluginManager().unregisterListeners(this);
+		PluginManager mgr = getProxy().getPluginManager();
+		mgr.unregisterListeners(this);
+		mgr.unregisterCommands(this);
 		eaglermotd.onDisable(EaglerXServerAPI.instance());
 	}
 
@@ -77,6 +83,11 @@ public class PlatformPluginBungee extends Plugin implements IEaglerMOTDPlatform<
 	@Override
 	public void setOnMOTD(Consumer<IEaglercraftMOTDEvent<ProxiedPlayer>> handler) {
 		this.onMOTDHandler = handler;
+	}
+
+	@Override
+	public void setOnReload(IHandleReload handleReload) {
+		this.handleReload = handleReload;
 	}
 
 }

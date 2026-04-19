@@ -58,8 +58,7 @@ public class EaglerMOTD<PlayerObject> implements IEaglerMOTDImpl<PlayerObject> {
 	public void onEnable(IEaglerXServerAPI<PlayerObject> server) {
 		this.server = server;
 		try {
-			this.config = EaglerMOTDConfiguration.load(platform.getDataFolder(), server, logger(), server
-					.getAllEaglerListeners().stream().map(IEaglerListenerInfo::getName).collect(Collectors.toSet()));
+			onReload();
 		} catch (JsonParseException | IOException e) {
 			if (e instanceof RuntimeException ee)
 				throw ee;
@@ -67,9 +66,7 @@ public class EaglerMOTD<PlayerObject> implements IEaglerMOTDImpl<PlayerObject> {
 		}
 		this.motdUpdateTask = server.getScheduler().executeAsyncRepeatingTask(this::updateMOTDs, 50l, 50l);
 		platform.setOnMOTD(this::onMOTD);
-		for (Entry<String, QueryType> etr : config.queryTypes.entrySet()) {
-			server.getQueryServer().registerQueryType(this, etr.getKey(), etr.getValue()::doQuery);
-		}
+		platform.setOnReload(this::onReload);
 	}
 
 	@Override
@@ -82,6 +79,7 @@ public class EaglerMOTD<PlayerObject> implements IEaglerMOTDImpl<PlayerObject> {
 		for (String etr : config.queryTypes.keySet()) {
 			server.getQueryServer().unregisterQueryType(this, etr);
 		}
+		config = null;
 	}
 
 	public void onMOTD(IEaglercraftMOTDEvent<PlayerObject> event) {
@@ -100,6 +98,24 @@ public class EaglerMOTD<PlayerObject> implements IEaglerMOTDImpl<PlayerObject> {
 				}
 				activeConnections.add(updater);
 			}
+		}
+	}
+
+	public void onReload() throws JsonParseException, IOException {
+		EaglerMOTDConfiguration oldConfig = null;
+		EaglerMOTDConfiguration newConfig = EaglerMOTDConfiguration.load(platform.getDataFolder(), server, logger(),
+				server.getAllEaglerListeners().stream().map(IEaglerListenerInfo::getName).collect(Collectors.toSet()));
+		synchronized (this) {
+			oldConfig = config;
+			config = newConfig;
+		}
+		if (oldConfig != null) {
+			for (String etr : oldConfig.queryTypes.keySet()) {
+				server.getQueryServer().unregisterQueryType(this, etr);
+			}
+		}
+		for (Entry<String, QueryType> etr : newConfig.queryTypes.entrySet()) {
+			server.getQueryServer().registerQueryType(this, etr.getKey(), etr.getValue()::doQuery);
 		}
 	}
 

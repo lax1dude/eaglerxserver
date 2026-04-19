@@ -17,7 +17,10 @@
 package net.lax1dude.eaglercraft.backend.eaglermotd.adapter;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.function.Consumer;
+
+import com.google.gson.JsonParseException;
 
 import net.lax1dude.eaglercraft.backend.server.api.event.IEaglercraftMOTDEvent;
 
@@ -26,6 +29,12 @@ public interface IEaglerMOTDPlatform<PlayerObject> {
 	IEaglerMOTDLogger logger();
 
 	void setOnMOTD(Consumer<IEaglercraftMOTDEvent<PlayerObject>> handler);
+
+	void setOnReload(IHandleReload handleReload);
+
+	public interface IHandleReload {
+		void reload() throws JsonParseException, IOException;
+	}
 
 	File getDataFolder();
 

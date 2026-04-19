@@ -16,9 +16,15 @@
 
 package net.lax1dude.eaglercraft.backend.eaglermotd.bukkit;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.function.Consumer;
 
+import org.bukkit.Server;
+import org.bukkit.command.CommandMap;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionDefault;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import eu.hexagonmc.spigot.annotation.meta.DependencyType;
@@ -58,6 +64,7 @@ public class PlatformPluginBukkit extends JavaPlugin implements IEaglerMOTDPlatf
 	private JavaLogger logger;
 	private IEaglerMOTDImpl<Player> eaglermotd;
 	Consumer<IEaglercraftMOTDEvent<Player>> onMOTDHandler;
+	IHandleReload handleReload;
 
 	@Override
 	public void onLoad() {
@@ -67,13 +74,25 @@ public class PlatformPluginBukkit extends JavaPlugin implements IEaglerMOTDPlatf
 
 	@Override
 	public void onEnable() {
-		getServer().getPluginManager().registerEvents(new BukkitListener(this), this);
+		CommandMap map;
+		try {
+			map = (CommandMap) Class.forName("net.lax1dude.eaglercraft.backend.server.bukkit.BukkitUnsafe")
+					.getMethod("getCommandMap", Server.class).invoke(null, getServer());
+		} catch (NoSuchMethodException | SecurityException | ClassNotFoundException | IllegalAccessException
+				| IllegalArgumentException | InvocationTargetException e) {
+			throw new RuntimeException("Reflection failed!", e);
+		}
+		PluginManager mgr = getServer().getPluginManager();
+		mgr.registerEvents(new BukkitListener(this), this);
+		mgr.addPermission(new Permission("eaglercraft.eaglermotd.reload", PermissionDefault.OP));
+		map.register("eagler", new CommandEaglerMOTD(this));
 		eaglermotd.onEnable(EaglerXServerAPI.instance());
 	}
 
 	@Override
 	public void onDisable() {
 		eaglermotd.onDisable(EaglerXServerAPI.instance());
+		getServer().getPluginManager().removePermission("eaglercraft.eaglermotd.reload");
 	}
 
 	@Override
@@ -84,6 +103,11 @@ public class PlatformPluginBukkit extends JavaPlugin implements IEaglerMOTDPlatf
 	@Override
 	public void setOnMOTD(Consumer<IEaglercraftMOTDEvent<Player>> handler) {
 		this.onMOTDHandler = handler;
+	}
+
+	@Override
+	public void setOnReload(IHandleReload handleReload) {
+		this.handleReload = handleReload;
 	}
 
 }

@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 
 import com.google.inject.Inject;
+import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
@@ -65,7 +66,9 @@ public class PlatformPluginVelocity implements IEaglerMOTDPlatform<Player> {
 	private final File dataDir;
 	private final SLF4JLogger rewindLogger;
 	private final IEaglerMOTDImpl<Player> eaglermotd;
+	private CommandMeta refreshCommandMeta;
 	Consumer<IEaglercraftMOTDEvent<Player>> onMOTDHandler;
+	IHandleReload handleReload;
 
 	@Inject
 	public PlatformPluginVelocity(ProxyServer proxyIn, Logger loggerIn, @DataDirectory Path dataDirIn) {
@@ -79,12 +82,17 @@ public class PlatformPluginVelocity implements IEaglerMOTDPlatform<Player> {
 	@Subscribe
 	public void onProxyInit(ProxyInitializeEvent e) {
 		proxy.getEventManager().register(this, new VelocityListener(this));
+		refreshCommandMeta = (new CommandEaglerMOTD(this)).register();
 		eaglermotd.onEnable(EaglerXServerAPI.instance());
 	}
 
 	@Subscribe
 	public void onProxyShutdown(ProxyShutdownEvent e) {
 		proxy.getEventManager().unregisterListeners(this);
+		if (refreshCommandMeta != null) {
+			proxy.getCommandManager().unregister(refreshCommandMeta);
+			refreshCommandMeta = null;
+		}
 		eaglermotd.onDisable(EaglerXServerAPI.instance());
 	}
 
@@ -93,9 +101,18 @@ public class PlatformPluginVelocity implements IEaglerMOTDPlatform<Player> {
 		return rewindLogger;
 	}
 
+	public ProxyServer proxy() {
+		return proxy;
+	}
+
 	@Override
 	public void setOnMOTD(Consumer<IEaglercraftMOTDEvent<Player>> handler) {
 		this.onMOTDHandler = handler;
+	}
+
+	@Override
+	public void setOnReload(IHandleReload handleReload) {
+		this.handleReload = handleReload;
 	}
 
 	@Override
