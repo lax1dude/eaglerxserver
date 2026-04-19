@@ -8,7 +8,7 @@ dependencies {
 	api project(":backend-rpc-core")
 	compileOnly project(":api-bukkit")
 	compileOnly(libs.paper.api)
-	compileOnly(libs.bungeecord.chat)
+	compileOnly(libs.bundles.bungeecord.chat.api)
 	compileOnly(libs.pluginannotations)
 	annotationProcessor(libs.pluginannotations)
 }

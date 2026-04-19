@@ -1,15 +1,16 @@
 [versions]
-bungeecord = "1.21-R0.1-SNAPSHOT"
+bungeecord = "1.21-R0.4-SNAPSHOT"
 velocity = "3.4.0-SNAPSHOT"
-velocity-adventure = "4.19.0"
+velocity-adventure = "4.26.1"
 paper = "1.12.2-R0.1-SNAPSHOT"
-netty = "4.1.119.Final"
+netty = "4.1.132.Final"
 
 [libraries]
 bungeecord-api = { module = "net.md-5:bungeecord-api", version.ref = "bungeecord" }
 bungeecord-chat = { module = "net.md-5:bungeecord-chat", version.ref = "bungeecord" }
+bungeecord-serializer = { module = "net.md-5:bungeecord-serializer", version.ref = "bungeecord" }
 velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity" }
-velocity-nightconfig = "com.electronwill.night-config:toml:3.6.7"
+velocity-nightconfig = "com.electronwill.night-config:toml:3.8.3"
 velocity-legacy-serializer = { module = "net.kyori:adventure-text-serializer-json-legacy-impl", version.ref = "velocity-adventure" }
 adventure-api = { module = "net.kyori:adventure-api", version.ref = "velocity-adventure" }
 adventure-serializer-json = { module = "net.kyori:adventure-text-serializer-json", version.ref = "velocity-adventure" }
@@ -26,13 +27,13 @@ netty-transport-kqueue = { module = "io.netty:netty-transport-native-kqueue", ve
 guava = "com.google.guava:guava:21.0"
 gson = "com.google.code.gson:gson:2.8.0"
 snakeyaml = "org.yaml:snakeyaml:2.2"
-logback = "ch.qos.logback:logback-classic:1.5.16"
-slf4j = "org.slf4j:slf4j-api:2.0.12"
+logback = "ch.qos.logback:logback-classic:1.5.32"
+slf4j = "org.slf4j:slf4j-api:2.0.17"
 hppc = "com.carrotsearch:hppc:0.10.0"
 jsr305 = "com.google.code.findbugs:jsr305:3.0.2"
 skinsrestorer-api = "net.skinsrestorer:skinsrestorer-api:15.3.1"
-asm = "org.ow2.asm:asm:9.8"
-jdbc-sqlite = "org.xerial:sqlite-jdbc:3.49.1.0"
+asm = "org.ow2.asm:asm:9.9.1"
+jdbc-sqlite = "org.xerial:sqlite-jdbc:3.53.0.0"
 
 [bundles]
 netty-all = [
@@ -53,6 +54,10 @@ netty-supervisor = [
 	"netty-codec-http",
 	"netty-transport-epoll",
 	"netty-transport-kqueue"
+]
+bungeecord-chat-api = [
+	"bungeecord-chat",
+	"bungeecord-serializer"
 ]
 velocity-adventure-api = [
 	"velocity-legacy-serializer",
