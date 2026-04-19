@@ -49,8 +49,9 @@ public class EaglerWeb<PlayerObject> implements IEaglerWebImpl<PlayerObject> {
 		try {
 			config = EaglerWebConfig.loadConfig(platform.logger(), platform.getDataFolder());
 		} catch (JsonParseException | IOException e) {
-			platform.logger().info("Loading config files...");
-			return;
+			if (e instanceof RuntimeException ee)
+				throw ee;
+			throw new RuntimeException("Could not load EaglerWeb config files!", e);
 		}
 		defaultHandlers = new DefaultHandlers(this);
 		platform.logger().info("Indexing pages, please wait...");
