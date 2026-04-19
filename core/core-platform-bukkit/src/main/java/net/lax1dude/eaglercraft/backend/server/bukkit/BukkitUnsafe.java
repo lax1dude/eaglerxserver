@@ -112,13 +112,16 @@ public class BukkitUnsafe {
 					break;
 				}
 			}
-			for (Field f : clz4.getDeclaredFields()) {
-				if (SocketAddress.class.isAssignableFrom(f.getType())) {
-					f.setAccessible(true);
-					field_NetworkManager_address = f;
-					break;
+			Class<?> clz40 = clz4;
+			e: do {
+				for (Field f : clz40.getDeclaredFields()) {
+					if (SocketAddress.class.isAssignableFrom(f.getType())) {
+						f.setAccessible(true);
+						field_NetworkManager_address = f;
+						break e;
+					}
 				}
-			}
+			} while ((clz40 = clz40.getSuperclass()) != Object.class);
 			if (field_NetworkManager_channel == null) {
 				throw new IllegalStateException("Could not locate channel field of " + clz4.getName());
 			}
@@ -228,16 +231,19 @@ public class BukkitUnsafe {
 			return;
 		}
 		Class<?> clz = networkManager.getClass();
-		for (Field field : clz.getDeclaredFields()) {
-			if (SocketAddress.class.isAssignableFrom(field.getType())) {
-				field.setAccessible(true);
-				field_NetworkManager_address = field;
-				CLASS_NETWORKMANAGER_HANDLE.setRelease(clz);
-				return;
+		Class<?> clz0 = clz;
+		do {
+			for (Field field : clz0.getDeclaredFields()) {
+				if (SocketAddress.class.isAssignableFrom(field.getType())) {
+					field.setAccessible(true);
+					field_NetworkManager_address = field;
+					CLASS_NETWORKMANAGER_HANDLE.setRelease(clz);
+					return;
+				}
 			}
-		}
+		} while ((clz0 = clz0.getSuperclass()) != Object.class);
 		CLASS_NETWORKMANAGER_HANDLE.setRelease(clz);
-		System.err.println("Could not find SocketAddress field in class " + clz.getName());
+		System.err.println("Could not find SocketAddress field in class " + clz.getName() + " (or parents)");
 		System.err.println("Use Spigot if you want EaglerXServer to forward player IPs");
 	}
 
@@ -360,19 +366,21 @@ public class BukkitUnsafe {
 			}
 			serverConnectionClass = serverConnection.getClass();
 			Field channelFuturesList = null;
-			for (Field f : serverConnectionClass.getDeclaredFields()) {
-				if (List.class.isAssignableFrom(f.getType())) {
-					Type t = f.getGenericType();
-					if (t instanceof ParameterizedType tt) {
-						Type[] params = tt.getActualTypeArguments();
-						if (params.length == 1 && "io.netty.channel.ChannelFuture".equals(params[0].getTypeName())) {
-							channelFuturesList = f;
-							channelFuturesList.setAccessible(true);
-							break;
+			e: do {
+				for (Field f : serverConnectionClass.getDeclaredFields()) {
+					if (List.class.isAssignableFrom(f.getType())) {
+						Type t = f.getGenericType();
+						if (t instanceof ParameterizedType tt) {
+							Type[] params = tt.getActualTypeArguments();
+							if (params.length == 1 && "io.netty.channel.ChannelFuture".equals(params[0].getTypeName())) {
+								channelFuturesList = f;
+								channelFuturesList.setAccessible(true);
+								break e;
+							}
 						}
 					}
 				}
-			}
+			} while ((serverConnectionClass = serverConnectionClass.getSuperclass()) != Object.class);
 			if (channelFuturesList == null) {
 				throw new RuntimeException("Could not get ServerConnection channel futures list! (Try Paper)");
 			}
@@ -424,7 +432,7 @@ public class BukkitUnsafe {
 				ChannelHandler handler = channel.pipeline().get(name);
 				if (isServerInitializer(handler)) {
 					try {
-						foundField = handler.getClass().getDeclaredField("childHandler");
+						foundField = Util.findDeclaredField(handler.getClass(), "childHandler");
 						foundField.setAccessible(true);
 						foundHandler = handler;
 						break eagler;
@@ -435,7 +443,7 @@ public class BukkitUnsafe {
 			foundHandler = channel.pipeline().first();
 			if (isServerInitializer(foundHandler)) {
 				try {
-					foundField = foundHandler.getClass().getDeclaredField("childHandler");
+					foundField = Util.findDeclaredField(foundHandler.getClass(), "childHandler");
 					foundField.setAccessible(true);
 					break eagler;
 				} catch (ReflectiveOperationException ex) {
@@ -454,7 +462,7 @@ public class BukkitUnsafe {
 		Method initChannel;
 		try {
 			parent = (ChannelInitializer<Channel>) foundField.get(foundHandler);
-			initChannel = parent.getClass().getDeclaredMethod("initChannel", Channel.class);
+			initChannel = Util.findDeclaredMethod(parent.getClass(), "initChannel", Channel.class);
 			initChannel.setAccessible(true);
 		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
@@ -505,12 +513,12 @@ public class BukkitUnsafe {
 
 	public static CommandMap getCommandMap(Server server) {
 		try {
-			Field f = server.getClass().getDeclaredField("commandMap");
+			Field f = Util.findDeclaredField(server.getClass(), "commandMap");
 			f.setAccessible(true);
 			return (CommandMap) f.get(server);
 		} catch (IllegalAccessException | NoSuchFieldException | SecurityException ex) {
 			try {
-				Method m = server.getClass().getDeclaredMethod("getCommandMap");
+				Method m = Util.findDeclaredMethod(server.getClass(), "getCommandMap");
 				m.setAccessible(true);
 				return (CommandMap) m.invoke(server);
 			} catch (ReflectiveOperationException ex1) {
@@ -520,13 +528,17 @@ public class BukkitUnsafe {
 	}
 
 	private static Field findField(Class<?> clazz, Class<?> fieldType) throws NoSuchFieldException {
-		for (Field field : clazz.getDeclaredFields()) {
-			if (field.getType() == fieldType) {
-				field.setAccessible(true);
-				return field;
+		Class<?> clazz0 = clazz;
+		do {
+			for (Field field : clazz0.getDeclaredFields()) {
+				if (field.getType() == fieldType) {
+					field.setAccessible(true);
+					return field;
+				}
 			}
-		}
-		throw new NoSuchFieldException("Could not find field with type " + fieldType + " in class " + clazz);
+		} while ((clazz0 = clazz0.getSuperclass()) != Object.class);
+		throw new NoSuchFieldException(
+				"Could not find field with type " + fieldType + " in class " + clazz.getName() + " (or parents)");
 	}
 
 	public static boolean isEnableNativeTransport(Server server) {
@@ -534,14 +546,15 @@ public class BukkitUnsafe {
 			Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
 			Object dedicatedServer = dedicatedPlayerList.getClass().getMethod("getServer").invoke(dedicatedPlayerList);
 			Object propertyManager = dedicatedServer.getClass().getMethod("getPropertyManager").invoke(dedicatedServer);
-			return (Boolean) propertyManager.getClass().getMethod("getBoolean", String.class, boolean.class)
-					.invoke(propertyManager, "use-native-transport", true);
+			Method getBoolean = Util.findDeclaredMethod(propertyManager.getClass(), "getBoolean", String.class, boolean.class);
+			getBoolean.setAccessible(true);
+			return (Boolean) getBoolean.invoke(propertyManager, "use-native-transport", true);
 		} catch (ReflectiveOperationException e) {
 			try {
 				Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
 				Object dedicatedServer = dedicatedPlayerList.getClass().getMethod("getServer").invoke(dedicatedPlayerList);
 				Object propertyManager = dedicatedServer.getClass().getMethod("getDedicatedServerProperties").invoke(dedicatedServer);
-				Method getBoolean = propertyManager.getClass().getSuperclass().getDeclaredMethod("getBoolean", String.class, boolean.class);
+				Method getBoolean = Util.findDeclaredMethod(propertyManager.getClass(), "getBoolean", String.class, boolean.class);
 				getBoolean.setAccessible(true);
 				return (Boolean) getBoolean.invoke(propertyManager, "use-native-transport", true);
 			} catch (Exception e1) {

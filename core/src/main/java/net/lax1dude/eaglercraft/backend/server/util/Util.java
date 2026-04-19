@@ -16,7 +16,10 @@
 
 package net.lax1dude.eaglercraft.backend.server.util;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
@@ -58,6 +61,32 @@ public class Util {
 			throw exx;
 		}
 		return new RuntimeException("Could not invoke method handle!", ex);
+	}
+
+	public static Field findDeclaredField(Class<?> clz, String name) throws NoSuchFieldException {
+		Class<?> clz0 = clz;
+		do {
+			try {
+				return clz0.getDeclaredField(name);
+			} catch (NoSuchFieldException ex) {
+			}
+		} while ((clz0 = clz0.getSuperclass()) != Object.class);
+		throw new NoSuchFieldException("Field \"" + name + "\" not found in " + clz.getName() + " (or parents)");
+	}
+
+	public static Method findDeclaredMethod(Class<?> clz, String name, Class<?>... params) throws NoSuchMethodException {
+		Class<?> clz0 = clz;
+		do {
+			try {
+				Method meth = clz0.getDeclaredMethod(name, params);
+				if ((meth.getModifiers() & Modifier.ABSTRACT) != 0) {
+					break;
+				}
+				return meth;
+			} catch (NoSuchMethodException ex) {
+			}
+		} while ((clz0 = clz0.getSuperclass()) != Object.class);
+		throw new NoSuchMethodException("Method \"" + name + "\" not found in " + clz.getName() + " (or parents)");
 	}
 
 	public static byte[] sha1(byte[] input) {

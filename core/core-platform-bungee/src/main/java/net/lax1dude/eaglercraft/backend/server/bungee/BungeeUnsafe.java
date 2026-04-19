@@ -359,7 +359,7 @@ public class BungeeUnsafe {
 				ChannelHandler handler = channel.pipeline().get(name);
 				if (isServerInitializer(handler)) {
 					try {
-						foundField = handler.getClass().getDeclaredField("childHandler");
+						foundField = Util.findDeclaredField(handler.getClass(), "childHandler");
 						foundField.setAccessible(true);
 						foundHandler = handler;
 						break eagler;
@@ -370,7 +370,7 @@ public class BungeeUnsafe {
 			foundHandler = channel.pipeline().first();
 			if (isServerInitializer(foundHandler)) {
 				try {
-					foundField = foundHandler.getClass().getDeclaredField("childHandler");
+					foundField = Util.findDeclaredField(foundHandler.getClass(), "childHandler");
 					foundField.setAccessible(true);
 					break eagler;
 				} catch (ReflectiveOperationException ex) {
@@ -398,7 +398,7 @@ public class BungeeUnsafe {
 		Method initChannel;
 		try {
 			parent = (ChannelInitializer<Channel>) foundField.get(foundHandler);
-			initChannel = parent.getClass().getDeclaredMethod("initChannel", Channel.class);
+			initChannel = Util.findDeclaredMethod(parent.getClass(), "initChannel", Channel.class);
 			initChannel.setAccessible(true);
 		} catch (ReflectiveOperationException e) {
 			throw Util.propagateReflectThrowable(e);
