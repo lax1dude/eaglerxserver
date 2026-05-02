@@ -27,7 +27,8 @@ public enum EnumCapabilitySpec {
 	PAUSE_MENU_V0(EnumCapabilityType.PAUSE_MENU, 0),
 	WEBVIEW_V0(EnumCapabilityType.WEBVIEW, 0),
 	COOKIE_V0(EnumCapabilityType.COOKIE, 0),
-	EAGLER_IP_V0(EnumCapabilityType.EAGLER_IP, 0);
+	EAGLER_IP_V0(EnumCapabilityType.EAGLER_IP, 0),
+	OPTIFINE_CIT_V0(EnumCapabilityType.OPTIFINE_CIT, 0);
 
 	private final EnumCapabilityType type;
 	private final int ver;

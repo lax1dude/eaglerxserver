@@ -26,7 +26,8 @@ public enum EnumCapabilityType {
 	PAUSE_MENU(4),
 	WEBVIEW(5),
 	COOKIE(6),
-	EAGLER_IP(7);
+	EAGLER_IP(7),
+	OPTIFINE_CIT(8);
 
 	private final int id;
 	private final int bit;
@@ -49,7 +50,7 @@ public enum EnumCapabilityType {
 		return id >= 0 && id < LOOKUP.length ? LOOKUP[id] : null;
 	}
 
-	private static final EnumCapabilityType[] LOOKUP = new EnumCapabilityType[8];
+	private static final EnumCapabilityType[] LOOKUP = new EnumCapabilityType[9];
 
 	static {
 		for (EnumCapabilityType cap : values()) {

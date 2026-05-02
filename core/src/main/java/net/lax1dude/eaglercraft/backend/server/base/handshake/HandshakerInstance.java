@@ -313,7 +313,7 @@ public abstract class HandshakerInstance implements IHandshaker {
 	protected void processCapabilities(int standardCapabilities, int[] standardCapabilityVersions,
 			UUID[] extendedCapabilities, int[] extendedCapabilityVersions) {
 		int acceptedMask = 0;
-		byte[] acceptedVersions = new byte[8];
+		byte[] acceptedVersions = new byte[9];
 		int acceptedIdx = 0;
 		int standardCount = Integer.bitCount(standardCapabilities);
 		if (standardCount > standardCapabilityVersions.length) {
@@ -371,8 +371,22 @@ public abstract class HandshakerInstance implements IHandshaker {
 //					acceptedVersions[acceptedIdx++] = 0;
 //				}
 //				break;
+			case 8: // OPTIFINE_CIT
+				if ((verBits & 1) != 0) { // V0
+					acceptedMask |= EnumCapabilityType.OPTIFINE_CIT.getBit();
+					acceptedVersions[acceptedIdx++] = 0;
+				}
+				break;
 			}
 			standardCapabilities &= (0xFFFFFFFF << (bit + 1));
+		}
+		// Force the CIT capability for clients too old to report it
+		// Do not forget to rewrite this if more capability bits are added
+		if (acceptedIdx < acceptedVersions.length
+				&& (acceptedMask & EnumCapabilityType.OPTIFINE_CIT.getBit()) == 0
+				&& isCITSupportedLegacy(pipelineData.minecraftProtocol, pipelineData.eaglerVersionString)) {
+			acceptedMask |= EnumCapabilityType.OPTIFINE_CIT.getBit();
+			acceptedVersions[acceptedIdx++] = 0;
 		}
 		pipelineData.acceptedCapabilitiesMask = acceptedMask;
 		pipelineData.acceptedCapabilitiesVers = acceptedIdx == acceptedVersions.length ? acceptedVersions
@@ -387,6 +401,37 @@ public abstract class HandshakerInstance implements IHandshaker {
 		} else {
 			pipelineData.acceptedExtendedCapabilities = Collections.emptyMap();
 		}
+	}
+
+	private boolean isCITSupportedLegacy(int protocol, String version) {
+		if (protocol == 47) {
+			if (version.length() == 3 && version.charAt(0) == 'u') {
+				switch (version.charAt(1)) {
+				case '4':
+					switch (version.charAt(2)) {
+					case '8':
+					case '9':
+						return true;
+					}
+					break;
+				case '5':
+					switch (version.charAt(2)) {
+					case '0':
+					case '1':
+					case '2':
+					case '3':
+						return true;
+					}
+					break;
+				}
+			}
+		} else if (protocol == 340) {
+			if (version.length() == 2 && version.charAt(0) == 'u') {
+				char c2 = version.charAt(1);
+				return c2 == '2' || c2 == '3';
+			}
+		}
+		return false;
 	}
 
 	private void continueLoginPasswordAuth(ChannelHandlerContext ctx, String requestedUsername, byte[] authPassword) {
