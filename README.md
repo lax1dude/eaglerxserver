@@ -22,8 +22,6 @@ a.k.a. "EaglerXServer"
 
 **If you lack the motivation to figure this out yourself, you can get started quickly by downloading a complete Paper 1.12.2 Eaglercraft server distribution from [https://github.com/Eaglercraft-Templates/Eaglercraft-Server-Paper](https://github.com/Eaglercraft-Templates/Eaglercraft-Server-Paper) that supports EaglercraftX 1.8, Eaglercraft 1.12.2, and Eaglercraft 1.5.2 clients all from a single server.**
 
-You will not receive support for issues installing EaglercraftXServer on Spigot (or forks of Spigot like Paper) if you are using a version of Spigot greater than 1.12.2, because limitations in plugin messages prevent protocol V4 and below EaglercraftX clients from working on these servers properly.
-
 Please see the [Releases](https://github.com/lax1dude/eaglerxserver/releases) tab to get the latest stable binaries, the available files are:
 
 - **EaglerXServer** - The core EaglercraftXServer plugin for Spigot, BungeeCord, and Velocity
@@ -36,9 +34,14 @@ Please see the [Releases](https://github.com/lax1dude/eaglerxserver/releases) ta
 
 ## Installation
 
+> [!IMPORTANT]
+> EaglerXServer works best when installed on a reverse proxy (BungeeCord, Velocity), you can also install the plugin on your Bukkit/Spigot/Paper server, but we do not currently maintain Bukkit plugin support for versions above 1.17
+
 **You must be using Java 17 or greater!**
 
 To get started, place the EaglerXServer JAR in the "plugins" folder of your Spigot, BungeeCord, or Velocity server. In most cases you will also need to use ViaVersion, ViaBackwards, and ViaRewind to make your Spigot servers compatible with 1.8. If you would like to support 1.5, add the EaglerXRewind JAR to the "plugins" folder as well. Add EaglerMOTD for animated MOTDs and EaglerWeb if you want to host a website from your server.
+
+To connect to your server, use the same IP address and port as you would on Java edition, EaglerXServer adds a translation layer that converts any Eaglercraft connections on your server to a regular Java edition connection.
 
 Please keep in mind that on BungeeCord and Velocity you must edit the EaglercraftXServer listeners config file to change the `inject_address` to match the address of one of the listeners configured on the underlying BungeeCord/Velocity server. This is different from how EaglercraftXBungee and EaglercraftXVelocity worked, where you could put any address and allow the plugin to open the port, this change was made to allow EaglercraftXServer to be better compatible with other plugins like ViaVersion and ProtocolLib.
 
@@ -48,9 +51,10 @@ Please keep in mind that on BungeeCord and Velocity you must edit the Eaglercraf
 
 ## Configuration
 
-On BungeeCord and Velocity, EaglercraftXServer should generate detailed comments in the config files, describing each property in detail. However this does not work on most Spigot versions (like 1.12) due to the YAML parser/serializer bundled with it not supporting comments.
+On BungeeCord and Velocity, EaglercraftXServer should generate detailed comments in the config files, describing each property in detail. However this does not work on most Spigot versions (like 1.12) due to the YAML parser/serializer bundled with it not supporting comments. Please see the [CONFIG.md](/CONFIG.md) file for documentation if your platform does not support comments.
 
-**See [CONFIG.md](CONFIG.md) for a copy of the default config on each platform with full descriptions for each property**
+> [!CAUTION]
+> Large server view distances are known to cause problems on the low bandwidth connections most people find themselves playing Eaglercraft on, consider reducing your server's view distance if you experience intermittent "End of stream" errors
 
 ## Plugin Development
 
@@ -78,7 +82,7 @@ maven {
 Add the following line to your Spigot plugin's Gradle `dependencies` block to use EaglercraftXServer with the Spigot API:
 
 ```gradle
-compileOnly "net.lax1dude.eaglercraft.backend:api-bukkit:1.0.0"
+compileOnly "net.lax1dude.eaglercraft.backend:api-bukkit:1.1.0"
 ```
 
 The native Spigot version of the API is Paper 1.12.2, but it will also work with most other legacy versions of the Spigot API. Your project must be using at least Java 17, otherwise Gradle will probably pretend that it can't find the dependencies.
@@ -98,7 +102,7 @@ Call `EaglerXServerAPI.instance()` (using `import net.lax1dude.eaglercraft.backe
 Add the following line to your BungeeCord plugin's Gradle `dependencies` block to use EaglercraftXServer with the BungeeCord API:
 
 ```gradle
-compileOnly "net.lax1dude.eaglercraft.backend:api-bungee:1.0.0"
+compileOnly "net.lax1dude.eaglercraft.backend:api-bungee:1.1.0"
 ```
 
 Be sure to add `depends: [ EaglercraftXServer ]` to your `plugin.yml` or things will not work.
@@ -116,7 +120,7 @@ Call `EaglerXServerAPI.instance()` (using `import net.lax1dude.eaglercraft.backe
 Add the following line to your Velocity plugin's Gradle `dependencies` block to use EaglercraftXServer with the Velocity API:
 
 ```gradle
-compileOnly "net.lax1dude.eaglercraft.backend:api-velocity:1.0.0"
+compileOnly "net.lax1dude.eaglercraft.backend:api-velocity:1.1.0"
 ```
 
 Be sure to add `dependencies = { @Dependency(id = EaglerXServerAPI.PLUGIN_ID, optional = false) }` to your plugin annotation or things will not work.
@@ -136,7 +140,7 @@ If you are using EaglercraftXServer on BungeeCord or Velocity, and want to acces
 Add the following line to your Spigot plugin's Gradle `dependencies` block to use EaglercraftXBackendRPC with the Spigot API:
 
 ```gradle
-compileOnly "net.lax1dude.eaglercraft.backend:backend-rpc-api-bukkit:1.0.0"
+compileOnly "net.lax1dude.eaglercraft.backend:backend-rpc-api-bukkit:1.1.0"
 ```
 
 You will also need to add the EaglercraftXBackendRPC JAR file to you Spigot plugins folder, and enable the backend RPC API in the EaglercraftXServer settings file.
