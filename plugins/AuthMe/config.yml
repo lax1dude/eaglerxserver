@@ -1,0 +1,79 @@
+# AuthMe Reloaded Configuration
+# Login and password protection plugin
+
+# MySQL database settings (optional, uses SQLite by default)
+DataSource:
+  MySQL:
+    enabled: false
+    host: localhost
+    port: 3306
+    database: authme
+    username: root
+    password: ''
+  SQLite:
+    enabled: true
+    filename: authme.db
+
+# Authentication settings
+settings:
+  # Require players to register an account
+  registration:
+    enabled: true
+    force: false
+    force-for-listed-commands:
+      - /pay
+      - /transfer
+  
+  # Login timeout (in seconds)
+  sessions:
+    timeout: 300
+    
+  # Password settings
+  security:
+    # Encryption method: MD5, MD_FANCY, BCRYPT, BCRYPT2Y, PBKDF2, PBKDF2_DRUPAL, PHPBB, WORDPRESS, CUSTOM
+    passwordHash: BCRYPT
+    # Minimum password length
+    minPasswordLength: 6
+    # Maximum password length
+    maxPasswordLength: 30
+    # Prevent players from using their username as password
+    unsafePasswords:
+      - "123456"
+      - "password"
+      - "12345678"
+
+# Teleport settings
+teleport:
+  # Teleport player to spawn on first login
+  onFirstLogin: true
+  spawnOnFirstLogin: true
+  spawn:
+    # X, Y, Z coordinates
+    x: 0
+    y: 64
+    z: 0
+
+# Protection settings
+protection:
+  # Prevent player interactions before login
+  enableProtection: true
+  # Prevent inventory opening before login
+  preventInventoryBeforeLogin: true
+  # Prevent interacting with doors before login
+  preventDoorInteraction: true
+  # Prevent redstone interactions before login
+  preventRedstone: true
+
+# Messages
+messages:
+  usage_login: "&cUsage: /login <password>"
+  usage_register: "&cUsage: /register <password> <confirmedPassword>"
+  invalid_password: "&cWrong password!"
+  unregistered: "&cThis account is not registered!"
+  reg_success: "&aSuccessfully registered!"
+  login_success: "&aSuccessfully logged in!"
+  logout_success: "&aSuccessfully logged out!"
+
+# Whitelist registered players only (optional)
+#restrictions:
+#  whitelist: false
