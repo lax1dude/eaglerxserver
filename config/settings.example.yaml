@@ -1,0 +1,258 @@
+# EaglercraftX Server Settings - Example Configuration
+# This is a complete example of all available settings with their default values
+# Edit this file and rename to settings.yaml to use custom configuration
+
+# ============================================
+# SERVER INFORMATION
+# ============================================
+
+# Name of the server (shown in server lists and query responses)
+server_name: "EaglercraftX Server"
+
+# Unique UUID for this server (auto-generated if empty)
+server_uuid: ""
+
+# ============================================
+# DEBUG OPTIONS
+# ============================================
+
+# Log client brand information to console
+debug_log_client_brands: false
+
+# Log all new TCP connections on Eaglercraft listeners
+debug_log_new_channels: false
+
+# Log origin headers from WebSocket connections
+debug_log_origin_headers: false
+
+# Log IP forwarding headers (useful for debugging proxy setup)
+debug_log_real_ip_headers: false
+
+# ============================================
+# FEATURE TOGGLES
+# ============================================
+
+# Enable Eaglercraft player events and cookie system
+enable_authentication_events: false
+
+# Enable Backend RPC API support (for Spigot plugins on BungeeCord)
+enable_backend_rpc_api: false
+
+# Add isEaglerPlayer property to Eaglercraft players
+enable_is_eagler_player_property: true
+
+# ============================================
+# PROTOCOL CONFIGURATION
+# ============================================
+
+protocols:
+  # Allow legacy protocol versions (v1, v2)
+  protocol_legacy_allowed: true
+  
+  # Allow protocol v3 (older Eaglercraft clients)
+  protocol_v3_allowed: true
+  
+  # Allow protocol v4 (EaglercraftX 1.8)
+  protocol_v4_allowed: true
+  
+  # Allow protocol v5 (latest protocol)
+  protocol_v5_allowed: true
+  
+  # Minimum Minecraft protocol version (3 = 1.7, 340 = 1.12.2)
+  min_minecraft_protocol: 3
+  
+  # Maximum Minecraft protocol version for v4 clients
+  max_minecraft_protocol: 340
+  
+  # Maximum Minecraft protocol for v5 clients (-1 = any version)
+  max_minecraft_protocol_v5: -1
+  
+  # Allow Eaglercraft 1.5.2 clients (via EaglerXRewind)
+  eaglerxrewind_allowed: true
+
+# ============================================
+# CLIENT BEHAVIOR
+# ============================================
+
+# Timeout for login phase (milliseconds)
+eagler_login_timeout: 10000
+
+# Custom skin for Eaglercraft players when seen by Java Edition players
+# (leave empty to use player's own skin)
+eagler_players_vanilla_skin: ""
+
+# Separate view distance for Eaglercraft players (-1 = same as vanilla)
+eagler_players_view_distance: -1
+
+# ============================================
+# HTTP/WEBSOCKET CONFIGURATION
+# ============================================
+
+# ZLIB compression level for WebSocket frames (0-9, 0 = disabled)
+http_websocket_compression_level: 6
+
+# Maximum size for WebSocket frames before fragmentation
+http_websocket_fragment_size: 65536
+
+# Maximum WebSocket frame length
+http_websocket_max_frame_length: 2097151
+
+# Enable WebSocket ping intervention (prevents timeout)
+http_websocket_ping_intervention: false
+
+# HTTP request header limits
+http_max_initial_line_length: 4096
+http_max_header_size: 16384
+http_max_chunk_size: 16384
+http_max_content_length: 65536
+
+# ============================================
+# PROTOCOL FRAGMENTATION (v4)
+# ============================================
+
+# Maximum number of messages per plugin message packet
+protocol_v4_defrag_max_packets: 64
+
+# Delay before flushing pending messages (milliseconds)
+protocol_v4_defrag_send_delay: 10
+
+# ============================================
+# RATE LIMITING
+# ============================================
+
+# Rate limit for brand lookup requests (per minute)
+brand_lookup_ratelimit: 240
+
+# ============================================
+# SKIN SERVICE CONFIGURATION
+# ============================================
+
+skin_service:
+  # Download skins from Mojang to cache locally
+  download_vanilla_skins_to_clients: true
+  
+  # Enable Five Nights at Winston skins globally
+  enable_fnaw_skin_models_global: true
+  
+  # Listen for SkinsRestorer apply events
+  enable_skinsrestorer_apply_hook: true
+  
+  # Primary rate limit for skin requests (per minute)
+  skin_lookup_ratelimit: 240
+  
+  # Rate limit for cape requests (per minute)
+  cape_lookup_ratelimit: 180
+  
+  # Lockout limit for failing skin lookups (DoS protection)
+  skin_cache_antagonists_ratelimit: 15
+  
+  # Skin cache configuration
+  skin_cache_memory_max_objects: 4096
+  skin_cache_memory_keep_objects_seconds: 900
+  skin_cache_disk_max_objects: 32768
+  skin_cache_disk_keep_objects_days: 45
+  
+  # Database configuration
+  skin_cache_db_sqlite_compatible: true
+  skin_cache_db_uri: "jdbc:sqlite:eagler_skins_cache.db"
+  skin_cache_db_driver_class: "internal"
+  skin_cache_db_driver_path: "internal"
+  skin_cache_db_force_connection_pool: false
+  
+  # Compression and threading
+  skin_cache_compression_level: 6
+  skin_cache_thread_count: -1  # -1 = all processors
+  
+  # Allowed skin download domains
+  valid_skin_download_urls:
+    - "textures.minecraft.net"
+
+# ============================================
+# VOICE SERVICE CONFIGURATION
+# ============================================
+
+voice_service:
+  # Enable voice chat globally
+  enable_voice_service: false
+  
+  # Per-world/server voice channels
+  separate_world_voice_channels: true
+  
+  # Voice backend relayed mode (for multi-proxy setups)
+  voice_backend_relayed_mode: false
+  
+  # Rate limits (per minute)
+  voice_connect_ratelimit: 20
+  voice_request_ratelimit: 120
+  voice_ice_ratelimit: 600
+  
+  # WebView rate limits (per minute)
+  webview_message_ratelimit: 120
+  webview_download_ratelimit: 8
+
+# ============================================
+# UPDATE CHECKING & CERTIFICATES
+# ============================================
+
+update_checker:
+  # Enable automatic update checking
+  enable_update_checker: true
+  
+  # Check for updates every X seconds
+  check_for_update_every: 86400
+  
+  # Show update reminders in chat
+  print_chat_messages: true
+
+update_service:
+  # Enable client update certificate distribution
+  enable_update_system: true
+  
+  # Enable local "eagcert" folder
+  enable_eagcert_folder: true
+  
+  # Auto-download latest certificates
+  download_latest_certs: true
+  
+  # Certificate sources
+  download_certs_from:
+    - "https://deev.is/eagler/backup.cert"
+  
+  # Discard login packet certificates from unsigned clients
+  discard_login_packet_certs: false
+  
+  # Data rate limit for certificates (bytes/sec)
+  cert_packet_data_rate_limit: 524288
+  
+  # Check certificate sources every X seconds
+  check_for_update_every: 28800
+
+# ============================================
+# TLS/HTTPS CONFIGURATION
+# ============================================
+
+# Certificate refresh check interval (seconds)
+tls_certificate_refresh_rate: 60
+
+# ============================================
+# PLATFORM-SPECIFIC OPTIONS
+# ============================================
+
+# Use modernized plugin channel names (Minecraft 1.13+)
+use_modernized_channel_names: false
+
+# ============================================
+# NOTES FOR MULTI-PROXY SETUPS
+# ============================================
+
+# For BungeeCord/Velocity:
+# - Create a separate listeners.cfg or listeners.yaml
+# - Set inject_address to match one of your listeners
+# - Consider enabling voice_backend_relayed_mode
+# - Use EaglerXSupervisor for synchronization
+
+# For best performance:
+# - Keep view distance 8-12 chunks
+# - Enable compression on proxy
+# - Use SSD for skin cache database
+# - Monitor memory usage with large player bases
