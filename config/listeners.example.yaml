@@ -1,0 +1,171 @@
+# EaglercraftX Listeners Configuration - Example
+# Define HTTP/WebSocket listeners that accept Eaglercraft connections
+
+# List of listeners to enable Eaglercraft support on
+listener_list:
+  # ============================================
+  # PRIMARY LISTENER (RECOMMENDED)
+  # ============================================
+  - bind_addr: "0.0.0.0:25565"           # Address and port to bind to
+    inject_address: "127.0.0.1:25565"    # Address advertised to clients
+    
+    # Server display information
+    server_motd:
+      - "&6Welcome to EaglercraftX"       # Line 1 of MOTD
+      - "&ePlay Minecraft in your browser!" # Line 2 of MOTD
+    
+    server_icon: "server-icon.png"        # Server icon path (64x64 PNG)
+    show_motd_player_list: true           # Show player list in MOTD
+    
+    # Query response caching (for server lists)
+    request_motd_cache:
+      cache_ttl: 7200                     # Cache time (seconds)
+      online_server_list_results: true    # Cache in search results
+      online_server_list_portfolios: true # Cache in server details
+      online_server_list_trending: true   # Cache on homepage
+      online_server_list_animation: false # Animated MOTD format
+    
+    # Query type responses
+    allow_motd: true                      # Respond to MOTD queries
+    allow_query: true                     # Respond to other queries
+    allow_cookie_revoke_query: true       # Allow post-u37 client token revoke
+    
+    # Connection handling
+    dual_stack: true                      # Support both Eaglercraft and Java Edition
+    spoof_player_address_forwarded: true  # Spoof remote address from forward_ip header
+    
+    # Reverse proxy configuration
+    forward_ip: false                     # Use X-Real-IP header for player IP
+    forward_ip_header: "X-Real-IP"        # Header name for real IP
+    
+    # Secret forwarding (for security)
+    forward_secret: false                 # Require X-Eagler-Secret header
+    forward_secret_file: "eagler_forwarding.secret"  # File containing secret
+    forward_secret_header: "X-Eagler-Secret"         # Header name
+    
+    # TLS/HTTPS Configuration
+    tls_config:
+      enable_tls: false                   # Enable HTTPS/WSS
+      require_tls: true                   # Always use HTTPS/WSS
+      tls_auto_refresh_cert: true         # Auto-reload certificates
+      tls_managed_by_external_plugin: false # Use external plugin for TLS
+      tls_public_chain_file: "fullchain.pem"        # Certificate chain
+      tls_private_key_file: "privatekey.pem"        # Private key
+      tls_private_key_password: ""        # Private key password (if encrypted)
+    
+    # Rate limiting configuration
+    ratelimit:
+      # Disable ratelimit for these IPs/CIDR ranges
+      disable_ratelimit:
+        - "127.0.0.0/8"     # Localhost
+        - "::1/128"         # IPv6 localhost
+      
+      # Global IP ratelimit
+      ip:
+        enable: true
+        limit: 60           # Requests per period
+        limit_lockout: 80   # Lockout threshold
+        lockout_duration: 1200  # Lockout duration (seconds)
+        period: 90          # Period (seconds)
+      
+      # Login ratelimit
+      login:
+        enable: true
+        limit: 5
+        limit_lockout: 10
+        lockout_duration: 300
+        period: 50
+      
+      # MOTD query ratelimit
+      motd:
+        enable: true
+        limit: 5
+        limit_lockout: 15
+        lockout_duration: 300
+        period: 30
+      
+      # General query ratelimit
+      query:
+        enable: true
+        limit: 15
+        limit_lockout: 25
+        lockout_duration: 800
+        period: 30
+      
+      # HTTP ratelimit
+      http:
+        enable: true
+        limit: 10
+        limit_lockout: 20
+        lockout_duration: 300
+        period: 30
+    
+    # Legacy client redirect
+    redirect_legacy_clients_to: ""  # WebSocket address to redirect legacy clients
+
+# ============================================
+# ADDITIONAL LISTENER EXAMPLE (BungeeCord)
+# ============================================
+# Uncomment to add a BungeeCord proxy listener
+#
+#  - bind_addr: "0.0.0.0:8080"
+#    inject_address: "proxy.example.com:8080"
+#    
+#    server_motd:
+#      - "&aEaglercraftX Proxy"
+#    
+#    allow_motd: false                   # Don't advertise proxy in lists
+#    allow_query: false                  # Disable queries on proxy
+#    dual_stack: false                   # Proxy only, no Java Edition
+#    
+#    tls_config:
+#      enable_tls: true                  # Use HTTPS on proxy
+#      require_tls: true
+#      tls_public_chain_file: "/etc/letsencrypt/live/proxy.example.com/fullchain.pem"
+#      tls_private_key_file: "/etc/letsencrypt/live/proxy.example.com/privkey.pem"
+
+# ============================================
+# NGINX REVERSE PROXY EXAMPLE
+# ============================================
+#
+# server {
+#     listen 80;
+#     server_name eaglercraft.example.com;
+#     
+#     # Redirect HTTP to HTTPS
+#     return 301 https://$server_name$request_uri;
+# }
+# 
+# server {
+#     listen 443 ssl http2;
+#     server_name eaglercraft.example.com;
+#     
+#     # SSL configuration
+#     ssl_certificate /etc/letsencrypt/live/eaglercraft.example.com/fullchain.pem;
+#     ssl_certificate_key /etc/letsencrypt/live/eaglercraft.example.com/privkey.pem;
+#     ssl_protocols TLSv1.2 TLSv1.3;
+#     ssl_ciphers HIGH:!aNULL:!MD5;
+#     
+#     # WebSocket support
+#     location / {
+#         proxy_pass http://127.0.0.1:25565;
+#         proxy_http_version 1.1;
+#         proxy_set_header Upgrade $http_upgrade;
+#         proxy_set_header Connection "upgrade";
+#         proxy_set_header Host $host;
+#         proxy_set_header X-Real-IP $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto $scheme;
+#         proxy_read_timeout 86400;
+#     }
+# }
+
+# ============================================
+# CLOUDFLARE INTEGRATION EXAMPLE
+# ============================================
+#
+# If behind Cloudflare:
+# 1. Set forward_ip: true
+# 2. Set forward_ip_header: "CF-Connecting-IP"
+# 3. Enable Cloudflare's "Always Use HTTPS"
+# 4. Disable tls_config (Cloudflare handles TLS)
