@@ -1,0 +1,44 @@
+# LuckPerms Configuration
+# Server Owner Setup - cecilthecreator
+
+server:
+  name: eaglercraft-server
+
+# Owner user configuration
+users:
+  cecilthecreator:
+    groups:
+      - owner
+    permissions:
+      - "*"
+
+# Owner group with all permissions
+groups:
+  owner:
+    display-name: "&c[Owner]"
+    weight: 100
+    permissions:
+      # Bukkit/Spigot admin commands
+      - "bukkit.command.*"
+      - "minecraft.command.*"
+      # WorldEdit permissions
+      - "worldedit.selection.*"
+      - "worldedit.history.*"
+      - "worldedit.clipboard.*"
+      - "worldedit.region.*"
+      - "worldedit.schematic.*"
+      - "worldedit.*"
+      # WorldGuard permissions
+      - "worldguard.region.*"
+      - "worldguard.command.*"
+      - "worldguard.*"
+      # Cars/Vehicles permissions
+      - "cars.*"
+      - "vehicles.*"
+      # Citizens permissions
+      - "citizens.*"
+      # Protection plugin permissions
+      - "protection.*"
+      - "protectionapi.*"
+      # Universal admin permission
+      - "*"
