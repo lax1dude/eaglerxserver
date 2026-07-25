@@ -17,6 +17,7 @@ dependencies {
 	implementation(libs.bundles.netty.supervisor)
 	runtimeOnly(libs.logback)
 	sqliteDriver project(":skin-cache:sqlite-jdbc-jar")
+	testImplementation("junit:junit:4.13.2")
 }
 
 application {
