@@ -202,7 +202,8 @@ public class PipelineTransformer {
 			if (eagListener.getConfigData().isForceDisableHAProxy()) {
 				pipeline.remove(haproxy.getHandle());
 			} else if (eagListener.getConfigData().isDualStackHAProxyDetection()) {
-				pipeline.addFirst(HANDLER_HAPROXY_DETECTION, new HAProxyDetectionHandler(haproxy.getHandle()));
+				pipeline.addFirst(HANDLER_HAPROXY_DETECTION,
+						new HAProxyDetectionHandler(haproxy.getHandle(), eagListener.getTrustedHAProxyProxies()));
 			}
 		}
 		pipeline.addLast(HANDLER_OUTBOUND_THROW, OutboundPacketThrowHandler.INSTANCE);
@@ -243,7 +244,8 @@ public class PipelineTransformer {
 			if (eagListener.getConfigData().isForceDisableHAProxy()) {
 				channel.pipeline().remove(haproxy.getHandle());
 			} else if (eagListener.getConfigData().isDualStackHAProxyDetection()) {
-				channel.pipeline().addFirst(HANDLER_HAPROXY_DETECTION, new HAProxyDetectionHandler(haproxy.getHandle()));
+				channel.pipeline().addFirst(HANDLER_HAPROXY_DETECTION,
+						new HAProxyDetectionHandler(haproxy.getHandle(), eagListener.getTrustedHAProxyProxies()));
 			}
 		}
 		channel.pipeline().addLast(HANDLER_OUTBOUND_THROW, OutboundPacketThrowHandler.INSTANCE);

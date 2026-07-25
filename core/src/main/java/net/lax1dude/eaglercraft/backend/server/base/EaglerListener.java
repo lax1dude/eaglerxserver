@@ -39,6 +39,7 @@ import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerAttributeManager.EaglerAttributeHolder;
 import net.lax1dude.eaglercraft.backend.server.base.config.ConfigDataListener;
 import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
+import net.lax1dude.eaglercraft.backend.server.util.IPAddressSet;
 import net.lax1dude.eaglercraft.backend.server.util.RateLimiterExclusions;
 
 public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListener {
@@ -52,6 +53,7 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 	private final byte[] legacyRedirectAddressBuf;
 	private byte[] cachedServerIcon;
 	private List<String> cachedServerMOTD;
+	private final IPAddressSet trustedHAProxyProxies;
 	private CompoundRateLimiterMap rateLimiter;
 
 	EaglerListener(EaglerXServer<?> server, ConfigDataListener listenerConf) throws SSLException, IOException {
@@ -98,6 +100,7 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 		} else {
 			cachedServerIcon = null;
 		}
+		trustedHAProxyProxies = IPAddressSet.create(listenerConf.getTrustedHAProxyProxies());
 		rateLimiter = CompoundRateLimiterMap.create(listenerConf.getLimitIP(), listenerConf.getLimitLogin(),
 				listenerConf.getLimitMOTD(), listenerConf.getLimitQuery(), listenerConf.getLimitHTTP(),
 				RateLimiterExclusions.create(listenerConf.getLimitExclusions(), server.logger()));
@@ -105,6 +108,10 @@ public class EaglerListener implements IEaglerListenerInfo, IEaglerXServerListen
 
 	public ISSLContextProvider getSSLContext() {
 		return sslContext;
+	}
+
+	public IPAddressSet getTrustedHAProxyProxies() {
+		return trustedHAProxyProxies;
 	}
 
 	@Override

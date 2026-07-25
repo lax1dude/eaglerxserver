@@ -28,6 +28,9 @@ dependencies {
 	compileOnly(libs.guava)
 	compileOnly(libs.slf4j)
 	compileOnly(libs.skinsrestorer.api)
+	testImplementation(libs.bundles.netty.all)
+	testImplementation(libs.guava)
+	testImplementation("junit:junit:4.13.2")
 	sqliteDriver project(":skin-cache:sqlite-jdbc-jar")
 }
 

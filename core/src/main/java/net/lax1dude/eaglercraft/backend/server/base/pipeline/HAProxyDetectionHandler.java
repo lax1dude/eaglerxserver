@@ -23,13 +23,16 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import net.lax1dude.eaglercraft.backend.server.util.IPAddressSet;
 
 public class HAProxyDetectionHandler extends ByteToMessageDecoder {
 
 	private final ChannelHandler handlerToRemove;
+	private final IPAddressSet trustedPeers;
 
-	public HAProxyDetectionHandler(ChannelHandler handlerToRemove) {
+	public HAProxyDetectionHandler(ChannelHandler handlerToRemove, IPAddressSet trustedPeers) {
 		this.handlerToRemove = handlerToRemove;
+		this.trustedPeers = trustedPeers;
 	}
 
 	@Override
@@ -62,6 +65,11 @@ public class HAProxyDetectionHandler extends ByteToMessageDecoder {
 				return;
 			}
 			ChannelPipeline pipeline = ctx.pipeline();
+			if (proxy && !trustedPeers.contains(ctx.channel().remoteAddress())) {
+				in.skipBytes(readable);
+				ctx.close();
+				return;
+			}
 			if (!proxy) {
 				pipeline.remove(handlerToRemove);
 			}

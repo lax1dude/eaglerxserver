@@ -944,6 +944,17 @@ public class EaglerConfigLoader {
 			+ "for the channel if it is not present. You must enable HAProxy on the "
 			+ "underlying BungeeCord/Velocity listener for this to work properly."
 		) : false;
+		List<String> trustedHAProxyProxies;
+		if (platform.proxy) {
+			IEaglerConfList trustedHAProxyProxiesConf = listener.getList("trusted_haproxy_proxies");
+			trustedHAProxyProxies = ImmutableList.copyOf(trustedHAProxyProxiesConf.getAsStringList(
+					() -> Collections.emptyList(),
+					"List of IPv4 and IPv6 addresses allowed to send HAProxy PROXY protocol headers "
+							+ "to this listener. CIDR notation may be used for subnets. Required when "
+							+ "dual_stack_haproxy_detection is enabled."));
+		} else {
+			trustedHAProxyProxies = Collections.emptyList();
+		}
 		boolean forceDisableHAProxy = platform.proxy ? listener.getBoolean(
 			"force_disable_haproxy", false,
 			"Default value is false, if HAProxy should be forcefully disabled when "
@@ -1092,11 +1103,12 @@ public class EaglerConfigLoader {
 						+ "ratelimits will be applied based on the forwarded address instead of the raw socket address."));
 		return new ConfigDataListener(name, injectAddress, cloneListenerEnabled, dualStack, forwardIp, forwardIPHeader,
 				forwardSecret, forwardSecretHeader, forwardSecretFile, forwardSecretValue, spoofPlayerAddressForwarded,
-				dualStackHAProxyDetection, forceDisableHAProxy, enableTLS, requireTLS, tlsManagedByExternalPlugin,
-				tlsPublicChainFile, tlsPrivateKeyFile, tlsPrivateKeyPassword, tlsAutoRefreshCert,
-				redirectLegacyClientsTo, serverIcon, serverMOTD, allowMOTD, allowQuery, showMOTDPlayerList,
-				allowCookieRevokeQuery, motdCacheTTL, motdCacheAnimation, motdCacheResults, motdCacheTrending,
-				motdCachePortfolios, limitIP, limitLogin, limitMOTD, limitQuery, limitHTTP, exceptionsConfList);
+				dualStackHAProxyDetection, trustedHAProxyProxies, forceDisableHAProxy, enableTLS, requireTLS,
+				tlsManagedByExternalPlugin, tlsPublicChainFile, tlsPrivateKeyFile, tlsPrivateKeyPassword,
+				tlsAutoRefreshCert, redirectLegacyClientsTo, serverIcon, serverMOTD, allowMOTD, allowQuery,
+				showMOTDPlayerList, allowCookieRevokeQuery, motdCacheTTL, motdCacheAnimation, motdCacheResults,
+				motdCacheTrending, motdCachePortfolios, limitIP, limitLogin, limitMOTD, limitQuery, limitHTTP,
+				exceptionsConfList);
 	}
 
 	private static ConfigDataListener.ConfigRateLimit loadRatelimiter(IEaglerConfSection parent, String name,
