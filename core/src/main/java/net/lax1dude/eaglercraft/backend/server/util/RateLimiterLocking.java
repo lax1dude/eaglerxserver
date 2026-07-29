@@ -70,8 +70,8 @@ public class RateLimiterLocking extends AtomicInteger {
 					long delta = (now - timer) / period;
 					if (delta > 0l) {
 						timer += delta * period;
-						return addAndGet(-Math.min((int) delta, v)) < limitVal ? EnumRateLimitState.BLOCKED
-								: EnumRateLimitState.OK;
+						return addAndGet(-Math.min((int) delta, v)) < limitVal ? EnumRateLimitState.OK
+								: EnumRateLimitState.BLOCKED;
 					}
 					return EnumRateLimitState.BLOCKED;
 				}
