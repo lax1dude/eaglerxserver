@@ -106,7 +106,8 @@ import net.lax1dude.eaglercraft.backend.server.velocity.event.VelocityEventDispa
 		PlatformPluginVelocity.PLUGIN_AUTHOR
 	},
 	dependencies = {
-		@Dependency(id = "skinsrestorer", optional = true)
+		@Dependency(id = "skinsrestorer", optional = true),
+		@Dependency(id = "limboapi", optional = true)
 	}
 )
 public class PlatformPluginVelocity implements IPlatform<Player> {

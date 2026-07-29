@@ -87,6 +87,8 @@ public class VelocityUnsafe {
 	private static final Method method_ServerChannelInitializerHolder_get;
 	private static final Method method_ServerChannelInitializerHolder_set;
 	private static final Method method_ChannelInitializer_initChannel;
+	private static final Class<?> class_LimboSessionHandlerImpl;
+	private static final Field field_LimboSessionHandlerImpl_originalHandler;
 
 	static {
 		try {
@@ -147,6 +149,18 @@ public class VelocityUnsafe {
 		} catch (ReflectiveOperationException ex) {
 			throw new ExceptionInInitializerError(ex);
 		}
+		Class<?> clz;
+		Field fld;
+		try {
+			clz = Class.forName("net.elytrium.limboapi.server.LimboSessionHandlerImpl");
+			fld = clz.getDeclaredField("originalHandler");
+			fld.setAccessible(true);
+		} catch (ReflectiveOperationException ex) {
+			clz = null;
+			fld = null;
+		}
+		class_LimboSessionHandlerImpl = clz;
+		field_LimboSessionHandlerImpl_originalHandler = fld;
 	}
 
 	private static MinecraftConnection getMinecraftConnection(InboundConnection connection) {
@@ -363,6 +377,9 @@ public class VelocityUnsafe {
 		// object therefore performance is not a concern
 		try {
 			Object o = field_MinecraftConnection_activeSessionHandler.get(getMinecraftConnection(player));
+			if (class_LimboSessionHandlerImpl != null && class_LimboSessionHandlerImpl.isAssignableFrom(o.getClass())) {
+				o = field_LimboSessionHandlerImpl_originalHandler.get(o);
+			}
 			if (class_AuthSessionHandler.isAssignableFrom(o.getClass())) {
 				final MinecraftConnection parent = (MinecraftConnection) field_AuthSessionHandler_mcConnection.get(o);
 				field_AuthSessionHandler_mcConnection.set(o, classProxy_MinecraftConnection.createProxy(
