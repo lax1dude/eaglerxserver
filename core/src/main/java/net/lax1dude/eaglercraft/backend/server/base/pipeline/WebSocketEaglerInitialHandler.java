@@ -601,7 +601,7 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 
 	@Override
 	protected void encode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> output) throws Exception {
-		if (!terminated && ctx.channel().isActive()) {
+		if (!terminated && ctx.channel().isActive() && msg.readableBytes() > 0) {
 			if (vanillaInitializer != null) {
 				vanillaInitializer.handleInbound(ctx, msg);
 			} else {
