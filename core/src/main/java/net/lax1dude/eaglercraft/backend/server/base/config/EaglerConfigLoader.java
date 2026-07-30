@@ -111,8 +111,8 @@ public class EaglerConfigLoader {
 				+ "frame is split into multiple fragments"
 			);
 			int httpWebSocketMaxFrameLength = config.getInteger(
-				"http_websocket_max_frame_length", 2097151,
-				"Default value is 2097151, sets the max size for websocket frames"
+				"http_websocket_max_frame_length", 131071,
+				"Default value is 131071, sets the max size for inbound websocket frames"
 			);
 			boolean httpWebSocketPingIntervention = config.getBoolean(
 				"http_websocket_ping_intervention", false,
