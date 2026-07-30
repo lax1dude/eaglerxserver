@@ -31,7 +31,6 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.extensions.WebSocketServerExtensionHandler;
 import io.netty.handler.codec.http.websocketx.extensions.WebSocketServerExtensionHandshaker;
-import io.netty.handler.codec.http.websocketx.extensions.compression.DeflateFrameServerExtensionHandshaker;
 import io.netty.handler.codec.http.websocketx.extensions.compression.PerMessageDeflateServerExtensionHandshaker;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -118,14 +117,16 @@ public class PipelineTransformer {
 		} else {
 			int compressionLevel = Math.min(server.getConfig().getSettings().getHTTPWebSocketCompressionLevel(), 9);
 			if (compressionLevel > 0) {
+				int frameLimit = server.getConfig().getSettings().getHTTPWebSocketMaxFrameLength();
 				List<WebSocketServerExtensionHandshaker> extensions = new ArrayList<>();
 				if (SUPPORTS_COMPRESSION_FRAME) {
-					extensions.add(new DeflateFrameServerExtensionHandshaker(compressionLevel));
+					extensions.add(WebSocketExtensionWrappers
+							.createDeflateFrameServerExtensionHandshaker(compressionLevel, frameLimit));
 				}
 				if (SUPPORTS_COMPRESSION_MESSAGE) {
-					extensions.add(new PerMessageDeflateServerExtensionHandshaker(compressionLevel,
-							ZlibCodecFactory.isSupportingWindowSizeAndMemLevel(),
-							PerMessageDeflateServerExtensionHandshaker.MAX_WINDOW_SIZE, false, false));
+					extensions.add(WebSocketExtensionWrappers.createPerMessageDeflateServerExtensionHandshaker(
+							compressionLevel, ZlibCodecFactory.isSupportingWindowSizeAndMemLevel(),
+							PerMessageDeflateServerExtensionHandshaker.MAX_WINDOW_SIZE, false, false, frameLimit));
 				}
 				enabledExtensions = extensions.toArray(new WebSocketServerExtensionHandshaker[extensions.size()]);
 			} else {
