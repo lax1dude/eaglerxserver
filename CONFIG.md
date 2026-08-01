@@ -1,5 +1,5 @@
 ## EaglerXServer Config Reference
-Generated from the source code of EaglerXServer 1.1.0
+Generated from the source code of EaglerXServer 1.1.1
 
 *(Placeholder extension ".cfg" replaced with ".yaml", ".toml", or ".gson")*
 
@@ -124,10 +124,10 @@ Generated from the source code of EaglerXServer 1.1.0
 
 ## <small>`/settings.cfg` &gt; `http_websocket_max_frame_length`&emsp;<sub>(Bukkit, BungeeCord, Velocity)</sub></small>
 **Summary:**
-- Default value is 2097151, sets the max size for websocket frames&emsp;<sub>(Bukkit, BungeeCord, Velocity)</sub>
+- Default value is 131071, sets the max size for inbound websocket frames&emsp;<sub>(Bukkit, BungeeCord, Velocity)</sub>
 
 **Defaults:**
-- `2097151`&emsp;<sub>(Bukkit, BungeeCord, Velocity)</sub>
+- `131071`&emsp;<sub>(Bukkit, BungeeCord, Velocity)</sub>
 
 ## <small>`/settings.cfg` &gt; `http_websocket_ping_intervention`&emsp;<sub>(Bukkit, BungeeCord, Velocity)</sub></small>
 **Summary:**

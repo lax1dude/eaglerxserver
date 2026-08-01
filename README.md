@@ -151,7 +151,7 @@ Call `EaglerXBackendRPC.instance()` (using `import net.lax1dude.eaglercraft.back
 
 I'll accept PRs for bugfixes and performance improvements, but if you plan to change the API or add a new feature you need to create an issue first explaining what you plan to do. If you attempt to PR new features or API without talking it over in an issue first, there's no timeline for when your code will be actually be reviewed or merged.
 
-Attention to detail is crucial, if your contributions were made as a result of attempting to apply knowledge of higher level languages and frameworks (such as JavaScript or Node.js) to Java and Netty without proper research, or your code is horribly inefficient due to not attempting to use proper data structures and/or accessing them correctly, your contributions will be rejected!
+Do not submit AI generated code for me to review, if you decide to do this you are probably just going to end up wasting my time. I don't need your help if you are just a middle man between an AI and the GitHub pull requests tab, if I really wanted to review AI generated code all day I could just generate and review the slop myself.
 
 If you contribute to EaglercraftXServer, you must consent to your patches being considered part of the public domain. You are not allowed to GPL your contributions or attach any license to them besides what is in this repository's LICENSE file. If you try to attach some kind of foreign license to your contribution, it will not be accepted.
 
