@@ -93,6 +93,10 @@ public class VanillaInitializer {
 			if (pipelineData.minecraftProtocol >= 764) {
 				buffer.writeLong(pipelineData.uuid.getMostSignificantBits());
 				buffer.writeLong(pipelineData.uuid.getLeastSignificantBits());
+			} else if (pipelineData.minecraftProtocol >= 761) {
+				buffer.writeBoolean(true);
+				buffer.writeLong(pipelineData.uuid.getMostSignificantBits());
+				buffer.writeLong(pipelineData.uuid.getLeastSignificantBits());
 			}
 			ctx.fireChannelRead(buffer.retain());
 		} finally {

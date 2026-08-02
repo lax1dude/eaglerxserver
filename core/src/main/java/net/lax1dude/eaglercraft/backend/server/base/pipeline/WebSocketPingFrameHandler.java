@@ -27,6 +27,41 @@ import io.netty.util.concurrent.GenericFutureListener;
 
 public class WebSocketPingFrameHandler extends ChannelInboundHandlerAdapter {
 
+	private static final java.lang.reflect.Method METHOD_RESET_READ_TIMEOUT;
+	private static final java.lang.reflect.Method METHOD_RESET_WRITE_TIMEOUT;
+	static {
+		java.lang.reflect.Method readM = null;
+		java.lang.reflect.Method writeM = null;
+		try {
+			readM = IdleStateHandler.class.getMethod("resetReadTimeout");
+		} catch (NoSuchMethodException ex) {
+		}
+		try {
+			writeM = IdleStateHandler.class.getMethod("resetWriteTimeout");
+		} catch (NoSuchMethodException ex) {
+		}
+		METHOD_RESET_READ_TIMEOUT = readM;
+		METHOD_RESET_WRITE_TIMEOUT = writeM;
+	}
+
+	private static void resetReadTimeoutQuietly(IdleStateHandler handler) {
+		if (handler != null && METHOD_RESET_READ_TIMEOUT != null) {
+			try {
+				METHOD_RESET_READ_TIMEOUT.invoke(handler);
+			} catch (Throwable t) {
+			}
+		}
+	}
+
+	private static void resetWriteTimeoutQuietly(IdleStateHandler handler) {
+		if (handler != null && METHOD_RESET_WRITE_TIMEOUT != null) {
+			try {
+				METHOD_RESET_WRITE_TIMEOUT.invoke(handler);
+			} catch (Throwable t) {
+			}
+		}
+	}
+
 	private long nextPing = 0l;
 	private int pingQuota = 3;
 
@@ -87,14 +122,12 @@ public class WebSocketPingFrameHandler extends ChannelInboundHandlerAdapter {
 			}
 			if (pingQuota > 0) {
 				--pingQuota;
-				if (readHandlerToNotify != null) {
-					readHandlerToNotify.resetReadTimeout();
-				}
+				resetReadTimeoutQuietly(readHandlerToNotify);
 				if (writeHandlerToNotify != null) {
 					ctx.writeAndFlush(new PongWebSocketFrame()).addListener(new Hack(ctx.executor()) {
 						@Override
 						public void run0() {
-							writeHandlerToNotify.resetWriteTimeout();
+							resetWriteTimeoutQuietly(writeHandlerToNotify);
 						}
 					});
 				} else {
@@ -105,9 +138,7 @@ public class WebSocketPingFrameHandler extends ChannelInboundHandlerAdapter {
 			ctx.fireChannelRead(msg);
 		} else {
 			msg2.release();
-			if (readHandlerToNotify != null) {
-				readHandlerToNotify.resetReadTimeout();
-			}
+			resetReadTimeoutQuietly(readHandlerToNotify);
 		}
 	}
 
