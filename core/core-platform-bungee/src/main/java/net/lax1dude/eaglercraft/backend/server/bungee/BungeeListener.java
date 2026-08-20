@@ -109,21 +109,28 @@ public class BungeeListener implements Listener {
 		} else {
 			pipelineData = data;
 		}
-		event.registerIntent(plugin);
+		boolean blockPostLogin = pipelineData == null || !pipelineData.isEaglerPlayer()
+				|| player.getPendingConnection().getVersion() < 764;
+		if (blockPostLogin) {
+			event.registerIntent(plugin);
+		}
 		awaitPlayState(pipelineData, () -> {
 			try {
 				plugin.initializePlayer(player, pipelineData, (b) -> {
-					if (b) {
-						event.completeIntent(plugin);
-					} else {
-						// Hang forever on cancel, connection is already dead, async callback will GC
+					if (blockPostLogin) {
+						if (b) {
+							event.completeIntent(plugin);
+						} else {
+						}
 					}
 				});
 			} catch (Exception ex) {
-				try {
-					event.completeIntent(plugin);
-				} catch (IllegalStateException exx) {
-					return;
+				if (blockPostLogin) {
+					try {
+						event.completeIntent(plugin);
+					} catch (IllegalStateException exx) {
+						return;
+					}
 				}
 				if (ex instanceof RuntimeException ee)
 					throw ee;
