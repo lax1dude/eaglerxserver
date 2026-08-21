@@ -16,6 +16,9 @@
 
 package net.lax1dude.eaglercraft.backend.server.bungee;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import io.netty.channel.Channel;
 import io.netty.util.Attribute;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerMessageHandler;
@@ -27,6 +30,7 @@ import net.lax1dude.eaglercraft.backend.server.adapter.PipelineAttributes;
 import net.lax1dude.eaglercraft.backend.server.base.handshake.HandshakePacketTypes;
 import net.lax1dude.eaglercraft.backend.server.bungee.PlatformPluginBungee.PluginMessageHandler;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.ServerConnectRequest;
 import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
@@ -41,6 +45,7 @@ import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.event.PreLoginEvent;
 import net.md_5.bungee.api.event.ProxyPingEvent;
 import net.md_5.bungee.api.event.ServerConnectedEvent;
+import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.event.ServerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerSwitchEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -50,6 +55,11 @@ import net.md_5.bungee.event.EventPriority;
 public class BungeeListener implements Listener {
 
 	private final PlatformPluginBungee plugin;
+	private final Map<ProxiedPlayer, EarlyBackendConnection> earlyBackendConnections = new ConcurrentHashMap<>();
+
+	private static class EarlyBackendConnection {
+		volatile boolean suppressJoinProxy;
+	}
 
 	BungeeListener(PlatformPluginBungee plugin) {
 		this.plugin = plugin;
@@ -89,8 +99,8 @@ public class BungeeListener implements Listener {
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onPostLoginEvent(PostLoginEvent event) {
 		ProxiedPlayer player = event.getPlayer();
-		IPipelineData data = BungeeUnsafe.getInitialHandlerChannel(player.getPendingConnection())
-				.attr(PipelineAttributes.<IPipelineData>pipelineData()).getAndSet(null);
+		Channel channel = BungeeUnsafe.getInitialHandlerChannel(player.getPendingConnection());
+		IPipelineData data = channel.attr(PipelineAttributes.<IPipelineData>pipelineData()).getAndSet(null);
 		IPipelineData pipelineData;
 		if (data instanceof BungeeLoginData loginData) {
 			pipelineData = loginData.getPipelineAttachment();
@@ -109,28 +119,44 @@ public class BungeeListener implements Listener {
 		} else {
 			pipelineData = data;
 		}
-		boolean blockPostLogin = pipelineData == null || !pipelineData.isEaglerPlayer()
-				|| player.getPendingConnection().getVersion() < 764;
-		if (blockPostLogin) {
-			event.registerIntent(plugin);
+		event.registerIntent(plugin);
+		EarlyBackendConnection earlyBackendConnection = null;
+		if (pipelineData != null && pipelineData.isEaglerPlayer()
+				&& player.getPendingConnection().getVersion() >= 764) {
+			earlyBackendConnection = new EarlyBackendConnection();
+			earlyBackendConnections.put(player, earlyBackendConnection);
+			 */
+			channel.eventLoop().execute(() -> {
+				if (player.isConnected()) {
+					ServerInfo target = event.getTarget();
+					if (target != null) {
+						player.connect(ServerConnectRequest.builder().target(target).retry(true)
+								.reason(ServerConnectEvent.Reason.JOIN_PROXY).build());
+					}
+				}
+			});
 		}
+		EarlyBackendConnection earlyBackendConnectionFinal = earlyBackendConnection;
 		awaitPlayState(pipelineData, () -> {
 			try {
 				plugin.initializePlayer(player, pipelineData, (b) -> {
-					if (blockPostLogin) {
-						if (b) {
-							event.completeIntent(plugin);
-						} else {
+					if (b) {
+						if (earlyBackendConnectionFinal != null) {
+							earlyBackendConnectionFinal.suppressJoinProxy = true;
 						}
+						event.completeIntent(plugin);
+					} else {
+						// Hang forever on cancel, connection is already dead, async callback will GC
 					}
 				});
 			} catch (Exception ex) {
-				if (blockPostLogin) {
-					try {
-						event.completeIntent(plugin);
-					} catch (IllegalStateException exx) {
-						return;
-					}
+				if (earlyBackendConnectionFinal != null) {
+					earlyBackendConnectionFinal.suppressJoinProxy = true;
+				}
+				try {
+					event.completeIntent(plugin);
+				} catch (IllegalStateException exx) {
+					return;
 				}
 				if (ex instanceof RuntimeException ee)
 					throw ee;
@@ -148,7 +174,19 @@ public class BungeeListener implements Listener {
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onServerConnectEvent(ServerConnectEvent event) {
+		ProxiedPlayer player = event.getPlayer();
+		EarlyBackendConnection earlyBackendConnection = earlyBackendConnections.get(player);
+		if (earlyBackendConnection != null && earlyBackendConnection.suppressJoinProxy
+				&& event.getReason() == ServerConnectEvent.Reason.JOIN_PROXY) {
+			event.setCancelled(true);
+			earlyBackendConnections.remove(player, earlyBackendConnection);
+		}
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onPlayerDisconnectedEvent(PlayerDisconnectEvent event) {
+		earlyBackendConnections.remove(event.getPlayer());
 		plugin.dropPlayer(event.getPlayer());
 	}
 
