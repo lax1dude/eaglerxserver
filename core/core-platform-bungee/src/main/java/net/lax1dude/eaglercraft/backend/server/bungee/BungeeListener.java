@@ -125,6 +125,9 @@ public class BungeeListener implements Listener {
 				&& player.getPendingConnection().getVersion() >= 764) {
 			earlyBackendConnection = new EarlyBackendConnection();
 			earlyBackendConnections.put(player, earlyBackendConnection);
+			/*
+			 * start the backend connection early to get loginsuccess while keeping
+			 * PostLoginEvent blocked until the eagler handshake is complete.
 			 */
 			channel.eventLoop().execute(() -> {
 				if (player.isConnected()) {
