@@ -17,7 +17,10 @@
 package net.lax1dude.eaglercraft.backend.server.base.pipeline;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.channels.ClosedChannelException;
+import java.util.ArrayDeque;
 import java.util.List;
+import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -30,7 +33,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelOutboundHandler;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelPromise;
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+import io.netty.util.ReferenceCountUtil;
 import net.lax1dude.eaglercraft.backend.server.api.EnumPipelineEvent;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.backend.server.base.EaglerXServer;
@@ -49,6 +57,80 @@ import net.lax1dude.eaglercraft.backend.server.base.message.RewindMessageInjecto
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 
 public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf, ByteBuf> {
+
+	private static final String HANDLER_DEFERRED_LOGIN_BUFFER = "eagler-deferred-login-buffer";
+
+	private static class DeferredLoginBufferHandler extends ChannelDuplexHandler {
+
+		private static class PendingWrite {
+
+			private final Object message;
+			private final ChannelPromise promise;
+
+			private PendingWrite(Object message, ChannelPromise promise) {
+				this.message = message;
+				this.promise = promise;
+			}
+
+		}
+
+		private final NettyPipelineData pipelineData;
+		private final Queue<PendingWrite> deferredInjectedMessages = new ArrayDeque<>();
+
+		private DeferredLoginBufferHandler(NettyPipelineData pipelineData) {
+			this.pipelineData = pipelineData;
+		}
+
+		@Override
+		public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+			ByteBuf buf = frameContent(msg);
+			if (pipelineData.proxyHandshakeComplete && !pipelineData.backendConnectionReady
+					&& msg instanceof BinaryWebSocketFrame && buf != null && buf.isReadable()
+					&& buf.getUnsignedByte(buf.readerIndex()) == 0xEE) {
+				deferredInjectedMessages.add(new PendingWrite(msg, promise));
+				return;
+			}
+			ctx.write(msg, promise);
+		}
+
+		private void releaseDeferredMessages(ChannelHandlerContext ctx) {
+			pipelineData.backendConnectionReady = true;
+			if (!deferredInjectedMessages.isEmpty()) {
+				PendingWrite pending;
+				while ((pending = deferredInjectedMessages.poll()) != null) {
+					ctx.write(pending.message, pending.promise);
+				}
+				ctx.flush();
+			}
+		}
+
+		@Override
+		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+			releaseDeferredMessages(new ClosedChannelException());
+			ctx.fireChannelInactive();
+		}
+
+		@Override
+		public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+			releaseDeferredMessages(new ClosedChannelException());
+		}
+
+		private void releaseDeferredMessages(Throwable cause) {
+			PendingWrite pending;
+			while ((pending = deferredInjectedMessages.poll()) != null) {
+				ReferenceCountUtil.release(pending.message);
+				pending.promise.tryFailure(cause);
+			}
+		}
+
+		private static ByteBuf frameContent(Object msg) {
+			if (msg instanceof WebSocketFrame frame) {
+				return frame.content();
+			}
+			return msg instanceof ByteBuf buf ? buf : null;
+		}
+
+	}
 
 	public interface IHandshaker {
 
@@ -638,11 +720,49 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		handshaker.handleBackendHandshakeSuccess(ctx, acceptedUsername, acceptedUUID);
 	}
 
+	public void handleProxyHandshakeSuccess(ChannelHandlerContext ctx, String acceptedUsername, UUID acceptedUUID) {
+		ChannelPipeline pipeline = ctx.pipeline();
+		if (pipeline.context(HANDLER_DEFERRED_LOGIN_BUFFER) == null) {
+			pipeline.addBefore(PipelineTransformer.HANDLER_FRAME_CODEC, HANDLER_DEFERRED_LOGIN_BUFFER,
+					new DeferredLoginBufferHandler(pipelineData));
+		}
+		pipelineData.proxyHandshakeComplete = true;
+		vanillaInitializer.handleProxyHandshakeSuccess(ctx, acceptedUsername, acceptedUUID);
+	}
+
 	public void enterPlayState(ChannelHandlerContext ctx) {
 		pipelineData.cancelLoginTimeoutHelper();
-		handshaker.finish(ctx);
 		ChannelPipeline pipeline = ctx.pipeline();
 		pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_HANDSHAKE_COMPLETE);
+		if (pipelineData.proxyHandshakeComplete) {
+			pipelineData.signalPlayState();
+		} else {
+			handshaker.finish(ctx);
+			handleBackendConnectionReady(ctx);
+			pipelineData.signalPlayState();
+			pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_ENTERED_PLAY_STATE);
+		}
+	}
+
+	public void scheduleBackendConnectionReady(ChannelHandlerContext ctx) {
+		ctx.executor().execute(() -> {
+			boolean handlerAttached = ctx.pipeline().context(PipelineTransformer.HANDLER_HANDSHAKE) == ctx;
+			if (ctx.channel().isActive() && handlerAttached) {
+				handleBackendConnectionReady(ctx);
+			}
+		});
+	}
+
+	public void handleBackendConnectionReady(ChannelHandlerContext ctx) {
+		ChannelPipeline pipeline = ctx.pipeline();
+		if (pipelineData.proxyHandshakeComplete) {
+			handshaker.finish(ctx);
+			ChannelHandlerContext bufferCtx = pipeline.context(HANDLER_DEFERRED_LOGIN_BUFFER);
+			if (bufferCtx != null && bufferCtx.handler() instanceof DeferredLoginBufferHandler bufferHandler) {
+				bufferHandler.releaseDeferredMessages(bufferCtx);
+				pipeline.remove(HANDLER_DEFERRED_LOGIN_BUFFER);
+			}
+		}
 		if (pipelineData.minecraftProtocol >= 764) {
 			ByteBuf ackBuf = ctx.alloc().buffer();
 			try {
@@ -654,8 +774,9 @@ public class WebSocketEaglerInitialHandler extends MessageToMessageCodec<ByteBuf
 		}
 		vanillaInitializer.flushBufferedPackets(ctx);
 		pipeline.remove(PipelineTransformer.HANDLER_HANDSHAKE);
-		pipelineData.signalPlayState();
-		pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_ENTERED_PLAY_STATE);
+		if (pipelineData.proxyHandshakeComplete) {
+			pipeline.fireUserEventTriggered(EnumPipelineEvent.EAGLER_ENTERED_PLAY_STATE);
+		}
 	}
 
 }

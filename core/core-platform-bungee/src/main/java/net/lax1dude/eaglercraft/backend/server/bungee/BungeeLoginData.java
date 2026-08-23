@@ -67,6 +67,13 @@ class BungeeLoginData implements IPipelineData, IPlatformLoginInitializer<IPipel
 	}
 
 	@Override
+	public void completeProxyHandshake(String username, UUID uuid) {
+		if (parent != null) {
+			parent.completeProxyHandshake(username, uuid);
+		}
+	}
+
+	@Override
 	public void awaitPlayState(Runnable continueHandler) {
 		if (parent != null) {
 			parent.awaitPlayState(continueHandler);

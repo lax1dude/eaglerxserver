@@ -36,8 +36,9 @@ public class VanillaInitializer {
 
 	private static final int STATE_PRE = 0;
 	private static final int STATE_SENT_LOGIN = 1;
-	private static final int STATE_STALLING = 2;
-	private static final int STATE_COMPLETE = 3;
+	private static final int STATE_PROXY_LOGIN = 2;
+	private static final int STATE_STALLING = 3;
+	private static final int STATE_COMPLETE = 4;
 	private int connectionState = STATE_PRE;
 
 	public VanillaInitializer(EaglerXServer<?> server, NettyPipelineData pipelineData,
@@ -117,7 +118,7 @@ public class VanillaInitializer {
 					inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
 					pipelineData.connectionLogger.error("Disconnecting, server sent unexpected packet " + pktId);
 				}
-			} else if (connectionState == STATE_SENT_LOGIN) {
+			} else if (connectionState == STATE_SENT_LOGIN || connectionState == STATE_PROXY_LOGIN) {
 				switch (pktId) {
 				case 0x00:
 					// S00PacketDisconnect
@@ -160,7 +161,11 @@ public class VanillaInitializer {
 						}
 						usernameStr = BufferUtils.readMCString(msg, 16);
 					}
-					inboundHandler.handleBackendHandshakeSuccess(ctx, usernameStr, playerUUID);
+					if (pipelineData.proxyHandshakeComplete) {
+						inboundHandler.scheduleBackendConnectionReady(ctx);
+					} else {
+						inboundHandler.handleBackendHandshakeSuccess(ctx, usernameStr, playerUUID);
+					}
 					break;
 				case 0x03:
 					// S03PacketEnableCompression
@@ -193,6 +198,14 @@ public class VanillaInitializer {
 			ex.printStackTrace();
 			inboundHandler.terminateInternalError(ctx, pipelineData.handshakeProtocol);
 		}
+	}
+
+	public void handleProxyHandshakeSuccess(ChannelHandlerContext ctx, String acceptedUsername, UUID acceptedUUID) {
+		if (connectionState != STATE_SENT_LOGIN) {
+			throw new IllegalStateException("Proxy handshake completed in state " + connectionState);
+		}
+		connectionState = STATE_PROXY_LOGIN;
+		inboundHandler.handleBackendHandshakeSuccess(ctx, acceptedUsername, acceptedUUID);
 	}
 
 	private void handleKickPacket(ChannelHandlerContext ctx, ByteBuf data) {

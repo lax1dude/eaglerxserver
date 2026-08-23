@@ -51,6 +51,8 @@ import net.lax1dude.eaglercraft.backend.server.api.INettyChannel;
 import net.lax1dude.eaglercraft.backend.server.api.attribute.IAttributeKey;
 import net.lax1dude.eaglercraft.backend.server.api.rewind.IEaglerXRewindProtocol;
 import net.lax1dude.eaglercraft.backend.server.base.message.RewindMessageControllerHandle;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.PipelineTransformer;
+import net.lax1dude.eaglercraft.backend.server.base.pipeline.WebSocketEaglerInitialHandler;
 import net.lax1dude.eaglercraft.backend.server.util.EnumRateLimitState;
 import net.lax1dude.eaglercraft.v1_8.socket.protocol.GamePluginMessageProtocol;
 
@@ -154,6 +156,8 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 	};
 
 	private Runnable playStateReached = null;
+	public boolean proxyHandshakeComplete;
+	public boolean backendConnectionReady;
 
 	public NettyPipelineData(Channel channel, EaglerXServer<?> server, EaglerListener listenerInfo,
 			EaglerAttributeManager.EaglerAttributeHolder attributeHolder, Consumer<SocketAddress> realAddressHandle,
@@ -422,6 +426,21 @@ public class NettyPipelineData extends IIdentifiedConnection.Base
 		Runnable runnable = (Runnable) PLAY_STATE_REACHED_HANDLE.getAndSet(this, REACHED);
 		if (runnable != null) {
 			runnable.run();
+		}
+	}
+
+	@Override
+	public void completeProxyHandshake(String username, UUID uuid) {
+		Runnable task = () -> {
+			ChannelHandlerContext ctx = channel.pipeline().context(PipelineTransformer.HANDLER_HANDSHAKE);
+			if (ctx != null && ctx.handler() instanceof WebSocketEaglerInitialHandler handler) {
+				handler.handleProxyHandshakeSuccess(ctx, username, uuid);
+			}
+		};
+		if (channel.eventLoop().inEventLoop()) {
+			task.run();
+		} else {
+			channel.eventLoop().execute(task);
 		}
 	}
 

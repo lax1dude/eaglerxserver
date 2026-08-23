@@ -16,11 +16,15 @@
 
 package net.lax1dude.eaglercraft.backend.server.adapter;
 
+import java.util.UUID;
+
 public interface IPipelineData {
 
 	boolean isEaglerPlayer();
 
 	boolean isCompressionDisable();
+
+	void completeProxyHandshake(String username, UUID uuid);
 
 	void awaitPlayState(Runnable continueHandler);
 
