@@ -38,6 +38,7 @@ public class VanillaInitializer {
 	private static final int STATE_SENT_LOGIN = 1;
 	private static final int STATE_STALLING = 2;
 	private static final int STATE_COMPLETE = 3;
+	private static final int STATE_PLAY = 4;
 	private int connectionState = STATE_PRE;
 
 	public VanillaInitializer(EaglerXServer<?> server, NettyPipelineData pipelineData,
@@ -184,6 +185,9 @@ public class VanillaInitializer {
 					msg.resetReaderIndex();
 					bufferedPackets.add(msg.retain());
 				}
+			} else if (connectionState == STATE_PLAY) {
+				msg.resetReaderIndex();
+				ctx.writeAndFlush(msg.retain());
 			} else {
 				pipelineData.connectionLogger
 						.error("Disconnecting, server sent unexpected packet " + pktId + " in unknown state");

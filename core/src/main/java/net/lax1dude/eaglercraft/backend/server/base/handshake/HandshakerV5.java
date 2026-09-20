@@ -184,6 +184,22 @@ public class HandshakerV5 extends HandshakerV4 {
 	}
 
 	@Override
+	protected void handleInboundProfileData(ChannelHandlerContext ctx, ByteBuf buffer) {
+		int count = buffer.readUnsignedByte();
+		while (--count >= 0 && !inboundHandler.terminated) {
+			int strlen = buffer.readUnsignedByte();
+			String type = BufferUtils.readCharSequence(buffer, strlen, StandardCharsets.US_ASCII).toString();
+			strlen = buffer.readUnsignedShort();
+			byte[] readData = Util.newByteArray(strlen);
+			buffer.readBytes(readData);
+			handlePacketProfileData(ctx, type, readData);
+		}
+		if (buffer.isReadable() && !inboundHandler.terminated) {
+			throw new IndexOutOfBoundsException();
+		}
+	}
+
+	@Override
 	protected ChannelFuture sendPacketAllowLogin(ChannelHandlerContext ctx, String setUsername, UUID setUUID,
 			int standardCapabilities, byte[] standardCapabilityVersions, Map<UUID, Byte> extendedCapabilities) {
 		ByteBuf buffer = ctx.alloc().buffer();
