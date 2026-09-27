@@ -23,6 +23,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import com.google.common.collect.ForwardingMap;
@@ -99,7 +100,13 @@ public class VelocityUnsafe {
 					.getDeclaredMethod("delegatedConnection");
 			method_LoginInboundConnection_delegatedConnection.setAccessible(true);
 			class_MinecraftConnection = MinecraftConnection.class;
-			ctor_MinecraftConnection = class_MinecraftConnection.getConstructor(Channel.class, class_VelocityServer);
+			Constructor<MinecraftConnection> ctor;
+			try {
+				ctor = class_MinecraftConnection.getConstructor(Channel.class, class_VelocityServer, UUID.class);
+			} catch (NoSuchMethodException ex) {
+				ctor = class_MinecraftConnection.getConstructor(Channel.class, class_VelocityServer);
+			}
+			ctor_MinecraftConnection = ctor;
 			classProxy_MinecraftConnection = ClassProxy.bindProxy(VelocityUnsafe.class.getClassLoader(),
 					class_MinecraftConnection);
 			method_MinecraftConnection_getState = class_MinecraftConnection.getMethod("getState");
@@ -382,8 +389,11 @@ public class VelocityUnsafe {
 			}
 			if (class_AuthSessionHandler.isAssignableFrom(o.getClass())) {
 				final MinecraftConnection parent = (MinecraftConnection) field_AuthSessionHandler_mcConnection.get(o);
+				final Object[] ctorArgs = ctor_MinecraftConnection.getParameterCount() == 3
+					? new Object[] { parent.getChannel(), server, null }
+					: new Object[] { parent.getChannel(), server };
 				field_AuthSessionHandler_mcConnection.set(o, classProxy_MinecraftConnection.createProxy(
-						ctor_MinecraftConnection, new Object[] { parent.getChannel(), server }, (obj, meth, args) -> {
+						ctor_MinecraftConnection, ctorArgs, (obj, meth, args) -> {
 							if ("setCompressionThreshold".equals(meth.getName())) {
 								// FUCK YOU!
 								return null;
