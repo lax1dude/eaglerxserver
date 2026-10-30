@@ -126,8 +126,12 @@ public class EaglerXBackendRPCRemote<PlayerObject> extends EaglerXBackendRPCBase
 
 	void registerPlayer(PlayerInstanceRemote<PlayerObject> playerInstance) {
 		PlayerObject playerObj = playerInstance.getPlayerObject();
-		if (basePlayerMap.putIfAbsent(playerObj, playerInstance) != null) {
-			throw new IllegalStateException("Player is already registered!");
+		PlayerInstanceRemote<PlayerObject> old = basePlayerMap.put(playerObj, playerInstance);
+		if (old != null) {
+			if (old.isEaglerPlayer()) {
+				eaglerPlayerMap.remove(playerObj);
+			}
+			old.handleDestroyed();
 		}
 		if (playerInstance.isEaglerPlayer()) {
 			eaglerPlayerMap.put(playerObj, playerInstance);

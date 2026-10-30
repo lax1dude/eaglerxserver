@@ -302,6 +302,9 @@ public class PlatformPluginBukkit extends JavaPlugin implements IPlatform<Player
 	}
 
 	void initializePlayer(Player player) {
+		if (playerInstanceMap.containsKey(player)) {
+			dropPlayer(player);
+		}
 		BukkitPlayer p = new BukkitPlayer(this, player);
 		playerInitializer.initializePlayer(new IPlatformPlayerInitializer<Object, Player>() {
 			@Override
