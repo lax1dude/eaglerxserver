@@ -403,7 +403,11 @@ public class VelocityUnsafe {
 	}
 
 	public static void sendDataBackend(ServerConnection connection, String channel, byte[] data) {
-		getBackendConnection(connection).write(new PluginMessagePacket(channel, Unpooled.wrappedBuffer(data)));
+		MinecraftConnection conn = getBackendConnection(connection);
+		// The backend connection is already gone when the player switched or disconnected right after connecting
+		if (conn != null) {
+			conn.write(new PluginMessagePacket(channel, Unpooled.wrappedBuffer(data)));
+		}
 	}
 
 	public static EventLoopGroup getBossEventLoopGroup(ProxyServer proxyIn) {
