@@ -1,5 +1,5 @@
 ## EaglerXServer Config Reference
-Generated from the source code of EaglerXServer 1.1.1
+Generated from the source code of EaglerXServer 1.1.2
 
 *(Placeholder extension ".cfg" replaced with ".yaml", ".toml", or ".gson")*
 

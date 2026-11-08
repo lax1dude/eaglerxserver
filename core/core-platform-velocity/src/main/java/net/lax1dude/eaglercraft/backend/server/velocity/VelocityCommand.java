@@ -16,6 +16,8 @@
 
 package net.lax1dude.eaglercraft.backend.server.velocity;
 
+import java.util.List;
+
 import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.command.SimpleCommand;
@@ -36,6 +38,12 @@ class VelocityCommand implements SimpleCommand {
 	@Override
 	public void execute(Invocation arg0) {
 		cmd.getHandler().handle(cmd, plugin.getCommandSender(arg0.source()), arg0.arguments());
+	}
+
+	@Override
+	public List<String> suggest(Invocation invocation) {
+		return cmd.getHandler().tabComplete(cmd, plugin.getCommandSender(invocation.source()),
+				invocation.arguments());
 	}
 
 	@Override

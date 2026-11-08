@@ -16,9 +16,17 @@
 
 package net.lax1dude.eaglercraft.backend.server.adapter;
 
+import java.util.Collections;
+import java.util.List;
+
 public interface IEaglerXServerCommandHandler<PlayerObject> {
 
 	void handle(IEaglerXServerCommandType<PlayerObject> command, IPlatformCommandSender<PlayerObject> sender,
 			String[] args);
+
+	default List<String> tabComplete(IEaglerXServerCommandType<PlayerObject> command,
+			IPlatformCommandSender<PlayerObject> sender, String[] args) {
+		return Collections.emptyList();
+	}
 
 }

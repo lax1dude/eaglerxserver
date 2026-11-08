@@ -16,6 +16,10 @@
 
 package net.lax1dude.eaglercraft.backend.server.base.command;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerCommandType;
@@ -71,6 +75,35 @@ public class CommandBrand<PlayerObject> extends EaglerCommand<PlayerObject> {
 		}
 		sender.sendMessage(getChatBuilder().buildTextComponent().beginStyle().color(EnumChatColor.RED).end()
 				.text("Usage: /brand [name|uuid|mc] <username>").end());
+	}
+
+	private static final List<String> LOOKUP_TYPES = Arrays.asList("name", "uuid", "mc");
+
+	@Override
+	public List<String> tabComplete(IEaglerXServerCommandType<PlayerObject> command,
+			IPlatformCommandSender<PlayerObject> sender, String[] args) {
+		List<String> ret = new ArrayList<>();
+		if (args.length == 1) {
+			String prefix = args[0].toLowerCase(Locale.ROOT);
+			for (String type : LOOKUP_TYPES) {
+				if (type.startsWith(prefix)) {
+					ret.add(type);
+				}
+			}
+			addPlayerNames(ret, prefix);
+		} else if (args.length == 2 && LOOKUP_TYPES.contains(args[0].toLowerCase(Locale.ROOT))) {
+			addPlayerNames(ret, args[1].toLowerCase(Locale.ROOT));
+		}
+		return ret;
+	}
+
+	private void addPlayerNames(List<String> out, String lowerPrefix) {
+		for (BasePlayerInstance<PlayerObject> player : getServer().getAllPlayersInternal()) {
+			String name = player.getUsername();
+			if (name != null && name.toLowerCase(Locale.ROOT).startsWith(lowerPrefix)) {
+				out.add(name);
+			}
+		}
 	}
 
 	private void handle(IPlatformCommandSender<PlayerObject> sender, BasePlayerInstance<PlayerObject> player,

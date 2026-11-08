@@ -48,6 +48,11 @@ class BukkitCommand extends Command {
 		return true;
 	}
 
+	@Override
+	public List<String> tabComplete(CommandSender sender, String alias, String[] args) {
+		return cmd.getHandler().tabComplete(cmd, plugin.getCommandSender(sender), args);
+	}
+
 	private static List<String> nullFix(String[] input) {
 		return input != null ? Arrays.asList(input) : Collections.emptyList();
 	}
