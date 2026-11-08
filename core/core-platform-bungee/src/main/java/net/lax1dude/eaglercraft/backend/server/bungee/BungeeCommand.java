@@ -16,12 +16,13 @@
 
 package net.lax1dude.eaglercraft.backend.server.bungee;
 
+import net.md_5.bungee.api.plugin.TabExecutor;
 import net.lax1dude.eaglercraft.backend.server.adapter.IEaglerXServerCommandType;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
-class BungeeCommand extends Command {
+class BungeeCommand extends Command implements TabExecutor {
 
 	private final PlatformPluginBungee plugin;
 	private final IEaglerXServerCommandType<ProxiedPlayer> cmd;
@@ -35,6 +36,11 @@ class BungeeCommand extends Command {
 	@Override
 	public void execute(CommandSender arg0, String[] arg1) {
 		cmd.getHandler().handle(cmd, plugin.getCommandSender(arg0), arg1);
+	}
+
+	@Override
+	public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
+		return cmd.getHandler().tabComplete(cmd, plugin.getCommandSender(sender), args);
 	}
 
 	private static String[] nullFix(String[] input) {
