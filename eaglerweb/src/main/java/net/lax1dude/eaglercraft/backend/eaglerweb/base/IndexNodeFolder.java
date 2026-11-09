@@ -35,7 +35,7 @@ class IndexNodeFolder extends IndexNode implements Iterable<IndexNode> {
 
 	@Override
 	IndexNode find(CharSequence charSeq) {
-		return children.get(charSeq);
+		return children.get(charSeq.toString());
 	}
 
 	boolean isEmpty() {
